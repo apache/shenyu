@@ -21,6 +21,7 @@ package org.apache.shenyu.springboot.starter.plugin.oauth2;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.oauth2.OAuth2Plugin;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
@@ -70,12 +71,12 @@ public class OAuth2PluginConfiguration {
 
     /**
      * oauth2 plugin shenyu plugin.
-     * @param authorizedClientService the ReactiveOAuth2AuthorizedClientService
+     * @param authorizedClientServiceProvider the ReactiveOAuth2AuthorizedClientServiceProvider
      * @return the shenyu plugin
      */
     @Bean
-    public AbstractShenyuPlugin oAuth2Plugin(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
-        return new OAuth2Plugin(authorizedClientService);
+    public AbstractShenyuPlugin oAuth2Plugin(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientServiceProvider) {
+        return new OAuth2Plugin(authorizedClientServiceProvider.getObject());
     }
 
     @Bean
@@ -95,7 +96,6 @@ public class OAuth2PluginConfiguration {
      * Build SecurityWebFilterChain.
      *
      * @param http                    The ServerHttpSecurity Instance
-     * @param authorizedClientService The OAuth2Filter Instance
      * @param context                 The ApplicationContext Instance
      * @return The SecurityWebFilterChain
      */
