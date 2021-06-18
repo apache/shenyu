@@ -150,5 +150,4 @@ public class JsonMessageTest {
         InputStream actualInputStream = requestMarshaller.stream(dynamicMessage);
         Assert.assertEquals(inputStream, actualInputStream);
     }
-
 }
