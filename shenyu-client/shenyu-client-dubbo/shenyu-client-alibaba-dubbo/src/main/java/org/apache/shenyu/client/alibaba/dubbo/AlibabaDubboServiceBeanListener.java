@@ -41,9 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -79,8 +77,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
-                .setNameFormat("alibaba-dubbo-client-thread-pool-%d").build());
+        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-alibaba-dubbo-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
