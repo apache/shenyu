@@ -82,7 +82,7 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);
         CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.methodType);
         return Mono.fromFuture(result.thenApply(ret -> {
-            exchange.getAttributes().put(Constants.GRPC_RPC_RESULT, ret.getResults());
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new).then(chain.execute(exchange));
