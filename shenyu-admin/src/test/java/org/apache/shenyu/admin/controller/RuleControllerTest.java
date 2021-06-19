@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -78,7 +79,9 @@ public final class RuleControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(ruleController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(ruleController)
+                .setControllerAdvice(new ExceptionHandlers())
+                .build();
     }
 
     @Test
@@ -110,6 +113,7 @@ public final class RuleControllerTest {
                 .paramType("uri")
                 .operator("match")
                 .paramName("/")
+                .paramValue("test")
                 .paramType("/http/order/save")
                 .build();
         List<RuleConditionDTO> conList = new ArrayList<>();

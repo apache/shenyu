@@ -36,7 +36,6 @@ public class MetaDataDTO implements Serializable {
 
     private String contextPath;
 
-    @NotNull
     private String path;
 
     private String ruleName;

@@ -44,7 +44,6 @@ public class ShenyuDictDTO implements Serializable {
     /**
      * dict code.
      */
-    @NotNull
     private String dictCode;
 
     /**

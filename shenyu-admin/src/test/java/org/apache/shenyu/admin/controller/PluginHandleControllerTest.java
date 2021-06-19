@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -64,7 +65,9 @@ public final class PluginHandleControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(pluginHandleController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(pluginHandleController)
+                .setControllerAdvice(new ExceptionHandlers())
+                .build();
     }
 
     @Test
@@ -99,7 +102,9 @@ public final class PluginHandleControllerTest {
     @Test
     public void testCreatePluginHandle() throws Exception {
         PluginHandleDTO pluginHandleDTO = new PluginHandleDTO();
-        pluginHandleDTO.setId("1");
+        pluginHandleDTO.setPluginId("1213");
+        pluginHandleDTO.setDataType(1);
+        pluginHandleDTO.setField("f");
         given(this.pluginHandleService.createOrUpdate(pluginHandleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin-handle/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -113,6 +118,9 @@ public final class PluginHandleControllerTest {
     public void testUpdatePluginHandle() throws Exception {
         PluginHandleDTO pluginHandleDTO = new PluginHandleDTO();
         pluginHandleDTO.setId("1");
+        pluginHandleDTO.setPluginId("1213");
+        pluginHandleDTO.setDataType(1);
+        pluginHandleDTO.setField("f");
         given(this.pluginHandleService.createOrUpdate(pluginHandleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-handle/{id}", "1")
                 .contentType(MediaType.APPLICATION_JSON)

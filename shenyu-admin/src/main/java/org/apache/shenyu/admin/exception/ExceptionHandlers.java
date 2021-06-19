@@ -114,7 +114,7 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ShenyuAdminResult handleConstraintViolationException(final ConstraintViolationException e) {
+    protected ShenyuAdminResult handleConstraintViolationException(final ConstraintViolationException e) {
         log.warn("", e);
         Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
         return ShenyuAdminResult.error(violations.stream()
