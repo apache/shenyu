@@ -49,5 +49,4 @@ public class ParamMappingPluginConfiguration {
     public PluginDataHandler paramMappingPluginDataHandler() {
         return new ParamMappingPluginDataHandler();
     }
-
 }
