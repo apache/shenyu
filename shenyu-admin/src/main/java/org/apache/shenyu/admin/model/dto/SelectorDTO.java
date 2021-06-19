@@ -22,6 +22,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -44,11 +46,13 @@ public final class SelectorDTO implements Serializable {
     /**
      * plugin id.
      */
+    @NotNull
     private String pluginId;
 
     /**
      * selector name.
      */
+    @NotNull
     private String name;
 
     /**
@@ -59,16 +63,19 @@ public final class SelectorDTO implements Serializable {
     /**
      * selector type.
      */
+    @NotNull
     private Integer type;
 
     /**
      * sort type.
      */
+    @NotNull
     private Integer sort;
 
     /**
      * whether enabled.
      */
+    @NotNull
     private Boolean enabled;
 
     /**
@@ -79,6 +86,7 @@ public final class SelectorDTO implements Serializable {
     /**
      * whether continued.
      */
+    @NotNull
     private Boolean continued;
 
     private String handle;
@@ -86,5 +94,6 @@ public final class SelectorDTO implements Serializable {
     /**
      * selector conditions.
      */
+    @Valid
     private List<SelectorConditionDTO> selectorConditions;
 }

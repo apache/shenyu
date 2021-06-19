@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,27 +44,26 @@ import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import javax.annotation.Resource;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * DashboardUserServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.DashboardUserService}.
  */
-@Service("dashboardUserService")
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class DashboardUserServiceImpl implements DashboardUserService {
 
-    @Resource
-    private SecretProperties secretProperties;
+    private final SecretProperties secretProperties;
 
     private final DashboardUserMapper dashboardUserMapper;
 
@@ -73,20 +73,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private final DataPermissionMapper dataPermissionMapper;
 
-    @Autowired(required = false)
-    private LdapProperties ldapProperties;
+    @Nullable
+    private final LdapProperties ldapProperties;
 
-    @Autowired(required = false)
-    private LdapTemplate ldapTemplate;
-
-    @Autowired(required = false)
-    public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper, final UserRoleMapper userRoleMapper,
-                                    final RoleMapper roleMapper, final DataPermissionMapper dataPermissionMapper) {
-        this.dashboardUserMapper = dashboardUserMapper;
-        this.userRoleMapper = userRoleMapper;
-        this.roleMapper = roleMapper;
-        this.dataPermissionMapper = dataPermissionMapper;
-    }
+    @Nullable
+    private final LdapTemplate ldapTemplate;
 
     /**
      * create or update dashboard user.

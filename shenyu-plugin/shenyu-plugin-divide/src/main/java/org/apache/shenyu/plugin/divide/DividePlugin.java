@@ -74,7 +74,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            log.error("divide upstream configuration error： {}", rule.toString());
+            log.error("divide upstream configuration error： {}", rule);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }

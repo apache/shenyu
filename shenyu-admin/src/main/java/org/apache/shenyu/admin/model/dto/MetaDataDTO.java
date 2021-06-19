@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data
@@ -30,10 +31,12 @@ public class MetaDataDTO implements Serializable {
 
     private String id;
 
+    @NotNull
     private String appName;
 
     private String contextPath;
 
+    @NotNull
     private String path;
 
     private String ruleName;

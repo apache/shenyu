@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -52,7 +53,6 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,9 +64,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * The type shenyu client register service.
+ * Implementation of the {@link org.apache.shenyu.admin.service.ShenyuClientRegisterService}.
  */
-@Service("shenyuClientRegisterService")
+@RequiredArgsConstructor
+@Service
 public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterService {
 
     private static final String CONTEXT_PATH_NAME_PREFIX = "/context-path";
@@ -86,37 +87,6 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     private final SelectorMapper selectorMapper;
 
     private final PluginMapper pluginMapper;
-
-    /**
-     * Instantiates a new Meta data service.
-     *
-     * @param metaDataMapper       the meta data mapper
-     * @param eventPublisher       the event publisher
-     * @param selectorService      the selector service
-     * @param ruleService          the rule service
-     * @param ruleMapper           the rule mapper
-     * @param upstreamCheckService the upstream check service
-     * @param selectorMapper       the selector mapper
-     * @param pluginMapper         the plugin mapper
-     */
-    @Autowired(required = false)
-    public ShenyuClientRegisterServiceImpl(final MetaDataMapper metaDataMapper,
-                                           final ApplicationEventPublisher eventPublisher,
-                                           final SelectorService selectorService,
-                                           final RuleService ruleService,
-                                           final RuleMapper ruleMapper,
-                                           final UpstreamCheckService upstreamCheckService,
-                                           final SelectorMapper selectorMapper,
-                                           final PluginMapper pluginMapper) {
-        this.metaDataMapper = metaDataMapper;
-        this.eventPublisher = eventPublisher;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
-        this.ruleMapper = ruleMapper;
-        this.upstreamCheckService = upstreamCheckService;
-        this.selectorMapper = selectorMapper;
-        this.pluginMapper = pluginMapper;
-    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

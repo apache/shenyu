@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -37,21 +38,25 @@ public class ShenyuDictDTO implements Serializable {
     /**
      * dict type.
      */
+    @NotNull
     private String type;
 
     /**
      * dict code.
      */
+    @NotNull
     private String dictCode;
 
     /**
      * dict name.
      */
+    @NotNull
     private String dictName;
 
     /**
      * dict value.
      */
+    @NotNull
     private String dictValue;
 
     /**
@@ -62,6 +67,7 @@ public class ShenyuDictDTO implements Serializable {
     /**
      * sort no.
      */
+    @NotNull
     private Integer sort;
 
     /**

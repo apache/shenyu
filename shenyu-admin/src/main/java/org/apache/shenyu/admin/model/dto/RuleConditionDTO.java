@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -48,20 +49,24 @@ public final class RuleConditionDTO implements Serializable {
     /**
      * parameter type.
      */
+    @NotNull
     private String paramType;
 
     /**
      * match operator.
      */
+    @NotNull
     private String operator;
 
     /**
      * parameter name.
      */
+    @NotNull
     private String paramName;
 
     /**
      * parameter value.
      */
+    @NotNull
     private String paramValue;
 }
