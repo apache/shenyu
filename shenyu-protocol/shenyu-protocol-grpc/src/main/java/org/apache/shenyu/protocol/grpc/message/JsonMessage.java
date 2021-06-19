@@ -97,7 +97,6 @@ public class JsonMessage {
      * @return DynamicMessage
      */
     public static DynamicMessage buildJsonMessage(final String jsonParam) {
-
         // build Descriptor and set request param
         Descriptors.Descriptor jsonDescriptor = buildJsonMarshallerDescriptor();
         DynamicMessage.Builder jsonDynamicMessage = DynamicMessage.newBuilder(jsonDescriptor);
