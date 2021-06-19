@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.httpclient.response;
 
-import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;

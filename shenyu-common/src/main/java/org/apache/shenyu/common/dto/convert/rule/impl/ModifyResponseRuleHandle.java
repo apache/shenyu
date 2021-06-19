@@ -39,49 +39,49 @@ public class ModifyResponseRuleHandle implements RuleHandle {
     private static final long serialVersionUID = -3863724068338111444L;
 
     /**
-     * add header map
+     * add header map.
      */
-    private Map<String,String> addHeaders;
+    private Map<String, String> addHeaders;
 
     /**
-     * set header map
+     * set header map.
      */
-    private Map<String,String> setHeaders;
+    private Map<String, String> setHeaders;
 
     /**
      * replace header map
      * key: oldHeaderKey, value: newHeaderKey.
      */
-    private Map<String,String> replaceHeaderKeys;
+    private Map<String, String> replaceHeaderKeys;
 
     /**
-     * remove header List
+     * remove header List.
      */
     private Set<String> removeHeaderKeys;
 
     /**
-     * http response status code
+     * http response status code.
      */
     private int statusCode;
 
     /**
-     * add body map
+     * add body map.
      */
-    private Map<String,String> addBodyMap;
+    private Map<String, String> addBodyMap;
 
     /**
-     * update body value map
+     * update body value map.
      */
-    private Map<String,String> setBodyMap;
+    private Map<String, String> setBodyMap;
 
     /**
      * replace body map
      * key: oldHeaderKey, value: newHeaderKey.
      */
-    private Map<String,String> replaceBodyKeys;
+    private Map<String, String> replaceBodyKeys;
 
     /**
-     * remove body List
+     * remove body List.
      */
     private Set<String> removeBodyKeys;
 
