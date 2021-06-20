@@ -21,7 +21,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin;
 import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
 import org.apache.shenyu.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
-import org.apache.shenyu.plugin.dubbo.common.response.DubboResponsePlugin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +50,6 @@ public final class AlibabaDubboPluginConfigurationTest {
     private AlibabaDubboPlugin alibabaDubboPlugin;
     
     @Autowired(required = false)
-    private DubboResponsePlugin dubboResponsePlugin;
-    
-    @Autowired(required = false)
     private AlibabaDubboPluginDataHandler alibabaDubboPluginDataHandler;
     
     @Autowired(required = false)
@@ -63,8 +59,6 @@ public final class AlibabaDubboPluginConfigurationTest {
     public void testAlibabaDubboPlugin() {
         assertThat(alibabaDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
         assertThat(alibabaDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
-        assertThat(dubboResponsePlugin.getOrder(), is(PluginEnum.RESPONSE.getCode()));
-        assertThat(dubboResponsePlugin.named(), is(PluginEnum.RESPONSE.getName()));
         assertThat(alibabaDubboPluginDataHandler.pluginNamed(), is(PluginEnum.DUBBO.getName()));
         assertNotNull(alibabaDubboMetaDataSubscriber);
     }

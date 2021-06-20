@@ -45,6 +45,8 @@ public class JsonServerServiceInterceptor {
 
     private static Map<String, Class<?>> requestClazzMap = Maps.newConcurrentMap();
 
+    private static Map<String, MethodDescriptor.MethodType> methodTypeMap = Maps.newConcurrentMap();
+
     /**
      * wrap ServerServiceDefinition to get json ServerServiceDefinition.
      * @param serviceDef ServerServiceDefinition
@@ -84,6 +86,9 @@ public class JsonServerServiceInterceptor {
             defaultInstanceField.setAccessible(true);
 
             String fullMethodName = definition.getMethodDescriptor().getFullMethodName();
+            MethodDescriptor.MethodType methodType = definition.getMethodDescriptor().getType();
+            methodTypeMap.put(fullMethodName, methodType);
+
             String[] splitMethodName = fullMethodName.split("/");
             fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_SERVICE + "/" + splitMethodName[1];
             requestClazzMap.put(fullMethodName, defaultInstanceField.get(requestMarshaller).getClass());
@@ -175,5 +180,13 @@ public class JsonServerServiceInterceptor {
      */
     public static Map<String, Class<?>> getRequestClazzMap() {
         return requestClazzMap;
+    }
+
+    /**
+     * get MethodTypeMap.
+     * @return methodTypeMap
+     */
+    public static Map<String, MethodDescriptor.MethodType> getMethodTypeMap() {
+        return methodTypeMap;
     }
 }

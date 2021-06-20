@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.3.1-SNAPSHOT</version>
+        <version>2.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-bootstrap</artifactId>
@@ -48,29 +48,6 @@
             <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!--if you use http proxy start this-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-divide</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- shenyu httpclient plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-httpclient</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu httpclient plugin end-->
-
-        <!-- shenyu global plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-global</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu global plugin end-->
 
         <!-- shenyu ratelimiter plugin start-->
         <dependency>
@@ -128,14 +105,6 @@
         </dependency>
         <!-- shenyu sentinel plugin end-->
 
-        <!-- shenyu context-path plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-context-path</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu context-path plugin end-->
-
         <!-- shenyu redirect plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -151,8 +120,23 @@
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu redirect plugin end-->
-        
-        <!--shenyu tars plugin end-->
+
+        <!--shenyu debug plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu debug plugin end-->
+
+        <!--shenyu request plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu request plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
@@ -173,7 +157,7 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu grpc plugin end-->
-        
+
         <!--shenyu sofa plugin start-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
@@ -352,13 +336,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <!--shenyu debug plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!--shenyu debug plugin end-->
 
         <!--shenyu request plugin start-->
@@ -368,6 +345,14 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu request plugin end-->
+
+        <!--shenyu param mapping plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu param mapping end-->
     </dependencies>
 
     <build>
@@ -376,6 +361,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.2.2.RELEASE</version>
                 <configuration>
                     <mainClass>org.apache.shenyu.bootstrap.ShenyuBootstrapApplication</mainClass>
                     <executable>true</executable>
