@@ -50,7 +50,7 @@ import java.util.Objects;
  * spring cloud service register.
  */
 @Service("springCloud")
-public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final MetaDataMapper metaDataMapper;
 

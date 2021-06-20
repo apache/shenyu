@@ -47,7 +47,7 @@ import java.util.Objects;
  * dubbo service register.
  */
 @Service("dubbo")
-public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final MetaDataMapper metaDataMapper;
 

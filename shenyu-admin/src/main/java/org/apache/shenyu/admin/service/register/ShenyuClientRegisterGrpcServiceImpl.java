@@ -54,7 +54,7 @@ import java.util.Objects;
  * grpc service register.
  */
 @Service("grpc")
-public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final MetaDataMapper metaDataMapper;
 

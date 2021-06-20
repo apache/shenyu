@@ -54,7 +54,7 @@ import java.util.Objects;
  * spring mvc service register.
  */
 @Service("http")
-public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final MetaDataMapper metaDataMapper;
 

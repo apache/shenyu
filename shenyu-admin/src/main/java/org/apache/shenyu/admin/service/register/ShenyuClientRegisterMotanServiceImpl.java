@@ -53,7 +53,7 @@ import java.util.Objects;
  * motan service register.
  */
 @Service("motan")
-public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final MetaDataMapper metaDataMapper;
 

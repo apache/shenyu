@@ -46,7 +46,7 @@ import java.util.Objects;
  * sofa service register.
  */
 @Service("sofa")
-public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final MetaDataMapper metaDataMapper;
 

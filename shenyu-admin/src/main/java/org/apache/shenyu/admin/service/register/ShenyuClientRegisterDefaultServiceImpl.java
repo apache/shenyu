@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * default service register.
  */
 @Service("default")
-public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final ApplicationEventPublisher eventPublisher;
 

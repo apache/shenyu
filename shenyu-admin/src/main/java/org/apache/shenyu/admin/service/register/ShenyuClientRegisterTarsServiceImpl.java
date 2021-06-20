@@ -53,7 +53,7 @@ import java.util.Objects;
  * tars service register.
  */
 @Service("tars")
-public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientRegisterService {
+public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private final MetaDataMapper metaDataMapper;
 
