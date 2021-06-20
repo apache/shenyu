@@ -34,6 +34,18 @@ public final class IpUtils {
      * @return the host
      */
     public static String getHost() {
+        return getHost(null);
+    }
+
+    /**
+     * Gets host.
+     *
+     * @param preferred host preferred str
+     * @return the host
+     */
+    public static String getHost(String preferred) {
+        boolean first = true;
+        String firstHostIp = null;
         String hostIp = null;
         try {
             Enumeration<?> networkInterfaces = NetworkInterface.getNetworkInterfaces();
@@ -44,11 +56,22 @@ public final class IpUtils {
                     InetAddress inetAddress = (InetAddress) addresses.nextElement();
                     String hostAddress = inetAddress.getHostAddress();
                     if (hostAddress.contains(".") && !inetAddress.isLoopbackAddress()) {
-                        hostIp = hostAddress;
-                        break;
+                        if (first) {
+                            firstHostIp = hostAddress;
+                            first = false;
+                        }
+                        if (preferred != null && hostAddress.startsWith(preferred)) {
+                            hostIp = hostAddress;
+                            break;
+                        }
                     }
                 }
             }
+
+            if (hostIp == null && firstHostIp != null) {
+                hostIp = firstHostIp;
+            }
+
             if (hostIp == null) {
                 hostIp = InetAddress.getLocalHost().getHostAddress();
             }
