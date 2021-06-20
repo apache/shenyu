@@ -43,7 +43,7 @@ public final class IpUtils {
      * @param preferred host preferred str
      * @return the host
      */
-    public static String getHost(String preferred) {
+    public static String getHost(final String preferred) {
         boolean first = true;
         String firstHostIp = null;
         String hostIp = null;
