@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;
@@ -30,7 +31,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,12 +41,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * this is plugin controller.
  */
+@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/plugin")
 public class PluginController {
@@ -53,19 +58,6 @@ public class PluginController {
     private final PluginService pluginService;
 
     private final SyncDataService syncDataService;
-
-    /**
-     * Instantiates a new Plugin controller.
-     *
-     * @param pluginService   the plugin service
-     * @param syncDataService the sync data service
-     */
-    @Autowired(required = false)
-    public PluginController(final PluginService pluginService,
-                            final SyncDataService syncDataService) {
-        this.pluginService = pluginService;
-        this.syncDataService = syncDataService;
-    }
 
     /**
      * query plugins.
@@ -111,7 +103,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createPlugin(@RequestBody final PluginDTO pluginDTO) {
+    public ShenyuAdminResult createPlugin(@Valid @RequestBody final PluginDTO pluginDTO) {
         String result = pluginService.createOrUpdate(pluginDTO);
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
@@ -127,8 +119,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
-        Objects.requireNonNull(pluginDTO);
+    public ShenyuAdminResult updatePlugin(@PathVariable("id") final String id, @Valid @RequestBody final PluginDTO pluginDTO) {
         pluginDTO.setId(id);
         final String result = pluginService.createOrUpdate(pluginDTO);
         if (StringUtils.isNoneBlank(result)) {
@@ -144,7 +135,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deletePlugins(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deletePlugins(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         final String result = pluginService.delete(ids);
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
@@ -159,14 +150,13 @@ public class PluginController {
      * @return the mono
      */
     @PostMapping("/enabled")
-    public ShenyuAdminResult enabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+    public ShenyuAdminResult enabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         final String result = pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
-
 
     /**
      * sync plugins.

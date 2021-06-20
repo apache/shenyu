@@ -46,7 +46,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
+        if (Objects.isNull(contextMappingHandle)) {
             log.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
@@ -82,8 +82,11 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             context.setContextPath(handle.getContextPath());
             context.setModule(handle.getContextPath());
             realURI = context.getPath().substring(handle.getContextPath().length());
-        } else {
-            if (StringUtils.isNoneBlank(handle.getAddPrefix())) {
+        }
+        if (StringUtils.isNoneBlank(handle.getAddPrefix())) {
+            if (StringUtils.isNotBlank(realURI)) {
+                realURI = handle.getAddPrefix() + realURI;
+            } else {
                 realURI = handle.getAddPrefix() + context.getPath();
             }
         }

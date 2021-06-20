@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -72,7 +73,9 @@ public final class MetaDataControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(metaDataController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(metaDataController)
+                .setControllerAdvice(new ExceptionHandlers())
+                .build();
     }
 
     @Test

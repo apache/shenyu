@@ -43,23 +43,23 @@ import java.util.Map;
 @Join
 @Slf4j
 public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepository {
-    
+
     @Autowired
     private ConsulDiscoveryClient discoveryClient;
-    
+
     private long index;
-    
+
     private Map<String, List<URIRegisterDTO>> uriRegisterDTOMap = new HashMap<>();
-    
+
     private ShenyuServerRegisterPublisher publisher;
-    
+
     private final Map<String, Long> indexMap = new HashMap<>();
-    
+
     @Override
     public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
     }
-    
+
     /**
      * Listen service instance change.
      *
@@ -78,7 +78,7 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
             uriRegisterDTOMap = uriMap;
         }
     }
-    
+
     /**
      * Listen metadata change.
      *
@@ -94,11 +94,11 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
             }
         });
     }
-    
+
     private void publishMetadata(final String data) {
         publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(data, MetaDataRegisterDTO.class)));
     }
-    
+
     private void publishRegisterURI(final String contextPath, final List<URIRegisterDTO> registerDTOList) {
         if (registerDTOList.isEmpty()) {
             URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(contextPath).build();
@@ -106,7 +106,7 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
         }
         publisher.publish(registerDTOList);
     }
-    
+
     private Map<String, List<URIRegisterDTO>> fetchInstancesMap() {
         Map<String, List<URIRegisterDTO>> map = new HashMap<>();
         List<ServiceInstance> instances = discoveryClient.getAllInstances();
@@ -118,12 +118,12 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
                 map.putIfAbsent(contextPath, new ArrayList<>());
                 map.get(contextPath).add(uriRegisterDTO);
             } else {
-                log.debug("maybe not shenyu client, ignore service instance: {}", serviceInstance.toString());
+                log.debug("maybe not shenyu client, ignore service instance: {}", serviceInstance);
             }
         });
         return map;
     }
-    
+
     private boolean metadataChanged(final String path, final long index) {
         boolean result = !indexMap.containsKey(path) || indexMap.get(path) < index;
         if (result) {
@@ -131,5 +131,5 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
         }
         return result;
     }
-    
+
 }

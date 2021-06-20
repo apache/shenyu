@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -47,7 +48,6 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,9 +58,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * RuleServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.RuleService}.
  */
-@Service("ruleService")
+@RequiredArgsConstructor
+@Service
 public class RuleServiceImpl implements RuleService {
 
     private final RuleMapper ruleMapper;
@@ -74,21 +75,6 @@ public class RuleServiceImpl implements RuleService {
     private final DataPermissionMapper dataPermissionMapper;
 
     private final ApplicationEventPublisher eventPublisher;
-
-    @Autowired(required = false)
-    public RuleServiceImpl(final RuleMapper ruleMapper,
-                           final RuleConditionMapper ruleConditionMapper,
-                           final SelectorMapper selectorMapper,
-                           final PluginMapper pluginMapper,
-                           final DataPermissionMapper dataPermissionMapper,
-                           final ApplicationEventPublisher eventPublisher) {
-        this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
-        this.selectorMapper = selectorMapper;
-        this.pluginMapper = pluginMapper;
-        this.dataPermissionMapper = dataPermissionMapper;
-        this.eventPublisher = eventPublisher;
-    }
 
     @Override
     public String register(final RuleDTO ruleDTO) {

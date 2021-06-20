@@ -35,6 +35,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
+import org.springframework.util.LinkedMultiValueMap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -207,7 +208,7 @@ public class GsonUtils {
     }
 
     /**
-     *  To object map map.
+     * To object map map.
      *
      * @param json  the json
      * @param clazz the class
@@ -219,7 +220,7 @@ public class GsonUtils {
     }
 
     /**
-     *  To object map list.
+     * To object map list.
      *
      * @param json  the json
      * @param clazz the class
@@ -238,6 +239,17 @@ public class GsonUtils {
      */
     public ConcurrentNavigableMap<String, Object> toTreeMap(final String json) {
         return GSON_MAP.fromJson(json, new TypeToken<ConcurrentSkipListMap<String, Object>>() {
+        }.getType());
+    }
+
+    /**
+     * To linked multiValue map.
+     *
+     * @param json the json
+     * @return the linked multiValue map
+     */
+    public LinkedMultiValueMap<String, String> toLinkedMultiValueMap(final String json) {
+        return GSON.fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
         }.getType());
     }
 

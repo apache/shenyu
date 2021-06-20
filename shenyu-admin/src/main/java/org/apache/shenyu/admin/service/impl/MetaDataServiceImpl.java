@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,6 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,27 +50,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * The type Meta data service.
+ * Implementation of the {@link org.apache.shenyu.admin.service.MetaDataService}.
  */
 @Slf4j
-@Service("metaDataService")
+@RequiredArgsConstructor
+@Service
 public class MetaDataServiceImpl implements MetaDataService {
 
     private final MetaDataMapper metaDataMapper;
 
     private final ApplicationEventPublisher eventPublisher;
-
-    /**
-     * Instantiates a new Meta data service.
-     *
-     * @param metaDataMapper the meta data mapper
-     * @param eventPublisher the event publisher
-     */
-    @Autowired(required = false)
-    public MetaDataServiceImpl(final MetaDataMapper metaDataMapper, final ApplicationEventPublisher eventPublisher) {
-        this.metaDataMapper = metaDataMapper;
-        this.eventPublisher = eventPublisher;
-    }
 
     @Override
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
@@ -181,7 +170,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private String checkData(final MetaDataDTO metaDataDTO) {
         Boolean success = checkParam(metaDataDTO);
         if (!success) {
-            log.error("metaData create param is error, {}", metaDataDTO.toString());
+            log.error("metaData create param is error, {}", metaDataDTO);
             return AdminConstants.PARAMS_ERROR;
         }
         final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());

@@ -136,8 +136,7 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu request plugin end-->
-        
-        <!--shenyu tars plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
@@ -158,7 +157,7 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu grpc plugin end-->
-        
+
         <!--shenyu sofa plugin start-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
@@ -337,6 +336,23 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--shenyu debug plugin end-->
+
+        <!--shenyu request plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu request plugin end-->
+
+        <!--shenyu param mapping plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu param mapping end-->
     </dependencies>
 
     <build>

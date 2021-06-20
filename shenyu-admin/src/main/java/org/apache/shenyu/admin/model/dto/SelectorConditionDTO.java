@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -42,20 +43,24 @@ public class SelectorConditionDTO implements Serializable {
     /**
      * parameter type.
      */
+    @NotNull
     private String paramType;
 
     /**
      * match operator.
      */
+    @NotNull
     private String operator;
 
     /**
      * parameter name.
      */
+    @NotNull
     private String paramName;
 
     /**
      * parameter value.
      */
+    @NotNull
     private String paramValue;
 }
