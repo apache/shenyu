@@ -86,7 +86,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppName())
                 || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
@@ -162,7 +162,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult updateDetail(final AppAuthDTO appAuthDTO) {
         if (StringUtils.isBlank(appAuthDTO.getAppKey())
                 || StringUtils.isBlank(appAuthDTO.getAppSecret())

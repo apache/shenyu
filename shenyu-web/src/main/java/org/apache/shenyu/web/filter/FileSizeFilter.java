@@ -20,8 +20,8 @@ package org.apache.shenyu.web.filter;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.web.filter.support.BodyInserterContext;
-import org.apache.shenyu.web.filter.support.CachedBodyOutputMessage;
+import org.apache.shenyu.plugin.base.support.BodyInserterContext;
+import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -50,7 +50,7 @@ import java.util.List;
 public class FileSizeFilter implements WebFilter {
 
     private static final int BYTES_PER_MB = 1024 * 1024;
-    
+
     private final int fileMaxSize;
 
     private final List<HttpMessageReader<?>> messageReaders;

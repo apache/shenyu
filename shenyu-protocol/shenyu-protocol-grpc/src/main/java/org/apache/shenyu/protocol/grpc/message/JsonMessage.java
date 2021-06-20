@@ -18,16 +18,20 @@
 package org.apache.shenyu.protocol.grpc.message;
 
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistryLite;
 import io.grpc.MethodDescriptor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,6 +71,23 @@ public class JsonMessage {
             log.error("dynamic build JsonMarshaller descriptor is fail: {}", e.getMessage());
             throw new RuntimeException("dynamic build JsonMarshaller descriptor is fail", e);
         }
+    }
+
+    /**
+     * buildJsonMessage.
+     *
+     * @param jsonParamMap jsonParamMap
+     * @return DynamicMessageList
+     */
+    public static List<DynamicMessage> buildJsonMessageList(final Map<String, Object> jsonParamMap) {
+        JsonArray jsonParams = (JsonArray) jsonParamMap.get(GrpcConstants.JSON_DESCRIPTOR_PROTO_FIELD_NAME);
+        List<DynamicMessage> jsonMessageList = new ArrayList<>(jsonParams.size());
+        jsonParams.forEach(jsonParam -> {
+            DynamicMessage jsonMessage = buildJsonMessage(GsonUtils.getInstance().toJson(jsonParam));
+            jsonMessageList.add(jsonMessage);
+        });
+
+        return jsonMessageList;
     }
 
     /**
@@ -119,18 +140,20 @@ public class JsonMessage {
      *
      * @param serviceName service name
      * @param methodName  method name
+     * @param methodType methodType
      * @param request     request marshaller
      * @param response    response marshaller
      * @return MethodDescriptor
      */
     public static MethodDescriptor<DynamicMessage, DynamicMessage> createJsonMarshallerMethodDescriptor(final String serviceName,
                                                                                                         final String methodName,
+                                                                                                        final MethodDescriptor.MethodType methodType,
                                                                                                         final DynamicMessage request,
                                                                                                         final DynamicMessage response) {
         MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = methodDescriptorCache.get(serviceName + GrpcConstants.GRPC_JSON_SERVICE + methodName);
         if (methodDescriptor == null) {
             methodDescriptor = MethodDescriptor.<DynamicMessage, DynamicMessage>newBuilder()
-                    .setType(MethodDescriptor.MethodType.UNARY)
+                    .setType(getMethodType(methodType))
                     .setFullMethodName(MethodDescriptor.generateFullMethodName(serviceName + GrpcConstants.GRPC_JSON_SERVICE, methodName))
                     .setRequestMarshaller(new DynamicMessageMarshaller(request.getDescriptorForType()))
                     .setResponseMarshaller(new DynamicMessageMarshaller(response.getDescriptorForType()))
@@ -139,6 +162,35 @@ public class JsonMessage {
 
         }
         return methodDescriptor;
+    }
+
+    /**
+     * getMethodType.
+     *
+     * @param methodType methodType
+     * @return MethodDescriptor.MethodType
+     */
+    private static MethodDescriptor.MethodType getMethodType(final MethodDescriptor.MethodType methodType) {
+        MethodDescriptor.MethodType grpcMethodType;
+
+        switch (methodType) {
+            case UNARY:
+                grpcMethodType = MethodDescriptor.MethodType.UNARY;
+                break;
+            case CLIENT_STREAMING:
+                grpcMethodType = MethodDescriptor.MethodType.CLIENT_STREAMING;
+                break;
+            case SERVER_STREAMING:
+                grpcMethodType = MethodDescriptor.MethodType.SERVER_STREAMING;
+                break;
+            case BIDI_STREAMING:
+                grpcMethodType = MethodDescriptor.MethodType.BIDI_STREAMING;
+                break;
+            default:
+                grpcMethodType = MethodDescriptor.MethodType.UNKNOWN;
+        }
+
+        return grpcMethodType;
     }
 
     /**

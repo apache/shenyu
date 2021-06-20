@@ -56,6 +56,11 @@ public enum PluginEnum {
     RATE_LIMITER(20, 0, "rate_limiter"),
 
     /**
+     * Param mapping plugin enum.
+     */
+    PARAM_MAPPING(22, 0, "param_mapping"),
+
+    /**
      * Context path plugin enum.
      */
     CONTEXT_PATH(25, 0, "context_path"),
@@ -154,7 +159,8 @@ public enum PluginEnum {
      * Response plugin enum.
      */
     RESPONSE(100, 0, "response");
-    
+
+
     private final int code;
 
     private final int role;

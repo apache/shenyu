@@ -30,7 +30,11 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -69,11 +73,38 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         // doesn't print logger
         runner.setLogWriter(null);
         Resources.setCharset(StandardCharsets.UTF_8);
-        Reader read = Resources.getResourceAsReader(dataBaseProperties.getInitScript());
-        log.info("execute shenyu schema sql: {}", dataBaseProperties.getInitScript());
+
+        Reader read = StringUtils.isNotBlank(dataBaseProperties.getCustomInitScript()) ? getResourceAsReader(dataBaseProperties.getCustomInitScript())
+                : Resources.getResourceAsReader(dataBaseProperties.getInitScript());
+
+        log.info("execute shenyu schema sql: {}", StringUtils.isNotBlank(dataBaseProperties.getCustomInitScript()) ? dataBaseProperties.getCustomInitScript()
+                : dataBaseProperties.getInitScript());
         runner.runScript(read);
         runner.closeConnection();
         conn.close();
+    }
+
+    /**
+     * resource reader.
+     *
+     * @param resource url
+     * @return Reader
+     * @throws IOException IOException
+     */
+    public static Reader getResourceAsReader(final String resource) throws IOException {
+        return getResourceAsReader(resource, null);
+    }
+
+    /**
+     * resource reader.
+     *
+     * @param resource url
+     * @param charset charset
+     * @return Reader
+     * @throws IOException IOException
+     */
+    public static Reader getResourceAsReader(final String resource, final Charset charset) throws IOException {
+        return new InputStreamReader(new FileInputStream(resource), charset == null ? StandardCharsets.UTF_8 : charset);
     }
 
 }

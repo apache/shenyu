@@ -20,7 +20,6 @@ package org.apache.shenyu.springboot.starter.plugin.sofa;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.sofa.response.SofaResponsePlugin;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -43,7 +42,6 @@ public class SofaPluginConfigurationTest {
             .withPropertyValues("debug=true")
             .run(
                 context -> {
-                    assertThat(context).hasSingleBean(SofaResponsePlugin.class);
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
                     assertThat(context).hasSingleBean(MetaDataSubscriber.class);
                     ShenyuPlugin plugin = context.getBean("sofaPlugin", ShenyuPlugin.class);

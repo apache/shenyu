@@ -26,6 +26,7 @@ import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.proto.CompleteObserver;
 import org.apache.shenyu.plugin.grpc.proto.MessageWriter;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
@@ -34,6 +35,7 @@ import org.apache.shenyu.plugin.grpc.proto.CompositeStreamObserver;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 
 import java.io.Closeable;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -60,15 +62,20 @@ public class ShenyuGrpcClient implements Closeable {
      * @param metaData     metadata
      * @param callOptions  callOptions
      * @param requestJsons requestJsons
+     * @param methodType methodType
      * @return CompletableFuture future
      */
-    public CompletableFuture<ShenyuGrpcResponse> call(final MetaData metaData, final CallOptions callOptions, final String requestJsons) {
-        DynamicMessage jsonRequest = JsonMessage.buildJsonMessage(requestJsons);
+    public CompletableFuture<ShenyuGrpcResponse> call(final MetaData metaData,
+                                                      final CallOptions callOptions,
+                                                      final String requestJsons,
+                                                      final MethodDescriptor.MethodType methodType) {
+        List<DynamicMessage> jsonRequestList = JsonMessage.buildJsonMessageList(GsonUtils.getInstance().toObjectMap(requestJsons));
         DynamicMessage jsonResponse = JsonMessage.buildJsonMessage();
 
         MethodDescriptor<DynamicMessage, DynamicMessage> jsonMarshallerMethodDescriptor = JsonMessage.createJsonMarshallerMethodDescriptor(metaData.getServiceName(),
                 metaData.getMethodName(),
-                jsonRequest,
+                methodType,
+                jsonRequestList.get(0),
                 jsonResponse);
 
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
@@ -78,7 +85,7 @@ public class ShenyuGrpcClient implements Closeable {
                 .methodDescriptor(jsonMarshallerMethodDescriptor)
                 .channel(channel)
                 .callOptions(callOptions)
-                .requests(jsonRequest)
+                .requests(jsonRequestList)
                 .responseObserver(streamObserver)
                 .build();
         try {
@@ -97,7 +104,7 @@ public class ShenyuGrpcClient implements Closeable {
      */
     public ListenableFuture<Void> invoke(final ShenyuGrpcCallRequest callParams) {
         MethodDescriptor.MethodType methodType = callParams.getMethodDescriptor().getType();
-        DynamicMessage requests = callParams.getRequests();
+        List<DynamicMessage> requestList = callParams.getRequests();
 
         StreamObserver<DynamicMessage> responseObserver = callParams.getResponseObserver();
         CompleteObserver<DynamicMessage> doneObserver = new CompleteObserver<>();
@@ -106,17 +113,19 @@ public class ShenyuGrpcClient implements Closeable {
         StreamObserver<DynamicMessage> requestObserver;
         switch (methodType) {
             case UNARY:
-                asyncUnaryCall(createCall(callParams), requests, compositeObserver);
+                asyncUnaryCall(createCall(callParams), requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case SERVER_STREAMING:
-                asyncServerStreamingCall(createCall(callParams), requests, compositeObserver);
+                asyncServerStreamingCall(createCall(callParams), requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case CLIENT_STREAMING:
                 requestObserver = asyncClientStreamingCall(createCall(callParams), compositeObserver);
+                requestList.forEach(requestObserver::onNext);
                 requestObserver.onCompleted();
                 return doneObserver.getCompletionFuture();
             case BIDI_STREAMING:
                 requestObserver = asyncBidiStreamingCall(createCall(callParams), compositeObserver);
+                requestList.forEach(requestObserver::onNext);
                 requestObserver.onCompleted();
                 return doneObserver.getCompletionFuture();
             default:
