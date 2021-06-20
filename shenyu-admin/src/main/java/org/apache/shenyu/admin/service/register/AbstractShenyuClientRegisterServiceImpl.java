@@ -35,6 +35,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Abstract strategy.
@@ -146,5 +147,11 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
 
     protected DivideUpstream buildDivideUpstream(final String uri) {
         return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
+    }
+
+    protected boolean checkPathExist(final MetaDataDO existMetaDataDO, final MetaDataRegisterDTO dto){
+        return Objects.nonNull(existMetaDataDO)
+                && (!existMetaDataDO.getMethodName().equals(dto.getMethodName())
+                || !existMetaDataDO.getServiceName().equals(dto.getServiceName()));
     }
 }

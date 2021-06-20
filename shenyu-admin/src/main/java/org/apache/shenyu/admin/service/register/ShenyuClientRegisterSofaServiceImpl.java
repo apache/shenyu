@@ -77,9 +77,7 @@ public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientReg
     @Override
     public synchronized String register(final MetaDataRegisterDTO dto) {
         MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getPath());
-        if (Objects.nonNull(metaDataDO)
-                && (!metaDataDO.getMethodName().equals(dto.getMethodName())
-                || !metaDataDO.getServiceName().equals(dto.getServiceName()))) {
+        if (checkPathExist(metaDataDO, dto)) {
             return "you path already exist!";
         }
         final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(dto.getServiceName(), dto.getMethodName());
