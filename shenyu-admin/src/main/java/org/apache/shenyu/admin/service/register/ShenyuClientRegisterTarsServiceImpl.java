@@ -51,9 +51,7 @@ import java.util.Objects;
 
 /**
  * tars service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("tars")
 public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientRegisterService {
 

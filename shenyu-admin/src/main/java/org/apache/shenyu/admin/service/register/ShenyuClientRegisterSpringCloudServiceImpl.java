@@ -48,9 +48,7 @@ import java.util.Objects;
 
 /**
  * spring cloud service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("springCloud")
 public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuClientRegisterService {
 

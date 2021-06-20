@@ -51,9 +51,7 @@ import java.util.Objects;
 
 /**
  * motan service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("motan")
 public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRegisterService {
 

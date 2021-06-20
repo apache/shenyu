@@ -38,9 +38,7 @@ import java.util.List;
 
 /**
  * Abstract strategy.
- *
- * @author KevinClair
- **/
+ */
 public abstract class AbstractShenyuClientRegisterService implements ShenyuClientRegisterServiceFactory {
 
     protected static final String CONTEXT_PATH_NAME_PREFIX = "/context-path";

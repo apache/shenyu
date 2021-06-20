@@ -52,9 +52,7 @@ import java.util.Objects;
 
 /**
  * grpc service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("grpc")
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterService {
 

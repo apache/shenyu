@@ -45,9 +45,7 @@ import java.util.Objects;
 
 /**
  * dubbo service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("dubbo")
 public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRegisterService {
 

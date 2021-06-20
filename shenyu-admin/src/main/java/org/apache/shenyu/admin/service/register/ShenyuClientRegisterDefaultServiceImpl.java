@@ -38,9 +38,7 @@ import java.util.stream.Collectors;
 
 /**
  * default service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("default")
 public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClientRegisterService {
 

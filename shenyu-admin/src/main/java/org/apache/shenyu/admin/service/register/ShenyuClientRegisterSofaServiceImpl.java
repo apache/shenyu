@@ -44,9 +44,7 @@ import java.util.Objects;
 
 /**
  * sofa service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("sofa")
 public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientRegisterService {
 

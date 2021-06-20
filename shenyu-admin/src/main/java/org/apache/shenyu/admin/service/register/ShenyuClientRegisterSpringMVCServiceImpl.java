@@ -52,9 +52,7 @@ import java.util.Objects;
 
 /**
  * spring mvc service register.
- *
- * @author KevinClair
- **/
+ */
 @Service("http")
 public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClientRegisterService {
 

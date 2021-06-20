@@ -23,9 +23,7 @@ import java.util.List;
 
 /**
  * shenyu client register service factory.
- *
- * @author KevinClair
- **/
+ */
 public interface ShenyuClientRegisterServiceFactory {
 
     /**
