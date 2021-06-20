@@ -46,18 +46,18 @@ services:
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
 
-  shenyu-test-http:
+  shenyu-examples-http:
     deploy:
       resources:
         limits:
           memory: 2048M
-    container_name: shenyu-test-http
-    image: shenyu-test-http
+    container_name: shenyu-examples-http
+    image: shenyu-examples-http
     restart: always
     environment:
       - shenyu.client.serverLists=http://shenyu-admin:9095
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-test-http:8189/test/path/123?name=tom" ]
+      test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
       timeout: 2s
       retries: 30
     ports:
@@ -74,10 +74,10 @@ services:
     restart: always
     networks:
       - shenyu
-    volumes:
-      - type: bind
-        source: ./admin-config/application.yml
-        target: /opt/shenyu-admin/conf/application.yml
+#    volumes:
+#      - type: bind
+#        source: ./admin-config/application.yml
+#        target: /opt/shenyu-admin/conf/application.yml
     depends_on:
       shenyu-mysql:
         condition: service_healthy
@@ -94,6 +94,7 @@ services:
       test: [ "CMD", "wget", "http://shenyu-admin:9095/actuator/health" ]
       timeout: 2s
       retries: 30
+#  from http plugin dockerfile
   shenyu-bootstrap:
     container_name: shenyu-bootstrap
     image: dromara/shenyu-bootstrap:2.3.1-SNAPSHOT
@@ -102,12 +103,12 @@ services:
       resources:
         limits:
           memory: 2048M
-    volumes:
-      - type: bind
-        source: ./bootstrap-config
-        target: /opt/shenyu-bootstrap/conf/
+#    volumes:
+#      - type: bind
+#        source: ./bootstrap-config
+#        target: /opt/shenyu-bootstrap/conf/
     depends_on:
-      shenyu-test-http:
+      shenyu-examples-http:
         condition: service_healthy
     ports:
       - 9195:9195

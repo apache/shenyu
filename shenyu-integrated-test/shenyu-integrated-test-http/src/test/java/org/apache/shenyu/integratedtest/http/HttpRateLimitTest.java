@@ -23,7 +23,6 @@ import org.apache.shenyu.integratedtest.dto.UserDTO;
 import org.apache.shenyu.integratedtest.helper.HttpHelper;
 import org.junit.Test;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;

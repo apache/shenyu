@@ -77,7 +77,7 @@
     </dependencies>
 
     <build>
-        <finalName>shenyu-test-http</finalName>
+        <finalName>shenyu-examples-http</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

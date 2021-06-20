@@ -16,7 +16,7 @@
 
 FROM java:openjdk-8-jre-alpine
 
-ENV APP_NAME shenyu-examples-http
+ENV APP_NAME shenyu-integrated-test-http
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}
@@ -24,6 +24,6 @@ RUN mkdir -p ${LOCAL_PATH}
 ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
-EXPOSE 8189
+EXPOSE 9095
 
 CMD java -jar ${APP_NAME}.jar
