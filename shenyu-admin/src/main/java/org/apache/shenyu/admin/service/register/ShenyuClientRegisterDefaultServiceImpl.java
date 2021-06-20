@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -33,19 +50,21 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
 
     private final SelectorMapper selectorMapper;
 
-    public ShenyuClientRegisterDefaultServiceImpl(ApplicationEventPublisher eventPublisher, SelectorService selectorService, SelectorMapper selectorMapper) {
+    public ShenyuClientRegisterDefaultServiceImpl(final ApplicationEventPublisher eventPublisher,
+                                                  final SelectorService selectorService,
+                                                  final SelectorMapper selectorMapper) {
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
         this.selectorMapper = selectorMapper;
     }
 
     @Override
-    public String register(MetaDataRegisterDTO metaDataRegisterDTO) {
+    public String register(final MetaDataRegisterDTO metaDataRegisterDTO) {
         return null;
     }
 
     @Override
-    public String registerURI(String contextPath, List<String> uriList){
+    public String registerURI(final String contextPath, final List<String> uriList) {
         SelectorDO selector = selectorService.findByName(contextPath);
         SelectorData selectorData = selectorService.buildByName(contextPath);
         String handler = GsonUtils.getInstance().toJson(buildDivideUpstreamList(uriList));
@@ -59,17 +78,17 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
     }
 
     @Override
-    protected void saveOrUpdateMetaData(MetaDataDO exist, MetaDataRegisterDTO metaDataDTO) {
+    protected void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
 
     }
 
     @Override
-    protected String handlerSelector(MetaDataRegisterDTO metaDataDTO) {
+    protected String handlerSelector(final MetaDataRegisterDTO metaDataDTO) {
         return "";
     }
 
     @Override
-    protected void handlerRule(String selectorId, MetaDataRegisterDTO metaDataDTO, MetaDataDO exist) {
+    protected void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
 
     }
 
@@ -78,7 +97,7 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
     }
 
     @Override
-    protected String getPluginId(String pluginName) {
+    protected String getPluginId(final String pluginName) {
         return "";
     }
 }

@@ -22,15 +22,17 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import java.util.List;
 
 /**
- * The interface shenyu client service factory.
- */
+ * shenyu client register service factory.
+ *
+ * @author KevinClair
+ **/
 public interface ShenyuClientRegisterServiceFactory {
 
     /**
-     * Register meta data
+     * Register meta data.
      *
-     * @param metaDataRegisterDTO
-     * @return
+     * @param metaDataRegisterDTO meta data register dto.
+     * @return the string
      */
     String register(MetaDataRegisterDTO metaDataRegisterDTO);
 

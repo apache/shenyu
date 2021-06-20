@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +35,9 @@ import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.enums.*;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -54,7 +73,14 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
 
     private final PluginMapper pluginMapper;
 
-    public ShenyuClientRegisterTarsServiceImpl(MetaDataMapper metaDataMapper, ApplicationEventPublisher eventPublisher, SelectorService selectorService, RuleService ruleService, RuleMapper ruleMapper, UpstreamCheckService upstreamCheckService, SelectorMapper selectorMapper, PluginMapper pluginMapper) {
+    public ShenyuClientRegisterTarsServiceImpl(final MetaDataMapper metaDataMapper,
+                                               final ApplicationEventPublisher eventPublisher,
+                                               final SelectorService selectorService,
+                                               final RuleService ruleService,
+                                               final RuleMapper ruleMapper,
+                                               final UpstreamCheckService upstreamCheckService,
+                                               final SelectorMapper selectorMapper,
+                                               final PluginMapper pluginMapper) {
         this.metaDataMapper = metaDataMapper;
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
@@ -148,12 +174,12 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
 
     private String registerSelector(final String contextPath, final String rpcType, final String appName, final String uri) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-                selectorDTO.setPluginId(getPluginId(rpcType));
-            //is divide
-            DivideUpstream divideUpstream = buildDivideUpstream(uri);
-            String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
-            selectorDTO.setHandle(handler);
-            upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
+        selectorDTO.setPluginId(getPluginId(rpcType));
+        //is divide
+        DivideUpstream divideUpstream = buildDivideUpstream(uri);
+        String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
+        selectorDTO.setHandle(handler);
+        upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
@@ -170,7 +196,6 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.TARS.getName(), metaDataDTO.getRuleName()));
-
         }
     }
 }

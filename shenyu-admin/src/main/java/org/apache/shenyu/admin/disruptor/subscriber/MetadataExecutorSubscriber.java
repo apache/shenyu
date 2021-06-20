@@ -32,7 +32,7 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
 
     private final Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService;
 
-    public MetadataExecutorSubscriber(Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService) {
+    public MetadataExecutorSubscriber(final Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService) {
         this.shenyuClientRegisterService = shenyuClientRegisterService;
     }
 
