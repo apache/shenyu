@@ -149,7 +149,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
         return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }
 
-    protected boolean checkPathExist(final MetaDataDO existMetaDataDO, final MetaDataRegisterDTO dto){
+    protected boolean checkPathExist(final MetaDataDO existMetaDataDO, final MetaDataRegisterDTO dto) {
         return Objects.nonNull(existMetaDataDO)
                 && (!existMetaDataDO.getMethodName().equals(dto.getMethodName())
                 || !existMetaDataDO.getServiceName().equals(dto.getServiceName()));
