@@ -36,7 +36,7 @@ import java.util.Objects;
  *
  * @author KevinClair
  **/
-@Service("springmvc")
+@Service("http")
 public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClientRegisterService {
 
     private final MetaDataMapper metaDataMapper;
