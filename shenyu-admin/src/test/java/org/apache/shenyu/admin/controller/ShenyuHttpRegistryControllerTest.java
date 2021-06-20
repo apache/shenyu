@@ -53,7 +53,8 @@ public final class ShenyuHttpRegistryControllerTest {
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuHttpRegistryController).build();
         RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();
-        publisher.start(shenyuClientRegisterService);
+        // TODO modify
+//        publisher.start(shenyuClientRegisterService);
         shenyuHttpRegistryController.init(RegisterServerDisruptorPublisher.getInstance(), null);
     }
 
