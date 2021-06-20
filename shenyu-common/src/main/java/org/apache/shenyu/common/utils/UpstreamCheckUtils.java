@@ -45,6 +45,10 @@ public class UpstreamCheckUtils {
      * @return the boolean
      */
     public static boolean checkUrl(final String url) {
+        return checkUrl(url, 1000);
+    }
+
+    public static boolean checkUrl(final String url, final Integer timeout) {
         if (StringUtils.isBlank(url)) {
             return false;
         }
@@ -58,9 +62,9 @@ public class UpstreamCheckUtils {
         final boolean isHttps = url.startsWith(HTTPS);
         final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1]) : isHttps ? 443 : 80;
         if (checkIP(hostPort[0]) || isHttps) {
-            return isHostConnector(hostPort[0], port);
+            return isHostConnector(hostPort[0], port, timeout);
         } else {
-            return isHostReachable(hostPort[0]);
+            return isHostReachable(hostPort[0], timeout);
         }
     }
 
@@ -68,18 +72,18 @@ public class UpstreamCheckUtils {
         return PATTERN.matcher(url).matches();
     }
 
-    private static boolean isHostConnector(final String host, final int port) {
+    private static boolean isHostConnector(final String host, final int port, final int timeout) {
         try (Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress(host, port));
+            socket.connect(new InetSocketAddress(host, port), timeout);
         } catch (IOException e) {
             return false;
         }
         return true;
     }
 
-    private static boolean isHostReachable(final String host) {
+    private static boolean isHostReachable(final String host, final int timeout) {
         try {
-            return InetAddress.getByName(host).isReachable(1000);
+            return InetAddress.getByName(host).isReachable(timeout);
         } catch (IOException ignored) {
         }
         return false;
