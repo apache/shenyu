@@ -45,7 +45,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +59,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * this is divide  http url upstream.
+ * This is the upstream check service.
  */
 @Slf4j
 @Component
@@ -95,7 +94,6 @@ public class UpstreamCheckService {
      * @param selectorConditionMapper    the selectorCondition mapper
      * @param shenyuRegisterCenterConfig the shenyu register center config
      */
-    @Autowired(required = false)
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
                                 final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper,
                                 final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig) {

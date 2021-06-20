@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
@@ -25,7 +26,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,22 +36,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * this is selector controller.
  */
+@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/selector")
 public class SelectorController {
 
     private final SelectorService selectorService;
-
-    @Autowired(required = false)
-    public SelectorController(final SelectorService selectorService) {
-        this.selectorService = selectorService;
-    }
 
     /**
      * query Selectors.
@@ -86,7 +86,7 @@ public class SelectorController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
+    public ShenyuAdminResult createSelector(@Valid @RequestBody final SelectorDTO selectorDTO) {
         Integer createCount = selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
@@ -99,8 +99,7 @@ public class SelectorController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
-        Objects.requireNonNull(selectorDTO);
+    public ShenyuAdminResult updateSelector(@PathVariable("id") final String id, @Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
@@ -113,7 +112,7 @@ public class SelectorController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteSelector(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteSelector(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = selectorService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }

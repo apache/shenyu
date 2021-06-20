@@ -33,9 +33,9 @@ public class DataChangedEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = 8397163004365988739L;
 
-    private DataEventTypeEnum eventType;
+    private final DataEventTypeEnum eventType;
 
-    private ConfigGroupEnum groupKey;
+    private final ConfigGroupEnum groupKey;
 
     /**
      * Instantiates a new Data changed event.

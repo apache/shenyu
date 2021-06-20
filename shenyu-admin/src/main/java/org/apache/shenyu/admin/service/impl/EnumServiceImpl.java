@@ -41,9 +41,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * EnumServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.EnumService}.
  */
-@Service("enumService")
+@Service
 public class EnumServiceImpl implements EnumService {
 
     /**

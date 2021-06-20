@@ -153,7 +153,7 @@ public final class ApplicationConfigCache {
         }
         Object obj = reference.refer();
         if (obj != null) {
-            log.info("init sofa reference success there meteData is :{}", metaData.toString());
+            log.info("init sofa reference success there meteData is :{}", metaData);
             cache.put(metaData.getPath(), reference);
         }
         return reference;

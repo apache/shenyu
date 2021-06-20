@@ -22,6 +22,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * this is resource Dto.
  */
@@ -44,11 +46,13 @@ public class ResourceDTO {
     /**
      * resource title.
      */
+    @NotNull
     private String title;
 
     /**
      * resource name.
      */
+    @NotNull
     private String name;
 
     /**
@@ -64,11 +68,13 @@ public class ResourceDTO {
     /**
      * resource type.
      */
+    @NotNull
     private Integer resourceType;
 
     /**
      * resource sort.
      */
+    @NotNull
     private Integer sort;
 
     /**
@@ -94,5 +100,6 @@ public class ResourceDTO {
     /**
      * resource status.
      */
+    @NotNull
     private Integer status;
 }

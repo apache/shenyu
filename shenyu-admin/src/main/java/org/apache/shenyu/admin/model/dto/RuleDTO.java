@@ -22,6 +22,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -44,21 +46,25 @@ public final class RuleDTO implements Serializable {
     /**
      * selector id.
      */
+    @NotNull
     private String selectorId;
 
     /**
      * match mode.
      */
+    @NotNull
     private Integer matchMode;
 
     /**
      * rule name.
      */
+    @NotNull
     private String name;
 
     /**
      * whether enabled.
      */
+    @NotNull
     private Boolean enabled;
 
     /**
@@ -69,6 +75,7 @@ public final class RuleDTO implements Serializable {
     /**
      * sort type.
      */
+    @NotNull
     private Integer sort;
 
     /**
@@ -79,5 +86,6 @@ public final class RuleDTO implements Serializable {
     /**
      * rule conditions.
      */
+    @Valid
     private List<RuleConditionDTO> ruleConditions;
 }
