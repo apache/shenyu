@@ -91,7 +91,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public synchronized String register(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);

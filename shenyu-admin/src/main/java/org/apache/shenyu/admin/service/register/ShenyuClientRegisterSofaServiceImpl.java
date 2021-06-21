@@ -37,6 +37,7 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -75,6 +76,7 @@ public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientReg
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public synchronized String register(final MetaDataRegisterDTO dto) {
         MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getPath());
         if (checkPathExist(metaDataDO, dto)) {
