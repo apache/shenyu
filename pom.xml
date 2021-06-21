@@ -149,6 +149,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-test</artifactId>
+                <version>${spring-security.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.weibo</groupId>
                 <artifactId>motan-core</artifactId>
                 <version>${motan.version}</version>
