@@ -33,7 +33,10 @@
    </a>
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
-   </a>     
+   </a>    
+   <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
+        <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
+   </a>
 </p>
 <br/>
 

@@ -23,6 +23,21 @@ package org.apache.shenyu.common.constant;
 public interface Constants {
 
     /**
+     * The constant path template.
+     */
+    char LEFT = '{';
+
+    /**
+     * The constant path template.
+     */
+    char RIGHT = '}';
+
+    /**
+     * The constant path template.
+     */
+    String PATTERN = "([^/]*)";
+
+    /**
      * The constant APP_PARAM.
      */
     String APP_PARAM = "appParam";
@@ -524,6 +539,11 @@ public interface Constants {
      * default requestMaxSize value.
      */
     int REQUEST_MAX_SIZE = 102400;
+
+    /**
+     * String default.
+     */
+    String DEFAULT = "DEFAULT";
 
     /**
      * String q.

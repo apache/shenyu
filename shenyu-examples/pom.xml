@@ -33,7 +33,7 @@
     </parent>
 
     <properties>
-        <shenyu.version>2.3.1-SNAPSHOT</shenyu.version>
+        <shenyu.version>2.4.0-SNAPSHOT</shenyu.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
     </properties>

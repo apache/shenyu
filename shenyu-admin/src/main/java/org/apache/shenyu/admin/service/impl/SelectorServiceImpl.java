@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
@@ -54,7 +55,6 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,45 +65,27 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * SelectorServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.SelectorService}.
  */
-@Service("selectorService")
+@RequiredArgsConstructor
+@Service
 public class SelectorServiceImpl implements SelectorService {
 
     private final SelectorMapper selectorMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
 
+    private final PluginMapper pluginMapper;
+
     private final RuleMapper ruleMapper;
 
     private final RuleConditionMapper ruleConditionMapper;
 
-    private final PluginMapper pluginMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final DataPermissionMapper dataPermissionMapper;
 
-    private final ApplicationEventPublisher eventPublisher;
-
     private final UpstreamCheckService upstreamCheckService;
-
-    @Autowired(required = false)
-    public SelectorServiceImpl(final SelectorMapper selectorMapper,
-                               final SelectorConditionMapper selectorConditionMapper,
-                               final PluginMapper pluginMapper,
-                               final RuleMapper ruleMapper,
-                               final RuleConditionMapper ruleConditionMapper,
-                               final ApplicationEventPublisher eventPublisher,
-                               final DataPermissionMapper dataPermissionMapper,
-                               final UpstreamCheckService upstreamCheckService) {
-        this.selectorMapper = selectorMapper;
-        this.selectorConditionMapper = selectorConditionMapper;
-        this.pluginMapper = pluginMapper;
-        this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
-        this.eventPublisher = eventPublisher;
-        this.dataPermissionMapper = dataPermissionMapper;
-        this.upstreamCheckService = upstreamCheckService;
-    }
 
     @Override
     public String register(final SelectorDTO selectorDTO) {

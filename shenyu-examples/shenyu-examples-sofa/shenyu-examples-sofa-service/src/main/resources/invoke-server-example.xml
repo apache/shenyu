@@ -20,7 +20,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:sofa="http://sofastack.io/schema/sofaboot"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-            http://sofastack.io/schema/sofaboot http://sofastack.io/schema/sofaboot.xsd"
+            http://sofastack.io/schema/sofaboot https://sofastack.io/schema/sofaboot.xsd"
        default-autowire="byName">
 
     <sofa:service ref="sofaSingleParamService" interface="org.apache.shenyu.examples.sofa.api.service.SofaSingleParamService">

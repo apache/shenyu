@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.filter.support;
+package org.apache.shenyu.plugin.base.support;
 
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -35,6 +35,8 @@ import java.util.function.Supplier;
  * @see <a href="https://github.com/spring-cloud/spring-cloud-gateway/blob/master/spring-cloud-gateway-server/src/main/java/org/springframework/cloud/gateway/filter/factory/rewrite/CachedBodyOutputMessage.java">CachedBodyOutputMessage</a>
  */
 public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
+
+    private Boolean isCache = false;
 
     private final DataBufferFactory bufferFactory;
 
@@ -74,6 +76,15 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
     }
 
     /**
+     * Is cached.
+     *
+     * @return boolean
+     */
+    public Boolean getCache() {
+        return this.isCache;
+    }
+
+    /**
      * Return the request body, or an error stream if the body was never set or when.
      *
      * @return body as {@link Flux}
@@ -90,6 +101,7 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
      */
     @Override
     public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
+        this.isCache = true;
         this.body = Flux.from(body);
         return Mono.empty();
     }

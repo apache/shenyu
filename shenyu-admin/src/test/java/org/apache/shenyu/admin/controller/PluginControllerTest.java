@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -73,7 +74,9 @@ public final class PluginControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(pluginController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(pluginController)
+                .setControllerAdvice(new ExceptionHandlers())
+                .build();
         this.pluginVO = new PluginVO("123", 1, 1, "t_n", "1", true,
                 DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
     }
@@ -123,6 +126,8 @@ public final class PluginControllerTest {
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setId("123");
         pluginDTO.setName("test");
+        pluginDTO.setEnabled(true);
+        pluginDTO.setRole(1);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -154,6 +159,8 @@ public final class PluginControllerTest {
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setId("123");
         pluginDTO.setName("test1");
+        pluginDTO.setEnabled(true);
+        pluginDTO.setRole(1);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
