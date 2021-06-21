@@ -40,10 +40,10 @@ public final class IpUtils {
     /**
      * Gets host.
      *
-     * @param preferred host preferred str
+     * @param filterPrefix host filterPrefix str
      * @return the host
      */
-    public static String getHost(final String preferred) {
+    public static String getHost(final String filterPrefix) {
         boolean first = true;
         String firstHostIp = null;
         String hostIp = null;
@@ -59,11 +59,11 @@ public final class IpUtils {
                         if (first) {
                             firstHostIp = hostAddress;
                             first = false;
-                            if (preferred == null) {
+                            if (filterPrefix == null) {
                                 break;
                             }
                         }
-                        if (preferred != null && hostAddress.startsWith(preferred)) {
+                        if (filterPrefix != null && hostAddress.startsWith(filterPrefix)) {
                             hostIp = hostAddress;
                             break;
                         }
