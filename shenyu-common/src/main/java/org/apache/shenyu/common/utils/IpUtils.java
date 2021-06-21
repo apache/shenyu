@@ -59,6 +59,9 @@ public final class IpUtils {
                         if (first) {
                             firstHostIp = hostAddress;
                             first = false;
+                            if (preferred == null) {
+                                break;
+                            }
                         }
                         if (preferred != null && hostAddress.startsWith(preferred)) {
                             hostIp = hostAddress;
