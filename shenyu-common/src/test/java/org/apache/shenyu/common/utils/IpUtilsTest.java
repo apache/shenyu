@@ -79,6 +79,4 @@ public final class IpUtilsTest {
                 .thenThrow(SocketException.class);
         assertEquals("127.0.0.1", IpUtils.getHost());
     }
-
-
 }
