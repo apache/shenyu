@@ -10,22 +10,29 @@ import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Health check manager for upstream servers.
+ *
+ * TODO not thread-safe.
+ * TODO WAITING_FOR_CHECK seems useless.
  */
 @Slf4j
 public class HealthCheckManager {
 
     private static final HealthCheckManager INSTANCE = new HealthCheckManager();
-
-    private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
     private static final Map<String, List<DivideUpstream>> HEALTHY_UPSTREAM = Maps.newConcurrentMap();
 
@@ -43,12 +50,17 @@ public class HealthCheckManager {
     private Integer healthyThreshold;
     private Integer unhealthyThreshold;
 
+    private ExecutorService executor;
+    private final List<CompletableFuture<?>> futures = Lists.newArrayList();
+    private static final Object LOCK = new Object();
+
+
     private HealthCheckManager() {
         initHealthCheck();
     }
 
     private void initHealthCheck() {
-        checkEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.enable", "false"));
+        checkEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.enable", "true"));
         checkTimeout = Integer.parseInt(System.getProperty("shenyu.upstream.check.timeout", "3000"));
         checkInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.interval", "5000"));
         healthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.healthy-threshold", "1"));
@@ -59,85 +71,106 @@ public class HealthCheckManager {
 
     private void scheduleHealthCheck() {
         if (checkEnable) {
-            ThreadFactory healthCheckFactory = ShenyuThreadFactory.create("upstream-health-check", false);
+            ThreadFactory healthCheckFactory = ShenyuThreadFactory.create("upstream-health-check", true);
             new ScheduledThreadPoolExecutor(1, healthCheckFactory)
                     .scheduleWithFixedDelay(this::healthCheck, 3000, checkInterval, TimeUnit.MILLISECONDS);
+
+            // executor for async request, avoid request block health check thread
+            ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
+            executor = new ScheduledThreadPoolExecutor(10, requestFactory);
         }
     }
 
     private void healthCheck() {
-        if (tryStartHealthCheck()) {
-            doHealthCheck();
+        try {
+            if (tryStartHealthCheck()) {
+                doHealthCheck();
+                waitFinish();
+                finishHealthCheck();
+            }
+        } catch (Exception e) {
+            log.error("[Health Check] Meet problem: ", e);
+        } finally {
             finishHealthCheck();
         }
     }
 
     private void doHealthCheck() {
-//        if (UPSTREAM_MAP.size() > 0) {
-//            UPSTREAM_MAP.forEach((k, v) -> {
-//                List<DivideUpstream> result = check(v);
-//                if (result.size() > 0) {
-//                    HEALTHY_UPSTREAM.put(k, result);
-//                } else {
-//                    HEALTHY_UPSTREAM.remove(k);
-//                }
-//            });
-//        }
         check(HEALTHY_UPSTREAM);
         check(UNHEALTHY_UPSTREAM);
         check(WAITING_FOR_CHECK);
 
         log.info("[Health Check] Check finished.");
-        HEALTHY_UPSTREAM.forEach((k, v) -> printHealthyUpstream(SELECTOR_CACHE.get(k)));
+        HEALTHY_UPSTREAM.keySet().forEach(k -> printHealthyUpstream(SELECTOR_CACHE.get(k)));
     }
 
     private void check(Map<String, List<DivideUpstream>> map) {
-        map.forEach((k, v) -> {
-            // TODO check health
-        });
+        for (Map.Entry<String, List<DivideUpstream>> entry : map.entrySet()) {
+            String key = entry.getKey();
+            List<DivideUpstream> value = entry.getValue();
+            Iterator<DivideUpstream> iterator = value.iterator();
+            while (iterator.hasNext()) {
+                // TODO bug here
+                DivideUpstream upstream = iterator.next();
+                iterator.remove();
+
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> check(key, upstream), executor);
+                futures.add(future);
+            }
+        }
     }
 
-    private List<DivideUpstream> check(final List<DivideUpstream> upstreamList) {
-        List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
-        for (DivideUpstream divideUpstream : upstreamList) {
-            final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl(), checkTimeout);
-            if (pass) {
-                if (divideUpstream.isHealthy()) {
-                    divideUpstream.setLastHealthTimestamp(System.currentTimeMillis());
-                    resultList.add(divideUpstream);
-                } else {
-                    long now = System.currentTimeMillis();
-                    long interval = now - divideUpstream.getLastUnhealthyTimestamp();
-                    if (interval >= (long) checkInterval * healthyThreshold) {
-                        divideUpstream.setHealthy(true);
-                        divideUpstream.setLastHealthTimestamp(now);
-                        resultList.add(divideUpstream);
-                        log.info("upstream {} health check passed, server is back online.", divideUpstream.getUpstreamUrl());
-                    }
-                }
+    private void check(String selectorId, DivideUpstream upstream) {
+        boolean pass = UpstreamCheckUtils.checkUrl(upstream.getUpstreamUrl(), checkTimeout);
+        if (pass) {
+            if (upstream.isHealthy()) {
+                upstream.setLastHealthTimestamp(System.currentTimeMillis());
+                putMap(HEALTHY_UPSTREAM, selectorId, upstream);
             } else {
-                if (!divideUpstream.isHealthy()) {
-                    divideUpstream.setLastUnhealthyTimestamp(System.currentTimeMillis());
+                long now = System.currentTimeMillis();
+                long interval = now - upstream.getLastUnhealthyTimestamp();
+                if (interval >= (long) checkInterval * healthyThreshold) {
+                    upstream.setHealthy(true);
+                    upstream.setLastHealthTimestamp(now);
+                    putMap(HEALTHY_UPSTREAM, selectorId, upstream);
+                    log.info("upstream {} health check passed, server is back online.", upstream.getUpstreamUrl());
                 } else {
-                    long now = System.currentTimeMillis();
-                    long interval = now - divideUpstream.getLastHealthTimestamp();
-                    if (interval >= (long) checkInterval * unhealthyThreshold) {
-                        divideUpstream.setHealthy(false);
-                        divideUpstream.setLastUnhealthyTimestamp(now);
-                        log.info("upstream {} health check failed, server is offline.", divideUpstream.getUpstreamUrl());
-                    } else {
-                        // we assume it's still healthy.
-                        resultList.add(divideUpstream);
-                    }
+                    putMap(UNHEALTHY_UPSTREAM, selectorId, upstream);
+                }
+            }
+        } else {
+            if (!upstream.isHealthy()) {
+                upstream.setLastUnhealthyTimestamp(System.currentTimeMillis());
+                putMap(UNHEALTHY_UPSTREAM, selectorId, upstream);
+            } else {
+                long now = System.currentTimeMillis();
+                long interval = now - upstream.getLastHealthTimestamp();
+                if (interval >= (long) checkInterval * unhealthyThreshold) {
+                    upstream.setHealthy(false);
+                    upstream.setLastUnhealthyTimestamp(now);
+                    putMap(UNHEALTHY_UPSTREAM, selectorId, upstream);
+                    log.info("upstream {} health check failed, server is offline.", upstream.getUpstreamUrl());
+                } else {
+                    putMap(HEALTHY_UPSTREAM, selectorId, upstream);
                 }
             }
         }
+    }
 
-        return resultList;
+    private void putMap(Map<String, List<DivideUpstream>> map, String selectorId, DivideUpstream upstream) {
+        List<DivideUpstream> list = map.computeIfAbsent(selectorId, k -> Lists.newArrayList());
+        if (!list.contains(upstream)) {
+            list.add(upstream);
+        }
     }
 
     private boolean tryStartHealthCheck() {
         return checkStarted.compareAndSet(false, true);
+    }
+
+    private void waitFinish() throws ExecutionException, InterruptedException {
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+        futures.clear();
     }
 
     private void finishHealthCheck() {
@@ -173,8 +206,11 @@ public class HealthCheckManager {
     }
 
     private static void printHealthyUpstream(SelectorData selectorData) {
-        List<DivideUpstream> list = HEALTHY_UPSTREAM.get(selectorData.getId());
-        log.info("[Health Check] Selector {} currently healthy upstream: {}", selectorData.getName(), GsonUtils.getInstance().toJson(list));
+        List<DivideUpstream> upstreamList = HEALTHY_UPSTREAM.get(selectorData.getId());
+        if (upstreamList != null) {
+            List<String> list = HEALTHY_UPSTREAM.get(selectorData.getId()).stream().map(DivideUpstream::getUpstreamUrl).collect(Collectors.toList());
+            log.info("[Health Check] Selector {} currently healthy upstream: {}", selectorData.getName(), GsonUtils.getInstance().toJson(list));
+        }
     }
 
     public static Map<String, List<DivideUpstream>> getHealthyUpstream() {

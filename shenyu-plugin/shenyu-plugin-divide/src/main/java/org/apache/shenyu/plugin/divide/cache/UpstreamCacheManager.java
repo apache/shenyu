@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.divide.cache;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -77,7 +78,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
     public void submit(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (null != upstreamList && upstreamList.size() > 0) {
-            List<DivideUpstream> existUpstream = UPSTREAM_MAP.get(selectorData.getId());
+            List<DivideUpstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorData.getId(), k -> Lists.newArrayList());
 
             // check upstream delete
             for (DivideUpstream upstream : existUpstream) {
