@@ -4,7 +4,7 @@ The `shenyu-dist` module is used to build packages and releases.
 
 ### Quickstart
 
-* git clone https://github.com/dromara/shenyu.git
+* git clone https://github.com/apache/shenyu.git
 * mvn clean package -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 
 Then you will see the `dist` directory in root directory.

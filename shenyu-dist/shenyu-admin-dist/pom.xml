@@ -111,7 +111,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>dromara/shenyu-admin</repository>
+                            <repository>apache/shenyu-admin</repository>
                             <tag>${project.version}</tag>
                             <buildArgs>
                                 <APP_NAME>shenyu-admin-bin-${project.version}</APP_NAME>
