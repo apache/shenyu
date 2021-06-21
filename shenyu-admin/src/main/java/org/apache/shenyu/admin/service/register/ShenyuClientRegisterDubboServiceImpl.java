@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
@@ -26,21 +24,15 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -49,9 +41,7 @@ import java.util.Objects;
 @Service("dubbo")
 public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
-    private final MetaDataMapper metaDataMapper;
-
-    private final ApplicationEventPublisher eventPublisher;
+    private final MetaDataService metaDataService;
 
     private final SelectorService selectorService;
 
@@ -61,14 +51,12 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
 
     private final RuleService ruleService;
 
-    public ShenyuClientRegisterDubboServiceImpl(final MetaDataMapper metaDataMapper,
-                                                final ApplicationEventPublisher eventPublisher,
+    public ShenyuClientRegisterDubboServiceImpl(final MetaDataService metaDataService,
                                                 final SelectorService selectorService,
                                                 final PluginMapper pluginMapper,
                                                 final RuleMapper ruleMapper,
                                                 final RuleService ruleService) {
-        this.metaDataMapper = metaDataMapper;
-        this.eventPublisher = eventPublisher;
+        this.metaDataService = metaDataService;
         this.selectorService = selectorService;
         this.pluginMapper = pluginMapper;
         this.ruleMapper = ruleMapper;
@@ -78,7 +66,7 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public synchronized String register(final MetaDataRegisterDTO dto) {
-        MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
+        MetaDataDO exist = metaDataService.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerSelector(dto);
         handlerRule(selectorId, dto, exist);
@@ -87,23 +75,7 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
 
     @Override
     public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
-        DataEventTypeEnum eventType;
-        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO);
-        if (Objects.isNull(exist)) {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
-            metaDataDO.setDateCreated(currentTime);
-            metaDataDO.setDateUpdated(currentTime);
-            metaDataMapper.insert(metaDataDO);
-            eventType = DataEventTypeEnum.CREATE;
-        } else {
-            metaDataDO.setId(exist.getId());
-            metaDataMapper.update(metaDataDO);
-            eventType = DataEventTypeEnum.UPDATE;
-        }
-        // publish MetaData's event
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
+        metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
 
     @Override
