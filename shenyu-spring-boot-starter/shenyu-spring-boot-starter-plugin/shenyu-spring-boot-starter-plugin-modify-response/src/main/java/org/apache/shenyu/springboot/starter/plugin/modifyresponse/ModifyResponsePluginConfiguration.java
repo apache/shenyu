@@ -36,7 +36,7 @@ public class ModifyResponsePluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public ShenyuPlugin responsePlugin() {
+    public ShenyuPlugin modifyResponsePlugin() {
         return new ModifyResponsePlugin();
     }
 

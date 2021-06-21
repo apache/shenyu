@@ -17,22 +17,24 @@
 
 package org.apache.shenyu.plugin.response;
 
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.support.BodyInserterContext;
+import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.response.cache.ModifyResponseRuleHandleCache;
 import org.apache.shenyu.plugin.response.handler.ModifyResponsePluginDataHandler;
-import org.apache.shenyu.web.filter.support.BodyInserterContext;
-import org.apache.shenyu.web.filter.support.CachedBodyOutputMessage;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -52,6 +54,9 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -74,7 +79,31 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         }
         final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
+//        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
+        ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
+
+        List<ParamMappingHandle.ParamMapInfo> addBodyMap = new ArrayList<>();
+        List<ParamMappingHandle.ParamMapInfo> replaceBodyKeys = new ArrayList<>();
+        Set<String> removeBodyStr = new HashSet<>();
+        ParamMappingHandle.ParamMapInfo param = new ParamMappingHandle.ParamMapInfo();
+        param.setPath("$.data");
+        param.setKey("test");
+        param.setValue("test");
+
+        addBodyMap.add(param);
+
+        ParamMappingHandle.ParamMapInfo param2 = new ParamMappingHandle.ParamMapInfo();
+        param2.setPath("$.data.nameInfo");
+        param2.setKey("name");
+        param2.setValue("realName");
+        replaceBodyKeys.add(param2);
+        removeBodyStr.add("$.data.body.age");
+
+
+        modifyResponseRuleHandle.setAddBodyKeys(addBodyMap);
+        modifyResponseRuleHandle.setReplaceBodyKeys(replaceBodyKeys);
+        modifyResponseRuleHandle.setRemoveBodyKeys(removeBodyStr);
+
         if (Objects.nonNull(modifyResponseRuleHandle)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders httpHeaders = response.getHeaders();
@@ -110,7 +139,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         }
 
         return chain.execute(exchange.mutate()
-                .response(new ParamServerHttpResponse(exchange, modifyResponseRuleHandle)).build());
+                .response(new ModifyServerHttpResponse(exchange, modifyResponseRuleHandle)).build());
     }
 
     @Override
@@ -123,13 +152,13 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         return PluginEnum.MODIFY_RESPONSE.getName();
     }
 
-    static class ParamServerHttpResponse extends ServerHttpResponseDecorator {
+    static class ModifyServerHttpResponse extends ServerHttpResponseDecorator {
 
         private final ServerWebExchange exchange;
 
         private final ModifyResponseRuleHandle handle;
 
-        ParamServerHttpResponse(final ServerWebExchange exchange, final ModifyResponseRuleHandle handle) {
+        ModifyServerHttpResponse(final ServerWebExchange exchange, final ModifyResponseRuleHandle handle) {
             super(exchange.getResponse());
             this.exchange = exchange;
             this.handle = handle;
@@ -162,37 +191,38 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         }
 
         private byte[] updateResponse(final byte[] responseBody) {
-            if (Objects.nonNull(handle)) {
+            if (Objects.isNull(handle)) {
                 return responseBody;
             }
 
-            Map<String, String> addBodyMap = handle.getAddBodyMap();
-            Map<String, Object> bodyMap = GsonUtils.getInstance().toObjectMap(new String(responseBody, StandardCharsets.UTF_8));
-            if (Objects.nonNull(addBodyMap) && MapUtils.isNotEmpty(addBodyMap)) {
-                addBodyMap.entrySet().stream().forEach(a -> bodyMap.put(a.getKey(), a.getValue()));
-            }
+            String bodyStr = operation(new String(responseBody, StandardCharsets.UTF_8), handle);
+            return bodyStr.getBytes(StandardCharsets.UTF_8);
+        }
 
-            Map<String, String> setBodyMap = handle.getSetBodyMap();
-            if (Objects.nonNull(setBodyMap) && MapUtils.isNotEmpty(setBodyMap)) {
-                setBodyMap.entrySet().stream().forEach(a -> bodyMap.put(a.getKey(), a.getValue()));
-            }
+        private String operation(final String jsonValue, final ModifyResponseRuleHandle handle) {
 
-            Map<String, String> replaceBodyKeys = handle.getReplaceBodyKeys();
-            if (Objects.nonNull(replaceBodyKeys) && MapUtils.isNotEmpty(replaceBodyKeys)) {
-                replaceBodyKeys.entrySet().stream().forEach(a -> {
-                    if (bodyMap.containsKey(a.getKey())) {
-                        bodyMap.put(a.getValue(), bodyMap.get(a.getKey()));
-                        bodyMap.remove(a.getKey());
-                    }
+            String test = "{\"code\":0,\"msg\":\"success\",\"data\":{\"nameInfo\":{\"name\":\"test\"},\"body\":{\"age\":\"18\"}}}";
+            DocumentContext context = JsonPath.parse(test);
+            operation(context, handle);
+            if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
+                handle.getReplaceBodyKeys().forEach(info -> {
+                    context.renameKey(info.getPath(), info.getKey(), info.getValue());
                 });
             }
-
-            Set<String> removeBodySet = handle.getRemoveBodyKeys();
-            if (Objects.nonNull(removeBodySet) && !CollectionUtils.isEmpty(removeBodySet)) {
-                removeBodySet.stream().forEach(a -> bodyMap.remove(a));
+            if (!CollectionUtils.isEmpty(handle.getRemoveBodyKeys())) {
+                handle.getRemoveBodyKeys().forEach(info -> {
+                    context.delete(info);
+                });
             }
+            return context.jsonString();
+        }
 
-            return GsonUtils.getInstance().toJson(bodyMap).getBytes(StandardCharsets.UTF_8);
+        private void operation(final DocumentContext context, final ModifyResponseRuleHandle handle) {
+            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
+                handle.getAddBodyKeys().forEach(info -> {
+                    context.put(info.getPath(), info.getKey(), info.getValue());
+                });
+            }
         }
 
         private ClientResponse prepareClientResponse(final Publisher<? extends DataBuffer> body, final HttpHeaders httpHeaders) {

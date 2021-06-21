@@ -24,6 +24,7 @@ import lombok.ToString;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,20 +66,14 @@ public class ModifyResponseRuleHandle implements RuleHandle {
     private int statusCode;
 
     /**
-     * add body map.
+     * add body List.
      */
-    private Map<String, String> addBodyMap;
+    private List<ParamMappingHandle.ParamMapInfo> addBodyKeys;
 
     /**
-     * update body value map.
+     * replace body List.
      */
-    private Map<String, String> setBodyMap;
-
-    /**
-     * replace body map
-     * key: oldHeaderKey, value: newHeaderKey.
-     */
-    private Map<String, String> replaceBodyKeys;
+    private List<ParamMappingHandle.ParamMapInfo> replaceBodyKeys;
 
     /**
      * remove body List.
