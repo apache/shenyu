@@ -24,6 +24,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
@@ -47,7 +48,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
 
     private static final Map<String, List<DivideUpstream>> HEALTHY_UPSTREAM = Maps.newConcurrentMap();
 
-    private static final Map<String, List<DivideUpstream>> UNHEALTHY_UPSTREAM = Maps.newConcurrentMap();
+//    private static final Map<String, List<DivideUpstream>> UNHEALTHY_UPSTREAM = Maps.newConcurrentMap();
 
     private final AtomicBoolean checkStarted = new AtomicBoolean(false);
 
@@ -56,7 +57,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
     private Integer checkInterval;
     private Integer healthyThreshold;
     private Integer unhealthyThreshold;
-    
+
     /**
      * suggest shenyu.upstream.scheduledTime set 1 SECONDS.
      */
@@ -76,8 +77,8 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
 
     private void scheduleHealthCheck() {
         if (checkEnable) {
-            ThreadFactory threadFactory = ShenyuThreadFactory.create("upstream-health-check", false);
-            new ScheduledThreadPoolExecutor(1, threadFactory)
+            ThreadFactory healthCheckFactory = ShenyuThreadFactory.create("upstream-health-check", false);
+            new ScheduledThreadPoolExecutor(1, healthCheckFactory)
                     .scheduleWithFixedDelay(this::healthCheck, 3000, checkInterval, TimeUnit.MILLISECONDS);
         }
     }
@@ -118,12 +119,16 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
     public void submit(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (null != upstreamList && upstreamList.size() > 0) {
+            // when upstream first time added. we assume they are healthy
+            // TODO maybe we should add a new list WAIT_FOR_CHECKING to check whether the new upstream is healthy or not
             UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
             HEALTHY_UPSTREAM.put(selectorData.getId(), upstreamList);
         } else {
             UPSTREAM_MAP.remove(selectorData.getId());
             HEALTHY_UPSTREAM.remove(selectorData.getId());
         }
+
+//        UNHEALTHY_UPSTREAM.remove(selectorData.getId());
     }
 
     private void healthCheck() {
@@ -157,19 +162,39 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
     private List<DivideUpstream> check(final List<DivideUpstream> upstreamList) {
         List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
         for (DivideUpstream divideUpstream : upstreamList) {
-            final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
+            final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl(), checkTimeout);
             if (pass) {
-                if (!divideUpstream.isStatus()) {
-                    divideUpstream.setTimestamp(System.currentTimeMillis());
-                    divideUpstream.setStatus(true);
-                    log.info("UpstreamCacheManager detect success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+                if (divideUpstream.isHealthy()) {
+                    divideUpstream.setLastHealthTimestamp(System.currentTimeMillis());
+                    resultList.add(divideUpstream);
+                } else {
+                    long now = System.currentTimeMillis();
+                    long interval = now - divideUpstream.getLastUnhealthyTimestamp();
+                    if (interval >= (long) checkInterval * healthyThreshold) {
+                        divideUpstream.setHealthy(true);
+                        divideUpstream.setLastHealthTimestamp(now);
+                        resultList.add(divideUpstream);
+                        log.info("upstream {} health check passed, server is back online.", divideUpstream.getUpstreamUrl());
+                    }
                 }
-                resultList.add(divideUpstream);
             } else {
-                divideUpstream.setStatus(false);
-                log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
+                if (!divideUpstream.isHealthy()) {
+                    divideUpstream.setLastUnhealthyTimestamp(System.currentTimeMillis());
+                } else {
+                    long now = System.currentTimeMillis();
+                    long interval = now - divideUpstream.getLastHealthTimestamp();
+                    if (interval >= (long) checkInterval * unhealthyThreshold) {
+                        divideUpstream.setHealthy(false);
+                        divideUpstream.setLastUnhealthyTimestamp(now);
+                        log.info("upstream {} health check failed, server is offline.", divideUpstream.getUpstreamUrl());
+                    } else {
+                        // we assume it's still healthy.
+                        resultList.add(divideUpstream);
+                    }
+                }
             }
         }
+
         return resultList;
     }
 }

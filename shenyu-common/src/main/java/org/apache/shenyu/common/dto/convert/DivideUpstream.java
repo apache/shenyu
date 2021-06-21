@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -68,5 +69,16 @@ public class DivideUpstream implements Serializable {
      * warmup.
      */
     private int warmup;
+
+    // health parameters
+
+    @Builder.Default
+    private boolean healthy = true;
+
+    @Builder.Default
+    private long lastHealthTimestamp = System.currentTimeMillis();
+
+    @Builder.Default
+    private long lastUnhealthyTimestamp = System.currentTimeMillis();
 
 }
