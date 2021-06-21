@@ -24,6 +24,7 @@ import java.util.List;
 /**
  * The interface shenyu client service.
  */
+@Deprecated
 public interface ShenyuClientRegisterService {
     
     /**
