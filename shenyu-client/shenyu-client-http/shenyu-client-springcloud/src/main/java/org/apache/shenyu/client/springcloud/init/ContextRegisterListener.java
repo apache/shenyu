@@ -93,7 +93,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         String contextPath = this.contextPath;
         String appName = env.getProperty("spring.application.name");
         Integer port = env.getProperty("server.port", Integer.class, 8080);
-        String host = IpUtils.getHost(this.host);
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String path = contextPath + "/**";
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)

@@ -124,7 +124,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             path = contextPath + prePath + shenyuSpringMvcClient.path();
         }
         String desc = shenyuSpringMvcClient.desc();
-        String host = IpUtils.getHost(this.host);
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuSpringMvcClient.ruleName();
         String ruleName = StringUtils.isBlank(configRuleName) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()

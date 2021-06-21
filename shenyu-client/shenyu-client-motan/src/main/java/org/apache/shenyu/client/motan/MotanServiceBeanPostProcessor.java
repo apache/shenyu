@@ -125,7 +125,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         String appName = this.appName;
         String path = this.contextPath + shenyuMotanClient.path();
         String desc = shenyuMotanClient.desc();
-        String host = IpUtils.getHost(this.host);
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = shenyuMotanClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;

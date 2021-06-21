@@ -137,7 +137,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final ShenyuGrpcClient shenyuGrpcClient, final Method method) {
         String path = this.contextPath + shenyuGrpcClient.path();
         String desc = shenyuGrpcClient.desc();
-        String host = IpUtils.getHost(this.host);
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuGrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();

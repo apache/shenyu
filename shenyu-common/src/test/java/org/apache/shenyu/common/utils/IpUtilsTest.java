@@ -28,6 +28,8 @@ import java.net.SocketException;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -65,9 +67,18 @@ public final class IpUtilsTest {
     }
 
     @Test
+    public void testIsCompleteHost() {
+        assertTrue(IpUtils.isCompleteHost("192.168.1.166"));
+        assertFalse(IpUtils.isCompleteHost("192.168."));
+        assertFalse(IpUtils.isCompleteHost("192.."));
+    }
+
+    @Test
     public void testGetHostWithException() throws Exception {
         networkInterfaceMockedStatic.when((MockedStatic.Verification) NetworkInterface.getNetworkInterfaces())
                 .thenThrow(SocketException.class);
         assertEquals("127.0.0.1", IpUtils.getHost());
     }
+
+
 }

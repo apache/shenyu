@@ -109,7 +109,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         String ipAndPort = this.ipAndPort;
         String path = this.contextPath + shenyuTarsClient.path();
         String desc = shenyuTarsClient.desc();
-        String host = IpUtils.getHost(this.host);
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuTarsClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();

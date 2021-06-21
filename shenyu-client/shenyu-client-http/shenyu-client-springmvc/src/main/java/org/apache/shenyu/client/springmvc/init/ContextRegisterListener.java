@@ -96,7 +96,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         String appName = this.appName;
         Integer port = this.port;
         String path = contextPath + "/**";
-        String host = IpUtils.getHost(this.host);
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .host(host)
