@@ -23,7 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
@@ -31,7 +30,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.test.StepVerifier;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -53,7 +51,6 @@ public class OAuth2PluginTest {
     @Test
     public void testOAuth2Plugin() {
         StepVerifier.create(oAuth2Plugin.doExecute(exchange, chain, null, null)).expectSubscription().verifyComplete();
-        assertFalse(exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
     }
 
     @Test
