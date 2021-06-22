@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 import org.apache.shenyu.plugin.divide.health.HealthCheckManager;
@@ -67,7 +68,8 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
      * @param key the key
      */
     public void removeByKey(final String key) {
-        HealthCheckManager.getHealthyUpstream().remove(key);
+        UPSTREAM_MAP.remove(key);
+        HealthCheckManager.triggerRemoveAll(key);
     }
 
     /**
@@ -77,7 +79,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
      */
     public void submit(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
-        if (null != upstreamList && upstreamList.size() > 0) {
+        if (CollectionUtils.isNotEmpty(upstreamList)) {
             List<DivideUpstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorData.getId(), k -> Lists.newArrayList());
 
             // check upstream delete
