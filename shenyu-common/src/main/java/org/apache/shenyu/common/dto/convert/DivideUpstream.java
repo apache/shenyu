@@ -79,10 +79,7 @@ public class DivideUpstream implements Serializable {
     @Builder.Default
     private boolean healthy = false;
 
-    @Builder.Default
-    private long lastHealthTimestamp = System.currentTimeMillis();
+    private long lastHealthTimestamp;
 
-    @Builder.Default
-    private long lastUnhealthyTimestamp = System.currentTimeMillis();
-
+    private long lastUnhealthyTimestamp;
 }
