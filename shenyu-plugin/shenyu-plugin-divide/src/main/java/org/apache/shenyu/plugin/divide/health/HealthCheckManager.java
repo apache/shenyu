@@ -105,7 +105,6 @@ public class HealthCheckManager {
         } catch (Exception e) {
             log.error("[Health Check] Meet problem: ", e);
         } finally {
-            log.info("[Health Check] Health check finished.........");
             finishHealthCheck();
         }
     }
