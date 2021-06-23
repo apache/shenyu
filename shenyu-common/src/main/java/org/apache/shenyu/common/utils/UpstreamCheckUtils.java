@@ -21,10 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.regex.Pattern;
 
 /**
  * The type Uri utils.
@@ -50,7 +48,7 @@ public class UpstreamCheckUtils {
     /**
      * Check url boolean.
      *
-     * @param url the url
+     * @param url     the url
      * @param timeout timeout
      * @return the boolean
      */
