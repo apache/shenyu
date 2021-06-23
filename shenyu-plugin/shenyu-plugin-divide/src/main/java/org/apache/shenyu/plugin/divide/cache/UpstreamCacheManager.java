@@ -59,7 +59,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
      * @return the list
      */
     public List<DivideUpstream> findUpstreamListBySelectorId(final String selectorId) {
-        return HealthCheckManager.getHealthyUpstream().get(selectorId);
+        return HealthCheckManager.getInstance().getHealthyUpstream().get(selectorId);
     }
 
     /**
@@ -69,7 +69,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
      */
     public void removeByKey(final String key) {
         UPSTREAM_MAP.remove(key);
-        HealthCheckManager.triggerRemoveAll(key);
+        HealthCheckManager.getInstance().triggerRemoveAll(key);
     }
 
     /**
@@ -85,14 +85,14 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
             // check upstream delete
             for (DivideUpstream upstream : existUpstream) {
                 if (!upstreamList.contains(upstream)) {
-                    HealthCheckManager.triggerRemoveOne(selectorData, upstream);
+                    HealthCheckManager.getInstance().triggerRemoveOne(selectorData, upstream);
                 }
             }
 
             // check upstream add
             for (DivideUpstream upstream : upstreamList) {
                 if (!existUpstream.contains(upstream)) {
-                    HealthCheckManager.triggerAddOne(selectorData, upstream);
+                    HealthCheckManager.getInstance().triggerAddOne(selectorData, upstream);
                 }
             }
 
@@ -100,7 +100,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
             UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
         } else {
             UPSTREAM_MAP.remove(selectorData.getId());
-            HealthCheckManager.triggerRemoveAll(selectorData);
+            HealthCheckManager.getInstance().triggerRemoveAll(selectorData);
         }
     }
 }
