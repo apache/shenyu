@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -46,14 +45,10 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
 
     private final SelectorService selectorService;
 
-    private final SelectorMapper selectorMapper;
-
     public ShenyuClientRegisterDefaultServiceImpl(final ApplicationEventPublisher eventPublisher,
-                                                  final SelectorService selectorService,
-                                                  final SelectorMapper selectorMapper) {
+                                                  final SelectorService selectorService) {
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
-        this.selectorMapper = selectorMapper;
     }
 
     @Override
@@ -68,7 +63,7 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
         String handler = GsonUtils.getInstance().toJson(buildDivideUpstreamList(uriList));
         selector.setHandle(handler);
         selectorData.setHandle(handler);
-        selectorMapper.updateSelective(selector);
+        selectorService.updateSelective(selector);
         // publish change event.
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(selectorData)));
@@ -92,10 +87,5 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<String> uriList) {
         return uriList.stream().map(this::buildDivideUpstream).collect(Collectors.toList());
-    }
-
-    @Override
-    protected String getPluginId(final String pluginName) {
-        return "";
     }
 }
