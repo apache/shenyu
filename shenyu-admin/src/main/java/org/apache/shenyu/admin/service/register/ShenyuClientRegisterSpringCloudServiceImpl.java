@@ -19,18 +19,17 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -52,36 +51,33 @@ import java.util.Objects;
 @Service("springCloud")
 public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
-    private final MetaDataMapper metaDataMapper;
-
     private final ApplicationEventPublisher eventPublisher;
 
     private final SelectorService selectorService;
 
     private final RuleService ruleService;
 
-    private final RuleMapper ruleMapper;
+    private final MetaDataService metaDataService;
 
-    private final PluginMapper pluginMapper;
+    private final PluginService pluginService;
 
-    public ShenyuClientRegisterSpringCloudServiceImpl(final MetaDataMapper metaDataMapper,
+    public ShenyuClientRegisterSpringCloudServiceImpl(final MetaDataService metaDataService,
                                                       final ApplicationEventPublisher eventPublisher,
                                                       final SelectorService selectorService,
                                                       final RuleService ruleService,
                                                       final RuleMapper ruleMapper,
-                                                      final PluginMapper pluginMapper) {
-        this.metaDataMapper = metaDataMapper;
+                                                      final PluginService pluginService) {
+        this.metaDataService = metaDataService;
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
-        this.ruleMapper = ruleMapper;
-        this.pluginMapper = pluginMapper;
+        this.pluginService = pluginService;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public synchronized String register(final MetaDataRegisterDTO dto) {
-        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContextPath() + "/**");
+        MetaDataDO metaDataDO = metaDataService.findByPath(dto.getContextPath() + "/**");
         if (Objects.isNull(metaDataDO)) {
             saveOrUpdateMetaData(metaDataDO, dto);
         }
@@ -110,7 +106,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
-        metaDataMapper.insert(metaDataDO);
+        metaDataService.insert(metaDataDO);
         // publish AppAuthData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
@@ -127,42 +123,33 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
             return selectorDO.getId();
         }
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(getPluginId(PluginEnum.SPRING_CLOUD.getName()));
+        selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
         selectorDTO.setHandle(GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(dto.getAppName())));
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
 
     @Override
-    public String getPluginId(final String pluginName) {
-        final PluginDO pluginDO = pluginMapper.selectByName(pluginName);
-        Objects.requireNonNull(pluginDO);
-        return pluginDO.getId();
-    }
-
-    @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
-        RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
-        if (Objects.isNull(ruleDO)) {
-            ruleService.register(registerRpcRule(selectorId, dto.getPath(), PluginEnum.SPRING_CLOUD.getName(), dto.getRuleName()));
-        }
+        ruleService.register(registerRpcRule(selectorId, dto.getPath(), PluginEnum.SPRING_CLOUD.getName(), dto.getRuleName()),
+                dto.getRuleName(),
+                Objects.isNull(exist));
     }
 
     private void registerContextPathPlugin(final String contextPath) {
-        String name = CONTEXT_PATH_NAME_PREFIX + contextPath;
+        String name = Constants.CONTEXT_PATH_NAME_PREFIX + contextPath;
         SelectorDO selectorDO = selectorService.findByName(name);
         if (Objects.isNull(selectorDO)) {
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
-            RuleDO ruleDO = ruleMapper.findByName(name);
-            if (Objects.isNull(ruleDO)) {
-                ruleService.register(registerRpcRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name));
-            }
+            ruleService.register(registerRpcRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
+                    name,
+                    true);
         }
     }
 
     private String registerContextPathSelector(final String contextPath, final String name) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(name);
-        selectorDTO.setPluginId(getPluginId(PluginEnum.CONTEXT_PATH.getName()));
+        selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.CONTEXT_PATH.getName()));
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
