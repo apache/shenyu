@@ -143,14 +143,12 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     }
 
     private String registerSelector(final String contextPath, final String rpcType, final String uri) {
-        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(pluginService.selectIdByName(rpcType));
+        SelectorDTO selectorDTO = registerRpcSelector(contextPath, pluginService.selectIdByName(rpcType));
         //is divide
         DivideUpstream divideUpstream = buildDivideUpstream(uri);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
         selectorDTO.setHandle(handler);
         upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
-        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
 }
