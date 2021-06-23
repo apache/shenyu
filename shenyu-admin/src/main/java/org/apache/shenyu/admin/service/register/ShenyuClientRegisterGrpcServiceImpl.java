@@ -19,15 +19,11 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
@@ -61,30 +57,22 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
 
     private final RuleService ruleService;
 
-    private final RuleMapper ruleMapper;
-
     private final UpstreamCheckService upstreamCheckService;
 
-    private final SelectorMapper selectorMapper;
-
-    private final PluginMapper pluginMapper;
+    private final PluginService pluginService;
 
     public ShenyuClientRegisterGrpcServiceImpl(final MetaDataService metaDataService,
                                                final ApplicationEventPublisher eventPublisher,
                                                final SelectorService selectorService,
                                                final RuleService ruleService,
-                                               final RuleMapper ruleMapper,
-                                               final UpstreamCheckService upstreamCheckService,
-                                               final SelectorMapper selectorMapper,
-                                               final PluginMapper pluginMapper) {
+                                               final PluginService pluginService,
+                                               final UpstreamCheckService upstreamCheckService) {
         this.metaDataService = metaDataService;
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
-        this.ruleMapper = ruleMapper;
         this.upstreamCheckService = upstreamCheckService;
-        this.selectorMapper = selectorMapper;
-        this.pluginMapper = pluginMapper;
+        this.pluginService = pluginService;
     }
 
     @Override
@@ -112,7 +100,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), uri);
+            selectorId = registerSelector(contextPath, dto.getRpcType(), uri);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
@@ -137,7 +125,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
             selectorDO.setHandle(handleAdd);
             selectorData.setHandle(handleAdd);
             // update db
-            selectorMapper.updateSelective(selectorDO);
+            selectorService.updateSelective(selectorDO);
             // submit upstreamCheck
             upstreamCheckService.submit(contextPath, addDivideUpstream);
             // publish change event.
@@ -148,23 +136,15 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     }
 
     @Override
-    public String getPluginId(final String pluginName) {
-        final PluginDO pluginDO = pluginMapper.selectByName(pluginName);
-        Objects.requireNonNull(pluginDO);
-        return pluginDO.getId();
-    }
-
-    @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
-        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
-            ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.GRPC.getName(), metaDataDTO.getRuleName()));
-        }
+        ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.GRPC.getName(), metaDataDTO.getRuleName()),
+                metaDataDTO.getPath(),
+                Objects.isNull(exist));
     }
 
-    private String registerSelector(final String contextPath, final String rpcType, final String appName, final String uri) {
+    private String registerSelector(final String contextPath, final String rpcType, final String uri) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(getPluginId(rpcType));
+        selectorDTO.setPluginId(pluginService.selectIdByName(rpcType));
         //is divide
         DivideUpstream divideUpstream = buildDivideUpstream(uri);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
