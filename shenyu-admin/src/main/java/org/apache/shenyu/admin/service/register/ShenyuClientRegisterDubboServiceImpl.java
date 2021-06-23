@@ -17,14 +17,10 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -45,22 +41,18 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
 
     private final SelectorService selectorService;
 
-    private final PluginMapper pluginMapper;
-
-    private final RuleMapper ruleMapper;
+    private final PluginService pluginService;
 
     private final RuleService ruleService;
 
     public ShenyuClientRegisterDubboServiceImpl(final MetaDataService metaDataService,
                                                 final SelectorService selectorService,
-                                                final PluginMapper pluginMapper,
-                                                final RuleMapper ruleMapper,
-                                                final RuleService ruleService) {
+                                                final RuleService ruleService,
+                                                final PluginService pluginService) {
         this.metaDataService = metaDataService;
         this.selectorService = selectorService;
-        this.pluginMapper = pluginMapper;
-        this.ruleMapper = ruleMapper;
         this.ruleService = ruleService;
+        this.pluginService = pluginService;
     }
 
     @Override
@@ -85,24 +77,12 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
             return selectorDO.getId();
         }
         String contextPath = metaDataDTO.getContextPath();
-        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(getPluginId(PluginEnum.DUBBO.getName()));
-        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
-        return selectorService.register(registerRpcSelector(contextPath, metaDataDTO.getRpcType()));
-    }
-
-    @Override
-    public String getPluginId(final String pluginName) {
-        final PluginDO pluginDO = pluginMapper.selectByName(pluginName);
-        Objects.requireNonNull(pluginDO);
-        return pluginDO.getId();
+        return selectorService.register(registerRpcSelector(contextPath, pluginService.selectIdByName(metaDataDTO.getRpcType())));
     }
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
-        if (Objects.isNull(existRule)) {
-            ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.DUBBO.getName(), metaDataDTO.getRuleName()));
-        }
+        ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.DUBBO.getName(), metaDataDTO.getRuleName()),
+                metaDataDTO.getPath(), Objects.isNull(exist));
     }
 }
