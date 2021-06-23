@@ -46,11 +46,6 @@ public final class UpstreamCheckUtilsTest {
     }
 
     @Test
-    public void testPingHostname() {
-        assertTrue(UpstreamCheckUtils.checkUrl("localhost"));
-    }
-
-    @Test
     @SneakyThrows
     public void testSocketConnect() {
         Runnable runnable = () -> {
