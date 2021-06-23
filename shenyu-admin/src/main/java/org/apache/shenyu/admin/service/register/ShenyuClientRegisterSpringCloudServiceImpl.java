@@ -122,10 +122,8 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
         if (Objects.nonNull(selectorDO)) {
             return selectorDO.getId();
         }
-        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
+        SelectorDTO selectorDTO = registerRpcSelector(contextPath, pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
         selectorDTO.setHandle(GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(dto.getAppName())));
-        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
 
