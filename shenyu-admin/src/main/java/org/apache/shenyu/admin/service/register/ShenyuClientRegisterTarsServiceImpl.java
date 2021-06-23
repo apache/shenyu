@@ -153,6 +153,6 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.TARS.getName(), metaDataDTO.getRuleName()), metaDataDTO.getPath(), Objects.isNull(exist));
+        ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.TARS.getName(), metaDataDTO.getRuleName()), metaDataDTO.getPath(), Objects.isNull(exist));
     }
 }

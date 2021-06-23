@@ -76,12 +76,12 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
         if (Objects.nonNull(selectorDO)) {
             return selectorDO.getId();
         }
-        return selectorService.register(registerRpcSelector(metaDataDTO.getContextPath(), pluginService.selectIdByName(metaDataDTO.getRpcType())));
+        return selectorService.register(registerSelector(metaDataDTO.getContextPath(), pluginService.selectIdByName(metaDataDTO.getRpcType())));
     }
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.DUBBO.getName(), metaDataDTO.getRuleName()),
+        ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.DUBBO.getName(), metaDataDTO.getRuleName()),
                 metaDataDTO.getPath(), Objects.isNull(exist));
     }
 }

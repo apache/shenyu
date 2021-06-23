@@ -137,13 +137,13 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.GRPC.getName(), metaDataDTO.getRuleName()),
+        ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.GRPC.getName(), metaDataDTO.getRuleName()),
                 metaDataDTO.getPath(),
                 Objects.isNull(exist));
     }
 
     private String registerSelector(final String contextPath, final String rpcType, final String uri) {
-        SelectorDTO selectorDTO = registerRpcSelector(contextPath, pluginService.selectIdByName(rpcType));
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(rpcType));
         //is divide
         DivideUpstream divideUpstream = buildDivideUpstream(uri);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));

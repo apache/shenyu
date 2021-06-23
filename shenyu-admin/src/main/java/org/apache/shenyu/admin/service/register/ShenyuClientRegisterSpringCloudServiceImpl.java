@@ -122,14 +122,14 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
         if (Objects.nonNull(selectorDO)) {
             return selectorDO.getId();
         }
-        SelectorDTO selectorDTO = registerRpcSelector(contextPath, pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
         selectorDTO.setHandle(GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(dto.getAppName())));
         return selectorService.register(selectorDTO);
     }
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
-        ruleService.register(registerRpcRule(selectorId, dto.getPath(), PluginEnum.SPRING_CLOUD.getName(), dto.getRuleName()),
+        ruleService.register(registerRule(selectorId, dto.getPath(), PluginEnum.SPRING_CLOUD.getName(), dto.getRuleName()),
                 dto.getRuleName(),
                 Objects.isNull(exist));
     }
@@ -139,7 +139,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
         SelectorDO selectorDO = selectorService.findByName(name);
         if (Objects.isNull(selectorDO)) {
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
-            ruleService.register(registerRpcRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
+            ruleService.register(registerRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
                     name,
                     true);
         }

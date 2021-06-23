@@ -72,14 +72,14 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
         return null;
     }
 
-    protected SelectorDTO registerRpcSelector(final String contextPath, final String pluginId) {
+    protected SelectorDTO registerSelector(final String contextPath, final String pluginId) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
         selectorDTO.setPluginId(pluginId);
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorDTO;
     }
 
-    protected RuleDTO registerRpcRule(final String selectorId, final String path, final String pluginName, final String ruleName) {
+    protected RuleDTO registerRule(final String selectorId, final String path, final String pluginName, final String ruleName) {
         RuleHandle ruleHandle = pluginName.equals(PluginEnum.CONTEXT_PATH.getName())
                 ? RuleHandleFactory.ruleHandle(pluginName, buildContextPath(path)) : RuleHandleFactory.ruleHandle(pluginName, path);
         RuleDTO ruleDTO = RuleDTO.builder()

@@ -100,7 +100,7 @@ public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRe
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerSelector(contextPath, uri);
+            selectorId = registerMotanSelector(contextPath, uri);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
@@ -135,8 +135,8 @@ public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRe
         return selectorId;
     }
 
-    private String registerSelector(final String contextPath, final String uri) {
-        SelectorDTO selectorDTO = registerRpcSelector(contextPath, pluginService.selectIdByName(PluginEnum.DIVIDE.getName()));
+    private String registerMotanSelector(final String contextPath, final String uri) {
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(PluginEnum.DIVIDE.getName()));
         //is divide
         DivideUpstream divideUpstream = buildDivideUpstream(uri);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
@@ -147,7 +147,7 @@ public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRe
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRpcRule(selectorId, metaDataDTO.getPath(), PluginEnum.MOTAN.getName(), metaDataDTO.getRuleName()),
+        ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.MOTAN.getName(), metaDataDTO.getRuleName()),
                 metaDataDTO.getPath(),
                 Objects.isNull(exist));
     }

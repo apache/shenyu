@@ -127,7 +127,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerSelector(contextPath, uri);
+            selectorId = registerSpringMVCSelector(contextPath, uri);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
@@ -162,8 +162,8 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
         return selectorId;
     }
 
-    private String registerSelector(final String contextPath, final String uri) {
-        SelectorDTO selectorDTO = registerRpcSelector(contextPath, pluginService.selectIdByName(PluginEnum.DIVIDE.getName()));
+    private String registerSpringMVCSelector(final String contextPath, final String uri) {
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(PluginEnum.DIVIDE.getName()));
         //is divide
         DivideUpstream divideUpstream = buildDivideUpstream(uri);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
@@ -174,7 +174,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
-        ruleService.register(registerRpcRule(selectorId, dto.getPath(), PluginEnum.DIVIDE.getName(), dto.getRuleName()),
+        ruleService.register(registerRule(selectorId, dto.getPath(), PluginEnum.DIVIDE.getName(), dto.getRuleName()),
                 dto.getRuleName(),
                 Objects.isNull(exist));
     }
@@ -184,7 +184,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
         SelectorDO selectorDO = selectorService.findByName(name);
         if (Objects.isNull(selectorDO)) {
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
-            ruleService.register(registerRpcRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
+            ruleService.register(registerRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
                     name,
                     true);
         }
