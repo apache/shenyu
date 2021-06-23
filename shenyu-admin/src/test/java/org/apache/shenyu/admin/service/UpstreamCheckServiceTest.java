@@ -102,9 +102,9 @@ public final class UpstreamCheckServiceTest {
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         //stubbing
-        when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
+//        when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
         when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
-        when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
+//        when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
         when(selectorMapper.updateSelective(any(SelectorDO.class))).thenReturn(1);
         when(selectorMapper.selectByName(anyString())).then(invocationOnMock -> {
             Object[] args = invocationOnMock.getArguments();
