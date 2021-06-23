@@ -124,4 +124,12 @@ public interface MetaDataService {
      * @return {@link MetaDataDO}
      */
     MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName);
+
+    /**
+     * insert MetaDataDO.
+     *
+     * @param metaDataDO meta data object
+     * @return the success rows.
+     */
+    int insert(MetaDataDO metaDataDO);
 }

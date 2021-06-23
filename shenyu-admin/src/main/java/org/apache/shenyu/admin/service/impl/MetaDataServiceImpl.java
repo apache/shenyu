@@ -199,6 +199,11 @@ public class MetaDataServiceImpl implements MetaDataService {
         return metaDataMapper.findByServiceNameAndMethod(serviceName, methodName);
     }
 
+    @Override
+    public int insert(MetaDataDO metaDataDO) {
+        return metaDataMapper.insert(metaDataDO);
+    }
+
     private String checkData(final MetaDataDTO metaDataDTO) {
         Boolean success = checkParam(metaDataDTO);
         if (!success) {
