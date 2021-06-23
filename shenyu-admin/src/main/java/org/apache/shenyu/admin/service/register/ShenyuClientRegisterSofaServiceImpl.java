@@ -81,11 +81,8 @@ public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientReg
         if (Objects.nonNull(selectorDO)) {
             return selectorDO.getId();
         }
-        String contextPath = metaDataDTO.getContextPath();
-        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.SOFA.getName()));
+        SelectorDTO selectorDTO = registerRpcSelector(metaDataDTO.getContextPath(), pluginService.selectIdByName(PluginEnum.SOFA.getName()));
         selectorDTO.setHandle(metaDataDTO.getAppName());
-        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
 
