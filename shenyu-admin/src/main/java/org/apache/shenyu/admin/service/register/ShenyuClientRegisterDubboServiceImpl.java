@@ -76,8 +76,7 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
         if (Objects.nonNull(selectorDO)) {
             return selectorDO.getId();
         }
-        String contextPath = metaDataDTO.getContextPath();
-        return selectorService.register(registerRpcSelector(contextPath, pluginService.selectIdByName(metaDataDTO.getRpcType())));
+        return selectorService.register(registerRpcSelector(metaDataDTO.getContextPath(), pluginService.selectIdByName(metaDataDTO.getRpcType())));
     }
 
     @Override
