@@ -105,6 +105,7 @@ public class HealthCheckManager {
         } catch (Exception e) {
             log.error("[Health Check] Meet problem: ", e);
         } finally {
+            log.info("[Health Check] Health check finished.........");
             finishHealthCheck();
         }
     }
@@ -211,6 +212,9 @@ public class HealthCheckManager {
     public void triggerRemoveOne(String selectorId, DivideUpstream upstream) {
         removeFromMap(HEALTHY_UPSTREAM, selectorId, upstream);
         removeFromMap(UNHEALTHY_UPSTREAM, selectorId, upstream);
+
+        SelectorData selectorData = SELECTOR_CACHE.get(selectorId);
+        log.info("[Health Check] Selector [{}] upstream {} was removed.", selectorData.getName(), upstream.getUpstreamUrl());
     }
 
     private void putToMap(Map<String, List<DivideUpstream>> map, String selectorId, DivideUpstream upstream) {
@@ -239,8 +243,12 @@ public class HealthCheckManager {
         synchronized (LOCK) {
             HEALTHY_UPSTREAM.remove(selectorId);
             UNHEALTHY_UPSTREAM.remove(selectorId);
-            SELECTOR_CACHE.remove(selectorId);
         }
+
+        SelectorData selectorData = SELECTOR_CACHE.get(selectorId);
+        log.info("[Health Check] Selector [{}] all upstream as removed.", selectorData.getName());
+
+        SELECTOR_CACHE.remove(selectorId);
     }
 
     private void printHealthyUpstream() {
