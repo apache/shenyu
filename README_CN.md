@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://shenyu.apache.org/img/logo/shenyu.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://shenyu.apache.org/img/logo/apache-shenyu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>应用于所有微服务场景的，可扩展、高性能、响应式的 API 网关解决方案</strong>
