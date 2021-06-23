@@ -992,13 +992,13 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768292343009', '1346358560427216896', '1397547768296538120', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 
 /** add param-mapping plugin's permissions */
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534378686054400', '1346358560427216896', '1405534378660888576', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534378979655680', '1346358560427216896', '1405534378971267072', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379000627201', '1346358560427216896', '1405534379000627200', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379046764545', '1346358560427216896', '1405534379046764544', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379071930369', '1346358560427216896', '1405534379071930368', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379092901889', '1346358560427216896', '1405534379092901888', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379122262017', '1346358560427216896', '1405534379122262016', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379139039233', '1346358560427216896', '1405534379139039232', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379168399360', '1346358560427216896', '1405534379164205056', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379185176577', '1346358560427216896', '1405534379185176576', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534378686054400', '1346358560427216896', '1405534378660888576', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534378979655680', '1346358560427216896', '1405534378971267072', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379000627201', '1346358560427216896', '1405534379000627200', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379046764545', '1346358560427216896', '1405534379046764544', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379071930369', '1346358560427216896', '1405534379071930368', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379092901889', '1346358560427216896', '1405534379092901888', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379122262017', '1346358560427216896', '1405534379122262016', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379139039233', '1346358560427216896', '1405534379139039232', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379168399360', '1346358560427216896', '1405534379164205056', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1405534379185176577', '1346358560427216896', '1405534379185176576', '2021-06-17 22:34:44', '2021-06-17 22:34:44');
