@@ -19,20 +19,17 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -56,45 +53,37 @@ import java.util.Objects;
 @Service("http")
 public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
-    private final MetaDataMapper metaDataMapper;
-
     private final ApplicationEventPublisher eventPublisher;
 
     private final SelectorService selectorService;
 
     private final RuleService ruleService;
 
-    private final RuleMapper ruleMapper;
-
     private final UpstreamCheckService upstreamCheckService;
 
-    private final SelectorMapper selectorMapper;
+    private final MetaDataService metaDataService;
 
-    private final PluginMapper pluginMapper;
+    private final PluginService pluginService;
 
-    public ShenyuClientRegisterSpringMVCServiceImpl(final MetaDataMapper metaDataMapper,
+    public ShenyuClientRegisterSpringMVCServiceImpl(final MetaDataService metaDataService,
                                                     final ApplicationEventPublisher eventPublisher,
                                                     final SelectorService selectorService,
                                                     final RuleService ruleService,
-                                                    final RuleMapper ruleMapper,
                                                     final UpstreamCheckService upstreamCheckService,
-                                                    final SelectorMapper selectorMapper,
-                                                    final PluginMapper pluginMapper) {
-        this.metaDataMapper = metaDataMapper;
+                                                    final PluginService pluginService) {
+        this.metaDataService = metaDataService;
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
-        this.ruleMapper = ruleMapper;
         this.upstreamCheckService = upstreamCheckService;
-        this.selectorMapper = selectorMapper;
-        this.pluginMapper = pluginMapper;
+        this.pluginService = pluginService;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public synchronized String register(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
-            MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
+            MetaDataDO exist = metaDataService.findByPath(dto.getPath());
             if (Objects.isNull(exist)) {
                 saveOrUpdateMetaData(null, dto);
             }
@@ -122,7 +111,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
-        metaDataMapper.insert(metaDataDO);
+        metaDataService.insert(metaDataDO);
         // publish AppAuthData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
@@ -138,7 +127,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), uri);
+            selectorId = registerSelector(contextPath, uri);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
@@ -163,7 +152,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
             selectorDO.setHandle(handleAdd);
             selectorData.setHandle(handleAdd);
             // update db
-            selectorMapper.updateSelective(selectorDO);
+            selectorService.updateSelective(selectorDO);
             // submit upstreamCheck
             upstreamCheckService.submit(contextPath, addDivideUpstream);
             // publish change event.
@@ -173,9 +162,9 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
         return selectorId;
     }
 
-    private String registerSelector(final String contextPath, final String rpcType, final String appName, final String uri) {
+    private String registerSelector(final String contextPath, final String uri) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(getPluginId(PluginEnum.DIVIDE.getName()));
+        selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.DIVIDE.getName()));
         //is divide
         DivideUpstream divideUpstream = buildDivideUpstream(uri);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
@@ -186,35 +175,26 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
     }
 
     @Override
-    public String getPluginId(final String pluginName) {
-        final PluginDO pluginDO = pluginMapper.selectByName(pluginName);
-        Objects.requireNonNull(pluginDO);
-        return pluginDO.getId();
-    }
-
-    @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
-        RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
-        if (Objects.isNull(ruleDO)) {
-            ruleService.register(registerRpcRule(selectorId, dto.getPath(), PluginEnum.DIVIDE.getName(), dto.getRuleName()));
-        }
+        ruleService.register(registerRpcRule(selectorId, dto.getPath(), PluginEnum.DIVIDE.getName(), dto.getRuleName()),
+                dto.getRuleName(),
+                Objects.isNull(exist));
     }
 
     private void registerContextPathPlugin(final String contextPath) {
-        String name = CONTEXT_PATH_NAME_PREFIX + contextPath;
+        String name = Constants.CONTEXT_PATH_NAME_PREFIX + contextPath;
         SelectorDO selectorDO = selectorService.findByName(name);
         if (Objects.isNull(selectorDO)) {
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
-            RuleDO ruleDO = ruleMapper.findByName(name);
-            if (Objects.isNull(ruleDO)) {
-                ruleService.register(registerRpcRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name));
-            }
+            ruleService.register(registerRpcRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
+                    name,
+                    true);
         }
     }
 
     private String registerContextPathSelector(final String contextPath, final String name) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(name);
-        selectorDTO.setPluginId(getPluginId(PluginEnum.CONTEXT_PATH.getName()));
+        selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.CONTEXT_PATH.getName()));
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
