@@ -14,4 +14,4 @@ Task List:
 - [ ] task2
 - [ ] task3
 
-Please read the [Contribution Guideline](https://dromara.org/projects/soul/contributor/) before submitting the PR
+Please read the [Contribution Guideline](https://shenyu.apache.org/projects/shenyu/contributor/) before submitting the PR

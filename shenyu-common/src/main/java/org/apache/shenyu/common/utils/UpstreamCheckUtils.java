@@ -21,22 +21,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.regex.Pattern;
 
 /**
  * The type Uri utils.
  */
 public class UpstreamCheckUtils {
 
-    private static final Pattern PATTERN = Pattern
-            .compile("(http://|https://)?(?:(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])\\.){3}(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])(:\\d{0,5})?");
-
     private static final String HTTP = "http";
 
     private static final String HTTPS = "https";
+
+    private static final int DEFAULT_TIMEOUT = 3000;
 
     /**
      * Check url boolean.
@@ -45,10 +42,17 @@ public class UpstreamCheckUtils {
      * @return the boolean
      */
     public static boolean checkUrl(final String url) {
-        return checkUrl(url, 1000);
+        return checkUrl(url, DEFAULT_TIMEOUT);
     }
 
-    public static boolean checkUrl(final String url, final Integer timeout) {
+    /**
+     * Check url boolean.
+     *
+     * @param url     the url
+     * @param timeout timeout
+     * @return the boolean
+     */
+    public static boolean checkUrl(final String url, final int timeout) {
         if (StringUtils.isBlank(url)) {
             return false;
         }
@@ -61,15 +65,7 @@ public class UpstreamCheckUtils {
         }
         final boolean isHttps = url.startsWith(HTTPS);
         final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1]) : isHttps ? 443 : 80;
-        if (checkIP(hostPort[0]) || isHttps) {
-            return isHostConnector(hostPort[0], port, timeout);
-        } else {
-            return isHostReachable(hostPort[0], timeout);
-        }
-    }
-
-    private static boolean checkIP(final String url) {
-        return PATTERN.matcher(url).matches();
+        return isHostConnector(hostPort[0], port, timeout);
     }
 
     private static boolean isHostConnector(final String host, final int port, final int timeout) {
@@ -80,13 +76,4 @@ public class UpstreamCheckUtils {
         }
         return true;
     }
-
-    private static boolean isHostReachable(final String host, final int timeout) {
-        try {
-            return InetAddress.getByName(host).isReachable(timeout);
-        } catch (IOException ignored) {
-        }
-        return false;
-    }
-
 }

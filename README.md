@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://shenyu.apache.org/"><img src="https://shenyu.apache.org/img/logo/shenyu.png" width="45%"></a>
+    <a href="https://shenyu.apache.org/"><img src="https://shenyu.apache.org/img/logo/apache-shenyu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
@@ -33,7 +33,10 @@
    </a>
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
-   </a>     
+   </a>
+   <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
+        <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
+   </a>
 </p>
 <br/>
 
