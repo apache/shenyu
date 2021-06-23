@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.oauth2;
 
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.oauth2.OAuth2Plugin;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
 import org.springframework.beans.factory.ObjectProvider;
@@ -74,7 +74,7 @@ public class OAuth2PluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public AbstractShenyuPlugin oAuth2Plugin(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientServiceProvider) {
+    public ShenyuPlugin oAuth2Plugin(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientServiceProvider) {
         return new OAuth2Plugin(authorizedClientServiceProvider.getObject());
     }
 

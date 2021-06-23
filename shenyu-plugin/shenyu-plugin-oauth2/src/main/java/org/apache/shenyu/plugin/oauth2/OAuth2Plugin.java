@@ -18,11 +18,9 @@
 package org.apache.shenyu.plugin.oauth2;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -35,7 +33,7 @@ import reactor.core.publisher.Mono;
  * The OAuth2Plugin.
  */
 @Slf4j
-public class OAuth2Plugin extends AbstractShenyuPlugin {
+public class OAuth2Plugin implements ShenyuPlugin {
 
     private static final String BEARER = "Bearer ";
 
@@ -46,7 +44,7 @@ public class OAuth2Plugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return exchange.getPrincipal()
             .filter(t -> t instanceof OAuth2AuthenticationToken)
             .cast(OAuth2AuthenticationToken.class)

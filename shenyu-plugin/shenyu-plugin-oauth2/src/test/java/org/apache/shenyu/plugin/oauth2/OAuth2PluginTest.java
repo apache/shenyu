@@ -50,7 +50,7 @@ public class OAuth2PluginTest {
 
     @Test
     public void testOAuth2Plugin() {
-        StepVerifier.create(oAuth2Plugin.doExecute(exchange, chain, null, null)).expectSubscription().verifyComplete();
+        StepVerifier.create(oAuth2Plugin.execute(exchange, chain)).expectSubscription().verifyComplete();
     }
 
     @Test
