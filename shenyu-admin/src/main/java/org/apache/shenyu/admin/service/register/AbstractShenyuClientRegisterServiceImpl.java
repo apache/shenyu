@@ -42,8 +42,6 @@ import java.util.Objects;
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServiceFactory {
 
-    protected static final String CONTEXT_PATH_NAME_PREFIX = "/context-path";
-
     /**
      * save or update meta data.
      *
@@ -69,22 +67,14 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
      */
     protected abstract void handlerRule(String selectorId, MetaDataRegisterDTO metaDataDTO, MetaDataDO exist);
 
-    /**
-     * get plugin's id from plugin's name.
-     *
-     * @param pluginName plugin's name
-     * @return plugin's id
-     */
-    protected abstract String getPluginId(String pluginName);
-
     @Override
     public String registerURI(final String contextPath, final List<String> uriList) {
         return null;
     }
 
-    protected SelectorDTO registerRpcSelector(final String contextPath, final String rpcType) {
+    protected SelectorDTO registerRpcSelector(final String contextPath, final String pluginId) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(getPluginId(rpcType));
+        selectorDTO.setPluginId(pluginId);
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorDTO;
     }
