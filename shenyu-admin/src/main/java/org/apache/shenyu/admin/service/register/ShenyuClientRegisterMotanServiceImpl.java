@@ -17,30 +17,16 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -51,28 +37,16 @@ public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRe
 
     private final MetaDataService metaDataService;
 
-    private final ApplicationEventPublisher eventPublisher;
-
     private final SelectorService selectorService;
 
     private final RuleService ruleService;
 
-    private final PluginService pluginService;
-
-    private final UpstreamCheckService upstreamCheckService;
-
     public ShenyuClientRegisterMotanServiceImpl(final MetaDataService metaDataService,
-                                                final ApplicationEventPublisher eventPublisher,
                                                 final SelectorService selectorService,
-                                                final RuleService ruleService,
-                                                final PluginService pluginService,
-                                                final UpstreamCheckService upstreamCheckService) {
+                                                final RuleService ruleService) {
         this.metaDataService = metaDataService;
-        this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
-        this.upstreamCheckService = upstreamCheckService;
-        this.pluginService = pluginService;
     }
 
     @Override
@@ -92,57 +66,7 @@ public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRe
 
     @Override
     public String handlerSelector(final MetaDataRegisterDTO dto) {
-        String contextPath = dto.getContextPath();
-        if (StringUtils.isEmpty(contextPath)) {
-            contextPath = buildContextPath(dto.getPath());
-        }
-        SelectorDO selectorDO = selectorService.findByName(contextPath);
-        String selectorId;
-        String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
-        if (Objects.isNull(selectorDO)) {
-            selectorId = registerMotanSelector(contextPath, uri);
-        } else {
-            selectorId = selectorDO.getId();
-            //update upstream
-            String handle = selectorDO.getHandle();
-            String handleAdd;
-            DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
-            final SelectorData selectorData = selectorService.buildByName(contextPath);
-            // fetch UPSTREAM_MAP data from db
-            upstreamCheckService.fetchUpstreamData();
-            if (StringUtils.isBlank(handle)) {
-                handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
-            } else {
-                List<DivideUpstream> exist = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                for (DivideUpstream upstream : exist) {
-                    if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
-                        return selectorId;
-                    }
-                }
-                exist.add(addDivideUpstream);
-                handleAdd = GsonUtils.getInstance().toJson(exist);
-            }
-            selectorDO.setHandle(handleAdd);
-            selectorData.setHandle(handleAdd);
-            // update db
-            selectorService.updateSelective(selectorDO);
-            // submit upstreamCheck
-            upstreamCheckService.submit(contextPath, addDivideUpstream);
-            // publish change event.
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                    Collections.singletonList(selectorData)));
-        }
-        return selectorId;
-    }
-
-    private String registerMotanSelector(final String contextPath, final String uri) {
-        SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(PluginEnum.DIVIDE.getName()));
-        //is divide
-        DivideUpstream divideUpstream = buildDivideUpstream(uri);
-        String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
-        selectorDTO.setHandle(handler);
-        upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
-        return selectorService.register(selectorDTO);
+        return selectorService.handlerSelectorNeedUpstreamCheck(dto, PluginEnum.MOTAN.getName());
     }
 
     @Override
