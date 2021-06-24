@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.admin.service.RoleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
@@ -26,6 +27,7 @@ import org.apache.shenyu.admin.model.query.RoleQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,22 +37,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
  * this is role controller.
  */
+@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/role")
 public class RoleController {
 
-    private final RoleService roleService;
+    private static final String SUPER = "super";
 
-    public RoleController(final RoleService roleService) {
-        this.roleService = roleService;
-    }
+    private final RoleService roleService;
 
     /**
      * get all roles.
@@ -85,7 +89,9 @@ public class RoleController {
     @GetMapping("/{id}")
     public ShenyuAdminResult detailRole(@PathVariable("id") final String id) {
         RoleEditVO roleEditVO = roleService.findById(id);
-        return Optional.ofNullable(roleEditVO).map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item)).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
+        return Optional.ofNullable(roleEditVO)
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
     }
 
     /**
@@ -95,14 +101,11 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createRole(@RequestBody final RoleDTO roleDTO) {
-        return Optional.ofNullable(roleDTO).map(item -> {
-            if (roleDTO.getRoleName().equals("super")) {
-                return ShenyuAdminResult.error(ShenyuResultMessage.ROLE_CREATE_ERROR);
-            }
-            Integer createCount = roleService.createOrUpdate(item);
-            return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
-        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.CREATE_FAILED));
+    public ShenyuAdminResult createRole(@Valid @RequestBody final RoleDTO roleDTO) {
+        if (SUPER.equals(roleDTO.getRoleName())) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.ROLE_CREATE_ERROR);
+        }
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, roleService.createOrUpdate(roleDTO));
     }
 
     /**
@@ -113,8 +116,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateRole(@PathVariable("id") final String id, @RequestBody final RoleDTO roleDTO) {
-        Objects.requireNonNull(roleDTO);
+    public ShenyuAdminResult updateRole(@PathVariable("id") final String id, @Valid @RequestBody final RoleDTO roleDTO) {
         roleDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, roleService.createOrUpdate(roleDTO));
     }
@@ -126,7 +128,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteRole(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteRole(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, roleService.delete(ids));
     }
 }

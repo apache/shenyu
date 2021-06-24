@@ -62,7 +62,7 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
             registerURI(rpcType, contextPath, metadata);
         }
-        log.info("{} zookeeper client register success: {}", rpcType, metadata.toString());
+        log.info("{} zookeeper client register success: {}", rpcType, metadata);
     }
 
     @Override

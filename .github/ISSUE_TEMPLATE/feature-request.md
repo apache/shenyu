@@ -6,7 +6,7 @@ labels: 'type: new feature'
 
 ## Feature Request
 
-<!-- First of all: Have you checked the docs https://dromara.org/projects/soul/, GitHub issues whether someone else has already reported your issue? Maybe the feature already exists?-->
+<!-- First of all: Have you checked the docs https://shenyu.apache.org/projects/shenyu/, GitHub issues whether someone else has already reported your issue? Maybe the feature already exists?-->
 
 #### Is your feature request related to a problem? Please describe
 
@@ -22,5 +22,5 @@ A clear and concise description of any alternative solutions or features you've 
 
 #### Additional context
 
-Please read the [Contribution Guideline](https://dromara.org/projects/soul/contributor/) before submitting the PR
+Please read the [Contribution Guideline](https://shenyu.apache.org/projects/shenyu/contributor/) before submitting the PR
 

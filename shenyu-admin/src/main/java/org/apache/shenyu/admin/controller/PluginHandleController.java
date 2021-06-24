@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
@@ -25,7 +26,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,21 +36,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * this is a plugin handle controller.
  */
+@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/plugin-handle")
 public class PluginHandleController {
-    private final PluginHandleService pluginHandleService;
 
-    @Autowired(required = false)
-    public PluginHandleController(final PluginHandleService pluginHandleService) {
-        this.pluginHandleService = pluginHandleService;
-    }
+    private final PluginHandleService pluginHandleService;
 
     /**
      * query plugin handle by plugin id.
@@ -95,7 +96,7 @@ public class PluginHandleController {
      * @return {@link ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createPluginHandle(@RequestBody final PluginHandleDTO pluginHandleDTO) {
+    public ShenyuAdminResult createPluginHandle(@Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
@@ -107,11 +108,9 @@ public class PluginHandleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updatePluginHandle(@PathVariable("id") final String id, @RequestBody final PluginHandleDTO pluginHandleDTO) {
-        Objects.requireNonNull(pluginHandleDTO);
+    public ShenyuAdminResult updatePluginHandle(@PathVariable("id") final String id, @Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         pluginHandleDTO.setId(id);
-        Integer updateCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, pluginHandleService.createOrUpdate(pluginHandleDTO));
     }
 
     /**
@@ -120,8 +119,7 @@ public class PluginHandleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deletePluginHandles(@RequestBody final List<String> ids) {
-        Integer deleteCount = pluginHandleService.deletePluginHandles(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+    public ShenyuAdminResult deletePluginHandles(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, pluginHandleService.deletePluginHandles(ids));
     }
 }

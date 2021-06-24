@@ -28,7 +28,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.Nullable;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -50,7 +50,7 @@ public final class HealthFilter implements WebFilter {
 
     private Mono<Void> writeHealthInfo(final ServerWebExchange exchange) {
         String result = JsonUtils.toJson(new Health.Builder().up().build());
-        DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(result.getBytes(Charset.forName("UTF-8")));
+        DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(result.getBytes(StandardCharsets.UTF_8));
         return exchange.getResponse().writeWith(Mono.just(dataBuffer));
     }
 }

@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class RoleDTO implements Serializable {
     /**
      * role name.
      */
+    @NotNull
     private String roleName;
 
     /**

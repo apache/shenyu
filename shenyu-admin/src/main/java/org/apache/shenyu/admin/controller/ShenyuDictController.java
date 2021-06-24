@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
@@ -26,7 +27,7 @@ import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,21 +37,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * this is a shenyu dict controller.
  */
+@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/shenyu-dict")
 public class ShenyuDictController {
-    private final ShenyuDictService shenyuDictService;
 
-    @Autowired(required = false)
-    public ShenyuDictController(final ShenyuDictService shenyuDictService) {
-        this.shenyuDictService = shenyuDictService;
-    }
+    private final ShenyuDictService shenyuDictService;
 
     /**
      * query shenyu dicts.
@@ -99,7 +101,7 @@ public class ShenyuDictController {
      * @return {@link ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createShenyuDict(@RequestBody final ShenyuDictDTO shenyuDictDTO) {
+    public ShenyuAdminResult createShenyuDict(@Valid @RequestBody final ShenyuDictDTO shenyuDictDTO) {
         Integer createCount = shenyuDictService.createOrUpdate(shenyuDictDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
@@ -112,7 +114,7 @@ public class ShenyuDictController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateShenyuDict(@PathVariable("id") final String id, @RequestBody final ShenyuDictDTO shenyuDictDTO) {
+    public ShenyuAdminResult updateShenyuDict(@PathVariable("id") final String id, @Valid @RequestBody final ShenyuDictDTO shenyuDictDTO) {
         Objects.requireNonNull(shenyuDictDTO);
         shenyuDictDTO.setId(id);
         Integer updateCount = shenyuDictService.createOrUpdate(shenyuDictDTO);
@@ -126,7 +128,7 @@ public class ShenyuDictController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteShenyuDicts(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteShenyuDicts(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = shenyuDictService.deleteShenyuDicts(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
@@ -138,7 +140,7 @@ public class ShenyuDictController {
      * @return the shenyu result
      */
     @PostMapping("/batchEnabled")
-    public ShenyuAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+    public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         final Integer result = shenyuDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         return ShenyuAdminResult.success("batch enable success", result);
     }

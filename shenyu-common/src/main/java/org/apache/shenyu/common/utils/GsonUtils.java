@@ -35,6 +35,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
+import org.springframework.util.LinkedMultiValueMap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -67,6 +68,20 @@ public class GsonUtils {
     private static final String DOT = ".";
 
     private static final String E = "e";
+
+    private static final String LEFT = "left";
+
+    private static final String RIGHT = "right";
+
+    private static final String LEFT_ANGLE_BRACKETS = "{";
+
+    private static final String RIGHT_ANGLE_BRACKETS = "}";
+
+    private static final String EMPTY = "";
+
+    private static final String EQUAL_SIGN = "=";
+
+    private static final String AND = "&";
 
     /**
      * Gets gson instance.
@@ -140,22 +155,22 @@ public class GsonUtils {
      */
     public String toGetParam(final String json) {
         if (StringUtils.isBlank(json)) {
-            return "";
+            return EMPTY;
         }
         final Map<String, String> map = toStringMap(json);
         StringBuilder stringBuilder = new StringBuilder();
         map.forEach((k, v) -> {
             try {
                 stringBuilder.append(k)
-                        .append("=")
+                        .append(EQUAL_SIGN)
                         .append(URLDecoder.decode(v, Constants.DECODE))
-                        .append("&");
+                        .append(AND);
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
         });
         final String r = stringBuilder.toString();
-        return r.substring(0, r.lastIndexOf("&"));
+        return r.substring(0, r.lastIndexOf(AND));
 
     }
 
@@ -193,7 +208,7 @@ public class GsonUtils {
     }
 
     /**
-     *  To object map map.
+     * To object map map.
      *
      * @param json  the json
      * @param clazz the class
@@ -205,7 +220,7 @@ public class GsonUtils {
     }
 
     /**
-     *  To object map list.
+     * To object map list.
      *
      * @param json  the json
      * @param clazz the class
@@ -228,6 +243,17 @@ public class GsonUtils {
     }
 
     /**
+     * To linked multiValue map.
+     *
+     * @param json the json
+     * @return the linked multiValue map
+     */
+    public LinkedMultiValueMap<String, String> toLinkedMultiValueMap(final String json) {
+        return GSON.fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
+        }.getType());
+    }
+
+    /**
      * Convert to map map.
      *
      * @param json the json
@@ -246,7 +272,7 @@ public class GsonUtils {
             Object value = entry.getValue();
             if (value instanceof String) {
                 String valueStr = ((String) value).trim();
-                if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
+                if (valueStr.startsWith(LEFT_ANGLE_BRACKETS) && valueStr.endsWith(RIGHT_ANGLE_BRACKETS)) {
                     Map<String, Object> mv = convertToMap(value.toString());
                     map.put(key, mv);
                 }
@@ -277,7 +303,7 @@ public class GsonUtils {
                 continue;
             }
             String objStr = jsonElement.getAsString();
-            if (objStr.startsWith("{") && objStr.endsWith("}")) {
+            if (objStr.startsWith(LEFT_ANGLE_BRACKETS) && objStr.endsWith(RIGHT_ANGLE_BRACKETS)) {
                 list.add(convertToMap(jsonElement.toString()));
             } else {
                 list.add(objStr);
@@ -339,7 +365,7 @@ public class GsonUtils {
             if (primitive.isNumber()) {
                 String numStr = primitive.getAsString();
                 if (numStr.contains(DOT) || numStr.contains(E)
-                        || numStr.contains("E")) {
+                        || numStr.contains(E.toUpperCase())) {
                     return Double.class;
                 }
                 return Long.class;
@@ -367,7 +393,7 @@ public class GsonUtils {
         public String read(final JsonReader reader) {
             if (reader.peek() == JsonToken.NULL) {
                 reader.nextNull();
-                return "";
+                return EMPTY;
             }
             return reader.nextString();
         }
@@ -378,8 +404,8 @@ public class GsonUtils {
         @Override
         public void write(final JsonWriter out, final Pair<String, String> value) throws IOException {
             out.beginObject();
-            out.name("left").value(value.getLeft());
-            out.name("right").value(value.getRight());
+            out.name(LEFT).value(value.getLeft());
+            out.name(RIGHT).value(value.getRight());
             out.endObject();
         }
 
@@ -392,10 +418,10 @@ public class GsonUtils {
 
             while (in.hasNext()) {
                 switch (in.nextName()) {
-                    case "left":
+                    case LEFT:
                         left = in.nextString();
                         break;
-                    case "right":
+                    case RIGHT:
                         right = in.nextString();
                         break;
                     default:

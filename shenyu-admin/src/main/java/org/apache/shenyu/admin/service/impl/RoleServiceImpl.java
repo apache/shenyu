@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
@@ -37,7 +38,6 @@ import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleEditVO.PermissionInfo;
 import org.apache.shenyu.admin.model.vo.RoleEditVO.ResourceInfo;
 import org.apache.shenyu.admin.model.vo.RoleVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -49,9 +49,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * RoleServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.RoleService}.
  */
-@Service("roleService")
+@RequiredArgsConstructor
+@Service
 public class RoleServiceImpl implements RoleService {
 
     private final RoleMapper roleMapper;
@@ -59,13 +60,6 @@ public class RoleServiceImpl implements RoleService {
     private final PermissionMapper permissionMapper;
 
     private final ResourceMapper resourceMapper;
-
-    @Autowired(required = false)
-    public RoleServiceImpl(final RoleMapper roleMapper, final PermissionMapper permissionMapper, final ResourceMapper resourceMapper) {
-        this.roleMapper = roleMapper;
-        this.permissionMapper = permissionMapper;
-        this.resourceMapper = resourceMapper;
-    }
 
     /**
      * create or update role info.

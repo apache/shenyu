@@ -24,7 +24,6 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.grpc.GrpcPlugin;
 import org.apache.shenyu.plugin.grpc.context.GrpcShenyuContextDecorator;
 import org.apache.shenyu.plugin.grpc.handler.GrpcPluginDataHandler;
-import org.apache.shenyu.plugin.grpc.response.GrpcResponsePlugin;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -42,16 +41,6 @@ public class GrpcPluginConfiguration {
     @Bean
     public ShenyuPlugin grpcPlugin() {
         return new GrpcPlugin();
-    }
-
-    /**
-     * Grpc response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin grpcResponsePlugin() {
-        return new GrpcResponsePlugin();
     }
 
     /**

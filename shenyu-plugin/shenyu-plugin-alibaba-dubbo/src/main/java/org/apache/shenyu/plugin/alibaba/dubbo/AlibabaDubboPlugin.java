@@ -64,7 +64,7 @@ public class AlibabaDubboPlugin extends AbstractShenyuPlugin {
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
             assert metaData != null;
-            log.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData.toString());
+            log.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
@@ -76,9 +76,9 @@ public class AlibabaDubboPlugin extends AbstractShenyuPlugin {
         }
         Object result = alibabaDubboProxyService.genericInvoker(param, metaData);
         if (Objects.nonNull(result)) {
-            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
+            exchange.getAttributes().put(Constants.RPC_RESULT, result);
         } else {
-            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, Constants.DUBBO_RPC_RESULT_EMPTY);
+            exchange.getAttributes().put(Constants.RPC_RESULT, Constants.DUBBO_RPC_RESULT_EMPTY);
         }
         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
         return chain.execute(exchange);
