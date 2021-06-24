@@ -23,10 +23,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.junit.Assert.assertEquals;
@@ -44,7 +46,8 @@ public class OAuth2PluginTest {
     @Before
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        chain = mock(ShenyuPluginChain.class);
+        exchange.getAttributes().put("skip", true);
+        chain = mock(ShenyuPluginChain.class, (Answer<Mono>) invocationOnMock -> Mono.empty());
         this.oAuth2Plugin = new OAuth2Plugin(mock(ReactiveOAuth2AuthorizedClientService.class));
     }
 

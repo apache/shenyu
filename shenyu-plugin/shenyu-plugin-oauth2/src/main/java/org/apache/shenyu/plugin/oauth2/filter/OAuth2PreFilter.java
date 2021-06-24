@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
@@ -31,7 +32,6 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -45,6 +45,8 @@ public class OAuth2PreFilter implements WebFilter {
 
     private static final AtomicBoolean ENABLE = new AtomicBoolean(false);
 
+    private static final AtomicBoolean SKIP = new AtomicBoolean(true);
+
     private final List<ServerWebExchangeMatcher> matchers;
 
     public OAuth2PreFilter(final List<ServerWebExchangeMatcher> matchers) {
@@ -53,7 +55,7 @@ public class OAuth2PreFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(final ServerWebExchange serverWebExchange, final WebFilterChain webFilterChain) {
-        this.changeSkipOAuth2Status();
+        this.changeSkipOAuth2Status(serverWebExchange);
         serverWebExchange.getAttributes().put("enable", ENABLE.get());
         return webFilterChain.filter(serverWebExchange);
     }
@@ -61,7 +63,7 @@ public class OAuth2PreFilter implements WebFilter {
     /**
      * Change OAuth2 skip status.
      */
-    private void changeSkipOAuth2Status() {
+    private void changeSkipOAuth2Status(final ServerWebExchange serverWebExchange) {
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.OAUTH2.getName());
         boolean expect = ENABLE.get();
         if (pluginData == null || (expect == pluginData.getEnabled() && matchers.size() > 1)) {
@@ -76,21 +78,22 @@ public class OAuth2PreFilter implements WebFilter {
             log.info("change OAuth2 enable status to {}", enableStatus);
         }
 
-        this.processPathMatchers();
+        this.processPathMatchers(serverWebExchange);
     }
 
-    private void processPathMatchers() {
+    private void processPathMatchers(final ServerWebExchange serverWebExchange) {
         if (ENABLE.get()) {
-            this.buildPathMatchers();
+            this.buildPathMatchers(serverWebExchange);
         } else {
             this.refreshPathMatchers();
         }
     }
 
-    private void buildPathMatchers() {
+    private void buildPathMatchers(final ServerWebExchange serverWebExchange) {
         refreshPathMatchers();
         List<SelectorData> oauth2Selectors = BaseDataCache.getInstance().obtainSelectorData(PluginEnum.OAUTH2.getName());
-        if (Objects.isNull(oauth2Selectors)) {
+        if (CollectionUtils.isEmpty(oauth2Selectors)) {
+            serverWebExchange.getAttributes().put("skip", true);
             return;
         }
         oauth2Selectors
@@ -106,6 +109,8 @@ public class OAuth2PreFilter implements WebFilter {
                         )
                     );
             });
+        SKIP.set(matchers.size() <= 1);
+        serverWebExchange.getAttributes().put("skip", SKIP.get());
     }
 
     private void refreshPathMatchers() {

@@ -29,6 +29,8 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 /**
  * The OAuth2Plugin.
  */
@@ -45,7 +47,9 @@ public class OAuth2Plugin implements ShenyuPlugin {
 
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return exchange.getPrincipal()
+        Boolean skip = Objects.requireNonNull(exchange.<Boolean>getAttribute("skip"));
+        return skip ? chain.execute(exchange)
+            : exchange.getPrincipal()
             .filter(t -> t instanceof OAuth2AuthenticationToken)
             .cast(OAuth2AuthenticationToken.class)
             .flatMap(token ->
@@ -62,6 +66,11 @@ public class OAuth2Plugin implements ShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.OAUTH2.getName();
+    }
+
+    @Override
+    public Boolean skip(final ServerWebExchange exchange) {
+        return !Objects.requireNonNull(exchange.<Boolean>getAttribute("enable"));
     }
 
     private ServerWebExchange handleToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {
