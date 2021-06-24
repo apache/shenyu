@@ -30,14 +30,14 @@ public enum PluginRoleEnum {
     /**
      * Sys plugin role enum.
      */
-    SYS(0, "sys"),
+    SYS("0", "sys"),
 
     /**
      * Custom plugin role enum.
      */
-    CUSTOM(1, "custom");
+    CUSTOM("1", "custom");
 
-    private final Integer code;
+    private final String code;
 
     private final String name;
 

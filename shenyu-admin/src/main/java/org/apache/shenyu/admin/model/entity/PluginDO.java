@@ -56,10 +56,14 @@ public final class PluginDO extends BaseDO {
     private Boolean enabled;
 
     /**
-     * the role.
-     * {@linkplain org.apache.shenyu.common.enums.PluginRoleEnum}
+     * the role to classify plugin.
      */
-    private Integer role;
+    private String role;
+
+    /**
+     * plugin sort.
+     */
+    private Integer sort;
 
     /**
      * build pluginDO.
@@ -75,6 +79,7 @@ public final class PluginDO extends BaseDO {
                     .config(item.getConfig())
                     .enabled(item.getEnabled())
                     .role(item.getRole())
+                    .sort(item.getSort())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {

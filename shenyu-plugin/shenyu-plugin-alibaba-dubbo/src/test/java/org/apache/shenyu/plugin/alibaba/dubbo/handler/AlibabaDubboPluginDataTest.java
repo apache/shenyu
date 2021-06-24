@@ -54,14 +54,14 @@ public final class AlibabaDubboPluginDataTest {
 
     @Test
     public void testPluginEnable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, 1, true);
+        PluginData pluginData = new PluginData("", "", registryConfig, "", true);
         alibabaDubboPluginDataHandler.handlerPlugin(pluginData);
         Assert.assertEquals(Singleton.INST.get(DubboRegisterConfig.class).getRegister(), "127.0.0.1:2181");
     }
 
     @Test
     public void testPluginDisable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, 1, false);
+        PluginData pluginData = new PluginData("", "", registryConfig, "", false);
         alibabaDubboPluginDataHandler.handlerPlugin(pluginData);
         Assert.assertNull(Singleton.INST.get(DubboRegisterConfig.class));
     }

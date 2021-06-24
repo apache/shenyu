@@ -41,7 +41,7 @@ public final class JwtPluginDataHandlerTest {
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":[\"/cloud/ecg/common\"]}", 0, false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":[\"/cloud/ecg/common\"]}", "0", false);
         jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
         assertEquals(GsonUtils.getInstance().toJson(jwtConfig), pluginData.getConfig());

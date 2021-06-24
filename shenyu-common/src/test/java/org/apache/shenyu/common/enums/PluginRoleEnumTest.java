@@ -27,8 +27,8 @@ public final class PluginRoleEnumTest {
 
     @Test
     public void testGetCode() {
-        assertEquals(0, PluginRoleEnum.SYS.getCode().intValue());
-        assertEquals(1, PluginRoleEnum.CUSTOM.getCode().intValue());
+        assertEquals("0", PluginRoleEnum.SYS.getCode());
+        assertEquals("1", PluginRoleEnum.CUSTOM.getCode());
     }
 
     @Test
