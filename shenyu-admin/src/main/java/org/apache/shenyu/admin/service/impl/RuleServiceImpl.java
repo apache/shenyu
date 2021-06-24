@@ -206,10 +206,9 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public RuleDO findByName(String name) {
+    public RuleDO findByName(final String name) {
         return ruleMapper.findByName(name);
     }
-
 
     private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> ruleConditions) {
         SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());

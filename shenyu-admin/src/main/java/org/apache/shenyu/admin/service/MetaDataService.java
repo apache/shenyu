@@ -34,8 +34,8 @@ import java.util.Map;
 public interface MetaDataService {
 
     /**
-     * save or update mate data {@link org.apache.shenyu.admin.service.register.AbstractShenyuClientRegisterServiceImpl}
-     *
+     * save or update mate data.
+     * {@link org.apache.shenyu.admin.service.register.AbstractShenyuClientRegisterServiceImpl}
      * @param exist       has been exist meta data {@link MetaDataDO}
      * @param metaDataDTO meta data dto {@link MetaDataRegisterDTO}
      */
@@ -109,7 +109,7 @@ public interface MetaDataService {
     void syncData();
 
     /**
-     * find meta data by path
+     * find meta data by path.
      *
      * @param path the path of meta data
      * @return {@link MetaDataDO}
@@ -117,7 +117,7 @@ public interface MetaDataService {
     MetaDataDO findByPath(String path);
 
     /**
-     * find meta data by service's name and method's name
+     * find meta data by service's name and method's name.
      *
      * @param serviceName the name of service
      * @param methodName  the name of method

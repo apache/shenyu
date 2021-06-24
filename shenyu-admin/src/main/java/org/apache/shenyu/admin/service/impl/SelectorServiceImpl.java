@@ -259,7 +259,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public String handlerSelectorNeedUpstreamCheck(MetaDataRegisterDTO dto, final String rpcType) {
+    public String handlerSelectorNeedUpstreamCheck(final MetaDataRegisterDTO dto, final String rpcType) {
         String contextPath = dto.getContextPath();
         if (StringUtils.isEmpty(contextPath)) {
             contextPath = buildContextPath(dto.getPath());

@@ -63,7 +63,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public void saveOrUpdateMetaData(MetaDataDO exist, MetaDataRegisterDTO metaDataDTO) {
+    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
         DataEventTypeEnum eventType;
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO);
         if (Objects.isNull(exist)) {
@@ -190,17 +190,17 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public MetaDataDO findByPath(String path) {
+    public MetaDataDO findByPath(final String path) {
         return metaDataMapper.findByPath(path);
     }
 
     @Override
-    public MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName) {
+    public MetaDataDO findByServiceNameAndMethodName(final String serviceName, final String methodName) {
         return metaDataMapper.findByServiceNameAndMethod(serviceName, methodName);
     }
 
     @Override
-    public int insert(MetaDataDO metaDataDO) {
+    public int insert(final MetaDataDO metaDataDO) {
         return metaDataMapper.insert(metaDataDO);
     }
 
