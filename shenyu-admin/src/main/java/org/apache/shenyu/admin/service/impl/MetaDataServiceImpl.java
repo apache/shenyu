@@ -37,6 +37,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +61,27 @@ public class MetaDataServiceImpl implements MetaDataService {
     private final MetaDataMapper metaDataMapper;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    @Override
+    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
+        DataEventTypeEnum eventType;
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO);
+        if (Objects.isNull(exist)) {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            metaDataDO.setDateCreated(currentTime);
+            metaDataDO.setDateUpdated(currentTime);
+            metaDataMapper.insert(metaDataDO);
+            eventType = DataEventTypeEnum.CREATE;
+        } else {
+            metaDataDO.setId(exist.getId());
+            metaDataMapper.update(metaDataDO);
+            eventType = DataEventTypeEnum.UPDATE;
+        }
+        // publish MetaData's event
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
+    }
 
     @Override
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
@@ -165,6 +187,21 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .filter(Objects::nonNull)
                 .map(MetaDataTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public MetaDataDO findByPath(final String path) {
+        return metaDataMapper.findByPath(path);
+    }
+
+    @Override
+    public MetaDataDO findByServiceNameAndMethodName(final String serviceName, final String methodName) {
+        return metaDataMapper.findByServiceNameAndMethod(serviceName, methodName);
+    }
+
+    @Override
+    public int insert(final MetaDataDO metaDataDO) {
+        return metaDataMapper.insert(metaDataDO);
     }
 
     private String checkData(final MetaDataDTO metaDataDTO) {

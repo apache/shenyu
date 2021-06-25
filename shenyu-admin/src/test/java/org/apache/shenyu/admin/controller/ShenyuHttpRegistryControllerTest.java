@@ -18,7 +18,11 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.disruptor.RegisterServerDisruptorPublisher;
-import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterDubboServiceImpl;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterServiceFactory;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterSofaServiceImpl;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterSpringCloudServiceImpl;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterSpringMVCServiceImpl;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.Before;
@@ -31,6 +35,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,7 +53,19 @@ public final class ShenyuHttpRegistryControllerTest {
     private ShenyuHttpRegistryController shenyuHttpRegistryController;
 
     @Mock
-    private ShenyuClientRegisterService shenyuClientRegisterService;
+    private ShenyuClientRegisterDubboServiceImpl shenyuClientRegisterDubboService;
+
+    @Mock
+    private ShenyuClientRegisterSofaServiceImpl shenyuClientRegisterSofaService;
+
+    @Mock
+    private ShenyuClientRegisterSpringMVCServiceImpl shenyuClientRegisterSpringMVCService;
+
+    @Mock
+    private ShenyuClientRegisterSpringCloudServiceImpl shenyuClientRegisterSpringCloudService;
+
+    @Mock
+    private Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService;
 
     @Before
     public void setUp() {
@@ -60,7 +78,7 @@ public final class ShenyuHttpRegistryControllerTest {
     @Test
     public void testRegisterSpringMvc() throws Exception {
         final MetaDataRegisterDTO springMvcRegisterDTO = buildSpringMvcRegisterDTO();
-        given(this.shenyuClientRegisterService.registerSpringMvc(springMvcRegisterDTO)).willReturn("success");
+        given(shenyuClientRegisterSpringMVCService.register(springMvcRegisterDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/springmvc-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(springMvcRegisterDTO)))
@@ -86,7 +104,7 @@ public final class ShenyuHttpRegistryControllerTest {
     @Test
     public void testRegisterSpringCloud() throws Exception {
         final MetaDataRegisterDTO springCloudRegisterDTO = buildCloudRegisterDTO();
-        given(this.shenyuClientRegisterService.registerSpringCloud(springCloudRegisterDTO)).willReturn("success");
+        given(this.shenyuClientRegisterSpringCloudService.register(springCloudRegisterDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/springcloud-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(springCloudRegisterDTO)))
@@ -109,7 +127,7 @@ public final class ShenyuHttpRegistryControllerTest {
     @Test
     public void testRegisterRpc() throws Exception {
         final MetaDataRegisterDTO metaDataDTO = buildMetaDataDTO("app_dubbo");
-        given(this.shenyuClientRegisterService.registerDubbo(metaDataDTO)).willReturn("success");
+        given(this.shenyuClientRegisterDubboService.register(metaDataDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/dubbo-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
@@ -136,7 +154,7 @@ public final class ShenyuHttpRegistryControllerTest {
     @Test
     public void testRegisterSofaRpc() throws Exception {
         final MetaDataRegisterDTO metaDataDTO = buildMetaDataDTO("app_sofa");
-        given(this.shenyuClientRegisterService.registerSofa(metaDataDTO)).willReturn("success");
+        given(this.shenyuClientRegisterSofaService.register(metaDataDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/sofa-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))

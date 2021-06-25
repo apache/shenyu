@@ -485,7 +485,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
             ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
         }
         ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
-        ruleService.register(ruleDTO);
+        ruleService.register(ruleDTO, ruleName, false);
     }
 
     @Override
