@@ -27,11 +27,9 @@ import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
-import org.apache.shenyu.admin.model.entity.DataPermissionDO;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
+import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
@@ -40,9 +38,11 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
-import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -77,7 +77,10 @@ public class RuleServiceImpl implements RuleService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public String register(final RuleDTO ruleDTO) {
+    public String register(final RuleDTO ruleDTO, final String name, final boolean metaDataIsNull) {
+        if (Objects.nonNull(ruleMapper.findByName(name)) || metaDataIsNull) {
+            return "";
+        }
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
@@ -200,6 +203,11 @@ public class RuleServiceImpl implements RuleService {
                 .filter(Objects::nonNull)
                 .map(this::buildRuleData)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public RuleDO findByName(final String name) {
+        return ruleMapper.findByName(name);
     }
 
     private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> ruleConditions) {

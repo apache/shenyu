@@ -209,6 +209,13 @@ public class PluginServiceImpl implements PluginService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public String selectIdByName(final String name) {
+        PluginDO pluginDO = pluginMapper.selectByName(name);
+        Objects.requireNonNull(pluginDO);
+        return pluginDO.getId();
+    }
+
     /**
      * check plugin Data integrity.
      *

@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.List;
 
@@ -111,4 +112,12 @@ public interface SelectorService {
      */
     List<SelectorData> listAll();
 
+    /**
+     * handler selector need upstream check.
+     *
+     * @param dto      {@link MetaDataRegisterDTO}
+     * @param rpcType  rpc type
+     * @return the id of selector.
+     */
+    String handlerSelectorNeedUpstreamCheck(MetaDataRegisterDTO dto, String rpcType);
 }
