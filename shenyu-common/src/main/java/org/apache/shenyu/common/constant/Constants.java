@@ -546,6 +546,11 @@ public interface Constants {
     String DEFAULT = "DEFAULT";
 
     /**
+     * context path name prefix.
+     */
+    String CONTEXT_PATH_NAME_PREFIX = "/context-path";
+
+    /**
      * String q.
      */
     default void findConstants() {

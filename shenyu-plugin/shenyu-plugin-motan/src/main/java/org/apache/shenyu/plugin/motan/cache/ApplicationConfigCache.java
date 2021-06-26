@@ -181,7 +181,7 @@ public final class ApplicationConfigCache {
         reference.setProtocol(protocolConfig);
         CommonHandler obj = reference.getRef();
         if (obj != null) {
-            log.info("init motan reference success there meteData is :{}", metaData.toString());
+            log.info("init motan reference success there meteData is :{}", metaData);
             cache.put(metaData.getPath(), reference);
         }
         return reference;

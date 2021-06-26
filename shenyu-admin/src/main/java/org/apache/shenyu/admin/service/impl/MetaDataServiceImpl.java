@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,26 +51,36 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * The type Meta data service.
+ * Implementation of the {@link org.apache.shenyu.admin.service.MetaDataService}.
  */
 @Slf4j
-@Service("metaDataService")
+@RequiredArgsConstructor
+@Service
 public class MetaDataServiceImpl implements MetaDataService {
 
     private final MetaDataMapper metaDataMapper;
 
     private final ApplicationEventPublisher eventPublisher;
 
-    /**
-     * Instantiates a new Meta data service.
-     *
-     * @param metaDataMapper the meta data mapper
-     * @param eventPublisher the event publisher
-     */
-    @Autowired(required = false)
-    public MetaDataServiceImpl(final MetaDataMapper metaDataMapper, final ApplicationEventPublisher eventPublisher) {
-        this.metaDataMapper = metaDataMapper;
-        this.eventPublisher = eventPublisher;
+    @Override
+    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
+        DataEventTypeEnum eventType;
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO);
+        if (Objects.isNull(exist)) {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            metaDataDO.setDateCreated(currentTime);
+            metaDataDO.setDateUpdated(currentTime);
+            metaDataMapper.insert(metaDataDO);
+            eventType = DataEventTypeEnum.CREATE;
+        } else {
+            metaDataDO.setId(exist.getId());
+            metaDataMapper.update(metaDataDO);
+            eventType = DataEventTypeEnum.UPDATE;
+        }
+        // publish MetaData's event
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
     }
 
     @Override
@@ -178,10 +189,25 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public MetaDataDO findByPath(final String path) {
+        return metaDataMapper.findByPath(path);
+    }
+
+    @Override
+    public MetaDataDO findByServiceNameAndMethodName(final String serviceName, final String methodName) {
+        return metaDataMapper.findByServiceNameAndMethod(serviceName, methodName);
+    }
+
+    @Override
+    public int insert(final MetaDataDO metaDataDO) {
+        return metaDataMapper.insert(metaDataDO);
+    }
+
     private String checkData(final MetaDataDTO metaDataDTO) {
         Boolean success = checkParam(metaDataDTO);
         if (!success) {
-            log.error("metaData create param is error, {}", metaDataDTO.toString());
+            log.error("metaData create param is error, {}", metaDataDTO);
             return AdminConstants.PARAMS_ERROR;
         }
         final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());

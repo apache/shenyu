@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class ContextRegisterListenerTest {
-    
+
     @Mock
     private static Environment env;
 
@@ -57,22 +57,4 @@ public final class ContextRegisterListenerTest {
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
     }
-
-//    @Test
-//    public void testFullRegister() {
-//        try (MockedStatic mocked = mockStatic(RegisterUtils.class)) {
-//            Properties properties = new Properties();
-//            properties.setProperty("contextPath", "/test");
-//            properties.setProperty("isFull", "true");
-//            SoulRegisterCenterConfig mockRegisterCenter = new SoulRegisterCenterConfig();
-//            mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
-//            mockRegisterCenter.setRegisterType("http");
-//            mockRegisterCenter.setProps(properties);
-//            when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
-//            ContextRegisterListener contextRegisterListener = new ContextRegisterListener(mockRegisterCenter, env);
-//            ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-//            contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-//            mocked.verify(() -> RegisterUtils.doRegister(anyString(), eq("http://127.0.0.1:8080/soul-client/springcloud-register"), eq(RpcTypeEnum.SPRING_CLOUD)));
-//        }
-//    }
 }

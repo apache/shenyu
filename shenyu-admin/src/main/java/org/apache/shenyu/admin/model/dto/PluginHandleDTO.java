@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -37,11 +38,13 @@ public class PluginHandleDTO implements Serializable {
     /**
      * plugin id.
      */
+    @NotNull
     private String pluginId;
 
     /**
      * the attribute name.
      */
+    @NotNull
     private String field;
 
     /**
@@ -55,6 +58,7 @@ public class PluginHandleDTO implements Serializable {
      * 2 indicates string
      * 3 indicates select box.
      */
+    @NotNull
     private Integer dataType;
 
     /**

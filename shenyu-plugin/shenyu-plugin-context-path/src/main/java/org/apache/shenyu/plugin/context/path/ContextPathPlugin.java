@@ -67,7 +67,13 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
+        assert body != null;
+        String rpcType = body.getRpcType();
+        return Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.GRPC.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.TARS.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.MOTAN.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.SOFA.getName());
     }
 
     /**
