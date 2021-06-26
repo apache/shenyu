@@ -131,7 +131,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
         ruleService.register(registerRule(selectorId, dto.getPath(), PluginEnum.SPRING_CLOUD.getName(), dto.getRuleName()),
                 dto.getRuleName(),
-                Objects.isNull(exist));
+                false);
     }
 
     private void registerContextPathPlugin(final String contextPath) {
