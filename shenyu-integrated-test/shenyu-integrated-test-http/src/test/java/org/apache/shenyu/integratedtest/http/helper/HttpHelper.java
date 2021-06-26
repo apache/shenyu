@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.shenyu.integratedtest.helper;
+package org.apache.shenyu.integratedtest.http.helper;
 
 import com.google.gson.Gson;
 import okhttp3.*;
@@ -38,7 +38,8 @@ public class HttpHelper {
                 .post(RequestBody.create(gson.toJson(req), JSON))
                 .build();
         Response response = client.newCall(request).execute();
-        return gson.fromJson(response.body().charStream(), respType);
+        String respBody = response.body().string();
+        return gson.fromJson(respBody, respType);
     }
 
     public <RESP> RESP getFromGateway(String path, Type type) throws IOException {

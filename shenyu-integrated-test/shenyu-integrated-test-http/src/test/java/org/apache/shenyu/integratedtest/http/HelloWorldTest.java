@@ -16,13 +16,13 @@
  */
 package org.apache.shenyu.integratedtest.http;
 
-import org.apache.shenyu.integratedtest.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.helper.HttpHelper;
+import org.apache.shenyu.integratedtest.http.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.http.helper.HttpHelper;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class HelloWorldTest extends AbstractHttpTest {
+public class HelloWorldTest extends AbstractTest {
     @Test
     public void testHelloWorld() throws Exception {
         OrderDTO user = new OrderDTO("123", "Tom");

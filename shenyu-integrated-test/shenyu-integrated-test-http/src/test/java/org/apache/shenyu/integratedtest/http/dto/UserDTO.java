@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.dto;
+package org.apache.shenyu.integratedtest.http.dto;
 
 import lombok.Data;
 

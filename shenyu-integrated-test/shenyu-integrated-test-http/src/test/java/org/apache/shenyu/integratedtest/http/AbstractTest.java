@@ -17,8 +17,14 @@
 
 package org.apache.shenyu.integratedtest.http;
 
-import org.apache.shenyu.integratedtest.AbstractTest;
 
-public class AbstractHttpTest extends AbstractTest {
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+/**
+ * all tests must extend this class
+ * we will do something here. For example, update DB to init the data
+ */
+public class AbstractTest {
+    protected static ExecutorService service = Executors.newCachedThreadPool();
 }

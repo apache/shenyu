@@ -14,15 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.shenyu.integratedtest.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+package org.apache.shenyu.integratedtest.http.dto;
 
-@Getter
-@Setter
-public class AdminResponse<T> {
-    private Integer code;
-    private String message;
-    private T data;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+
+/**
+ * The type Order dto.
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class OrderDTO implements Serializable {
+
+    private String id;
+
+    private String name;
+
 }
