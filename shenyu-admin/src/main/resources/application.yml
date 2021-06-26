@@ -14,12 +14,12 @@
 # limitations under the License.
 
 server:
-  port: 9095
+  port: 19095
   address: 0.0.0.0
 
 spring:
-  #profiles:
-    #active: h2
+#  profiles:
+#    active: h2
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -27,9 +27,9 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://localhost:13307/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
-    password:
+    password: root
     driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:

@@ -69,7 +69,7 @@ services:
       - shenyu
 
   shenyu-admin:
-    image: dromara/shenyu-admin:2.4.0-SNAPSHOT
+    image: apache/shenyu-admin:2.4.0-SNAPSHOT
     container_name: shenyu-admin
     restart: always
     networks:
@@ -89,7 +89,6 @@ services:
       - SPRING_PROFILES_ACTIVE=mysql
       - "spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false"
       - "spring.datasource.password=root"
-      - "shenyu.sync.http.url=http://shenyu-admin:9095/http"
       - "shenyu.database.custom_init_script=/opt/shenyu-admin/conf/schema.sql"
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-admin:9095/actuator/health" ]
@@ -98,16 +97,12 @@ services:
 #  from http plugin dockerfile
   shenyu-integrated-test-http:
     container_name: shenyu-integrated-test-http
-    image: dromara/shenyu-integrated-test-http:latest
+    image: shenyu-integrated-test-http
     restart: always
     deploy:
       resources:
         limits:
           memory: 2048M
-#    volumes:
-#      - type: bind
-#        source: ./bootstrap-config
-#        target: /opt/shenyu-integrated-test-http/conf/
     depends_on:
       shenyu-examples-http:
         condition: service_healthy
