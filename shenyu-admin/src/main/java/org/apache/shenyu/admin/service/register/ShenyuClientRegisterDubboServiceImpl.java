@@ -82,6 +82,6 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
         ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.DUBBO.getName(), metaDataDTO.getRuleName()),
-                metaDataDTO.getPath(), Objects.isNull(exist));
+                metaDataDTO.getPath(), false);
     }
 }
