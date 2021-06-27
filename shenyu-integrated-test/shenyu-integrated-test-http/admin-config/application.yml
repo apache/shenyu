@@ -18,8 +18,8 @@ server:
   address: 0.0.0.0
 
 spring:
-  #profiles:
-  #active: h2
+  #  profiles:
+  #    active: h2
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -27,9 +27,9 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
-    password:
+    password: root
     driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:
@@ -49,7 +49,8 @@ shenyu:
       nacosNameSpace: ShenyuRegisterCenter
   database:
     dialect: mysql
-    init_script: "META-INF/schema.sql"
+#    init_script: "META-INF/schema.sql"
+    custom_init_script: "/opt/shenyu-admin/conf/schema.sql"
     init_enable: true
   sync:
     websocket:
@@ -71,6 +72,8 @@ shenyu:
   #        namespace:
   #        accessKey:
   #        secretKey:
+  #    etcd:
+  #      url: http://localhost:2379
   aes:
     secret:
       key: 2095132720951327
@@ -85,9 +88,25 @@ shenyu:
   jwt:
     key: 2095132720951327
   shiro:
-    white-list: /,/favicon.*,/static/**,/index**,/plugin/**,/platform/**,/websocket,/configs/**,/shenyu-client/**,/error,/actuator/health,/selector/**,/rule/**
+    white-list:
+      - /
+      - /favicon.*
+      - /static/**
+      - /index**
+      - /plugin
+      - /platform/**
+      - /websocket
+      - /configs/**
+      - /shenyu-client/**
+      - /error
+      - /actuator/health
+      - /swagger-ui.html
+      - /webjars/**
+      - /swagger-resources/**
+      - /v2/api-docs
+      - /csrf
   swagger:
-    enabled: true
+    enable: true
 
 logging:
   level:
