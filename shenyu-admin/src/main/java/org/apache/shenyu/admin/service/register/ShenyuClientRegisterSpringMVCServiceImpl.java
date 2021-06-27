@@ -127,7 +127,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
             ruleService.register(registerRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
                     name,
-                    true);
+                    false);
         }
     }
 
