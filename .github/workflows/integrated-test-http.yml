@@ -1,8 +1,3 @@
-# shenyu-dist/shenyu-admin-dist 打包成docker
-# bbbb 打好了 integrated-http-test, 这个是网关
-# 准备 http 后台，使用examples-http, 将 examples-http 构建成 docker 镜像
-# mvn test
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
