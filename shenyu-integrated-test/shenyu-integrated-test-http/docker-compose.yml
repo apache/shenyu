@@ -52,7 +52,7 @@ services:
         limits:
           memory: 2048M
     container_name: shenyu-examples-http
-    image: shenyu-examples-http
+    image: shenyu-examples-http:latest
     restart: always
     environment:
       - shenyu.client.serverLists=http://shenyu-admin:9095

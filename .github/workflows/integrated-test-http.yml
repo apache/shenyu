@@ -18,7 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: ci
+name: integrated-test-http
 
 on:
   pull_request:
@@ -30,9 +30,9 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        plugin: [http, dubbo]
-    runs-on: ${{ matrix.os, matrix.plugin }}
+#        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Support longpaths
         if: ${{ matrix.os == 'windows-latest'}}
@@ -56,10 +56,18 @@ jobs:
           java-version: 8
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install
+        run: ./mvnw -B clean install -Pdist,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - uses: codecov/codecov-action@v1
         if: env.SKIP_CI != 'true'
-#      - build 特定plugin docker
-      - name: Build plugin docker
-        run: cd integrated-test/${{ runner.plugin}} && docker build -t xxx-${{runner.plugin}} .
-      - name: Start docker-compose
+      - name: Build examples
+        if: env.SKIP_CI != 'true'
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-http/pom.xml
+      - name: Build integrated tests
+        if: env.SKIP_CI != 'true'
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
+      - name: Start docker compose
+        if: env.SKIP_CI != 'true'
+        run: docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-http/docker-compose.yml up -d
+      - name: Run test
+        if: env.SKIP_CI != 'true'
+        run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
