@@ -46,7 +46,7 @@ public class ShenyuContext implements Serializable {
     private String rpcType;
 
     /**
-     * httpMethod now we only support "get","post" .
+     * httpMethod .
      */
     private String httpMethod;
 
@@ -79,11 +79,6 @@ public class ShenyuContext implements Serializable {
      * realUrl.
      */
     private String realUrl;
-
-    /**
-     * this is dubbo params.
-     */
-    private String dubboParams;
 
     /**
      * startDateTime.

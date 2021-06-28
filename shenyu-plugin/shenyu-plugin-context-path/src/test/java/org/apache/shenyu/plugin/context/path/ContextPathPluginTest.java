@@ -71,8 +71,8 @@ public final class ContextPathPluginTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        final DefaultShenyuResult shenhyuResult = new DefaultShenyuResult();
-        when(context.getBean(ShenyuResult.class)).thenReturn(shenhyuResult);
+        final DefaultShenyuResult shenyuResult = new DefaultShenyuResult();
+        when(context.getBean(ShenyuResult.class)).thenReturn(shenyuResult);
         SpringBeanUtils.getInstance().setCfgContext(context);
     }
 
