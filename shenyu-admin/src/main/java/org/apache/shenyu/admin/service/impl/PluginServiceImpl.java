@@ -49,7 +49,6 @@ import org.apache.shenyu.common.enums.AdminPluginOperateEnum;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.enums.PluginRoleEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -124,10 +123,6 @@ public class PluginServiceImpl implements PluginService {
             PluginDO pluginDO = pluginMapper.selectById(id);
             if (Objects.isNull(pluginDO)) {
                 return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
-            }
-            // if sys plugin not delete
-            if (pluginDO.getRole().equals(PluginRoleEnum.SYS.getCode())) {
-                return AdminConstants.SYS_PLUGIN_NOT_DELETE;
             }
             pluginMapper.delete(id);
             deletePluginDataFromResourceAndPermission(pluginDO.getName());

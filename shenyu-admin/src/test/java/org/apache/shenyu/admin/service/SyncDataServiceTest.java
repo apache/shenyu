@@ -116,7 +116,7 @@ public final class SyncDataServiceTest {
         pluginData.setName("plugin_test");
         pluginData.setConfig("config_test");
         pluginData.setEnabled(true);
-        pluginData.setRole("");
+        pluginData.setRole("1");
         return pluginData;
     }
 
@@ -181,7 +181,7 @@ public final class SyncDataServiceTest {
         String dateTime = DateUtils.localDateTimeToString(LocalDateTime.now());
         return new PluginVO(
                 ID,
-                "",
+                "1",
                 "divide",
                 null,
                 null,

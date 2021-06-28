@@ -219,7 +219,7 @@ public final class ShenyuClientRegisterServiceTest {
         final PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setEnabled(true);
         pluginDTO.setConfig("test-config");
-        pluginDTO.setRole("");
+        pluginDTO.setRole("1");
         pluginDTO.setName("test-name");
         return pluginDTO;
     }

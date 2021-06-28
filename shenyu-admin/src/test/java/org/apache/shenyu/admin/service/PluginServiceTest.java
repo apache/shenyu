@@ -130,16 +130,6 @@ public final class PluginServiceTest {
     }
 
     @Test
-    public void testDeleteShouldSysPluginNotDelete() {
-        PluginDO pluginDO = buildPluginDO("123");
-        pluginDO.setRole("0");
-        when(pluginMapper.selectById(any())).thenReturn(pluginDO);
-
-        final List<String> ids = Collections.singletonList(pluginDO.getId());
-        assertEquals(pluginService.delete(ids), AdminConstants.SYS_PLUGIN_NOT_DELETE);
-    }
-
-    @Test
     public void testEnable() {
         publishEvent();
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();

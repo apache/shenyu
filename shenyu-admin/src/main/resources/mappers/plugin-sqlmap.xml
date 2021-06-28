@@ -70,7 +70,7 @@
             </if>
         </where>
 
-        order by role,sort asc
+        order by sort asc
 
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
@@ -160,6 +160,7 @@
         set  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         name = #{name,jdbcType=VARCHAR},
         config = #{config,jdbcType=VARCHAR},
+        role = #{role,jdbcType=VARCHAR},
         sort = #{sort,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
@@ -189,10 +190,10 @@
                 config = #{config,jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                role = #{role,jdbcType=INTEGER},
+                role = #{role,jdbcType=VARCHAR},
             </if>
             <if test="sort != null">
-                role = #{sort,jdbcType=INTEGER},
+                sort = #{sort,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled,jdbcType=TINYINT},
