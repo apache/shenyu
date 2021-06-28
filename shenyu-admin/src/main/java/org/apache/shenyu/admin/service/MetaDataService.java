@@ -18,10 +18,12 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
+import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,14 @@ import java.util.Map;
  * this is application authority service.
  */
 public interface MetaDataService {
+
+    /**
+     * save or update mate data.
+     * {@link org.apache.shenyu.admin.service.register.AbstractShenyuClientRegisterServiceImpl}
+     * @param exist       has been exist meta data {@link MetaDataDO}
+     * @param metaDataDTO meta data dto {@link MetaDataRegisterDTO}
+     */
+    void saveOrUpdateMetaData(MetaDataDO exist, MetaDataRegisterDTO metaDataDTO);
 
     /**
      * Create or update int.
@@ -97,4 +107,29 @@ public interface MetaDataService {
      * Sync data.
      */
     void syncData();
+
+    /**
+     * find meta data by path.
+     *
+     * @param path the path of meta data
+     * @return {@link MetaDataDO}
+     */
+    MetaDataDO findByPath(String path);
+
+    /**
+     * find meta data by service's name and method's name.
+     *
+     * @param serviceName the name of service
+     * @param methodName  the name of method
+     * @return {@link MetaDataDO}
+     */
+    MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName);
+
+    /**
+     * insert MetaDataDO.
+     *
+     * @param metaDataDO meta data object
+     * @return the success rows.
+     */
+    int insert(MetaDataDO metaDataDO);
 }
