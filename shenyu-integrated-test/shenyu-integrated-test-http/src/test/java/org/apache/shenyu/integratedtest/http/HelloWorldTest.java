@@ -14,27 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.shenyu.integratedtest.http;
 
-package org.apache.shenyu.examples.http.dto;
+import org.apache.shenyu.integratedtest.http.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.http.helper.HttpHelper;
+import org.junit.Test;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.junit.Assert.assertEquals;
 
-import java.io.Serializable;
-
-/**
- * The type User dto.
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
-
-    private String userId;
-
-    private String userName;
-
+public class HelloWorldTest extends AbstractTest {
+    @Test
+    public void testHelloWorld() throws Exception {
+        OrderDTO user = new OrderDTO("123", "Tom");
+        user = HttpHelper.INSTANCE.postGateway("/http/order/save", user, OrderDTO.class);
+        assertEquals("hello world save order", user.getName());
+    }
 }
