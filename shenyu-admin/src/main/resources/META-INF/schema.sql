@@ -318,7 +318,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `d
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('19', 'jwt', '1', '{"secretKey":"key","filterPath":[]}', '0', '2021-05-24 17:58:37', '2021-05-25 15:38:04');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('20', 'request', '1', '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('22', 'param_mapping','1','{"ruleHandlePageType":"custom"}', '0', '2021-06-17 22:34:44', '2021-06-17 22:36:00');
-
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('21', 'oauth2', '1', '0', '2021-06-18 10:53:42', '2021-06-18 10:53:42');
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');

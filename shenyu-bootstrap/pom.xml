@@ -137,6 +137,7 @@
         </dependency>
         <!--shenyu request plugin end-->
 
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
@@ -149,6 +150,14 @@
             <version>1.7.2</version>
         </dependency>
         <!--shenyu tars plugin end-->
+
+        <!--shenyu grpc plugin start-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-spring-boot-starter-plugin-oauth2</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+        <!--shenyu grpc plugin end-->
 
         <!--shenyu grpc plugin start-->
         <dependency>

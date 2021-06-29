@@ -313,6 +313,7 @@ INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, 
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('18', 'logging', '1', '0', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
 INSERT INTO `plugin` (`id`, `name`, `role`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('19', 'jwt', '1', '{"secretKey":"key","filterPath":[]}', '0', '2021-05-24 17:58:37', '2021-05-25 15:38:04');
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('20', 'request', '1', '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
+INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('21', 'oauth2', '1', '0', '2021-06-18 10:53:42', '2021-06-18 10:53:42');
 INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('22', 'param_mapping','1','{"ruleHandlePageType":"custom"}', '0', '2021-06-17 22:34:44', '2021-06-17 22:36:00');
 
 /**default admin user**/
