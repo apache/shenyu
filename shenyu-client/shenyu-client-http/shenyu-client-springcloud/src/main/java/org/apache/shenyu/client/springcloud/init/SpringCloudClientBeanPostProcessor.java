@@ -47,15 +47,15 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final ExecutorService executorService;
-    
+
     private final String contextPath;
-    
+
     private final Boolean isFull;
-    
+
     private final Environment env;
 
     private final String host;
@@ -63,7 +63,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final String port;
 
     private final String servletContextPath;
-    
+
     /**
      * Instantiates a new Shenyu client bean post processor.
      *
@@ -122,12 +122,12 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         }
         return bean;
     }
-    
+
     private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient, final String prePath) {
         String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + prePath + shenyuSpringCloudClient.path();
-        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = shenyuSpringCloudClient.desc();
         String configRuleName = shenyuSpringCloudClient.ruleName();
