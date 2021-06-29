@@ -129,9 +129,9 @@
 
 当用户在后台界面改变配置信息时，ShenYu 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
 
-  ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-zh.png)
 
-  ![](https://yu199195.github.io/images/soul/config-strage-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/config-strategy-processor-zh.png)
 
 --------------------------------------------------------------------------------
 

@@ -134,9 +134,9 @@
   
   When user have changed the configuration in the background management, ShenYu wiil dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
-  ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-en.png)
   
-  ![](https://yu199195.github.io/images/soul/config-strage-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/config-strategy-processor-en.png)
 
 --------------------------------------------------------------------------------    
 
