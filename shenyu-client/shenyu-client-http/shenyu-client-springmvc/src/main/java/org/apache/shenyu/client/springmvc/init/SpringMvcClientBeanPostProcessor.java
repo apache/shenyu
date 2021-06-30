@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final ExecutorService executorService;
 
