@@ -50,7 +50,12 @@ public class PluginDTO implements Serializable {
      * plugin role.
      */
     @NotNull
-    private Integer role;
+    private String role;
+
+    /**
+     * plugin sort.
+     */
+    private Integer sort;
 
     /**
      * whether enabled.

@@ -38,25 +38,25 @@ public final class MonitorPluginDataHandlerTest {
     public void testHandlerPlugin() {
         //test with plugin enable: false
         String config = "{\"host\":\"localhost\",\"port\":\"19996\",\"async\":false,\"metricsName\":\"prometheus\"}";
-        PluginData pluginData = new PluginData("", "", config, 1, false);
+        PluginData pluginData = new PluginData("", "", config, "1", false);
         monitorPluginDataHandler.handlerPlugin(pluginData);
         assertFalse(MetricsTrackerFacade.getInstance().isStarted());
 
         //test with plugin config incomplete
         config = "{\"host\":\"localhost\",\"async\":false,\"metricsName\":\"prometheus\"}";
-        pluginData = new PluginData("", "", config, 1, true);
+        pluginData = new PluginData("", "", config, "1", true);
         monitorPluginDataHandler.handlerPlugin(pluginData);
         assertFalse(MetricsTrackerFacade.getInstance().isStarted());
 
         //test with plugin config complete
         config = "{\"host\":\"localhost\",\"port\":\"19997\",\"async\":false,\"metricsName\":\"prometheus\"}";
-        pluginData = new PluginData("", "", config, 1, true);
+        pluginData = new PluginData("", "", config, "1", true);
         monitorPluginDataHandler.handlerPlugin(pluginData);
         assertTrue(MetricsTrackerFacade.getInstance().isStarted());
 
         //test with plugin config modified
         config = "{\"host\":\"localhost\",\"port\":\"19998\",\"async\":true,\"metricsName\":\"prometheus\"}";
-        pluginData = new PluginData("", "", config, 1, true);
+        pluginData = new PluginData("", "", config, "1", true);
         monitorPluginDataHandler.handlerPlugin(pluginData);
         assertTrue(MetricsTrackerFacade.getInstance().isStarted());
     }

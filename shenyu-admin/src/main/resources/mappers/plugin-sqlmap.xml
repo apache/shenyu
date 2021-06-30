@@ -24,12 +24,13 @@
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="config" jdbcType="VARCHAR" property="config"/>
-        <result column="role" jdbcType="INTEGER" property="role"/>
+        <result column="role" jdbcType="VARCHAR" property="role"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, name,config,role, enabled
+        id, date_created, date_updated, name,config,role, sort, enabled
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -69,7 +70,7 @@
             </if>
         </where>
 
-        order by role,id asc
+        order by sort asc
 
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
@@ -97,9 +98,9 @@
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         insert into plugin (id, date_created, date_updated,
-        name,config,role, enabled)
+        name,config,role, sort, enabled)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{name,jdbcType=VARCHAR},#{config,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT})
+        #{name,jdbcType=VARCHAR},#{config,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -121,6 +122,9 @@
             <if test="role != null">
                 role,
             </if>
+            <if test="sort != null">
+                sort,
+            </if>
             <if test="enabled != null">
                 enabled,
             </if>
@@ -140,7 +144,10 @@
                 #{config,jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                #{role,jdbcType=INTEGER},
+                #{role,jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                #{sort,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 #{enabled,jdbcType=TINYINT},
@@ -153,6 +160,8 @@
         set  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         name = #{name,jdbcType=VARCHAR},
         config = #{config,jdbcType=VARCHAR},
+        role = #{role,jdbcType=VARCHAR},
+        sort = #{sort,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -181,7 +190,10 @@
                 config = #{config,jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                role = #{role,jdbcType=INTEGER},
+                role = #{role,jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                sort = #{sort,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled,jdbcType=TINYINT},

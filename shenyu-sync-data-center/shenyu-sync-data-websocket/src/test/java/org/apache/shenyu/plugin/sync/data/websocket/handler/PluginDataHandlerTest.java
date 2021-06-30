@@ -45,7 +45,7 @@ public final class PluginDataHandlerTest {
     public void testConvert() {
         List<PluginData> pluginDataList = new LinkedList<>();
         pluginDataList.add(PluginData.builder().name("name1").enabled(true).build());
-        pluginDataList.add(PluginData.builder().name("name2").role(0).build());
+        pluginDataList.add(PluginData.builder().name("name2").role("0").build());
         Gson gson = new Gson();
         String json = gson.toJson(pluginDataList);
         List<PluginData> convertedList = pluginDataHandler.convert(json);
@@ -77,7 +77,7 @@ public final class PluginDataHandlerTest {
     private List<PluginData> createFakePluginDataObjects(final int count) {
         List<PluginData> result = new LinkedList<>();
         for (int i = 1; i <= count; i++) {
-            result.add(PluginData.builder().name("name-" + i).role(i).build());
+            result.add(PluginData.builder().name("name-" + i).role("").build());
         }
         return result;
     }
