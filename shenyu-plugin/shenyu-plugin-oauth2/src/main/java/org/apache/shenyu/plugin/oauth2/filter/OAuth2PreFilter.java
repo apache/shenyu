@@ -22,8 +22,10 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.web.server.ServerWebExchange;
@@ -32,6 +34,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -43,8 +46,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class OAuth2PreFilter implements WebFilter {
 
-    private static final AtomicBoolean ENABLE = new AtomicBoolean(false);
-
     private static final AtomicBoolean SKIP = new AtomicBoolean(true);
 
     private final List<ServerWebExchangeMatcher> matchers;
@@ -55,38 +56,31 @@ public class OAuth2PreFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(final ServerWebExchange serverWebExchange, final WebFilterChain webFilterChain) {
-        this.changeSkipOAuth2Status(serverWebExchange);
-        serverWebExchange.getAttributes().put("enable", ENABLE.get());
+        PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.OAUTH2.getName());
+        boolean enable = Objects.nonNull(pluginData) && pluginData.getEnabled();
+        serverWebExchange.getAttributes().put("enable", enable);
+        if (enable) {
+            this.processPathMatchers(serverWebExchange);
+        }
         return webFilterChain.filter(serverWebExchange);
     }
 
-    /**
-     * Change OAuth2 skip status.
-     */
-    private void changeSkipOAuth2Status(final ServerWebExchange serverWebExchange) {
-        PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.OAUTH2.getName());
-        boolean expect = ENABLE.get();
-        if (pluginData == null || (expect == pluginData.getEnabled() && matchers.size() > 1)) {
-            return;
-        }
-
-        if (expect != pluginData.getEnabled()) {
-            Boolean enableStatus = pluginData.getEnabled();
-            do {
-                log.info("the current OAuth2 enable status is {}, try to change OAuth2 enable status to {}", expect, enableStatus);
-            } while (!ENABLE.compareAndSet(expect, enableStatus));
-            log.info("change OAuth2 enable status to {}", enableStatus);
-        }
-
-        this.processPathMatchers(serverWebExchange);
-    }
-
     private void processPathMatchers(final ServerWebExchange serverWebExchange) {
-        if (ENABLE.get()) {
+        if ((Boolean) serverWebExchange.getAttributes().get("enable")) {
             this.buildPathMatchers(serverWebExchange);
         } else {
             this.refreshPathMatchers();
         }
+    }
+
+    private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
+        if (selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
+            if (CollectionUtils.isEmpty(selector.getConditionList())) {
+                return false;
+            }
+            return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
+        }
+        return true;
     }
 
     private void buildPathMatchers(final ServerWebExchange serverWebExchange) {
@@ -96,19 +90,28 @@ public class OAuth2PreFilter implements WebFilter {
             serverWebExchange.getAttributes().put("skip", true);
             return;
         }
-        oauth2Selectors
+        SelectorData selectorData = oauth2Selectors
             .parallelStream()
-            .filter(SelectorData::getEnabled)
-            .forEach(select -> {
-                List<RuleData> ruleData = BaseDataCache.getInstance().obtainRuleData(select.getId());
-                ruleData.parallelStream()
-                    .filter(RuleData::getEnabled)
-                    .forEach(rule ->
-                        rule.getConditionDataList().forEach(data ->
-                            matchers.add(new PathPatternParserServerWebExchangeMatcher(data.getParamValue()))
+            .filter(selector -> selector.getEnabled() && filterSelector(selector, serverWebExchange))
+            .findFirst()
+            .orElse(null);
+        if (Objects.isNull(selectorData)) {
+            serverWebExchange.getAttributes().put("skip", true);
+            return;
+        }
+        if (selectorData.getType().equals(SelectorTypeEnum.FULL_FLOW.getCode())) {
+            matchers.add(new PathPatternParserServerWebExchangeMatcher("/**"));
+        } else {
+            List<RuleData> ruleData = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
+            ruleData.parallelStream()
+                .filter(RuleData::getEnabled)
+                .forEach(rule ->
+                    rule
+                        .getConditionDataList()
+                        .forEach(data -> matchers.add(new PathPatternParserServerWebExchangeMatcher(data.getParamValue()))
                         )
-                    );
-            });
+                );
+        }
         SKIP.set(matchers.size() <= 1);
         serverWebExchange.getAttributes().put("skip", SKIP.get());
     }
