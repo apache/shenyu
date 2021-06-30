@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.spring;
 
+import com.google.common.base.Splitter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,10 +35,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.List;
 
 /**
  * for execute schema sql file.
@@ -45,10 +46,12 @@ import java.sql.DriverManager;
 @Slf4j
 @Component
 public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcessor {
+    
+    private static final String PRE_FIX = "file:";
 
     @Resource
     private DataBaseProperties dataBaseProperties;
-
+    
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
         if ((bean instanceof DataSourceProperties) && dataBaseProperties.getInitEnable()) {
@@ -73,38 +76,25 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         // doesn't print logger
         runner.setLogWriter(null);
         Resources.setCharset(StandardCharsets.UTF_8);
-
-        Reader read = StringUtils.isNotBlank(dataBaseProperties.getCustomInitScript()) ? getResourceAsReader(dataBaseProperties.getCustomInitScript())
-                : Resources.getResourceAsReader(dataBaseProperties.getInitScript());
-
-        log.info("execute shenyu schema sql: {}", StringUtils.isNotBlank(dataBaseProperties.getCustomInitScript()) ? dataBaseProperties.getCustomInitScript()
-                : dataBaseProperties.getInitScript());
-        runner.runScript(read);
+        String initScript = dataBaseProperties.getInitScript();
+        List<String> initScripts = Splitter.on(";").splitToList(initScript); 
+        for (String sqlScript : initScripts) {
+            if (sqlScript.startsWith(PRE_FIX)) {
+                String sqlFile = sqlScript.substring(PRE_FIX.length());
+                Reader fileReader = getResourceAsReader(sqlFile);
+                log.info("execute shenyu schema sql: {}", sqlFile);
+                runner.runScript(fileReader);
+            } else {
+                Reader fileReader = Resources.getResourceAsReader(sqlScript);
+                log.info("execute shenyu schema sql: {}", sqlScript);
+                runner.runScript(fileReader);
+            }
+        }
         runner.closeConnection();
         conn.close();
     }
-
-    /**
-     * resource reader.
-     *
-     * @param resource url
-     * @return Reader
-     * @throws IOException IOException
-     */
-    public static Reader getResourceAsReader(final String resource) throws IOException {
-        return getResourceAsReader(resource, null);
+    
+    private static Reader getResourceAsReader(final String resource) throws IOException {
+        return new InputStreamReader(new FileInputStream(resource), StandardCharsets.UTF_8);
     }
-
-    /**
-     * resource reader.
-     *
-     * @param resource url
-     * @param charset charset
-     * @return Reader
-     * @throws IOException IOException
-     */
-    public static Reader getResourceAsReader(final String resource, final Charset charset) throws IOException {
-        return new InputStreamReader(new FileInputStream(resource), charset == null ? StandardCharsets.UTF_8 : charset);
-    }
-
 }
