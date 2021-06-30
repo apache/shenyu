@@ -82,11 +82,11 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
             if (sqlScript.startsWith(PRE_FIX)) {
                 String sqlFile = sqlScript.substring(PRE_FIX.length());
                 Reader fileReader = getResourceAsReader(sqlFile);
-                log.info("execute shenyu schema sql: {}" , sqlFile);
+                log.info("execute shenyu schema sql: {}", sqlFile);
                 runner.runScript(fileReader);
             } else {
                 Reader fileReader = Resources.getResourceAsReader(sqlScript);
-                log.info("execute shenyu schema sql: {}" , sqlScript);
+                log.info("execute shenyu schema sql: {}", sqlScript);
                 runner.runScript(fileReader);
             }
         }
