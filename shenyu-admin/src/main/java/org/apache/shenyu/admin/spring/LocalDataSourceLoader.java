@@ -46,12 +46,12 @@ import java.util.List;
 @Slf4j
 @Component
 public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcessor {
+    
+    private static final String PRE_FIX = "file:";
 
     @Resource
     private DataBaseProperties dataBaseProperties;
     
-    private static final String PRE_FIX = "file:";
-
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
         if ((bean instanceof DataSourceProperties) && dataBaseProperties.getInitEnable()) {
