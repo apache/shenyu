@@ -21,7 +21,6 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.h2.engine.Role;
 import org.junit.Test;
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -220,7 +219,7 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
         final PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setEnabled(true);
         pluginDTO.setConfig("test-config");
-        pluginDTO.setRole(Role.USER);
+        pluginDTO.setRole("1");
         pluginDTO.setName("test-name");
         return pluginDTO;
     }

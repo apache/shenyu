@@ -41,7 +41,7 @@ public final class TarsPluginDataHandlerTest {
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("id", "name", "config", 0, false);
+        final PluginData pluginData = new PluginData("id", "name", "config", "0", false);
         tarsPluginDataHandlerUnderTest.handlerPlugin(pluginData);
     }
 

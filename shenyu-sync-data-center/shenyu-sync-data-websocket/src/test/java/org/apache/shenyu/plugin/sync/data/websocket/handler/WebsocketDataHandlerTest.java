@@ -94,7 +94,7 @@ public final class WebsocketDataHandlerTest {
         pluginData.setName("plugin_test");
         pluginData.setConfig("config_test");
         pluginData.setEnabled(true);
-        pluginData.setRole(1);
+        pluginData.setRole("1");
         LinkedList<PluginData> list = new LinkedList<>();
         list.add(pluginData);
         return GsonUtils.getGson().toJson(list);
