@@ -53,6 +53,7 @@
         <module>shenyu-plugin-dubbo-common</module>
         <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-logging</module>
+        <module>shenyu-plugin-modify-response</module>
         <module>shenyu-plugin-request</module>
         <module>shenyu-plugin-oauth2</module>
         <module>shenyu-plugin-jwt</module>

@@ -86,6 +86,11 @@ public enum PluginEnum {
     REQUEST(42, 0, "request"),
 
     /**
+     * ModifyResponse plugin enum.
+     */
+    MODIFY_RESPONSE(44, 0, "modifyResponse"),
+
+    /**
      * Hystrix plugin enum.
      */
     HYSTRIX(45, 0, "hystrix"),

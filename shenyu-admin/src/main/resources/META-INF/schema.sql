@@ -320,6 +320,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('20', 'request', 'http process', 4, '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('21', 'oauth2', 'authentication', 10, '0', '2021-06-18 10:53:42', '2021-06-18 10:53:42');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('22', 'param_mapping','http process', 5,'{"ruleHandlePageType":"custom"}', '0', '2021-06-17 22:34:44', '2021-06-17 22:36:00');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('23', 'modifyResponse', '1',23, '{"ruleHandlePageType":"custom"}', '0', '2021-05-30 21:26:37', '2021-05-30 23:26:11');
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -434,6 +435,12 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 /*insert plugin_handle data for context path*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1001', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1002', '14', 'addPrefix', 'addPrefix', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
+
+/*insert plugin_handle data for request*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('86', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2021-05-27 23:43:53', '2021-05-30 19:58:28');
+
+/*insert plugin_handle data for ModifyResponse*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('87', '23', 'statusCode', 'status code', 1, 2, 1, '{\"required\":\"0\",\"rule\":\"/^[1-5]\\\\d{2}$/\"}', '2021-05-30 21:42:56', '2021-05-30 22:08:37');
 
 /** insert permission role for role */
 INSERT IGNORE INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');
@@ -697,6 +704,18 @@ INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `compo
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1397547768283955200', '1397547768158126080', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:requestRule:edit', 1, '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1397547768292343808', '1397547768158126080', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:requestRule:query', 1, '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1397547768296538112', '1397547768158126080', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:request:modify', 1, '2021-05-26 21:38:48', '2021-05-26 21:38:47');
+
+/** insert ModifyResponse plugin's resource */
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252528254976', '1346775491550474240', 'modifyResponse', 'modifyResponse', '/plug/modifyResponse', 'modifyResponse', 1, 0, 'block', 0, 0, '', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252566003712', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseSelector:add', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252582780928', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseSelector:delete', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252591169536', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseSelector:edit', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252603752448', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseSelector:query', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252620529664', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseRule:add', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252645695488', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseRule:delete', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252658278400', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseRule:edit', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252666667008', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponseRule:query', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252679249920', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:modifyResponse:modify', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
 
 /** insert jwt plugin's resource */
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1347028169120821250', '1346775491550474240', 'jwt', 'jwt', '/plug/jwt', 'jwt', 1, 16, 'key', 0, 0, '', 1, '2021-06-18 21:00:00', '2021-06-18 21:00:00');
@@ -983,6 +1002,18 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768283955201', '1346358560427216896', '1397547768283955200', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768292343809', '1346358560427216896', '1397547768292343808', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768300732416', '1346358560427216896', '1397547768296538112', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
+
+/** add ModifyResponse plugin's permissions */
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252532449280', '1346358560427216896', '1398994252528254976', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252570198016', '1346358560427216896', '1398994252566003712', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252582780929', '1346358560427216896', '1398994252582780928', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252591169537', '1346358560427216896', '1398994252591169536', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252603752449', '1346358560427216896', '1398994252603752448', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252620529665', '1346358560427216896', '1398994252620529664', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252645695489', '1346358560427216896', '1398994252645695488', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252658278401', '1346358560427216896', '1398994252658278400', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252666667009', '1346358560427216896', '1398994252666667008', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252679249921', '1346358560427216896', '1398994252679249920', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
 
 /** add jwt plugin's permissions */
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768300732010', '1346358560427216896', '1347028169120821250', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
