@@ -22,5 +22,5 @@ A clear and concise description of any alternative solutions or features you've 
 
 #### Additional context
 
-Please read the [Contribution Guideline](https://shenyu.apache.org/projects/shenyu/contributor/) before submitting the PR
+Please read the [Contribution Guideline](https://shenyu.apache.org/community/contributor/) before submitting the PR
 
