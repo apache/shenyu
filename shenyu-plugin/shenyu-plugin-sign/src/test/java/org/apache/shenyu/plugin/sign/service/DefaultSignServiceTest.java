@@ -76,7 +76,7 @@ public final class DefaultSignServiceTest {
         signData.setId("1");
         signData.setName(PluginEnum.SIGN.getName());
         signData.setEnabled(true);
-        signData.setRole(1);
+        signData.setRole("1");
         BaseDataCache.getInstance().cachePluginData(signData);
 
         AppAuthData authData = new AppAuthData();

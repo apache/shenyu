@@ -25,7 +25,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -54,9 +53,6 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -79,30 +75,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         }
         final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-//        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
-        ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
-
-        List<ParamMappingHandle.ParamMapInfo> addBodyMap = new ArrayList<>();
-        List<ParamMappingHandle.ParamMapInfo> replaceBodyKeys = new ArrayList<>();
-        Set<String> removeBodyStr = new HashSet<>();
-        ParamMappingHandle.ParamMapInfo param = new ParamMappingHandle.ParamMapInfo();
-        param.setPath("$.data");
-        param.setKey("test");
-        param.setValue("test");
-
-        addBodyMap.add(param);
-
-        ParamMappingHandle.ParamMapInfo param2 = new ParamMappingHandle.ParamMapInfo();
-        param2.setPath("$.data.nameInfo");
-        param2.setKey("name");
-        param2.setValue("realName");
-        replaceBodyKeys.add(param2);
-        removeBodyStr.add("$.data.body.age");
-
-
-        modifyResponseRuleHandle.setAddBodyKeys(addBodyMap);
-        modifyResponseRuleHandle.setReplaceBodyKeys(replaceBodyKeys);
-        modifyResponseRuleHandle.setRemoveBodyKeys(removeBodyStr);
+        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
 
         if (Objects.nonNull(modifyResponseRuleHandle)) {
             ServerHttpResponse response = exchange.getResponse();
@@ -200,9 +173,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         }
 
         private String operation(final String jsonValue, final ModifyResponseRuleHandle handle) {
-
-            String test = "{\"code\":0,\"msg\":\"success\",\"data\":{\"nameInfo\":{\"name\":\"test\"},\"body\":{\"age\":\"18\"}}}";
-            DocumentContext context = JsonPath.parse(test);
+            DocumentContext context = JsonPath.parse(jsonValue);
             operation(context, handle);
             if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
                 handle.getReplaceBodyKeys().forEach(info -> {

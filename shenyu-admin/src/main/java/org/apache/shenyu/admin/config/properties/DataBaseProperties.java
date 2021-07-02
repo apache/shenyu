@@ -35,7 +35,5 @@ public class DataBaseProperties {
 
     private String initScript;
 
-    private String customInitScript;
-
     private Boolean initEnable;
 }

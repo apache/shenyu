@@ -132,7 +132,7 @@ public class HttpSyncDataServiceTest {
                 .setLastModifyTime(System.currentTimeMillis()).setData(Collections.singletonList(PluginData.builder()
                         .id("9")
                         .name("hystrix")
-                        .role(0)
+                        .role("0")
                         .enabled(false)
                         .build()))
                 .setMd5("1298d5a533d0f896c60cbeca1ec7b017");

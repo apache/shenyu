@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -44,9 +45,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * data permission vo.
+ * Implementation of the {@link org.apache.shenyu.admin.service.DataPermissionService}.
  */
-@Service("dataPermissionService")
+@RequiredArgsConstructor
+@Service
 public class DataPermissionServiceImpl implements DataPermissionService {
 
     private final DataPermissionMapper dataPermissionMapper;
@@ -54,14 +56,6 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     private final RuleMapper ruleMapper;
 
     private final SelectorMapper selectorMapper;
-
-    public DataPermissionServiceImpl(final DataPermissionMapper dataPermissionMapper,
-                                     final RuleMapper ruleMapper,
-                                     final SelectorMapper selectorMapper) {
-        this.dataPermissionMapper = dataPermissionMapper;
-        this.ruleMapper = ruleMapper;
-        this.selectorMapper = selectorMapper;
-    }
 
     /**
      * Get all data permissions by user id.

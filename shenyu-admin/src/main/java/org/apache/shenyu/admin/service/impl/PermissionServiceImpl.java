@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
@@ -46,30 +47,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * this is permission service impl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.PermissionService}.
  */
-@Service("permissionService")
+@RequiredArgsConstructor
+@Service
 public class PermissionServiceImpl implements PermissionService {
 
-    private final UserRoleMapper userRoleMapper;
-
     private final DashboardUserMapper dashboardUserMapper;
+
+    private final UserRoleMapper userRoleMapper;
 
     private final PermissionMapper permissionMapper;
 
     private final ResourceMapper resourceMapper;
 
     private final ResourceService resourceService;
-
-    public PermissionServiceImpl(final DashboardUserMapper dashboardUserMapper, final UserRoleMapper userRoleMapper,
-                                 final PermissionMapper permissionMapper, final ResourceMapper resourceMapper,
-                                 final ResourceService resourceService) {
-        this.dashboardUserMapper = dashboardUserMapper;
-        this.userRoleMapper = userRoleMapper;
-        this.permissionMapper = permissionMapper;
-        this.resourceMapper = resourceMapper;
-        this.resourceService = resourceService;
-    }
 
     /**
      * get user permission menu by token.
@@ -116,9 +108,11 @@ public class PermissionServiceImpl implements PermissionService {
         Map<String, Integer> resourceMap = new HashMap<>();
         List<UserRoleDO> userRoleDOList = userRoleMapper.findByUserId(dashboardUserMapper.selectByUserName(userName).getId());
         for (UserRoleDO userRoleDO : userRoleDOList) {
-            permissionMapper.findByObjectId(userRoleDO.getRoleId()).stream().map(PermissionDO::getResourceId).collect(Collectors.toList()).forEach(resource -> {
-                resourceMap.put(resource, 1);
-            });
+            permissionMapper.findByObjectId(userRoleDO.getRoleId())
+                    .stream()
+                    .map(PermissionDO::getResourceId)
+                    .collect(Collectors.toList())
+                    .forEach(resource -> resourceMap.put(resource, 1));
         }
         if (MapUtils.isNotEmpty(resourceMap)) {
             return new ArrayList<>(resourceMap.keySet()).stream()

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -74,7 +75,9 @@ public final class SelectorControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(selectorController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(selectorController)
+                .setControllerAdvice(new ExceptionHandlers())
+                .build();
     }
 
     @Test
@@ -93,6 +96,11 @@ public final class SelectorControllerTest {
         SelectorDTO selectorDTO = SelectorDTO.builder()
                 .id("123")
                 .name("test123")
+                .continued(true)
+                .type(1)
+                .enabled(true)
+                .pluginId("2")
+                .sort(1)
                 .build();
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/selector")
@@ -108,6 +116,11 @@ public final class SelectorControllerTest {
         SelectorDTO selectorDTO = SelectorDTO.builder()
                 .id("123")
                 .name("test123")
+                .continued(true)
+                .type(1)
+                .enabled(true)
+                .pluginId("2")
+                .sort(1)
                 .build();
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/selector/{id}", "123")

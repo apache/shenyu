@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -48,8 +49,6 @@ import org.apache.shenyu.common.enums.AdminPluginOperateEnum;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.enums.PluginRoleEnum;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,9 +61,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * PluginServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.PluginService}.
  */
-@Service("pluginService")
+@RequiredArgsConstructor
+@Service
 public class PluginServiceImpl implements PluginService {
 
     private final PluginMapper pluginMapper;
@@ -80,23 +80,6 @@ public class PluginServiceImpl implements PluginService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final ResourceService resourceService;
-
-    @Autowired(required = false)
-    public PluginServiceImpl(final PluginMapper pluginMapper,
-                             final SelectorMapper selectorMapper,
-                             final SelectorConditionMapper selectorConditionMapper,
-                             final RuleMapper ruleMapper,
-                             final RuleConditionMapper ruleConditionMapper,
-                             final ApplicationEventPublisher eventPublisher,
-                             final ResourceService resourceService) {
-        this.pluginMapper = pluginMapper;
-        this.selectorMapper = selectorMapper;
-        this.selectorConditionMapper = selectorConditionMapper;
-        this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
-        this.eventPublisher = eventPublisher;
-        this.resourceService = resourceService;
-    }
 
     /**
      * create or update plugin.
@@ -140,10 +123,6 @@ public class PluginServiceImpl implements PluginService {
             PluginDO pluginDO = pluginMapper.selectById(id);
             if (Objects.isNull(pluginDO)) {
                 return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
-            }
-            // if sys plugin not delete
-            if (pluginDO.getRole().equals(PluginRoleEnum.SYS.getCode())) {
-                return AdminConstants.SYS_PLUGIN_NOT_DELETE;
             }
             pluginMapper.delete(id);
             deletePluginDataFromResourceAndPermission(pluginDO.getName());
@@ -223,6 +202,13 @@ public class PluginServiceImpl implements PluginService {
         return pluginMapper.selectAll().stream()
                 .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public String selectIdByName(final String name) {
+        PluginDO pluginDO = pluginMapper.selectByName(name);
+        Objects.requireNonNull(pluginDO);
+        return pluginDO.getId();
     }
 
     /**

@@ -66,7 +66,7 @@ public final class WafPluginTest {
         springBeanUtils.setCfgContext(context);
 
         final PluginData pluginData =
-                new PluginData("pluginId", "pluginName", "{\"model\":\"mix\"}", 0, false);
+                new PluginData("pluginId", "pluginName", "{\"model\":\"mix\"}", "0", false);
         WafPluginDataHandler wafPluginDataHandler = new WafPluginDataHandler();
         wafPluginDataHandler.handlerPlugin(pluginData);
 
@@ -93,7 +93,7 @@ public final class WafPluginTest {
     @Test
     public void testWafPluginBlackWafModel() {
         final PluginData pluginData =
-                new PluginData("pluginId", "pluginName", "{\"model\":\"black\"}", 0, false);
+                new PluginData("pluginId", "pluginName", "{\"model\":\"black\"}", "0", false);
         WafPluginDataHandler wafPluginDataHandler = new WafPluginDataHandler();
         wafPluginDataHandler.handlerPlugin(pluginData);
         Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, null, null);

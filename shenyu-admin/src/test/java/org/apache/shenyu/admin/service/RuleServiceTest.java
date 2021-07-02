@@ -213,14 +213,14 @@ public final class RuleServiceTest {
     private void testRegisterCreate() {
         RuleDTO ruleDTO = buildRuleDTO("");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
-        String ruleId = this.ruleService.register(ruleDTO);
+        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
         assertNotNull(ruleId);
         assertEquals(ruleId.length(), ruleDO.getId().length());
     }
 
     private void testRegisterUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        String ruleId = this.ruleService.register(ruleDTO);
+        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
         assertNotNull(ruleId);
         assertEquals(ruleId, ruleDTO.getId());
     }

@@ -54,13 +54,13 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final ExecutorService executorService;
-    
+
     private final String contextPath;
-    
+
     private final String ipAndPort;
 
     private final String host;
@@ -137,8 +137,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final ShenyuGrpcClient shenyuGrpcClient, final Method method) {
         String path = this.contextPath + shenyuGrpcClient.path();
         String desc = shenyuGrpcClient.desc();
-        String configHost = this.host;
-        String host = org.apache.commons.lang3.StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuGrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();

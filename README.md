@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://shenyu.apache.org/"><img src="https://shenyu.apache.org/img/logo/shenyu.png" width="45%"></a>
+    <a href="https://shenyu.apache.org/"><img src="https://shenyu.apache.org/img/logo/apache-shenyu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
@@ -33,7 +33,10 @@
    </a>
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
-   </a>     
+   </a>
+   <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
+        <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
+   </a>
 </p>
 <br/>
 
@@ -131,9 +134,9 @@
   
   When user have changed the configuration in the background management, ShenYu wiil dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
-  ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-en.png)
   
-  ![](https://yu199195.github.io/images/soul/config-strage-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/config-strategy-processor-en.png)
 
 --------------------------------------------------------------------------------    
 

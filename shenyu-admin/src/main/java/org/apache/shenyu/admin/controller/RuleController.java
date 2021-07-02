@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
@@ -25,7 +26,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,22 +36,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * this is rule controller.
  */
+@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/rule")
 public class RuleController {
 
     private final RuleService ruleService;
-
-    @Autowired(required = false)
-    public RuleController(final RuleService ruleService) {
-        this.ruleService = ruleService;
-    }
 
     /**
      * query rules.
@@ -87,7 +87,7 @@ public class RuleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createRule(@RequestBody final RuleDTO ruleDTO) {
+    public ShenyuAdminResult createRule(@Valid @RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
@@ -100,8 +100,7 @@ public class RuleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
-        Objects.requireNonNull(ruleDTO);
+    public ShenyuAdminResult updateRule(@PathVariable("id") final String id, @Valid @RequestBody final RuleDTO ruleDTO) {
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
@@ -114,7 +113,7 @@ public class RuleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteRules(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteRules(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = ruleService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }

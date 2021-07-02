@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.service.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -35,19 +37,17 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
- * The type sync data service.
+ * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
  */
-@Service("syncDataService")
+@RequiredArgsConstructor
+@Service
 public class SyncDataServiceImpl implements SyncDataService {
 
     private final AppAuthService appAuthService;
-
-    private final MetaDataService metaDataService;
 
     /**
      * The Plugin service.
@@ -66,30 +66,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    /**
-     * Instantiates a new Sync data service.
-     *
-     * @param appAuthService  the app auth service
-     * @param pluginService   the plugin service
-     * @param selectorService the selector service
-     * @param ruleService     the rule service
-     * @param eventPublisher  the event publisher
-     * @param metaDataService the meta data service
-     */
-    @Autowired
-    public SyncDataServiceImpl(final AppAuthService appAuthService,
-                               final PluginService pluginService,
-                               final SelectorService selectorService,
-                               final RuleService ruleService,
-                               final ApplicationEventPublisher eventPublisher,
-                               final MetaDataService metaDataService) {
-        this.appAuthService = appAuthService;
-        this.pluginService = pluginService;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
-        this.eventPublisher = eventPublisher;
-        this.metaDataService = metaDataService;
-    }
+    private final MetaDataService metaDataService;
 
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {

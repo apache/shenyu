@@ -63,7 +63,7 @@ public class ApacheDubboPlugin extends AbstractShenyuPlugin {
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
             assert metaData != null;
-            log.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData.toString());
+            log.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);

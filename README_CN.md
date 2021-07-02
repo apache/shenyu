@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://shenyu.apache.org/img/logo/shenyu.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://shenyu.apache.org/img/logo/apache-shenyu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>应用于所有微服务场景的，可扩展、高性能、响应式的 API 网关解决方案</strong>
@@ -33,7 +33,10 @@
    </a>
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
-   </a>     
+   </a>    
+   <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
+        <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
+   </a>
 </p>
 <br/>
 
@@ -126,9 +129,9 @@
 
 当用户在后台界面改变配置信息时，ShenYu 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
 
-  ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-zh.png)
 
-  ![](https://yu199195.github.io/images/soul/config-strage-processor.png)
+  ![](https://shenyu.apache.org/img/shenyu/dataSync/config-strategy-processor-zh.png)
 
 --------------------------------------------------------------------------------
 

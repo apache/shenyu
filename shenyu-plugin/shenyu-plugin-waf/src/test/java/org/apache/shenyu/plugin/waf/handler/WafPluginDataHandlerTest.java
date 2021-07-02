@@ -46,7 +46,7 @@ public final class WafPluginDataHandlerTest {
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{}", 0, false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{}", "0", false);
         wafPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         WafConfig wafConfig = Singleton.INST.get(WafConfig.class);
         assertEquals(GsonUtils.getInstance().toJson(wafConfig), pluginData.getConfig());

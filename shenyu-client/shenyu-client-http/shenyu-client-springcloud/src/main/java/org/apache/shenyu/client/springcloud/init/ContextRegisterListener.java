@@ -38,17 +38,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private final Boolean isFull;
-    
+
     private Environment env;
-    
+
     private String contextPath;
-    
+
+    private final String host;
+
     /**
      * Instantiates a new Context register listener.
      *
@@ -59,6 +61,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
+        this.host = props.getProperty("host");
         if (isFull) {
             String registerType = config.getRegisterType();
             String serverLists = config.getServerLists();
@@ -75,7 +78,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             publisher.start(shenyuClientRegisterRepository);
         }
     }
-    
+
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
         if (!registered.compareAndSet(false, true)) {
@@ -85,12 +88,12 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             publisher.publishEvent(buildMetaDataDTO());
         }
     }
-    
+
     private MetaDataRegisterDTO buildMetaDataDTO() {
         String contextPath = this.contextPath;
         String appName = env.getProperty("spring.application.name");
         Integer port = env.getProperty("server.port", Integer.class, 8080);
-        String host = IpUtils.getHost();
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String path = contextPath + "/**";
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -61,7 +62,9 @@ public class ResourceControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(resourceController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(resourceController)
+                .setControllerAdvice(new ExceptionHandlers())
+                .build();
     }
 
     @Test
@@ -162,6 +165,11 @@ public class ResourceControllerTest {
     @Test
     public void testCreateResource() throws Exception {
         final ResourceDTO resourceDTO = new ResourceDTO();
+        resourceDTO.setTitle("test");
+        resourceDTO.setName("test");
+        resourceDTO.setResourceType(1);
+        resourceDTO.setStatus(1);
+        resourceDTO.setSort(1);
         given(resourceService.createOrUpdate(resourceDTO)).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.post("/resource")
@@ -176,6 +184,11 @@ public class ResourceControllerTest {
         final String mockId = "mock-id";
         final ResourceDTO resourceDTO = new ResourceDTO();
         resourceDTO.setId(mockId);
+        resourceDTO.setTitle("test");
+        resourceDTO.setName("test");
+        resourceDTO.setResourceType(1);
+        resourceDTO.setStatus(1);
+        resourceDTO.setSort(1);
         given(resourceService.createOrUpdate(resourceDTO)).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.put("/resource/" + mockId)

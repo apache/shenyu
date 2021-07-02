@@ -112,7 +112,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>dromara/shenyu-bootstrap</repository>
+                            <repository>apache/shenyu-bootstrap</repository>
                             <tag>${project.version}</tag>
                             <buildArgs>
                                 <APP_NAME>shenyu-bootstrap-bin-${project.version}</APP_NAME>

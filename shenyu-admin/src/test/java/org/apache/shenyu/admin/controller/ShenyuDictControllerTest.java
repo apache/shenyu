@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -64,7 +65,9 @@ public final class ShenyuDictControllerTest {
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuDictController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuDictController)
+                .setControllerAdvice(new ExceptionHandlers())
+                .build();
     }
 
     @Test
@@ -109,7 +112,10 @@ public final class ShenyuDictControllerTest {
     public void testCreateShenyuDict() throws Exception {
         ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
         shenyuDictDTO.setId("123");
-        shenyuDictDTO.setDesc("test");
+        shenyuDictDTO.setType("mode");
+        shenyuDictDTO.setDictName("test");
+        shenyuDictDTO.setDictValue("v");
+        shenyuDictDTO.setSort(1);
         given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -123,7 +129,10 @@ public final class ShenyuDictControllerTest {
     public void testUpdateShenyuDict() throws Exception {
         ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
         shenyuDictDTO.setId("123");
-        shenyuDictDTO.setDesc("test");
+        shenyuDictDTO.setType("mode");
+        shenyuDictDTO.setDictName("test");
+        shenyuDictDTO.setDictValue("v");
+        shenyuDictDTO.setSort(1);
         given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/shenyu-dict/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
