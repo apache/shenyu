@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,40 +14,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-server:
-  port: 8884
-  address: 0.0.0.0
+PRGDIR=`dirname "$0"`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+do
+    for loop in `seq 1 30`
+    do
+        status=`curl -o /dev/null -s -w %{http_code} $service`
+        response=`curl $service`
+        echo -e "curl $service response $status - $response"
 
-spring:
-  application:
-    name: springservice
-#  cloud:
-#    nacos:
-#      discovery:
-#        server-addr: 127.0.0.1:8848
+        if [ $status -eq 200  ]; then
+            break
+        fi
 
+        sleep 2
+    done
+done
 
-springCloud-test:
-  ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
-shenyu:
-  client:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
-    props:
-      contextPath: /springcloud
-      port: 8884
-      nacosNameSpace: ShenyuRegisterCenter
-
-logging:
-  level:
-    root: info
-    org.apache.shenyu: debug
+sleep 10s
+echo -e "\n-------------------"

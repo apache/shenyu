@@ -20,6 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <modules>
         <module>shenyu-integrated-test-http</module>
+        <module>shenyu-integrated-test-spring-cloud</module>
     </modules>
 
     <parent>

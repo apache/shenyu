@@ -34,21 +34,29 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.web.server.ServerWebExchange;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * this is springCloud proxy impl.
  */
+@Slf4j
 public class SpringCloudPlugin extends AbstractShenyuPlugin {
 
     private final LoadBalancerClient loadBalancer;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
     /**
      * Instantiates a new Spring cloud plugin.
@@ -67,15 +75,28 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         }
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
+
         final SpringCloudRuleHandle ruleHandle = SpringCloudRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         final SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(selector.getId());
+        log.info("selector:{} ", selector.toString());
+        log.info("rule:{} ", rule.toString());
+        log.info("selectorHandle:{} ", selectorHandle.toString());
+        log.info("ruleHandle:{} ", ruleHandle.toString());
         if (StringUtils.isBlank(selectorHandle.getServiceId()) || StringUtils.isBlank(ruleHandle.getPath())) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(),
                     ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        List<String> serviceNames = discoveryClient.getServices();
+        log.info("all service name: {}", String.join(",", serviceNames));
+        for (String serviceName : serviceNames) {
+            List<ServiceInstance> serviceInstances = discoveryClient.getInstances(serviceName);
+            for (ServiceInstance serviceInstance : serviceInstances) {
+                log.info(String.format("%s:%s", serviceName, serviceInstance.getUri()));
+            }
+        }
+        final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId().toUpperCase());
 
-        final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId());
         if (Objects.isNull(serviceInstance)) {
             Object error = ShenyuResultWrap
                     .error(ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getCode(), ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getMsg(), null);
