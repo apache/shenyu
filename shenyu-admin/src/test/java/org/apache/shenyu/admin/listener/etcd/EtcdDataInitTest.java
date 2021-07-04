@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.listener.etcd;
 import lombok.SneakyThrows;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -50,6 +54,7 @@ public class EtcdDataInitTest {
     @SneakyThrows
     public void testRun() {
         EtcdDataInit etcdDataInit = new EtcdDataInit(etcdClient, syncDataService);
+        Assert.assertNotNull(etcdDataInit);
 
         when(etcdClient.exists(Mockito.anyString())).thenReturn(false);
         etcdDataInit.run();
@@ -67,7 +72,7 @@ public class EtcdDataInitTest {
                 )));
         etcdDataInit.run();
 
-        Assert.assertNotNull(etcdDataInit);
+        verify(syncDataService, times(1)).syncAll(any(DataEventTypeEnum.class));
     }
 
     private boolean pathExist(final InvocationOnMock invocation, final List<String> pathList) {

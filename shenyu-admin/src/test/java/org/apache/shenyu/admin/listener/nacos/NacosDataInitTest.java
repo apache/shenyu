@@ -21,13 +21,17 @@ import com.alibaba.nacos.api.config.ConfigService;
 import lombok.SneakyThrows;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.NacosPathConstants;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link NacosDataInit}.
@@ -74,5 +78,6 @@ public class NacosDataInitTest {
         when(configService.getConfig(metaDataId, group, timeout)).thenReturn(META_DATA_ID);
         nacosDataInit.run();
 
+        verify(syncDataService, times(3)).syncAll(any(DataEventTypeEnum.class));
     }
 }

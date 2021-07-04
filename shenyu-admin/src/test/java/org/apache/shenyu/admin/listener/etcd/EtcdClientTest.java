@@ -22,6 +22,7 @@ import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.kv.DeleteResponse;
 import io.etcd.jetcd.kv.PutResponse;
+import io.etcd.jetcd.options.DeleteOption;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,8 +33,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * The testCase for {@link EtcdClient}.
@@ -68,6 +72,7 @@ public class EtcdClientTest {
         CompletableFuture<PutResponse> put = mock(CompletableFuture.class);
         when(client.getKVClient().put(ByteSequence.from(TEST_KEY, StandardCharsets.UTF_8), ByteSequence.from(TEST_VALUE, StandardCharsets.UTF_8))).thenReturn(put);
         etcdClient.put(TEST_KEY, TEST_VALUE);
+        verify(client.getKVClient(), times(1)).put(any(ByteSequence.class), any(ByteSequence.class));
     }
 
     @Test
@@ -75,10 +80,12 @@ public class EtcdClientTest {
         CompletableFuture<DeleteResponse> delete = mock(CompletableFuture.class);
         when(client.getKVClient().delete(ByteSequence.from(TEST_KEY, StandardCharsets.UTF_8))).thenReturn(delete);
         etcdClient.delete(TEST_KEY);
+        verify(client.getKVClient(), times(1)).delete(any(ByteSequence.class));
     }
 
     @Test
     public void deleteEtcdPathRecursive() {
         etcdClient.deleteEtcdPathRecursive(TEST_KEY);
+        verify(client.getKVClient(), times(1)).delete(any(ByteSequence.class), any(DeleteOption.class));
     }
 }

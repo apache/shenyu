@@ -31,6 +31,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 /**
  * The testCase for {@link EtcdDataDataChangedListener}.
  */
@@ -70,6 +74,8 @@ public class EtcdDataDataChangedListenerTest {
         etcdDataDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
+        verify(etcdClient, times(2)).put(any(String.class), any(String.class));
+        verify(etcdClient, times(1)).delete(any(String.class));
     }
 
     /**
@@ -82,6 +88,8 @@ public class EtcdDataDataChangedListenerTest {
         etcdDataDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);
+        verify(etcdClient, times(2)).put(any(String.class), any(String.class));
+        verify(etcdClient, times(1)).delete(any(String.class));
     }
 
     /**
@@ -93,6 +101,8 @@ public class EtcdDataDataChangedListenerTest {
         etcdDataDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.DELETE);
+        verify(etcdClient, times(2)).put(any(String.class), any(String.class));
+        verify(etcdClient, times(3)).deleteEtcdPathRecursive(any(String.class));
     }
 
     /**
@@ -101,11 +111,13 @@ public class EtcdDataDataChangedListenerTest {
     @Test
     public void testOnSelectorChanged() {
         SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
-
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.DELETE);
+        verify(etcdClient, times(3)).put(any(String.class), any(String.class));
+        verify(etcdClient, times(1)).delete(any(String.class));
+        verify(etcdClient, times(1)).deleteEtcdPathRecursive(any(String.class));
     }
 
     /**
@@ -119,10 +131,12 @@ public class EtcdDataDataChangedListenerTest {
                 .pluginName(MOCK_PLUGIN_NAME)
                 .selectorId(MOCK_SELECTOR_ID)
                 .build();
-
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);
+        verify(etcdClient, times(3)).put(any(String.class), any(String.class));
+        verify(etcdClient, times(1)).delete(any(String.class));
+        verify(etcdClient, times(1)).deleteEtcdPathRecursive(any(String.class));
     }
 }
