@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.response.handler;
+package org.apache.shenyu.plugin.modify.response.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.response.cache.ModifyResponseRuleHandleCache;
+import org.apache.shenyu.plugin.modify.response.cache.ModifyResponseRuleHandleCache;
 
 import java.util.Optional;
 

@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.plugin.modifyresponse.ModifyResponsePluginConfiguration
+org.apache.shenyu.springboot.starter.plugin.modify.response.ModifyResponsePluginConfiguration

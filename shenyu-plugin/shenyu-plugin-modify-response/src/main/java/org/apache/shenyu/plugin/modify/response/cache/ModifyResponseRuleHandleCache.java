@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.response.cache;
+package org.apache.shenyu.plugin.modify.response.cache;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
