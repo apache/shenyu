@@ -15,38 +15,58 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.cache;
+package org.apache.shenyu.plugin.base.utils;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
-import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
+import java.util.function.Supplier;
 
 /**
- * The rule handle cache.
+ * Bean holder.
+ *
+ * @param <O> o
  */
-@SuppressWarnings("all")
-@Slf4j
-public final class RatelimiterRuleHandleCache extends BaseHandleCache<String, RateLimiterHandle> {
+public class BeanHolder<O> implements Supplier<O> {
 
-    private RatelimiterRuleHandleCache() {
+    private Supplier<O> supplier;
+
+    private O o;
+
+    public BeanHolder(final Supplier<O> supplier) {
+        this.supplier = supplier;
     }
 
     /**
-     * Gets instance.
+     * Get bean.
      *
-     * @return the instance
+     * @return bean
      */
-    public static RatelimiterRuleHandleCache getInstance() {
-        return RatelimiterRuleHandleCacheInstance.INSTANCE;
+    @Override
+    public O get() {
+        if (o != null) {
+            return o;
+        }
+        return init();
     }
 
     /**
-     * The type rule handle cache instance.
+     * Is null.
+     *
+     * @return boolean
      */
-    static class RatelimiterRuleHandleCacheInstance {
-        /**
-         * The Instance.
-         */
-        static final RatelimiterRuleHandleCache INSTANCE = new RatelimiterRuleHandleCache();
+    public boolean isNull() {
+        return o == null;
+    }
+
+    /**
+     * Init.
+     *
+     * @return bean
+     */
+    synchronized O init() {
+        if (o != null) {
+            return o;
+        }
+        O res = supplier.get();
+        o = res;
+        return res;
     }
 }

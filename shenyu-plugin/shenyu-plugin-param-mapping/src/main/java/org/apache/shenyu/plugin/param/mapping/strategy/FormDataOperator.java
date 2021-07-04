@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
@@ -43,7 +44,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * ApplicationFormStrategy.
  */
 @Slf4j
-public class ApplicationFormOperator implements Operator {
+public class FormDataOperator implements Operator {
 
     @Override
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingHandle paramMappingHandle) {
@@ -74,43 +74,20 @@ public class ApplicationFormOperator implements Operator {
                     Charset charset = headers.getContentType().getCharset();
                     charset = charset == null ? StandardCharsets.UTF_8 : charset;
                     LinkedMultiValueMap<String, String> modifyMap = GsonUtils.getInstance().toLinkedMultiValueMap(modify);
-                    List<String> list = new ArrayList<>();
-                    for (Map.Entry<String, List<String>> entry : modifyMap.entrySet()) {
-                        for (String value : entry.getValue()) {
-                            try {
-                                list.add(entry.getKey() + "=" + URLEncoder.encode(value, charset.name()));
-                            } catch (UnsupportedEncodingException e) {
-                                return Mono.error(new ShenyuException(e));
-                            }
-                        }
-                    }
+                    List<String> list = prepareParams(modifyMap, charset.name());
                     String content = list.stream().collect(Collectors.joining("&"));
                     byte[] bodyBytes = content.getBytes(charset);
                     int contentLength = bodyBytes.length;
                     final BodyInserter bodyInserter = BodyInserters.fromValue(modifyMap);
-                    httpHeaders.putAll(exchange.getRequest().getHeaders());
+                    httpHeaders.putAll(headers);
                     httpHeaders.remove(HttpHeaders.CONTENT_LENGTH);
                     httpHeaders.setContentLength(contentLength);
                     CachedBodyOutputMessage cachedBodyOutputMessage = new CachedBodyOutputMessage(exchange, httpHeaders);
                     return bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext())
-                            .then(Mono.defer(() -> {
-                                ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
-                                    @Override
-                                    public HttpHeaders getHeaders() {
-                                        long contentLength = httpHeaders.getContentLength();
-                                        if (contentLength == 0) {
-                                            httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-                                        }
-                                        return httpHeaders;
-                                    }
-
-                                    @Override
-                                    public Flux<DataBuffer> getBody() {
-                                        return cachedBodyOutputMessage.getBody();
-                                    }
-                                };
-                                return shenyuPluginChain.execute(exchange.mutate().request(decorator).build());
-                            })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> release(cachedBodyOutputMessage, throwable));
+                            .then(Mono.defer(() -> shenyuPluginChain.execute(exchange.mutate()
+                                    .request(new ModifyServerHttpRequestDecorator(httpHeaders, exchange.getRequest(), cachedBodyOutputMessage))
+                                    .build())
+                            )).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> release(cachedBodyOutputMessage, throwable));
                 });
     }
 
@@ -120,6 +97,49 @@ public class ApplicationFormOperator implements Operator {
             paramMappingHandle.getAddParameterKeys().forEach(info -> {
                 context.put(info.getPath(), info.getKey(), Arrays.asList(info.getValue()));
             });
+        }
+    }
+
+    private List<String> prepareParams(final LinkedMultiValueMap<String, String> modifyMap, final String charset) {
+        List<String> paramList = new ArrayList<>();
+        modifyMap.forEach((K, V) -> {
+            V.forEach(value -> {
+                try {
+                    paramList.add(String.join("=", K, URLEncoder.encode(value, charset)));
+                } catch (UnsupportedEncodingException e) {
+                    throw new ShenyuException(e);
+                }
+            });
+        });
+        return paramList;
+    }
+
+    static class ModifyServerHttpRequestDecorator extends ServerHttpRequestDecorator {
+
+        private final HttpHeaders headers;
+
+        private final CachedBodyOutputMessage cachedBodyOutputMessage;
+
+        ModifyServerHttpRequestDecorator(final HttpHeaders headers,
+                                         final ServerHttpRequest delegate,
+                                         final CachedBodyOutputMessage cachedBodyOutputMessage) {
+            super(delegate);
+            this.headers = headers;
+            this.cachedBodyOutputMessage = cachedBodyOutputMessage;
+        }
+
+        @Override
+        public HttpHeaders getHeaders() {
+            long contentLength = headers.getContentLength();
+            if (contentLength == 0) {
+                headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+            }
+            return headers;
+        }
+
+        @Override
+        public Flux<DataBuffer> getBody() {
+            return cachedBodyOutputMessage.getBody();
         }
     }
 }

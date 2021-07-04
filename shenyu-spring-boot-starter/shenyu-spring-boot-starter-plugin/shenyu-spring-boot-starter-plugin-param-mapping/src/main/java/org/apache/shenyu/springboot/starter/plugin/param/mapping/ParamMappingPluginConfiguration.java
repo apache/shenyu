@@ -17,12 +17,21 @@
 
 package org.apache.shenyu.springboot.starter.plugin.param.mapping;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.param.mapping.ParamMappingPlugin;
 import org.apache.shenyu.plugin.param.mapping.handler.ParamMappingPluginDataHandler;
+import org.apache.shenyu.plugin.param.mapping.strategy.FormDataOperator;
+import org.apache.shenyu.plugin.param.mapping.strategy.JsonOperator;
+import org.apache.shenyu.plugin.param.mapping.strategy.DefaultOperator;
+import org.apache.shenyu.plugin.param.mapping.strategy.Operator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The type param mapping plugin configuration.
@@ -37,7 +46,11 @@ public class ParamMappingPluginConfiguration {
      */
     @Bean
     public ShenyuPlugin paramMappingPlugin() {
-        return new ParamMappingPlugin();
+        Map<String, Operator> operatorMap = new HashMap<>(4);
+        operatorMap.put(Constants.DEFAULT, new DefaultOperator());
+        operatorMap.put(MediaType.APPLICATION_JSON.toString(), new JsonOperator());
+        operatorMap.put(MediaType.APPLICATION_FORM_URLENCODED.toString(), new FormDataOperator());
+        return new ParamMappingPlugin(operatorMap);
     }
 
     /**

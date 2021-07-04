@@ -21,30 +21,34 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.redirect.cache.RedirectRuleHandleCache;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * The type redirect plugin data subscriber.
  */
 public class RedirectPluginDataHandler implements PluginDataHandler {
 
+    public static final Supplier<RuleHandleCache<String, RedirectHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final RedirectHandle redirectHandle = GsonUtils.getInstance().fromJson(s, RedirectHandle.class);
-            RedirectRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), redirectHandle);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), redirectHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> RedirectRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
-    
+
     @Override
     public String pluginNamed() {
         return PluginEnum.REDIRECT.getName();

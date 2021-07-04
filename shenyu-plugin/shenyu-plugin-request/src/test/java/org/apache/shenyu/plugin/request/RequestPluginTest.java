@@ -27,7 +27,7 @@ import org.apache.shenyu.common.dto.convert.RequestHandle.ShenyuRequestParameter
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.request.cache.RequestRuleHandleCache;
+import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,13 +62,13 @@ import static org.mockito.Mockito.when;
 public class RequestPluginTest {
     @Mock
     private ShenyuPluginChain chain;
-    
+
     private ServerWebExchange exchange;
-    
+
     private RequestPlugin requestPlugin;
-    
+
     private RuleData ruleData;
-    
+
     @Before
     public void setup() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
@@ -87,13 +87,13 @@ public class RequestPluginTest {
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test-selectorId");
         this.ruleData.setName("test-request-plugin");
-        
+
         RequestHandle requestHandle = new RequestHandle();
         ShenyuRequestHeader requestHeader = requestHandle.new ShenyuRequestHeader(
                 ImmutableMap.of("addKey", "addValue"), ImmutableMap.of("replaceKey", "newKey"),
                 ImmutableMap.of("setKey", "newValue"), Sets.newSet("removeKey")
         );
-        
+
         ShenyuRequestParameter requestParameter = requestHandle.new ShenyuRequestParameter(
                 ImmutableMap.of("addKey", "addValue"), ImmutableMap.of("replaceKey", "newKey"),
                 ImmutableMap.of("setKey", "newValue"), Sets.newSet("removeKey")
@@ -105,20 +105,20 @@ public class RequestPluginTest {
         requestHandle.setHeader(requestHeader);
         requestHandle.setParameter(requestParameter);
         requestHandle.setCookie(cookie);
-        
-        RequestRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), requestHandle);
+
+        RequestPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), requestHandle);
     }
-    
+
     @Test
     public void testDoExecute() {
         SelectorData selectorData = mock(SelectorData.class);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
-        
+
         StepVerifier.create(requestPlugin.doExecute(this.exchange, this.chain, selectorData, this.ruleData)).expectSubscription().verifyComplete();
-        
+
         ArgumentCaptor<ServerWebExchange> newExchange = ArgumentCaptor.forClass(ServerWebExchange.class);
         Mockito.verify(this.chain, times(1)).execute(newExchange.capture());
-        
+
         ServerHttpRequest request = newExchange.getValue().getRequest();
         assertNotNull(request);
         HttpHeaders httpHeaders = request.getHeaders();
@@ -131,7 +131,7 @@ public class RequestPluginTest {
         assertNotNull(httpHeaders.get("setKey").size() == 1 && "newValue".equals(httpHeaders.get("setKey")));
         assertFalse(httpHeaders.containsKey("removeKey"));
         assertTrue(httpHeaders.containsKey(HttpHeaders.COOKIE));
-        
+
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         assertNotNull(queryParams);
         assertNotNull(queryParams.containsKey("addKey"));
@@ -142,12 +142,12 @@ public class RequestPluginTest {
         assertNotNull(queryParams.get("setKey").size() == 1 && "newValue".equals(queryParams.get("setKey")));
         assertFalse(queryParams.containsKey("removeKey"));
     }
-    
+
     @Test
     public void testGetOrder() {
         assertEquals(this.requestPlugin.getOrder(), PluginEnum.REQUEST.getCode());
     }
-    
+
     @Test
     public void tesNamed() {
         assertEquals(this.requestPlugin.named(), PluginEnum.REQUEST.getName());

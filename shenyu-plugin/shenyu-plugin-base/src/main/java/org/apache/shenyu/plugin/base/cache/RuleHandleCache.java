@@ -15,32 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.request.cache;
+package org.apache.shenyu.plugin.base.cache;
 
-import org.apache.shenyu.common.dto.convert.RequestHandle;
-import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
+import org.apache.shenyu.plugin.api.HandleCache;
+
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * This is request rule handle cache.
+ * The selector or rule handle base cache.
  */
-public final class RequestRuleHandleCache extends BaseHandleCache<String, RequestHandle> {
-
-    private RequestRuleHandleCache() {
-    }
+public class RuleHandleCache<K, V> implements HandleCache<K, V> {
 
     /**
-     * get instance.
-     *
-     * @return the RequestRuleHandleCache
+     * selectorId.ruleName -> handle.
      */
-    public static RequestRuleHandleCache getInstance() {
-        return RequestRuleHandleCacheInstance.INSTANCE;
+    private final ConcurrentHashMap<K, V> cached = new ConcurrentHashMap<>();
+
+    @Override
+    public V obtainHandle(final K key) {
+        return cached.get(key);
     }
 
-    /**
-     * The Instance.
-     */
-    static class RequestRuleHandleCacheInstance {
-        static final RequestRuleHandleCache INSTANCE = new RequestRuleHandleCache();
+    @Override
+    public void cachedHandle(final K key, final V value) {
+        Optional.ofNullable(key).ifPresent(data -> cached.put(key, value));
+    }
+
+    @Override
+    public void removeHandle(final K key) {
+        Optional.ofNullable(key).ifPresent(cached::remove);
     }
 }
+
+

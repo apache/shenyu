@@ -21,28 +21,32 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.param.mapping.cache.ParamMappingRuleHandleCache;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * The type param mapping path plugin data subscriber.
  */
 public class ParamMappingPluginDataHandler implements PluginDataHandler {
 
+    public static final Supplier<RuleHandleCache<String, ParamMappingHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             ParamMappingHandle paramMappingHandle = GsonUtils.getInstance().fromJson(s, ParamMappingHandle.class);
-            ParamMappingRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), paramMappingHandle);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), paramMappingHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> ParamMappingRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override
