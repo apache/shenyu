@@ -21,7 +21,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.Assert;
@@ -74,7 +73,6 @@ public final class ModifyResponsePluginTest {
                 .build();
         this.exchange = spy(MockServerWebExchange.from(request));
         shenyuContext = mock(ShenyuContext.class);
-        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.HTTP.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
     }
 
