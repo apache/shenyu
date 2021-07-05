@@ -49,7 +49,7 @@ public class ParamMappingPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+    public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ParamMappingHandle paramMappingHandle = ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(paramMappingHandle)) {
             log.error("param mapping rule configuration is null :{}", rule.getId());
