@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
 #        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        os: [ ubuntu-latest ]
+        os: [ macos-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Support longpaths
@@ -62,7 +62,7 @@ jobs:
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
-        run: docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-http/docker-compose.yml up -d
+        run: docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-http/docker-compose.yml up -d
       - name: Run test
         if: env.SKIP_CI != 'true'
         run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
