@@ -28,7 +28,7 @@ public class BeanHolder<O> implements Supplier<O> {
 
     private Supplier<O> supplier;
 
-    private O o;
+    private volatile O o;
 
     public BeanHolder(final Supplier<O> supplier) {
         this.supplier = supplier;
