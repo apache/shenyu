@@ -60,6 +60,12 @@
       <version>${shenyu.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.shenyu</groupId>
+      <artifactId>shenyu-spring-boot-starter-plugin-sign</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!--shenyu data sync start use websocket-->
     <dependency>
       <groupId>org.apache.shenyu</groupId>

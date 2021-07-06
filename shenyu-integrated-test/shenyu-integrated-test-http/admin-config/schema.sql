@@ -26,3 +26,12 @@ INSERT INTO shenyu.rule (id, selector_id, match_mode, name, enabled, loged, sort
 INSERT INTO shenyu.rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1403701003865575424', '1403701003857186816', 'uri', '=', '/', '/http/test/path/123', '2021-06-12 13:09:33', '2021-06-12 13:09:33');
 INSERT INTO shenyu.selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1403700859057229824', '1403700859048841216', 'uri', '=', '/', '/http/test/path/123', '2021-06-12 13:08:59', '2021-06-12 13:08:59');
 
+/** prepare sign **/
+update shenyu.plugin set enabled = 1 where id = '1';
+INSERT INTO shenyu.selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued,date_created, date_updated) VALUES ('1412234272995270656', '1', 'http-sign', 0, 1, 1, null, 1, 1, 1,'2021-07-06 13:09:3','2021-07-06 13:09:33');
+INSERT INTO shenyu.rule (id, selector_id, match_mode, name, enabled, loged, sort,date_created, date_updated) VALUES ('1412234425227534336', '1412234272995270656', 0, 'http-sign', 1, 1, 1,'2021-07-06 13:09:3','2021-07-06 13:09:33');
+INSERT INTO shenyu.rule_condition (id, rule_id, param_type, operator, param_name, param_value,date_created, date_updated) VALUES ('1412234425256894464', '1412234425227534336', 'uri', '=', '/', '/http/test/path/456','2021-07-06 13:09:3','2021-07-06 13:09:33');
+INSERT INTO shenyu.selector_condition (id, selector_id, param_type, operator, param_name, param_value,date_created, date_updated) VALUES ('1412234273020436480', '1412234272995270656', 'uri', '=', '/', '/http/test/path/456','2021-07-06 13:09:3','2021-07-06 13:09:33');
+INSERT INTO shenyu.app_auth(id,app_key,app_secret,open,enabled,date_created, date_updated) VALUES ('1412239238157819904','108C27175A2C43C1BC29B1E483D57E3D','061521A73DD94A3FA873C25D050685BB',1,1,'2021-07-06 13:09:3','2021-07-06 13:09:33');
+INSERT INTO shenyu.auth_param(id,auth_id,app_name,date_created, date_updated) VALUES ('1412246190984257536','1412239238157819904','http-sign','2021-07-06 13:09:3','2021-07-06 13:09:33');
+INSERT INTO shenyu.auth_path(id,auth_id,app_name,path,enabled,date_created, date_updated) VALUES ('1412255231079411712','1412239238157819904','http-sign','/http/test/path/456',1,'2021-07-06 13:09:3','2021-07-06 13:09:33');
