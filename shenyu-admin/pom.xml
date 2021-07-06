@@ -140,6 +140,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -250,6 +251,12 @@
                 <configuration>
                     <mainClass>org.apache.shenyu.admin.ShenyuAdminBootstrap</mainClass>
                     <executable>true</executable>
+                    <excludes>
+                        <exclude>
+                            <groupId>mysql</groupId>
+                            <artifactId>mysql-connector-java</artifactId>
+                        </exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
