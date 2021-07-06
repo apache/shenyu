@@ -63,6 +63,9 @@ jobs:
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
         run: docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-http/docker-compose.yml up -d
+      - name: Wait for docker compose start up completely
+        if: env.SKIP_CI != 'true'
+        run: while ! docker ps -a | grep health-checker | grep "Exited (0)"; do sleep 2; done; echo "start up completely"
       - name: Run test
         if: env.SKIP_CI != 'true'
         run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
