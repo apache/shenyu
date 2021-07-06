@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -41,7 +42,7 @@ import java.util.function.Function;
  * ApplicationJsonStrategy.
  */
 @Slf4j
-public class ApplicationJsonOperator implements Operator {
+public class JsonOperator implements Operator {
 
     private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
 
@@ -61,27 +62,41 @@ public class ApplicationJsonOperator implements Operator {
         CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
         return bodyInserter.insert(outputMessage, new BodyInserterContext())
                 .then(Mono.defer(() -> {
-                    ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-                            exchange.getRequest()) {
-                        @Override
-                        public HttpHeaders getHeaders() {
-                            long contentLength = headers.getContentLength();
-                            HttpHeaders httpHeaders = new HttpHeaders();
-                            httpHeaders.putAll(headers);
-                            if (contentLength > 0) {
-                                httpHeaders.setContentLength(contentLength);
-                            } else {
-                                httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-                            }
-                            return httpHeaders;
-                        }
-
-                        @Override
-                        public Flux<DataBuffer> getBody() {
-                            return outputMessage.getBody();
-                        }
-                    };
+                    ServerHttpRequestDecorator decorator = new ModifyServerHttpRequestDecorator(headers, exchange.getRequest(), outputMessage);
                     return shenyuPluginChain.execute(exchange.mutate().request(decorator).build());
                 })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> release(outputMessage, throwable));
+    }
+
+    static class ModifyServerHttpRequestDecorator extends ServerHttpRequestDecorator {
+
+        private final HttpHeaders headers;
+
+        private final CachedBodyOutputMessage cachedBodyOutputMessage;
+
+        ModifyServerHttpRequestDecorator(final HttpHeaders headers,
+                                         final ServerHttpRequest delegate,
+                                         final CachedBodyOutputMessage cachedBodyOutputMessage) {
+            super(delegate);
+            this.headers = headers;
+            this.cachedBodyOutputMessage = cachedBodyOutputMessage;
+        }
+
+        @Override
+        public HttpHeaders getHeaders() {
+            long contentLength = headers.getContentLength();
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.putAll(headers);
+            if (contentLength > 0) {
+                httpHeaders.setContentLength(contentLength);
+            } else {
+                httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+            }
+            return httpHeaders;
+        }
+
+        @Override
+        public Flux<DataBuffer> getBody() {
+            return cachedBodyOutputMessage.getBody();
+        }
     }
 }

@@ -31,10 +31,10 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.hystrix.builder.HystrixBuilder;
-import org.apache.shenyu.plugin.hystrix.cache.HystrixRuleHandleCache;
 import org.apache.shenyu.plugin.hystrix.command.Command;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommand;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommandOnThread;
+import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
@@ -51,8 +51,7 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        final HystrixHandle hystrixHandle = HystrixRuleHandleCache.getInstance()
-                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        final HystrixHandle hystrixHandle = HystrixPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (StringUtils.isBlank(hystrixHandle.getGroupKey())) {
             hystrixHandle.setGroupKey(Objects.requireNonNull(shenyuContext).getModule());
         }

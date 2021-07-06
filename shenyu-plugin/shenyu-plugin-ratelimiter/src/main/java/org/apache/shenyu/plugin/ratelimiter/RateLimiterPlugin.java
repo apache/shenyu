@@ -27,8 +27,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
+import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.apache.shenyu.plugin.ratelimiter.resolver.RateLimiterKeyResolverFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
@@ -64,7 +64,7 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        RateLimiterHandle limiterHandle = RatelimiterRuleHandleCache.getInstance()
+        RateLimiterHandle limiterHandle = RateLimiterPluginDataHandler.CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         String resolverKey = Optional.ofNullable(limiterHandle.getKeyResolverName())
                 .flatMap(name -> Optional.of("-" + RateLimiterKeyResolverFactory.newInstance(name).resolve(exchange)))

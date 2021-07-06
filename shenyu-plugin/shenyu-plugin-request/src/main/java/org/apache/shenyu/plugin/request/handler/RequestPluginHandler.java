@@ -21,29 +21,33 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.RequestHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.request.cache.RequestRuleHandleCache;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * The type request plugin data subscriber.
  */
 public class RequestPluginHandler implements PluginDataHandler {
 
+    public static final Supplier<RuleHandleCache<String, RequestHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             RequestHandle requestHandle = GsonUtils.getInstance().fromJson(s, RequestHandle.class);
-            RequestRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), requestHandle);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), requestHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(s ->
-                RequestRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+                CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

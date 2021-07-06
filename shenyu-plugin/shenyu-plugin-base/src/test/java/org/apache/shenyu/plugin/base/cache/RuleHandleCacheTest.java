@@ -26,46 +26,46 @@ import org.junit.Test;
 /**
  * BaseHandleCache test.
  */
-public class BaseHandleCacheTest {
+public class RuleHandleCacheTest {
 
     private static final String MOCK_KEY = "mockKey";
 
     private static final String MOCK_VALUE = "mockValue";
 
-    private BaseHandleCache<String, String> baseHandleCache;
+    private RuleHandleCache<String, String> ruleHandleCache;
 
     private ConcurrentHashMap<String, String> cachedMockMap;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
-        this.baseHandleCache = new EmptyMockBaseHandleCache<>();
+        this.ruleHandleCache = new EmptyMockRuleHandleCache<>();
         this.cachedMockMap = new ConcurrentHashMap<>();
 
-        Field field = this.baseHandleCache.getClass().getSuperclass().getDeclaredField("cached");
+        Field field = this.ruleHandleCache.getClass().getSuperclass().getDeclaredField("cached");
         field.setAccessible(true);
-        field.set(baseHandleCache, cachedMockMap);
+        field.set(ruleHandleCache, cachedMockMap);
     }
 
     @Test
     public void obtainHandle() {
-        assert null == baseHandleCache.obtainHandle(MOCK_KEY);
+        assert null == ruleHandleCache.obtainHandle(MOCK_KEY);
         cachedMockMap.put(MOCK_KEY, MOCK_VALUE);
-        assert MOCK_VALUE.equals(baseHandleCache.obtainHandle(MOCK_KEY));
+        assert MOCK_VALUE.equals(ruleHandleCache.obtainHandle(MOCK_KEY));
     }
 
     @Test
     public void cachedHandle() {
-        baseHandleCache.cachedHandle(null, MOCK_VALUE);
+        ruleHandleCache.cachedHandle(null, MOCK_VALUE);
         assert cachedMockMap.size() == 0;
-        baseHandleCache.cachedHandle(MOCK_KEY, MOCK_VALUE);
-        assert MOCK_VALUE.equals(baseHandleCache.obtainHandle(MOCK_KEY));
+        ruleHandleCache.cachedHandle(MOCK_KEY, MOCK_VALUE);
+        assert MOCK_VALUE.equals(ruleHandleCache.obtainHandle(MOCK_KEY));
     }
 
     @Test
     public void removeHandle() {
-        baseHandleCache.cachedHandle(MOCK_KEY, MOCK_VALUE);
+        ruleHandleCache.cachedHandle(MOCK_KEY, MOCK_VALUE);
         assert cachedMockMap.size() == 1;
-        baseHandleCache.removeHandle(MOCK_KEY);
+        ruleHandleCache.removeHandle(MOCK_KEY);
         assert cachedMockMap.size() == 0;
     }
 }
