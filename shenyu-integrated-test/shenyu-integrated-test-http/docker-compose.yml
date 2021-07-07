@@ -15,21 +15,6 @@
 # limitations under the License.
 version: "3.9"
 services:
-  shenyu-mysql:
-    restart: always
-    image: mysql:5.7
-    container_name: shenyu-mysql
-    ports:
-      - 13310:3306
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=shenyu
-    networks:
-      - shenyu
-    healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      timeout: 2s
-      retries: 30
   shenyu-zk:
     container_name: shenyu-zk
     image: zookeeper:3.5
@@ -86,10 +71,8 @@ services:
     ports:
       - 9095:9095
     environment:
-      - SPRING_PROFILES_ACTIVE=mysql
-      - "spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false"
-      - "spring.datasource.password=root"
-      - "shenyu.database.init_script=META-INF/schema.sql;file:/opt/sql/schema.sql"
+      - SPRING_PROFILES_ACTIVE=h2
+      - "shenyu.database.init_script=META-INF/schema.h2.sql;file:/opt/sql/schema.sql"
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-admin:9095/actuator/health" ]
       timeout: 2s
