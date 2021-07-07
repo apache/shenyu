@@ -64,8 +64,6 @@ services:
         source: ./admin-config/
         target: /opt/sql/
     depends_on:
-      shenyu-mysql:
-        condition: service_healthy
       shenyu-redis:
         condition: service_healthy
     ports:
