@@ -139,7 +139,7 @@ public final class ZookeeperSyncDataServiceTest {
         }, Collections.emptyList(), Collections.emptyList());
         ArgumentCaptor<IZkDataListener> captor = ArgumentCaptor.forClass(IZkDataListener.class);
         verify(zkClient).subscribeDataChanges(eq(MOCK_PLUGIN_PATH), captor.capture());
-        captor.getValue().handleDataChange(MOCK_PLUGIN_PATH, changedPluginData);
+        captor.getValue().handleDataChange(MOCK_PLUGIN_PATH, GsonUtils.getInstance().toJson(changedPluginData));
         assertThat(subscribeList.size(), is(2));
         assertTrue(subscribeList.get(1).getEnabled());
     }
@@ -185,7 +185,7 @@ public final class ZookeeperSyncDataServiceTest {
         }, Collections.emptyList(), Collections.emptyList());
         ArgumentCaptor<IZkDataListener> captor = ArgumentCaptor.forClass(IZkDataListener.class);
         verify(zkClient).subscribeDataChanges(eq(MOCK_SELECTOR_PATH), captor.capture());
-        captor.getValue().handleDataChange(MOCK_SELECTOR_PATH, changedSelectorData);
+        captor.getValue().handleDataChange(MOCK_SELECTOR_PATH, GsonUtils.getInstance().toJson(changedSelectorData));
         assertThat(subscribeList.size(), is(2));
         assertTrue(subscribeList.get(1).getEnabled());
     }
@@ -231,7 +231,7 @@ public final class ZookeeperSyncDataServiceTest {
         }, Collections.emptyList(), Collections.emptyList());
         ArgumentCaptor<IZkDataListener> captor = ArgumentCaptor.forClass(IZkDataListener.class);
         verify(zkClient).subscribeDataChanges(eq(MOCK_RULE_PATH), captor.capture());
-        captor.getValue().handleDataChange(MOCK_RULE_PATH, changedRuleData);
+        captor.getValue().handleDataChange(MOCK_RULE_PATH, GsonUtils.getInstance().toJson(changedRuleData));
         assertThat(subscribeList.size(), is(2));
         Assert.assertTrue(subscribeList.get(1).getEnabled());
     }
@@ -288,7 +288,7 @@ public final class ZookeeperSyncDataServiceTest {
                 null, Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
         ArgumentCaptor<IZkDataListener> captor = ArgumentCaptor.forClass(IZkDataListener.class);
         verify(zkClient).subscribeDataChanges(eq(MOCK_APP_AUTH_PATH), captor.capture());
-        captor.getValue().handleDataChange(MOCK_APP_AUTH_PATH, changedAppAuthData);
+        captor.getValue().handleDataChange(MOCK_APP_AUTH_PATH, GsonUtils.getInstance().toJson(changedAppAuthData));
         assertThat(subscribeList.size(), is(2));
         assertTrue(subscribeList.get(1).getEnabled());
     }
@@ -352,7 +352,7 @@ public final class ZookeeperSyncDataServiceTest {
         Assert.assertEquals(1, subscribeList.size());
         ArgumentCaptor<IZkDataListener> captor = ArgumentCaptor.forClass(IZkDataListener.class);
         verify(zkClient).subscribeDataChanges(eq(MOCK_META_DATA_PATH), captor.capture());
-        captor.getValue().handleDataChange(MOCK_META_DATA_PATH, changedMetaData);
+        captor.getValue().handleDataChange(MOCK_META_DATA_PATH, GsonUtils.getInstance().toJson(changedMetaData));
         assertThat(subscribeList.size(), is(2));
         assertTrue(subscribeList.get(1).getEnabled());
     }
