@@ -74,42 +74,21 @@
                         <artifactId>maven-assembly-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>shenyu-admin-bin</id>
+                                <id>admin-bin</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
                                 </goals>
-                                <configuration>
-                                    <descriptors>
-                                        <descriptor>${project.basedir}/src/main/assembly/binary.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
                             </execution>
                         </executions>
                         <configuration>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/main/assembly/binary.xml</descriptor>
+                            </descriptors>
                             <attach>true</attach>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
-                            <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
-                    </plugin>
-
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <target>
-                                        <copy file="${project.build.directory}/${project.build.finalName}.tar.gz" tofile="${project.basedir}/../../dist/${project.build.finalName}.tar.gz" overwrite="true" />
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>
@@ -138,7 +117,7 @@
                             <repository>apache/shenyu-admin</repository>
                             <tag>${project.version}</tag>
                             <buildArgs>
-                                <APP_NAME>apache-shenyu-incubating-${project.version}</APP_NAME>
+                                <APP_NAME>apache-shenyu-incubating-${project.version}-admin-bin</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>
