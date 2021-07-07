@@ -138,7 +138,7 @@
                             <repository>apache/shenyu-admin</repository>
                             <tag>${project.version}</tag>
                             <buildArgs>
-                                <APP_NAME>shenyu-admin-bin-${project.version}</APP_NAME>
+                                <APP_NAME>apache-shenyu-incubating-${project.version}</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>
