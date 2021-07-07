@@ -23,16 +23,19 @@
     <formats>
         <format>tar.gz</format>
     </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <baseDirectory>${project.build.finalName}-admin-bin</baseDirectory>
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
-            <outputDirectory>conf</outputDirectory>
+            <directory>src/main/resources</directory>
+            <lineEnding>unix</lineEnding>
             <includes>
                 <include>*.yml</include>
+                <include>*.xml</include>
             </includes>
+            <outputDirectory>conf</outputDirectory>
         </fileSet>
-
         <fileSet>
             <directory>src/main/resources/bin</directory>
             <lineEnding>unix</lineEnding>
@@ -55,10 +58,6 @@
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
-            <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-            <includes>
-                <include>org.apache.shenyu:shenyu-admin</include>
-            </includes>
             <fileMode>0644</fileMode>
         </dependencySet>
     </dependencySets>
