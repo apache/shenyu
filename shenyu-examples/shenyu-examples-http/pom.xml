@@ -94,7 +94,7 @@
                 <version>1.4.6</version>
                 <executions>
                     <execution>
-                        <id>shenyu-examples-httpp</id>
+                        <id>shenyu-examples-http</id>
                         <goals>
                             <goal>build</goal>
                         </goals>
