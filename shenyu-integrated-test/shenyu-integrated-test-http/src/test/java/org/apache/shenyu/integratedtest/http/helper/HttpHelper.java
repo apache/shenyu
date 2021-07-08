@@ -46,19 +46,12 @@ public class HttpHelper {
     }
 
     public <RESP> RESP getFromGateway(String path, Type type) throws IOException {
-        Gson gson = new Gson();
-        Request request = new Request.Builder()
-                .url(GATEWAY_END_POINT + path)
-                .get()
-                .build();
-        Response response = client.newCall(request).execute();
-        String respBody = response.body().string();
-        return gson.fromJson(respBody, type);
+        return this.getFromGateway(path,null,type);
     }
 
     public <RESP> RESP getFromGateway(String path, Map<String, Object> headers, Type type) throws IOException {
         Request.Builder requestBuilder = new Request.Builder().url(GATEWAY_END_POINT + path);
-        if(!CollectionUtils.isEmpty(headers)) {
+        if (!CollectionUtils.isEmpty(headers)) {
             headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
         }
         Request request = requestBuilder.build();
