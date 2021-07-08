@@ -40,40 +40,40 @@ public class SignTest extends AbstractTest {
         final String version = "1.0.0";
         String now = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli());
         Map<String, Object> normalHeaders = buildHeadrsMap(now, path, appKey, appSecret, version);
-        Future<UserDTO> normalRespFuture = service.submit(() -> HttpHelper.INSTANCE.getFromGateway(testUrlPath,normalHeaders,
-                UserDTO.class));
-        assertEquals("hello world", normalRespFuture.get().getUserName());
+        UserDTO normalRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,normalHeaders,
+                UserDTO.class);
+        assertEquals("hello world", normalRespFuture.getUserName());
 
         Map<String, Object> errorPathHeaders = buildHeadrsMap(now, "errorPath", appKey, appSecret, version);
-        Future<AdminResponse<Object>> rejectedErrorPathRespFuture = service.submit(() -> HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorPathHeaders,
+        AdminResponse<Object> rejectedErrorPathRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorPathHeaders,
                 new TypeToken<AdminResponse<Object>>() {
-                }.getType()));
-        assertEquals("signature value is error!",rejectedErrorPathRespFuture.get().getMessage());
+                }.getType());
+        assertEquals("signature value is error!",rejectedErrorPathRespFuture.getMessage());
 
         Map<String, Object> errorAppKeyHeaders = buildHeadrsMap(now, path, "ERRORKEY", appSecret, version);
-        Future<AdminResponse<Object>> rejectedErrorAKRespFuture = service.submit(() -> HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorAppKeyHeaders,
+        AdminResponse<Object> rejectedErrorAKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorAppKeyHeaders,
                 new TypeToken<AdminResponse<Object>>() {
-                }.getType()));
-        assertEquals("sign appKey does not exist.",rejectedErrorAKRespFuture.get().getMessage());
+                }.getType());
+        assertEquals("sign appKey does not exist.",rejectedErrorAKRespFuture.getMessage());
 
         Map<String, Object> errorAppSecretHeaders = buildHeadrsMap(now, path, appKey, "ERRORSECRET", version);
-        Future<AdminResponse<Object>> rejectedErrorSKRespFuture = service.submit(() -> HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorAppSecretHeaders,
+        AdminResponse<Object> rejectedErrorSKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorAppSecretHeaders,
                 new TypeToken<AdminResponse<Object>>() {
-                }.getType()));
-        assertEquals("signature value is error!",rejectedErrorSKRespFuture.get().getMessage());
+                }.getType());
+        assertEquals("signature value is error!",rejectedErrorSKRespFuture.getMessage());
 
         Map<String, Object> errorVersionHeaders = buildHeadrsMap(now, path, appKey, appSecret, "1.0.2");
-        Future<AdminResponse<Object>> rejectedErrorVersionRespFuture = service.submit(() -> HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorVersionHeaders,
+        AdminResponse<Object> rejectedErrorVersionRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorVersionHeaders,
                 new TypeToken<AdminResponse<Object>>() {
-                }.getType()));
-        assertEquals("signature value is error!",rejectedErrorVersionRespFuture.get().getMessage());
+                }.getType());
+        assertEquals("signature value is error!",rejectedErrorVersionRespFuture.getMessage());
 
         String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli()-360000);
         Map<String, Object> errorTimestampHeaders = buildHeadrsMap(errorTime, path, appKey, appSecret, version);
-        Future<AdminResponse<Object>> rejectedErrorTimestampRespFuture = service.submit(() -> HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorTimestampHeaders,
+        AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorTimestampHeaders,
                 new TypeToken<AdminResponse<Object>>() {
-                }.getType()));
-        assertEquals("The signature timestamp has exceeded 5 minutes!",rejectedErrorTimestampRespFuture.get().getMessage());
+                }.getType());
+        assertEquals("The signature timestamp has exceeded 5 minutes!",rejectedErrorTimestampRespFuture.getMessage());
     }
 
     private Map<String, Object> buildHeadrsMap(final String timestamp,final String path,final String appKey,final String appSecret,final String version) {
