@@ -22,27 +22,30 @@ cd `dirname $0`
 cd ..
 DEPLOY_DIR=`pwd`
 
-LOGS_DIR=${DEPLOY_DIR}/logs
-if [ ! -d ${LOGS_DIR} ]; then
-    mkdir ${LOGS_DIR}
-fi
-
-LOG_FILES=${LOGS_DIR}
-EXT_LIB=${DEPLOY_DIR}/ext-lib
-
-PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | grep -v grep | awk '{print $2}'`
-if [ -n "$PIDS" ]; then
-    echo "ERROR: The $SERVER_NAME already started!"
-    echo "PID: $PIDS"
+PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | grep -v grep |awk '{print $2}'`
+if [ -z "$PIDS" ]; then
+    echo "ERROR: The $SERVER_NAME does not started!"
     exit 1
 fi
 
-CLASS_PATH=.:${DEPLOY_DIR}/conf:${DEPLOY_DIR}/lib/*:${EXT_LIB}/*
-JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss256k -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:LargePageSizeInBytes=128m -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 "
+echo -e "Stopping the $SERVER_NAME ...\c"
+for PID in ${PIDS} ; do
+    kill ${PID} > /dev/null 2>&1
+done
 
-MAIN_CLASS=org.apache.shenyu.bootstrap.ShenyuBootstrapApplication
-echo "Starting the $SERVER_NAME ..."
+COUNT=0
+while [ ${COUNT} -lt 1 ]; do
+    echo -e ".\c"
+    sleep 1
+    COUNT=1
+    for PID in ${PIDS} ; do
+        PID_EXIST=`ps -f -p ${PID} | grep java`
+        if [ -n "$PID_EXIST" ]; then
+            COUNT=0
+            break
+        fi
+    done
+done
 
-nohup java ${JAVA_OPTS} -classpath ${CLASS_PATH} ${MAIN_CLASS} >/dev/null 2>&1 &
-sleep 1
-echo "Please check the log files: $LOG_FILES"
+echo "OK!"
+echo "PID: $PIDS"
