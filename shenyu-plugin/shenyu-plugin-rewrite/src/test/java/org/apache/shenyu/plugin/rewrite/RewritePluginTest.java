@@ -24,7 +24,7 @@ import org.apache.shenyu.common.dto.convert.RewriteHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.rewrite.cache.RewriteRuleHandleCache;
+import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +64,7 @@ public final class RewritePluginTest {
         RuleData data = new RuleData();
         data.setHandle("{\"rewriteURI\":\"/test\"}");
         RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
-        RewriteRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
@@ -76,7 +76,7 @@ public final class RewritePluginTest {
         RuleData data = new RuleData();
         data.setHandle("{\"rewriteURI\":\"/test\",\"regex\":\"\",\"replace\":\"\"}");
         RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
-        RewriteRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
@@ -88,7 +88,7 @@ public final class RewritePluginTest {
         RuleData data = new RuleData();
         data.setHandle("{\"rewriteURI\":\"/test1\",\"regex\":\"\\\\d\",\"replace\":\"\"}");
         RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
-        RewriteRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();

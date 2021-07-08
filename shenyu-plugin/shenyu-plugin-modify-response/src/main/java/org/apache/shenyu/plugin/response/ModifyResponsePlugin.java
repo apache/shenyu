@@ -32,7 +32,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
-import org.apache.shenyu.plugin.response.cache.ModifyResponseRuleHandleCache;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-
 /**
  * ModifyResponse plugin.
  */
@@ -75,8 +74,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         }
         final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
-
+        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.nonNull(modifyResponseRuleHandle)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders httpHeaders = response.getHeaders();

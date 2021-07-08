@@ -19,13 +19,13 @@ package org.apache.shenyu.plugin.springcloud.cache;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
-import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 
 /**
  * The rule handle cache.
  */
 @Slf4j
-public final class SpringCloudRuleHandleCache extends BaseHandleCache<String, SpringCloudRuleHandle> {
+public final class SpringCloudRuleHandleCache extends RuleHandleCache<String, SpringCloudRuleHandle> {
 
     private SpringCloudRuleHandleCache() {
     }

@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.param.mapping;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
@@ -25,13 +26,14 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.param.mapping.cache.ParamMappingRuleHandleCache;
-import org.apache.shenyu.plugin.param.mapping.strategy.OperatorFactory;
+import org.apache.shenyu.plugin.param.mapping.handler.ParamMappingPluginDataHandler;
+import org.apache.shenyu.plugin.param.mapping.strategy.Operator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -40,16 +42,22 @@ import java.util.Objects;
 @Slf4j
 public class ParamMappingPlugin extends AbstractShenyuPlugin {
 
+    private final Map<String, Operator> operatorMap;
+
+    public ParamMappingPlugin(final Map<String, Operator> operatorMap) {
+        this.operatorMap = operatorMap;
+    }
+
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        ParamMappingHandle paramMappingHandle = ParamMappingRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        ParamMappingHandle paramMappingHandle = ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(paramMappingHandle)) {
             log.error("param mapping rule configuration is null :{}", rule.getId());
             return chain.execute(exchange);
         }
         HttpHeaders headers = exchange.getRequest().getHeaders();
         MediaType contentType = headers.getContentType();
-        return OperatorFactory.match(contentType).apply(exchange, chain, paramMappingHandle);
+        return match(contentType).apply(exchange, chain, paramMappingHandle);
     }
 
     @Override
@@ -65,5 +73,21 @@ public class ParamMappingPlugin extends AbstractShenyuPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         return false;
+    }
+
+    /**
+     * OperatorFactory match.
+     *
+     * @param mediaType mediaType
+     * @return operator
+     */
+    private Operator match(final MediaType mediaType) {
+        if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
+            return operatorMap.get(MediaType.APPLICATION_JSON.toString());
+        } else if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
+            return operatorMap.get(MediaType.APPLICATION_FORM_URLENCODED.toString());
+        } else {
+            return operatorMap.get(Constants.DEFAULT);
+        }
     }
 }

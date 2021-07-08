@@ -24,7 +24,7 @@ INSERT INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabl
 
 INSERT INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1403701003857186816', '1403700859048841216', 0, 'http-ratelimit-slidingwindow', 1, 1, 1, '{"algorithmName":"slidingWindow","replenishRate":"1","burstCapacity":"1"}', '2021-06-12 13:09:33', '2021-06-12 13:09:33');
 INSERT INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1403701003865575424', '1403701003857186816', 'uri', '=', '/', '/http/test/path/123', '2021-06-12 13:09:33', '2021-06-12 13:09:33');
-INSERT INTO shenyu.selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1403700859057229824', '1403700859048841216', 'uri', '=', '/', '/http/test/path/123', '2021-06-12 13:08:59', '2021-06-12 13:08:59');
+INSERT INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1403700859057229824', '1403700859048841216', 'uri', '=', '/', '/http/test/path/123', '2021-06-12 13:08:59', '2021-06-12 13:08:59');
 
 /** prepare sign **/
 UPDATE plugin SET enabled = 1 WHERE id = '1';

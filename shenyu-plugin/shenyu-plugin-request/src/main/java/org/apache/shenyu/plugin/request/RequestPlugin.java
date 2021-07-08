@@ -29,7 +29,7 @@ import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.request.cache.RequestRuleHandleCache;
+import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -55,7 +55,7 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
             final RuleData rule) {
-        RequestHandle requestHandle = RequestRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        RequestHandle requestHandle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(requestHandle) || requestHandle.isEmptyConfig()) {
             log.error("request handler can not configuration：{}", requestHandle);
             return chain.execute(exchange);
