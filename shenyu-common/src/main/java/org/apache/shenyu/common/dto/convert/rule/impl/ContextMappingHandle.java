@@ -30,8 +30,6 @@ public class ContextMappingHandle implements RuleHandle {
 
     private static final long serialVersionUID = 4891655505357494670L;
 
-    private String realUrl;
-
     private String contextPath;
     
     private String addPrefix;

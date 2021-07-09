@@ -97,9 +97,5 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             }
         }
         context.setRealUrl(realURI);
-        if (StringUtils.isNoneBlank(handle.getRealUrl())) {
-            log.info("context path replaced old :{} , real:{}", context.getRealUrl(), handle.getRealUrl());
-            context.setRealUrl(handle.getRealUrl());
-        }
     }
 }
