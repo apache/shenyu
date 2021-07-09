@@ -21,7 +21,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.modify.response.cache.ModifyResponseRuleHandleCache;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public final class ModifyResponsePluginDataHandlerTest {
     @Test
     public void handlerSelectorTest() {
         modifyResponsePluginDataHandler.handlerRule(ruleData);
-        ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(ruleData));
+        ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         Assert.assertEquals(400, modifyResponseRuleHandle.getStatusCode());
     }
 
@@ -65,7 +65,7 @@ public final class ModifyResponsePluginDataHandlerTest {
     @Test
     public void removeSelectorTest() {
         modifyResponsePluginDataHandler.removeRule(ruleData);
-        ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(ruleData));
+        ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         Assert.assertNull(modifyResponseRuleHandle);
     }
 
