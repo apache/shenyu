@@ -27,11 +27,11 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.resilience4j.build.Resilience4JBuilder;
-import org.apache.shenyu.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.apache.shenyu.plugin.resilience4j.executor.Executor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
+import org.apache.shenyu.plugin.resilience4j.handler.Resilience4JHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
@@ -58,7 +58,7 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        Resilience4JHandle resilience4JHandle = Resilience4jRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        Resilience4JHandle resilience4JHandle = Resilience4JHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         resilience4JHandle.checkData(resilience4JHandle);
         if (resilience4JHandle.getCircuitEnable() == 1) {
             return combined(exchange, chain, rule);

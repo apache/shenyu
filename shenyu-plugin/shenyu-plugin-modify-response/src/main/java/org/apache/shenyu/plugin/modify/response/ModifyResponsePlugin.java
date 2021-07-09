@@ -32,8 +32,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
-import org.apache.shenyu.plugin.modify.response.cache.ModifyResponseRuleHandleCache;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-
 /**
  * ModifyResponse plugin.
  */
@@ -73,10 +72,9 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponseRuleHandleCache.getInstance().obtainHandle(ModifyResponsePluginDataHandler.getResourceName(rule));
-
+        final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
+        assert soulContext != null;
+        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.nonNull(modifyResponseRuleHandle)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders httpHeaders = response.getHeaders();

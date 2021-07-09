@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +39,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import static org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler.CACHED_HANDLE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -84,7 +84,7 @@ public final class ContextPathPluginTest {
         shenyuContext.setPath("/http/context/order/findById");
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
-        ContextPathRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
+        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
         contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
         Assert.assertEquals(shenyuContext.getRealUrl(), "/order/findById");
@@ -99,7 +99,7 @@ public final class ContextPathPluginTest {
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
         contextMappingHandle.setRealUrl("/findById");
-        ContextPathRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
+        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
         contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
         Assert.assertEquals(shenyuContext.getRealUrl(), "/findById");

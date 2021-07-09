@@ -18,9 +18,12 @@ package org.apache.shenyu.integratedtest.http.helper;
 
 import com.google.gson.Gson;
 import okhttp3.*;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Objects;
 
 public class HttpHelper {
     public static final HttpHelper INSTANCE = new HttpHelper();
@@ -43,13 +46,18 @@ public class HttpHelper {
     }
 
     public <RESP> RESP getFromGateway(String path, Type type) throws IOException {
-        Gson gson = new Gson();
-        Request request = new Request.Builder()
-                .url(GATEWAY_END_POINT + path)
-                .get()
-                .build();
+        return this.getFromGateway(path,null,type);
+    }
+
+    public <RESP> RESP getFromGateway(String path, Map<String, Object> headers, Type type) throws IOException {
+        Request.Builder requestBuilder = new Request.Builder().url(GATEWAY_END_POINT + path);
+        if (!CollectionUtils.isEmpty(headers)) {
+            headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
+        }
+        Request request = requestBuilder.build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
+        Gson gson = new Gson();
         return gson.fromJson(respBody, type);
     }
 }
