@@ -17,36 +17,32 @@
 
 package org.apache.shenyu.plugin.grpc.client;
 
-import java.io.Closeable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.proto.CompleteObserver;
-import org.apache.shenyu.plugin.grpc.proto.CompositeStreamObserver;
-import org.apache.shenyu.plugin.grpc.proto.DynamicMessageMarshaller;
 import org.apache.shenyu.plugin.grpc.proto.MessageWriter;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
-import org.apache.shenyu.plugin.grpc.reflection.ShenyuGrpcReflectionClient;
-import org.apache.shenyu.plugin.grpc.resolver.ServiceResolver;
-import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.plugin.grpc.proto.CompositeStreamObserver;
+import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 
-import static io.grpc.stub.ClientCalls.asyncUnaryCall;
+import java.io.Closeable;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
+import static io.grpc.stub.ClientCalls.asyncUnaryCall;
 import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-
 
 /**
  * The shenyu grpc client.
@@ -56,11 +52,8 @@ public class ShenyuGrpcClient implements Closeable {
 
     private final ManagedChannel channel;
 
-    private final ShenyuGrpcReflectionClient reflectionClient;
-
     public ShenyuGrpcClient(final ManagedChannel channel) {
         this.channel = channel;
-        this.reflectionClient = ShenyuGrpcReflectionClient.create(channel);
     }
 
     /**
@@ -69,24 +62,30 @@ public class ShenyuGrpcClient implements Closeable {
      * @param metaData     metadata
      * @param callOptions  callOptions
      * @param requestJsons requestJsons
+     * @param methodType methodType
      * @return CompletableFuture future
      */
-    public CompletableFuture<ShenyuGrpcResponse> call(final MetaData metaData, final CallOptions callOptions, final String requestJsons) {
-        DescriptorProtos.FileDescriptorSet fileDescriptorSet = reflectionClient.resolveService(metaData.getServiceName());
-        if (fileDescriptorSet == null) {
-            return null;
-        }
-        ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
-        Descriptors.MethodDescriptor methodDescriptor = serviceResolver.resolveServiceMethod(metaData);
-        JsonFormat.TypeRegistry registry = JsonFormat.TypeRegistry.newBuilder().add(serviceResolver.listMessageTypes()).build();
-        DynamicMessage requestMessages = reflectionClient.parseToMessages(registry, methodDescriptor.getInputType(), requestJsons);
+    public CompletableFuture<ShenyuGrpcResponse> call(final MetaData metaData,
+                                                      final CallOptions callOptions,
+                                                      final String requestJsons,
+                                                      final MethodDescriptor.MethodType methodType) {
+        List<DynamicMessage> jsonRequestList = JsonMessage.buildJsonMessageList(GsonUtils.getInstance().toObjectMap(requestJsons));
+        DynamicMessage jsonResponse = JsonMessage.buildJsonMessage();
+
+        MethodDescriptor<DynamicMessage, DynamicMessage> jsonMarshallerMethodDescriptor = JsonMessage.createJsonMarshallerMethodDescriptor(metaData.getServiceName(),
+                metaData.getMethodName(),
+                methodType,
+                jsonRequestList.get(0),
+                jsonResponse);
+
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(registry, shenyuGrpcResponse);
+        StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse);
+
         ShenyuGrpcCallRequest callParams = ShenyuGrpcCallRequest.builder()
-                .methodDescriptor(methodDescriptor)
+                .methodDescriptor(jsonMarshallerMethodDescriptor)
                 .channel(channel)
                 .callOptions(callOptions)
-                .requests(requestMessages)
+                .requests(jsonRequestList)
                 .responseObserver(streamObserver)
                 .build();
         try {
@@ -104,25 +103,29 @@ public class ShenyuGrpcClient implements Closeable {
      * @return ListenableFuture future
      */
     public ListenableFuture<Void> invoke(final ShenyuGrpcCallRequest callParams) {
-        MethodDescriptor.MethodType methodType = reflectionClient.fetchMethodType(callParams.getMethodDescriptor());
-        DynamicMessage request = callParams.getRequests();
+        MethodDescriptor.MethodType methodType = callParams.getMethodDescriptor().getType();
+        List<DynamicMessage> requestList = callParams.getRequests();
+
         StreamObserver<DynamicMessage> responseObserver = callParams.getResponseObserver();
         CompleteObserver<DynamicMessage> doneObserver = new CompleteObserver<>();
         StreamObserver<DynamicMessage> compositeObserver = CompositeStreamObserver.of(responseObserver, doneObserver);
+
         StreamObserver<DynamicMessage> requestObserver;
         switch (methodType) {
             case UNARY:
-                asyncUnaryCall(createCall(callParams), request, compositeObserver);
+                asyncUnaryCall(createCall(callParams), requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case SERVER_STREAMING:
-                asyncServerStreamingCall(createCall(callParams), request, compositeObserver);
+                asyncServerStreamingCall(createCall(callParams), requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case CLIENT_STREAMING:
                 requestObserver = asyncClientStreamingCall(createCall(callParams), compositeObserver);
+                requestList.forEach(requestObserver::onNext);
                 requestObserver.onCompleted();
                 return doneObserver.getCompletionFuture();
             case BIDI_STREAMING:
                 requestObserver = asyncBidiStreamingCall(createCall(callParams), compositeObserver);
+                requestList.forEach(requestObserver::onNext);
                 requestObserver.onCompleted();
                 return doneObserver.getCompletionFuture();
             default:
@@ -134,20 +137,10 @@ public class ShenyuGrpcClient implements Closeable {
     @Override
     public void close() {
         this.channel.shutdown();
-        this.reflectionClient.getFileDescriptorCache().clear();
     }
 
     private ClientCall<DynamicMessage, DynamicMessage> createCall(final ShenyuGrpcCallRequest callParams) {
-        return callParams.getChannel().newCall(createGrpcMethodDescriptor(callParams.getMethodDescriptor()),
+        return callParams.getChannel().newCall(callParams.getMethodDescriptor(),
                 callParams.getCallOptions());
-    }
-
-    private io.grpc.MethodDescriptor<DynamicMessage, DynamicMessage> createGrpcMethodDescriptor(final Descriptors.MethodDescriptor descriptor) {
-        return io.grpc.MethodDescriptor.<DynamicMessage, DynamicMessage>newBuilder()
-                .setType(reflectionClient.fetchMethodType(descriptor))
-                .setFullMethodName(reflectionClient.fetchFullMethodName(descriptor))
-                .setRequestMarshaller(new DynamicMessageMarshaller(descriptor.getInputType()))
-                .setResponseMarshaller(new DynamicMessageMarshaller(descriptor.getOutputType()))
-                .build();
     }
 }

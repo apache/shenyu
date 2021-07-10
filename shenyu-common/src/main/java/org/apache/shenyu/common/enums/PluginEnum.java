@@ -39,6 +39,16 @@ public enum PluginEnum {
      * Sign plugin enum.
      */
     SIGN(2, 0, "sign"),
+    
+    /**
+     * Jwt plugin enum.
+     */
+    JWT(9, 0, "jwt"),
+
+    /**
+     * OAuth2 plugin enum.
+     */
+    OAUTH2(3, 0, "oauth2"),
 
     /**
      * Waf plugin enum.
@@ -49,6 +59,11 @@ public enum PluginEnum {
      * Rate limiter plugin enum.
      */
     RATE_LIMITER(20, 0, "rate_limiter"),
+
+    /**
+     * Param mapping plugin enum.
+     */
+    PARAM_MAPPING(22, 0, "param_mapping"),
 
     /**
      * Context path plugin enum.
@@ -64,6 +79,16 @@ public enum PluginEnum {
      * Redirect plugin enum.
      */
     REDIRECT(40, 0, "redirect"),
+
+    /**
+     * Request plugin enum.
+     */
+    REQUEST(42, 0, "request"),
+
+    /**
+     * ModifyResponse plugin enum.
+     */
+    MODIFY_RESPONSE(44, 0, "modifyResponse"),
 
     /**
      * Hystrix plugin enum.
@@ -139,6 +164,7 @@ public enum PluginEnum {
      * Response plugin enum.
      */
     RESPONSE(100, 0, "response");
+
 
     private final int code;
 

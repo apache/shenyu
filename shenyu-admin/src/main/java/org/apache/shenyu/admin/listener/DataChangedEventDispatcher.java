@@ -38,7 +38,7 @@ import java.util.List;
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
 
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
     private List<DataChangedListener> listeners;
 

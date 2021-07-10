@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.bootstrap.configuration;
 
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.WriteBufferWaterMark;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -40,22 +40,43 @@ public class ShenyuNettyWebServerFactory {
     @Bean
     public NettyReactiveWebServerFactory nettyReactiveWebServerFactory() {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
-        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer());
+        NettyTcpConfig nettyTcpConfig = nettyTcpConfig();
+        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfig));
         return webServerFactory;
+    }
+    
+    /**
+     * Netty tcp config.
+     *
+     * @return the netty tcp config
+     */
+    @Bean
+    public NettyTcpConfig nettyTcpConfig() {
+        return new NettyTcpConfig();
     }
 
     private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
+
+        private final NettyTcpConfig nettyTcpConfig;
+
+        EventLoopNettyCustomizer(final NettyTcpConfig nettyTcpConfig) {
+            this.nettyTcpConfig = nettyTcpConfig;
+        }
 
         @Override
         public HttpServer apply(final HttpServer httpServer) {
             return httpServer
                     .tcpConfiguration(tcpServer -> tcpServer
-                            .runOn(LoopResources.create("shenyu-netty", 1, LoopResources.DEFAULT_IO_WORKER_COUNT, true), false)
-                            .selectorOption(ChannelOption.SO_REUSEADDR, true)
-                            .selectorOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                            // TODO this option will decrease throughout, maybe configured by spring boot is better.
-                            .option(ChannelOption.TCP_NODELAY, true)
-                            .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT));
-        }
+                            .runOn(LoopResources.create("shenyu-netty", nettyTcpConfig.getSelectCount(), nettyTcpConfig.getWorkerCount(), true))
+                            .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpConfig.getSoBacklog())
+                            .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
+                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis())
+                            .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
+                                    nettyTcpConfig.getWriteBufferHighWaterMark()))
+                            .option(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive())
+                            .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
+                            .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
+                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay()));
+        } 
     }
 }

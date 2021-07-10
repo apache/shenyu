@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.service.sync.SyncDataServiceImpl;
+import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -116,7 +116,7 @@ public final class SyncDataServiceTest {
         pluginData.setName("plugin_test");
         pluginData.setConfig("config_test");
         pluginData.setEnabled(true);
-        pluginData.setRole(1);
+        pluginData.setRole("1");
         return pluginData;
     }
 
@@ -181,9 +181,9 @@ public final class SyncDataServiceTest {
         String dateTime = DateUtils.localDateTimeToString(LocalDateTime.now());
         return new PluginVO(
                 ID,
-                5,
-                1,
+                "1",
                 "divide",
+                null,
                 null,
                 true,
                 dateTime,

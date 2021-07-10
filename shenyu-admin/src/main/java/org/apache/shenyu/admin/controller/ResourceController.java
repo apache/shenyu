@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -27,6 +28,7 @@ import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,22 +38,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
  * this is resource controller.
  */
+@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/resource")
 public class ResourceController {
 
     private final ResourceService resourceService;
-
-    public ResourceController(final ResourceService resourceService) {
-        this.resourceService = resourceService;
-    }
 
     /**
      * query resource.
@@ -108,7 +110,8 @@ public class ResourceController {
     @GetMapping("/{id}")
     public ShenyuAdminResult detailResource(@PathVariable("id") final String id) {
         return Optional.ofNullable(resourceService.findById(id))
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item)).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
     }
 
     /**
@@ -118,9 +121,8 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createResource(@RequestBody final ResourceDTO resourceDTO) {
-        return Optional.ofNullable(resourceDTO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(item))).orElse(ShenyuAdminResult.error(ShenyuResultMessage.CREATE_FAILED));
+    public ShenyuAdminResult createResource(@Valid @RequestBody final ResourceDTO resourceDTO) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
 
     /**
@@ -131,8 +133,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateResource(@PathVariable("id") final String id, @RequestBody final ResourceDTO resourceDTO) {
-        Objects.requireNonNull(resourceDTO);
+    public ShenyuAdminResult updateResource(@PathVariable("id") final String id, @Valid @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
@@ -144,7 +145,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteResource(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteResource(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, resourceService.delete(ids));
     }
 }

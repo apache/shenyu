@@ -43,7 +43,6 @@ public class PrxInfoUtilTest {
         assertEquals(Integer.class, PrxInfoUtil.getParamClass("java.lang.Integer"));
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test(expected = ClassNotFoundException.class)
     public void testGetParamClassThrowsClassNotFoundException() throws Exception {
         PrxInfoUtil.getParamClass("className");

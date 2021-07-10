@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.grpc.common.dto;
 
+import io.grpc.MethodDescriptor;
 import lombok.Builder;
 import lombok.Data;
 
@@ -34,4 +35,7 @@ public class GrpcExt implements Serializable {
     private String loadbalance;
 
     private Integer timeout;
+
+    private MethodDescriptor.MethodType methodType;
+
 }

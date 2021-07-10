@@ -18,12 +18,10 @@
 package org.apache.shenyu.plugin.grpc;
 
 import io.grpc.CallOptions;
+import io.grpc.MethodDescriptor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
-import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -31,14 +29,17 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
+import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
+import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -61,7 +62,7 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
             assert metaData != null;
-            log.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData.toString());
+            log.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
@@ -79,9 +80,9 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
         }
         GrpcExtInfo extInfo = GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);
-        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param);
+        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.methodType);
         return Mono.fromFuture(result.thenApply(ret -> {
-            exchange.getAttributes().put(Constants.GRPC_RPC_RESULT, ret.getResult());
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new).then(chain.execute(exchange));
@@ -126,5 +127,8 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
     static class GrpcExtInfo {
 
         private Integer timeout = 5000;
+
+        private MethodDescriptor.MethodType methodType;
+
     }
 }

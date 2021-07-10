@@ -29,7 +29,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
+import org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -45,8 +45,8 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
+        ContextMappingHandle contextMappingHandle = ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (Objects.isNull(contextMappingHandle)) {
             log.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
@@ -67,7 +67,13 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
+        assert body != null;
+        String rpcType = body.getRpcType();
+        return Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.GRPC.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.TARS.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.MOTAN.getName())
+                || Objects.equals(rpcType, RpcTypeEnum.SOFA.getName());
     }
 
     /**
@@ -82,15 +88,14 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             context.setContextPath(handle.getContextPath());
             context.setModule(handle.getContextPath());
             realURI = context.getPath().substring(handle.getContextPath().length());
-        } else {
-            if (StringUtils.isNoneBlank(handle.getAddPrefix())) {
+        }
+        if (StringUtils.isNoneBlank(handle.getAddPrefix())) {
+            if (StringUtils.isNotBlank(realURI)) {
+                realURI = handle.getAddPrefix() + realURI;
+            } else {
                 realURI = handle.getAddPrefix() + context.getPath();
             }
         }
         context.setRealUrl(realURI);
-        if (StringUtils.isNoneBlank(handle.getRealUrl())) {
-            log.info("context path replaced old :{} , real:{}", context.getRealUrl(), handle.getRealUrl());
-            context.setRealUrl(handle.getRealUrl());
-        }
     }
 }

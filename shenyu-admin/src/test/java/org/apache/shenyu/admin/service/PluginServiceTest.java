@@ -130,16 +130,6 @@ public final class PluginServiceTest {
     }
 
     @Test
-    public void testDeleteShouldSysPluginNotDelete() {
-        PluginDO pluginDO = buildPluginDO("123");
-        pluginDO.setRole(0);
-        when(pluginMapper.selectById(any())).thenReturn(pluginDO);
-
-        final List<String> ids = Collections.singletonList(pluginDO.getId());
-        assertEquals(pluginService.delete(ids), AdminConstants.SYS_PLUGIN_NOT_DELETE);
-    }
-
-    @Test
     public void testEnable() {
         publishEvent();
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
@@ -280,7 +270,7 @@ public final class PluginServiceTest {
         }
         pluginDTO.setName("test");
         pluginDTO.setConfig("{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}");
-        pluginDTO.setRole(0);
+        pluginDTO.setRole("0");
         pluginDTO.setEnabled(true);
         return pluginDTO;
     }
@@ -299,7 +289,7 @@ public final class PluginServiceTest {
             pluginDTO.setId(id);
         }
         pluginDTO.setName("test");
-        pluginDTO.setRole(1);
+        pluginDTO.setRole("1");
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         pluginDO.setDateCreated(now);

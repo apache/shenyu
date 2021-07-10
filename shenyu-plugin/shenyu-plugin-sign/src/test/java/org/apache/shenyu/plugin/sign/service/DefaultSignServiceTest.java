@@ -76,7 +76,7 @@ public final class DefaultSignServiceTest {
         signData.setId("1");
         signData.setName(PluginEnum.SIGN.getName());
         signData.setEnabled(true);
-        signData.setRole(1);
+        signData.setRole("1");
         BaseDataCache.getInstance().cachePluginData(signData);
 
         AppAuthData authData = new AppAuthData();
@@ -148,7 +148,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, String.format(ShenyuResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay)));
+        Assert.assertEquals(ret, Pair.of(false, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay)));
     }
 
     @Test

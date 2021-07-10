@@ -25,12 +25,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -45,7 +45,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +59,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * this is divide  http url upstream.
+ * This is the upstream check service.
  */
 @Slf4j
 @Component
@@ -89,13 +88,12 @@ public class UpstreamCheckService {
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorMapper           the selector mapper
-     * @param eventPublisher           the event publisher
-     * @param pluginMapper             the plugin mapper
-     * @param selectorConditionMapper  the selectorCondition mapper
+     * @param selectorMapper             the selector mapper
+     * @param eventPublisher             the event publisher
+     * @param pluginMapper               the plugin mapper
+     * @param selectorConditionMapper    the selectorCondition mapper
      * @param shenyuRegisterCenterConfig the shenyu register center config
      */
-    @Autowired(required = false)
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
                                 final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper,
                                 final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig) {
@@ -118,18 +116,7 @@ public class UpstreamCheckService {
      */
     public void setup() {
         if (checked) {
-            List<PluginDO> pluginDOS = pluginMapper.selectByNames(PluginEnum.getUpstreamNames());
-            if (null != pluginDOS && !pluginDOS.isEmpty()) {
-                pluginDOS.forEach(pluginDO -> {
-                    List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
-                    for (SelectorDO selectorDO : selectorDOList) {
-                        List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
-                        if (CollectionUtils.isNotEmpty(divideUpstreams)) {
-                            UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
-                        }
-                    }
-                });
-            }
+            this.fetchUpstreamData();
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), ShenyuThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
@@ -265,5 +252,27 @@ public class UpstreamCheckService {
                 eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
             }
         }
+    }
+
+    /**
+     * fetch upstream data from db.
+     */
+    public void fetchUpstreamData() {
+        final List<PluginDO> pluginDOList = pluginMapper.selectByNames(PluginEnum.getUpstreamNames());
+        if (CollectionUtils.isEmpty(pluginDOList)) {
+            return;
+        }
+        pluginDOList.stream().filter(Objects::nonNull).forEach(pluginDO -> {
+            final List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
+            for (SelectorDO selectorDO : selectorDOList) {
+                if (Objects.isNull(selectorDO)) {
+                    continue;
+                }
+                final List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+                if (CollectionUtils.isNotEmpty(divideUpstreams)) {
+                    UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+                }
+            }
+        });
     }
 }

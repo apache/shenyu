@@ -20,15 +20,18 @@ package org.apache.shenyu.metrics.prometheus.register;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.metrics.spi.MetricsRegister;
+import org.apache.shenyu.spi.Join;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.metrics.api.MetricsRegister;
 
 /**
  * Prometheus metrics register.
  */
 @Slf4j
+@Join
 public final class PrometheusMetricsRegister implements MetricsRegister {
     
     private static final Map<String, Counter> COUNTER_MAP = new ConcurrentHashMap<>();
@@ -36,15 +39,6 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     private static final Map<String, Gauge> GAUGE_MAP = new ConcurrentHashMap<>();
     
     private static final Map<String, Histogram> HISTOGRAM_MAP = new ConcurrentHashMap<>();
-    
-    /**
-     * Get instance prometheus metrics register.
-     *
-     * @return the prometheus metrics register
-     */
-    public static PrometheusMetricsRegister getInstance() {
-        return PrometheusMetricsRegisterHolder.INSTANCE;
-    }
     
     @Override
     public void registerCounter(final String name, final String[] labelNames, final String document) {
@@ -76,16 +70,6 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
                 builder.labelNames(labelNames);
             }
             HISTOGRAM_MAP.put(name, builder.register());
-        }
-    }
-    
-    @Override
-    public void counterIncrement(final String name, final String[] labelValues) {
-        Counter counter = COUNTER_MAP.get(name);
-        if (null != labelValues) {
-            counter.labels(labelValues).inc();
-        } else {
-            counter.inc();
         }
     }
     
@@ -127,10 +111,5 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
         } else {
             histogram.observe(duration);
         }
-    }
-    
-    private static class PrometheusMetricsRegisterHolder {
-        
-        private static final PrometheusMetricsRegister INSTANCE = new PrometheusMetricsRegister();
     }
 }

@@ -62,8 +62,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
             return false;
         }
 
-        StatelessToken token = new StatelessToken();
-        token.setToken(tokenValue);
+        StatelessToken token = new StatelessToken(tokenValue);
 
         Subject subject = getSubject(servletRequest, servletResponse);
 

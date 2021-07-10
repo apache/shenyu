@@ -1,50 +1,34 @@
-@REM
-@REM  Licensed to the Apache Software Foundation (ASF) under one or more
-@REM  contributor license agreements.  See the NOTICE file distributed with
-@REM  this work for additional information regarding copyright ownership.
-@REM  The ASF licenses this file to You under the Apache License, Version 2.0
-@REM  (the "License"); you may not use this file except in compliance with
-@REM  the License.  You may obtain a copy of the License at
-@REM
-@REM      http://www.apache.org/licenses/LICENSE-2.0
-@REM
-@REM  Unless required by applicable law or agreed to in writing, software
-@REM  distributed under the License is distributed on an "AS IS" BASIS,
-@REM  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-@REM  See the License for the specific language governing permissions and
-@REM  limitations under the License.
+@rem
+@rem Licensed to the Apache Software Foundation (ASF) under one or more
+@rem contributor license agreements.  See the NOTICE file distributed with
+@rem this work for additional information regarding copyright ownership.
+@rem The ASF licenses this file to You under the Apache License, Version 2.0
+@rem (the "License"); you may not use this file except in compliance with
+@rem the License.  You may obtain a copy of the License at
+@rem
+@rem     http://www.apache.org/licenses/LICENSE-2.0
+@rem
+@rem Unless required by applicable law or agreed to in writing, software
+@rem distributed under the License is distributed on an "AS IS" BASIS,
+@rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+@rem See the License for the specific language governing permissions and
+@rem limitations under the License.
+@rem
 
-@echo off
+@echo off & setlocal enabledelayedexpansion
 
-setlocal
-set PRGDIR=%~dp0%
-set BASE_DIR=%PRGDIR%..
-set APP=%BASE_DIR%\lib\shenyu-admin.jar
-set LOG_DIR=%BASE_DIR%\logs
+cd %~dp0
 
-if not defined JAVA_HOME (
- echo "Error: JAVA_HOME environment variable is not set."
- exit
-)
+set SERVER_NAME=ShenYu-Admin
 
-set JAVA_OPTS=-server -Xmx2048m  -Xms2048m -Xmn1024m  -Xss512k
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+AggressiveOpts
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+UseBiasedLocking
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+UseFastAccessorMethods
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+DisableExplicitGC
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+UseParNewGC
-::set JAVA_OPTS=%JAVA_OPTS% -XX:ParallelGCThreads=20
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+UseConcMarkSweepGC
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+HeapDumpOnOutOfMemoryError
-::set JAVA_OPTS=%JAVA_OPTS% -XX:MaxGCPauseMillis=850
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+PrintGCDetail
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+CMSParallelRemarkEnabled
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+UseCMSCompactAtFullCollection
-::set JAVA_OPTS=%JAVA_OPTS% -XX:+UseCMSInitiatingOccupancyOnly
-::set JAVA_OPTS=%JAVA_OPTS% -XX:CMSInitiatingOccupancyFraction=75
-set JAVA_OPTS=%JAVA_OPTS% -Xloggc:%LOG_DIR%\gc.log
+set CLASS_PATH=".;..\conf;..\lib\*;..\ext-lib\*"
 
-if not exist %LOG_DIR% ( mkdir %LOG_DIR% )
-java %JAVA_OPTS% -jar %APP% --spring.config.location=file:%BASE_DIR%\conf\ >> "%LOG_DIR%\stdout.log"
+set JAVA_OPTS=-server -Xmx2g -Xms2g -Xmn1g -Xss256k -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:LargePageSizeInBytes=128m -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70
 
-endlocal
+set MAIN_CLASS=org.apache.shenyu.admin.ShenyuAdminBootstrap
+
+echo Starting the %SERVER_NAME% ...
+
+java %JAVA_OPTS% -Dfile.encoding=UTF-8 -classpath %CLASS_PATH% %MAIN_CLASS%
+
+pause

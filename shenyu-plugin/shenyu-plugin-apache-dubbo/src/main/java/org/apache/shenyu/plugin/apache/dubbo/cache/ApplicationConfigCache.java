@@ -173,9 +173,8 @@ public final class ApplicationConfigCache {
         try {
             Object obj = reference.get();
             if (obj != null) {
-                log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
+                log.info("init apache dubbo reference success there meteData is :{}", metaData);
                 cache.put(metaData.getPath(), reference);
-                DubboProviderVersionCache.getInstance().cacheProviderVersion(metaData.getPath(), reference);
             }
         } catch (Exception e) {
             log.error("init apache dubbo reference ex:{}", e.getMessage());

@@ -37,19 +37,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private String contextPath;
-    
+
     private String appName;
-    
+
     private String host;
-    
+
     private Integer port;
-    
+
     private final Boolean isFull;
 
     /**
@@ -78,7 +78,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             this.contextPath = contextPath;
             publisher.start(shenyuClientRegisterRepository);
         }
-       
+
     }
 
     @Override
@@ -96,8 +96,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         String appName = this.appName;
         Integer port = this.port;
         String path = contextPath + "/**";
-        String configHost = this.host;
-        String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .host(host)

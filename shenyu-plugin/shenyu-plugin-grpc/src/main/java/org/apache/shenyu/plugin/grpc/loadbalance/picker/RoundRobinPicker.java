@@ -35,7 +35,7 @@ public class RoundRobinPicker extends AbstractReadyPicker {
      * AtomicIntegerFieldUpdater index.
      */
     @SuppressWarnings("unused")
-    private volatile Integer index = 0;
+    private volatile int index;
 
     public RoundRobinPicker(final List<LoadBalancer.Subchannel> list) {
         super(list);

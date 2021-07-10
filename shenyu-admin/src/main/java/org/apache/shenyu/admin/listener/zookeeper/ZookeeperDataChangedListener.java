@@ -20,13 +20,14 @@ package org.apache.shenyu.admin.listener.zookeeper;
 import lombok.SneakyThrows;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.listener.DataChangedListener;
-import org.apache.shenyu.common.constant.ZkPathConstants;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.net.URLEncoder;
 import java.util.List;
@@ -45,7 +46,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         for (AppAuthData data : changed) {
-            String appAuthPath = ZkPathConstants.buildAppAuthPath(data.getAppKey());
+            String appAuthPath = DefaultPathConstants.buildAppAuthPath(data.getAppKey());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(appAuthPath);
@@ -60,7 +61,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         for (MetaData data : changed) {
-            String metaDataPath = ZkPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
+            String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(metaDataPath);
@@ -74,13 +75,13 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         for (PluginData data : changed) {
-            String pluginPath = ZkPathConstants.buildPluginPath(data.getName());
+            String pluginPath = DefaultPathConstants.buildPluginPath(data.getName());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPathRecursive(pluginPath);
-                String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getName());
+                String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(data.getName());
                 deleteZkPathRecursive(selectorParentPath);
-                String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getName());
+                String ruleParentPath = DefaultPathConstants.buildRuleParentPath(data.getName());
                 deleteZkPathRecursive(ruleParentPath);
                 continue;
             }
@@ -92,16 +93,16 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
-            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
+            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
         for (SelectorData data : changed) {
-            String selectorRealPath = ZkPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
+            String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(selectorRealPath);
                 continue;
             }
-            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getPluginName());
+            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(data.getPluginName());
             createZkNode(selectorParentPath);
             //create or update
             insertZkNode(selectorRealPath, data);
@@ -111,16 +112,16 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
-            String selectorParentPath = ZkPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
+            String selectorParentPath = DefaultPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
         for (RuleData data : changed) {
-            String ruleRealPath = ZkPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
+            String ruleRealPath = DefaultPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(ruleRealPath);
                 continue;
             }
-            String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getPluginName());
+            String ruleParentPath = DefaultPathConstants.buildRuleParentPath(data.getPluginName());
             createZkNode(ruleParentPath);
             //create or update
             insertZkNode(ruleRealPath, data);
@@ -129,7 +130,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     
     private void insertZkNode(final String path, final Object data) {
         createZkNode(path);
-        zkClient.writeData(path, data);
+        zkClient.writeData(path, null == data ? "" : GsonUtils.getInstance().toJson(data));
     }
     
     private void createZkNode(final String path) {

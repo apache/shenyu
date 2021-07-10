@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.global;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -53,15 +54,18 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
         MetaData metaData = MetaDataCache.getInstance().obtain(path);
+        String rpcType;
         if (Objects.nonNull(metaData) && metaData.getEnabled()) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
+            rpcType = metaData.getRpcType();
+        } else {
+            String rpcTypeParam = request.getHeaders().getFirst("rpc_type");
+            rpcType = StringUtils.isEmpty(rpcTypeParam) ? RpcTypeEnum.HTTP.getName() : rpcTypeParam;
         }
-        return Optional.ofNullable(metaData).map(e -> decoratorMap.get(e.getRpcType()))
-                .orElse(decoratorMap.get(RpcTypeEnum.HTTP.getName()))
-                .decorator(buildDefault(request), metaData);
+        return decoratorMap.get(rpcType).decorator(buildDefaultContext(request), metaData);
     }
     
-    private ShenyuContext buildDefault(final ServerHttpRequest request) {
+    private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
         String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
         String sign = request.getHeaders().getFirst(Constants.SIGN);
         String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);

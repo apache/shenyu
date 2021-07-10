@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -37,6 +38,7 @@ public class PluginDTO implements Serializable {
     /**
      * plugin name.
      */
+    @NotNull
     private String name;
 
     /**
@@ -47,10 +49,17 @@ public class PluginDTO implements Serializable {
     /**
      * plugin role.
      */
-    private Integer role;
+    @NotNull
+    private String role;
+
+    /**
+     * plugin sort.
+     */
+    private Integer sort;
 
     /**
      * whether enabled.
      */
+    @NotNull
     private Boolean enabled;
 }

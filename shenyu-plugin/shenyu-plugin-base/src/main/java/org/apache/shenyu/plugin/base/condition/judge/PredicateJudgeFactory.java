@@ -17,42 +17,49 @@
 
 package org.apache.shenyu.plugin.base.condition.judge;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
+import org.apache.shenyu.spi.ExtensionLoader;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
  * Predicate judge factory.
  */
 public class PredicateJudgeFactory {
-
-    private static final Map<String, PredicateJudge> PREDICATE_JUDGE_MAP = Maps.newHashMapWithExpectedSize(16);
-
-    static {
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.EQ.getAlias(), new EqualsPredicateJudge());
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.MATCH.getAlias(), new MatchPredicateJudge());
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.CONTAINS.getAlias(), new ContainsPredicateJudge());
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegexPredicateJudge());
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.SPEL.getAlias(), new SpELPredicateJudge());
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.GROOVY.getAlias(), new GroovyPredicateJudge());
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.TIME_BEFORE.getAlias(), new TimerBeforePredicateJudge());
-        PREDICATE_JUDGE_MAP.put(OperatorEnum.TIME_AFTER.getAlias(), new TimerAfterPredicateJudge());
+    
+    /**
+     * New instance predicate judge.
+     *
+     * @param operator the operator
+     * @return the predicate judge
+     */
+    public static PredicateJudge newInstance(final String operator) {
+        return ExtensionLoader.getExtensionLoader(PredicateJudge.class).getJoin(processSpecialOperator(operator));
     }
-
+    
     /**
      * judge request realData has by pass.
+     *
      * @param conditionData condition data
-     * @param realData       realData
+     * @param realData realData
      * @return is true pass   is false not pass
      */
     public static Boolean judge(final ConditionData conditionData, final String realData) {
         if (Objects.isNull(conditionData) || StringUtils.isBlank(realData)) {
             return false;
         }
-        return PREDICATE_JUDGE_MAP.get(conditionData.getOperator()).judge(conditionData, realData);
+        return newInstance(conditionData.getOperator()).judge(conditionData, realData);
+    }
+
+    /**
+     * process special operator, like = need to change to equals.
+     *
+     * @param operator {@linkplain OperatorEnum} alias
+     * @return alias
+     */
+    private static String processSpecialOperator(final String operator) {
+        return "=".equals(operator) ? "equals" : operator;
     }
 }

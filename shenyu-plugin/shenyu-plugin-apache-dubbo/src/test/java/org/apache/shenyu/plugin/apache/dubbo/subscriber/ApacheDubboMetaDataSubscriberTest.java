@@ -22,17 +22,14 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.apache.dubbo.cache.DubboProviderVersionCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.lang.reflect.Field;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -82,11 +79,6 @@ public final class ApacheDubboMetaDataSubscriberTest {
         } catch (IllegalStateException ex) {
             System.err.println("onSubscribe Error");
         }
-        try (MockedStatic<DubboProviderVersionCache> dubboProviderVersionCacheMockedStatic = mockStatic(DubboProviderVersionCache.class)) {
-            DubboProviderVersionCache dubboProviderVersionCache = mock(DubboProviderVersionCache.class);
-            dubboProviderVersionCacheMockedStatic.when(() -> DubboProviderVersionCache.getInstance()).thenReturn(dubboProviderVersionCache);
-
-            apacheDubboMetaDataSubscriber.unSubscribe(metaData);
-        }
+        apacheDubboMetaDataSubscriber.unSubscribe(metaData);
     }
 }

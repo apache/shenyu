@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shenyu.metrics.prometheus.register.PrometheusMetricsRegister;
+import org.apache.shenyu.metrics.constant.LabelNames;
 import org.apache.shenyu.metrics.reporter.MetricsReporter;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -39,23 +39,16 @@ import java.util.Optional;
  */
 public class MonitorPlugin extends AbstractShenyuPlugin {
     
-    private static final String REQUEST_TOTAL = "shenyu_request_total";
-    
-    private static final String HTTP_REQUEST_TOTAL = "shenyu_http_request_total";
-    
-    private static final String EXECUTE_LATENCY_NAME = "shenyu_execute_latency_millis";
-    
     static {
-        MetricsReporter.register(new PrometheusMetricsRegister());
-        MetricsReporter.registerCounter(REQUEST_TOTAL, "shenyu request total count");
-        MetricsReporter.registerCounter(HTTP_REQUEST_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
-        MetricsReporter.registerHistogram(EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
+        MetricsReporter.registerCounter(LabelNames.REQUEST_TOTAL, "shenyu request total count");
+        MetricsReporter.registerCounter(LabelNames.HTTP_REQUEST_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
+        MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
     }
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        MetricsReporter.counterIncrement(REQUEST_TOTAL);
-        MetricsReporter.counterIncrement(HTTP_REQUEST_TOTAL, new String[]{exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue()});
+        MetricsReporter.counterIncrement(LabelNames.REQUEST_TOTAL);
+        MetricsReporter.counterIncrement(LabelNames.HTTP_REQUEST_TOTAL, new String[]{exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue()});
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         LocalDateTime startDateTime = Optional.ofNullable(shenyuContext).map(ShenyuContext::getStartDateTime).orElse(LocalDateTime.now());
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
@@ -86,6 +79,6 @@ public class MonitorPlugin extends AbstractShenyuPlugin {
     
     private void recordTime(final LocalDateTime startDateTime) {
         long millisBetween = DateUtils.acquireMillisBetween(startDateTime, LocalDateTime.now());
-        MetricsReporter.recordTime(EXECUTE_LATENCY_NAME, millisBetween);
+        MetricsReporter.recordTime(LabelNames.EXECUTE_LATENCY_NAME, millisBetween);
     }
 }

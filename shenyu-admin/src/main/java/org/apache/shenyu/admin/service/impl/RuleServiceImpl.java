@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.interceptor.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -26,11 +27,9 @@ import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
-import org.apache.shenyu.admin.model.entity.DataPermissionDO;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
+import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
@@ -39,15 +38,16 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
-import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,9 +58,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * RuleServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.RuleService}.
  */
-@Service("ruleService")
+@RequiredArgsConstructor
+@Service
 public class RuleServiceImpl implements RuleService {
 
     private final RuleMapper ruleMapper;
@@ -75,23 +76,11 @@ public class RuleServiceImpl implements RuleService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired(required = false)
-    public RuleServiceImpl(final RuleMapper ruleMapper,
-                           final RuleConditionMapper ruleConditionMapper,
-                           final SelectorMapper selectorMapper,
-                           final PluginMapper pluginMapper,
-                           final DataPermissionMapper dataPermissionMapper,
-                           final ApplicationEventPublisher eventPublisher) {
-        this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
-        this.selectorMapper = selectorMapper;
-        this.pluginMapper = pluginMapper;
-        this.dataPermissionMapper = dataPermissionMapper;
-        this.eventPublisher = eventPublisher;
-    }
-
     @Override
-    public String register(final RuleDTO ruleDTO) {
+    public String register(final RuleDTO ruleDTO, final String name, final boolean metaDataIsNull) {
+        if (Objects.nonNull(ruleMapper.findByName(name)) || metaDataIsNull) {
+            return "";
+        }
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
@@ -119,9 +108,9 @@ public class RuleServiceImpl implements RuleService {
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleCount = ruleMapper.insertSelective(ruleDO);
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserId()).size() > 0) {
+            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
-                dataPermissionDTO.setUserId(JwtUtils.getUserId());
+                dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(ruleDO.getId());
                 dataPermissionDTO.setDataType(AdminConstants.RULE_DATA_TYPE);
                 dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
@@ -214,6 +203,11 @@ public class RuleServiceImpl implements RuleService {
                 .filter(Objects::nonNull)
                 .map(this::buildRuleData)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public RuleDO findByName(final String name) {
+        return ruleMapper.findByName(name);
     }
 
     private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> ruleConditions) {

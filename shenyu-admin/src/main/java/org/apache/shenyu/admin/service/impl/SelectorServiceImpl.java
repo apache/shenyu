@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.interceptor.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.DataPermission;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -27,34 +29,37 @@ import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
-import org.apache.shenyu.admin.model.entity.DataPermissionDO;
-import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.enums.OperatorEnum;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,45 +70,27 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * SelectorServiceImpl.
+ * Implementation of the {@link org.apache.shenyu.admin.service.SelectorService}.
  */
-@Service("selectorService")
+@RequiredArgsConstructor
+@Service
 public class SelectorServiceImpl implements SelectorService {
 
     private final SelectorMapper selectorMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
 
+    private final PluginMapper pluginMapper;
+
     private final RuleMapper ruleMapper;
 
     private final RuleConditionMapper ruleConditionMapper;
 
-    private final PluginMapper pluginMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final DataPermissionMapper dataPermissionMapper;
 
-    private final ApplicationEventPublisher eventPublisher;
-
     private final UpstreamCheckService upstreamCheckService;
-
-    @Autowired(required = false)
-    public SelectorServiceImpl(final SelectorMapper selectorMapper,
-                               final SelectorConditionMapper selectorConditionMapper,
-                               final PluginMapper pluginMapper,
-                               final RuleMapper ruleMapper,
-                               final RuleConditionMapper ruleConditionMapper,
-                               final ApplicationEventPublisher eventPublisher,
-                               final DataPermissionMapper dataPermissionMapper,
-                               final UpstreamCheckService upstreamCheckService) {
-        this.selectorMapper = selectorMapper;
-        this.selectorConditionMapper = selectorConditionMapper;
-        this.pluginMapper = pluginMapper;
-        this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
-        this.eventPublisher = eventPublisher;
-        this.dataPermissionMapper = dataPermissionMapper;
-        this.upstreamCheckService = upstreamCheckService;
-    }
 
     @Override
     public String register(final SelectorDTO selectorDTO) {
@@ -127,7 +114,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final SelectorDTO selectorDTO) {
         int selectorCount;
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
@@ -139,9 +126,9 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorConditionMapper.insertSelective(SelectorConditionDO.buildSelectorConditionDO(selectorConditionDTO));
             });
             // check selector add
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserId()).size() > 0) {
+            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
-                dataPermissionDTO.setUserId(JwtUtils.getUserId());
+                dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(selectorDO.getId());
                 dataPermissionDTO.setDataType(AdminConstants.SELECTOR_DATA_TYPE);
                 dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
@@ -271,6 +258,51 @@ public class SelectorServiceImpl implements SelectorService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public String handlerSelectorNeedUpstreamCheck(final MetaDataRegisterDTO dto, final String rpcType) {
+        String contextPath = dto.getContextPath();
+        if (StringUtils.isEmpty(contextPath)) {
+            contextPath = buildContextPath(dto.getPath());
+        }
+        SelectorDO selectorDO = selectorMapper.selectByName(contextPath);
+        String selectorId;
+        String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
+        if (Objects.isNull(selectorDO)) {
+            selectorId = registerPluginSelector(contextPath, uri, rpcType);
+        } else {
+            selectorId = selectorDO.getId();
+            //update upstream
+            String handle = selectorDO.getHandle();
+            String handleAdd;
+            DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
+            final SelectorData selectorData = buildByName(contextPath);
+            // fetch UPSTREAM_MAP data from db
+            upstreamCheckService.fetchUpstreamData();
+            if (StringUtils.isBlank(handle)) {
+                handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
+            } else {
+                List<DivideUpstream> exist = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+                for (DivideUpstream upstream : exist) {
+                    if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
+                        return selectorId;
+                    }
+                }
+                exist.add(addDivideUpstream);
+                handleAdd = GsonUtils.getInstance().toJson(exist);
+            }
+            selectorDO.setHandle(handleAdd);
+            selectorData.setHandle(handleAdd);
+            // update db
+            selectorMapper.updateSelective(selectorDO);
+            // submit upstreamCheck
+            upstreamCheckService.submit(contextPath, addDivideUpstream);
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                    Collections.singletonList(selectorData)));
+        }
+        return selectorId;
+    }
+
     private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditionDTOs) {
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<ConditionData> conditionDataList =
@@ -301,5 +333,56 @@ public class SelectorServiceImpl implements SelectorService {
                 upstreamCheckService.replace(selectorName, existDivideUpstreams);
             }
         }
+    }
+
+    private String registerPluginSelector(final String contextPath, final String uri, final String rpcType) {
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
+        //is divide
+        DivideUpstream divideUpstream = buildDivideUpstream(uri);
+        String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
+        selectorDTO.setHandle(handler);
+        upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
+        return register(selectorDTO);
+    }
+
+    private SelectorDTO registerSelector(final String contextPath, final String pluginId) {
+        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
+        selectorDTO.setPluginId(pluginId);
+        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
+        return selectorDTO;
+    }
+
+    private SelectorDTO buildDefaultSelectorDTO(final String name) {
+        return SelectorDTO.builder()
+                .name(name)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .matchMode(MatchModeEnum.AND.getCode())
+                .enabled(Boolean.TRUE)
+                .loged(Boolean.TRUE)
+                .continued(Boolean.TRUE)
+                .sort(1)
+                .build();
+    }
+
+    private List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
+        SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
+        selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
+        selectorConditionDTO.setParamName("/");
+        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
+        selectorConditionDTO.setParamValue(contextPath + "/**");
+        return Collections.singletonList(selectorConditionDTO);
+    }
+
+    private String buildContextPath(final String path) {
+        String split = "/";
+        String[] splitList = StringUtils.split(path, split);
+        if (splitList.length != 0) {
+            return split.concat(splitList[0]);
+        }
+        return split;
+    }
+
+    private DivideUpstream buildDivideUpstream(final String uri) {
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }
 }

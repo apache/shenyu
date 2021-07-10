@@ -20,6 +20,7 @@ package org.apache.shenyu.client.sofa;
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -41,9 +42,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -51,19 +50,19 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final ExecutorService executorService;
-    
+
     private final String contextPath;
-    
+
     private final String appName;
 
     private final String host;
 
     private final String port;
-    
+
     public SofaServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
@@ -75,7 +74,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-sofa-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -95,20 +94,11 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
             targetProxy = ((Service) Objects.requireNonNull(serviceBean.getObject())).getTarget();
             clazz = targetProxy.getClass();
         } catch (Exception e) {
-            log.error("failed to get sofa target class");
+            log.error("failed to get sofa target class", e);
             return;
         }
-        if (AopUtils.isCglibProxy(targetProxy)) {
-            String superClassName = clazz.getGenericSuperclass().getTypeName();
-            try {
-                clazz = Class.forName(superClassName);
-            } catch (ClassNotFoundException e) {
-                log.error(String.format("class not found: %s", superClassName));
-                return;
-            }
-        }
-        if (AopUtils.isJdkDynamicProxy(targetProxy)) {
-            clazz = AopUtils.getTargetClass(serviceBean.getObject());
+        if (AopUtils.isAopProxy(targetProxy)) {
+            clazz = AopUtils.getTargetClass(targetProxy);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
@@ -124,7 +114,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String path = contextPath + shenyuSofaClient.path();
         String desc = shenyuSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
-        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = shenyuSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;

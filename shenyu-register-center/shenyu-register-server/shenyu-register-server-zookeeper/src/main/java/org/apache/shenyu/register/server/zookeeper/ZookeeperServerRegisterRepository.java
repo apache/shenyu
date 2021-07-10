@@ -55,7 +55,7 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
         this.init(config);
         this.publisher = publisher;
         Properties props = config.getProps();
-        int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
+        int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "30000"));
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
         this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
         initSubscribe();

@@ -11,7 +11,7 @@ A clear and concise description of what the bug is.
 
 ## Environment
 
-- Soul version(s): [e.g. 2.2.1]
+- ShenYu version(s): [e.g. 2.2.1]
 
 ## Steps to reproduce
 

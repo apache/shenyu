@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -38,24 +39,23 @@ import org.springframework.web.bind.annotation.RestController;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The type Shenyu client bean post processor.
  */
 @Slf4j
 public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
-    private final ThreadPoolExecutor executorService;
-    
+
+    private final ExecutorService executorService;
+
     private final String contextPath;
-    
+
     private final Boolean isFull;
-    
+
     private final Environment env;
 
     private final String host;
@@ -63,7 +63,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final String port;
 
     private final String servletContextPath;
-    
+
     /**
      * Instantiates a new Shenyu client bean post processor.
      *
@@ -80,7 +80,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-spring-cloud-client-thread-pool-%d").build());
         this.env = env;
         Properties props = config.getProps();
         this.contextPath = props.getProperty("contextPath");
@@ -122,12 +122,12 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         }
         return bean;
     }
-    
+
     private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient, final String prePath) {
         String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + prePath + shenyuSpringCloudClient.path();
-        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = shenyuSpringCloudClient.desc();
         String configRuleName = shenyuSpringCloudClient.ruleName();

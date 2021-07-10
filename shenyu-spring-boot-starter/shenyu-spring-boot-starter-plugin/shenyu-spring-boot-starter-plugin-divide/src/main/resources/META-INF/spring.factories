@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.spring.boot.plugin.divide.DividePluginConfiguration
+org.apache.shenyu.springboot.plugin.divide.DividePluginConfiguration

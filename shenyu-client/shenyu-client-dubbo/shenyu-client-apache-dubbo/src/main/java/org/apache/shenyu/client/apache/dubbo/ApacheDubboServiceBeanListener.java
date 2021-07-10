@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.apache.dubbo;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.Constants;
@@ -40,9 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -52,21 +51,21 @@ import java.util.stream.Collectors;
 @Slf4j
 @SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
-    
+
     private ShenyuClientRegisterEventPublisher shenyuClientRegisterEventPublisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private ExecutorService executorService;
-    
+
     private String contextPath;
-    
+
     private String appName;
 
     private final String host;
 
     private final String port;
-    
+
     public ApacheDubboServiceBeanListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
@@ -78,24 +77,15 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-apache-dubbo-client-thread-pool-%d").build());
         shenyuClientRegisterEventPublisher.start(shenyuClientRegisterRepository);
     }
 
     private void handler(final ServiceBean serviceBean) {
-        Class<?> clazz = serviceBean.getRef().getClass();
         Object refProxy = serviceBean.getRef();
-        if (AopUtils.isCglibProxy(refProxy)) {
-            String superClassName = clazz.getGenericSuperclass().getTypeName();
-            try {
-                clazz = Class.forName(superClassName);
-            } catch (ClassNotFoundException e) {
-                log.error(String.format("class not found: %s", superClassName));
-                return;
-            }
-        }
-        if (AopUtils.isJdkDynamicProxy(refProxy)) {
-            clazz = AopUtils.getTargetClass(serviceBean.getRef());
+        Class<?> clazz = refProxy.getClass();
+        if (AopUtils.isAopProxy(refProxy)) {
+            clazz = AopUtils.getTargetClass(refProxy);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
@@ -114,7 +104,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         String path = contextPath + shenyuDubboClient.path();
         String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
-        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = shenyuDubboClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;

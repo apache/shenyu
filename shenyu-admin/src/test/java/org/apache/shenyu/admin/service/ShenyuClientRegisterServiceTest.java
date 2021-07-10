@@ -17,40 +17,59 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.listener.DataChangedEventDispatcher;
+import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.service.impl.ShenyuClientRegisterServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.h2.engine.Role;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for ShenyuClientRegisterService.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class ShenyuClientRegisterServiceTest {
+
+    @InjectMocks
+    private DataChangedEventDispatcher dataChangedEventDispatcher;
+
+    @Mock
+    private ZookeeperDataChangedListener zookeeperDataChangedListener;
+
+    @Mock
+    private ApplicationContext applicationContext;
 
     @Mock
     private ShenyuClientRegisterServiceImpl shenyuClientRegisterService;
@@ -83,6 +102,11 @@ public final class ShenyuClientRegisterServiceTest {
     public void setUp() {
         shenyuClientRegisterService = new ShenyuClientRegisterServiceImpl(metaDataMapper, eventPublisher, selectorService,
                 ruleService, ruleMapper, upstreamCheckService, selectorMapper, pluginMapper);
+
+        Map<String, DataChangedListener> listenerMap = new HashMap<>();
+        listenerMap.put("zookeeperDataChangedListener", zookeeperDataChangedListener);
+        when(applicationContext.getBeansOfType(DataChangedListener.class)).thenReturn(listenerMap);
+        dataChangedEventDispatcher.afterPropertiesSet();
     }
 
     @Test
@@ -195,7 +219,7 @@ public final class ShenyuClientRegisterServiceTest {
         final PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setEnabled(true);
         pluginDTO.setConfig("test-config");
-        pluginDTO.setRole(Role.USER);
+        pluginDTO.setRole("1");
         pluginDTO.setName("test-name");
         return pluginDTO;
     }
@@ -272,6 +296,17 @@ public final class ShenyuClientRegisterServiceTest {
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
         MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals(ShenyuResultMessage.SUCCESS, shenyuClientRegisterService.registerDubbo(dto));
+    }
+
+    /**
+     * The above testRegisterDubbo only test the main logic about registration of dubbo, but the event not covered.
+     * */
+    @Test
+    public void testRegisterDubboAndEvenhandle() {
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.META_DATA,
+                null, Collections.singletonList(dto));
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
     }
 
     @Test

@@ -18,7 +18,8 @@
 package org.apache.shenyu.web.configuration;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.web.config.ShenyuConfig;
+import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
+import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
@@ -57,7 +58,7 @@ import java.util.stream.Collectors;
 @Import(value = {ErrorHandlerConfiguration.class, ShenyuExtConfiguration.class, SpringExtConfiguration.class})
 @Slf4j
 public class ShenyuConfiguration {
-    
+
     /**
      * Init ShenyuWebHandler.
      *
@@ -72,7 +73,7 @@ public class ShenyuConfiguration {
         shenyuPlugins.forEach(shenyuPlugin -> log.info("load plugin:[{}] [{}]", shenyuPlugin.named(), shenyuPlugin.getClass().getName()));
         return new ShenyuWebHandler(shenyuPlugins);
     }
-    
+
     /**
      * init dispatch handler.
      *
@@ -82,7 +83,7 @@ public class ShenyuConfiguration {
     public DispatcherHandler dispatcherHandler() {
         return new DispatcherHandler();
     }
-    
+
     /**
      * Param transform plugin shenyu plugin.
      *
@@ -92,7 +93,7 @@ public class ShenyuConfiguration {
     public ShenyuPlugin paramTransformPlugin() {
         return new ParamTransformPlugin();
     }
-    
+
     /**
      * Plugin data subscriber plugin data subscriber.
      *
@@ -103,7 +104,7 @@ public class ShenyuConfiguration {
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
     }
-    
+
     /**
      * Remote address resolver remote address resolver.
      *
@@ -114,7 +115,7 @@ public class ShenyuConfiguration {
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
     }
-    
+
     /**
      * Cross filter web filter.
      * if you application has cross-domain.
@@ -130,7 +131,7 @@ public class ShenyuConfiguration {
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
-    
+
     /**
      * Body web filter web filter.
      *
@@ -143,7 +144,7 @@ public class ShenyuConfiguration {
     public WebFilter fileSizeFilter(final ShenyuConfig shenyuConfig) {
         return new FileSizeFilter(shenyuConfig.getFileMaxSize());
     }
-    
+
     /**
      * Rule out the url Filter.
      *
@@ -156,7 +157,7 @@ public class ShenyuConfiguration {
     public WebFilter excludeFilter(final ExcludePathProperties excludePathProperties) {
         return new ExcludeFilter(excludePathProperties);
     }
-    
+
     /**
      * shenyu config.
      *
@@ -167,7 +168,7 @@ public class ShenyuConfiguration {
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
     }
-    
+
     /**
      * Init time web filter.
      *
@@ -180,7 +181,7 @@ public class ShenyuConfiguration {
     public WebFilter timeWebFilter(final ShenyuConfig shenyuConfig) {
         return new TimeWebFilter(shenyuConfig);
     }
-    
+
     /**
      * Web socket web filter web filter.
      *
