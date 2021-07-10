@@ -32,4 +32,6 @@ import org.springframework.stereotype.Component;
 public class SecretProperties {
 
     private String key;
+
+    private String iv;
 }

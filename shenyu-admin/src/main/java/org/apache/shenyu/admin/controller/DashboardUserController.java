@@ -70,9 +70,11 @@ public class DashboardUserController {
     @GetMapping("")
     public ShenyuAdminResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
         String key = secretProperties.getKey();
+        String iv = secretProperties.getIv();
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName, new PageParameter(currentPage, pageSize)));
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            commonPager.getDataList().forEach(item -> item.setPassword(AesUtils.aesDecryption(item.getPassword(), key)));
+            commonPager.getDataList()
+                    .forEach(item -> item.setPassword(AesUtils.aesDecryption(item.getPassword(), key, iv)));
             return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
         } else {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR);
@@ -88,9 +90,10 @@ public class DashboardUserController {
     @GetMapping("/{id}")
     public ShenyuAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         String key = secretProperties.getKey();
+        String iv = secretProperties.getIv();
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserEditVO).map(item -> {
-            item.setPassword(AesUtils.aesDecryption(item.getPassword(), key));
+            item.setPassword(AesUtils.aesDecryption(item.getPassword(), key, iv));
             return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item);
         }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
     }
@@ -104,8 +107,9 @@ public class DashboardUserController {
     @PostMapping("")
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         String key = secretProperties.getKey();
+        String iv = secretProperties.getKey();
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
-            item.setPassword(AesUtils.aesEncryption(item.getPassword(), key));
+            item.setPassword(AesUtils.aesEncryption(item.getPassword(), key, iv));
             Integer createCount = dashboardUserService.createOrUpdate(item);
             return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
         }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
@@ -121,8 +125,9 @@ public class DashboardUserController {
     @PutMapping("/{id}")
     public ShenyuAdminResult updateDashboardUser(@PathVariable("id") final String id, @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         String key = secretProperties.getKey();
+        String iv = secretProperties.getIv();
         dashboardUserDTO.setId(id);
-        dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key));
+        dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key, iv));
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
