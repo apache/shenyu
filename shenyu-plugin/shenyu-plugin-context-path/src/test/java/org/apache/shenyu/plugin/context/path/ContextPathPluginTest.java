@@ -91,21 +91,6 @@ public final class ContextPathPluginTest {
     }
 
     /**
-     * The execute real path test.
-     */
-    @Test
-    public void executeRealPathTest() {
-        shenyuContext.setPath("/http/context/order/findById");
-        ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
-        contextMappingHandle.setContextPath("/http/context");
-        contextMappingHandle.setRealUrl("/findById");
-        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
-        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
-        contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
-        Assert.assertEquals(shenyuContext.getRealUrl(), "/findById");
-    }
-
-    /**
      * Skip.
      */
     @Test

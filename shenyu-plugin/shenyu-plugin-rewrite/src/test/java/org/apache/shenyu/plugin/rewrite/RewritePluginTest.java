@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.RewriteHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.junit.Before;
@@ -56,6 +57,7 @@ public final class RewritePluginTest {
     @Before
     public void setUp() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/shenyu/test").build());
+        exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
         rewritePlugin = new RewritePlugin();
     }
 
@@ -81,6 +83,20 @@ public final class RewritePluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
         assertEquals("/shenyu/test", exchange.getAttributes().get(Constants.REWRITE_URI));
+    }
+
+    @Test
+    public void shouldReturnNewRealUriForRewritePlugin() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"regex\":\"test\",\"replace\":\"rewrite\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        shenyuContext.setRealUrl("/test");
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertEquals("/rewrite", exchange.getAttributes().get(Constants.REWRITE_URI));
     }
 
     @Test
