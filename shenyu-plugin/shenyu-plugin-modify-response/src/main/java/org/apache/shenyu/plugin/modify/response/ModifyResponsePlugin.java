@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.response;
+package org.apache.shenyu.plugin.modify.response;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -32,8 +32,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -101,11 +101,8 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 removeHeaderList.stream().forEach(a -> httpHeaders.remove(a));
             }
 
-            ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
             if (modifyResponseRuleHandle.getStatusCode() > 0) {
                 response.setStatusCode(HttpStatus.valueOf(modifyResponseRuleHandle.getStatusCode()));
-            } else {
-                response.setStatusCode(clientResponse.statusCode());
             }
         }
 
@@ -121,6 +118,11 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.MODIFY_RESPONSE.getName();
+    }
+
+    @Override
+    public Boolean skip(final ServerWebExchange exchange) {
+        return false;
     }
 
     static class ModifyServerHttpResponse extends ServerHttpResponseDecorator {

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.springboot.starter.plugin.modifyresponse;
+package org.apache.shenyu.springboot.starter.plugin.modify.response;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.response.ModifyResponsePlugin;
-import org.apache.shenyu.plugin.response.handler.ModifyResponsePluginDataHandler;
+import org.apache.shenyu.plugin.modify.response.ModifyResponsePlugin;
+import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,7 +33,7 @@ public class ModifyResponsePluginConfiguration {
     /**
      * ModifyResponse plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin modifyResponsePlugin() {
@@ -46,7 +46,7 @@ public class ModifyResponsePluginConfiguration {
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler responsePluginDataHandler() {
+    public PluginDataHandler modifyResponsePluginDataHandler() {
         return new ModifyResponsePluginDataHandler();
     }
 }

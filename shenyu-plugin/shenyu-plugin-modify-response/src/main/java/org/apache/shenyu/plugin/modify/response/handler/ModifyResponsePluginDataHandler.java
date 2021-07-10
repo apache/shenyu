@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.response.handler;
+package org.apache.shenyu.plugin.modify.response.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
