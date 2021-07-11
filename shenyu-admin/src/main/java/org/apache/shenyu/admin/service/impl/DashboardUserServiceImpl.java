@@ -28,8 +28,6 @@ import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
-import org.apache.shenyu.admin.service.DashboardUserService;
-import org.apache.shenyu.admin.utils.AesUtils;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.dto.UserRoleDTO;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
@@ -42,6 +40,8 @@ import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.utils.AesUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.ldap.NameNotFoundException;
@@ -198,6 +198,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         String key = secretProperties.getKey();
+        String iv = secretProperties.getIv();
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), userName, ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
         try {
@@ -208,7 +209,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     RoleDO role = roleMapper.findByRoleName("default");
                     DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                             .userName(userName)
-                            .password(AesUtils.aesEncryption(password, key))
+                            .password(AesUtils.aesEncryption(password, key, iv))
                             .role(1)
                             .roles(Lists.newArrayList(role.getId()))
                             .enabled(true)
@@ -229,17 +230,18 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         String key = secretProperties.getKey();
+        String iv = secretProperties.getIv();
         DashboardUserVO dashboardUserVO = findByQuery(userName, password);
         if (!ObjectUtils.isEmpty(dashboardUserVO)) {
             DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                     .id(dashboardUserVO.getId())
                     .userName(dashboardUserVO.getUserName())
-                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), key))
+                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), key, iv))
                     .role(dashboardUserVO.getRole())
                     .enabled(dashboardUserVO.getEnabled()).build();
             createOrUpdate(dashboardUserDTO);
         } else {
-            dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key));
+            dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
         }
         return dashboardUserVO;
     }

@@ -21,7 +21,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
@@ -32,34 +31,26 @@ public final class CipherUtilsTest {
 
     private static final String AES_KEY = "2095132720951327";
 
-    @Test
-    public void testEncryptHex() {
-        assertThat(CipherUtils.encryptHex("123456", AES_KEY), is("jHcpKkiDbbQh7W7hh8yQSA=="));
-    }
+    private static final String IV = "6075877187097700";
 
     @Test
-    public void testEncryptHexForNull() {
-        assertThat(CipherUtils.encryptHex("", AES_KEY), emptyString());
+    public void testEncryptHex() {
+        assertThat(CipherUtils.encryptHex("123456", AES_KEY, IV), is("bbiB8zbUo3z3oA0VqEB/IA=="));
     }
 
     @Test
     public void testDecryptStr() {
-        assertThat(CipherUtils.decryptStr("jHcpKkiDbbQh7W7hh8yQSA==", AES_KEY), is("123456"));
+        assertThat(CipherUtils.decryptStr("bbiB8zbUo3z3oA0VqEB/IA==", AES_KEY, IV), is("123456"));
     }
 
     @Test(expected = ShenyuException.class)
     public void testDecryptStrForErrorStringThrowsException() {
-        assertThat(CipherUtils.decryptStr("jHcpKkiDbbQh7W7hh8yQSA=", AES_KEY), notNullValue());
-    }
-
-    @Test(expected = ShenyuException.class)
-    public void testDecryptStrForEmptyStringThrowsException() {
-        assertThat(CipherUtils.decryptStr("", AES_KEY), notNullValue());
+        assertThat(CipherUtils.decryptStr("bbiB8zbUo3z3oA0VqEB/IA=", AES_KEY, IV), notNullValue());
     }
 
     @Test(expected = AssertionError.class)
     public void testDecryptStrForNullThrowsException() {
-        assertThat(CipherUtils.decryptStr(null, AES_KEY), notNullValue());
+        assertThat(CipherUtils.decryptStr(null, AES_KEY, IV), notNullValue());
     }
 }
 

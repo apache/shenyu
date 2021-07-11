@@ -24,10 +24,12 @@ import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.utils.AesUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -160,11 +162,13 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
 
     private DashboardUserDO buildDashboardUserDO() {
         String aseKey = "2095132720951327";
+        String iv = "6075877187097700";
+
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         return DashboardUserDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .userName("adminTest")
-                .password(AesUtils.aesEncryption("123456", aseKey))
+                .password(AesUtils.aesEncryption("123456", aseKey, iv))
                 .enabled(true)
                 .role(1)
                 .dateCreated(now)
