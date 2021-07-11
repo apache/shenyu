@@ -156,6 +156,6 @@ public final class UpstreamCheckServiceTest {
     @Test
     public void testScheduled() {
         ReflectionTestUtils.invokeMethod(upstreamCheckService, "scheduled");
-        Assert.assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
+        Assert.assertFalse(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
     }
 }
