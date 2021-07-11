@@ -76,6 +76,7 @@ shenyu:
   aes:
     secret:
       key: 2095132720951327
+      iv: 6075877187097700
   ldap:
     enabled: false
     url: ldap://xxxx:xxx
