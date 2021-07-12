@@ -23,21 +23,6 @@ package org.apache.shenyu.common.constant;
 public interface Constants {
 
     /**
-     * The constant path template.
-     */
-    char LEFT = '{';
-
-    /**
-     * The constant path template.
-     */
-    char RIGHT = '}';
-
-    /**
-     * The constant path template.
-     */
-    String PATTERN = "([^/]*)";
-
-    /**
      * The constant APP_PARAM.
      */
     String APP_PARAM = "appParam";
@@ -58,39 +43,9 @@ public interface Constants {
     String META_DATA = "metaData";
 
     /**
-     * The constant HOST.
-     */
-    String HOST = "host";
-
-    /**
-     * The constant PORT.
-     */
-    String PORT = "port";
-
-    /**
-     * The constant rule name.
-     */
-    String RULE_NAME = "ruleName";
-
-    /**
-     * The constant service name.
-     */
-    String SERVICE_NAME = "serviceName";
-
-    /**
-     * The constant method name.
-     */
-    String METHOD_NAME = "methodName";
-
-    /**
      * The constant CLIENT_RESPONSE_ATTR.
      */
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
-
-    /**
-     * The constant DUBBO_RPC_RESULT.
-     */
-    String DUBBO_RPC_RESULT = "dubbo_rpc_result";
 
     /**
      * The constant DUBBO_RPC_RESULT_EMPTY.
@@ -103,39 +58,9 @@ public interface Constants {
     String DUBBO_TAG_ROUTE = "Dubbo_Tag_Route";
 
     /**
-     * The constant DUBBO_REFRENCE_INVOKER.
-     */
-    String DUBBO_REFRENCE_INVOKER = "invoker";
-
-    /**
-     * The constant DUBBO_PROVIDER_VERSION.
-     */
-    String DUBBO_PROVIDER_VERSION = "release";
-
-    /**
-     * The constant DUBBO_PROVIDER_VERSION.
-     */
-    int DUBBO_SUPPORT_ASYNC_VERSION = 2070300;
-
-    /**
-     * The constant SOFA_RPC_RESULT.
-     */
-    String SOFA_RPC_RESULT = "sofa_rpc_result";
-
-    /**
      * The constant SOFA_RPC_RESULT_EMPTY.
      */
     String SOFA_RPC_RESULT_EMPTY = "sofa has not return value!";
-
-    /**
-     * The constant TARS_RPC_RESULT.
-     */
-    String TARS_RPC_RESULT = "tars_rpc_result";
-
-    /**
-     * The constant GRPC_RPC_RESULT.
-     */
-    String GRPC_RPC_RESULT = "grpc_rpc_result";
 
     /**
      * The constant RPC_RESULT.
@@ -213,21 +138,6 @@ public interface Constants {
     String APP_KEY = "appKey";
 
     /**
-     * The constant EXT_INFO.
-     */
-    String EXT_INFO = "extInfo";
-
-    /**
-     * The constant PATH_VARIABLE.
-     */
-    String PATH_VARIABLE = "pathVariable";
-
-    /**
-     * The constant HTTP_METHOD.
-     */
-    String HTTP_METHOD = "httpMethod";
-
-    /**
      * The constant RPC_TYPE.
      */
     String RPC_TYPE = "rpcType";
@@ -283,41 +193,6 @@ public interface Constants {
     String REWRITE_URI = "rewrite_uri";
 
     /**
-     * The constant HTTP_ERROR_RESULT.
-     */
-    String HTTP_ERROR_RESULT = "this is bad request or fuse ing please try again later";
-
-    /**
-     * The constant DUBBO_ERROR_RESULT.
-     */
-    String DUBBO_ERROR_RESULT = "dubbo rpc have error or fuse ing please check your param and  try again later";
-
-    /**
-     * The constant SPRING_CLOUD_ERROR_RESULT.
-     */
-    String SPRING_CLOUD_ERROR_RESULT = "spring cloud rpc have error or fuse ing please check your param and  try again later";
-
-    /**
-     * The constant TIMEOUT_RESULT.
-     */
-    String TIMEOUT_RESULT = "this request is time out  Please try again later";
-
-    /**
-     * The constant UPSTREAM_NOT_FIND.
-     */
-    String UPSTREAM_NOT_FIND = "this can not rule upstream please check you configuration!";
-
-    /**
-     * The constant TOO_MANY_REQUESTS.
-     */
-    String TOO_MANY_REQUESTS = "the request is too fast please try again later";
-
-    /**
-     * The constant SIGN_IS_NOT_PASS.
-     */
-    String SIGN_IS_NOT_PASS = "sign is not pass,Please check you sign algorithm!";
-
-    /**
      * The constant LINE_SEPARATOR.
      */
     String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -351,23 +226,6 @@ public interface Constants {
      * The constant COLONS.
      */
     String COLONS = ":";
-
-    /**
-     * The constant HYPHEN.
-     */
-    String HYPHEN = "-";
-
-    /**
-     * The constant SlASH.
-     */
-    String SLASH = "/";
-
-    /**
-     * The constant Period.
-     */
-    String PERIOD = ".";
-
-    String REQUEST_LATENCY = "REQUEST_LATENCY";
 
     /**
      * hystrix thead pool core size.

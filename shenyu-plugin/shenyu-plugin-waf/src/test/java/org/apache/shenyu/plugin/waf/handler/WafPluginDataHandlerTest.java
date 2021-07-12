@@ -24,7 +24,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
-import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +45,7 @@ public final class WafPluginDataHandlerTest {
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{}", 0, false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{}", "0", false);
         wafPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         WafConfig wafConfig = Singleton.INST.get(WafConfig.class);
         assertEquals(GsonUtils.getInstance().toJson(wafConfig), pluginData.getConfig());
@@ -62,9 +61,9 @@ public final class WafPluginDataHandlerTest {
         wafHandle.setStatusCode("0");
         ruleData.setHandle(GsonUtils.getGson().toJson(wafHandle));
         wafPluginDataHandlerUnderTest.handlerRule(ruleData);
-        assertEquals(wafHandle.getPermission(), WafRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).getPermission());
+        assertEquals(wafHandle.getPermission(), WafPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).getPermission());
         wafPluginDataHandlerUnderTest.removeRule(ruleData);
-        assertNull(WafRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        assertNull(WafPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Test

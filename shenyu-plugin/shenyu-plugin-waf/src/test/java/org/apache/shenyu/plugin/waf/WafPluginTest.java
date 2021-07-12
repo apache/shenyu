@@ -28,7 +28,6 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +65,7 @@ public final class WafPluginTest {
         springBeanUtils.setCfgContext(context);
 
         final PluginData pluginData =
-                new PluginData("pluginId", "pluginName", "{\"model\":\"mix\"}", 0, false);
+                new PluginData("pluginId", "pluginName", "{\"model\":\"mix\"}", "0", false);
         WafPluginDataHandler wafPluginDataHandler = new WafPluginDataHandler();
         wafPluginDataHandler.handlerPlugin(pluginData);
 
@@ -93,7 +92,7 @@ public final class WafPluginTest {
     @Test
     public void testWafPluginBlackWafModel() {
         final PluginData pluginData =
-                new PluginData("pluginId", "pluginName", "{\"model\":\"black\"}", 0, false);
+                new PluginData("pluginId", "pluginName", "{\"model\":\"black\"}", "0", false);
         WafPluginDataHandler wafPluginDataHandler = new WafPluginDataHandler();
         wafPluginDataHandler.handlerPlugin(pluginData);
         Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, null, null);
@@ -117,7 +116,7 @@ public final class WafPluginTest {
         ruleData.setId("waf");
         ruleData.setSelectorId("waf");
         WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"reject\",\"statusCode\":\"0\"}", WafHandle.class);
-        WafRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+        WafPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
         Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
@@ -127,7 +126,7 @@ public final class WafPluginTest {
         ruleData.setId("waf");
         ruleData.setSelectorId("waf");
         WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"allow\",\"statusCode\":\"0\"}", WafHandle.class);
-        WafRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+        WafPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
         Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }

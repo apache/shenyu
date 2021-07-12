@@ -72,7 +72,7 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnPluginChanged() {
         String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"id\":\"2\",\"name\":\"waf\","
-                + "\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\",\"role\":1,\"enabled\":true}]}";
+                + "\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\",\"role\":\"1\",\"enabled\":true}]}";
         MockedStatic.Verification verification = () -> WebsocketCollector.send(message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
@@ -185,7 +185,7 @@ public final class WebsocketDataChangedListenerTest {
         pluginData.setEnabled(true);
         pluginData.setId("2");
         pluginData.setName("waf");
-        pluginData.setRole(1);
+        pluginData.setRole("1");
         pluginDataList.add(pluginData);
     }
 

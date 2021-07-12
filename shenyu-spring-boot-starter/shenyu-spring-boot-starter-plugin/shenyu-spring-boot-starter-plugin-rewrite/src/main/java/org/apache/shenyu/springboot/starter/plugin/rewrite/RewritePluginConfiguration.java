@@ -46,7 +46,7 @@ public class RewritePluginConfiguration {
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler redirectPluginDataHandler() {
+    public PluginDataHandler rewritePluginDataHandler() {
         return new RewritePluginDataHandler();
     }
 }

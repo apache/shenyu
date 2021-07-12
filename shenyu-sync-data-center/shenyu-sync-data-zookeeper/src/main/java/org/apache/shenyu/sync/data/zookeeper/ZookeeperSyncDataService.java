@@ -19,11 +19,6 @@ package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
@@ -40,6 +35,12 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * this cache data with zookeeper.
@@ -236,7 +237,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 Optional.ofNullable(data)
-                        .ifPresent(d -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe((PluginData) d)));
+                        .ifPresent(d -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(GsonUtils.getInstance().fromJson(data.toString(), PluginData.class))));
             }
 
             @Override
@@ -252,7 +253,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheSelectorData((SelectorData) data);
+                cacheSelectorData(GsonUtils.getInstance().fromJson(data.toString(), SelectorData.class));
             }
 
             @Override
@@ -266,7 +267,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheRuleData((RuleData) data);
+                cacheRuleData(GsonUtils.getInstance().fromJson(data.toString(), RuleData.class));
             }
 
             @Override
@@ -280,7 +281,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheAuthData((AppAuthData) data);
+                cacheAuthData(GsonUtils.getInstance().fromJson(data.toString(), AppAuthData.class));
             }
 
             @Override
@@ -294,7 +295,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheMetaData((MetaData) data);
+                cacheMetaData(GsonUtils.getInstance().fromJson(data.toString(), MetaData.class));
             }
 
             @SneakyThrows

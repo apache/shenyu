@@ -26,11 +26,6 @@ import lombok.Data;
 public class RewriteHandle {
 
     /**
-     * rewrite uri.
-     */
-    private String rewriteURI;
-
-    /**
      * java regular expression.
      */
     private String regex;

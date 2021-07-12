@@ -45,21 +45,21 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
-    
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final ExecutorService executorService;
-    
+
     private final String contextPath;
-    
+
     private final String appName;
-    
+
     private final String host;
-    
+
     private final Integer port;
-    
+
     private final Boolean isFull;
-    
+
     /**
      * Instantiates a new Shenyu client bean post processor.
      */
@@ -112,7 +112,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return bean;
     }
-    
+
     private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringMvcClient shenyuSpringMvcClient, final String prePath) {
         String contextPath = this.contextPath;
         String appName = this.appName;
@@ -124,8 +124,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             path = contextPath + prePath + shenyuSpringMvcClient.path();
         }
         String desc = shenyuSpringMvcClient.desc();
-        String configHost = this.host;
-        String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuSpringMvcClient.ruleName();
         String ruleName = StringUtils.isBlank(configRuleName) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()

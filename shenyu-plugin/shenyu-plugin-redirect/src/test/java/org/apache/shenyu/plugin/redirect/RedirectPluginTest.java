@@ -23,7 +23,7 @@ import org.apache.shenyu.common.dto.convert.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.redirect.cache.RedirectRuleHandleCache;
+import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,11 +73,11 @@ public final class RedirectPluginTest {
         ruleData.setHandle("{\"redirectURI\":\"/test\"}");
         RedirectHandle redirectHandle = new RedirectHandle();
         redirectHandle.setRedirectURI("/test");
-        RedirectRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), redirectHandle);
+        RedirectPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), redirectHandle);
         when(dispatcherHandler.handle(any())).thenReturn(Mono.empty());
         StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
         redirectHandle.setRedirectURI("http://test.com/test");
-        RedirectRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), redirectHandle);
+        RedirectPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), redirectHandle);
         ruleData.setHandle("{\"redirectURI\":\"http://test.com/test\"}");
         StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
     }

@@ -19,20 +19,23 @@
     xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>shenyu-admin-bin</id>
+    <id>admin-bin</id>
     <formats>
         <format>tar.gz</format>
     </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <baseDirectory>${project.build.finalName}-admin-bin</baseDirectory>
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
-            <outputDirectory>conf</outputDirectory>
+            <directory>src/main/resources</directory>
+            <lineEnding>unix</lineEnding>
             <includes>
                 <include>*.yml</include>
+                <include>*.xml</include>
             </includes>
+            <outputDirectory>conf</outputDirectory>
         </fileSet>
-
         <fileSet>
             <directory>src/main/resources/bin</directory>
             <lineEnding>unix</lineEnding>
@@ -55,10 +58,6 @@
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
-            <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-            <includes>
-                <include>org.apache.shenyu:shenyu-admin</include>
-            </includes>
             <fileMode>0644</fileMode>
         </dependencySet>
     </dependencySets>

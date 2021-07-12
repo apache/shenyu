@@ -29,7 +29,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.rewrite.cache.RewriteRuleHandleCache;
+import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -44,18 +44,21 @@ public class RewritePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String handle = rule.getHandle();
-        final RewriteHandle rewriteHandle = RewriteRuleHandleCache.getInstance()
+        final RewriteHandle rewriteHandle = RewritePluginDataHandler.CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(rewriteHandle) || StringUtils.isBlank(rewriteHandle.getRewriteURI())) {
+        if (Objects.isNull(rewriteHandle)) {
             log.error("uri rewrite rule can not configuration：{}", handle);
             return chain.execute(exchange);
         }
-
-        String rewriteURI = rewriteHandle.getRewriteURI();
-        if (StringUtils.isNotBlank(rewriteHandle.getRegex()) && Objects.nonNull(rewriteHandle.getReplace())) {
-            rewriteURI = rewriteURI.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        String rewriteUri = exchange.getRequest().getURI().getPath();
+        if (StringUtils.isNotBlank(shenyuContext.getRealUrl())) {
+            rewriteUri = shenyuContext.getRealUrl();
         }
-        exchange.getAttributes().put(Constants.REWRITE_URI, rewriteURI);
+        if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())) {
+            rewriteUri = rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+        }
+        exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
         return chain.execute(exchange);
     }
 

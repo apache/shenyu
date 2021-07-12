@@ -77,7 +77,7 @@ public final class PluginControllerTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(pluginController)
                 .setControllerAdvice(new ExceptionHandlers())
                 .build();
-        this.pluginVO = new PluginVO("123", 1, 1, "t_n", "1", true,
+        this.pluginVO = new PluginVO("123", "1", "t_n", "1", 1, true,
                 DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
     }
 
@@ -127,7 +127,7 @@ public final class PluginControllerTest {
         pluginDTO.setId("123");
         pluginDTO.setName("test");
         pluginDTO.setEnabled(true);
-        pluginDTO.setRole(1);
+        pluginDTO.setRole("1");
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -160,7 +160,7 @@ public final class PluginControllerTest {
         pluginDTO.setId("123");
         pluginDTO.setName("test1");
         pluginDTO.setEnabled(true);
-        pluginDTO.setRole(1);
+        pluginDTO.setRole("1");
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)

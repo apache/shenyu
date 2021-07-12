@@ -21,7 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.io.Serializable;
@@ -42,14 +41,9 @@ public class PluginVO implements Serializable {
     private String id;
 
     /**
-     * plugin code.
-     */
-    private Integer code;
-
-    /**
      * plugin role.
      */
-    private Integer role;
+    private String role;
 
     /**
      * plugin name.
@@ -60,6 +54,11 @@ public class PluginVO implements Serializable {
      * plugin config.
      */
     private String config;
+
+    /**
+     * plugin sort.
+     */
+    private Integer sort;
 
     /**
      * whether enabled.
@@ -83,9 +82,8 @@ public class PluginVO implements Serializable {
      * @return {@linkplain PluginVO}
      */
     public static PluginVO buildPluginVO(final PluginDO pluginDO) {
-        PluginEnum pluginEnum = PluginEnum.getPluginEnumByName(pluginDO.getName());
-        return new PluginVO(pluginDO.getId(), pluginEnum == null ? null : pluginEnum.getCode(),
-                pluginDO.getRole(), pluginDO.getName(), pluginDO.getConfig(), pluginDO.getEnabled(),
+        return new PluginVO(pluginDO.getId(), pluginDO.getRole(), pluginDO.getName(),
+                pluginDO.getConfig(), pluginDO.getSort(), pluginDO.getEnabled(),
                 DateUtils.localDateTimeToString(pluginDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(pluginDO.getDateUpdated().toLocalDateTime()));
     }

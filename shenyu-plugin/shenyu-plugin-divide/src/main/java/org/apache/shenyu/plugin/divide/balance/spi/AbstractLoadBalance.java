@@ -53,8 +53,7 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         if (!upstream.isStatus()) {
             return 0;
         }
-        int weight = getWeight(upstream.getTimestamp(), getWarmup(upstream.getWarmup(), Constants.DEFAULT_WARMUP), upstream.getWeight());
-        return weight;
+        return getWeight(upstream.getTimestamp(), getWarmup(upstream.getWarmup(), Constants.DEFAULT_WARMUP), upstream.getWeight());
     }
 
     private int getWeight(final long timestamp, final int warmup, final int weight) {
@@ -76,7 +75,7 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 
     private int calculateWarmupWeight(final int uptime, final int warmup, final int weight) {
         int ww = (int) ((float) uptime / ((float) warmup / (float) weight));
-        return ww < 1 ? 1 : (ww > weight ? weight : ww);
+        return ww < 1 ? 1 : (Math.min(ww, weight));
     }
 
 }

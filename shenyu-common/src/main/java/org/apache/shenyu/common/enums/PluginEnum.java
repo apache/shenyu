@@ -46,6 +46,11 @@ public enum PluginEnum {
     JWT(9, 0, "jwt"),
 
     /**
+     * OAuth2 plugin enum.
+     */
+    OAUTH2(3, 0, "oauth2"),
+
+    /**
      * Waf plugin enum.
      */
     WAF(10, 0, "waf"),
@@ -79,6 +84,11 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(42, 0, "request"),
+
+    /**
+     * ModifyResponse plugin enum.
+     */
+    MODIFY_RESPONSE(44, 0, "modifyResponse"),
 
     /**
      * Hystrix plugin enum.

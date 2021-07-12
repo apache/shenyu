@@ -40,9 +40,7 @@ public interface Operator {
      * @param paramMappingHandle handle
      * @return mono
      */
-    default Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingHandle paramMappingHandle) {
-        return shenyuPluginChain.execute(exchange);
-    }
+    Mono<Void> apply(ServerWebExchange exchange, ShenyuPluginChain shenyuPluginChain, ParamMappingHandle paramMappingHandle);
 
     /**
      * Clean buffer.

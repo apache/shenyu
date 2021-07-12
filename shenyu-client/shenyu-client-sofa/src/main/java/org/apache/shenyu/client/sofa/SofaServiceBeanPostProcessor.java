@@ -114,7 +114,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String path = contextPath + shenyuSofaClient.path();
         String desc = shenyuSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
-        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = shenyuSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
