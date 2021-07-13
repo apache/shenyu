@@ -21,6 +21,7 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.ecwid.consul.v1.ConsulClient;
 import io.etcd.jetcd.Client;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
@@ -224,7 +225,18 @@ public class DataSyncConfiguration {
      */
     @Configuration
     @ConditionalOnProperty(prefix = "shenyu.sync.consul", name = "url")
+    @EnableConfigurationProperties(ConsulProperties.class)
     static class ConsulListener {
+
+        /**
+         * init Consul client.
+         * @param consulProperties the consul properties
+         * @return Consul client
+         */
+        @Bean
+        public ConsulClient consulClient(final ConsulProperties consulProperties) {
+            return new ConsulClient(consulProperties.getUrl());
+        }
 
         /**
          * Config event listener data changed listener.

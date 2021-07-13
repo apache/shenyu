@@ -82,6 +82,7 @@
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <disruptor.version>3.4.0</disruptor.version>
         <consul.version>2.2.6.RELEASE</consul.version>
+        <consul.api.version>1.4.5</consul.api.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>

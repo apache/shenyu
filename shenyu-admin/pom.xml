@@ -165,9 +165,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-consul-config</artifactId>
-            <version>${consul.version}</version>
+            <groupId>com.ecwid.consul</groupId>
+            <artifactId>consul-api</artifactId>
+            <version>${consul.api.version}</version>
         </dependency>
 
         <dependency>
