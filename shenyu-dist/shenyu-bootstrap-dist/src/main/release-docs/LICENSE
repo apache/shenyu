@@ -242,7 +242,7 @@ The text of each license is the standard Apache 2.0 license.
     curator-client 4.0.1:  https://github.com/apache/curator, Apache 2.0
     curator-framework 4.0.1:  https://github.com/apache/curator, Apache 2.0
     curator-recipes 4.0.1:  https://github.com/apache/curator, Apache 2.0
-    dubbo 2.6.5: https://github.com/apache/incubator-dubbo/dubbo, Apache 2.0
+    dubbo 2.6.5: https://github.com/apache/dubbo, Apache 2.0
     error_prone_annotations 2.5.1: https://github.com/google/error-prone, Apache 2.0
     failsafe 2.3.3: https://github.com/jhalterman/failsafe, Apache 2.0
     failureaccess 1.0.1:https://github.com/google/guava, Apache 2.0
@@ -355,7 +355,7 @@ The text of each license is the standard Apache 2.0 license.
     validation-api 2.0.1.Final: http://beanvalidation.org/licensing, Apache 2.0
     vavr 0.10.2: http://vavr.io, Apache 2.0
     vavr-match 0.10.2: http://vavr.io, Apache 2.0
-    zipkin-2.9.4: https://github.com/openzipkin/zipkin/zipkin, Apache 2.0
+    zipkin-2.9.4: https://github.com/openzipkin/zipkin, Apache 2.0
     zipkin-reporter 2.7.4: https://github.com/openzipkin/zipkin-reporter-java/zipkin-reporter, Apache 2.0
     zipkin-sender-kafka08 2.7.4: https://github.com/openzipkin/zipkin-reporter-java/zipkin-sender-kafka08, Apache 2.0
     zipkin-sender-kafka11 2.7.4: https://github.com/openzipkin/zipkin-reporter-java/zipkin-sender-kafka11, Apache 2.0
