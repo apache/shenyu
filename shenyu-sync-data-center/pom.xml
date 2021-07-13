@@ -35,5 +35,6 @@
         <module>shenyu-sync-data-http</module>
         <module>shenyu-sync-data-nacos</module>
         <module>shenyu-sync-data-etcd</module>
+        <module>shenyu-sync-data-consul</module>
     </modules>
 </project>

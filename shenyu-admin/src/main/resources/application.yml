@@ -73,6 +73,8 @@ shenyu:
   #        secretKey:
 #    etcd:
 #      url: http://localhost:2379
+#    consul:
+#      url: http://localhost:8500
   aes:
     secret:
       key: 2095132720951327
