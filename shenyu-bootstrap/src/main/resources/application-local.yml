@@ -74,6 +74,10 @@ shenyu:
 #            secretKey:
 #       etcd:
 #         url: http://localhost:2379
+#      consul:
+#        url: http://localhost:8500
+#        waitTime: 1000
+#        watchDelay: 1000
     exclude:
       enabled: false
       paths:

@@ -21,21 +21,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-spring-boot-starter</artifactId>
+        <artifactId>shenyu-spring-boot-starter-sync-data-center</artifactId>
         <version>2.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-spring-boot-starter-sync-data-center</artifactId>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>shenyu-spring-boot-starter-sync-data-zookeeper</module>
-        <module>shenyu-spring-boot-starter-sync-data-websocket</module>
-        <module>shenyu-spring-boot-starter-sync-data-http</module>
-        <module>shenyu-spring-boot-starter-sync-data-nacos</module>
-        <module>shenyu-spring-boot-starter-sync-data-etcd</module>
-        <module>shenyu-spring-boot-starter-sync-data-consul</module>
-    </modules>
+    <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-sync-data-consul</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
