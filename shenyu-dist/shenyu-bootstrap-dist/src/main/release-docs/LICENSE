@@ -383,12 +383,25 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     asm 5.0.4: https://github.com/llbit/ow2-asm, BSD 3-Clause
     google-auth-library-credentials 0.20.0: https://github.com/googleapis/google-auth-library-java/google-auth-library-credentials, BSD 3-Clause
     google-auth-library-oauth2-http 0.20.0: https://github.com/googleapis/google-auth-library-java/google-auth-library-oauth2-http, BSD 3-Clause
-    protobuf-java 3.11.0: https://github.com/protocolbuffers/protobuf/blob/master/java, BSD 3-Clause
-    protobuf-java-util 3.11.0: https://github.com/protocolbuffers/protobuf/blob/master/java, BSD 3-Clause
+    jakarta.activation-api 1.2.1: https://github.com/eclipse-ee4j/jaf, BSD 3-Clause
+    jakarta.xml.bind-api 2.3.2: https://github.com/eclipse-ee4j/jaxb-api, BSD 3-Clause
+    protobuf-java 3.11.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
+    protobuf-java-util 3.11.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     tars-client 1.7.2: https://github.com/TarsCloud/Tars/tars-client, BSD 3-Clause
     tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
     tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
     zstd-jni 1.4.0-1: https://github.com/luben/zstd-jni, BSD 2-Clause
+
+========================================================================
+CC0 licenses
+========================================================================
+
+The following components are provided under the CC0 License. See project link for details.
+The text of each license is also included at licenses/LICENSE-[project].txt.
+
+    HdrHistogram 2.1.11: https://github.com/HdrHistogram, CC0 1.0 and BSD-2-Clause
+    LatencyUtils 2.0.3: http://latencyutils.github.io/LatencyUtils, CC0 1.0
+    reactive-streams 1.0.3:	https://github.com/reactive-streams/reactive-streams-jvm, CC0 1.0
 
 ========================================================================
 CDDL licenses
@@ -398,10 +411,10 @@ The following components are provided under the CDDL License. See project link f
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
     activation 1.1.1: http://java.sun.com/javase/technologies/desktop/javabeans/jaf/index.jsp, CDDL 1.0
-    javax.servlet-api 4.0.1: https://javaee.github.io/servlet-spec/, CDDL and GPLv2
-    jboss-annotations-api_1.3_spec 1.0.1.Final: http://www.jboss.org/jboss-annotations-api_1.3_spec, CDDL and GPLv2
-    jboss-jaxb-api_2.3_spec 1.0.1.Final: http://www.jboss.org/jboss-jaxb-api_2.3_spec, CDDL and GPLv2
-    jboss-jaxrs-api_2.1_spec 1.0.2.Final: http://www.jboss.org/jboss-jaxrs-api_2.1_spec, CDDL and GPLv2
+    javax.servlet-api 4.0.1: https://javaee.github.io/servlet-spec, CDDL 1.1 and GPLv2
+    jboss-annotations-api_1.3_spec 1.0.1.Final: http://www.jboss.org/jboss-annotations-api_1.3_spec, CDDL 1.1 and GPLv2
+    jboss-jaxb-api_2.3_spec 1.0.1.Final: http://www.jboss.org/jboss-jaxb-api_2.3_spec, CDDL 1.1 and GPLv2
+    jboss-jaxrs-api_2.1_spec 1.0.2.Final: http://www.jboss.org/jboss-jaxrs-api_2.1_spec, CDDL 1.1 and GPLv2
 
 ========================================================================
 EPL licenses
@@ -422,33 +435,12 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    Java-WebSocket 1.5.0:https://github.com/TooTallNate/Java-WebSocket, MIT
     animal-sniffer-annotations 1.18: https://github.com/mojohaus/animal-sniffer, MIT
     bcpkix-jdk15on 1.61: http://www.bouncycastle.org/licence.html , MIT
     bcprov-jdk15on 1.61: http://www.bouncycastle.org/licence.html , MIT
     checker-qual 3.8.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
+    Java-WebSocket 1.5.0: https://github.com/TooTallNate/Java-WebSocket, MIT
     jcl-over-slf4j 1.7.29: https://www.slf4j.org, MIT
     jul-to-slf4j 1.7.29: http://www.slf4j.org, MIT
     lombok 1.18.12: https://projectlombok.org, MIT
     slf4j-api 1.7.29: https://www.slf4j.org, MIT
-
-========================================================================
-CC0 licenses
-========================================================================
-
-The following components are provided under the CC0 License. See project link for details.
-The text of each license is also included at licenses/LICENSE-[project].txt.
-
-    HdrHistogram 2.1.11: https://github.com/HdrHistogram, CC0 1.0 and BSD-2-Clause
-    LatencyUtils 2.0.3: http://latencyutils.github.io/LatencyUtils, CC0 1.0
-    reactive-streams 1.0.3:	https://github.com/reactive-streams/reactive-streams-jvm , CC0 1.0
-
-========================================================================
-EDL licenses
-========================================================================
-
-The following components are provided under the EDL License. See project link for details.
-The text of each license is also included at licenses/LICENSE-[project].txt.
-
-    jakarta.activation-api 1.2.1: https://github.com/eclipse-ee4j/jaf/jakarta.activation-api, EDL 1.0
-    jakarta.xml.bind-api 2.3.2: https://github.com/eclipse-ee4j/jaxb-api/jakarta.xml.bind-api, EDL 1.0
