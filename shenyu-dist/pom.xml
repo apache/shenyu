@@ -29,6 +29,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>shenyu-src-dist</module>
         <module>shenyu-admin-dist</module>
         <module>shenyu-bootstrap-dist</module>
     </modules>
