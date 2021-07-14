@@ -39,6 +39,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.retry.Backoff;
 import reactor.retry.Retry;
+
+import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -63,6 +65,7 @@ public class WebClientPlugin implements ShenyuPlugin {
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        URI uriObject;
         assert shenyuContext != null;
         String urlPath = exchange.getAttribute(Constants.HTTP_URL);
         if (StringUtils.isEmpty(urlPath)) {
@@ -73,7 +76,13 @@ public class WebClientPlugin implements ShenyuPlugin {
         int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         log.info("The request urlPath is {}, retryTimes is {}", urlPath, retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
-        WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
+        try{
+            uriObject = new URI(urlPath);
+        }catch (Exception e){
+            log.error("build URI object error",e);
+            return WebFluxResultUtils.result(exchange, e);
+        }
+        WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(uriObject);
         return handleRequestBody(requestBodySpec, exchange, timeout, retryTimes, chain);
     }
 
