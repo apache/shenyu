@@ -76,9 +76,9 @@ public class WebClientPlugin implements ShenyuPlugin {
         int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         log.info("The request urlPath is {}, retryTimes is {}", urlPath, retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
-        try{
+        try {
             uriObject = new URI(urlPath);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("build URI object error",e);
             return WebFluxResultUtils.result(exchange, e);
         }
