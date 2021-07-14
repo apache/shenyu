@@ -17,16 +17,18 @@
 package org.apache.shenyu.integratedtest.http.helper;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
-import java.util.Objects;
 
+@Slf4j
 public class HttpHelper {
     public static final HttpHelper INSTANCE = new HttpHelper();
+    private static final Gson GSON = new Gson();
     private final OkHttpClient client = new OkHttpClient.Builder()
             .build();
 
@@ -35,18 +37,18 @@ public class HttpHelper {
     public static final MediaType JSON = MediaType.parse("application/json");
 
     public <RESP, REQ> RESP postGateway(String path, REQ req, Class<RESP> respType) throws IOException {
-        Gson gson = new Gson();
         Request request = new Request.Builder()
                 .url(GATEWAY_END_POINT + path)
-                .post(RequestBody.create(gson.toJson(req), JSON))
+                .post(RequestBody.create(GSON.toJson(req), JSON))
                 .build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        return gson.fromJson(respBody, respType);
+        log.info("postGateway({}) resp({})", path, respBody);
+        return GSON.fromJson(respBody, respType);
     }
 
     public <RESP> RESP getFromGateway(String path, Type type) throws IOException {
-        return this.getFromGateway(path,null,type);
+        return this.getFromGateway(path, null, type);
     }
 
     public <RESP> RESP getFromGateway(String path, Map<String, Object> headers, Type type) throws IOException {
@@ -57,7 +59,7 @@ public class HttpHelper {
         Request request = requestBuilder.build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        Gson gson = new Gson();
-        return gson.fromJson(respBody, type);
+        log.info("getFromGateway({}) resp({})", path, respBody);
+        return GSON.fromJson(respBody, type);
     }
 }

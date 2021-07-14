@@ -36,11 +36,11 @@ import org.java_websocket.handshake.ServerHandshake;
  */
 @Slf4j
 public final class ShenyuWebsocketClient extends WebSocketClient {
-    
+
     private volatile boolean alreadySync = Boolean.FALSE;
-    
+
     private final WebsocketDataHandler websocketDataHandler;
-    
+
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -54,7 +54,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         super(serverUri);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
     }
-    
+
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         if (!alreadySync) {
@@ -62,24 +62,25 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             alreadySync = true;
         }
     }
-    
+
     @Override
     public void onMessage(final String result) {
         handleResult(result);
     }
-    
+
     @Override
     public void onClose(final int i, final String s, final boolean b) {
         this.close();
     }
-    
+
     @Override
     public void onError(final Exception e) {
         this.close();
     }
-    
+
     @SuppressWarnings("ALL")
     private void handleResult(final String result) {
+        log.info("handleResult({})", result);
         WebsocketData websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
         String eventType = websocketData.getEventType();

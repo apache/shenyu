@@ -33,27 +33,27 @@ import java.util.stream.Collectors;
  * The type Base data cache.
  */
 public final class BaseDataCache {
-    
+
     private static final BaseDataCache INSTANCE = new BaseDataCache();
-    
+
     /**
      * pluginName -> PluginData.
      */
     private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
-    
+
     /**
      * pluginName -> SelectorData.
      */
     private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
-    
+
     /**
      * selectorId -> RuleData.
      */
     private static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
-    
+
     private BaseDataCache() {
     }
-    
+
     /**
      * Gets instance.
      *
@@ -71,7 +71,7 @@ public final class BaseDataCache {
     public void cachePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.put(data.getName(), data));
     }
-    
+
     /**
      * Remove plugin data.
      *
@@ -80,14 +80,14 @@ public final class BaseDataCache {
     public void removePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.remove(data.getName()));
     }
-    
+
     /**
      * Clean plugin data.
      */
     public void cleanPluginData() {
         PLUGIN_MAP.clear();
     }
-    
+
     /**
      * Clean plugin data self.
      *
@@ -96,7 +96,7 @@ public final class BaseDataCache {
     public void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
         pluginDataList.forEach(this::removePluginData);
     }
-    
+
     /**
      * Obtain plugin data plugin data.
      *
@@ -106,7 +106,7 @@ public final class BaseDataCache {
     public PluginData obtainPluginData(final String pluginName) {
         return PLUGIN_MAP.get(pluginName);
     }
-    
+
     /**
      * Cache select data.
      *
@@ -115,7 +115,7 @@ public final class BaseDataCache {
     public void cacheSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(this::selectorAccept);
     }
-    
+
     /**
      * Remove select data.
      *
@@ -127,14 +127,14 @@ public final class BaseDataCache {
             Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
         });
     }
-    
+
     /**
      * Clean selector data.
      */
     public void cleanSelectorData() {
         SELECTOR_MAP.clear();
     }
-    
+
     /**
      * Clean selector data self.
      *
@@ -143,7 +143,7 @@ public final class BaseDataCache {
     public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
         selectorDataList.forEach(this::removeSelectData);
     }
-    
+
     /**
      * Obtain selector data list list.
      *
@@ -153,7 +153,7 @@ public final class BaseDataCache {
     public List<SelectorData> obtainSelectorData(final String pluginName) {
         return SELECTOR_MAP.get(pluginName);
     }
-    
+
     /**
      * Cache rule data.
      *
@@ -162,7 +162,7 @@ public final class BaseDataCache {
     public void cacheRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(this::ruleAccept);
     }
-    
+
     /**
      * Remove rule data.
      *
@@ -174,14 +174,14 @@ public final class BaseDataCache {
             Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
         });
     }
-    
+
     /**
      * Clean rule data.
      */
     public void cleanRuleData() {
         RULE_MAP.clear();
     }
-    
+
     /**
      * Clean rule data self.
      *
@@ -190,7 +190,7 @@ public final class BaseDataCache {
     public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
         ruleDataList.forEach(this::removeRuleData);
     }
-    
+
     /**
      * Obtain rule data list list.
      *
@@ -200,7 +200,7 @@ public final class BaseDataCache {
     public List<RuleData> obtainRuleData(final String selectorId) {
         return RULE_MAP.get(selectorId);
     }
-    
+
     /**
      *  cache rule data.
      *
@@ -208,17 +208,19 @@ public final class BaseDataCache {
      */
     private void ruleAccept(final RuleData data) {
         String selectorId = data.getSelectorId();
-        if (RULE_MAP.containsKey(selectorId)) {
-            List<RuleData> existList = RULE_MAP.get(selectorId);
-            final List<RuleData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
-            resultList.add(data);
-            final List<RuleData> collect = resultList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
-            RULE_MAP.put(selectorId, collect);
-        } else {
-            RULE_MAP.put(selectorId, Lists.newArrayList(data));
+        synchronized (RULE_MAP) {
+            if (RULE_MAP.containsKey(selectorId)) {
+                List<RuleData> existList = RULE_MAP.get(selectorId);
+                final List<RuleData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
+                resultList.add(data);
+                final List<RuleData> collect = resultList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
+                RULE_MAP.put(selectorId, collect);
+            } else {
+                RULE_MAP.put(selectorId, Lists.newArrayList(data));
+            }
         }
     }
-    
+
     /**
      * cache selector data.
      *
@@ -226,14 +228,16 @@ public final class BaseDataCache {
      */
     private void selectorAccept(final SelectorData data) {
         String key = data.getPluginName();
-        if (SELECTOR_MAP.containsKey(key)) {
-            List<SelectorData> existList = SELECTOR_MAP.get(key);
-            final List<SelectorData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
-            resultList.add(data);
-            final List<SelectorData> collect = resultList.stream().sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
-            SELECTOR_MAP.put(key, collect);
-        } else {
-            SELECTOR_MAP.put(key, Lists.newArrayList(data));
+        synchronized (SELECTOR_MAP) {
+            if (SELECTOR_MAP.containsKey(key)) {
+                List<SelectorData> existList = SELECTOR_MAP.get(key);
+                final List<SelectorData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
+                resultList.add(data);
+                final List<SelectorData> collect = resultList.stream().sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
+                SELECTOR_MAP.put(key, collect);
+            } else {
+                SELECTOR_MAP.put(key, Lists.newArrayList(data));
+            }
         }
     }
 }
