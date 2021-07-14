@@ -25,6 +25,8 @@ import lombok.Data;
 @Data
 public class ConsulConfig {
 
+    private String url;
+
     private int waitTime;
 
     private int watchDelay;

@@ -75,4 +75,15 @@ public class ConsulSyncDataConfiguration {
     public ConsulConfig consulConfig() {
         return new ConsulConfig();
     }
+
+
+    /**
+     * init Consul client.
+     * @param consulConfig the consul config
+     * @return Consul client
+     */
+    @Bean
+    public ConsulClient consulClient(final ConsulConfig consulConfig) {
+        return new ConsulClient(consulConfig.getUrl());
+    }
 }
