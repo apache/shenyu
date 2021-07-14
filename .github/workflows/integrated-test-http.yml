@@ -51,7 +51,7 @@ jobs:
           java-version: 8
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -Pdist,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - uses: codecov/codecov-action@v1
         if: env.SKIP_CI != 'true'
       - name: Build examples

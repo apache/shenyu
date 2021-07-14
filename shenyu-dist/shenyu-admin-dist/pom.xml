@@ -62,7 +62,7 @@
 
     <profiles>
         <profile>
-            <id>dist</id>
+            <id>release</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>

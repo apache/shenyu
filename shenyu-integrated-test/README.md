@@ -15,7 +15,7 @@ Run those steps under this project's root directory
 
 1. Build `dist` from source, run this command under root directory:
 ```shell
-./mvnw -B clean install -Pdist,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 ```
 2. Build the examples' docker, here is the `http` plugin example:
 ```shell
