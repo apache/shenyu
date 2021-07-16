@@ -1,3 +1,17 @@
+## 2.4.0
+### New Features
+
+### API Changes
+
+### Enhancement
+
+### Refactor
+
+### Bug Fix
+* Fix the JwtUtil.getUserId method bug #1567
+
+## Changes Logs
+
 Changes by Version
 ==================
 Release Notes.
