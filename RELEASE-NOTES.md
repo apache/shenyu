@@ -12,6 +12,7 @@ Release Notes.
 * Add resource management to allow user to add plugin, adjust menu and button resource and so on  in  soul-dashboard and soul-admin.  #1034
 * Add menu and data permission in soul-admin. #917
 * Add H2 store for soul-admin #918
+* Fix the JwtUtil.getUserId method bug #1567
 
 ### soul-bootstrap
 
