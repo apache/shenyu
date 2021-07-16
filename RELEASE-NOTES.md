@@ -12,6 +12,12 @@
 1. Add response plugin
 1. Add JWT plugin
 1. Add Request plugin
+1. Add Motan plugin
+1. Add Logging plugin
+1. Add Modify-response plugin
+1. Add Oauth2 plugin
+1. Add Menu Resource Permissions
+1. Add Data Permissions
 
 ### API Changes
 
@@ -30,6 +36,7 @@
 1. Replace the term Operator by Predicate
 1. Refine judge conditions operator
 1. Refactor PredicateJudge module using SPI
+1. Refactor code about client register
 
 ### Bug Fix
 
