@@ -7,7 +7,8 @@
 1. Admin add execute Multi-path sql script
 1. IpUtils add a parameter to select the network ip
 1. Add parameter-mapping plugin
-1. Support Consul as soul-register-center
+1. Support Consul as shenyu-register-center
+1. Support Etcd as shenyu-sync-data-center
 1. Add sentinel customized fallbackhandler
 1. Add response plugin
 1. Add JWT plugin
