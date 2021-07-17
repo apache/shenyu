@@ -56,11 +56,11 @@
     </licenses>
     <scm>
         <url>https://github.com/apache/incubator-shenyu.git</url>
-        <connection>scm:git:https://github.com/apache/incubator-shenyu</connection>
-        <developerConnection>scm:git:git@github.com:apache/incubator-shenyu</developerConnection>
-        <tag>${project.version}</tag>
+        <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
-
+    
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/apache/incubator-shenyu/issues</url>
