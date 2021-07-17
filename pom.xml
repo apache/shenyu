@@ -54,12 +54,22 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    
     <scm>
-        <url>https://github.com/apache/incubator-shenyu.git</url>
+        <url>https://github.com/apache/incubator-shenyu</url>
         <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
+    
+    <mailingLists>
+        <mailingList>
+            <name>Apache ShenYu Developer List</name>
+            <post>dev@shenyu.apache.org</post>
+            <subscribe>dev-subscribe@shenyu.apache.org</subscribe>
+            <unsubscribe>dev-unsubscribe@shenyu.apache.org</unsubscribe>
+        </mailingList>
+    </mailingLists>
     
     <issueManagement>
         <system>GitHub Issues</system>
