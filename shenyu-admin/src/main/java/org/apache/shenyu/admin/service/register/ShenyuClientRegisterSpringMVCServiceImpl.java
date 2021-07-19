@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
@@ -33,7 +32,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,7 +45,6 @@ import java.util.Objects;
 /**
  * spring mvc service register.
  */
-@Slf4j
 @Service("http")
 public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
@@ -82,10 +79,8 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
                 saveOrUpdateMetaData(null, dto);
             }
         }
-        log.error("start to ShenyuClientRegisterSpringMVCServiceImpl register({})", GsonUtils.getInstance().toJson(dto));
         String selectorId = handlerSelector(dto);
         handlerRule(selectorId, dto, null);
-        log.error("end to ShenyuClientRegisterSpringMVCServiceImpl register({})", GsonUtils.getInstance().toJson(dto));
         String contextPath = dto.getContextPath();
         if (StringUtils.isNotEmpty(contextPath)) {
             //register context path plugin
