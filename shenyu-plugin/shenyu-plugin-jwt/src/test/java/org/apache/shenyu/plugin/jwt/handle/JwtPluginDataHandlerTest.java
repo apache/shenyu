@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.jwt.handle;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -50,7 +49,7 @@ public final class JwtPluginDataHandlerTest {
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
         assertEquals(jwtConfig.getSecretKey(), map.get("secretKey"));
-        assertEquals(StringUtils.join(jwtConfig.getFilterPath(),","), map.get("filterPath"));
+        assertEquals(StringUtils.join(jwtConfig.getFilterPath(), ","), map.get("filterPath"));
     }
 
     @Test

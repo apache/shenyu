@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.jwt.handle;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -30,21 +31,18 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- *  Configuration data of the jwt plugin.
+ * Configuration data of the jwt plugin.
  */
 public class JwtPluginDataHandler implements PluginDataHandler {
-
-    private final String SECRET_KEY = "secretKey";
-    private final String FILTER_PATH = "filterPath";
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
-        String secretKey = Optional.of(configMap.get(SECRET_KEY)).orElse("");
-        String filterPath = Optional.of(configMap.get(FILTER_PATH)).orElse("");
+        String secretKey = Optional.of(configMap.get(Constants.SECRET_KEY)).orElse("");
+        String filterPath = Optional.of(configMap.get(Constants.FILTER_PATH)).orElse("");
         JwtConfig jwtConfig = new JwtConfig();
         jwtConfig.setSecretKey(secretKey);
-        jwtConfig.setFilterPath(Arrays.asList(StringUtils.split(filterPath,",")));
+        jwtConfig.setFilterPath(Arrays.asList(StringUtils.split(filterPath, ",")));
         Singleton.INST.single(JwtConfig.class, jwtConfig);
     }
 
