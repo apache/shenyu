@@ -50,6 +50,7 @@
                                         <descriptor>src/main/assembly/source.xml</descriptor>
                                     </descriptors>
                                     <tarLongFileMode>posix</tarLongFileMode>
+                                    <attach>false</attach>
                                 </configuration>
                             </execution>
                         </executions>
