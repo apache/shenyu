@@ -42,9 +42,9 @@
         <module>shenyu-metrics</module>
         <module>shenyu-spi</module>
         <module>shenyu-register-center</module>
-        <module>shenyu-dist</module>
         <module>shenyu-disruptor</module>
         <module>shenyu-protocol</module>
+        <module>shenyu-dist</module>
     </modules>
 
     <licenses>

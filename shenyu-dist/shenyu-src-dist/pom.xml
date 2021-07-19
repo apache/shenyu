@@ -49,9 +49,7 @@
                                     <descriptors>
                                         <descriptor>src/main/assembly/source.xml</descriptor>
                                     </descriptors>
-                                    <attach>true</attach>
                                     <tarLongFileMode>posix</tarLongFileMode>
-                                    <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
                                 </configuration>
                             </execution>
                         </executions>
