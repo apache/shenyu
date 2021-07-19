@@ -439,6 +439,10 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 /*insert plugin_handle data for request*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('86', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2021-05-27 23:43:53', '2021-05-30 19:58:28');
 
+/*insert plugin_handle data for plugin jwt*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('89','19' ,'secretKey','secretKey',2, 3, 0, null, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('90','19' ,'filterPath','filterPath',2, 3, 1, null, '2021-06-12 19:17:10', '2021-06-12 19:17:10');
+
 /** insert permission role for role */
 INSERT IGNORE INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');
 INSERT IGNORE INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1385482862971723776', 'default', '普通用户', '2021-04-23 14:37:10', '2021-04-23 14:38:39');

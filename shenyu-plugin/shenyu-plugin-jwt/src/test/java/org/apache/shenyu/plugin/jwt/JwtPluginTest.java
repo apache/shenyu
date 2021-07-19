@@ -61,7 +61,7 @@ public final class JwtPluginTest {
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setCfgContext(context);
         final PluginData pluginData =
-                new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":[\"/cloud/ecg/common\"]}", "0", false);
+                new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":\"/cloud/ecg/common,/cloud/ecg/selectAll\"}", "0", false);
         JwtPluginDataHandler jwtPluginDataHandler = new JwtPluginDataHandler();
         jwtPluginDataHandler.handlerPlugin(pluginData);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());

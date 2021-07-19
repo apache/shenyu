@@ -170,6 +170,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
      <!--   <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
