@@ -19,18 +19,25 @@ package org.apache.shenyu.plugin.divide.cache;
 
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UpstreamCheckUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -41,6 +48,10 @@ public final class UpstreamCacheManagerTest {
 
     private List<DivideUpstream> loadBalances;
 
+    private SelectorData selectorData;
+
+    private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
+
     @Before
     public void setUp() {
         this.loadBalances = Stream.of(3, 4, 5)
@@ -48,10 +59,18 @@ public final class UpstreamCacheManagerTest {
                         .upstreamUrl("divide-upstream-" + weight)
                         .build())
                 .collect(Collectors.toList());
-        SelectorData selectorData = mock(SelectorData.class);
+        selectorData = mock(SelectorData.class);
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(loadBalances));
-        UpstreamCacheManager.getInstance().submit(selectorData);
+
+        // mock static
+        mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
+        mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+    }
+
+    @After
+    public void tearDown() {
+        mockCheckUtils.close();
     }
 
     /**
@@ -59,8 +78,9 @@ public final class UpstreamCacheManagerTest {
      */
     @Test
     public void findUpstreamListTest() {
+        UpstreamCacheManager.getInstance().submit(selectorData);
         List<DivideUpstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock");
-        Assert.assertEquals(GsonUtils.getGson().toJson(loadBalances), GsonUtils.getGson().toJson(result));
+        Assert.assertEquals(loadBalances, result);
     }
 
     /**
@@ -68,9 +88,10 @@ public final class UpstreamCacheManagerTest {
      */
     @Test
     public void removeByKeyTest() {
+        UpstreamCacheManager.getInstance().submit(selectorData);
         UpstreamCacheManager.getInstance().removeByKey("mock");
         List<DivideUpstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock");
-        Assert.assertNull(result);
+        Assert.assertTrue(CollectionUtils.isEmpty(result));
     }
 
     /**
@@ -88,6 +109,6 @@ public final class UpstreamCacheManagerTest {
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(upstreams));
         UpstreamCacheManager.getInstance().submit(selectorData);
         List<DivideUpstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("submit");
-        Assert.assertEquals(GsonUtils.getGson().toJson(upstreams), GsonUtils.getGson().toJson(result));
+        Assert.assertEquals(upstreams.get(0), result.get(0));
     }
 }

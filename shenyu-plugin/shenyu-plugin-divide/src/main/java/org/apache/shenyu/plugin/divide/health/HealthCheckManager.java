@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * Health check manager for upstream servers.
  */
 @Slf4j
-public class HealthCheckManager {
+public final class HealthCheckManager {
 
     private static final HealthCheckManager INSTANCE = new HealthCheckManager();
 
@@ -52,28 +52,41 @@ public class HealthCheckManager {
 
     private static final Map<String, SelectorData> SELECTOR_CACHE = Maps.newConcurrentMap();
 
+    private static final Object LOCK = new Object();
+
     private final AtomicBoolean checkStarted = new AtomicBoolean(false);
 
+    private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
+
+    // health check parameters
     private Boolean checkEnable;
+
     private Integer checkTimeout;
+
     private Integer checkInterval;
+
     private Integer healthyThreshold;
+
     private Integer unhealthyThreshold;
 
-    // healthy upstream print param
+    // healthy upstream print parameters
     private Boolean printEnable;
+
     private Integer printInterval;
 
     private ExecutorService executor;
-    private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
-    private static final Object LOCK = new Object();
-
-    public static HealthCheckManager getInstance() {
-        return INSTANCE;
-    }
 
     private HealthCheckManager() {
         initHealthCheck();
+    }
+
+    /**
+     * Get instance.
+     *
+     * @return HealthCheckManager
+     */
+    public static HealthCheckManager getInstance() {
+        return INSTANCE;
     }
 
     private void initHealthCheck() {
@@ -131,7 +144,7 @@ public class HealthCheckManager {
         check(UNHEALTHY_UPSTREAM);
     }
 
-    private void check(Map<String, List<DivideUpstream>> map) {
+    private void check(final Map<String, List<DivideUpstream>> map) {
         for (Map.Entry<String, List<DivideUpstream>> entry : map.entrySet()) {
             String key = entry.getKey();
             List<DivideUpstream> value = entry.getValue();
@@ -143,7 +156,7 @@ public class HealthCheckManager {
         }
     }
 
-    private UpstreamWithSelectorId check(String selectorId, DivideUpstream upstream) {
+    private UpstreamWithSelectorId check(final String selectorId, final DivideUpstream upstream) {
         SelectorData selectorData = SELECTOR_CACHE.get(selectorId);
         boolean pass = UpstreamCheckUtils.checkUrl(upstream.getUpstreamUrl(), checkTimeout);
         if (pass) {
@@ -190,7 +203,7 @@ public class HealthCheckManager {
         futures.clear();
     }
 
-    private void putEntityToMap(UpstreamWithSelectorId entity) {
+    private void putEntityToMap(final UpstreamWithSelectorId entity) {
         DivideUpstream upstream = entity.getDivideUpstream();
         if (upstream.isHealthy()) {
             putToMap(HEALTHY_UPSTREAM, entity.getSelectorId(), upstream);
@@ -205,7 +218,13 @@ public class HealthCheckManager {
         checkStarted.set(false);
     }
 
-    public void triggerAddOne(SelectorData selectorData, DivideUpstream upstream) {
+    /**
+     * Add one upstream via selectorData.
+     *
+     * @param selectorData selectorData
+     * @param upstream upstream
+     */
+    public void triggerAddOne(final SelectorData selectorData, final DivideUpstream upstream) {
         SELECTOR_CACHE.putIfAbsent(selectorData.getId(), selectorData);
 
         // check immediately
@@ -221,11 +240,23 @@ public class HealthCheckManager {
         putEntityToMap(entity);
     }
 
-    public void triggerRemoveOne(SelectorData selectorData, DivideUpstream upstream) {
+    /**
+     * Remove a specific upstream via selectorData.
+     *
+     * @param selectorData selectorData
+     * @param upstream upstream
+     */
+    public void triggerRemoveOne(final SelectorData selectorData, final DivideUpstream upstream) {
         triggerRemoveOne(selectorData.getId(), upstream);
     }
 
-    public void triggerRemoveOne(String selectorId, DivideUpstream upstream) {
+    /**
+     * Remove a specific upstream via selectorId.
+     *
+     * @param selectorId selectorId
+     * @param upstream upstream
+     */
+    public void triggerRemoveOne(final String selectorId, final DivideUpstream upstream) {
         removeFromMap(HEALTHY_UPSTREAM, selectorId, upstream);
         removeFromMap(UNHEALTHY_UPSTREAM, selectorId, upstream);
 
@@ -233,7 +264,7 @@ public class HealthCheckManager {
         log.info("[Health Check] Selector [{}] upstream {} was removed.", selectorData.getName(), upstream.getUpstreamUrl());
     }
 
-    private void putToMap(Map<String, List<DivideUpstream>> map, String selectorId, DivideUpstream upstream) {
+    private void putToMap(final Map<String, List<DivideUpstream>> map, final String selectorId, final DivideUpstream upstream) {
         synchronized (LOCK) {
             List<DivideUpstream> list = map.computeIfAbsent(selectorId, k -> Lists.newArrayList());
             if (!list.contains(upstream)) {
@@ -242,7 +273,7 @@ public class HealthCheckManager {
         }
     }
 
-    private void removeFromMap(Map<String, List<DivideUpstream>> map, String selectorId, DivideUpstream upstream) {
+    private void removeFromMap(final Map<String, List<DivideUpstream>> map, final String selectorId, final DivideUpstream upstream) {
         synchronized (LOCK) {
             List<DivideUpstream> list = map.get(selectorId);
             if (CollectionUtils.isNotEmpty(list)) {
@@ -251,11 +282,21 @@ public class HealthCheckManager {
         }
     }
 
-    public void triggerRemoveAll(SelectorData selectorData) {
+    /**
+     * Remove all upstream via selectorData.
+     *
+     * @param selectorData selectorData
+     */
+    public void triggerRemoveAll(final SelectorData selectorData) {
         triggerRemoveAll(selectorData.getId());
     }
 
-    public void triggerRemoveAll(String selectorId) {
+    /**
+     * Remove all upstream via selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void triggerRemoveAll(final String selectorId) {
         synchronized (LOCK) {
             HEALTHY_UPSTREAM.remove(selectorId);
             UNHEALTHY_UPSTREAM.remove(selectorId);
@@ -278,10 +319,20 @@ public class HealthCheckManager {
         });
     }
 
+    /**
+     * Get healthy upstream map.
+     *
+     * @return healthy map.
+     */
     public Map<String, List<DivideUpstream>> getHealthyUpstream() {
         return HEALTHY_UPSTREAM;
     }
 
+    /**
+     * Get unhealthy upstream map.
+     *
+     * @return unhealthy map.
+     */
     public Map<String, List<DivideUpstream>> getUnhealthyUpstream() {
         return UNHEALTHY_UPSTREAM;
     }
