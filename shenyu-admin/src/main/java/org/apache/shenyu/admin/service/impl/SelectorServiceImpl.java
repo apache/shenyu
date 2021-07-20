@@ -53,8 +53,13 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.enums.OperatorEnum;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -253,6 +258,51 @@ public class SelectorServiceImpl implements SelectorService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public String handlerSelectorNeedUpstreamCheck(final MetaDataRegisterDTO dto, final String rpcType) {
+        String contextPath = dto.getContextPath();
+        if (StringUtils.isEmpty(contextPath)) {
+            contextPath = buildContextPath(dto.getPath());
+        }
+        SelectorDO selectorDO = selectorMapper.selectByName(contextPath);
+        String selectorId;
+        String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
+        if (Objects.isNull(selectorDO)) {
+            selectorId = registerPluginSelector(contextPath, uri, rpcType);
+        } else {
+            selectorId = selectorDO.getId();
+            //update upstream
+            String handle = selectorDO.getHandle();
+            String handleAdd;
+            DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
+            final SelectorData selectorData = buildByName(contextPath);
+            // fetch UPSTREAM_MAP data from db
+            upstreamCheckService.fetchUpstreamData();
+            if (StringUtils.isBlank(handle)) {
+                handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
+            } else {
+                List<DivideUpstream> exist = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+                for (DivideUpstream upstream : exist) {
+                    if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
+                        return selectorId;
+                    }
+                }
+                exist.add(addDivideUpstream);
+                handleAdd = GsonUtils.getInstance().toJson(exist);
+            }
+            selectorDO.setHandle(handleAdd);
+            selectorData.setHandle(handleAdd);
+            // update db
+            selectorMapper.updateSelective(selectorDO);
+            // submit upstreamCheck
+            upstreamCheckService.submit(contextPath, addDivideUpstream);
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                    Collections.singletonList(selectorData)));
+        }
+        return selectorId;
+    }
+
     private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditionDTOs) {
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<ConditionData> conditionDataList =
@@ -283,5 +333,56 @@ public class SelectorServiceImpl implements SelectorService {
                 upstreamCheckService.replace(selectorName, existDivideUpstreams);
             }
         }
+    }
+
+    private String registerPluginSelector(final String contextPath, final String uri, final String rpcType) {
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
+        //is divide
+        DivideUpstream divideUpstream = buildDivideUpstream(uri);
+        String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
+        selectorDTO.setHandle(handler);
+        upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
+        return register(selectorDTO);
+    }
+
+    private SelectorDTO registerSelector(final String contextPath, final String pluginId) {
+        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
+        selectorDTO.setPluginId(pluginId);
+        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
+        return selectorDTO;
+    }
+
+    private SelectorDTO buildDefaultSelectorDTO(final String name) {
+        return SelectorDTO.builder()
+                .name(name)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .matchMode(MatchModeEnum.AND.getCode())
+                .enabled(Boolean.TRUE)
+                .loged(Boolean.TRUE)
+                .continued(Boolean.TRUE)
+                .sort(1)
+                .build();
+    }
+
+    private List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
+        SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
+        selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
+        selectorConditionDTO.setParamName("/");
+        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
+        selectorConditionDTO.setParamValue(contextPath + "/**");
+        return Collections.singletonList(selectorConditionDTO);
+    }
+
+    private String buildContextPath(final String path) {
+        String split = "/";
+        String[] splitList = StringUtils.split(path, split);
+        if (splitList.length != 0) {
+            return split.concat(splitList[0]);
+        }
+        return split;
+    }
+
+    private DivideUpstream buildDivideUpstream(final String uri) {
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }
 }

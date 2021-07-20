@@ -70,7 +70,7 @@ public final class DashboardUserControllerTest {
 
     private final DashboardUserVO dashboardUserVO = new DashboardUserVO("id",
             "userName",
-            "jHcpKkiDbbQh7W7hh8yQSA==",
+            "bbiB8zbUo3z3oA0VqEB/IA==",
             0,
             false,
             "dateCreated",
@@ -83,6 +83,7 @@ public final class DashboardUserControllerTest {
     public void setUp() throws Exception {
         final SecretProperties secretProperties = new SecretProperties();
         secretProperties.setKey("2095132720951327");
+        secretProperties.setIv("6075877187097700");
         ReflectionTestUtils.setField(dashboardUserController, "secretProperties", secretProperties);
         mockMvc = MockMvcBuilders.standaloneSetup(dashboardUserController).build();
     }

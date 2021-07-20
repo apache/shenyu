@@ -104,7 +104,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         String path = contextPath + shenyuDubboClient.path();
         String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
-        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = shenyuDubboClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;

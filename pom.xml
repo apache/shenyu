@@ -42,9 +42,9 @@
         <module>shenyu-metrics</module>
         <module>shenyu-spi</module>
         <module>shenyu-register-center</module>
-        <module>shenyu-dist</module>
         <module>shenyu-disruptor</module>
         <module>shenyu-protocol</module>
+        <module>shenyu-dist</module>
     </modules>
 
     <licenses>
@@ -54,13 +54,23 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    
     <scm>
-        <url>https://github.com/apache/incubator-shenyu.git</url>
-        <connection>scm:git:https://github.com/apache/incubator-shenyu</connection>
-        <developerConnection>scm:git:git@github.com:apache/incubator-shenyu</developerConnection>
-        <tag>${project.version}</tag>
+        <url>https://github.com/apache/incubator-shenyu</url>
+        <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
-
+    
+    <mailingLists>
+        <mailingList>
+            <name>Apache ShenYu Developer List</name>
+            <post>dev@shenyu.apache.org</post>
+            <subscribe>dev-subscribe@shenyu.apache.org</subscribe>
+            <unsubscribe>dev-unsubscribe@shenyu.apache.org</unsubscribe>
+        </mailingList>
+    </mailingLists>
+    
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/apache/incubator-shenyu/issues</url>
@@ -81,6 +91,7 @@
         <commons-collections4.version>4.1</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <disruptor.version>3.4.0</disruptor.version>
+        <consul.api.version>1.4.5</consul.api.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
@@ -112,6 +123,7 @@
         <mockito.version>3.5.15</mockito.version>
         <nacos-client.version>2.0.0</nacos-client.version>
         <groovy.version>2.5.14</groovy.version>
+        <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <apache-rat-plugin.version>0.12</apache-rat-plugin.version>
@@ -140,6 +152,24 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-config</artifactId>
+                <version>${spring-security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-oauth2-client</artifactId>
+                <version>${spring-security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-test</artifactId>
+                <version>${spring-security.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.weibo</groupId>
                 <artifactId>motan-core</artifactId>
@@ -227,6 +257,12 @@
                 <groupId>com.alipay.sofa</groupId>
                 <artifactId>sofa-rpc-all</artifactId>
                 <version>${sofa.rpc.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>net.jcip</groupId>
+                        <artifactId>jcip-annotations</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -261,6 +297,7 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
@@ -369,6 +406,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.re2j</groupId>
+                    <artifactId>re2j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -408,18 +451,7 @@
         </dependency>
 
     </dependencies>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
+    
     <profiles>
         <profile>
             <id>release</id>
@@ -429,25 +461,25 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${nexus-staging-maven-plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven-gpg-plugin.version}</version>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${exec-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <phase>verify</phase>
+                                <id>git submodule update</id>
+                                <phase>initialize</phase>
+                                <inherited>false</inherited>
+                                <configuration>
+                                    <executable>git</executable>
+                                    <arguments>
+                                        <argument>submodule</argument>
+                                        <argument>update</argument>
+                                        <argument>--init</argument>
+                                        <argument>--recursive</argument>
+                                    </arguments>
+                                </configuration>
                                 <goals>
-                                    <goal>sign</goal>
+                                    <goal>exec</goal>
                                 </goals>
                             </execution>
                         </executions>
@@ -456,7 +488,6 @@
             </build>
         </profile>
     </profiles>
-
     <build>
         <plugins>
             <plugin>
@@ -574,7 +605,6 @@
                         <exclude>**/spring.factories</exclude>
                         <exclude>**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
-                        <exclude>**/lombok.config</exclude>
                         <exclude>**/*.json</exclude>
                         <!-- IDE files -->
                         <exclude>**/*.iml</exclude>
@@ -597,13 +627,18 @@
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
                         <excldue>**/*.MD</excldue>
-                        <excldue>**/*.conf</excldue>
-                        <excldue>**/*.tars</excldue>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->
-                        <exclude>/shenyu-dashboard/**</exclude>
-                        <exclude>**/resources/static/</exclude>
+                        <exclude>**/.babelrc</exclude>
+                        <exclude>**/.editorconfig</exclude>
+                        <exclude>**/.eslintignore</exclude>
+                        <exclude>**/assets/**</exclude>
+                        <exclude>**/dist/**</exclude>
+                        <exclude>**/etc/**</exclude>
+                        <exclude>**/node/**</exclude>
+                        <exclude>**/node_modules/**</exclude>
+                        <exclude>**/test/coverage/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>

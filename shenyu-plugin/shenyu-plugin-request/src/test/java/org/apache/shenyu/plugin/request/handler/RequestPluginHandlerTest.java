@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.request.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.request.cache.RequestRuleHandleCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,8 +55,7 @@ public class RequestPluginHandlerTest {
     @Test
     public void testHandlerRule() {
         this.requestPluginHandler.handlerRule(this.ruleData);
-        RequestRuleHandleCache cache = RequestRuleHandleCache.getInstance();
-        assertNotNull(cache.obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
+        assertNotNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
     }
 
     @Test
@@ -66,11 +64,10 @@ public class RequestPluginHandlerTest {
         RuleData ruleData = new RuleData();
         ruleData.setSelectorId("test");
         ruleData.setName("test");
-        RequestRuleHandleCache cache = RequestRuleHandleCache.getInstance();
         this.requestPluginHandler.removeRule(this.ruleData);
-        assertNull(cache.obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
+        assertNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
         this.requestPluginHandler.removeRule(ruleData);
-        assertNull(cache.obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        assertNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
         this.requestPluginHandler.removeRule(null);
     }
 

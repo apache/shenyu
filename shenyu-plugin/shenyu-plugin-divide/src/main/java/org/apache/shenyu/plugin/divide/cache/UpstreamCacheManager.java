@@ -25,8 +25,8 @@ import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 import org.apache.shenyu.plugin.divide.health.HealthCheckManager;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 
 import java.util.List;
 import java.util.Map;
@@ -35,7 +35,7 @@ import java.util.Map;
  * this is divide  http url upstream.
  */
 @Slf4j
-public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRuleHandle> {
+public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRuleHandle> {
 
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
 

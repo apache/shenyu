@@ -41,7 +41,7 @@ public class PluginData {
 
     private String config;
 
-    private Integer role;
+    private String role;
 
     private Boolean enabled;
 }

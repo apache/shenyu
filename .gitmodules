@@ -1,0 +1,3 @@
+[submodule "shenyu-dashboard"]
+	path = shenyu-dashboard
+	url = https://github.com/apache/incubator-shenyu-dashboard

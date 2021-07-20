@@ -22,18 +22,22 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
-import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * The type Waf plugin data handler.
  */
 public class WafPluginDataHandler implements PluginDataHandler {
+
+    public static final Supplier<RuleHandleCache<String, WafHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -45,13 +49,13 @@ public class WafPluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final WafHandle wafHandle = GsonUtils.getInstance().fromJson(s, WafHandle.class);
-            WafRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), wafHandle);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), wafHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> WafRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

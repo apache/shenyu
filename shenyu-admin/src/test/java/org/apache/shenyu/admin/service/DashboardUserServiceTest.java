@@ -169,8 +169,10 @@ public final class DashboardUserServiceTest {
 
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
-        String key = "key1234561234561";
+        String key = "2095132720951327";
+        String iv = "6075877187097700";
         when(secretProperties.getKey()).thenReturn(key, key);
+        when(secretProperties.getIv()).thenReturn(iv, iv);
         when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(null, dashboardUserDO, dashboardUserDO);
         given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
 

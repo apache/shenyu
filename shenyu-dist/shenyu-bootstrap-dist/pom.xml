@@ -35,58 +35,46 @@
             <artifactId>shenyu-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>
+    
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <profiles>
         <profile>
-            <id>dist</id>
+            <id>release</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <build>
-                <finalName>shenyu-bootstrap-bin-${project.version}</finalName>
+                <finalName>apache-shenyu-incubating-${project.version}</finalName>
                 <plugins>
                     <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>shenyu-bootstrap-bin</id>
+                                <id>bootstrap-bin</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
                                 </goals>
-                                <configuration>
-                                    <descriptors>
-                                        <descriptor>${project.basedir}/src/main/assembly/binary.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
                             </execution>
                         </executions>
                         <configuration>
-                            <attach>true</attach>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/main/assembly/binary.xml</descriptor>
+                            </descriptors>
                             <tarLongFileMode>posix</tarLongFileMode>
-                            <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
-                            <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
-                    </plugin>
-
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy</id>
-                                <phase>package</phase>
-                                <goals>
-
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <target>
-                                        <copy file="${project.build.directory}/${project.build.finalName}.tar.gz" tofile="${project.basedir}/../../dist/${project.build.finalName}.tar.gz" overwrite="true" />
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>
@@ -115,7 +103,7 @@
                             <repository>apache/shenyu-bootstrap</repository>
                             <tag>${project.version}</tag>
                             <buildArgs>
-                                <APP_NAME>shenyu-bootstrap-bin-${project.version}</APP_NAME>
+                                <APP_NAME>apache-shenyu-incubating-${project.version}-bootstrap-bin</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>

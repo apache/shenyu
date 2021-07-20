@@ -18,8 +18,8 @@ server:
   address: 0.0.0.0
 
 spring:
-  #profiles:
-    #active: h2
+  profiles:
+    active: h2
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -50,7 +50,6 @@ shenyu:
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
-    #custom_init_script: "/opt/schema.sql"
     init_enable: true
   sync:
     websocket:
@@ -74,9 +73,12 @@ shenyu:
   #        secretKey:
 #    etcd:
 #      url: http://localhost:2379
+#    consul:
+#      url: http://localhost:8500
   aes:
     secret:
       key: 2095132720951327
+      iv: 6075877187097700
   ldap:
     enabled: false
     url: ldap://xxxx:xxx

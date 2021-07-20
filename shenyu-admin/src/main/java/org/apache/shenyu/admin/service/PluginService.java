@@ -78,4 +78,12 @@ public interface PluginService {
      * @return the string
      */
     String enabled(List<String> ids, Boolean enabled);
+
+    /**
+     * select Plugin's id by name.
+     *
+     * @param name the plugin's name.
+     * @return the id of Plugin.
+     */
+    String selectIdByName(String name);
 }

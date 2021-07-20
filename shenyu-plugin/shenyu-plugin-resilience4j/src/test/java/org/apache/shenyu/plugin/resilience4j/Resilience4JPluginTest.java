@@ -29,9 +29,9 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
+import org.apache.shenyu.plugin.resilience4j.handler.Resilience4JHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -90,7 +90,7 @@ public final class Resilience4JPluginTest {
         data.setSelectorId("SHENYU");
         data.setId("SHENYU");
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
-        Resilience4jRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
+        Resilience4JHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
         when(data.getHandle()).thenReturn(HANDLER);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
@@ -103,7 +103,7 @@ public final class Resilience4JPluginTest {
         data.setSelectorId("SHENYU");
         data.setId("SHENYU");
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
-        Resilience4jRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
+        Resilience4JHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
         CombinedExecutor combinedExecutor = mock(CombinedExecutor.class);
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(RequestNotPermitted.createRequestNotPermitted(rateLimiter)).onErrorResume(Mono::error);
@@ -119,7 +119,7 @@ public final class Resilience4JPluginTest {
         data.setSelectorId("SHENYU");
         data.setId("SHENYU");
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
-        Resilience4jRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
+        Resilience4JHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
         CombinedExecutor combinedExecutor = new CombinedExecutor();
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(CallNotPermittedException.createCallNotPermittedException(circuitBreaker)).onErrorResume(throwable -> {
@@ -132,7 +132,7 @@ public final class Resilience4JPluginTest {
         when(chain.execute(exchange)).thenReturn(mono);
         when(data.getSelectorId()).thenReturn("circuitBreaker");
         when(data.getName()).thenReturn("ruleData");
-        Resilience4jRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
+        Resilience4JHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectSubscription()

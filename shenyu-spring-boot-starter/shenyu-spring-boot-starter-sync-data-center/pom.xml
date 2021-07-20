@@ -34,6 +34,7 @@
         <module>shenyu-spring-boot-starter-sync-data-http</module>
         <module>shenyu-spring-boot-starter-sync-data-nacos</module>
         <module>shenyu-spring-boot-starter-sync-data-etcd</module>
+        <module>shenyu-spring-boot-starter-sync-data-consul</module>
     </modules>
 
 

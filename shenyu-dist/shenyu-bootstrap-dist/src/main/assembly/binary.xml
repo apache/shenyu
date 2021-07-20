@@ -19,20 +19,29 @@
     xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>shenyu-bootstrap-bin</id>
+    <id>bootstrap-bin</id>
     <formats>
         <format>tar.gz</format>
     </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <baseDirectory>${project.build.finalName}-bootstrap-bin</baseDirectory>
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/../../shenyu-bootstrap/src/main/resources</directory>
+            <directory>src/main/resources</directory>
+            <lineEnding>unix</lineEnding>
+            <includes>
+                <include>*.xml</include>
+            </includes>
             <outputDirectory>conf</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-bootstrap/src/main/resources</directory>
             <includes>
                 <include>*.yml</include>
             </includes>
+            <outputDirectory>conf</outputDirectory>
         </fileSet>
-
         <fileSet>
             <directory>src/main/resources/bin</directory>
             <lineEnding>unix</lineEnding>
@@ -51,14 +60,17 @@
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
         </fileSet>
+        <fileSet>
+            <directory>src/main/release-docs</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
-            <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-            <includes>
-                <include>org.apache.shenyu:shenyu-bootstrap</include>
-            </includes>
             <fileMode>0644</fileMode>
         </dependencySet>
     </dependencySets>

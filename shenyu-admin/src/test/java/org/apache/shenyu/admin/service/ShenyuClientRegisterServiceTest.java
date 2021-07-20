@@ -37,7 +37,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.h2.engine.Role;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -220,7 +219,7 @@ public final class ShenyuClientRegisterServiceTest {
         final PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setEnabled(true);
         pluginDTO.setConfig("test-config");
-        pluginDTO.setRole(Role.USER);
+        pluginDTO.setRole("1");
         pluginDTO.setName("test-name");
         return pluginDTO;
     }

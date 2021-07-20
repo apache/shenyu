@@ -26,6 +26,19 @@ spring:
 #    nacos:
 #       discovery:
 #          server-addr: 127.0.0.1:8848
+#   security:
+#      oauth2:
+#        client:
+#          registration:
+#            <your client-registration-id>:
+#              client-id: <your client-id>
+#              client-secret: <your client-secret>
+#          provider:
+#            <your client-registration-id>:
+#              authorization-uri: <your authorization-uri>
+#              token-uri: <your access-token-uri>
+#              user-info-uri: <your user-info-uri>
+#              jwk-set-uri: <your jwk-set-uri>
 
 management:
   health:
@@ -61,6 +74,10 @@ shenyu:
 #            secretKey:
 #       etcd:
 #         url: http://localhost:2379
+#      consul:
+#        url: http://localhost:8500
+#        waitTime: 1000
+#        watchDelay: 1000
     exclude:
       enabled: false
       paths:

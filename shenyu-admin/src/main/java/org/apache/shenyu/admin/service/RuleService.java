@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.RuleDTO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.vo.RuleVO;
@@ -33,10 +34,12 @@ public interface RuleService {
     /**
      * Register string.
      *
-     * @param ruleDTO the rule dto
+     * @param ruleDTO        the rule dto
+     * @param name           the rule's name
+     * @param metaDataIsNull meta data is null or not
      * @return the string
      */
-    String register(RuleDTO ruleDTO);
+    String register(RuleDTO ruleDTO, String name, boolean metaDataIsNull);
 
     /**
      * create or update rule.
@@ -85,4 +88,11 @@ public interface RuleService {
      */
     List<RuleData> findBySelectorId(String selectorId);
 
+    /**
+     * Find rule by name.
+     *
+     * @param name rule's name.
+     * @return {@link RuleDO}
+     */
+    RuleDO findByName(String name);
 }
