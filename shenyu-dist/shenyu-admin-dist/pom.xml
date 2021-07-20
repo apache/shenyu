@@ -86,7 +86,6 @@
                                 <descriptor>${project.basedir}/src/main/assembly/binary.xml</descriptor>
                             </descriptors>
                             <tarLongFileMode>posix</tarLongFileMode>
-                            <attach>false</attach>
                         </configuration>
                     </plugin>
                 </plugins>
