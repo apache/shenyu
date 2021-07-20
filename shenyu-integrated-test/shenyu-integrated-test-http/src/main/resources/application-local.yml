@@ -60,9 +60,10 @@ shenyu:
   #            accessKey:
   #            secretKey:
   exclude:
-    enabled: false
+    enabled: true
     paths:
       - /favicon.ico
+      - /actuator/health
 
 #eureka:
 #  client:

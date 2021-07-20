@@ -23,10 +23,11 @@ import org.apache.shenyu.integratedtest.http.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.http.dto.UserDTO;
 import org.apache.shenyu.integratedtest.http.helper.HttpHelper;
 import org.junit.Test;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
-import java.util.concurrent.Future;
+
 import static org.junit.Assert.assertEquals;
 
 public class SignTest extends AbstractTest {
@@ -39,55 +40,61 @@ public class SignTest extends AbstractTest {
         final String testUrlPath = "/http/test/path/456?name=Lee";
         final String version = "1.0.0";
         String now = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli());
-        Map<String, Object> normalHeaders = buildHeadrsMap(now, path, appKey, appSecret, version);
-        UserDTO normalRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,normalHeaders,
+        Map<String, Object> normalHeaders = buildHeadersMap(now, path, appKey, appSecret, version);
+        UserDTO normalRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath, normalHeaders,
                 UserDTO.class);
         assertEquals("hello world", normalRespFuture.getUserName());
 
-        Map<String, Object> errorPathHeaders = buildHeadrsMap(now, "errorPath", appKey, appSecret, version);
-        AdminResponse<Object> rejectedErrorPathRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorPathHeaders,
+        Map<String, Object> errorPathHeaders = buildHeadersMap(now, "errorPath", appKey, appSecret, version);
+        AdminResponse<Object> rejectedErrorPathRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorPathHeaders,
                 new TypeToken<AdminResponse<Object>>() {
                 }.getType());
-        assertEquals("signature value is error!",rejectedErrorPathRespFuture.getMessage());
+        assertEquals("signature value is error!", rejectedErrorPathRespFuture.getMessage());
 
-        Map<String, Object> errorAppKeyHeaders = buildHeadrsMap(now, path, "ERRORKEY", appSecret, version);
-        AdminResponse<Object> rejectedErrorAKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorAppKeyHeaders,
+        Map<String, Object> errorAppKeyHeaders = buildHeadersMap(now, path, "ERRORKEY", appSecret, version);
+        AdminResponse<Object> rejectedErrorAKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorAppKeyHeaders,
                 new TypeToken<AdminResponse<Object>>() {
                 }.getType());
-        assertEquals("sign appKey does not exist.",rejectedErrorAKRespFuture.getMessage());
+        assertEquals("sign appKey does not exist.", rejectedErrorAKRespFuture.getMessage());
 
-        Map<String, Object> errorAppSecretHeaders = buildHeadrsMap(now, path, appKey, "ERRORSECRET", version);
-        AdminResponse<Object> rejectedErrorSKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorAppSecretHeaders,
+        Map<String, Object> errorAppSecretHeaders = buildHeadersMap(now, path, appKey, "ERRORSECRET", version);
+        AdminResponse<Object> rejectedErrorSKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorAppSecretHeaders,
                 new TypeToken<AdminResponse<Object>>() {
                 }.getType());
-        assertEquals("signature value is error!",rejectedErrorSKRespFuture.getMessage());
+        assertEquals("signature value is error!", rejectedErrorSKRespFuture.getMessage());
 
-        Map<String, Object> errorVersionHeaders = buildHeadrsMap(now, path, appKey, appSecret, "1.0.2");
-        AdminResponse<Object> rejectedErrorVersionRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorVersionHeaders,
+        Map<String, Object> errorVersionHeaders = buildHeadersMap(now, path, appKey, appSecret, "1.0.2");
+        AdminResponse<Object> rejectedErrorVersionRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorVersionHeaders,
                 new TypeToken<AdminResponse<Object>>() {
                 }.getType());
-        assertEquals("signature value is error!",rejectedErrorVersionRespFuture.getMessage());
+        assertEquals("signature value is error!", rejectedErrorVersionRespFuture.getMessage());
 
-        String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli()-360000);
-        Map<String, Object> errorTimestampHeaders = buildHeadrsMap(errorTime, path, appKey, appSecret, version);
-        AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,errorTimestampHeaders,
+        String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli() - 360000);
+        Map<String, Object> errorTimestampHeaders = buildHeadersMap(errorTime, path, appKey, appSecret, version);
+        AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorTimestampHeaders,
                 new TypeToken<AdminResponse<Object>>() {
                 }.getType());
-        assertEquals("The signature timestamp has exceeded 5 minutes!",rejectedErrorTimestampRespFuture.getMessage());
+        assertEquals("The signature timestamp has exceeded 5 minutes!", rejectedErrorTimestampRespFuture.getMessage());
     }
 
-    private Map<String, Object> buildHeadrsMap(final String timestamp,final String path,final String appKey,final String appSecret,final String version) {
+    private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
+                                                final String appSecret, final String version) {
         Map<String, String> params = Maps.newHashMapWithExpectedSize(3);
-        params.put("timestamp",timestamp);
+        params.put("timestamp", timestamp);
         params.put("path", path);
         params.put("version", version);
         String sign = SignUtils.generateSign(appSecret, params);
 
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
-        headers.put("timestamp",timestamp);
-        headers.put("appKey",appKey);
-        headers.put("sign",sign);
-        headers.put("version",version);
+        headers.put("timestamp", timestamp);
+        headers.put("appKey", appKey);
+        headers.put("sign", sign);
+        headers.put("version", version);
         return headers;
     }
 }

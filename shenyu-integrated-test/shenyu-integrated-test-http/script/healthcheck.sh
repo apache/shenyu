@@ -32,4 +32,5 @@ do
     done
 done
 
+sleep 3
 echo -e "\n-------------------"

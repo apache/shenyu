@@ -16,4 +16,4 @@
 
 http://localhost:9095/actuator/health
 http://localhost:8189/test/path/123?name=tom
-http://localhost:9195/http/test/path/123?name=Tom
+http://localhost:9195/actuator/health

@@ -52,8 +52,6 @@ jobs:
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-      - uses: codecov/codecov-action@v1
-        if: env.SKIP_CI != 'true'
       - name: Build examples
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-http/pom.xml
@@ -66,6 +64,9 @@ jobs:
       - name: Wait for docker compose start up completely
         if: env.SKIP_CI != 'true'
         run: bash ./shenyu-integrated-test/shenyu-integrated-test-http/script/healthcheck.sh
+      - name: Debug log
+        if: env.SKIP_CI != 'true'
+        run: cd ./shenyu-integrated-test/shenyu-integrated-test-http; docker-compose logs -t --tail="all" && cd ../../; cd ../../
       - name: Run test
         if: env.SKIP_CI != 'true'
         run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
