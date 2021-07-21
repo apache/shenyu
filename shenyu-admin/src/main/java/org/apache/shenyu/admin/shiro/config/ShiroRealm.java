@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.shiro.config;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -85,8 +84,7 @@ public class ShiroRealm extends AuthorizingRealm {
             throw new AuthenticationException(String.format("userName(%s) can not be found.", userName));
         }
 
-        DecodedJWT decodedJWT = JwtUtils.verifyToken(token, dashboardUserVO.getPassword());
-        if (decodedJWT == null) {
+        if (!JwtUtils.verifyToken(token, dashboardUserVO.getPassword())) {
             throw new AuthenticationException("token is error.");
         }
 

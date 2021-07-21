@@ -94,14 +94,14 @@ public final class JwtUtils {
         return StringUtils.EMPTY_STRING;
     }
 
-    public static DecodedJWT verifyToken(final String token, final String key) {
-        DecodedJWT jwt = null;
+    public static boolean verifyToken(final String token, final String key) {
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(key)).build();
-            jwt = verifier.verify(token);
+            verifier.verify(token);
+            return true;
         } catch (JWTVerificationException e) {
             log.info("jwt decode fail, token: {} ", token, e);
         }
-        return jwt;
+        return false;
     }
 }
