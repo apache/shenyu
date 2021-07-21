@@ -38,8 +38,8 @@ public class JwtPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
-        String secretKey = Optional.of(configMap.get(Constants.SECRET_KEY)).orElse("");
-        String filterPath = Optional.of(configMap.get(Constants.FILTER_PATH)).orElse("");
+        String secretKey = Optional.ofNullable(configMap.get(Constants.SECRET_KEY)).orElse("");
+        String filterPath = Optional.ofNullable(configMap.get(Constants.FILTER_PATH)).orElse("");
         JwtConfig jwtConfig = new JwtConfig();
         jwtConfig.setSecretKey(secretKey);
         jwtConfig.setFilterPath(Arrays.asList(StringUtils.split(filterPath, ",")));
