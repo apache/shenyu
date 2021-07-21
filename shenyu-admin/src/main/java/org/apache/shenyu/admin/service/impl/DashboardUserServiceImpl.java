@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
@@ -42,6 +43,7 @@ import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.utils.AesUtils;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.ldap.NameNotFoundException;
@@ -78,6 +80,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     @Nullable
     private final LdapTemplate ldapTemplate;
+
+    private final JwtProperties jwtProperties;
 
     /**
      * create or update dashboard user.
@@ -193,7 +197,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (Objects.isNull(dashboardUserVO)) {
             dashboardUserVO = loginByDatabase(userName, password);
         }
-        return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
+        return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO)
+                .setToken(JwtUtils.generateToken(dashboardUserVO.getUserName(), dashboardUserVO.getPassword(),
+                        jwtProperties.getExpiredSeconds()));
     }
 
     private DashboardUserVO loginByLdap(final String userName, final String password) {
