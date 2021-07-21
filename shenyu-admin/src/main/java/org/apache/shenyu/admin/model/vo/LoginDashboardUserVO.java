@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.vo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.shenyu.admin.utils.JwtUtils;
+import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Optional;
@@ -28,6 +28,7 @@ import java.util.Optional;
 /**
  * login dashboard return user info's vo.
  */
+@Accessors(chain = true)
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -51,7 +52,6 @@ public class LoginDashboardUserVO extends DashboardUserVO {
                 .map(item -> {
                     LoginDashboardUserVO vo = new LoginDashboardUserVO();
                     BeanUtils.copyProperties(item, vo);
-                    vo.setToken(JwtUtils.generateToken(vo.getUserName()));
                     return vo;
                 }).orElse(null);
     }

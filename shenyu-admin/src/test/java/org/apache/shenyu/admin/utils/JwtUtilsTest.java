@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,11 +35,15 @@ public class JwtUtilsTest {
 
     public static final String TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ1c2VyTmFtZSIsImlhdCI6MTYxMTU5MDUwOH0.yAuGpmg1DSYNryZQQA6d66HO87E8eWAFLJVhYscx8K8";
 
+    private static final Long EXPIRED_SECONDS = 86400L;
+
+    private static final String KEY = "jwt-token";
+
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         JwtProperties jwtProperties = mock(JwtProperties.class);
-        when(jwtProperties.getKey()).thenReturn("jwt-key");
+        when(jwtProperties.getExpiredSeconds()).thenReturn(EXPIRED_SECONDS);
         when(context.getBean(JwtProperties.class)).thenReturn(jwtProperties);
         SpringBeanUtils.getInstance().setCfgContext(context);
     }
@@ -52,9 +55,8 @@ public class JwtUtilsTest {
 
     @Test
     public void testGenerateToken() {
-        String token = JwtUtils.generateToken("userName");
+        String token = JwtUtils.generateToken("userName", KEY);
         assertThat(token, notNullValue());
-        assertNull(JwtUtils.getIssuerDate(token));
         assertThat(JwtUtils.getIssuer(token), is("userName"));
     }
 }

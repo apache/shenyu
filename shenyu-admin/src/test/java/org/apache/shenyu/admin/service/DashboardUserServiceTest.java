@@ -19,24 +19,22 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
-import org.apache.shenyu.admin.mapper.DataPermissionMapper;
-import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
-import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
+import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
+import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
+import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
-import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
+import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
@@ -49,7 +47,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -83,6 +80,9 @@ public final class DashboardUserServiceTest {
 
     @Mock
     private SecretProperties secretProperties;
+
+    @Mock
+    private JwtProperties jwtProperties;
 
     @Test
     public void testCreateOrUpdate() {
@@ -161,13 +161,8 @@ public final class DashboardUserServiceTest {
 
     @Test
     public void testLogin() {
-        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
-        JwtProperties jwtProperties = mock(JwtProperties.class);
-        when(jwtProperties.getKey()).thenReturn("test");
-        when(context.getBean(JwtProperties.class)).thenReturn(jwtProperties);
-
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
+        ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
         String key = "2095132720951327";
         String iv = "6075877187097700";
