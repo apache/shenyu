@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.health;
+package org.apache.shenyu.common.healthcheck;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

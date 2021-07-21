@@ -25,7 +25,7 @@ import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.divide.health.HealthCheckManager;
+import org.apache.shenyu.common.healthcheck.HealthCheckManager;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 
 import java.util.List;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.health;
+package org.apache.shenyu.common.healthcheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -90,7 +90,7 @@ public final class HealthCheckManager {
     }
 
     private void initHealthCheck() {
-        checkEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.enable", "true"));
+        checkEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.enable", "false"));
         checkTimeout = Integer.parseInt(System.getProperty("shenyu.upstream.check.timeout", "3000"));
         checkInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.interval", "5000"));
         healthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.healthy-threshold", "1"));
