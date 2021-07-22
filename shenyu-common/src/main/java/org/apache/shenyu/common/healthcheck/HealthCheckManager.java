@@ -227,17 +227,21 @@ public final class HealthCheckManager {
     public void triggerAddOne(final SelectorData selectorData, final DivideUpstream upstream) {
         SELECTOR_CACHE.putIfAbsent(selectorData.getId(), selectorData);
 
-        // check immediately
-        log.info("[Health Check] Selector [{}] new incoming upstream: {}, check immediately.",
-                selectorData.getName(), upstream.getUpstreamUrl());
-
-        UpstreamWithSelectorId entity = check(selectorData.getId(), upstream);
-        if (!entity.getDivideUpstream().isHealthy()) {
-            log.info("[Health Check] Selector [{}] upstream {} health check failed, server is offline.",
+        if (checkEnable) {
+            // check immediately
+            log.info("[Health Check] Selector [{}] new incoming upstream: {}, check immediately.",
                     selectorData.getName(), upstream.getUpstreamUrl());
-        }
 
-        putEntityToMap(entity);
+            UpstreamWithSelectorId entity = check(selectorData.getId(), upstream);
+            if (!entity.getDivideUpstream().isHealthy()) {
+                log.info("[Health Check] Selector [{}] upstream {} health check failed, server is offline.",
+                        selectorData.getName(), upstream.getUpstreamUrl());
+            }
+
+            putEntityToMap(entity);
+        } else {
+            putToMap(HEALTHY_UPSTREAM, selectorData.getId(), upstream);
+        }
     }
 
     /**
