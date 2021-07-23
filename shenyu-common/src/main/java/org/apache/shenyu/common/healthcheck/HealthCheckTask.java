@@ -56,9 +56,9 @@ public final class HealthCheckTask implements Runnable {
 
     private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
 
-    private final ExecutorService executor;
-
     private final int checkInterval;
+
+    private ExecutorService executor;
 
     private int checkTimeout = 3000;
 
@@ -68,7 +68,12 @@ public final class HealthCheckTask implements Runnable {
 
     public HealthCheckTask(final int checkInterval) {
         this.checkInterval = checkInterval;
+    }
 
+    /**
+     * Schedule health check task.
+     */
+    public void schedule() {
         // executor for health check
         ThreadFactory healthCheckFactory = ShenyuThreadFactory.create("upstream-health-check", true);
         new ScheduledThreadPoolExecutor(1, healthCheckFactory)
@@ -215,18 +220,7 @@ public final class HealthCheckTask implements Runnable {
      */
     public void triggerAddOne(final SelectorData selectorData, final DivideUpstream upstream) {
         selectorCache.putIfAbsent(selectorData.getId(), selectorData);
-
-        // check immediately
-        log.info("[Health Check] Selector [{}] new incoming upstream: {}, check immediately.",
-                selectorData.getName(), upstream.getUpstreamUrl());
-
-        UpstreamWithSelectorId entity = check(selectorData.getId(), upstream);
-        if (!entity.getDivideUpstream().isHealthy()) {
-            log.info("[Health Check] Selector [{}] upstream {} health check failed, server is offline.",
-                    selectorData.getName(), upstream.getUpstreamUrl());
-        }
-
-        putEntityToMap(entity);
+        putToMap(healthyUpstream, selectorData.getId(), upstream);
     }
 
     /**

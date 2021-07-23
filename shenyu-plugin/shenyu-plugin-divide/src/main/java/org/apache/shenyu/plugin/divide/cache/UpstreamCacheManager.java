@@ -50,14 +50,6 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
     // health check parameters
     private Boolean checkEnable;
 
-    private Integer checkTimeout;
-
-    private Integer checkInterval;
-
-    private Integer healthyThreshold;
-
-    private Integer unhealthyThreshold;
-
     // healthy upstream print parameters
     private Boolean printEnable;
 
@@ -69,10 +61,15 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
 
     private void initHealthCheck() {
         checkEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.enable", "false"));
-        checkTimeout = Integer.parseInt(System.getProperty("shenyu.upstream.check.timeout", "3000"));
-        checkInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.interval", "5000"));
-        healthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.healthy-threshold", "1"));
-        unhealthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.unhealthy-threshold", "1"));
+        int checkTimeout = Integer.parseInt(System.getProperty("shenyu.upstream.check.timeout", "3000"));
+        int checkInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.interval", "5000"));
+        int healthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.healthy-threshold", "1"));
+        int unhealthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.unhealthy-threshold", "1"));
+
+        task = new HealthCheckTask(checkInterval);
+        task.setCheckTimeout(checkTimeout);
+        task.setHealthyThreshold(healthyThreshold);
+        task.setUnhealthyThreshold(unhealthyThreshold);
 
         printEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.print.enable", "true"));
         printInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.print.interval", "60000"));
@@ -82,10 +79,7 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
 
     private void scheduleHealthCheck() {
         if (checkEnable) {
-            task = new HealthCheckTask(checkInterval);
-            task.setCheckTimeout(checkTimeout);
-            task.setHealthyThreshold(healthyThreshold);
-            task.setUnhealthyThreshold(unhealthyThreshold);
+            task.schedule();
 
             // executor for log print
             if (printEnable) {
