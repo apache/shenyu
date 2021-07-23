@@ -50,6 +50,14 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
     // health check parameters
     private Boolean checkEnable;
 
+    private int checkTimeout;
+
+    private int checkInterval;
+
+    private int healthyThreshold;
+
+    private int unhealthyThreshold;
+
     // healthy upstream print parameters
     private Boolean printEnable;
 
@@ -61,20 +69,22 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
 
     private void initHealthCheck() {
         checkEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.enable", "false"));
-        int checkTimeout = Integer.parseInt(System.getProperty("shenyu.upstream.check.timeout", "3000"));
-        int checkInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.interval", "5000"));
-        int healthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.healthy-threshold", "1"));
-        int unhealthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.unhealthy-threshold", "1"));
+        checkTimeout = Integer.parseInt(System.getProperty("shenyu.upstream.check.timeout", "3000"));
+        healthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.healthy-threshold", "1"));
+        unhealthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.unhealthy-threshold", "1"));
+        checkInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.interval", "5000"));
 
+        createTask();
+        printEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.print.enable", "true"));
+        printInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.print.interval", "60000"));
+        scheduleHealthCheck();
+    }
+
+    private void createTask() {
         task = new HealthCheckTask(checkInterval);
         task.setCheckTimeout(checkTimeout);
         task.setHealthyThreshold(healthyThreshold);
         task.setUnhealthyThreshold(unhealthyThreshold);
-
-        printEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.print.enable", "true"));
-        printInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.print.interval", "60000"));
-
-        scheduleHealthCheck();
     }
 
     private void scheduleHealthCheck() {
