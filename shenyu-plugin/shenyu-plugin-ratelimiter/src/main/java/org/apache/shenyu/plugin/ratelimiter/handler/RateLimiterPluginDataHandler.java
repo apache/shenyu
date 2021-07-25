@@ -58,7 +58,7 @@ import java.util.function.Supplier;
  */
 public class RateLimiterPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, RateLimiterHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+    public static final Supplier<RuleHandleCache<String, RateLimiterHandle>> CACHED_HANDLE = new BeanHolder(RuleHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
