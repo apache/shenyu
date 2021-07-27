@@ -165,7 +165,11 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
     }
 
     private void refreshURIService(final RpcTypeEnum rpcType, final String serviceName) {
-        for (String contextPath: uriServiceCache.get(serviceName)) {
+        ConcurrentSkipListSet<String> services = uriServiceCache.get(serviceName);
+        if (services == null) {
+            return;
+        }
+        for (String contextPath : services) {
             registerURI(contextPath, serviceName, rpcType);
         }
     }
