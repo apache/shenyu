@@ -72,9 +72,7 @@ public interface Operator {
             });
         }
         if (!CollectionUtils.isEmpty(paramMappingHandle.getRemoveParameterKeys())) {
-            paramMappingHandle.getRemoveParameterKeys().forEach(info -> {
-                context.delete(info);
-            });
+            paramMappingHandle.getRemoveParameterKeys().forEach(context::delete);
         }
         return context.jsonString();
     }

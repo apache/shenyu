@@ -71,7 +71,7 @@ public class MotanProxyService {
         }
         ResponseFuture responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(),
                 params, Object.class);
-        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> responseFuture.getValue());
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(responseFuture::getValue);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.MOTAN_RPC_RESULT_EMPTY;

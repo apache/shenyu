@@ -119,7 +119,7 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
         });
 
         if (RPC_URI_TYPE_SET.contains(rpcType)) {
-            services.values().forEach(uriRegisterDTOList -> publishRegisterURI(uriRegisterDTOList));
+            services.values().forEach(this::publishRegisterURI);
         }
 
         log.info("subscribe uri : {}", serviceName);

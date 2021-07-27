@@ -64,8 +64,7 @@ public class ShenyuServiceInstance {
      * @return String status
      */
     public String getStatus() {
-        final String status = metadata.get("status");
-        return status;
+        return metadata.get("status");
     }
 
     /**
