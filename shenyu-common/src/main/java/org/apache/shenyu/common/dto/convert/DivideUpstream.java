@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -29,6 +30,7 @@ import java.io.Serializable;
 @Data
 @ToString
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class DivideUpstream implements Serializable {
 
     private static final long serialVersionUID = 6252280511262542360L;
@@ -36,16 +38,19 @@ public class DivideUpstream implements Serializable {
     /**
      * host.
      */
+    @EqualsAndHashCode.Include
     private String upstreamHost;
 
     /**
      * this is http protocol.
      */
+    @EqualsAndHashCode.Include
     private String protocol;
 
     /**
      * url.
      */
+    @EqualsAndHashCode.Include
     private String upstreamUrl;
 
     /**
@@ -60,7 +65,7 @@ public class DivideUpstream implements Serializable {
     private boolean status = true;
 
     /**
-     * starup time.
+     * startup time.
      */
     private long timestamp;
 
@@ -69,4 +74,11 @@ public class DivideUpstream implements Serializable {
      */
     private int warmup;
 
+    // health parameters
+
+    private boolean healthy;
+
+    private long lastHealthTimestamp;
+
+    private long lastUnhealthyTimestamp;
 }
