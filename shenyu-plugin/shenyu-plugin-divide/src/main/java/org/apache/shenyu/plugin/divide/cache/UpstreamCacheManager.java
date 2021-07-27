@@ -24,13 +24,15 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.healthcheck.HealthCheckTask;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,17 +45,58 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
-    private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP_TEMP = Maps.newConcurrentMap();
+    private HealthCheckTask task;
 
-    /**
-     * suggest shenyu.upstream.scheduledTime set 1 SECONDS.
-     */
+    // health check parameters
+    private Boolean checkEnable;
+
+    private int checkTimeout;
+
+    private int checkInterval;
+
+    private int healthyThreshold;
+
+    private int unhealthyThreshold;
+
+    // healthy upstream print parameters
+    private Boolean printEnable;
+
+    private Integer printInterval;
+
     private UpstreamCacheManager() {
-        boolean check = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check", "false"));
-        if (check) {
-            new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled,
-                            30, Integer.parseInt(System.getProperty("shenyu.upstream.scheduledTime", "30")), TimeUnit.SECONDS);
+        initHealthCheck();
+    }
+
+    private void initHealthCheck() {
+        checkEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.enable", "false"));
+        checkTimeout = Integer.parseInt(System.getProperty("shenyu.upstream.check.timeout", "3000"));
+        healthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.healthy-threshold", "1"));
+        unhealthyThreshold = Integer.parseInt(System.getProperty("shenyu.upstream.check.unhealthy-threshold", "1"));
+        checkInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.interval", "5000"));
+
+        createTask();
+        printEnable = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check.print.enable", "true"));
+        printInterval = Integer.parseInt(System.getProperty("shenyu.upstream.check.print.interval", "60000"));
+        scheduleHealthCheck();
+    }
+
+    private void createTask() {
+        task = new HealthCheckTask(checkInterval);
+        task.setCheckTimeout(checkTimeout);
+        task.setHealthyThreshold(healthyThreshold);
+        task.setUnhealthyThreshold(unhealthyThreshold);
+    }
+
+    private void scheduleHealthCheck() {
+        if (checkEnable) {
+            task.schedule();
+
+            // executor for log print
+            if (printEnable) {
+                ThreadFactory printFactory = ShenyuThreadFactory.create("upstream-health-print", true);
+                new ScheduledThreadPoolExecutor(1, printFactory)
+                        .scheduleWithFixedDelay(task::printHealthyUpstream, printInterval, printInterval, TimeUnit.MILLISECONDS);
+            }
         }
     }
 
@@ -73,7 +116,7 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
      * @return the list
      */
     public List<DivideUpstream> findUpstreamListBySelectorId(final String selectorId) {
-        return UPSTREAM_MAP_TEMP.get(selectorId);
+        return task.getHealthyUpstream().get(selectorId);
     }
 
     /**
@@ -82,7 +125,8 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
      * @param key the key
      */
     public void removeByKey(final String key) {
-        UPSTREAM_MAP_TEMP.remove(key);
+        UPSTREAM_MAP.remove(key);
+        task.triggerRemoveAll(key);
     }
 
     /**
@@ -92,44 +136,28 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
      */
     public void submit(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
-        if (null != upstreamList && upstreamList.size() > 0) {
+        if (CollectionUtils.isNotEmpty(upstreamList)) {
+            List<DivideUpstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorData.getId(), k -> Lists.newArrayList());
+
+            // check upstream delete
+            for (DivideUpstream upstream : existUpstream) {
+                if (!upstreamList.contains(upstream)) {
+                    task.triggerRemoveOne(selectorData, upstream);
+                }
+            }
+
+            // check upstream add
+            for (DivideUpstream upstream : upstreamList) {
+                if (!existUpstream.contains(upstream)) {
+                    task.triggerAddOne(selectorData, upstream);
+                }
+            }
+
+            // replace upstream
             UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
-            UPSTREAM_MAP_TEMP.put(selectorData.getId(), upstreamList);
         } else {
             UPSTREAM_MAP.remove(selectorData.getId());
-            UPSTREAM_MAP_TEMP.remove(selectorData.getId());
+            task.triggerRemoveAll(selectorData);
         }
-    }
-
-    private void scheduled() {
-        if (UPSTREAM_MAP.size() > 0) {
-            UPSTREAM_MAP.forEach((k, v) -> {
-                List<DivideUpstream> result = check(v);
-                if (result.size() > 0) {
-                    UPSTREAM_MAP_TEMP.put(k, result);
-                } else {
-                    UPSTREAM_MAP_TEMP.remove(k);
-                }
-            });
-        }
-    }
-
-    private List<DivideUpstream> check(final List<DivideUpstream> upstreamList) {
-        List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
-        for (DivideUpstream divideUpstream : upstreamList) {
-            final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
-            if (pass) {
-                if (!divideUpstream.isStatus()) {
-                    divideUpstream.setTimestamp(System.currentTimeMillis());
-                    divideUpstream.setStatus(true);
-                    log.info("UpstreamCacheManager detect success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
-                }
-                resultList.add(divideUpstream);
-            } else {
-                divideUpstream.setStatus(false);
-                log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
-            }
-        }
-        return resultList;
     }
 }
