@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,21 +34,25 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ZombieUpstream {
 
     /**
      * divide upstream.
      */
+    @EqualsAndHashCode.Include
     private DivideUpstream divideUpstream;
 
     /**
      * total check times.
      */
+    @EqualsAndHashCode.Include
     private int zombieCheckTimes;
 
     /**
      * origin selector name.
      */
+    @EqualsAndHashCode.Include
     private String selectorName;
 
     /**
