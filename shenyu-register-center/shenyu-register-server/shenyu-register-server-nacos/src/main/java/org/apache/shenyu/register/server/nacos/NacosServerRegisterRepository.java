@@ -59,7 +59,7 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private static final List<RpcTypeEnum> RPC_URI_TYPE_SET = RpcTypeEnum.acquireSupportURIs();
 
-    private String defaultGroup = "default_group";
+    private final String defaultGroup = "default_group";
 
     private ConfigService configService;
 
@@ -154,7 +154,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
             }
         });
     }
-
 
     @SuppressWarnings("unchecked")
     private void registerMetadata(final String metadataConfig) {
