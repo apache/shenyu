@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.shenyu.integratedtest.http;
 
 import org.apache.shenyu.integratedtest.http.dto.OrderDTO;
@@ -23,6 +24,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class HelloWorldTest extends AbstractTest {
+
     @Test
     public void testHelloWorld() throws Exception {
         OrderDTO user = new OrderDTO("123", "Tom");

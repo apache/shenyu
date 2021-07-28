@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.integratedtest.http;
 
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,5 +25,10 @@ import java.util.concurrent.Executors;
  * we will do something here. For example, update DB to init the data
  */
 public class AbstractTest {
-    protected static ExecutorService service = Executors.newCachedThreadPool();
+
+    private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
+
+    protected ExecutorService getService() {
+        return SERVICE;
+    }
 }
