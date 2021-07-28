@@ -75,11 +75,11 @@ services:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s
       retries: 30
-#  from http plugin dockerfile
+  # from http plugin dockerfile
   shenyu-integrated-test-http:
     container_name: shenyu-integrated-test-http
     image: apache/shenyu-integrated-test-http:latest
-#    image: apache/shenyu-bootstrap:2.4.0-SNAPSHOT
+    #image: apache/shenyu-bootstrap:2.4.0-SNAPSHOT
     restart: always
     deploy:
       resources:
