@@ -69,13 +69,13 @@ public class UpstreamCheckService {
 
     private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
 
-    private int zombieCheckTimes;
+    private final int zombieCheckTimes;
 
-    private int scheduledTime;
+    private final int scheduledTime;
 
-    private String registerType;
+    private final String registerType;
 
-    private boolean checked;
+    private final boolean checked;
 
     private final SelectorMapper selectorMapper;
 
