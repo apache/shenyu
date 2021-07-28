@@ -38,6 +38,7 @@ import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
 
+import java.util.Optional;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
         });
 
         if (RPC_URI_TYPE_SET.contains(rpcType)) {
-            services.values().forEach(uriRegisterDTOList -> publishRegisterURI(uriRegisterDTOList));
+            services.values().forEach(this::publishRegisterURI);
         }
 
         log.info("subscribe uri : {}", serviceName);
@@ -154,6 +155,8 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
         });
     }
 
+
+    @SuppressWarnings("unchecked")
     private void registerMetadata(final String metadataConfig) {
         List<String> metadataList = GsonUtils.getInstance().fromJson(metadataConfig, List.class);
         metadataList.forEach(this::publishMetadata);
@@ -165,9 +168,7 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
     }
 
     private void refreshURIService(final RpcTypeEnum rpcType, final String serviceName) {
-        for (String contextPath: uriServiceCache.get(serviceName)) {
-            registerURI(contextPath, serviceName, rpcType);
-        }
+        Optional.ofNullable(uriServiceCache.get(serviceName)).ifPresent(services -> services.forEach(contextPath -> registerURI(contextPath, serviceName, rpcType)));
     }
 
     @SneakyThrows
