@@ -25,6 +25,7 @@ jobs:
   build:
     strategy:
       matrix:
+        java: [ 8, 11, 16 ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
@@ -44,10 +45,11 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - uses: actions/setup-java@v1
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
         if: env.SKIP_CI != 'true'
         with:
-          java-version: 8
+          java-version: ${{ matrix.java }}
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install
