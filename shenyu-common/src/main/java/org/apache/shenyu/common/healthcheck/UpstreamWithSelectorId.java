@@ -15,22 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest;
+package org.apache.shenyu.common.healthcheck;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.apache.shenyu.common.dto.convert.DivideUpstream;
 
-/**
- * Hello world.
- */
-@SpringBootApplication
-public class App {
+@Data
+@AllArgsConstructor
+public class UpstreamWithSelectorId {
 
-    /**
-     * main method of App.
-     * @param args args
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(App.class);
-    }
+    private String selectorId;
+
+    private DivideUpstream divideUpstream;
 }

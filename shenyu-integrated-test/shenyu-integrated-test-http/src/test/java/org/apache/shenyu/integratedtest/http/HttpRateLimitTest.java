@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.shenyu.integratedtest.http;
 
 import com.google.gson.reflect.TypeToken;
@@ -30,10 +31,10 @@ public class HttpRateLimitTest extends AbstractTest {
 
     @Test
     public void testSlidingWindow() throws Exception {
-        Future<UserDTO> normalRespFuture = service.submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
+        Future<UserDTO> normalRespFuture = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
         assertEquals("hello world", normalRespFuture.get().getUserName());
 
-        Future<AdminResponse<Object>> rejectedRespFuture = service.submit(() ->
+        Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
                 HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
                 }.getType()));
         AdminResponse<Object> dto = rejectedRespFuture.get();

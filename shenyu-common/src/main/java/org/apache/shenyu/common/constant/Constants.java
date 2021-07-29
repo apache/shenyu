@@ -376,7 +376,7 @@ public interface Constants {
     /**
      * default checked value.
      */
-    String DEFAULT_CHECK_VALUE = "true";
+    String DEFAULT_CHECK_VALUE = "false";
 
     /**
      * zombie check times.

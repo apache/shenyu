@@ -23,7 +23,7 @@
     <artifactId>shenyu-integrated-test</artifactId>
     <groupId>org.apache.shenyu</groupId>
     <version>2.4.0-SNAPSHOT</version>
-   <relativePath>../pom.xml</relativePath>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>shenyu-integrated-test-http</artifactId>
@@ -128,6 +128,14 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <mainClass>org.apache.shenyu.integratedtest.App</mainClass>
           <executable>true</executable>
