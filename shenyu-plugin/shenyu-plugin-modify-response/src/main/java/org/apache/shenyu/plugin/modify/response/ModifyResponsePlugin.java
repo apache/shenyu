@@ -175,14 +175,6 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         private String operation(final String jsonValue, final ModifyResponseRuleHandle handle) {
             DocumentContext context = JsonPath.parse(jsonValue);
             operation(context, handle);
-            if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
-                handle.getReplaceBodyKeys().forEach(info -> {
-                    context.renameKey(info.getPath(), info.getKey(), info.getValue());
-                });
-            }
-            if (!CollectionUtils.isEmpty(handle.getRemoveBodyKeys())) {
-                handle.getRemoveBodyKeys().forEach(context::delete);
-            }
             return context.jsonString();
         }
 
@@ -191,6 +183,14 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 handle.getAddBodyKeys().forEach(info -> {
                     context.put(info.getPath(), info.getKey(), info.getValue());
                 });
+            }
+            if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
+                handle.getReplaceBodyKeys().forEach(info -> {
+                    context.renameKey(info.getPath(), info.getKey(), info.getValue());
+                });
+            }
+            if (!CollectionUtils.isEmpty(handle.getRemoveBodyKeys())) {
+                handle.getRemoveBodyKeys().forEach(context::delete);
             }
         }
 
