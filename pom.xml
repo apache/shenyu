@@ -54,14 +54,14 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <scm>
         <url>https://github.com/apache/incubator-shenyu</url>
         <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-    
+
     <mailingLists>
         <mailingList>
             <name>Apache ShenYu Developer List</name>
@@ -70,7 +70,7 @@
             <unsubscribe>dev-unsubscribe@shenyu.apache.org</unsubscribe>
         </mailingList>
     </mailingLists>
-    
+
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/apache/incubator-shenyu/issues</url>
@@ -81,7 +81,7 @@
         <hutool.version>4.0.8</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jasypt.version>1.9.2</jasypt.version>
-        <lombok.version>1.18.12</lombok.version>
+        <lombok.version>1.18.20</lombok.version>
         <springfox.version>2.6.1</springfox.version>
         <mybatis.starter.version>1.1.1</mybatis.starter.version>
         <mysql.version>5.1.47</mysql.version>
@@ -451,7 +451,7 @@
         </dependency>
 
     </dependencies>
-    
+
     <profiles>
         <profile>
             <id>release</id>
