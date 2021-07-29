@@ -180,14 +180,10 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
         private void operation(final DocumentContext context, final ModifyResponseRuleHandle handle) {
             if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
-                handle.getAddBodyKeys().forEach(info -> {
-                    context.put(info.getPath(), info.getKey(), info.getValue());
-                });
+                handle.getAddBodyKeys().forEach(info -> context.put(info.getPath(), info.getKey(), info.getValue()));
             }
             if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
-                handle.getReplaceBodyKeys().forEach(info -> {
-                    context.renameKey(info.getPath(), info.getKey(), info.getValue());
-                });
+                handle.getReplaceBodyKeys().forEach(info -> context.renameKey(info.getPath(), info.getKey(), info.getValue()));
             }
             if (!CollectionUtils.isEmpty(handle.getRemoveBodyKeys())) {
                 handle.getRemoveBodyKeys().forEach(context::delete);
