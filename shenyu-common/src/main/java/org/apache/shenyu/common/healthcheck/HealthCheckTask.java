@@ -180,8 +180,8 @@ public final class HealthCheckTask implements Runnable {
         return checkStarted.compareAndSet(false, true);
     }
 
-    private void waitFinish()  {
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).thenAccept(__-> futures.clear());
+    private void waitFinish() {
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).thenAccept(__ -> futures.clear());
     }
 
     private void putEntityToMap(final UpstreamWithSelectorId entity) {
