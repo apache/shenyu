@@ -49,7 +49,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 /**
- * Test cases for DataPermissionService
+ * Test cases for DataPermissionService.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class DataPermissionServiceTest {
