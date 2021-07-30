@@ -161,8 +161,7 @@ public final class ApplicationConfigCache {
                 reference.setGroup(dubboParamExtInfo.getGroup());
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
-                final String loadBalance = dubboParamExtInfo.getLoadbalance();
-                reference.setLoadbalance(buildLoadBalanceName(loadBalance));
+                reference.setLoadbalance(dubboParamExtInfo.getLoadbalance());
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
                 reference.setUrl(dubboParamExtInfo.getUrl());
@@ -181,16 +180,6 @@ public final class ApplicationConfigCache {
         }
 
         return reference;
-    }
-
-    private String buildLoadBalanceName(final String loadBalance) {
-        if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
-            return "consistenthash";
-        }
-        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
-            return "roundrobin";
-        }
-        return loadBalance;
     }
 
     /**
