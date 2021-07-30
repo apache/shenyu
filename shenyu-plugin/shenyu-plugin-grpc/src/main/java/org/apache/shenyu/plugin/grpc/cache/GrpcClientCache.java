@@ -56,7 +56,7 @@ public class GrpcClientCache {
      * Get the client.
      *
      * @param contextPath contextPath
-     * @return SoulGrpcClient  oulGrpcClient
+     * @return ShenyuGrpcClient shenyuGrpcClient
      */
     public static ShenyuGrpcClient getGrpcClient(final String contextPath) {
         return CLIENT_CACHE.get(contextPath);

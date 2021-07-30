@@ -41,7 +41,7 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
 
     @Autowired
     private ConsulClient consul;
-    
+
     private final ScheduledThreadPoolExecutor executor;
 
     private final int waitTime;
@@ -53,18 +53,18 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
     private final Map<String, Long> consulIndexes = new HashMap<>();
 
     private final ApplicationEventPublisher publisher;
-    
+
     private ScheduledFuture<?> watchFuture;
-    
+
     public ShenyuConsulConfigWatch(final ShenyuRegisterCenterConfig config, final ApplicationEventPublisher publisher) {
         this.watchDelay = Integer.parseInt(config.getProps().getProperty("delay", "1"));
         this.waitTime = Integer.parseInt(config.getProps().getProperty("wait-time", "55"));
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("consul-config-watch", true));
-        String metadataPath = config.getProps().getProperty("MetadataPath", "soul/register");
+        String metadataPath = config.getProps().getProperty("metadata-path", "shenyu/register");
         consulIndexes.put(metadataPath, 0L);
         this.publisher = publisher;
     }
-    
+
     private void watchConfigKeyValues() {
         if (this.running.get()) {
             for (String context : this.consulIndexes.keySet()) {
