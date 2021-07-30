@@ -34,14 +34,14 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * The type Default soul context builder.
+ * The type Default Shenyu context builder.
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
-    
+
     private final Map<String, ShenyuContextDecorator> decoratorMap;
-    
+
     /**
-     * Instantiates a new Default soul context builder.
+     * Instantiates a new Default shenyu context builder.
      *
      * @param decoratorMap the decorator map
      */
@@ -64,7 +64,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         }
         return decoratorMap.get(rpcType).decorator(buildDefaultContext(request), metaData);
     }
-    
+
     private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
         String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
         String sign = request.getHeaders().getFirst(Constants.SIGN);

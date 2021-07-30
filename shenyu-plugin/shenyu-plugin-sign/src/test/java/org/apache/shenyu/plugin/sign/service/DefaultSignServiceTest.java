@@ -63,7 +63,7 @@ public final class DefaultSignServiceTest {
 
     private ShenyuContext passed;
 
-    @Value("${soul.sign.delay:5}")
+    @Value("${shenyu.sign.delay:5}")
     private int delay;
 
     @Before

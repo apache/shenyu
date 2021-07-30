@@ -79,10 +79,10 @@ public class ApacheDubboClientValidator implements Validator {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public ApacheDubboClientValidator(final URL url) {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
-        String soulValidation = url.getParameter("soulValidation");
+        String shenyuValidation = url.getParameter("shenyuValidation");
         ValidatorFactory factory;
-        if (soulValidation != null && soulValidation.length() > 0) {
-            factory = Validation.byProvider((Class) ReflectUtils.forName(soulValidation)).configure().buildValidatorFactory();
+        if (shenyuValidation != null && shenyuValidation.length() > 0) {
+            factory = Validation.byProvider((Class) ReflectUtils.forName(shenyuValidation)).configure().buildValidatorFactory();
         } else {
             factory = Validation.buildDefaultValidatorFactory();
         }

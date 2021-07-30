@@ -101,7 +101,7 @@ public final class ApplicationConfigCache {
         if (registryConfig == null) {
             registryConfig = new RegistryConfig();
             registryConfig.setProtocol(sofaRegisterConfig.getProtocol());
-            registryConfig.setId("soul_proxy");
+            registryConfig.setId("shenyu_proxy");
             registryConfig.setRegister(false);
             registryConfig.setAddress(sofaRegisterConfig.getRegister());
         }
