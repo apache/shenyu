@@ -81,7 +81,12 @@ public enum ParamTypeEnum {
      * requestMethod param type enum.
      * note:The front-end page needs to be adjusted because the field length is long
      */
-    REQUEST_METHOD("req_method", true);
+    REQUEST_METHOD("req_method", true),
+
+    /**
+     * domain param type enum.
+     */
+    DOMAIN("domain", true);
 
     private final String name;
 
