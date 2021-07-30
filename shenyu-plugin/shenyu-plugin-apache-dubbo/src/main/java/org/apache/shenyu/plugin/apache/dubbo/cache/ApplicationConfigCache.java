@@ -29,7 +29,6 @@ import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 
