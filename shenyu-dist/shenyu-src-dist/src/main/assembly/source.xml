@@ -79,6 +79,8 @@
                 <!-- modules ignore -->
                 <exclude>shenyu-integrated-test/**</exclude>
                 <exclude>shenyu-examples/**</exclude>
+                <exclude>shenyu-admin/src/main/resources/static/*.css</exclude>
+                <exclude>shenyu-admin/src/main/resources/static/*.js</exclude>
             </excludes>
         </fileSet>
     </fileSets>
