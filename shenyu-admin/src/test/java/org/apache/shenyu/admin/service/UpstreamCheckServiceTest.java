@@ -21,11 +21,9 @@ import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
@@ -50,16 +48,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for UpstreamCheckService.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@RunWith(MockitoJUnitRunner.class)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
@@ -123,7 +119,6 @@ public final class UpstreamCheckServiceTest {
         when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
         when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
         when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
-        when(selectorMapper.updateSelective(any(SelectorDO.class))).thenReturn(1);
         when(selectorMapper.selectByName(anyString())).then(invocationOnMock -> {
             Object[] args = invocationOnMock.getArguments();
             if (MOCK_SELECTOR_NAME.equals(args[0])) {
@@ -133,8 +128,6 @@ public final class UpstreamCheckServiceTest {
             }
             return null;
         });
-        when(selectorConditionMapper.selectByQuery(any(SelectorConditionQuery.class))).thenReturn(Collections.emptyList());
-        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
 
         upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig);
     }
