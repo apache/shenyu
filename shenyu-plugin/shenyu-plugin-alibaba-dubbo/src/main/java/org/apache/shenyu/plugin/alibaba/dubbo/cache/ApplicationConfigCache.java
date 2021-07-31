@@ -131,7 +131,7 @@ public final class ApplicationConfigCache {
                 return referenceConfig;
             }
         } catch (ExecutionException e) {
-            log.error("init dubbo ref ex:{}", e.getMessage());
+            log.error("init dubbo ref exception", e);
         }
         return build(metaData);
 
@@ -171,11 +171,11 @@ public final class ApplicationConfigCache {
         try {
             Object obj = reference.get();
             if (obj != null) {
-                log.info("init alibaba dubbo reference success there meteData is :{}", metaData.toString());
+                log.info("init alibaba dubbo reference success there meteData is :{}", metaData);
                 cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
-            log.error("init alibaba dubbo refernce ex:{}", e.getMessage());
+            log.error("init alibaba dubbo refernce exception", e);
         }
 
         return reference;
