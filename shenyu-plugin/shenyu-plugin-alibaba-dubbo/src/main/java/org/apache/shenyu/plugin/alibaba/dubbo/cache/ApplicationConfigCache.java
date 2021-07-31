@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 
@@ -161,8 +160,7 @@ public final class ApplicationConfigCache {
                 reference.setGroup(dubboParamExtInfo.getGroup());
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
-                final String loadBalance = dubboParamExtInfo.getLoadbalance();
-                reference.setLoadbalance(buildLoadBalanceName(loadBalance));
+                reference.setLoadbalance(dubboParamExtInfo.getLoadbalance());
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
                 reference.setUrl(dubboParamExtInfo.getUrl());
@@ -181,16 +179,6 @@ public final class ApplicationConfigCache {
         }
 
         return reference;
-    }
-
-    private String buildLoadBalanceName(final String loadBalance) {
-        if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
-            return "consistenthash";
-        }
-        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
-            return "roundrobin";
-        }
-        return loadBalance;
     }
 
     /**

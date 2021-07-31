@@ -19,6 +19,7 @@ package org.apache.shenyu.common.healthcheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -47,10 +48,12 @@ public final class HealthCheckTask implements Runnable {
 
     private final Map<String, List<DivideUpstream>> unhealthyUpstream = Maps.newConcurrentMap();
 
+    @Getter
     private final Map<String, SelectorData> selectorCache = Maps.newConcurrentMap();
 
     private final Object lock = new Object();
 
+    @Getter
     private final AtomicBoolean checkStarted = new AtomicBoolean(false);
 
     private final List<CompletableFuture<Void>> futures = Lists.newArrayList();
@@ -122,9 +125,9 @@ public final class HealthCheckTask implements Runnable {
             synchronized (lock) {
                 if (tryStartHealthCheck()) {
                     doHealthCheck();
-                    waitFinish();
                 }
             }
+            waitFinish();
         } catch (Exception e) {
             log.error("[Health Check] Meet problem: ", e);
         } finally {
@@ -181,7 +184,7 @@ public final class HealthCheckTask implements Runnable {
     }
 
     private void waitFinish() {
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).thenAccept(__ -> futures.clear());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).thenAccept(__ -> futures.clear()).join();
     }
 
     private void putEntityToMap(final UpstreamWithSelectorId entity) {
