@@ -146,6 +146,7 @@ public final class ApplicationConfigCache {
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
+        reference.setAsync(true);
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
