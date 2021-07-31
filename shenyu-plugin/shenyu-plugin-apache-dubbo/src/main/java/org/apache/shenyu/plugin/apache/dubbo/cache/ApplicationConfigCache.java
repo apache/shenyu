@@ -175,7 +175,7 @@ public final class ApplicationConfigCache {
                 cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
-            log.error("init apache dubbo reference ex:{}", e.getMessage());
+            log.error("init apache dubbo reference exception", e);
         }
         return reference;
     }
