@@ -121,6 +121,7 @@
         <jetcd-core.version>0.5.0</jetcd-core.version>
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
+        <awaitility.version>4.0.3</awaitility.version>
         <nacos-client.version>2.0.0</nacos-client.version>
         <groovy.version>2.5.14</groovy.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
@@ -447,6 +448,12 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
             <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
 
