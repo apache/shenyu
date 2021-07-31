@@ -18,23 +18,29 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.JwtProperties;
+import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
+import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
+import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
+import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
+import org.apache.shenyu.admin.utils.AesUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
@@ -47,7 +53,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,6 +62,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class DashboardUserServiceTest {
+
     public static final String TEST_ID = "testId";
 
     public static final String TEST_USER_NAME = "userName";
@@ -83,6 +89,9 @@ public final class DashboardUserServiceTest {
 
     @Mock
     private JwtProperties jwtProperties;
+
+    @Mock
+    private LdapTemplate ldapTemplate;
 
     @Test
     public void testCreateOrUpdate() {
@@ -168,15 +177,28 @@ public final class DashboardUserServiceTest {
         String iv = "6075877187097700";
         when(secretProperties.getKey()).thenReturn(key, key);
         when(secretProperties.getIv()).thenReturn(iv, iv);
-        when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(null, dashboardUserDO, dashboardUserDO);
+        when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
         given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
+        given(ldapTemplate.authenticate(anyString(), anyString(), anyString())).willReturn(true);
+        given(roleMapper.findByRoleName("default")).willReturn(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null)));
 
+        // test loginByLdap
+        LdapProperties ldapProperties = new LdapProperties();
+        ldapProperties.setBaseDn("test");
+        ReflectionTestUtils.setField(dashboardUserService, "ldapProperties", ldapProperties);
+        ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", ldapTemplate);
+        LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD);
+        assertEquals(TEST_USER_NAME, loginDashboardUserVO.getUserName());
+        assertEquals(AesUtils.aesEncryption(TEST_PASSWORD, secretProperties.getKey(), secretProperties.getIv()), loginDashboardUserVO.getPassword());
+
+        // test loginByDatabase
+        ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
+        verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserMapper).updateSelective(any(DashboardUserDO.class));
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
         verify(dashboardUserMapper, times(2)).findByQuery(eq(TEST_USER_NAME), anyString());
-        verify(dashboardUserMapper, never()).updateSelective(any(DashboardUserDO.class));
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
-        verify(dashboardUserMapper, times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
-        verify(dashboardUserMapper).updateSelective(any(DashboardUserDO.class));
+        verify(dashboardUserMapper, times(2)).updateSelective(any(DashboardUserDO.class));
     }
 
     private DashboardUserDO createDashboardUserDO() {
@@ -188,8 +210,8 @@ public final class DashboardUserServiceTest {
     }
 
     private void assertLoginSuccessful(final DashboardUserDO dashboardUserDO, final DashboardUserVO dashboardUserVO) {
-        assertEquals(dashboardUserVO.getId(), dashboardUserDO.getId());
-        assertEquals(dashboardUserVO.getUserName(), dashboardUserDO.getUserName());
-        assertEquals(dashboardUserVO.getPassword(), dashboardUserDO.getPassword());
+        assertEquals(dashboardUserDO.getId(), dashboardUserVO.getId());
+        assertEquals(dashboardUserDO.getUserName(), dashboardUserVO.getUserName());
+        assertEquals(dashboardUserDO.getPassword(), dashboardUserVO.getPassword());
     }
 }

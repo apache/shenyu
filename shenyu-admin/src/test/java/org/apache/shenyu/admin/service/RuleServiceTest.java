@@ -105,8 +105,8 @@ public final class RuleServiceTest {
     @Test(expected = NullPointerException.class)
     public void testCreateOrUpdate() {
         publishEvent();
-        testCreate();
         testUpdate();
+        testCreate();
     }
 
     @Test
