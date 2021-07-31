@@ -29,31 +29,34 @@ public final class SerializerExceptionTest {
 
     @Test
     public void testAcquireByThrowable() {
-        Throwable throwable = new Throwable("error throwable");
+        String message = "error throwable";
+        Throwable throwable = new Throwable(message);
         SerializerException serializerException = new SerializerException(throwable);
 
         assertTrue(serializerException instanceof SerializerException);
-        assertEquals(serializerException.getCause().getMessage(), "error throwable");
+        assertEquals(serializerException.getCause().getMessage(), message);
         assertEquals(serializerException.getCause(), throwable);
     }
 
     @Test
     public void testAcquireByMessage() {
-        SerializerException serializerException = new SerializerException("error");
+        String message = "error";
+        SerializerException serializerException = new SerializerException(message);
 
         assertTrue(serializerException instanceof SerializerException);
-        assertEquals(serializerException.getMessage(), "error");
+        assertEquals(serializerException.getMessage(), message);
     }
 
     @Test
     public void testAcquireByMessageAndThrowable() {
         String message = "error message";
-        Throwable throwable = new Throwable("error throwable");
+        String throwableMessage = "error throwable";
+        Throwable throwable = new Throwable(throwableMessage);
         SerializerException serializerException = new SerializerException(message, throwable);
 
         assertTrue(serializerException instanceof SerializerException);
-        assertEquals(serializerException.getMessage(), "error message");
-        assertEquals(serializerException.getCause().getMessage(), "error throwable");
+        assertEquals(serializerException.getMessage(), message);
+        assertEquals(serializerException.getCause().getMessage(), throwableMessage);
         assertEquals(serializerException.getCause(), throwable);
     }
 }

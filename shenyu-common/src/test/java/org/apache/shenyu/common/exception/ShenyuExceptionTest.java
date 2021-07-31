@@ -29,31 +29,34 @@ public final class ShenyuExceptionTest {
 
     @Test
     public void testAcquireByThrowable() {
-        Throwable throwable = new Throwable("error throwable");
+        String message = "error throwable";
+        Throwable throwable = new Throwable(message);
         ShenyuException shenyuException = new ShenyuException(throwable);
 
         assertTrue(shenyuException instanceof ShenyuException);
-        assertEquals(shenyuException.getCause().getMessage(), "error throwable");
+        assertEquals(shenyuException.getCause().getMessage(), message);
         assertEquals(shenyuException.getCause(), throwable);
     }
 
     @Test
     public void testAcquireByMessage() {
-        ShenyuException shenyuException = new ShenyuException("error");
+        String message = "error";
+        ShenyuException shenyuException = new ShenyuException(message);
 
         assertTrue(shenyuException instanceof ShenyuException);
-        assertEquals(shenyuException.getMessage(), "error");
+        assertEquals(shenyuException.getMessage(), message);
     }
 
     @Test
     public void testAcquireByMessageAndThrowable() {
         String message = "error message";
-        Throwable throwable = new Throwable("error throwable");
+        String throwableMessage = "error throwable";
+        Throwable throwable = new Throwable(throwableMessage);
         ShenyuException shenyuException = new ShenyuException(message, throwable);
 
         assertTrue(shenyuException instanceof ShenyuException);
-        assertEquals(shenyuException.getMessage(), "error message");
-        assertEquals(shenyuException.getCause().getMessage(), "error throwable");
+        assertEquals(shenyuException.getMessage(), message);
+        assertEquals(shenyuException.getCause().getMessage(), throwableMessage);
         assertEquals(shenyuException.getCause(), throwable);
     }
 }
