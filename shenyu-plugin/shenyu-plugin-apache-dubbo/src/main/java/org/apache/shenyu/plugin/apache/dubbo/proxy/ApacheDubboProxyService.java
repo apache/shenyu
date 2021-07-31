@@ -39,8 +39,6 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import static org.apache.dubbo.rpc.Constants.ASYNC_KEY;
-
 /**
  * dubbo proxy service is  use GenericService.
  */
@@ -95,7 +93,7 @@ public class ApacheDubboProxyService {
         })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));
     }
 
-    private CompletableFuture<Object> invokeAsync(GenericService genericService, String method, String[] parameterTypes, Object[] args) throws GenericException {
+    private CompletableFuture<Object> invokeAsync(final GenericService genericService, final String method, final String[] parameterTypes, final Object[] args) throws GenericException {
         //Compatible with asynchronous calls of lower Dubbo versions
         genericService.$invoke(method, parameterTypes, args);
         Object resultFromFuture = RpcContext.getContext().getFuture();
