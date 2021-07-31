@@ -49,7 +49,7 @@ public class HealthCheckTaskTest {
     public void testRun() {
         // Mock selectorId1~selectorId4 to let it coverage 4 branch of `HealthCheckTask#check` method
         final String selectorId1 = "s1";
-        SelectorData selectorData1= mock(SelectorData.class);
+        SelectorData selectorData1 = mock(SelectorData.class);
         final String selectorId2 = "s2";
         SelectorData selectorData2 = mock(SelectorData.class);
         final String selectorId3 = "s3";
