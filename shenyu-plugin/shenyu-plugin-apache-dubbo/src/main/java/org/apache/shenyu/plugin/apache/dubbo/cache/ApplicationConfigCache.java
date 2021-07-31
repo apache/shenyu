@@ -131,7 +131,7 @@ public final class ApplicationConfigCache {
                 return referenceConfig;
             }
         } catch (ExecutionException e) {
-            log.error("init dubbo ref ex:{}", e.getMessage());
+            log.error("init dubbo ref exception", e.getMessage());
         }
         return build(metaData);
 
