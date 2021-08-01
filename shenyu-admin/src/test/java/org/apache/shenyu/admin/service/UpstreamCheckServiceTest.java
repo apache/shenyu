@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for UpstreamCheckService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
