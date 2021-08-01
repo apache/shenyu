@@ -58,7 +58,7 @@ import static org.mockito.Mockito.mockStatic;
  * add test case for {@link PermissionServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PermissionServiceTest {
+public final class PermissionServiceTest {
 
     @Mock
     private DashboardUserMapper mockDashboardUserMapper;

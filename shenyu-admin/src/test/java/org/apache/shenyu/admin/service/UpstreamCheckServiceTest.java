@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -29,33 +28,36 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.ZombieUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for UpstreamCheckService.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@RunWith(MockitoJUnitRunner.class)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
@@ -65,8 +67,6 @@ public final class UpstreamCheckServiceTest {
     private static final String MOCK_SELECTOR_NAME_OTHER = "mockSelectorNameOther";
 
     private static final String MOCK_PLUGIN_ID = "mockPluginId";
-
-    private volatile int port = -1;
 
     private UpstreamCheckService upstreamCheckService;
 
@@ -95,45 +95,61 @@ public final class UpstreamCheckServiceTest {
         properties.setProperty(Constants.IS_CHECKED, "true");
         shenyuRegisterCenterConfig.setProps(properties);
 
-        //get static variable reference by reflection
+        // get static variable reference by reflection
         upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
         zombieSet = (Set<ZombieUpstream>) ReflectionTestUtils.getField(UpstreamCheckService.class, "ZOMBIE_SET");
 
-        //mock data
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig);
+    }
+
+    @Test
+    public void testScheduled() {
         PluginDO pluginDO = PluginDO.builder()
                 .name(PluginEnum.DIVIDE.getName())
                 .id(MOCK_PLUGIN_ID)
                 .build();
         SelectorDO selectorDOWithUrlError = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
-                .name(MOCK_SELECTOR_NAME)
+                .name("UrlError")
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
                 .build();
         SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
-                .name(MOCK_SELECTOR_NAME_OTHER)
+                .name("UrlReachable")
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
 
-        //stubbing
-        when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
         when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
-        when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
         when(selectorMapper.selectByName(anyString())).then(invocationOnMock -> {
             Object[] args = invocationOnMock.getArguments();
-            if (MOCK_SELECTOR_NAME.equals(args[0])) {
+            if ("UrlError".equals(args[0])) {
                 return selectorDOWithUrlError;
-            } else if (MOCK_SELECTOR_NAME_OTHER.equals(args[0])) {
+            } else if ("UrlReachable".equals(args[0])) {
                 return selectorDOWithUrlReachable;
             }
             return null;
         });
+        try (MockedStatic<UpstreamCheckUtils> mocked = mockStatic(UpstreamCheckUtils.class)) {
+            mocked.when(() -> UpstreamCheckUtils.checkUrl("ReachableUrl"))
+                    .thenReturn(true);
+            mocked.when(() -> UpstreamCheckUtils.checkUrl("ErrorUrl"))
+                    .thenReturn(false);
 
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig);
+            zombieSet.clear();
+            setupZombieSet();
+            upstreamMap.clear();
+            setupUpstreamMap();
+            ReflectionTestUtils.invokeMethod(upstreamCheckService, "scheduled");
+        }
+        assertThat(zombieSet.size(), is(2));
+        assertThat(upstreamMap.size(), is(2));
+        assertTrue(upstreamMap.containsKey("UrlReachable"));
+        assertTrue(upstreamMap.containsKey("UrlReachableAnother"));
     }
 
     @Test
     public void testRemoveByKey() {
+        upstreamMap.put(MOCK_SELECTOR_NAME, Collections.emptyList());
         UpstreamCheckService.removeByKey(MOCK_SELECTOR_NAME);
         Assert.assertFalse(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
     }
@@ -152,7 +168,7 @@ public final class UpstreamCheckServiceTest {
                 .weight(60)
                 .build();
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
-        Assert.assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
+        assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
     }
 
     @Test
@@ -170,67 +186,63 @@ public final class UpstreamCheckServiceTest {
     }
 
     @Test
-    public void testScheduled() {
-        Runnable runnable = () -> {
-            ServerSocket serverSocket;
-            try {
-                serverSocket = new ServerSocket(0);
-                port = serverSocket.getLocalPort();
-                Socket socket = serverSocket.accept();
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        };
-        new Thread(runnable).start();
+    public void testFetchUpstreamData() {
+        PluginDO pluginDO = PluginDO.builder()
+                .name(PluginEnum.DIVIDE.getName())
+                .id(MOCK_PLUGIN_ID)
+                .build();
+        SelectorDO selectorDOWithUrlError = SelectorDO.builder()
+                .pluginId(MOCK_PLUGIN_ID)
+                .name(MOCK_SELECTOR_NAME)
+                .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
+                .build();
+        SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
+                .pluginId(MOCK_PLUGIN_ID)
+                .name(MOCK_SELECTOR_NAME_OTHER)
+                .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
+                .build();
+        when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
+        when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
+        upstreamCheckService.fetchUpstreamData();
+        assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
+        assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
+    }
 
-        while (port == -1) {
-            Thread.yield();
-        }
-
-        // Successfully checked url
+    private void setupZombieSet() {
         final DivideUpstream divideUpstream1 = DivideUpstream.builder()
                 .upstreamHost("127.0.0.1")
-                .upstreamUrl("127.0.0.1:" + port)
+                .upstreamUrl("ReachableUrl")
                 .status(false)
                 .build();
         final DivideUpstream divideUpstream2 = DivideUpstream.builder()
-                .upstreamHost("127.0.0.1")
-                .upstreamUrl("127.0.0.1:" + port)
-                .status(false)
-                .build();
-        final DivideUpstream divideUpstream3 = DivideUpstream.builder()
-                .upstreamHost("failed")
+                .upstreamHost("ErrorUrl")
                 .build();
         ZombieUpstream zombieUpstream1 = ZombieUpstream.builder()
                 .divideUpstream(divideUpstream1)
                 .zombieCheckTimes(5)
-                .selectorName("test1")
+                .selectorName("UrlReachable")
                 .build();
         ZombieUpstream zombieUpstream2 = ZombieUpstream.builder()
-                .divideUpstream(divideUpstream3)
+                .divideUpstream(divideUpstream2)
                 .zombieCheckTimes(5)
-                .selectorName("failedTest")
+                .selectorName("UrlError")
                 .build();
 
         zombieSet.add(zombieUpstream1);
         zombieSet.add(zombieUpstream2);
-        upstreamMap.put("test2", Collections.singletonList(divideUpstream2));
-        ReflectionTestUtils.invokeMethod(upstreamCheckService, "scheduled");
-        Assert.assertFalse(zombieSet.contains(zombieUpstream1));
-        Assert.assertNotNull(upstreamMap.get("test1"));
-        Assert.assertNotNull(upstreamMap.get("test2"));
     }
 
-    @SneakyThrows
-    @Test
-    public void testUpdateHandler() {
-        final DivideUpstream divideUpstream = DivideUpstream.builder()
-                .upstreamHost("localhost")
+    private void setupUpstreamMap() {
+        final DivideUpstream divideUpstream1 = DivideUpstream.builder()
+                .upstreamHost("127.0.0.1")
+                .upstreamUrl("ReachableUrl")
+                .status(false)
                 .build();
-        List<DivideUpstream> upstreamList = Collections.emptyList();
-        List<DivideUpstream> successList = Collections.singletonList(divideUpstream);
-        ReflectionTestUtils.invokeMethod(upstreamCheckService, "updateHandler", "test", upstreamList, successList);
-        ReflectionTestUtils.invokeMethod(upstreamCheckService, "updateHandler", "test", upstreamList, upstreamList);
+        final DivideUpstream divideUpstream2 = DivideUpstream.builder()
+                .upstreamHost("ErrorUrl")
+                .build();
+
+        upstreamMap.put("UrlReachableAnother", Collections.singletonList(divideUpstream1));
+        upstreamMap.put("UrlErrorAnother", Collections.singletonList(divideUpstream2));
     }
 }
