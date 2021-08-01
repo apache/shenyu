@@ -26,20 +26,18 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.service.GenericException;
 import org.apache.dubbo.rpc.service.GenericService;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
+import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-
-import static org.apache.dubbo.rpc.Constants.ASYNC_KEY;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -85,19 +83,7 @@ public class ApacheDubboProxyService {
         } else {
             pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
-        //Compatible with asynchronous calls of lower Dubbo versions
-        RpcContext.getContext().setAttachment(ASYNC_KEY, Boolean.TRUE.toString());
-        Object data = genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
-        if (Objects.isNull(data)) {
-            data = RpcContext.getContext().getFuture();
-        }
-        CompletableFuture<Object> future;
-        if (data instanceof CompletableFuture) {
-            future = (CompletableFuture<Object>) data;
-        } else {
-            future = CompletableFuture.completedFuture(data);
-        }
-        return Mono.fromFuture(future.thenApply(ret -> {
+        return Mono.fromFuture(invokeAsync(genericService, metaData.getMethodName(), pair.getLeft(), pair.getRight()).thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.DUBBO_RPC_RESULT_EMPTY;
             }
@@ -105,5 +91,15 @@ public class ApacheDubboProxyService {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));
+    }
+
+    private CompletableFuture<Object> invokeAsync(final GenericService genericService, final String method, final String[] parameterTypes, final Object[] args) throws GenericException {
+        //Compatible with asynchronous calls of lower Dubbo versions
+        genericService.$invoke(method, parameterTypes, args);
+        Object resultFromFuture = RpcContext.getContext().getFuture();
+        if (resultFromFuture instanceof CompletableFuture) {
+            return (CompletableFuture<Object>) resultFromFuture;
+        }
+        return CompletableFuture.completedFuture(resultFromFuture);
     }
 }

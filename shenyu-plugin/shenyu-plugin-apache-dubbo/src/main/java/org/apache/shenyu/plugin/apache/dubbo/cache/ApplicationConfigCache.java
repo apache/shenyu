@@ -131,7 +131,7 @@ public final class ApplicationConfigCache {
                 return referenceConfig;
             }
         } catch (ExecutionException e) {
-            log.error("init dubbo ref ex:{}", e.getMessage());
+            log.error("init dubbo ref exception", e);
         }
         return build(metaData);
 
@@ -146,6 +146,7 @@ public final class ApplicationConfigCache {
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
+        reference.setAsync(true);
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
@@ -175,7 +176,7 @@ public final class ApplicationConfigCache {
                 cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
-            log.error("init apache dubbo reference ex:{}", e.getMessage());
+            log.error("init apache dubbo reference exception", e);
         }
         return reference;
     }
