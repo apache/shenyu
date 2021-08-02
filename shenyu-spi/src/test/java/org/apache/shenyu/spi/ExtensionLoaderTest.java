@@ -173,6 +173,18 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("load extension resources error,class org.apache.shenyu.spi.fixture.SubNoJoinSPI with Join annotation"));
         }
     }
+
+    /**
+     * test ExtensionLoader.getJoin() param SPI class can not instantiated case.
+     */
+    @Test
+    public void testGetExtensionLoaderCanNotInstantiatedSPI() {
+        try {
+            ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("canNotInstantiated");
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+    }
     
     /**
      * test loadClass duplicate class case.
