@@ -31,13 +31,13 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DataPermissionQuery implements Serializable {
+
     private static final long serialVersionUID = -2830562388349740181L;
 
     /**
      * user id.
      */
     private String userId;
-
 
     /**
      * page parameter.

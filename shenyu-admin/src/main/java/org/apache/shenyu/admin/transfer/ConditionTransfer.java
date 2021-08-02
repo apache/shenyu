@@ -17,26 +17,24 @@
 
 package org.apache.shenyu.admin.transfer;
 
-import java.util.List;
-
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The interface Condition transfer.
  */
-@Mapper
-public interface ConditionTransfer {
+public enum ConditionTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    ConditionTransfer INSTANCE = Mappers.getMapper(ConditionTransfer.class);
+    INSTANCE;
 
     /**
      * Map to selector data condition data.
@@ -44,7 +42,20 @@ public interface ConditionTransfer {
      * @param selectorConditionDO the selector condition do
      * @return the condition data
      */
-    ConditionData mapToSelectorDO(SelectorConditionDO selectorConditionDO);
+    public ConditionData mapToSelectorDO(final SelectorConditionDO selectorConditionDO) {
+        if (selectorConditionDO == null) {
+            return null;
+        }
+
+        ConditionData conditionData = new ConditionData();
+
+        conditionData.setParamType(selectorConditionDO.getParamType());
+        conditionData.setOperator(selectorConditionDO.getOperator());
+        conditionData.setParamName(selectorConditionDO.getParamName());
+        conditionData.setParamValue(selectorConditionDO.getParamValue());
+
+        return conditionData;
+    }
 
     /**
      * Map to selector data condition data list.
@@ -52,7 +63,18 @@ public interface ConditionTransfer {
      * @param selectorConditionDOS the selector condition do list
      * @return the condition data list
      */
-    List<ConditionData> mapToSelectorDOS(List<SelectorConditionDO> selectorConditionDOS);
+    public List<ConditionData> mapToSelectorDOS(final List<SelectorConditionDO> selectorConditionDOS) {
+        if (selectorConditionDOS == null) {
+            return null;
+        }
+
+        List<ConditionData> list = new ArrayList<ConditionData>(selectorConditionDOS.size());
+        for (SelectorConditionDO selectorConditionDO : selectorConditionDOS) {
+            list.add(mapToSelectorDO(selectorConditionDO));
+        }
+
+        return list;
+    }
 
     /**
      * Map to selector data dto condition data.
@@ -60,7 +82,20 @@ public interface ConditionTransfer {
      * @param selectorConditionDTO the selector condition dto
      * @return the condition data
      */
-    ConditionData mapToSelectorDTO(SelectorConditionDTO selectorConditionDTO);
+    public ConditionData mapToSelectorDTO(final SelectorConditionDTO selectorConditionDTO) {
+        if (selectorConditionDTO == null) {
+            return null;
+        }
+
+        ConditionData conditionData = new ConditionData();
+
+        conditionData.setParamType(selectorConditionDTO.getParamType());
+        conditionData.setOperator(selectorConditionDTO.getOperator());
+        conditionData.setParamName(selectorConditionDTO.getParamName());
+        conditionData.setParamValue(selectorConditionDTO.getParamValue());
+
+        return conditionData;
+    }
 
     /**
      * Map to rule data condition data.
@@ -68,7 +103,20 @@ public interface ConditionTransfer {
      * @param ruleConditionDO the rule condition do
      * @return the condition data
      */
-    ConditionData mapToRuleDO(RuleConditionDO ruleConditionDO);
+    public ConditionData mapToRuleDO(final RuleConditionDO ruleConditionDO) {
+        if (ruleConditionDO == null) {
+            return null;
+        }
+
+        ConditionData conditionData = new ConditionData();
+
+        conditionData.setParamType(ruleConditionDO.getParamType());
+        conditionData.setOperator(ruleConditionDO.getOperator());
+        conditionData.setParamName(ruleConditionDO.getParamName());
+        conditionData.setParamValue(ruleConditionDO.getParamValue());
+
+        return conditionData;
+    }
 
     /**
      * Map to rule data condition data.
@@ -76,6 +124,19 @@ public interface ConditionTransfer {
      * @param ruleConditionDTO the rule condition dto
      * @return the condition data
      */
-    ConditionData mapToRuleDTO(RuleConditionDTO ruleConditionDTO);
+    public ConditionData mapToRuleDTO(final RuleConditionDTO ruleConditionDTO) {
+        if (ruleConditionDTO == null) {
+            return null;
+        }
+
+        ConditionData conditionData = new ConditionData();
+
+        conditionData.setParamType(ruleConditionDTO.getParamType());
+        conditionData.setOperator(ruleConditionDTO.getOperator());
+        conditionData.setParamName(ruleConditionDTO.getParamName());
+        conditionData.setParamValue(ruleConditionDTO.getParamValue());
+
+        return conditionData;
+    }
 
 }

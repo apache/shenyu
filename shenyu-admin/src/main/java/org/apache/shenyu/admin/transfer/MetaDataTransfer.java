@@ -22,21 +22,35 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 /**
  * The interface Meta data transfer.
  */
-@Mapper
-public interface MetaDataTransfer {
+public enum MetaDataTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    MetaDataTransfer INSTANCE = Mappers.getMapper(MetaDataTransfer.class);
+    INSTANCE;
+
+    private final DatatypeFactory datatypeFactory;
+
+    MetaDataTransfer() {
+        try {
+            datatypeFactory = DatatypeFactory.newInstance();
+        } catch (DatatypeConfigurationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
     /**
      * Map to entity meta data do.
@@ -44,7 +58,26 @@ public interface MetaDataTransfer {
      * @param metaDataDTO the meta data dto
      * @return the meta data do
      */
-    MetaDataDO mapToEntity(MetaDataDTO metaDataDTO);
+    public MetaDataDO mapToEntity(final MetaDataDTO metaDataDTO) {
+        if (metaDataDTO == null) {
+            return null;
+        }
+
+        MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
+
+        metaDataDO.id(metaDataDTO.getId());
+        metaDataDO.appName(metaDataDTO.getAppName());
+        metaDataDO.path(metaDataDTO.getPath());
+        metaDataDO.pathDesc(metaDataDTO.getPathDesc());
+        metaDataDO.rpcType(metaDataDTO.getRpcType());
+        metaDataDO.serviceName(metaDataDTO.getServiceName());
+        metaDataDO.methodName(metaDataDTO.getMethodName());
+        metaDataDO.parameterTypes(metaDataDTO.getParameterTypes());
+        metaDataDO.rpcExt(metaDataDTO.getRpcExt());
+        metaDataDO.enabled(metaDataDTO.getEnabled());
+
+        return metaDataDO.build();
+    }
 
     /**
      * Map to entity meta data do.
@@ -52,7 +85,25 @@ public interface MetaDataTransfer {
      * @param metaDataDTO the meta data dto
      * @return the meta data do
      */
-    MetaDataDO mapRegisterDTOToEntity(MetaDataRegisterDTO metaDataDTO);
+    public MetaDataDO mapRegisterDTOToEntity(final MetaDataRegisterDTO metaDataDTO) {
+        if (metaDataDTO == null) {
+            return null;
+        }
+
+        MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
+
+        metaDataDO.appName(metaDataDTO.getAppName());
+        metaDataDO.path(metaDataDTO.getPath());
+        metaDataDO.pathDesc(metaDataDTO.getPathDesc());
+        metaDataDO.rpcType(metaDataDTO.getRpcType());
+        metaDataDO.serviceName(metaDataDTO.getServiceName());
+        metaDataDO.methodName(metaDataDTO.getMethodName());
+        metaDataDO.parameterTypes(metaDataDTO.getParameterTypes());
+        metaDataDO.rpcExt(metaDataDTO.getRpcExt());
+        metaDataDO.enabled(metaDataDTO.isEnabled());
+
+        return metaDataDO.build();
+    }
 
     /**
      * Map to data meta data.
@@ -60,7 +111,26 @@ public interface MetaDataTransfer {
      * @param metaDataDTO the meta data dto
      * @return the meta data
      */
-    MetaData mapToData(MetaDataDTO metaDataDTO);
+    public MetaData mapToData(final MetaDataDTO metaDataDTO) {
+        if (metaDataDTO == null) {
+            return null;
+        }
+
+        MetaData.MetaDataBuilder metaData = MetaData.builder();
+
+        metaData.id(metaDataDTO.getId());
+        metaData.appName(metaDataDTO.getAppName());
+        metaData.contextPath(metaDataDTO.getContextPath());
+        metaData.path(metaDataDTO.getPath());
+        metaData.rpcType(metaDataDTO.getRpcType());
+        metaData.serviceName(metaDataDTO.getServiceName());
+        metaData.methodName(metaDataDTO.getMethodName());
+        metaData.parameterTypes(metaDataDTO.getParameterTypes());
+        metaData.rpcExt(metaDataDTO.getRpcExt());
+        metaData.enabled(metaDataDTO.getEnabled());
+
+        return metaData.build();
+    }
 
     /**
      * Map to data meta data.
@@ -68,7 +138,25 @@ public interface MetaDataTransfer {
      * @param metaDataDO the meta data dto
      * @return the meta data
      */
-    MetaData mapToData(MetaDataDO metaDataDO);
+    public MetaData mapToData(final MetaDataDO metaDataDO) {
+        if (metaDataDO == null) {
+            return null;
+        }
+
+        MetaData.MetaDataBuilder metaData = MetaData.builder();
+
+        metaData.id(metaDataDO.getId());
+        metaData.appName(metaDataDO.getAppName());
+        metaData.path(metaDataDO.getPath());
+        metaData.rpcType(metaDataDO.getRpcType());
+        metaData.serviceName(metaDataDO.getServiceName());
+        metaData.methodName(metaDataDO.getMethodName());
+        metaData.parameterTypes(metaDataDO.getParameterTypes());
+        metaData.rpcExt(metaDataDO.getRpcExt());
+        metaData.enabled(metaDataDO.getEnabled());
+
+        return metaData.build();
+    }
 
     /**
      * Map to data all list.
@@ -76,7 +164,18 @@ public interface MetaDataTransfer {
      * @param metaDataDOList the meta data do list
      * @return the list
      */
-    List<MetaData> mapToDataAll(List<MetaDataDO> metaDataDOList);
+    public List<MetaData> mapToDataAll(final List<MetaDataDO> metaDataDOList) {
+        if (metaDataDOList == null) {
+            return null;
+        }
+
+        List<MetaData> list = new ArrayList<MetaData>(metaDataDOList.size());
+        for (MetaDataDO metaDataDO : metaDataDOList) {
+            list.add(mapToData(metaDataDO));
+        }
+
+        return list;
+    }
 
     /**
      * Map to vo meta data vo.
@@ -84,7 +183,28 @@ public interface MetaDataTransfer {
      * @param metaDataDO the meta data do
      * @return the meta data vo
      */
-    MetaDataVO mapToVO(MetaDataDO metaDataDO);
+    public MetaDataVO mapToVO(final MetaDataDO metaDataDO) {
+        if (metaDataDO == null) {
+            return null;
+        }
+
+        MetaDataVO metaDataVO = new MetaDataVO();
+
+        metaDataVO.setAppName(metaDataDO.getAppName());
+        metaDataVO.setPath(metaDataDO.getPath());
+        metaDataVO.setPathDesc(metaDataDO.getPathDesc());
+        metaDataVO.setRpcType(metaDataDO.getRpcType());
+        metaDataVO.setServiceName(metaDataDO.getServiceName());
+        metaDataVO.setMethodName(metaDataDO.getMethodName());
+        metaDataVO.setParameterTypes(metaDataDO.getParameterTypes());
+        metaDataVO.setRpcExt(metaDataDO.getRpcExt());
+        metaDataVO.setId(metaDataDO.getId());
+        metaDataVO.setDateCreated(xmlGregorianCalendarToString(dateToXmlGregorianCalendar(metaDataDO.getDateCreated()), null));
+        metaDataVO.setDateUpdated(xmlGregorianCalendarToString(dateToXmlGregorianCalendar(metaDataDO.getDateUpdated()), null));
+        metaDataVO.setEnabled(metaDataDO.getEnabled());
+
+        return metaDataVO;
+    }
 
     /**
      * Map to vo list list.
@@ -92,6 +212,41 @@ public interface MetaDataTransfer {
      * @param metaDataDOList the meta data do list
      * @return the list
      */
-    List<MetaDataVO> mapToVOList(List<MetaDataDO> metaDataDOList);
+    public List<MetaDataVO> mapToVOList(final List<MetaDataDO> metaDataDOList) {
+        if (metaDataDOList == null) {
+            return null;
+        }
+
+        List<MetaDataVO> list = new ArrayList<>(metaDataDOList.size());
+        for (MetaDataDO metaDataDO : metaDataDOList) {
+            list.add(mapToVO(metaDataDO));
+        }
+
+        return list;
+    }
+
+    private String xmlGregorianCalendarToString(final XMLGregorianCalendar xcal, final String dateFormat) {
+        if (xcal == null) {
+            return null;
+        }
+
+        if (dateFormat == null) {
+            return xcal.toString();
+        } else {
+            Date d = xcal.toGregorianCalendar().getTime();
+            SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+            return sdf.format(d);
+        }
+    }
+
+    private XMLGregorianCalendar dateToXmlGregorianCalendar(final Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(date);
+        return datatypeFactory.newXMLGregorianCalendar(c);
+    }
 
 }

@@ -19,19 +19,16 @@ package org.apache.shenyu.admin.transfer;
 
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 /**
  * The interface Plugin transfer.
  */
-@Mapper
-public interface SelectorTransfer {
+public enum SelectorTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    SelectorTransfer INSTANCE = Mappers.getMapper(SelectorTransfer.class);
+    INSTANCE;
 
     /**
      * Map to data selector data.
@@ -39,6 +36,24 @@ public interface SelectorTransfer {
      * @param selectorDO the selector do
      * @return the selector data
      */
-    SelectorData mapToData(SelectorDO selectorDO);
+    public SelectorData mapToData(final SelectorDO selectorDO) {
+        if (selectorDO == null) {
+            return null;
+        }
+
+        SelectorData.SelectorDataBuilder selectorData = SelectorData.builder();
+
+        selectorData.id(selectorDO.getId());
+        selectorData.pluginId(selectorDO.getPluginId());
+        selectorData.name(selectorDO.getName());
+        selectorData.matchMode(selectorDO.getMatchMode());
+        selectorData.type(selectorDO.getType());
+        selectorData.sort(selectorDO.getSort());
+        selectorData.enabled(selectorDO.getEnabled());
+        selectorData.continued(selectorDO.getContinued());
+        selectorData.handle(selectorDO.getHandle());
+
+        return selectorData.build();
+    }
 
 }
