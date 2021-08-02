@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.plugin.alibaba.dubbo;
 
-import org.apache.shenyu.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
+import com.alibaba.dubbo.remoting.exchange.support.SimpleFuture;
+import com.alibaba.dubbo.rpc.RpcResult;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -42,9 +44,7 @@ import reactor.test.StepVerifier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Test case for AlibabaDubboPlugin.
@@ -67,7 +67,8 @@ public final class AlibabaDubboPluginTest {
         metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName("findAll");
         metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
-        when(mockAlibabaDubboProxyService.genericInvoker(null, metaData)).thenReturn(Mono.empty());
+        when(mockAlibabaDubboProxyService.genericInvoker(null, metaData))
+                .thenReturn(new SimpleFuture(new RpcResult(metaData.getId())));
         alibabaDubboPluginUnderTest = new AlibabaDubboPlugin(mockAlibabaDubboProxyService);
     }
 
