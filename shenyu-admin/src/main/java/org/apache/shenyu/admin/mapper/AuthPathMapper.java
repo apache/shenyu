@@ -88,13 +88,4 @@ public interface AuthPathMapper {
      * @return the int
      */
     int deleteByAuthId(@Param("authId") String authId);
-
-    /**
-     * Batch update status int.
-     *
-     * @param status the status
-     * @param ids    the ids
-     * @return the int
-     */
-    int batchUpdateStatus(Boolean status, List<String> ids);
 }
