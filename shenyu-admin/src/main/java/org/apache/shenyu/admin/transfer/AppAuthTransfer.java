@@ -20,19 +20,33 @@ package org.apache.shenyu.admin.transfer;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * The interface App auth transfer.
  */
-@Mapper
-public interface AppAuthTransfer {
+public enum AppAuthTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    AppAuthTransfer INSTANCE = Mappers.getMapper(AppAuthTransfer.class);
+    INSTANCE;
+
+    private final DatatypeFactory datatypeFactory;
+
+    AppAuthTransfer() {
+        try {
+            datatypeFactory = DatatypeFactory.newInstance();
+        } catch (DatatypeConfigurationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
     /**
      * Map to entity app auth do.
@@ -40,7 +54,24 @@ public interface AppAuthTransfer {
      * @param appAuthDTO the app auth dto
      * @return the app auth do
      */
-    AppAuthDO mapToEntity(AppAuthDTO appAuthDTO);
+    public AppAuthDO mapToEntity(final AppAuthDTO appAuthDTO) {
+        if (appAuthDTO == null) {
+            return null;
+        }
+
+        AppAuthDO.AppAuthDOBuilder<?, ?> appAuthDO = AppAuthDO.builder();
+
+        appAuthDO.id(appAuthDTO.getId());
+        appAuthDO.appKey(appAuthDTO.getAppKey());
+        appAuthDO.appSecret(appAuthDTO.getAppSecret());
+        appAuthDO.enabled(appAuthDTO.getEnabled());
+        appAuthDO.open(appAuthDTO.getOpen());
+        appAuthDO.userId(appAuthDTO.getUserId());
+        appAuthDO.phone(appAuthDTO.getPhone());
+        appAuthDO.extInfo(appAuthDTO.getExtInfo());
+
+        return appAuthDO.build();
+    }
 
     /**
      * Map to vo app auth vo.
@@ -48,6 +79,48 @@ public interface AppAuthTransfer {
      * @param appAuthDO the app auth do
      * @return the app auth vo
      */
-    AppAuthVO mapToVO(AppAuthDO appAuthDO);
+    public AppAuthVO mapToVO(final AppAuthDO appAuthDO) {
+        if (appAuthDO == null) {
+            return null;
+        }
+
+        AppAuthVO appAuthVO = new AppAuthVO();
+
+        appAuthVO.setId(appAuthDO.getId());
+        appAuthVO.setAppKey(appAuthDO.getAppKey());
+        appAuthVO.setAppSecret(appAuthDO.getAppSecret());
+        appAuthVO.setUserId(appAuthDO.getUserId());
+        appAuthVO.setPhone(appAuthDO.getPhone());
+        appAuthVO.setExtInfo(appAuthDO.getExtInfo());
+        appAuthVO.setOpen(appAuthDO.getOpen());
+        appAuthVO.setEnabled(appAuthDO.getEnabled());
+        appAuthVO.setDateUpdated(xmlGregorianCalendarToString(dateToXmlGregorianCalendar(appAuthDO.getDateUpdated()), null));
+
+        return appAuthVO;
+    }
+
+    private String xmlGregorianCalendarToString(final XMLGregorianCalendar xcal, final String dateFormat) {
+        if (xcal == null) {
+            return null;
+        }
+
+        if (dateFormat == null) {
+            return xcal.toString();
+        } else {
+            Date d = xcal.toGregorianCalendar().getTime();
+            SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+            return sdf.format(d);
+        }
+    }
+
+    private XMLGregorianCalendar dateToXmlGregorianCalendar(final Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(date);
+        return INSTANCE.datatypeFactory.newXMLGregorianCalendar(c);
+    }
 
 }

@@ -266,8 +266,6 @@ The text of each license is the standard Apache 2.0 license.
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.12.1: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j-to-slf4j 2.12.1: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
-    mapstruct 1.3.1.Final: https://github.com/mapstruct/mapstruct, Apache 2.0
-    mapstruct-processor 1.3.1.Final: https://github.com/mapstruct/mapstruct, Apache 2.0
     micrometer-core 1.3.1: https://github.com/micrometer-metrics/micrometer, Apache 2.0
     mybatis 3.4.0: http://www.mybatis.org/mybatis-3, Apache 2.0
     mybatis-spring 1.3.0: http://www.mybatis.org/spring, Apache 2.0

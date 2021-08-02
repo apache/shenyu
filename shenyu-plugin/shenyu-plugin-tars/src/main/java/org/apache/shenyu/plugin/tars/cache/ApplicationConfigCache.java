@@ -181,7 +181,6 @@ public final class ApplicationConfigCache {
         return className + "_" + methodName;
     }
 
-
     /**
      * Gets instance.
      *
