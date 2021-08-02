@@ -24,10 +24,10 @@ import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import org.apache.shenyu.disruptor.consumer.QueueConsumer;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
-import org.apache.shenyu.disruptor.provider.DisruptorProvider;
-import org.apache.shenyu.disruptor.thread.DisruptorThreadFactory;
 import org.apache.shenyu.disruptor.event.DataEvent;
 import org.apache.shenyu.disruptor.event.DisruptorEventFactory;
+import org.apache.shenyu.disruptor.provider.DisruptorProvider;
+import org.apache.shenyu.disruptor.thread.DisruptorThreadFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -115,7 +115,6 @@ public class DisruptorProviderManage<T> {
         RingBuffer<DataEvent<T>> ringBuffer = disruptor.getRingBuffer();
         provider = new DisruptorProvider<>(ringBuffer, disruptor);
     }
-
 
     /**
      * Gets provider.

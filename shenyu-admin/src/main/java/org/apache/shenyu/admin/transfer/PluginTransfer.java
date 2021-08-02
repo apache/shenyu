@@ -20,19 +20,16 @@ package org.apache.shenyu.admin.transfer;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 /**
  * The interface Plugin transfer.
  */
-@Mapper
-public interface PluginTransfer {
+public enum PluginTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    PluginTransfer INSTANCE = Mappers.getMapper(PluginTransfer.class);
+    INSTANCE;
 
     /**
      * Map to data plugin data.
@@ -40,7 +37,21 @@ public interface PluginTransfer {
      * @param pluginDO the plugin do
      * @return the plugin data
      */
-    PluginData mapToData(PluginDO pluginDO);
+    public PluginData mapToData(final PluginDO pluginDO) {
+        if (pluginDO == null) {
+            return null;
+        }
+
+        PluginData.PluginDataBuilder pluginData = PluginData.builder();
+
+        pluginData.id(pluginDO.getId());
+        pluginData.name(pluginDO.getName());
+        pluginData.config(pluginDO.getConfig());
+        pluginData.role(pluginDO.getRole());
+        pluginData.enabled(pluginDO.getEnabled());
+
+        return pluginData.build();
+    }
 
     /**
      * Map data tovo plugin data.
@@ -48,6 +59,20 @@ public interface PluginTransfer {
      * @param pluginVO the plugin vo
      * @return the plugin data
      */
-    PluginData mapDataTOVO(PluginVO pluginVO);
+    public PluginData mapDataTOVO(final PluginVO pluginVO) {
+        if (pluginVO == null) {
+            return null;
+        }
+
+        PluginData.PluginDataBuilder pluginData = PluginData.builder();
+
+        pluginData.id(pluginVO.getId());
+        pluginData.name(pluginVO.getName());
+        pluginData.config(pluginVO.getConfig());
+        pluginData.role(pluginVO.getRole());
+        pluginData.enabled(pluginVO.getEnabled());
+
+        return pluginData.build();
+    }
 
 }

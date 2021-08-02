@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.platform.commons.util.StringUtils;
 import org.junit.runner.RunWith;
-import org.mapstruct.ap.shaded.freemarker.template.utility.StringUtil;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -121,7 +120,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         assertEquals("F1887D3F9E6EE7A32FE5E76F4AB80D61,1607068123", this.httpServletRequest.getParameter(ConfigGroupEnum.SELECTOR.name()));
         assertEquals("F1887D3F9E6EE7A32FE5E76F4AB80D60,1607068122", this.httpServletRequest.getParameter(ConfigGroupEnum.META_DATA.name()));
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
-            String[] params = StringUtil.split(Objects.requireNonNull(this.httpServletRequest.getParameter(group.name())), ',');
+            String[] params = Objects.requireNonNull(this.httpServletRequest.getParameter(group.name())).split(",");
             assertNotNull(params);
             assertEquals(2, params.length);
         }
