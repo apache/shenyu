@@ -121,6 +121,7 @@
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
+        <powermock.version>2.0.9</powermock.version>
         <nacos-client.version>2.0.0</nacos-client.version>
         <groovy.version>2.5.14</groovy.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
@@ -443,6 +444,11 @@
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
         </dependency>
 
     </dependencies>
