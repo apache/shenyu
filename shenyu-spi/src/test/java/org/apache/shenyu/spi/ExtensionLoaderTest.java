@@ -175,6 +175,20 @@ public final class ExtensionLoaderTest {
     }
 
     /**
+     * test ExtensionLoader.getJoin() param SPI class can not instantiated case.
+     */
+    @Test
+    public void testGetExtensionLoaderCanNotInstantiatedSPI() {
+        try {
+            ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("canNotInstantiated");
+            fail();
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), containsString(
+                    "Extension instance(name: canNotInstantiated, class: class org.apache.shenyu.spi.fixture.CanNotInstantiatedSPI)"));
+        }
+    }
+    
+    /**
      * test loadClass duplicate class case.
      */
     @Test
