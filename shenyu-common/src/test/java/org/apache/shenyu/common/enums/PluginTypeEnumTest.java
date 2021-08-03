@@ -23,11 +23,11 @@ import org.junit.Test;
 
 public class PluginTypeEnumTest {
 
-  @Test
-  public void testName() {
-    assertEquals("before", PluginTypeEnum.BEFORE.getName());
-    assertEquals("function", PluginTypeEnum.FUNCTION.getName());
-    assertEquals("last", PluginTypeEnum.LAST.getName());
-  }
+    @Test
+    public void testName() {
+        assertEquals("before", PluginTypeEnum.BEFORE.getName());
+        assertEquals("function", PluginTypeEnum.FUNCTION.getName());
+        assertEquals("last", PluginTypeEnum.LAST.getName());
+    }
 
 }

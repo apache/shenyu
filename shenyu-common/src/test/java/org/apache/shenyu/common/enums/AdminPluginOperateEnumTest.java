@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.common.enums;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class AdminPluginOperateEnumTest {
-  @Test
-  public void testName() {
-    assertEquals("add", AdminPluginOperateEnum.ADD.getName());
-    assertEquals("delete", AdminPluginOperateEnum.DELETE.getName());
-    assertEquals("edit", AdminPluginOperateEnum.EDIT.getName());
-    assertEquals("query", AdminPluginOperateEnum.QUERY.getName());
-  }
+    @Test
+    public void testName() {
+        assertEquals("add", AdminPluginOperateEnum.ADD.getName());
+        assertEquals("delete", AdminPluginOperateEnum.DELETE.getName());
+        assertEquals("edit", AdminPluginOperateEnum.EDIT.getName());
+        assertEquals("query", AdminPluginOperateEnum.QUERY.getName());
+    }
 }

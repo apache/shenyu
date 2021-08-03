@@ -22,19 +22,19 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public class RateLimitEnumTest {
-  @Test
-  public void testGetKeyName() {
-    assertEquals("concurrent_request_rate_limiter", RateLimitEnum.CONCURRENT.getKeyName());
-    assertEquals("request_leaky_rate_limiter", RateLimitEnum.LEAKY_BUCKET.getKeyName());
-    assertEquals("sliding_window_request_rate_limiter", RateLimitEnum.SLIDING_WINDOW.getKeyName());
-    assertEquals("request_rate_limiter", RateLimitEnum.TOKEN_BUCKET.getKeyName());
-  }
+    @Test
+    public void testGetKeyName() {
+        assertEquals("concurrent_request_rate_limiter", RateLimitEnum.CONCURRENT.getKeyName());
+        assertEquals("request_leaky_rate_limiter", RateLimitEnum.LEAKY_BUCKET.getKeyName());
+        assertEquals("sliding_window_request_rate_limiter", RateLimitEnum.SLIDING_WINDOW.getKeyName());
+        assertEquals("request_rate_limiter", RateLimitEnum.TOKEN_BUCKET.getKeyName());
+    }
 
-  @Test
-  public void testGetScriptName() {
-    assertEquals("concurrent_request_rate_limiter.lua", RateLimitEnum.CONCURRENT.getScriptName());
-    assertEquals("request_leaky_rate_limiter.lua", RateLimitEnum.LEAKY_BUCKET.getScriptName());
-    assertEquals("sliding_window_request_rate_limiter.lua", RateLimitEnum.SLIDING_WINDOW.getScriptName());
-    assertEquals("request_rate_limiter.lua", RateLimitEnum.TOKEN_BUCKET.getScriptName());
-  }
+    @Test
+    public void testGetScriptName() {
+        assertEquals("concurrent_request_rate_limiter.lua", RateLimitEnum.CONCURRENT.getScriptName());
+        assertEquals("request_leaky_rate_limiter.lua", RateLimitEnum.LEAKY_BUCKET.getScriptName());
+        assertEquals("sliding_window_request_rate_limiter.lua", RateLimitEnum.SLIDING_WINDOW.getScriptName());
+        assertEquals("request_rate_limiter.lua", RateLimitEnum.TOKEN_BUCKET.getScriptName());
+    }
 }

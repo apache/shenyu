@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.common.enums;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class AdminResourceEnumTest {
-  @Test
-  public void testGetCode() {
-    assertEquals(0, AdminResourceEnum.MAIN_MENU.getCode());
-    assertEquals(1, AdminResourceEnum.SECOND_MENU.getCode());
-    assertEquals(2, AdminResourceEnum.THREE_MENU.getCode());
-  }
+    @Test
+    public void testGetCode() {
+        assertEquals(0, AdminResourceEnum.MAIN_MENU.getCode());
+        assertEquals(1, AdminResourceEnum.SECOND_MENU.getCode());
+        assertEquals(2, AdminResourceEnum.THREE_MENU.getCode());
+    }
 }

@@ -22,15 +22,15 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public class WafEnumTest {
-  @Test
-  public void testGetCode() {
-    assertEquals(0, WafEnum.REJECT.getCode());
-    assertEquals(1, WafEnum.ALLOW.getCode());
-  }
+    @Test
+    public void testGetCode() {
+        assertEquals(0, WafEnum.REJECT.getCode());
+        assertEquals(1, WafEnum.ALLOW.getCode());
+    }
 
-  @Test
-  public void testGetName() {
-    assertEquals("reject", WafEnum.REJECT.getName());
-    assertEquals("allow", WafEnum.ALLOW.getName());
-  }
+    @Test
+    public void testGetName() {
+        assertEquals("reject", WafEnum.REJECT.getName());
+        assertEquals("allow", WafEnum.ALLOW.getName());
+    }
 }
