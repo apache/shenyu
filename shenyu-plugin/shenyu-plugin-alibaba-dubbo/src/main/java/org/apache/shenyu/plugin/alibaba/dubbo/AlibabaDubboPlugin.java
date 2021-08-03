@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.alibaba.dubbo;
 import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
 import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
 import com.alibaba.dubbo.rpc.Result;
-import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
@@ -84,20 +83,18 @@ public class AlibabaDubboPlugin extends AbstractShenyuPlugin {
             future.setCallback(new ResponseCallback() {
 
                 @Override
-                public void done(Object resultObj) {
+                public void done(final Object resultObj) {
                     assert resultObj instanceof Result;
                     Result result = (Result) resultObj;
                     if (result.hasException()) {
                         this.caught(result.getException());
                         return;
                     }
-
-                    Object response = result.getValue();
-                    monoSink.success(response);
+                    monoSink.success(result.getValue());
                 }
 
                 @Override
-                public void caught(Throwable ex) {
+                public void caught(final Throwable ex) {
                     log.error("dubbo failed using async genericInvoker() metaData={} param={}", metaData, param, ex);
                     monoSink.error(ex);
                 }
