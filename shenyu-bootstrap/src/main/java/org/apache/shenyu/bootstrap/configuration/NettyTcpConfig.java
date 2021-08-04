@@ -17,10 +17,9 @@
 
 package org.apache.shenyu.bootstrap.configuration;
 
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 
-@Getter
+
 public class NettyTcpConfig {
 
     @Value("${netty.tcp.select.count:1}")
@@ -52,4 +51,44 @@ public class NettyTcpConfig {
 
     @Value("${netty.tcp.tcp_nodelay:true}")
     private boolean tcpNodelay;
+
+    public int getSelectCount() {
+        return selectCount;
+    }
+
+    public int getWorkerCount() {
+        return workerCount;
+    }
+
+    public int getConnectTimeoutMillis() {
+        return connectTimeoutMillis;
+    }
+
+    public int getWriteBufferHighWaterMark() {
+        return writeBufferHighWaterMark;
+    }
+
+    public int getWriteBufferLowWaterMark() {
+        return writeBufferLowWaterMark;
+    }
+
+    public boolean isSoKeepalive() {
+        return soKeepalive;
+    }
+
+    public boolean isSoReuseaddr() {
+        return soReuseaddr;
+    }
+
+    public int getSoLinger() {
+        return soLinger;
+    }
+
+    public int getSoBacklog() {
+        return soBacklog;
+    }
+
+    public boolean isTcpNodelay() {
+        return tcpNodelay;
+    }
 }
