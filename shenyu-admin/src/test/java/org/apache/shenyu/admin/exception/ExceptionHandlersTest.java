@@ -58,7 +58,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testServerExceptionHandlerByException() {
         Exception exception = new Exception();
-        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(exception);
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleExceptionHandler(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), "The system is busy, please try again later");
     }
@@ -66,7 +66,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testServerExceptionHandlerByShenyuException() {
         Exception shenyuException = new ShenyuException("Test shenyuException message!");
-        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(shenyuException);
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleExceptionHandler(shenyuException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), shenyuException.getMessage());
     }
@@ -74,7 +74,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testServerExceptionHandlerByDuplicateKeyException() {
         DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
-        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(duplicateKeyException);
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleDuplicateKeyException(duplicateKeyException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
@@ -82,7 +82,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testShiroExceptionHandler() {
         UnauthorizedException unauthorizedException = mock(UnauthorizedException.class);
-        ShenyuAdminResult result = exceptionHandlersUnderTest.shiroExceptionHandler(unauthorizedException);
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleUnauthorizedException(unauthorizedException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.TOKEN_NO_PERMISSION);
         assertEquals(result.getMessage(), ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
@@ -90,7 +90,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testNullPointExceptionHandler() {
         NullPointerException nullPointerException = mock(NullPointerException.class);
-        ShenyuAdminResult result = exceptionHandlersUnderTest.nullPointExceptionHandler(nullPointerException);
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleNullPointException(nullPointerException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.NOT_FOUND_EXCEPTION);
         assertEquals(result.getMessage(), ShenyuResultMessage.NOT_FOUND_EXCEPTION);
     }

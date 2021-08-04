@@ -48,7 +48,7 @@ public class WebsocketListener implements ServletRequestListener {
                 session.removeAttribute(CLIENT_IP_NAME);
             }
         } catch (Exception e) {
-            log.error("", e);
+            log.error("request destroyed error", e);
         }
     }
 
@@ -62,7 +62,7 @@ public class WebsocketListener implements ServletRequestListener {
                 session.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
             }
         } catch (Exception e) {
-            log.error("", e);
+            log.error("request initialized error", e);
         }
     }
 }
