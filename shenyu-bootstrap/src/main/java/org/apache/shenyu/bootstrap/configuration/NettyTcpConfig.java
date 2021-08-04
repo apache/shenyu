@@ -19,7 +19,9 @@ package org.apache.shenyu.bootstrap.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
 
-
+/**
+ * The netty tcp config.
+ */
 public class NettyTcpConfig {
 
     @Value("${netty.tcp.select.count:1}")
@@ -52,42 +54,92 @@ public class NettyTcpConfig {
     @Value("${netty.tcp.tcp_nodelay:true}")
     private boolean tcpNodelay;
 
+    /**
+     * get select count.
+     *
+     * @return selectCount
+     */
     public int getSelectCount() {
         return selectCount;
     }
 
+    /**
+     * get workerCount.
+     *
+     * @return workerCount
+     */
     public int getWorkerCount() {
         return workerCount;
     }
 
+    /**
+     * get connectTimeoutMillis.
+     *
+     * @return connectTimeoutMillis
+     */
     public int getConnectTimeoutMillis() {
         return connectTimeoutMillis;
     }
 
+    /**
+     * get writeBufferHighWaterMark.
+     *
+     * @return writeBufferHighWaterMark
+     */
     public int getWriteBufferHighWaterMark() {
         return writeBufferHighWaterMark;
     }
 
+    /**
+     * get writeBufferLowWaterMark.
+     *
+     * @return writeBufferLowWaterMark
+     */
     public int getWriteBufferLowWaterMark() {
         return writeBufferLowWaterMark;
     }
 
+    /**
+     * get soKeepalive.
+     *
+     * @return soKeepalive
+     */
     public boolean isSoKeepalive() {
         return soKeepalive;
     }
 
+    /**
+     * get isSoReuseaddr.
+     *
+     * @return soReuseaddr
+     */
     public boolean isSoReuseaddr() {
         return soReuseaddr;
     }
 
+    /**
+     * get soLinger.
+     *
+     * @return soLinger
+     */
     public int getSoLinger() {
         return soLinger;
     }
 
+    /**
+     * get soBacklog.
+     *
+     * @return soBacklog
+     */
     public int getSoBacklog() {
         return soBacklog;
     }
 
+    /**
+     * get tcpNodelay.
+     *
+     * @return tcpNodelay
+     */
     public boolean isTcpNodelay() {
         return tcpNodelay;
     }
