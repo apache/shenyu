@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.alibaba.dubbo.subscriber;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.google.common.cache.LoadingCache;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
@@ -57,9 +56,8 @@ public final class ApacheDubboMetaDataSubscriberTest {
         metaData.setParameterTypes("parameterTypes");
     }
 
-    @SneakyThrows
     @Test
-    public void testOnSubscribe() {
+    public void testOnSubscribe() throws NoSuchFieldException, IllegalAccessException {
         ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         when(referenceConfig.getInterface()).thenReturn("/dubbo/findAll");
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();

@@ -24,9 +24,6 @@ import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonHandler;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -35,6 +32,8 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.motan.util.PrxInfoUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -44,10 +43,14 @@ import java.util.concurrent.ExecutionException;
 /**
  * The cache info.
  */
-@Slf4j
 public final class ApplicationConfigCache {
 
+    /**
+     * The constant PARAM_MAP.
+     */
     public static final ConcurrentHashMap<String, MotanParamInfo> PARAM_MAP = new ConcurrentHashMap<>();
+
+    private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
     private RegistryConfig registryConfig;
 
@@ -68,7 +71,7 @@ public final class ApplicationConfigCache {
                         // After the configuration change, motan destroys the instance, but does not empty it. If it is not handled,
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
                     } catch (NoSuchFieldException | IllegalAccessException e) {
-                        log.error("modify ref have exception", e);
+                        LOG.error("modify ref have exception", e);
                     }
                 }
             })
@@ -114,8 +117,8 @@ public final class ApplicationConfigCache {
     /**
      * Get reference config.
      *
-     * @param <T>         the type parameter
-     * @param path        path
+     * @param <T>  the type parameter
+     * @param path path
      * @return the reference config
      */
     public <T> RefererConfig<T> get(final String path) {
@@ -139,7 +142,7 @@ public final class ApplicationConfigCache {
                 return referenceConfig;
             }
         } catch (ExecutionException e) {
-            log.error("init motan ref ex:{}", e.getMessage());
+            LOG.error("init motan ref ex:{}", e.getMessage());
         }
         return build(metaData);
 
@@ -170,7 +173,7 @@ public final class ApplicationConfigCache {
                         PARAM_MAP.put(methodInfo.getMethodName(), new MotanParamInfo(paramTypes, paramNames));
                     }
                 } catch (Exception e) {
-                    log.error("failed to init motan, {}", e.getMessage());
+                    LOG.error("failed to init motan, {}", e.getMessage());
                 }
             }
         }
@@ -181,7 +184,7 @@ public final class ApplicationConfigCache {
         reference.setProtocol(protocolConfig);
         CommonHandler obj = reference.getRef();
         if (obj != null) {
-            log.info("init motan reference success there meteData is :{}", metaData);
+            LOG.info("init motan reference success there meteData is :{}", metaData);
             cache.put(metaData.getPath(), reference);
         }
         return reference;
@@ -216,34 +219,149 @@ public final class ApplicationConfigCache {
     /**
      * The type Motan param ext info.
      */
-    @Data
     static class MethodInfo {
 
         private String methodName;
 
         private List<Pair<String, String>> params;
+
+        /**
+         * Gets method name.
+         *
+         * @return the method name
+         */
+        public String getMethodName() {
+            return methodName;
+        }
+
+        /**
+         * Sets method name.
+         *
+         * @param methodName the method name
+         */
+        public void setMethodName(final String methodName) {
+            this.methodName = methodName;
+        }
+
+        /**
+         * Gets params.
+         *
+         * @return the params
+         */
+        public List<Pair<String, String>> getParams() {
+            return params;
+        }
+
+        /**
+         * Sets params.
+         *
+         * @param params the params
+         */
+        public void setParams(final List<Pair<String, String>> params) {
+            this.params = params;
+        }
     }
 
     /**
      * The type Motan param ext info.
      */
-    @Data
     static class MotanParamExtInfo {
 
         private List<MethodInfo> methodInfo;
 
         private String group;
+
+        /**
+         * Gets method info.
+         *
+         * @return the method info
+         */
+        public List<MethodInfo> getMethodInfo() {
+            return methodInfo;
+        }
+
+        /**
+         * Sets method info.
+         *
+         * @param methodInfo the method info
+         */
+        public void setMethodInfo(final List<MethodInfo> methodInfo) {
+            this.methodInfo = methodInfo;
+        }
+
+        /**
+         * Gets group.
+         *
+         * @return the group
+         */
+        public String getGroup() {
+            return group;
+        }
+
+        /**
+         * Sets group.
+         *
+         * @param group the group
+         */
+        public void setGroup(final String group) {
+            this.group = group;
+        }
     }
 
     /**
      * The type Motan param ext info.
      */
-    @Data
-    @AllArgsConstructor
     public static class MotanParamInfo {
 
         private Class<?>[] paramTypes;
 
         private String[] paramNames;
+
+        /**
+         * Instantiates a new Motan param info.
+         *
+         * @param paramTypes the param types
+         * @param paramNames the param names
+         */
+        public MotanParamInfo(final Class<?>[] paramTypes, final String[] paramNames) {
+            this.paramTypes = paramTypes;
+            this.paramNames = paramNames;
+        }
+
+        /**
+         * Get param types class [ ].
+         *
+         * @return the class [ ]
+         */
+        public Class<?>[] getParamTypes() {
+            return paramTypes;
+        }
+
+        /**
+         * Sets param types.
+         *
+         * @param paramTypes the param types
+         */
+        public void setParamTypes(final Class<?>[] paramTypes) {
+            this.paramTypes = paramTypes;
+        }
+
+        /**
+         * Get param names string [ ].
+         *
+         * @return the string [ ]
+         */
+        public String[] getParamNames() {
+            return paramNames;
+        }
+
+        /**
+         * Sets param names.
+         *
+         * @param paramNames the param names
+         */
+        public void setParamNames(final String[] paramNames) {
+            this.paramNames = paramNames;
+        }
     }
 }

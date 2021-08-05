@@ -52,7 +52,7 @@ public class RandomLoadBalancerProviderTest {
 
     @Test
     public void testGetPolicyName() {
-        assertEquals(randomLoadBalancerProvider.getPolicyName(), LoadBalancerStrategy.Random.getStrategy());
+        assertEquals(randomLoadBalancerProvider.getPolicyName(), LoadBalancerStrategy.RANDOM.getStrategy());
     }
 
     @Test

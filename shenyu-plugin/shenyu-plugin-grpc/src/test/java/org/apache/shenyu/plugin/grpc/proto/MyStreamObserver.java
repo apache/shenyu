@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.grpc.proto;
 
 import io.grpc.stub.StreamObserver;
-import lombok.SneakyThrows;
 
 public class MyStreamObserver implements StreamObserver<Boolean> {
 
@@ -28,26 +27,23 @@ public class MyStreamObserver implements StreamObserver<Boolean> {
         this.state = state;
     }
 
-    @SneakyThrows
     @Override
     public void onNext(final Boolean value) {
         if (!value) {
-            throw new Exception("exception");
+            throw new RuntimeException("exception");
         } else {
             state = true;
         }
     }
 
-    @SneakyThrows
     @Override
     public void onError(final Throwable t) {
-        throw new Exception("exception");
+        throw new RuntimeException("exception");
     }
 
-    @SneakyThrows
     @Override
     public void onCompleted() {
-        throw new Exception("exception");
+        throw new RuntimeException("exception");
     }
 
     /**

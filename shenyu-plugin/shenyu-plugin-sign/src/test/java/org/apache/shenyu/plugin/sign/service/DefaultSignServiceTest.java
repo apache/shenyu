@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.sign.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -50,7 +49,6 @@ import java.util.Map;
  * DefaultSignService Test.
  */
 @RunWith(MockitoJUnitRunner.class)
-@Slf4j
 public final class DefaultSignServiceTest {
 
     private SignService signService;
