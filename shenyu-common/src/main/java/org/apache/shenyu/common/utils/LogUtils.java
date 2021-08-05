@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  */
 public final class LogUtils {
 
-    final static Logger logger = LoggerFactory.getLogger(findCaller().getClassName());
+    static final Logger LOGGER = LoggerFactory.getLogger(findCaller().getClassName());
 
 
     /**
@@ -37,8 +37,8 @@ public final class LogUtils {
      * @param supplier {@linkplain Supplier}
      */
     public static void debug(final String format, final Supplier<Object> supplier) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(format, supplier.get());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(format, supplier.get());
         }
     }
 
@@ -48,8 +48,8 @@ public final class LogUtils {
      * @param objects params
      */
     public static void debug(final String format, final Object... objects) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(format, objects);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(format, objects);
         }
     }
 
@@ -58,117 +58,10 @@ public final class LogUtils {
      * @param supplier  {@linkplain Supplier}
      */
     public static void debug(final Supplier<Object> supplier) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(Objects.toString(supplier.get()));
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(Objects.toString(supplier.get()));
         }
     }
-
-    /**
-     * info log.
-     *
-     * @param format   format
-     * @param supplier {@linkplain Supplier}
-     */
-    public static void info(final String format, final Supplier<Object> supplier) {
-        if (logger.isInfoEnabled()) {
-            logger.info(format, supplier.get());
-        }
-    }
-
-    /**
-     * info log.
-     *
-     * @param format   format
-     * @param objects  objects
-     */
-    public static void info(final String format, final Object... objects) {
-        if (logger.isInfoEnabled()) {
-            logger.info(format, objects);
-        }
-    }
-
-    /**
-     * info log.
-     *
-     * @param supplier {@linkplain Supplier}
-     */
-    public static void info(final Supplier<Object> supplier) {
-        if (logger.isInfoEnabled()) {
-            logger.info(Objects.toString(supplier.get()));
-        }
-    }
-
-    /**
-     * error log.
-     *
-     * @param format   format
-     * @param supplier {@linkplain Supplier}
-     */
-    public static void error(final String format, final Supplier<Object> supplier) {
-        if (logger.isErrorEnabled()) {
-            logger.error(format, supplier.get());
-        }
-    }
-
-    /**
-     * error log.
-     *
-     * @param format   format
-     * @param objects params
-     */
-    public static void error(final String format, final Object... objects) {
-        if (logger.isErrorEnabled()) {
-            logger.error(format, objects);
-        }
-    }
-
-
-    /**
-     * error log.
-     *
-     * @param supplier {@linkplain Supplier}
-     */
-    public static void error(final Supplier<Object> supplier) {
-        if (logger.isErrorEnabled()) {
-            logger.error(Objects.toString(supplier.get()));
-        }
-    }
-
-    /**
-     * warn log.
-     *
-     * @param format   format
-     * @param supplier {@linkplain Supplier}
-     */
-    public static void warn(final String format, final Supplier<Object> supplier) {
-        if (logger.isWarnEnabled()) {
-            logger.warn(format, supplier.get());
-        }
-    }
-
-    /**
-     * warn log.
-     *
-     * @param format   format
-     * @param objects params
-     */
-    public static void warn(final String format, final Object... objects) {
-        if (logger.isWarnEnabled()) {
-            logger.warn(format, objects);
-        }
-    }
-
-    /**
-     * warn log.
-     *
-     * @param supplier {@linkplain Supplier}
-     */
-    public static void warn(final Supplier<Object> supplier) {
-        if (logger.isWarnEnabled()) {
-            logger.warn(Objects.toString(supplier.get()));
-        }
-    }
-
 
     /**
      * debug log.
@@ -190,6 +83,41 @@ public final class LogUtils {
     public static void debug(final Logger logger, final Supplier<Object> supplier) {
         if (logger.isDebugEnabled()) {
             logger.debug(Objects.toString(supplier.get()));
+        }
+    }
+
+    /**
+     * info log.
+     *
+     * @param format   format
+     * @param supplier {@linkplain Supplier}
+     */
+    public static void info(final String format, final Supplier<Object> supplier) {
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(format, supplier.get());
+        }
+    }
+
+    /**
+     * info log.
+     *
+     * @param format   format
+     * @param objects  objects
+     */
+    public static void info(final String format, final Object... objects) {
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(format, objects);
+        }
+    }
+
+    /**
+     * info log.
+     *
+     * @param supplier {@linkplain Supplier}
+     */
+    public static void info(final Supplier<Object> supplier) {
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(Objects.toString(supplier.get()));
         }
     }
 
@@ -221,6 +149,42 @@ public final class LogUtils {
     /**
      * error log.
      *
+     * @param format   format
+     * @param supplier {@linkplain Supplier}
+     */
+    public static void error(final String format, final Supplier<Object> supplier) {
+        if (LOGGER.isErrorEnabled()) {
+            LOGGER.error(format, supplier.get());
+        }
+    }
+
+    /**
+     * error log.
+     *
+     * @param format   format
+     * @param objects params
+     */
+    public static void error(final String format, final Object... objects) {
+        if (LOGGER.isErrorEnabled()) {
+            LOGGER.error(format, objects);
+        }
+    }
+
+
+    /**
+     * error log.
+     *
+     * @param supplier {@linkplain Supplier}
+     */
+    public static void error(final Supplier<Object> supplier) {
+        if (LOGGER.isErrorEnabled()) {
+            LOGGER.error(Objects.toString(supplier.get()));
+        }
+    }
+
+    /**
+     * error log.
+     *
      * @param logger   logger
      * @param format   format
      * @param supplier {@linkplain Supplier}
@@ -240,6 +204,41 @@ public final class LogUtils {
     public static void error(final Logger logger, final Supplier<Object> supplier) {
         if (logger.isErrorEnabled()) {
             logger.error(Objects.toString(supplier.get()));
+        }
+    }
+
+    /**
+     * warn log.
+     *
+     * @param format   format
+     * @param supplier {@linkplain Supplier}
+     */
+    public static void warn(final String format, final Supplier<Object> supplier) {
+        if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn(format, supplier.get());
+        }
+    }
+
+    /**
+     * warn log.
+     *
+     * @param format   format
+     * @param objects params
+     */
+    public static void warn(final String format, final Object... objects) {
+        if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn(format, objects);
+        }
+    }
+
+    /**
+     * warn log.
+     *
+     * @param supplier {@linkplain Supplier}
+     */
+    public static void warn(final Supplier<Object> supplier) {
+        if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn(Objects.toString(supplier.get()));
         }
     }
 

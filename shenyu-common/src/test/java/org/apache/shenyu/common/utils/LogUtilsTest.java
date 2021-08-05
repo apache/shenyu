@@ -53,7 +53,6 @@ public final class LogUtilsTest {
         verify(supplier, atLeastOnce()).get();
     }
 
-
     @Test
     public void testAtLeastOnceDebugWithFormatBySimple() {
         LogUtils.debug("testDebug: {}", supplier);
@@ -155,7 +154,6 @@ public final class LogUtilsTest {
         verify(supplier, atLeastOnce()).get();
     }
 
-
     @Test
     public void testNeverInfo() {
         when(logger.isInfoEnabled()).thenReturn(false);
@@ -180,7 +178,6 @@ public final class LogUtilsTest {
         LogUtils.error("testError: {}", supplier);
         verify(supplier, atLeastOnce()).get();
     }
-
 
     @Test
     public void testNeverErrorFormat() {
