@@ -258,6 +258,7 @@
                 <configuration>
                     <workingDirectory>${dashboard.path}</workingDirectory>
                     <nodeVersion>${frontend-maven-plugin.node.version}</nodeVersion>
+                    <skip>${frontend-maven.plugin.skip}</skip>
                 </configuration>
                 <executions>
                     <execution>
