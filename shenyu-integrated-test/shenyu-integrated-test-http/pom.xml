@@ -31,7 +31,6 @@
 <!--  <packaging>jar</packaging>-->
 
   <name>shenyu-integrated-test-http</name>
-  <!-- FIXME change it to the project's website -->
   <url>https://shenyu.apache.org</url>
 
   <properties>
@@ -65,6 +64,14 @@
       <artifactId>shenyu-spring-boot-starter-plugin-sign</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- shenyu waf plugin starter-->
+    <dependency>
+      <groupId>org.apache.shenyu</groupId>
+      <artifactId>shenyu-spring-boot-starter-plugin-waf</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <!-- shenyu waf plugin end-->
 
     <!--shenyu data sync start use websocket-->
     <dependency>
@@ -128,6 +135,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
