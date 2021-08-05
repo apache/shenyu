@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.web.configuration.properties;
 
-import lombok.Data;
 
 /**
  * The type shenyu config.
  */
-@Data
 public class ShenyuConfig {
 
     private Integer filterTime = 10;
@@ -32,4 +30,76 @@ public class ShenyuConfig {
     private Integer upstreamScheduledTime = 30;
 
     private Integer fileMaxSize = 10;
+
+    /**
+     * get filterTime.
+     *
+     * @return filterTime
+     */
+    public Integer getFilterTime() {
+        return filterTime;
+    }
+
+    /**
+     * set filterTime.
+     *
+     * @param filterTime filterTime.
+     */
+    public void setFilterTime(final Integer filterTime) {
+        this.filterTime = filterTime;
+    }
+
+    /**
+     * get filterTimeEnable.
+     *
+     * @return filterTimeEnable
+     */
+    public Boolean getFilterTimeEnable() {
+        return filterTimeEnable;
+    }
+
+    /**
+     * set filterTimeEnable.
+     *
+     * @param filterTimeEnable filterTimeEnable.
+     */
+    public void setFilterTimeEnable(final Boolean filterTimeEnable) {
+        this.filterTimeEnable = filterTimeEnable;
+    }
+
+    /**
+     * get upstreamScheduledTime.
+     *
+     * @return upstreamScheduledTime
+     */
+    public Integer getUpstreamScheduledTime() {
+        return upstreamScheduledTime;
+    }
+
+    /**
+     * set upstreamScheduledTime.
+     *
+     * @param upstreamScheduledTime upstreamScheduledTime.
+     */
+    public void setUpstreamScheduledTime(final Integer upstreamScheduledTime) {
+        this.upstreamScheduledTime = upstreamScheduledTime;
+    }
+
+    /**
+     * get fileMaxSize.
+     *
+     * @return fileMaxSize
+     */
+    public Integer getFileMaxSize() {
+        return fileMaxSize;
+    }
+
+    /**
+     * set fileMaxSize.
+     *
+     * @param fileMaxSize fileMaxSize.
+     */
+    public void setFileMaxSize(final Integer fileMaxSize) {
+        this.fileMaxSize = fileMaxSize;
+    }
 }
