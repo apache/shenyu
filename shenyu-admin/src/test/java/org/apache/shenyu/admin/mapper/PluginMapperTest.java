@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.junit.Test;
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -73,7 +74,7 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
         final int insertResult = pluginMapper.insert(pluginDO);
         assertThat(insertResult, equalTo(1));
 
-        final List<PluginDO> resultPluginDOS = pluginMapper.selectByNames(Arrays.asList(pluginDO.getName()));
+        final List<PluginDO> resultPluginDOS = pluginMapper.selectByNames(Collections.singletonList(pluginDO.getName()));
         assertThat(pluginDO, equalTo(resultPluginDOS.stream().findAny().get()));
 
         final int deleteResult = pluginMapper.delete(pluginDO.getId());
