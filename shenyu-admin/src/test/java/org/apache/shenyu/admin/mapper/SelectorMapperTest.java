@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -110,7 +109,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter());
         Integer count = selectorMapper.countByQuery(query);
         assertNotNull(count);
-        assertEquals(new Integer(1), count);
+        assertEquals(Integer.valueOf(1), count);
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);
@@ -200,7 +199,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private SelectorDO buildSelectorDO() {
-        Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return SelectorDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .dateCreated(currentTime)
