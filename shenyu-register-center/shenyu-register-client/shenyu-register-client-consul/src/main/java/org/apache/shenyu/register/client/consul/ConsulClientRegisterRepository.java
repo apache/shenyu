@@ -18,9 +18,9 @@
 package org.apache.shenyu.register.client.consul;
 
 import com.ecwid.consul.v1.kv.KeyValueClient;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
 
 @Join
-@Slf4j
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
     
     @Autowired
@@ -47,7 +46,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
             registerURI(metadata);
         }
-        log.info("{} Consul client register success: {}", rpcType, metadata);
+
+        LogUtils.info("{} Consul client register success: {}", rpcType, metadata);
     }
     
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
