@@ -21,6 +21,8 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 
+import java.util.Objects;
+
 /**
  * The interface Plugin transfer.
  */
@@ -38,12 +40,11 @@ public enum PluginTransfer {
      * @return the plugin data
      */
     public PluginData mapToData(final PluginDO pluginDO) {
-        if (pluginDO == null) {
+        if (Objects.isNull(pluginDO)) {
             return null;
         }
 
         PluginData.PluginDataBuilder pluginData = PluginData.builder();
-
         pluginData.id(pluginDO.getId());
         pluginData.name(pluginDO.getName());
         pluginData.config(pluginDO.getConfig());
@@ -60,12 +61,11 @@ public enum PluginTransfer {
      * @return the plugin data
      */
     public PluginData mapDataTOVO(final PluginVO pluginVO) {
-        if (pluginVO == null) {
+        if (Objects.isNull(pluginVO)) {
             return null;
         }
 
         PluginData.PluginDataBuilder pluginData = PluginData.builder();
-
         pluginData.id(pluginVO.getId());
         pluginData.name(pluginVO.getName());
         pluginData.config(pluginVO.getConfig());

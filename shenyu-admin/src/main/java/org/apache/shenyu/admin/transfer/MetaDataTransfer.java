@@ -21,16 +21,13 @@ import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.utils.CollectionUtils;
+import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The interface Meta data transfer.
@@ -42,16 +39,6 @@ public enum MetaDataTransfer {
      */
     INSTANCE;
 
-    private final DatatypeFactory datatypeFactory;
-
-    MetaDataTransfer() {
-        try {
-            datatypeFactory = DatatypeFactory.newInstance();
-        } catch (DatatypeConfigurationException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     /**
      * Map to entity meta data do.
      *
@@ -59,12 +46,11 @@ public enum MetaDataTransfer {
      * @return the meta data do
      */
     public MetaDataDO mapToEntity(final MetaDataDTO metaDataDTO) {
-        if (metaDataDTO == null) {
+        if (Objects.isNull(metaDataDTO)) {
             return null;
         }
 
         MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
-
         metaDataDO.id(metaDataDTO.getId());
         metaDataDO.appName(metaDataDTO.getAppName());
         metaDataDO.path(metaDataDTO.getPath());
@@ -86,12 +72,11 @@ public enum MetaDataTransfer {
      * @return the meta data do
      */
     public MetaDataDO mapRegisterDTOToEntity(final MetaDataRegisterDTO metaDataDTO) {
-        if (metaDataDTO == null) {
+        if (Objects.isNull(metaDataDTO)) {
             return null;
         }
 
         MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
-
         metaDataDO.appName(metaDataDTO.getAppName());
         metaDataDO.path(metaDataDTO.getPath());
         metaDataDO.pathDesc(metaDataDTO.getPathDesc());
@@ -112,12 +97,11 @@ public enum MetaDataTransfer {
      * @return the meta data
      */
     public MetaData mapToData(final MetaDataDTO metaDataDTO) {
-        if (metaDataDTO == null) {
+        if (Objects.isNull(metaDataDTO)) {
             return null;
         }
 
         MetaData.MetaDataBuilder metaData = MetaData.builder();
-
         metaData.id(metaDataDTO.getId());
         metaData.appName(metaDataDTO.getAppName());
         metaData.contextPath(metaDataDTO.getContextPath());
@@ -139,12 +123,11 @@ public enum MetaDataTransfer {
      * @return the meta data
      */
     public MetaData mapToData(final MetaDataDO metaDataDO) {
-        if (metaDataDO == null) {
+        if (Objects.isNull(metaDataDO)) {
             return null;
         }
 
         MetaData.MetaDataBuilder metaData = MetaData.builder();
-
         metaData.id(metaDataDO.getId());
         metaData.appName(metaDataDO.getAppName());
         metaData.path(metaDataDO.getPath());
@@ -165,7 +148,7 @@ public enum MetaDataTransfer {
      * @return the list
      */
     public List<MetaData> mapToDataAll(final List<MetaDataDO> metaDataDOList) {
-        if (metaDataDOList == null) {
+        if (CollectionUtils.isEmpty(metaDataDOList)) {
             return null;
         }
 
@@ -184,12 +167,11 @@ public enum MetaDataTransfer {
      * @return the meta data vo
      */
     public MetaDataVO mapToVO(final MetaDataDO metaDataDO) {
-        if (metaDataDO == null) {
+        if (Objects.isNull(metaDataDO)) {
             return null;
         }
 
         MetaDataVO metaDataVO = new MetaDataVO();
-
         metaDataVO.setAppName(metaDataDO.getAppName());
         metaDataVO.setPath(metaDataDO.getPath());
         metaDataVO.setPathDesc(metaDataDO.getPathDesc());
@@ -199,8 +181,8 @@ public enum MetaDataTransfer {
         metaDataVO.setParameterTypes(metaDataDO.getParameterTypes());
         metaDataVO.setRpcExt(metaDataDO.getRpcExt());
         metaDataVO.setId(metaDataDO.getId());
-        metaDataVO.setDateCreated(xmlGregorianCalendarToString(dateToXmlGregorianCalendar(metaDataDO.getDateCreated()), null));
-        metaDataVO.setDateUpdated(xmlGregorianCalendarToString(dateToXmlGregorianCalendar(metaDataDO.getDateUpdated()), null));
+        metaDataVO.setDateCreated(DateUtils.localDateTimeToString(metaDataDO.getDateCreated().toLocalDateTime()));
+        metaDataVO.setDateUpdated(DateUtils.localDateTimeToString(metaDataDO.getDateUpdated().toLocalDateTime()));
         metaDataVO.setEnabled(metaDataDO.getEnabled());
 
         return metaDataVO;
@@ -213,7 +195,7 @@ public enum MetaDataTransfer {
      * @return the list
      */
     public List<MetaDataVO> mapToVOList(final List<MetaDataDO> metaDataDOList) {
-        if (metaDataDOList == null) {
+        if (CollectionUtils.isEmpty(metaDataDOList)) {
             return null;
         }
 
@@ -223,30 +205,6 @@ public enum MetaDataTransfer {
         }
 
         return list;
-    }
-
-    private String xmlGregorianCalendarToString(final XMLGregorianCalendar xcal, final String dateFormat) {
-        if (xcal == null) {
-            return null;
-        }
-
-        if (dateFormat == null) {
-            return xcal.toString();
-        } else {
-            Date d = xcal.toGregorianCalendar().getTime();
-            SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-            return sdf.format(d);
-        }
-    }
-
-    private XMLGregorianCalendar dateToXmlGregorianCalendar(final Date date) {
-        if (date == null) {
-            return null;
-        }
-
-        GregorianCalendar c = new GregorianCalendar();
-        c.setTime(date);
-        return datatypeFactory.newXMLGregorianCalendar(c);
     }
 
 }

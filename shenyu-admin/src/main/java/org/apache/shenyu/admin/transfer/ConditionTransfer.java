@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The interface Condition transfer.
@@ -43,12 +44,11 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToSelectorDO(final SelectorConditionDO selectorConditionDO) {
-        if (selectorConditionDO == null) {
+        if (Objects.isNull(selectorConditionDO)) {
             return null;
         }
 
         ConditionData conditionData = new ConditionData();
-
         conditionData.setParamType(selectorConditionDO.getParamType());
         conditionData.setOperator(selectorConditionDO.getOperator());
         conditionData.setParamName(selectorConditionDO.getParamName());
@@ -64,11 +64,11 @@ public enum ConditionTransfer {
      * @return the condition data list
      */
     public List<ConditionData> mapToSelectorDOS(final List<SelectorConditionDO> selectorConditionDOS) {
-        if (selectorConditionDOS == null) {
+        if (Objects.isNull(selectorConditionDOS)) {
             return null;
         }
 
-        List<ConditionData> list = new ArrayList<ConditionData>(selectorConditionDOS.size());
+        List<ConditionData> list = new ArrayList<>(selectorConditionDOS.size());
         for (SelectorConditionDO selectorConditionDO : selectorConditionDOS) {
             list.add(mapToSelectorDO(selectorConditionDO));
         }
@@ -83,12 +83,11 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToSelectorDTO(final SelectorConditionDTO selectorConditionDTO) {
-        if (selectorConditionDTO == null) {
+        if (Objects.isNull(selectorConditionDTO)) {
             return null;
         }
 
         ConditionData conditionData = new ConditionData();
-
         conditionData.setParamType(selectorConditionDTO.getParamType());
         conditionData.setOperator(selectorConditionDTO.getOperator());
         conditionData.setParamName(selectorConditionDTO.getParamName());
@@ -104,12 +103,11 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToRuleDO(final RuleConditionDO ruleConditionDO) {
-        if (ruleConditionDO == null) {
+        if (Objects.isNull(ruleConditionDO)) {
             return null;
         }
 
         ConditionData conditionData = new ConditionData();
-
         conditionData.setParamType(ruleConditionDO.getParamType());
         conditionData.setOperator(ruleConditionDO.getOperator());
         conditionData.setParamName(ruleConditionDO.getParamName());
@@ -125,12 +123,11 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToRuleDTO(final RuleConditionDTO ruleConditionDTO) {
-        if (ruleConditionDTO == null) {
+        if (Objects.isNull(ruleConditionDTO)) {
             return null;
         }
 
         ConditionData conditionData = new ConditionData();
-
         conditionData.setParamType(ruleConditionDTO.getParamType());
         conditionData.setOperator(ruleConditionDTO.getOperator());
         conditionData.setParamName(ruleConditionDTO.getParamName());
