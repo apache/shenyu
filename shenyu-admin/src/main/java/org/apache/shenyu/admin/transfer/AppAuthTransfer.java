@@ -78,7 +78,9 @@ public enum AppAuthTransfer {
         appAuthVO.setExtInfo(appAuthDO.getExtInfo());
         appAuthVO.setOpen(appAuthDO.getOpen());
         appAuthVO.setEnabled(appAuthDO.getEnabled());
-        appAuthVO.setDateUpdated(DateUtils.localDateTimeToString(appAuthDO.getDateUpdated().toLocalDateTime()));
+        if (Objects.nonNull(appAuthDO.getDateUpdated())) {
+            appAuthVO.setDateUpdated(DateUtils.localDateTimeToString(appAuthDO.getDateUpdated().toLocalDateTime()));
+        }
 
         return appAuthVO;
     }

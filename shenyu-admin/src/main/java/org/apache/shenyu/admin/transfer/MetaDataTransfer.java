@@ -181,9 +181,13 @@ public enum MetaDataTransfer {
         metaDataVO.setParameterTypes(metaDataDO.getParameterTypes());
         metaDataVO.setRpcExt(metaDataDO.getRpcExt());
         metaDataVO.setId(metaDataDO.getId());
-        metaDataVO.setDateCreated(DateUtils.localDateTimeToString(metaDataDO.getDateCreated().toLocalDateTime()));
-        metaDataVO.setDateUpdated(DateUtils.localDateTimeToString(metaDataDO.getDateUpdated().toLocalDateTime()));
         metaDataVO.setEnabled(metaDataDO.getEnabled());
+        if (Objects.nonNull(metaDataDO.getDateCreated())) {
+            metaDataVO.setDateCreated(DateUtils.localDateTimeToString(metaDataDO.getDateCreated().toLocalDateTime()));
+        }
+        if (Objects.nonNull(metaDataDO.getDateUpdated())) {
+            metaDataVO.setDateUpdated(DateUtils.localDateTimeToString(metaDataDO.getDateUpdated().toLocalDateTime()));
+        }
 
         return metaDataVO;
     }
