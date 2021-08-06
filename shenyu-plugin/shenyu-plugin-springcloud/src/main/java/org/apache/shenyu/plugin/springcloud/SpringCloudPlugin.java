@@ -78,10 +78,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
 
         final SpringCloudRuleHandle ruleHandle = SpringCloudRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         final SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(selector.getId());
-        log.info("selector:{} ", selector.toString());
-        log.info("rule:{} ", rule.toString());
-        log.info("selectorHandle:{} ", selectorHandle.toString());
-        log.info("ruleHandle:{} ", ruleHandle.toString());
+
         if (StringUtils.isBlank(selectorHandle.getServiceId()) || StringUtils.isBlank(ruleHandle.getPath())) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(),
                     ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
@@ -95,7 +92,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
                 log.info(String.format("%s:%s", serviceName, serviceInstance.getUri()));
             }
         }
-        final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId().toUpperCase());
+        final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId());
 
         if (Objects.isNull(serviceInstance)) {
             Object error = ShenyuResultWrap

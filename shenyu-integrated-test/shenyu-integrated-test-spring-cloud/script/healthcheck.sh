@@ -17,12 +17,13 @@
 #
 
 PRGDIR=`dirname "$0"`
+# Waiting for service registration
+sleep 60s
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
     for loop in `seq 1 30`
     do
         status=`curl -o /dev/null -s -w %{http_code} $service`
-        response=`curl $service`
         echo -e "curl $service response $status - $response"
 
         if [ $status -eq 200  ]; then
@@ -32,6 +33,5 @@ do
         sleep 2
     done
 done
-curl http://localhost:8761/eureka/apps
-sleep 10s
+sleep 3s
 echo -e "\n-------------------"

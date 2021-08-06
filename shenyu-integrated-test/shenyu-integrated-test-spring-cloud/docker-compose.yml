@@ -43,8 +43,6 @@ services:
     container_name: shenyu-examples-eureka
     image: shenyu-examples-eureka:latest
     restart: always
-    environment:
-      - eureka.client.fetchRegistry=true
     healthcheck:
       test: [ "CMD",  "wget", "-q", "-O", "-", "http://localhost:8761" ]
       timeout: 2s
