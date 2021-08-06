@@ -32,6 +32,6 @@ do
         sleep 2
     done
 done
-
+curl http://localhost:8761/eureka/apps
 sleep 10s
 echo -e "\n-------------------"
