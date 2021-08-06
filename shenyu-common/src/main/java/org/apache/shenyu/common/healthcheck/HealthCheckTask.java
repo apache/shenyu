@@ -276,7 +276,9 @@ public final class HealthCheckTask implements Runnable {
         }
 
         SelectorData selectorData = selectorCache.get(selectorId);
-        log.info("[Health Check] Selector [{}] all upstream as removed.", selectorData.getName());
+        if (selectorData != null) {
+            log.info("[Health Check] Selector [{}] all upstream as removed.", selectorData.getName());
+        }
 
         selectorCache.remove(selectorId);
     }
