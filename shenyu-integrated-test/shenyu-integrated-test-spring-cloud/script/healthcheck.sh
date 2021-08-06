@@ -18,7 +18,7 @@
 
 PRGDIR=`dirname "$0"`
 # Waiting for service registration
-sleep 60s
+sleep 30s
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
     for loop in `seq 1 30`

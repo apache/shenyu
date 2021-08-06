@@ -19,7 +19,7 @@ server:
 
 spring:
   application:
-    name: springservice
+    name: springCloud-test
 #  cloud:
 #    nacos:
 #      discovery:

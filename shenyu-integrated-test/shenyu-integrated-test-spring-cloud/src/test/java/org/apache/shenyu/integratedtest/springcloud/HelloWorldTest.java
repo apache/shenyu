@@ -32,12 +32,6 @@ public class HelloWorldTest extends AbstractTest {
 
     @Test
     public void testHelloWorld() throws Exception {
-        Request.Builder requestBuilder = new Request.Builder().url("http://localhost:8761/eureka/apps");
-        Request request = requestBuilder.build();
-        Response response = HttpHelper.INSTANCE.getClient().newCall(request).execute();
-        String respBody = response.body().string();
-        log.info("getFromGateway() resp({})", respBody);
-
         OrderDTO order = new OrderDTO("123", "Phoenix");
         order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
         assertEquals("hello world spring cloud save order", order.getName());
