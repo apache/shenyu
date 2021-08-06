@@ -24,8 +24,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * Hello world.
  */
-@EnableDiscoveryClient
 @SpringBootApplication
+@EnableDiscoveryClient
 public class ShenyuBootstrapApplication {
     /**
      * main method of App.
