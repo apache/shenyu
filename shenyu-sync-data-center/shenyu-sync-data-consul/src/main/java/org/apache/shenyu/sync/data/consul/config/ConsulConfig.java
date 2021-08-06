@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.sync.data.consul.config;
 
-import lombok.Data;
+import java.util.Objects;
 
 /**
  * The type Consul config.
  */
-@Data
 public class ConsulConfig {
 
     private String url;
@@ -31,4 +30,89 @@ public class ConsulConfig {
 
     private int watchDelay;
 
+    /**
+     * get url.
+     *
+     * @return url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * set url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * get waitTime.
+     *
+     * @return waitTime
+     */
+    public int getWaitTime() {
+        return waitTime;
+    }
+
+    /**
+     * set waitTime.
+     *
+     * @param waitTime waitTime
+     */
+    public void setWaitTime(final int waitTime) {
+        this.waitTime = waitTime;
+    }
+
+    /**
+     * get watchDelay.
+     *
+     * @return watchDelay
+     */
+    public int getWatchDelay() {
+        return watchDelay;
+    }
+
+    /**
+     * set watchDelay.
+     *
+     * @param watchDelay watchDelay
+     */
+    public void setWatchDelay(final int watchDelay) {
+        this.watchDelay = watchDelay;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ConsulConfig that = (ConsulConfig) o;
+        return waitTime == that.waitTime
+                && watchDelay == that.watchDelay
+                && Objects.equals(url, that.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, waitTime, watchDelay);
+    }
+
+    @Override
+    public String toString() {
+        return "ConsulConfig{"
+                + "url='"
+                + url
+                + '\''
+                + ", waitTime="
+                + waitTime
+                + ", watchDelay="
+                + watchDelay
+                + '}';
+    }
 }

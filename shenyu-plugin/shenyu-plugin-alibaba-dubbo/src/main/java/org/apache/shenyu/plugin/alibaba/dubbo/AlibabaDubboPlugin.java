@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.plugin.alibaba.dubbo;
 
+import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
+import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
+import com.alibaba.dubbo.rpc.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -76,14 +79,33 @@ public class AlibabaDubboPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        Object result = alibabaDubboProxyService.genericInvoker(param, metaData);
-        if (Objects.nonNull(result)) {
-            exchange.getAttributes().put(Constants.RPC_RESULT, result);
-        } else {
-            exchange.getAttributes().put(Constants.RPC_RESULT, Constants.DUBBO_RPC_RESULT_EMPTY);
-        }
-        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-        return chain.execute(exchange);
+
+        return Mono.create(monoSink -> {
+            ResponseFuture future = alibabaDubboProxyService.genericInvoker(param, metaData);
+            future.setCallback(new ResponseCallback() {
+
+                @Override
+                public void done(final Object resultObj) {
+                    assert resultObj instanceof Result;
+                    Result result = (Result) resultObj;
+                    if (result.hasException()) {
+                        this.caught(result.getException());
+                        return;
+                    }
+                    monoSink.success(result.getValue());
+                }
+
+                @Override
+                public void caught(final Throwable ex) {
+                    LOG.error("dubbo failed using async genericInvoker() metaData={} param={}", metaData, param, ex);
+                    monoSink.error(ex);
+                }
+            });
+        }).flatMap(response -> {
+            exchange.getAttributes().put(Constants.RPC_RESULT, Objects.nonNull(response) ? response : Constants.DUBBO_RPC_RESULT_EMPTY);
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
+            return chain.execute(exchange);
+        });
     }
 
     /**

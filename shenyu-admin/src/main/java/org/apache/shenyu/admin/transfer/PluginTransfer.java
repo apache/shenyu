@@ -21,6 +21,8 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 
+import java.util.Optional;
+
 /**
  * The interface Plugin transfer.
  */
@@ -38,19 +40,18 @@ public enum PluginTransfer {
      * @return the plugin data
      */
     public PluginData mapToData(final PluginDO pluginDO) {
-        if (pluginDO == null) {
-            return null;
-        }
+        return Optional.ofNullable(pluginDO)
+                .map(v -> {
+                    PluginData.PluginDataBuilder pluginData = PluginData.builder();
+                    pluginData.id(v.getId());
+                    pluginData.name(v.getName());
+                    pluginData.config(v.getConfig());
+                    pluginData.role(v.getRole());
+                    pluginData.enabled(v.getEnabled());
 
-        PluginData.PluginDataBuilder pluginData = PluginData.builder();
-
-        pluginData.id(pluginDO.getId());
-        pluginData.name(pluginDO.getName());
-        pluginData.config(pluginDO.getConfig());
-        pluginData.role(pluginDO.getRole());
-        pluginData.enabled(pluginDO.getEnabled());
-
-        return pluginData.build();
+                    return pluginData.build();
+                })
+                .orElse(null);
     }
 
     /**
@@ -60,19 +61,18 @@ public enum PluginTransfer {
      * @return the plugin data
      */
     public PluginData mapDataTOVO(final PluginVO pluginVO) {
-        if (pluginVO == null) {
-            return null;
-        }
+        return Optional.ofNullable(pluginVO)
+                .map(v -> {
+                    PluginData.PluginDataBuilder pluginData = PluginData.builder();
+                    pluginData.id(v.getId());
+                    pluginData.name(v.getName());
+                    pluginData.config(v.getConfig());
+                    pluginData.role(v.getRole());
+                    pluginData.enabled(v.getEnabled());
 
-        PluginData.PluginDataBuilder pluginData = PluginData.builder();
-
-        pluginData.id(pluginVO.getId());
-        pluginData.name(pluginVO.getName());
-        pluginData.config(pluginVO.getConfig());
-        pluginData.role(pluginVO.getRole());
-        pluginData.enabled(pluginVO.getEnabled());
-
-        return pluginData.build();
+                    return pluginData.build();
+                })
+                .orElse(null);
     }
 
 }
