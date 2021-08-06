@@ -18,7 +18,6 @@
 package org.apache.shenyu.sync.data.consul.handler;
 
 import com.google.gson.JsonParseException;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -28,6 +27,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,8 +39,11 @@ import java.util.stream.Collectors;
 /**
  * Consul cache handler.
  */
-@Slf4j
 public class ConsulCacheHandler {
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ConsulCacheHandler.class);
 
     private final PluginDataSubscriber pluginDataSubscriber;
 
@@ -63,7 +67,7 @@ public class ConsulCacheHandler {
                 subscriber.onSubscribe(pluginData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync plugin data have error:", e);
+            LOG.error("sync plugin data have error:", e);
         }
     }
 
@@ -75,7 +79,7 @@ public class ConsulCacheHandler {
                 subscriber.onSelectorSubscribe(selectorData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync selector data have error:", e);
+            LOG.error("sync selector data have error:", e);
         }
     }
 
@@ -89,7 +93,7 @@ public class ConsulCacheHandler {
                 subscriber.onRuleSubscribe(ruleData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync rule data have error:", e);
+            LOG.error("sync rule data have error:", e);
         }
     }
 
@@ -101,7 +105,7 @@ public class ConsulCacheHandler {
                 subscriber.onSubscribe(metaData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync meta data have error:", e);
+            LOG.error("sync meta data have error:", e);
         }
     }
 
@@ -113,7 +117,7 @@ public class ConsulCacheHandler {
                 subscriber.onSubscribe(appAuthData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync auth data have error:", e);
+            LOG.error("sync auth data have error:", e);
         }
     }
 
