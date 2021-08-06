@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.common.utils.DateUtils;
 
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The interface App auth transfer.
@@ -41,21 +41,20 @@ public enum AppAuthTransfer {
      * @return the app auth do
      */
     public AppAuthDO mapToEntity(final AppAuthDTO appAuthDTO) {
-        if (Objects.isNull(appAuthDTO)) {
-            return null;
-        }
-
-        AppAuthDO.AppAuthDOBuilder<?, ?> appAuthDO = AppAuthDO.builder();
-        appAuthDO.id(appAuthDTO.getId());
-        appAuthDO.appKey(appAuthDTO.getAppKey());
-        appAuthDO.appSecret(appAuthDTO.getAppSecret());
-        appAuthDO.enabled(appAuthDTO.getEnabled());
-        appAuthDO.open(appAuthDTO.getOpen());
-        appAuthDO.userId(appAuthDTO.getUserId());
-        appAuthDO.phone(appAuthDTO.getPhone());
-        appAuthDO.extInfo(appAuthDTO.getExtInfo());
-
-        return appAuthDO.build();
+        return Optional.ofNullable(appAuthDTO)
+                .map(v -> {
+                    AppAuthDO.AppAuthDOBuilder<?, ?> appAuthDO = AppAuthDO.builder();
+                    appAuthDO.id(v.getId());
+                    appAuthDO.appKey(v.getAppKey());
+                    appAuthDO.appSecret(v.getAppSecret());
+                    appAuthDO.enabled(v.getEnabled());
+                    appAuthDO.open(v.getOpen());
+                    appAuthDO.userId(v.getUserId());
+                    appAuthDO.phone(v.getPhone());
+                    appAuthDO.extInfo(v.getExtInfo());
+                    return appAuthDO.build();
+                })
+                .orElse(null);
     }
 
     /**
@@ -65,24 +64,23 @@ public enum AppAuthTransfer {
      * @return the app auth vo
      */
     public AppAuthVO mapToVO(final AppAuthDO appAuthDO) {
-        if (Objects.isNull(appAuthDO)) {
-            return null;
-        }
-
-        AppAuthVO appAuthVO = new AppAuthVO();
-        appAuthVO.setId(appAuthDO.getId());
-        appAuthVO.setAppKey(appAuthDO.getAppKey());
-        appAuthVO.setAppSecret(appAuthDO.getAppSecret());
-        appAuthVO.setUserId(appAuthDO.getUserId());
-        appAuthVO.setPhone(appAuthDO.getPhone());
-        appAuthVO.setExtInfo(appAuthDO.getExtInfo());
-        appAuthVO.setOpen(appAuthDO.getOpen());
-        appAuthVO.setEnabled(appAuthDO.getEnabled());
-        if (Objects.nonNull(appAuthDO.getDateUpdated())) {
-            appAuthVO.setDateUpdated(DateUtils.localDateTimeToString(appAuthDO.getDateUpdated().toLocalDateTime()));
-        }
-
-        return appAuthVO;
+        return Optional.ofNullable(appAuthDO)
+                .map(v -> {
+                    AppAuthVO appAuthVO = new AppAuthVO();
+                    appAuthVO.setId(v.getId());
+                    appAuthVO.setAppKey(v.getAppKey());
+                    appAuthVO.setAppSecret(v.getAppSecret());
+                    appAuthVO.setUserId(v.getUserId());
+                    appAuthVO.setPhone(v.getPhone());
+                    appAuthVO.setExtInfo(v.getExtInfo());
+                    appAuthVO.setOpen(v.getOpen());
+                    appAuthVO.setEnabled(appAuthDO.getEnabled());
+                    appAuthVO.setDateUpdated(Optional.ofNullable(appAuthDO.getDateUpdated())
+                            .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime()))
+                            .orElse(null));
+                    return appAuthVO;
+                })
+                .orElse(null);
     }
 
 }
