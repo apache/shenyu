@@ -15,28 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.metrics.enums;
+package org.apache.shenyu.common.enums;
 
-/**
- * Metric type.
- */
-public enum MetricType {
-    
-    /**
-     * Counter metric type.
-     */
-    COUNTER,
-    
-    /**
-     * Gauge metric type.
-     */
-    GAUGE,
-    
-    /**
-     * Histogram metric type.
-     */
-    HISTOGRAM;
+import static org.junit.Assert.assertEquals;
 
-    MetricType() {
+import org.junit.Test;
+
+public class WafEnumTest {
+    @Test
+    public void testGetCode() {
+        assertEquals(0, WafEnum.REJECT.getCode());
+        assertEquals(1, WafEnum.ALLOW.getCode());
+    }
+
+    @Test
+    public void testGetName() {
+        assertEquals("reject", WafEnum.REJECT.getName());
+        assertEquals("allow", WafEnum.ALLOW.getName());
     }
 }

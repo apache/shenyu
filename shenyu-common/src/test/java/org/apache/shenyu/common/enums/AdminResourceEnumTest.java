@@ -15,28 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.metrics.enums;
+package org.apache.shenyu.common.enums;
 
-/**
- * Metric type.
- */
-public enum MetricType {
-    
-    /**
-     * Counter metric type.
-     */
-    COUNTER,
-    
-    /**
-     * Gauge metric type.
-     */
-    GAUGE,
-    
-    /**
-     * Histogram metric type.
-     */
-    HISTOGRAM;
+import org.junit.Test;
 
-    MetricType() {
+import static org.junit.Assert.assertEquals;
+
+public class AdminResourceEnumTest {
+    @Test
+    public void testGetCode() {
+        assertEquals(0, AdminResourceEnum.MAIN_MENU.getCode());
+        assertEquals(1, AdminResourceEnum.SECOND_MENU.getCode());
+        assertEquals(2, AdminResourceEnum.THREE_MENU.getCode());
     }
 }
