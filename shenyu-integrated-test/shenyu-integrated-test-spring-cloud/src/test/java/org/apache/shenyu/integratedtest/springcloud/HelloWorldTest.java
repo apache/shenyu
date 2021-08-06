@@ -24,8 +24,6 @@ import org.apache.shenyu.integratedtest.springcloud.helper.HttpHelper;
 import org.junit.Test;
 
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Request;
-import okhttp3.Response;
 
 @Slf4j
 public class HelloWorldTest extends AbstractTest {
