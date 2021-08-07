@@ -21,7 +21,6 @@ import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
 /**
  * The Alibaba Dubbo ServiceBean Listener.
  */
-@Slf4j
 @SuppressWarnings("all")
 public class AlibabaDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 

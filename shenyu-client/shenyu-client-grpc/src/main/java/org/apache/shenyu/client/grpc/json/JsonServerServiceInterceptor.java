@@ -25,7 +25,6 @@ import io.grpc.ServiceDescriptor;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerCall;
 import io.grpc.Metadata;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
@@ -40,7 +39,6 @@ import java.util.Objects;
 /**
  * Support json invoke.
  */
-@Slf4j
 public class JsonServerServiceInterceptor {
 
     private static Map<String, Class<?>> requestClazzMap = Maps.newConcurrentMap();
