@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Lists;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -60,7 +59,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCachePluginData() {
+    public void testCachePluginData() throws NoSuchFieldException, IllegalAccessException {
         final PluginData pluginData = new PluginData();
         pluginData.setName(mockName1);
 
@@ -73,7 +72,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testRemovePluginData() {
+    public void testRemovePluginData() throws NoSuchFieldException, IllegalAccessException {
         final PluginData pluginData = new PluginData();
         pluginData.setName(mockName1);
 
@@ -86,7 +85,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCleanPluginData() {
+    public void testCleanPluginData() throws NoSuchFieldException, IllegalAccessException {
         ConcurrentHashMap<String, PluginData> pluginMap = getFieldByName(pluginMapStr);
         final PluginData firstCachedPluginData = new PluginData();
         firstCachedPluginData.setName(mockName1);
@@ -103,7 +102,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCleanPluginDataSelf() {
+    public void testCleanPluginDataSelf() throws NoSuchFieldException, IllegalAccessException {
         ConcurrentHashMap<String, PluginData> pluginMap = getFieldByName(pluginMapStr);
         final PluginData firstCachedPluginData = new PluginData();
         firstCachedPluginData.setName(mockName1);
@@ -121,7 +120,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testObtainPluginData() {
+    public void testObtainPluginData() throws NoSuchFieldException, IllegalAccessException {
         final PluginData pluginData = new PluginData();
         pluginData.setName(mockName1);
         ConcurrentHashMap<String, PluginData> pluginMap = getFieldByName(pluginMapStr);
@@ -131,7 +130,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCacheSelectData() {
+    public void testCacheSelectData() throws NoSuchFieldException, IllegalAccessException {
         final SelectorData firstCachedSelectorData = new SelectorData();
         firstCachedSelectorData.setId("1");
         firstCachedSelectorData.setPluginName(mockPluginName1);
@@ -148,7 +147,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testRemoveSelectData() {
+    public void testRemoveSelectData() throws NoSuchFieldException, IllegalAccessException {
         final SelectorData selectorData = new SelectorData();
         selectorData.setId("1");
         selectorData.setPluginName(mockPluginName1);
@@ -160,7 +159,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCleanSelectorData() {
+    public void testCleanSelectorData() throws NoSuchFieldException, IllegalAccessException {
         final SelectorData firstCachedSelectorData = new SelectorData();
         firstCachedSelectorData.setId("1");
         firstCachedSelectorData.setPluginName(mockPluginName1);
@@ -177,7 +176,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCleanSelectorDataSelf() {
+    public void testCleanSelectorDataSelf() throws NoSuchFieldException, IllegalAccessException {
         final SelectorData firstCachedSelectorData = new SelectorData();
         firstCachedSelectorData.setId("1");
         firstCachedSelectorData.setPluginName(mockPluginName1);
@@ -194,7 +193,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testObtainSelectorData() {
+    public void testObtainSelectorData() throws NoSuchFieldException, IllegalAccessException {
         final SelectorData selectorData = new SelectorData();
         selectorData.setId("1");
         selectorData.setPluginName(mockPluginName1);
@@ -206,7 +205,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCacheRuleData() {
+    public void testCacheRuleData() throws NoSuchFieldException, IllegalAccessException {
         final RuleData firstCachedRuleData = new RuleData();
         firstCachedRuleData.setId("1");
         firstCachedRuleData.setSelectorId(mockSelectorId1);
@@ -223,7 +222,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testRemoveRuleData() {
+    public void testRemoveRuleData() throws NoSuchFieldException, IllegalAccessException {
         final RuleData ruleData = new RuleData();
         ruleData.setId("1");
         ruleData.setSelectorId(mockSelectorId1);
@@ -235,7 +234,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCleanRuleData() {
+    public void testCleanRuleData() throws NoSuchFieldException, IllegalAccessException {
         final RuleData firstCachedRuleData = new RuleData();
         firstCachedRuleData.setId("1");
         firstCachedRuleData.setSelectorId(mockSelectorId1);
@@ -252,7 +251,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testCleanRuleDataSelf() {
+    public void testCleanRuleDataSelf() throws NoSuchFieldException, IllegalAccessException {
         final RuleData firstCachedRuleData = new RuleData();
         firstCachedRuleData.setId("1");
         firstCachedRuleData.setSelectorId(mockSelectorId1);
@@ -269,7 +268,7 @@ public final class BaseDataCacheTest {
     }
 
     @Test
-    public void testObtainRuleData() {
+    public void testObtainRuleData() throws NoSuchFieldException, IllegalAccessException {
         final RuleData ruleData = new RuleData();
         ruleData.setId("1");
         ruleData.setSelectorId(mockSelectorId1);
@@ -280,8 +279,7 @@ public final class BaseDataCacheTest {
         Assert.assertEquals(Lists.newArrayList(ruleData), ruleDataList);
     }
 
-    @SneakyThrows
-    private ConcurrentHashMap getFieldByName(final String name) {
+    private ConcurrentHashMap getFieldByName(final String name) throws NoSuchFieldException, IllegalAccessException {
         BaseDataCache baseDataCache = BaseDataCache.getInstance();
         Field pluginMapField = baseDataCache.getClass().getDeclaredField(name);
         pluginMapField.setAccessible(true);

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.oauth2.filter;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -43,7 +42,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>This filter is mainly used to process the usage status of OAuth2 plugins
  * and the paths that need to be authorized by OAuth2
  */
-@Slf4j
 public class OAuth2PreFilter implements WebFilter {
 
     private static final AtomicBoolean SKIP = new AtomicBoolean(true);

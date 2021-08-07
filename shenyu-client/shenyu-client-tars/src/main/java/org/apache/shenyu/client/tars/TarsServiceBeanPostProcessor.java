@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.tars;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -49,7 +48,6 @@ import java.util.stream.Collectors;
 /**
  * The Tars ServiceBean PostProcessor.
  */
-@Slf4j
 public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
@@ -142,10 +140,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));
             }
         }
-        return TarsRpcExt.RpcExt.builder().methodName(method.getName())
-                .params(params)
-                .returnType(method.getReturnType().getName())
-                .build();
+        return new TarsRpcExt.RpcExt(method.getName(), params, method.getReturnType().getName());
     }
 
     private String buildRpcExt(final Method[] methods) {
@@ -156,9 +151,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 list.add(buildRpcExt(method));
             }
         }
-        TarsRpcExt buildList = TarsRpcExt.builder()
-                .methodInfo(list)
-                .build();
+        TarsRpcExt buildList = new TarsRpcExt(list);
         return GsonUtils.getInstance().toJson(buildList);
     }
 }

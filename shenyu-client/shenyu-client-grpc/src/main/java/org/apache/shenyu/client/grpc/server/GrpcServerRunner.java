@@ -20,8 +20,9 @@ package org.apache.shenyu.client.grpc.server;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerServiceDefinition;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 
@@ -31,8 +32,9 @@ import java.util.List;
 /**
  * Add grpc service and start grpc server.
  */
-@Slf4j
 public class GrpcServerRunner implements ApplicationRunner {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GrpcServerRunner.class);
 
     private final GrpcServerBuilder grpcServerBuilder;
 
@@ -55,21 +57,21 @@ public class GrpcServerRunner implements ApplicationRunner {
         List<ServerServiceDefinition> serviceDefinitions = grpcClientBeanPostProcessor.getServiceDefinitions();
         for (ServerServiceDefinition serviceDefinition : serviceDefinitions) {
             serverBuilder.addService(serviceDefinition);
-            log.info("{} has been add to grpc server", serviceDefinition.getServiceDescriptor().getName());
+            LOG.info("{} has been add to grpc server", serviceDefinition.getServiceDescriptor().getName());
         }
 
         try {
             Server server = serverBuilder.build().start();
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                log.info("shutting down grpc server");
+                LOG.info("shutting down grpc server");
                 server.shutdown();
-                log.info("grpc server shut down");
+                LOG.info("grpc server shut down");
             }));
 
-            log.info("Grpc server started successfully");
+            LOG.info("Grpc server started successfully");
         } catch (IOException e) {
-            log.error("Grpc server failed to start", e);
+            LOG.error("Grpc server failed to start", e);
         }
     }
 }
