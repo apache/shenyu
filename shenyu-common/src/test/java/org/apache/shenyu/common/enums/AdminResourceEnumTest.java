@@ -15,29 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.disruptor.event;
+package org.apache.shenyu.common.enums;
 
-/**
- * DataEvent.
- * disruptor data carrier .
- */
-public class DataEvent<T> {
+import org.junit.Test;
 
-    private T data;
+import static org.junit.Assert.assertEquals;
 
-    /**
-     * get data.
-     * @return data
-     */
-    public T getData() {
-        return data;
-    }
-
-    /**
-     * set data.
-     * @param data data
-     */
-    public void setData(final T data) {
-        this.data = data;
+public class AdminResourceEnumTest {
+    @Test
+    public void testGetCode() {
+        assertEquals(0, AdminResourceEnum.MAIN_MENU.getCode());
+        assertEquals(1, AdminResourceEnum.SECOND_MENU.getCode());
+        assertEquals(2, AdminResourceEnum.THREE_MENU.getCode());
     }
 }

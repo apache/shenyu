@@ -17,22 +17,26 @@
 
 package org.apache.shenyu.web.configuration.properties;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Rule out the url Filter.
  */
-@Getter
-@Setter
 @Component
 @ConfigurationProperties(prefix = "shenyu.exclude")
 public class ExcludePathProperties {
 
     private final List<String> paths = new ArrayList<>();
+
+    /**
+     * get paths.
+     * @return paths
+     */
+    public List<String> getPaths() {
+        return paths;
+    }
+
 }
