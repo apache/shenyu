@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.ratelimiter.executor;
 
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
 import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.response.RateLimiterResponse;
@@ -46,7 +45,6 @@ import static org.mockito.Mockito.when;
  * RedisRateLimiter test.
  */
 @RunWith(MockitoJUnitRunner.class)
-@Slf4j
 public final class RedisRateLimiterTest {
 
     private static final String DEFAULT_TEST_ID = "testId";

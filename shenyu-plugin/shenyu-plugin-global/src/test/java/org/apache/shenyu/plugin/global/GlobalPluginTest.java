@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.global;
 
-import lombok.SneakyThrows;
 import org.apache.shenyu.plugin.global.fixture.FixtureShenyuContextDecorator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -35,6 +34,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -82,9 +82,8 @@ public final class GlobalPluginTest {
         assertNotNull(this.exchange.getAttributes().get(Constants.CONTEXT));
     }
 
-    @SneakyThrows
     @Test
-    public void testTransformMap() {
+    public void testTransformMap() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class<GlobalPlugin> clazz = GlobalPlugin.class;
         Method method = clazz.getDeclaredMethod("transformMap", MultiValueMap.class);
         method.setAccessible(true);

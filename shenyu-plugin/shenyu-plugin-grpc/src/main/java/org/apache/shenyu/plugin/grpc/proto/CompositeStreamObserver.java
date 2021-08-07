@@ -19,13 +19,15 @@ package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.common.collect.ImmutableList;
 import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A which groups multiple observers and executes them all.
  */
-@Slf4j
 public final class CompositeStreamObserver<T> implements StreamObserver<T> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CompositeStreamObserver.class);
 
     private final ImmutableList<StreamObserver<T>> observers;
 
@@ -52,7 +54,7 @@ public final class CompositeStreamObserver<T> implements StreamObserver<T> {
             try {
                 observer.onCompleted();
             } catch (Exception t) {
-                log.error("Exception in composite onComplete, moving on", t);
+                LOG.error("Exception in composite onComplete, moving on", t);
             }
         }
     }
@@ -63,7 +65,7 @@ public final class CompositeStreamObserver<T> implements StreamObserver<T> {
             try {
                 observer.onError(t);
             } catch (Exception exception) {
-                log.error("Exception in composite onError, moving on", exception);
+                LOG.error("Exception in composite onError, moving on", exception);
             }
         }
     }
@@ -74,7 +76,7 @@ public final class CompositeStreamObserver<T> implements StreamObserver<T> {
             try {
                 observer.onNext(value);
             } catch (Exception exception) {
-                log.error("Exception in composite onNext, moving on", exception);
+                LOG.error("Exception in composite onNext, moving on", exception);
             }
         }
     }

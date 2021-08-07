@@ -49,7 +49,7 @@ public class RoundRobinLoadBalancerProviderTest {
 
     @Test
     public void testGetPolicyName() {
-        assertEquals(roundRobinLoadBalancerProvider.getPolicyName(), LoadBalancerStrategy.RoundRobin.getStrategy());
+        assertEquals(roundRobinLoadBalancerProvider.getPolicyName(), LoadBalancerStrategy.ROUND_ROBIN.getStrategy());
     }
 
     @Test

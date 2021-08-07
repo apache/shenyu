@@ -23,7 +23,6 @@ import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import com.alibaba.dubbo.rpc.service.GenericException;
 import com.alibaba.dubbo.rpc.service.GenericService;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -32,14 +31,17 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
 /**
  * Alibaba dubbo proxy service is  use GenericService.
  */
-@Slf4j
 public class AlibabaDubboProxyService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AlibabaDubboProxyService.class);
 
     private final BodyParamResolveService bodyParamResolveService;
 
@@ -76,7 +78,7 @@ public class AlibabaDubboProxyService {
             }
             genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         } catch (GenericException e) {
-            log.error("dubbo invoker have exception", e);
+            LOG.error("dubbo invoker have exception", e);
             throw new ShenyuException(e.getExceptionMessage());
         }
 

@@ -17,23 +17,42 @@
 
 package org.apache.shenyu.plugin.grpc.proto;
 
-import lombok.Data;
-
 import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * ShenyuGrpcResponse.
  */
-@Data
 public class ShenyuGrpcResponse implements Serializable {
 
     private static final long serialVersionUID = 4182753303732523014L;
 
     private List<String> results;
 
+    /**
+     * Instantiates a new Shenyu grpc response.
+     */
     public ShenyuGrpcResponse() {
         this.results = new ArrayList<>();
+    }
+
+    /**
+     * Gets results.
+     *
+     * @return the results
+     */
+    public List<String> getResults() {
+        return results;
+    }
+
+    /**
+     * Sets results.
+     *
+     * @param results the results
+     */
+    public void setResults(final List<String> results) {
+        this.results = results;
     }
 }

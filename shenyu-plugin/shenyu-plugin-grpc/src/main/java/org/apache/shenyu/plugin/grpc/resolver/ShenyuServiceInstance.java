@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -29,10 +25,6 @@ import java.util.Map;
 /**
  * Shenyu Service instance.
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class ShenyuServiceInstance {
 
     private String host;
@@ -41,8 +33,87 @@ public class ShenyuServiceInstance {
 
     private Map<String, String> metadata;
 
+    /**
+     * Instantiates a new Shenyu service instance.
+     */
+    public ShenyuServiceInstance() {
+    }
+
+    /**
+     * Instantiates a new Shenyu service instance.
+     *
+     * @param host     the host
+     * @param port     the port
+     * @param metadata the metadata
+     */
+    public ShenyuServiceInstance(final String host, final int port, final Map<String, String> metadata) {
+        this.host = host;
+        this.port = port;
+        this.metadata = metadata;
+    }
+
+    /**
+     * Instantiates a new Shenyu service instance.
+     *
+     * @param host the host
+     * @param port the port
+     */
     public ShenyuServiceInstance(final String host, final int port) {
         this(host, port, new HashMap<>());
+    }
+
+    /**
+     * Gets host.
+     *
+     * @return the host
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * Sets host.
+     *
+     * @param host the host
+     */
+    public void setHost(final String host) {
+        this.host = host;
+    }
+
+    /**
+     * Gets port.
+     *
+     * @return the port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * Sets port.
+     *
+     * @param port the port
+     */
+    public void setPort(final int port) {
+        this.port = port;
+    }
+
+    /**
+     * Gets metadata.
+     *
+     * @return the metadata
+     */
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * Sets metadata.
+     *
+     * @param metadata the metadata
+     */
+    public void setMetadata(final Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     /**
