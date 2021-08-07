@@ -15,28 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration.properties;
+package org.apache.shenyu.common.enums;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Rule out the url Filter.
- */
-@Component
-@ConfigurationProperties(prefix = "shenyu.exclude")
-public class ExcludePathProperties {
+import org.junit.Test;
 
-    private final List<String> paths = new ArrayList<>();
+public class PluginTypeEnumTest {
 
-    /**
-     * get paths.
-     * @return paths
-     */
-    public List<String> getPaths() {
-        return paths;
+    @Test
+    public void testName() {
+        assertEquals("before", PluginTypeEnum.BEFORE.getName());
+        assertEquals("function", PluginTypeEnum.FUNCTION.getName());
+        assertEquals("last", PluginTypeEnum.LAST.getName());
     }
 
 }

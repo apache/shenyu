@@ -15,28 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration.properties;
+package org.apache.shenyu.common.enums;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.Test;
 
-/**
- * Rule out the url Filter.
- */
-@Component
-@ConfigurationProperties(prefix = "shenyu.exclude")
-public class ExcludePathProperties {
+import static org.junit.Assert.assertEquals;
 
-    private final List<String> paths = new ArrayList<>();
-
-    /**
-     * get paths.
-     * @return paths
-     */
-    public List<String> getPaths() {
-        return paths;
+public class AdminResourceEnumTest {
+    @Test
+    public void testGetCode() {
+        assertEquals(0, AdminResourceEnum.MAIN_MENU.getCode());
+        assertEquals(1, AdminResourceEnum.SECOND_MENU.getCode());
+        assertEquals(2, AdminResourceEnum.THREE_MENU.getCode());
     }
-
 }

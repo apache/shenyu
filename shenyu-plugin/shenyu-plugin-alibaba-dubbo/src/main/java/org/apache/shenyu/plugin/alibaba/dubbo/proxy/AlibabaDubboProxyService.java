@@ -18,6 +18,9 @@
 package org.apache.shenyu.plugin.alibaba.dubbo.proxy;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
+import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
+import com.alibaba.dubbo.rpc.RpcContext;
+import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import com.alibaba.dubbo.rpc.service.GenericException;
 import com.alibaba.dubbo.rpc.service.GenericService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +40,9 @@ import java.util.Objects;
  */
 @Slf4j
 public class AlibabaDubboProxyService {
-    
+
     private final BodyParamResolveService bodyParamResolveService;
-    
+
     /**
      * Instantiates a new Dubbo proxy service.
      *
@@ -48,7 +51,7 @@ public class AlibabaDubboProxyService {
     public AlibabaDubboProxyService(final BodyParamResolveService bodyParamResolveService) {
         this.bodyParamResolveService = bodyParamResolveService;
     }
-    
+
     /**
      * Generic invoker object.
      *
@@ -57,7 +60,7 @@ public class AlibabaDubboProxyService {
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-    public Object genericInvoker(final String body, final MetaData metaData) throws ShenyuException {
+    public ResponseFuture genericInvoker(final String body, final MetaData metaData) throws ShenyuException {
         ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
@@ -71,10 +74,13 @@ public class AlibabaDubboProxyService {
             } else {
                 pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
             }
-            return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+            genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         } catch (GenericException e) {
             log.error("dubbo invoker have exception", e);
             throw new ShenyuException(e.getExceptionMessage());
         }
+
+        FutureAdapter<?> adapter = (FutureAdapter<?>) RpcContext.getContext().getFuture();
+        return adapter.getFuture();
     }
 }

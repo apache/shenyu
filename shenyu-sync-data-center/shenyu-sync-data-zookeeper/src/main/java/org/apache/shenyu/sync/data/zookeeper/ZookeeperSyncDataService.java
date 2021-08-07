@@ -19,7 +19,6 @@ package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import lombok.SneakyThrows;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
@@ -36,6 +35,7 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -298,9 +298,8 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 cacheMetaData(GsonUtils.getInstance().fromJson(data.toString(), MetaData.class));
             }
 
-            @SneakyThrows
             @Override
-            public void handleDataDeleted(final String dataPath) {
+            public void handleDataDeleted(final String dataPath) throws UnsupportedEncodingException {
                 final String realPath = dataPath.substring(DefaultPathConstants.META_DATA.length() + 1);
                 MetaData metaData = new MetaData();
                 metaData.setPath(URLDecoder.decode(realPath, StandardCharsets.UTF_8.name()));

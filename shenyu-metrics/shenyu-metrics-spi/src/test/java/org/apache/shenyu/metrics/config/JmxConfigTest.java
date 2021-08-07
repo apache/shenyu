@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.metrics.config;
 
-import lombok.SneakyThrows;
 import org.apache.shenyu.metrics.config.JmxConfig.Rule;
 import org.apache.shenyu.metrics.config.JmxConfig.Type;
 import org.junit.Before;
@@ -39,32 +38,35 @@ public final class JmxConfigTest {
 
     private JmxConfig jmxConfig;
 
-    @SneakyThrows
     @Before
     public void setUp() {
-        jmxConfig = new JmxConfig();
-        jmxConfig.setStartDelaySeconds(10);
-        jmxConfig.setJmxUrl("http://");
-        jmxConfig.setUsername("promise");
-        jmxConfig.setPassword("promise");
-        jmxConfig.setSsl(Boolean.TRUE);
-        jmxConfig.setLowercaseOutputName(Boolean.FALSE);
-        jmxConfig.setLowercaseOutputLabelNames(Boolean.TRUE);
-        ObjectName objectName1 = ObjectName.getInstance("promise1", "promise1", "10");
-        ObjectName objectName2 = ObjectName.getInstance("promise1", "promise2", "11");
-        jmxConfig.setWhitelistObjectNames(Collections.singletonList(objectName1));
-        jmxConfig.setBlacklistObjectNames(Collections.singletonList(objectName2));
-        Rule rule = new Rule();
-        rule.setPattern(Pattern.compile("\\w+"));
-        rule.setName("rule");
-        rule.setValue("value");
-        rule.setValueFactor(1.0);
-        rule.setHelp("help");
-        rule.setAttrNameSnakeCase(Boolean.TRUE);
-        rule.setType(Type.UNTYPED);
-        rule.setLabelNames(Collections.singletonList("labels"));
-        rule.setLabelValues(Collections.singletonList("values"));
-        jmxConfig.setRules(Collections.singletonList(rule));
+        try {
+            jmxConfig = new JmxConfig();
+            jmxConfig.setStartDelaySeconds(10);
+            jmxConfig.setJmxUrl("http://");
+            jmxConfig.setUsername("promise");
+            jmxConfig.setPassword("promise");
+            jmxConfig.setSsl(Boolean.TRUE);
+            jmxConfig.setLowercaseOutputName(Boolean.FALSE);
+            jmxConfig.setLowercaseOutputLabelNames(Boolean.TRUE);
+            ObjectName objectName1 = ObjectName.getInstance("promise1", "promise1", "10");
+            ObjectName objectName2 = ObjectName.getInstance("promise1", "promise2", "11");
+            jmxConfig.setWhitelistObjectNames(Collections.singletonList(objectName1));
+            jmxConfig.setBlacklistObjectNames(Collections.singletonList(objectName2));
+            Rule rule = new Rule();
+            rule.setPattern(Pattern.compile("\\w+"));
+            rule.setName("rule");
+            rule.setValue("value");
+            rule.setValueFactor(1.0);
+            rule.setHelp("help");
+            rule.setAttrNameSnakeCase(Boolean.TRUE);
+            rule.setType(Type.UNTYPED);
+            rule.setLabelNames(Collections.singletonList("labels"));
+            rule.setLabelValues(Collections.singletonList("values"));
+            jmxConfig.setRules(Collections.singletonList(rule));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test

@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -26,10 +25,13 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 /**
  * The type rule data handler.
  */
-@RequiredArgsConstructor
 public class RuleDataHandler extends AbstractDataHandler<RuleData> {
 
     private final PluginDataSubscriber pluginDataSubscriber;
+
+    public RuleDataHandler(final PluginDataSubscriber pluginDataSubscriber) {
+        this.pluginDataSubscriber = pluginDataSubscriber;
+    }
 
     @Override
     public List<RuleData> convert(final String json) {

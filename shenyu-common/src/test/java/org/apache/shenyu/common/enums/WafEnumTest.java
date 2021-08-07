@@ -15,28 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration.properties;
+package org.apache.shenyu.common.enums;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Rule out the url Filter.
- */
-@Component
-@ConfigurationProperties(prefix = "shenyu.exclude")
-public class ExcludePathProperties {
+import org.junit.Test;
 
-    private final List<String> paths = new ArrayList<>();
-
-    /**
-     * get paths.
-     * @return paths
-     */
-    public List<String> getPaths() {
-        return paths;
+public class WafEnumTest {
+    @Test
+    public void testGetCode() {
+        assertEquals(0, WafEnum.REJECT.getCode());
+        assertEquals(1, WafEnum.ALLOW.getCode());
     }
 
+    @Test
+    public void testGetName() {
+        assertEquals("reject", WafEnum.REJECT.getName());
+        assertEquals("allow", WafEnum.ALLOW.getName());
+    }
 }

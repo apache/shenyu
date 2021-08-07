@@ -21,8 +21,6 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
 import io.prometheus.jmx.JmxCollector;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.metrics.config.MetricsConfig;
 import org.apache.shenyu.metrics.prometheus.collector.BuildInfoCollector;
@@ -30,6 +28,8 @@ import org.apache.shenyu.metrics.reporter.MetricsReporter;
 import org.apache.shenyu.metrics.spi.MetricsBootService;
 import org.apache.shenyu.metrics.spi.MetricsRegister;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.MalformedObjectNameException;
 import java.io.IOException;
@@ -39,11 +39,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Prometheus metrics tracker manager.
  */
-@Getter
-@Slf4j
 @Join
 public final class PrometheusBootService implements MetricsBootService {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(PrometheusBootService.class);
+
     private HTTPServer server;
     
     private volatile AtomicBoolean registered = new AtomicBoolean(false);
@@ -62,7 +62,25 @@ public final class PrometheusBootService implements MetricsBootService {
             CollectorRegistry.defaultRegistry.clear();
         }
     }
-    
+
+    /**
+     * Gets server.
+     *
+     * @return the server
+     */
+    public HTTPServer getServer() {
+        return server;
+    }
+
+    /**
+     * Gets registered.
+     *
+     * @return the registered
+     */
+    public AtomicBoolean getRegistered() {
+        return registered;
+    }
+
     private void startServer(final MetricsConfig metricsConfig) {
         register(metricsConfig.getJmxConfig());
         int port = metricsConfig.getPort();
@@ -75,9 +93,9 @@ public final class PrometheusBootService implements MetricsBootService {
         }
         try {
             server = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
-            log.info(String.format("Prometheus metrics HTTP server `%s:%s` start success.", inetSocketAddress.getHostString(), inetSocketAddress.getPort()));
+            LOG.info(String.format("Prometheus metrics HTTP server `%s:%s` start success.", inetSocketAddress.getHostString(), inetSocketAddress.getPort()));
         } catch (final IOException ex) {
-            log.error("Prometheus metrics HTTP server start fail", ex);
+            LOG.error("Prometheus metrics HTTP server start fail", ex);
         }
     }
     
@@ -92,7 +110,7 @@ public final class PrometheusBootService implements MetricsBootService {
                 new JmxCollector(jmxConfig).register();
             }
         } catch (MalformedObjectNameException e) {
-            log.error("init jmx collector error", e);
+            LOG.error("init jmx collector error", e);
         }
     }
 }

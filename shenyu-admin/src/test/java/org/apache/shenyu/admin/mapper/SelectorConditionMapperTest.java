@@ -106,7 +106,8 @@ public final class SelectorConditionMapperTest extends AbstractSpringIntegration
     }
 
     private SelectorConditionDO buildSelectorConditionDO() {
-        Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+
         return SelectorConditionDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .selectorId(UUIDUtils.getInstance().generateShortUuid())

@@ -24,7 +24,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -167,7 +166,7 @@ public final class PluginHandleMapperTest extends AbstractSpringIntegrationTest 
     private PluginHandleDO buildPluginHandleDO() {
         String id = UUIDUtils.getInstance().generateShortUuid();
         String pluginId = UUIDUtils.getInstance().generateShortUuid();
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         return PluginHandleDO.builder()
                 .id(id)
                 .pluginId(pluginId)
