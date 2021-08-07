@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 /**
  * this is resource Dto.
@@ -366,6 +367,35 @@ public class ResourceDTO {
      */
     public static ResourceDTO.ResourceDTOBuilder builder() {
         return new ResourceDTO.ResourceDTOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ResourceDTO)) {
+            return false;
+        }
+        ResourceDTO that = (ResourceDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(parentId, that.parentId)
+                && Objects.equals(title, that.title)
+                && Objects.equals(name, that.name)
+                && Objects.equals(url, that.url)
+                && Objects.equals(component, that.component)
+                && Objects.equals(resourceType, that.resourceType)
+                && Objects.equals(sort, that.sort)
+                && Objects.equals(icon, that.icon)
+                && Objects.equals(isLeaf, that.isLeaf)
+                && Objects.equals(isRoute, that.isRoute)
+                && Objects.equals(perms, that.perms)
+                && Objects.equals(status, that.status);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status);
     }
 
     public static final class ResourceDTOBuilder {

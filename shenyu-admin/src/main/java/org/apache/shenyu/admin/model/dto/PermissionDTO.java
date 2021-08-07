@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import java.util.Objects;
+
 /**
  * this is permission Dto.
  */
@@ -107,6 +109,23 @@ public class PermissionDTO {
      */
     public static PermissionDTO.PermissionDTOBuilder builder() {
         return new PermissionDTO.PermissionDTOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PermissionDTO)) {
+            return false;
+        }
+        PermissionDTO that = (PermissionDTO) o;
+        return Objects.equals(id, that.id) && Objects.equals(objectId, that.objectId) && Objects.equals(resourceId, that.resourceId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, objectId, resourceId);
     }
 
     public static final class PermissionDTOBuilder {

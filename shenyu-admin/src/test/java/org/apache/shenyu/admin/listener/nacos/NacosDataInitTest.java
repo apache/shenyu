@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
-import lombok.SneakyThrows;
+import com.alibaba.nacos.api.exception.NacosException;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -52,8 +52,7 @@ public class NacosDataInitTest {
     private SyncDataService syncDataService;
 
     @Test
-    @SneakyThrows
-    public void testRun() {
+    public void testRun() throws NacosException {
         String group = NacosPathConstants.GROUP;
         long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
         NacosDataInit nacosDataInit = new NacosDataInit(configService, syncDataService);

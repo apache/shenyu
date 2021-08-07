@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.vo;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class MetaDataVO implements Serializable {
 
@@ -299,5 +300,51 @@ public class MetaDataVO implements Serializable {
      */
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MetaDataVO)) {
+            return false;
+        }
+        MetaDataVO that = (MetaDataVO) o;
+        return Objects.equals(appName, that.appName)
+                && Objects.equals(path, that.path)
+                && Objects.equals(pathDesc, that.pathDesc)
+                && Objects.equals(rpcType, that.rpcType)
+                && Objects.equals(serviceName, that.serviceName)
+                && Objects.equals(methodName, that.methodName)
+                && Objects.equals(parameterTypes, that.parameterTypes)
+                && Objects.equals(rpcExt, that.rpcExt)
+                && Objects.equals(id, that.id)
+                && Objects.equals(dateCreated, that.dateCreated)
+                && Objects.equals(dateUpdated, that.dateUpdated)
+                && Objects.equals(enabled, that.enabled);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, id, dateCreated, dateUpdated, enabled);
+    }
+
+    @Override
+    public String toString() {
+        return "MetaDataVO{"
+                + "appName='" + appName + '\''
+                + ", path='" + path + '\''
+                + ", pathDesc='" + pathDesc + '\''
+                + ", rpcType='" + rpcType + '\''
+                + ", serviceName='" + serviceName + '\''
+                + ", methodName='" + methodName + '\''
+                + ", parameterTypes='" + parameterTypes + '\''
+                + ", rpcExt='" + rpcExt + '\''
+                + ", id='" + id + '\''
+                + ", dateCreated='" + dateCreated + '\''
+                + ", dateUpdated='" + dateUpdated + '\''
+                + ", enabled=" + enabled
+                + '}';
     }
 }

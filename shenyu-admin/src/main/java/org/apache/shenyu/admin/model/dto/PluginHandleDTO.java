@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this plugin handle from web front.
@@ -217,5 +218,29 @@ public class PluginHandleDTO implements Serializable {
      */
     public void setExtObj(final String extObj) {
         this.extObj = extObj;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PluginHandleDTO)) {
+            return false;
+        }
+        PluginHandleDTO that = (PluginHandleDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(pluginId, that.pluginId)
+                && Objects.equals(field, that.field)
+                && Objects.equals(label, that.label)
+                && Objects.equals(dataType, that.dataType)
+                && Objects.equals(type, that.type)
+                && Objects.equals(sort, that.sort)
+                && Objects.equals(extObj, that.extObj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, pluginId, field, label, dataType, type, sort, extObj);
     }
 }

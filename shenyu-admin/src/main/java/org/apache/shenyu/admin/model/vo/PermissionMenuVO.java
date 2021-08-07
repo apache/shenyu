@@ -22,6 +22,7 @@ import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -107,6 +108,32 @@ public class PermissionMenuVO implements Serializable {
      */
     public void setAllAuth(final List<AuthPerm> allAuth) {
         this.allAuth = allAuth;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PermissionMenuVO)) {
+            return false;
+        }
+        PermissionMenuVO that = (PermissionMenuVO) o;
+        return Objects.equals(menu, that.menu) && Objects.equals(currentAuth, that.currentAuth) && Objects.equals(allAuth, that.allAuth);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(menu, currentAuth, allAuth);
+    }
+
+    @Override
+    public String toString() {
+        return "PermissionMenuVO{"
+                + "menu=" + menu
+                + ", currentAuth=" + currentAuth
+                + ", allAuth=" + allAuth
+                + '}';
     }
 
     public static class MenuInfo {
@@ -319,6 +346,42 @@ public class PermissionMenuVO implements Serializable {
                 }
                 return menuInfo;
             }).orElse(null);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof MenuInfo)) {
+                return false;
+            }
+            MenuInfo menuInfo = (MenuInfo) o;
+            return Objects.equals(id, menuInfo.id)
+                    && Objects.equals(name, menuInfo.name)
+                    && Objects.equals(url, menuInfo.url)
+                    && Objects.equals(component, menuInfo.component)
+                    && Objects.equals(meta, menuInfo.meta)
+                    && Objects.equals(children, menuInfo.children)
+                    && Objects.equals(sort, menuInfo.sort);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, name, url, component, meta, children, sort);
+        }
+
+        @Override
+        public String toString() {
+            return "MenuInfo{"
+                    + "id='" + id + '\''
+                    + ", name='" + name + '\''
+                    + ", url='" + url + '\''
+                    + ", component='" + component + '\''
+                    + ", meta=" + meta
+                    + ", children=" + children
+                    + ", sort=" + sort
+                    + '}';
         }
 
         public static final class MenuInfoBuilder {
@@ -540,6 +603,32 @@ public class PermissionMenuVO implements Serializable {
         public static AuthPerm buildAuthPerm(final ResourceVO resourceVO) {
             return Optional.ofNullable(resourceVO).map(item -> new AuthPerm(resourceVO.getPerms(), resourceVO.getTitle(), resourceVO.getIcon())).orElse(null);
         }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof AuthPerm)) {
+                return false;
+            }
+            AuthPerm authPerm = (AuthPerm) o;
+            return Objects.equals(perms, authPerm.perms) && Objects.equals(description, authPerm.description) && Objects.equals(icon, authPerm.icon);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(perms, description, icon);
+        }
+
+        @Override
+        public String toString() {
+            return "AuthPerm{"
+                    + "perms='" + perms + '\''
+                    + ", description='" + description + '\''
+                    + ", icon='" + icon + '\''
+                    + '}';
+        }
     }
 
     public static class Meta {
@@ -596,6 +685,31 @@ public class PermissionMenuVO implements Serializable {
          */
         public void setTitle(final String title) {
             this.title = title;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Meta)) {
+                return false;
+            }
+            Meta meta = (Meta) o;
+            return Objects.equals(icon, meta.icon) && Objects.equals(title, meta.title);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(icon, title);
+        }
+
+        @Override
+        public String toString() {
+            return "Meta{"
+                    + "icon='" + icon + '\''
+                    + ", title='" + title + '\''
+                    + '}';
         }
     }
 }

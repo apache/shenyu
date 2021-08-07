@@ -21,6 +21,7 @@ import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * ShenyuAdminResult.
@@ -182,5 +183,31 @@ public class ShenyuAdminResult implements Serializable {
      */
     public void setData(final Object data) {
         this.data = data;
+    }
+
+    @Override
+    public String toString() {
+        return "ShenyuAdminResult{"
+                + "code=" + code
+                + ", message='" + message
+                + '\'' + ", data=" + data
+                + '}';
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ShenyuAdminResult)) {
+            return false;
+        }
+        ShenyuAdminResult that = (ShenyuAdminResult) o;
+        return Objects.equals(code, that.code) && Objects.equals(message, that.message) && Objects.equals(data, that.data);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(code, message, data);
     }
 }

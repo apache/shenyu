@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.model.query;
 
 import org.apache.shenyu.admin.model.page.PageParameter;
 
+import java.util.Objects;
+
 /**
  * this is selector query.
  */
@@ -102,5 +104,25 @@ public class SelectorQuery extends FilterQuery {
      */
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SelectorQuery)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        SelectorQuery that = (SelectorQuery) o;
+        return Objects.equals(pluginId, that.pluginId) && Objects.equals(name, that.name) && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), pluginId, name, pageParameter);
     }
 }

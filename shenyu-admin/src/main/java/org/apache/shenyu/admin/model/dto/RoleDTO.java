@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * this is role from by web front.
@@ -138,6 +139,26 @@ public class RoleDTO implements Serializable {
      */
     public static RoleDTO.RoleDTOBuilder builder() {
         return new RoleDTO.RoleDTOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RoleDTO)) {
+            return false;
+        }
+        RoleDTO roleDTO = (RoleDTO) o;
+        return Objects.equals(id, roleDTO.id)
+                && Objects.equals(roleName, roleDTO.roleName)
+                && Objects.equals(description, roleDTO.description)
+                && Objects.equals(currentPermissionIds, roleDTO.currentPermissionIds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, roleName, description, currentPermissionIds);
     }
 
     public static final class RoleDTOBuilder {

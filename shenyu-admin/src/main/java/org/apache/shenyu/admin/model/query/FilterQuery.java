@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.query;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * data permission filter query.
@@ -48,5 +49,22 @@ public class FilterQuery implements Serializable {
      */
     public void setFilterIds(final List<String> filterIds) {
         this.filterIds = filterIds;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof FilterQuery)) {
+            return false;
+        }
+        FilterQuery that = (FilterQuery) o;
+        return Objects.equals(filterIds, that.filterIds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(filterIds);
     }
 }

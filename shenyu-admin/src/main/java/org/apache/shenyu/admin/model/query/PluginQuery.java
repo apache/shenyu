@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.query;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is plugin query.
@@ -104,5 +105,22 @@ public class PluginQuery implements Serializable {
      */
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PluginQuery)) {
+            return false;
+        }
+        PluginQuery that = (PluginQuery) o;
+        return Objects.equals(name, that.name) && Objects.equals(enabled, that.enabled) && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, enabled, pageParameter);
     }
 }

@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is plugin from by web front.
@@ -166,5 +167,27 @@ public class PluginDTO implements Serializable {
      */
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PluginDTO)) {
+            return false;
+        }
+        PluginDTO pluginDTO = (PluginDTO) o;
+        return Objects.equals(id, pluginDTO.id)
+                && Objects.equals(name, pluginDTO.name)
+                && Objects.equals(config, pluginDTO.config)
+                && Objects.equals(role, pluginDTO.role)
+                && Objects.equals(sort, pluginDTO.sort)
+                && Objects.equals(enabled, pluginDTO.enabled);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, config, role, sort, enabled);
     }
 }

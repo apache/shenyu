@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
@@ -44,6 +43,8 @@ import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.utils.AesUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.LdapTemplate;
@@ -59,9 +60,10 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.DashboardUserService}.
  */
-@Slf4j
 @Service
 public class DashboardUserServiceImpl implements DashboardUserService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DashboardUserServiceImpl.class);
 
     private final SecretProperties secretProperties;
 
@@ -245,7 +247,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         } catch (NameNotFoundException e) {
             return null;
         } catch (Exception e) {
-            log.error("ldap verify error.", e);
+            LOG.error("ldap verify error.", e);
             return null;
         }
     }

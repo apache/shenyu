@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.page;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * common Pager.
@@ -88,6 +89,31 @@ public class CommonPager<T> implements Serializable {
      */
     public static CommonPager.CommonPagerBuilder builder() {
         return new CommonPager.CommonPagerBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof CommonPager)) {
+            return false;
+        }
+        CommonPager<?> that = (CommonPager<?>) o;
+        return Objects.equals(page, that.page) && Objects.equals(dataList, that.dataList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(page, dataList);
+    }
+
+    @Override
+    public String toString() {
+        return "CommonPager{"
+                + "page=" + page
+                + ", dataList=" + dataList
+                + '}';
     }
 
     public static final class CommonPagerBuilder<T> {

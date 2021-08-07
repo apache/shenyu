@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -167,5 +168,37 @@ public class RoleVO implements Serializable {
                 .map(item -> new RoleVO(item.getId(), item.getRoleName(),
                         item.getDescription(), DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
                         DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RoleVO)) {
+            return false;
+        }
+        RoleVO roleVO = (RoleVO) o;
+        return Objects.equals(id, roleVO.id)
+                && Objects.equals(roleName, roleVO.roleName)
+                && Objects.equals(description, roleVO.description)
+                && Objects.equals(dateCreated, roleVO.dateCreated)
+                && Objects.equals(dateUpdated, roleVO.dateUpdated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, roleName, description, dateCreated, dateUpdated);
+    }
+
+    @Override
+    public String toString() {
+        return "RoleVO{"
+                + "id='" + id + '\''
+                + ", roleName='" + roleName + '\''
+                + ", description='" + description + '\''
+                + ", dateCreated='" + dateCreated + '\''
+                + ", dateUpdated='" + dateUpdated + '\''
+                + '}';
     }
 }

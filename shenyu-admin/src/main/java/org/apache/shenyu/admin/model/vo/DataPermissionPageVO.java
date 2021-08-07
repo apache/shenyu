@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -130,5 +131,31 @@ public class DataPermissionPageVO implements Serializable {
         return Optional.of(ruleDO)
                 .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
                 .orElse(null);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DataPermissionPageVO)) {
+            return false;
+        }
+        DataPermissionPageVO that = (DataPermissionPageVO) o;
+        return Objects.equals(dataId, that.dataId) && Objects.equals(dataName, that.dataName) && Objects.equals(isChecked, that.isChecked);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataId, dataName, isChecked);
+    }
+
+    @Override
+    public String toString() {
+        return "DataPermissionPageVO{"
+                + "dataId='" + dataId + '\''
+                + ", dataName='" + dataName + '\''
+                + ", isChecked=" + isChecked
+                + '}';
     }
 }

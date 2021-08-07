@@ -23,7 +23,6 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -239,12 +238,10 @@ public class ConsulDataChangedListener implements DataChangedListener {
         publishConfig(ConsulConstants.RULE_DATA, RULE_MAP);
     }
 
-    @SneakyThrows
     private void publishConfig(final String dataKey, final Object data) {
         consulClient.setKVValue(dataKey, GsonUtils.getInstance().toJson(data));
     }
 
-    @SneakyThrows
     private String getConfig(final String dataKey) {
         Response<GetValue> kvValue = consulClient.getKVValue(dataKey);
         return Objects.nonNull(kvValue.getValue()) ? kvValue.getValue().getDecodedValue() : ConsulConstants.EMPTY_CONFIG_DEFAULT_VALUE;

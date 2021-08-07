@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.query;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The Role Query.
@@ -80,5 +81,22 @@ public class RoleQuery implements Serializable {
      */
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RoleQuery)) {
+            return false;
+        }
+        RoleQuery roleQuery = (RoleQuery) o;
+        return Objects.equals(roleName, roleQuery.roleName) && Objects.equals(pageParameter, roleQuery.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(roleName, pageParameter);
     }
 }

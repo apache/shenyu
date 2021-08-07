@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.query;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is rule condition query.
@@ -54,5 +55,22 @@ public class RuleConditionQuery implements Serializable {
      */
     public void setRuleId(final String ruleId) {
         this.ruleId = ruleId;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RuleConditionQuery)) {
+            return false;
+        }
+        RuleConditionQuery that = (RuleConditionQuery) o;
+        return Objects.equals(ruleId, that.ruleId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ruleId);
     }
 }

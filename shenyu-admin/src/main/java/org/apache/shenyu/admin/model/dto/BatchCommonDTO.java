@@ -21,6 +21,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Batch common dto.
@@ -70,5 +71,22 @@ public class BatchCommonDTO implements Serializable {
      */
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof BatchCommonDTO)) {
+            return false;
+        }
+        BatchCommonDTO that = (BatchCommonDTO) o;
+        return Objects.equals(ids, that.ids) && Objects.equals(enabled, that.enabled);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ids, enabled);
     }
 }

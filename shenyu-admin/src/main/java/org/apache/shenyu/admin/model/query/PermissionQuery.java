@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.query;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is permission query.
@@ -78,5 +79,22 @@ public class PermissionQuery implements Serializable {
      */
     public void setResourceId(final String resourceId) {
         this.resourceId = resourceId;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PermissionQuery)) {
+            return false;
+        }
+        PermissionQuery that = (PermissionQuery) o;
+        return Objects.equals(objectId, that.objectId) && Objects.equals(resourceId, that.resourceId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(objectId, resourceId);
     }
 }

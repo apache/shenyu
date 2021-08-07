@@ -39,12 +39,12 @@ public final class AuthPathApplyDTOTest {
     @Test
     public void testHashCode() {
         final int result = authPathApplyDTOUnderTest.hashCode();
-        assertEquals(-1763955322, result);
+        assertEquals(2057813462, result);
     }
 
     @Test
     public void testToString() {
         final String result = authPathApplyDTOUnderTest.toString();
-        assertEquals("AuthPathApplyDTO(appName=shenyu, path=/)", result);
+        assertEquals("AuthPathApplyDTO{appName='shenyu', path='/'}", result);
     }
 }

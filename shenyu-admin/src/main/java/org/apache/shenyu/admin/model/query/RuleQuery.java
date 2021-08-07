@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.model.query;
 
 import org.apache.shenyu.admin.model.page.PageParameter;
 
+import java.util.Objects;
+
 /**
  * this is rule query.
  */
@@ -102,5 +104,25 @@ public class RuleQuery extends FilterQuery {
      */
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RuleQuery)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RuleQuery ruleQuery = (RuleQuery) o;
+        return Objects.equals(selectorId, ruleQuery.selectorId) && Objects.equals(name, ruleQuery.name) && Objects.equals(pageParameter, ruleQuery.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), selectorId, name, pageParameter);
     }
 }

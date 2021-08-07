@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is rule condition from by web front.
@@ -193,6 +194,28 @@ public final class RuleConditionDTO implements Serializable {
      */
     public static RuleConditionDTO.RuleConditionDTOBuilder builder() {
         return new RuleConditionDTO.RuleConditionDTOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RuleConditionDTO)) {
+            return false;
+        }
+        RuleConditionDTO that = (RuleConditionDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(ruleId, that.ruleId)
+                && Objects.equals(paramType, that.paramType)
+                && Objects.equals(operator, that.operator)
+                && Objects.equals(paramName, that.paramName)
+                && Objects.equals(paramValue, that.paramValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, ruleId, paramType, operator, paramName, paramValue);
     }
 
     public static final class RuleConditionDTOBuilder {

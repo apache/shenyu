@@ -21,6 +21,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * this is rule from by web front.
@@ -272,6 +273,31 @@ public final class RuleDTO implements Serializable {
      */
     public static RuleDTO.RuleDTOBuilder builder() {
         return new RuleDTO.RuleDTOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RuleDTO)) {
+            return false;
+        }
+        RuleDTO ruleDTO = (RuleDTO) o;
+        return Objects.equals(id, ruleDTO.id)
+                && Objects.equals(selectorId, ruleDTO.selectorId)
+                && Objects.equals(matchMode, ruleDTO.matchMode)
+                && Objects.equals(name, ruleDTO.name)
+                && Objects.equals(enabled, ruleDTO.enabled)
+                && Objects.equals(loged, ruleDTO.loged)
+                && Objects.equals(sort, ruleDTO.sort)
+                && Objects.equals(handle, ruleDTO.handle)
+                && Objects.equals(ruleConditions, ruleDTO.ruleConditions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions);
     }
 
     public static final class RuleDTOBuilder {

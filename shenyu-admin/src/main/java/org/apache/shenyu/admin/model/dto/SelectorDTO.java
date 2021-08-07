@@ -21,6 +21,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * this is selector from by web front.
@@ -320,6 +321,33 @@ public final class SelectorDTO implements Serializable {
      */
     public static SelectorDTO.SelectorDTOBuilder builder() {
         return new SelectorDTO.SelectorDTOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SelectorDTO)) {
+            return false;
+        }
+        SelectorDTO that = (SelectorDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(pluginId, that.pluginId)
+                && Objects.equals(name, that.name)
+                && Objects.equals(matchMode, that.matchMode)
+                && Objects.equals(type, that.type)
+                && Objects.equals(sort, that.sort)
+                && Objects.equals(enabled, that.enabled)
+                && Objects.equals(loged, that.loged)
+                && Objects.equals(continued, that.continued)
+                && Objects.equals(handle, that.handle)
+                && Objects.equals(selectorConditions, that.selectorConditions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, selectorConditions);
     }
 
     public static final class SelectorDTOBuilder {

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.page;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * PageParameter.
@@ -199,5 +200,41 @@ public class PageParameter implements Serializable {
      */
     public void setTotalCount(final int totalCount) {
         this.totalCount = totalCount;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PageParameter)) {
+            return false;
+        }
+        PageParameter that = (PageParameter) o;
+        return currentPage == that.currentPage
+                && prePage == that.prePage
+                && nextPage == that.nextPage
+                && pageSize == that.pageSize
+                && offset == that.offset
+                && totalPage == that.totalPage
+                && totalCount == that.totalCount;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(currentPage, prePage, nextPage, pageSize, offset, totalPage, totalCount);
+    }
+
+    @Override
+    public String toString() {
+        return "PageParameter{"
+                + "currentPage=" + currentPage
+                + ", prePage=" + prePage
+                + ", nextPage=" + nextPage
+                + ", pageSize=" + pageSize
+                + ", offset=" + offset
+                + ", totalPage=" + totalPage
+                + ", totalCount=" + totalCount
+                + '}';
     }
 }

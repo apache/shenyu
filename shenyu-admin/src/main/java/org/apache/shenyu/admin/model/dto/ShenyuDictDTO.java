@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this shenyu dict from web front.
@@ -213,5 +214,29 @@ public class ShenyuDictDTO implements Serializable {
      */
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ShenyuDictDTO)) {
+            return false;
+        }
+        ShenyuDictDTO that = (ShenyuDictDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(type, that.type)
+                && Objects.equals(dictCode, that.dictCode)
+                && Objects.equals(dictName, that.dictName)
+                && Objects.equals(dictValue, that.dictValue)
+                && Objects.equals(desc, that.desc)
+                && Objects.equals(sort, that.sort)
+                && Objects.equals(enabled, that.enabled);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, type, dictCode, dictName, dictValue, desc, sort, enabled);
     }
 }

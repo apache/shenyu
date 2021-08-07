@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.model.query;
 
 import org.apache.shenyu.admin.model.page.PageParameter;
 
+import java.util.Objects;
+
 /**
  * this is shenyu dict query.
  */
@@ -123,5 +125,25 @@ public class ShenyuDictQuery {
      */
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ShenyuDictQuery)) {
+            return false;
+        }
+        ShenyuDictQuery that = (ShenyuDictQuery) o;
+        return Objects.equals(type, that.type)
+                && Objects.equals(dictCode, that.dictCode)
+                && Objects.equals(dictName, that.dictName)
+                && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, dictCode, dictName, pageParameter);
     }
 }

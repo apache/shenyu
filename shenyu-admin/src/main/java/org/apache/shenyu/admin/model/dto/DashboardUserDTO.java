@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * this is dashboard user from by web front.
@@ -186,6 +187,28 @@ public class DashboardUserDTO implements Serializable {
      */
     public static DashboardUserDTO.DashboardUserDTOBuilder builder() {
         return new DashboardUserDTO.DashboardUserDTOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DashboardUserDTO)) {
+            return false;
+        }
+        DashboardUserDTO that = (DashboardUserDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(userName, that.userName)
+                && Objects.equals(password, that.password)
+                && Objects.equals(role, that.role)
+                && Objects.equals(roles, that.roles)
+                && Objects.equals(enabled, that.enabled);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, userName, password, role, roles, enabled);
     }
 
     public static final class DashboardUserDTOBuilder {

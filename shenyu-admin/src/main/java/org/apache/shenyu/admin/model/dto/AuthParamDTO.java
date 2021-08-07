@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type Auth param dto.
@@ -64,5 +65,22 @@ public class AuthParamDTO implements Serializable {
      */
     public void setAppParam(final String appParam) {
         this.appParam = appParam;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AuthParamDTO)) {
+            return false;
+        }
+        AuthParamDTO that = (AuthParamDTO) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(appParam, that.appParam);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, appParam);
     }
 }

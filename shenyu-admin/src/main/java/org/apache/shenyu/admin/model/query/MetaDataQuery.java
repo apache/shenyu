@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.query;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is application authority query.
@@ -80,5 +81,22 @@ public class MetaDataQuery implements Serializable {
      */
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MetaDataQuery)) {
+            return false;
+        }
+        MetaDataQuery that = (MetaDataQuery) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, pageParameter);
     }
 }

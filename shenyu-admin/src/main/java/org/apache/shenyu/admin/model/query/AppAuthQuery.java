@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.query;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is application authority query.
@@ -104,5 +105,22 @@ public class AppAuthQuery implements Serializable {
      */
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AppAuthQuery)) {
+            return false;
+        }
+        AppAuthQuery that = (AppAuthQuery) o;
+        return Objects.equals(appKey, that.appKey) && Objects.equals(phone, that.phone) && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appKey, phone, pageParameter);
     }
 }

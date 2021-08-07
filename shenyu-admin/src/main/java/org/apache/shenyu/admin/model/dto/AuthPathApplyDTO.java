@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type Auth path apply dto.
@@ -64,5 +65,30 @@ public class AuthPathApplyDTO implements Serializable {
      */
     public void setPath(final String path) {
         this.path = path;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AuthPathApplyDTO)) {
+            return false;
+        }
+        AuthPathApplyDTO that = (AuthPathApplyDTO) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, path);
+    }
+
+    @Override
+    public String toString() {
+        return "AuthPathApplyDTO{"
+                + "appName='" + appName + '\''
+                + ", path='" + path + '\''
+                + '}';
     }
 }

@@ -18,12 +18,11 @@
 package org.apache.shenyu.admin.listener.etcd;
 
 import com.google.common.collect.ImmutableList;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,7 +80,6 @@ public class EtcdDataDataChangedListenerTest {
     /**
      * test case onMetaDataChanged event.
      */
-    @SneakyThrows
     @Test
     public void testOnMetaDataChanged() {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();

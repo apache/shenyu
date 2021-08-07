@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.query;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is selector condition query.
@@ -54,5 +55,22 @@ public class SelectorConditionQuery implements Serializable {
      */
     public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SelectorConditionQuery)) {
+            return false;
+        }
+        SelectorConditionQuery that = (SelectorConditionQuery) o;
+        return Objects.equals(selectorId, that.selectorId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(selectorId);
     }
 }

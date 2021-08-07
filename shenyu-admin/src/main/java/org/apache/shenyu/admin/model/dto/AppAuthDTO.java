@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * this is application authority from by web front.
@@ -240,5 +241,31 @@ public class AppAuthDTO implements Serializable {
      */
     public void setAuthPathDTOList(final List<AuthPathDTO> authPathDTOList) {
         this.authPathDTOList = authPathDTOList;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AppAuthDTO)) {
+            return false;
+        }
+        AppAuthDTO that = (AppAuthDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(appKey, that.appKey)
+                && Objects.equals(appSecret, that.appSecret)
+                && Objects.equals(userId, that.userId)
+                && Objects.equals(phone, that.phone)
+                && Objects.equals(extInfo, that.extInfo)
+                && Objects.equals(open, that.open)
+                && Objects.equals(enabled, that.enabled)
+                && Objects.equals(authParamDTOList, that.authParamDTOList)
+                && Objects.equals(authPathDTOList, that.authPathDTOList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamDTOList, authPathDTOList);
     }
 }

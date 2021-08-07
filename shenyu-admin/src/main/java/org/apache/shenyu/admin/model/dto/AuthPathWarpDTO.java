@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Auth path warp dto.
@@ -65,5 +66,22 @@ public class AuthPathWarpDTO implements Serializable {
      */
     public void setAuthPathDTOList(final List<AuthPathDTO> authPathDTOList) {
         this.authPathDTOList = authPathDTOList;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AuthPathWarpDTO)) {
+            return false;
+        }
+        AuthPathWarpDTO that = (AuthPathWarpDTO) o;
+        return Objects.equals(id, that.id) && Objects.equals(authPathDTOList, that.authPathDTOList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, authPathDTOList);
     }
 }

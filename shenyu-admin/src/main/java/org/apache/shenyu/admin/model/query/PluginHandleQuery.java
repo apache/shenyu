@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.model.query;
 
 import org.apache.shenyu.admin.model.page.PageParameter;
 
+import java.util.Objects;
+
 /**
  * this is plugin handle query.
  */
@@ -134,6 +136,23 @@ public class PluginHandleQuery {
      */
     public static PluginHandleQuery.PluginHandleQueryBuilder builder() {
         return new PluginHandleQuery.PluginHandleQueryBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PluginHandleQuery)) {
+            return false;
+        }
+        PluginHandleQuery that = (PluginHandleQuery) o;
+        return Objects.equals(pluginId, that.pluginId) && Objects.equals(field, that.field) && Objects.equals(type, that.type) && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pluginId, field, type, pageParameter);
     }
 
     public static final class PluginHandleQueryBuilder {
