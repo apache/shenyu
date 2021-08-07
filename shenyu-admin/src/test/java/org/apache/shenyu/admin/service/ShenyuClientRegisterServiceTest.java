@@ -300,7 +300,7 @@ public final class ShenyuClientRegisterServiceTest {
 
     /**
      * The above testRegisterDubbo only test the main logic about registration of dubbo, but the event not covered.
-     * */
+     */
     @Test
     public void testRegisterDubboAndEvenhandle() {
         MetaDataRegisterDTO dto = buildMetaDataDTO();
@@ -464,18 +464,18 @@ public final class ShenyuClientRegisterServiceTest {
     }
 
     private SelectorData buildSelectorData() {
-        return SelectorData.builder()
-                .id("5")
-                .pluginId("pluginId")
-                .name("name")
-                .matchMode(0)
-                .type(1)
-                .sort(1)
-                .enabled(true)
-                .logged(true)
-                .continued(false)
-                .handle("handle")
-                .build();
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("5");
+        selectorData.setPluginId("pluginId");
+        selectorData.setName("name");
+        selectorData.setMatchMode(0);
+        selectorData.setType(1);
+        selectorData.setSort(1);
+        selectorData.setEnabled(true);
+        selectorData.setLogged(true);
+        selectorData.setContinued(false);
+        selectorData.setHandle("handle");
+        return selectorData;
     }
 
     private RuleDO buildRuleDO() {

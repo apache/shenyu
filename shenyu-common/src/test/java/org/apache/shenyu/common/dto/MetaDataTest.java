@@ -47,9 +47,8 @@ public class MetaDataTest {
      */
     @Test
     public void testGetterSetter() {
-        MetaData metaData = MetaData.builder().id("id").appName("appName").contextPath("contextPath")
-                .path(PATH).rpcType("rpcType").serviceName("serviceName").methodName("methodName")
-                .parameterTypes("parameterTypes").rpcExt("rpcExt").enabled(true).build();
+        final MetaData metaData = new MetaData("id", "appName", "contextPath", PATH, "rpcType",
+                "serviceName", "methodName", "parameterTypes", "rpcExt", true);
         metaData.setId("id");
         assertTrue(StringUtils.equals(metaData.getId(), "id"));
         metaData.setAppName("appName");

@@ -46,9 +46,7 @@ public class GrpcPluginDataHandlerTest {
     public void setUp() {
         this.grpcPluginDataHandler = new GrpcPluginDataHandler();
         List<DivideUpstream> divideUpstreamList = Stream.of(3)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("localhost:8080" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "localhost:8080" + weight, 0))
                 .collect(Collectors.toList());
         this.selectorData = mock(SelectorData.class);
 

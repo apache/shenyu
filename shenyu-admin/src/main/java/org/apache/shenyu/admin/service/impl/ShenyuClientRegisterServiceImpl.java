@@ -449,7 +449,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     }
 
     private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId) {
-        return SpringCloudSelectorHandle.builder().serviceId(serviceId).build();
+        return new SpringCloudSelectorHandle(serviceId);
     }
 
     private String getPluginId(final String pluginName) {
@@ -507,6 +507,6 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     }
 
     private DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
+        return new DivideUpstream("localhost", "http://", uri, 50);
     }
 }

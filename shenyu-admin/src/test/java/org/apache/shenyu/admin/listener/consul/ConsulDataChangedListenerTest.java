@@ -75,11 +75,12 @@ public class ConsulDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnAppAuthChanged() {
-        String config = "{\"divide\":{\"appKey\":\"appKey\",\"appSecret\":\"appSecret\",\"open\":true}}";
-        final AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-
+        final AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(MOCK_APP_KEY);
+        appAuthData.setAppSecret(MOCK_APP_SECRET);
         Response<GetValue> response = mock(Response.class);
         GetValue getValueModel = mock(GetValue.class);
+        String config = "{\"divide\":{\"appKey\":\"appKey\",\"appSecret\":\"appSecret\",\"open\":true}}";
         when(consulClient.getKVValue(anyString())).thenReturn(response);
         when(response.getValue()).thenReturn(getValueModel);
         when(getValueModel.getDecodedValue()).thenReturn(config);
@@ -101,10 +102,13 @@ public class ConsulDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnPluginChanged() {
-        String config = "{\"divide\":{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}}";
-        final PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
+        final PluginData pluginData = new PluginData();
+        pluginData.setId(MOCK_ID);
+        pluginData.setName(MOCK_NAME);
+        pluginData.setConfig(MOCK_CONFIG);
         Response<GetValue> response = mock(Response.class);
         GetValue getValueModel = mock(GetValue.class);
+        String config = "{\"divide\":{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}}";
         when(consulClient.getKVValue(anyString())).thenReturn(response);
         when(response.getValue()).thenReturn(getValueModel);
         when(getValueModel.getDecodedValue()).thenReturn(config);
@@ -126,11 +130,14 @@ public class ConsulDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnSelectorChanged() {
-        String config = "{\"divide\":[{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}]}";
-        final SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setId(MOCK_ID);
+        selectorData.setName(MOCK_NAME);
+        selectorData.setPluginName(MOCK_PLUGIN_NAME);
 
         Response<GetValue> response = mock(Response.class);
         GetValue getValueModel = mock(GetValue.class);
+        String config = "{\"divide\":[{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}]}";
         when(consulClient.getKVValue(anyString())).thenReturn(response);
         when(response.getValue()).thenReturn(getValueModel);
         when(getValueModel.getDecodedValue()).thenReturn(config);
@@ -152,11 +159,13 @@ public class ConsulDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnMetaDataChanged() {
-        String config = "{\"divide\":{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}}";
-        final MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-
+        final MetaData metaData = new MetaData();
+        metaData.setId(MOCK_ID);
+        metaData.setPath(MOCK_PATH);
+        metaData.setAppName(MOCK_APP_NAME);
         Response<GetValue> response = mock(Response.class);
         GetValue getValueModel = mock(GetValue.class);
+        String config = "{\"divide\":{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}}";
         when(consulClient.getKVValue(anyString())).thenReturn(response);
         when(response.getValue()).thenReturn(getValueModel);
         when(getValueModel.getDecodedValue()).thenReturn(config);
@@ -178,16 +187,14 @@ public class ConsulDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnRuleChanged() {
-        String config = "{\"divide\":[{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}]}";
-        final RuleData ruleData = RuleData.builder()
-                .id(MOCK_ID)
-                .name(MOCK_NAME)
-                .pluginName(MOCK_PLUGIN_NAME)
-                .selectorId(MOCK_SELECTOR_ID)
-                .build();
-
+        final RuleData ruleData = new RuleData();
+        ruleData.setId(MOCK_ID);
+        ruleData.setName(MOCK_NAME);
+        ruleData.setPluginName(MOCK_PLUGIN_NAME);
+        ruleData.setSelectorId(MOCK_SELECTOR_ID);
         Response<GetValue> response = mock(Response.class);
         GetValue getValueModel = mock(GetValue.class);
+        String config = "{\"divide\":[{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}]}";
         when(consulClient.getKVValue(anyString())).thenReturn(response);
         when(response.getValue()).thenReturn(getValueModel);
         when(getValueModel.getDecodedValue()).thenReturn(config);

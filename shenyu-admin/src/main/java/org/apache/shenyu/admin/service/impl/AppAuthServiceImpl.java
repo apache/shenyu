@@ -88,13 +88,8 @@ public class AppAuthServiceImpl implements AppAuthService {
         AuthParamDO authParamDO = AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam());
         authParamMapper.save(authParamDO);
 
-        AppAuthData data = AppAuthData.builder()
-                .appKey(appAuthDO.getAppKey())
-                .appSecret(appAuthDO.getAppSecret())
-                .open(appAuthDO.getOpen())
-                .enabled(appAuthDO.getEnabled())
-                .paramDataList(Lists.newArrayList(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())))
-                .build();
+        AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getOpen(),
+                appAuthDO.getEnabled(), Lists.newArrayList(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())), null);
 
         // save authPath
         if (appAuthDO.getOpen()) {
@@ -104,7 +99,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                     .collect(Collectors.toList());
             authPathMapper.batchSave(collect);
             data.setPathDataList(collect.stream().map(authPathDO ->
-                    AuthPathData.builder().appName(authPathDO.getAppName()).path(authPathDO.getPath()).enabled(authPathDO.getEnabled()).build())
+                    new AuthPathData(authPathDO.getAppName(), authPathDO.getPath(), authPathDO.getEnabled()))
                     .collect(Collectors.toList()));
         }
 
@@ -240,14 +235,8 @@ public class AppAuthServiceImpl implements AppAuthService {
             eventType = DataEventTypeEnum.UPDATE;
         }
         // publish AppAuthData's event
-        AppAuthData data = AppAuthData.builder()
-                .appKey(appAuthDO.getAppKey())
-                .appSecret(appAuthDO.getAppSecret())
-                .open(appAuthDO.getOpen())
-                .enabled(appAuthDO.getEnabled())
-                .paramDataList(null)
-                .pathDataList(null)
-                .build();
+        AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getOpen(), appAuthDO.getEnabled(),
+                null, null);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, eventType, Collections.singletonList(data)));
 
         return appAuthCount;
@@ -263,14 +252,8 @@ public class AppAuthServiceImpl implements AppAuthService {
             authPathMapper.deleteByAuthId(id);
 
             // publish delete event of AppAuthData
-            AppAuthData data = AppAuthData.builder()
-                    .appKey(appAuthDO.getAppKey())
-                    .appSecret(appAuthDO.getAppSecret())
-                    .open(appAuthDO.getOpen())
-                    .enabled(appAuthDO.getEnabled())
-                    .paramDataList(null)
-                    .pathDataList(null)
-                    .build();
+            AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getOpen(), appAuthDO.getEnabled(),
+                    null, null);
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, Collections.singletonList(data)));
         }
         return appAuthCount;
@@ -362,12 +345,8 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     private AppAuthData buildByEntity(final AppAuthDO appAuthDO) {
-        AppAuthData data = AppAuthData.builder()
-                .appKey(appAuthDO.getAppKey())
-                .appSecret(appAuthDO.getAppSecret())
-                .open(appAuthDO.getOpen())
-                .enabled(appAuthDO.getEnabled())
-                .build();
+        AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getOpen(), appAuthDO.getEnabled(),
+                null, null);
         List<AuthParamDO> authParamDOList = authParamMapper.findByAuthId(appAuthDO.getId());
         if (CollectionUtils.isNotEmpty(authParamDOList)) {
             data.setParamDataList(

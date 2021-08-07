@@ -71,9 +71,10 @@ public class NacosDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnAppAuthChanged() {
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(MOCK_APP_KEY);
+        appAuthData.setAppSecret(MOCK_APP_SECRET);
         String config = "{\"divide\":{\"appKey\":\"appKey\",\"appSecret\":\"appSecret\",\"open\":true}}";
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-
         when(configService.getConfig(NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
@@ -94,9 +95,11 @@ public class NacosDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnPluginChanged() {
+        PluginData pluginData = new PluginData();
+        pluginData.setId(MOCK_ID);
+        pluginData.setName(MOCK_NAME);
+        pluginData.setConfig(MOCK_CONFIG);
         String config = "{\"divide\":{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}}";
-        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
-
         when(configService.getConfig(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.DELETE);
@@ -117,9 +120,11 @@ public class NacosDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnSelectorChanged() {
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId(MOCK_ID);
+        selectorData.setName(MOCK_NAME);
+        selectorData.setPluginName(MOCK_PLUGIN_NAME);
         String config = "{\"divide\":[{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}]}";
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
-
         when(configService.getConfig(NacosPathConstants.SELECTOR_DATA_ID, NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.DELETE);
@@ -140,9 +145,11 @@ public class NacosDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnMetaDataChanged() {
+        MetaData metaData = new MetaData();
+        metaData.setId(MOCK_ID);
+        metaData.setPath(MOCK_PATH);
+        metaData.setAppName(MOCK_APP_NAME);
         String config = "{\"divide\":{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}}";
-        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-
         when(configService.getConfig(NacosPathConstants.META_DATA_ID, NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);
@@ -163,14 +170,12 @@ public class NacosDataChangedListenerTest {
     @Test
     @SneakyThrows
     public void testOnRuleChanged() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId(MOCK_ID);
+        ruleData.setName(MOCK_NAME);
+        ruleData.setPluginName(MOCK_PLUGIN_NAME);
+        ruleData.setSelectorId(MOCK_SELECTOR_ID);
         String config = "{\"divide\":[{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}]}";
-        RuleData ruleData = RuleData.builder()
-                .id(MOCK_ID)
-                .name(MOCK_NAME)
-                .pluginName(MOCK_PLUGIN_NAME)
-                .selectorId(MOCK_SELECTOR_ID)
-                .build();
-
         when(configService.getConfig(NacosPathConstants.RULE_DATA_ID, NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);

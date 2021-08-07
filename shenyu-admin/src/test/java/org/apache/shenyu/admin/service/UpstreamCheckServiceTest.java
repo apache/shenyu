@@ -163,22 +163,15 @@ public final class UpstreamCheckServiceTest {
     }
 
     private void testSubmitOnce() {
-        final DivideUpstream divideUpstream = DivideUpstream.builder()
-                .upstreamUrl("divide-upstream-60")
-                .weight(60)
-                .build();
+        final DivideUpstream divideUpstream = new DivideUpstream(null, null, "divide-upstream-60", 60);
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
     }
 
     @Test
     public void testReplace() {
-        final DivideUpstream divideUpstream = DivideUpstream.builder()
-                .upstreamHost("localhost")
-                .build();
-        final DivideUpstream divideUpstream2 = DivideUpstream.builder()
-                .upstreamHost("localhost2")
-                .build();
+        final DivideUpstream divideUpstream = new DivideUpstream(null, null, "localhost", 60);
+        final DivideUpstream divideUpstream2 = new DivideUpstream(null, null, "localhost2", 60);
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_2, divideUpstream);
         upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, Collections.singletonList(divideUpstream2));
         Assert.assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
@@ -209,39 +202,19 @@ public final class UpstreamCheckServiceTest {
     }
 
     private void setupZombieSet() {
-        final DivideUpstream divideUpstream1 = DivideUpstream.builder()
-                .upstreamHost("127.0.0.1")
-                .upstreamUrl("ReachableUrl")
-                .status(false)
-                .build();
-        final DivideUpstream divideUpstream2 = DivideUpstream.builder()
-                .upstreamHost("ErrorUrl")
-                .build();
-        ZombieUpstream zombieUpstream1 = ZombieUpstream.builder()
-                .divideUpstream(divideUpstream1)
-                .zombieCheckTimes(5)
-                .selectorName("UrlReachable")
-                .build();
-        ZombieUpstream zombieUpstream2 = ZombieUpstream.builder()
-                .divideUpstream(divideUpstream2)
-                .zombieCheckTimes(5)
-                .selectorName("UrlError")
-                .build();
-
+        final DivideUpstream divideUpstream1 = new DivideUpstream("127.0.0.1", null, "ReachableUrl", 0);
+        divideUpstream1.setStatus(false);
+        final DivideUpstream divideUpstream2 = new DivideUpstream(null, null, "ErrorUrl", 0);
+        ZombieUpstream zombieUpstream1 = new ZombieUpstream(divideUpstream1, 5, "UrlReachable");
+        ZombieUpstream zombieUpstream2 = new ZombieUpstream(divideUpstream2, 5, "UrlError");
         zombieSet.add(zombieUpstream1);
         zombieSet.add(zombieUpstream2);
     }
 
     private void setupUpstreamMap() {
-        final DivideUpstream divideUpstream1 = DivideUpstream.builder()
-                .upstreamHost("127.0.0.1")
-                .upstreamUrl("ReachableUrl")
-                .status(false)
-                .build();
-        final DivideUpstream divideUpstream2 = DivideUpstream.builder()
-                .upstreamHost("ErrorUrl")
-                .build();
-
+        final DivideUpstream divideUpstream1 = new DivideUpstream("127.0.0.1", null, "ReachableUrl", 0);
+        divideUpstream1.setStatus(false);
+        final DivideUpstream divideUpstream2 = new DivideUpstream(null, null, "ErrorUrl", 0);
         upstreamMap.put("UrlReachableAnother", Collections.singletonList(divideUpstream1));
         upstreamMap.put("UrlErrorAnother", Collections.singletonList(divideUpstream2));
     }

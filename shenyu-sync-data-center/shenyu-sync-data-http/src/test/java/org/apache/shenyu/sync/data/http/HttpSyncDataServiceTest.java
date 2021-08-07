@@ -123,19 +123,15 @@ public class HttpSyncDataServiceTest {
     }
 
     // mock configs fetch api response
+    @SuppressWarnings("unchecked")
     @SneakyThrows
     private String mockConfigsFetchResponseJson() {
-        ConfigData emptyData = new ConfigData()
-                .setLastModifyTime(System.currentTimeMillis()).setData(Collections.emptyList())
-                .setMd5("d751713988987e9331980363e24189cf");
-        ConfigData pluginData = new ConfigData()
-                .setLastModifyTime(System.currentTimeMillis()).setData(Collections.singletonList(PluginData.builder()
-                        .id("9")
-                        .name("hystrix")
-                        .role("0")
-                        .enabled(false)
-                        .build()))
-                .setMd5("1298d5a533d0f896c60cbeca1ec7b017");
+        final ConfigData emptyData = new ConfigData("d751713988987e9331980363e24189cf", System.currentTimeMillis(), Collections.emptyList());
+        final ConfigData pluginData = new ConfigData();
+        pluginData.setLastModifyTime(System.currentTimeMillis());
+        pluginData.setData(Collections.singletonList(
+                new PluginData("9", "hystrix", null, "0", false)));
+        pluginData.setMd5("1298d5a533d0f896c60cbeca1ec7b017");
         Map<String, Object> data = new HashMap<>();
         data.put(ConfigGroupEnum.PLUGIN.name(), pluginData);
         data.put(ConfigGroupEnum.META_DATA.name(), emptyData);

@@ -383,6 +383,6 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     private DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
+        return new DivideUpstream("localhost", "http://", uri, 50);
     }
 }

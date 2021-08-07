@@ -43,10 +43,9 @@ public final class ApacheDubboPluginDataHandlerTest {
     @Test
     public void handlerPlugin() {
         DubboRegisterConfig dubboRegisterConfig = mock(DubboRegisterConfig.class);
-        PluginData pluginData = PluginData.builder()
-                .enabled(true)
-                .config(GsonUtils.getInstance().toJson(dubboRegisterConfig))
-                .build();
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(false);
+        pluginData.setConfig(GsonUtils.getInstance().toJson(dubboRegisterConfig));
         apacheDubboPluginDataHandler.handlerPlugin(pluginData);
         pluginData.setConfig(null);
         apacheDubboPluginDataHandler.handlerPlugin(pluginData);

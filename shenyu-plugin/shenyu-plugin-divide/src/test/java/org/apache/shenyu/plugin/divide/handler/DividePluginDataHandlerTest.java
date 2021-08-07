@@ -56,9 +56,7 @@ public final class DividePluginDataHandlerTest {
     public void setUp() {
         this.dividePluginDataHandler = new DividePluginDataHandler();
         this.divideUpstreamList = Stream.of(3)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("mock-" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "mock-" + weight, 0))
                 .collect(Collectors.toList());
         this.selectorData = mock(SelectorData.class);
         when(selectorData.getId()).thenReturn("handler");

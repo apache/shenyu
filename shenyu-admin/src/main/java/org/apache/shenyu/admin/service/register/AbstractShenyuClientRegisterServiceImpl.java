@@ -136,7 +136,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     }
 
     protected DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
+        return new DivideUpstream("localhost", "http://", uri, 50);
     }
 
     protected boolean checkPathExist(final MetaDataDO existMetaDataDO, final MetaDataRegisterDTO dto) {

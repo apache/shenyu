@@ -17,20 +17,12 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is divide upstream.
  */
-@Data
-@ToString
-@Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class DivideUpstream implements Serializable {
 
     private static final long serialVersionUID = 6252280511262542360L;
@@ -38,19 +30,16 @@ public class DivideUpstream implements Serializable {
     /**
      * host.
      */
-    @EqualsAndHashCode.Include
     private String upstreamHost;
 
     /**
      * this is http protocol.
      */
-    @EqualsAndHashCode.Include
     private String protocol;
 
     /**
      * url.
      */
-    @EqualsAndHashCode.Include
     private String upstreamUrl;
 
     /**
@@ -61,7 +50,6 @@ public class DivideUpstream implements Serializable {
     /**
      * false close/ true open.
      */
-    @Builder.Default
     private boolean status = true;
 
     /**
@@ -74,11 +62,260 @@ public class DivideUpstream implements Serializable {
      */
     private int warmup;
 
-    // health parameters
+    // health parameters.
 
     private boolean healthy;
 
     private long lastHealthTimestamp;
 
     private long lastUnhealthyTimestamp;
+
+    /**
+     * no args constructor.
+     */
+    public DivideUpstream() {
+    }
+
+    /**
+     * constructor with upstreamHost,protocol,upstreamUrl,weight.
+     *
+     * @param upstreamHost upstreamHost
+     * @param protocol     protocol
+     * @param upstreamUrl  upstreamUrl
+     * @param weight       weight
+     */
+    public DivideUpstream(final String upstreamHost, final String protocol, final String upstreamUrl, final int weight) {
+        this.upstreamHost = upstreamHost;
+        this.protocol = protocol;
+        this.upstreamUrl = upstreamUrl;
+        this.weight = weight;
+    }
+
+    /**
+     * get upstreamHost.
+     *
+     * @return upstreamHost
+     */
+    public String getUpstreamHost() {
+        return upstreamHost;
+    }
+
+    /**
+     * set upstreamHost.
+     *
+     * @param upstreamHost upstreamHost
+     */
+    public void setUpstreamHost(final String upstreamHost) {
+        this.upstreamHost = upstreamHost;
+    }
+
+    /**
+     * get protocol.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * set protocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
+    /**
+     * get upstreamUrl.
+     *
+     * @return upstreamUrl
+     */
+    public String getUpstreamUrl() {
+        return upstreamUrl;
+    }
+
+    /**
+     * set upstreamUrl.
+     *
+     * @param upstreamUrl upstreamUrl
+     */
+    public void setUpstreamUrl(final String upstreamUrl) {
+        this.upstreamUrl = upstreamUrl;
+    }
+
+    /**
+     * get weight.
+     *
+     * @return weight
+     */
+    public int getWeight() {
+        return weight;
+    }
+
+    /**
+     * set weight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
+    }
+
+    /**
+     * get status.
+     *
+     * @return status
+     */
+    public boolean isStatus() {
+        return status;
+    }
+
+    /**
+     * set status.
+     *
+     * @param status status
+     */
+    public void setStatus(final boolean status) {
+        this.status = status;
+    }
+
+    /**
+     * get timestamp.
+     *
+     * @return timestamp
+     */
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * set timestamp.
+     *
+     * @param timestamp timestamp
+     */
+    public void setTimestamp(final long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    /**
+     * get warmup.
+     *
+     * @return warmup
+     */
+    public int getWarmup() {
+        return warmup;
+    }
+
+    /**
+     * set warmup.
+     *
+     * @param warmup warmup
+     */
+    public void setWarmup(final int warmup) {
+        this.warmup = warmup;
+    }
+
+    /**
+     * get healthy.
+     *
+     * @return healthy
+     */
+    public boolean isHealthy() {
+        return healthy;
+    }
+
+    /**
+     * set healthy.
+     *
+     * @param healthy healthy
+     */
+    public void setHealthy(final boolean healthy) {
+        this.healthy = healthy;
+    }
+
+    /**
+     * get lastHealthTimestamp.
+     *
+     * @return lastHealthTimestamp
+     */
+    public long getLastHealthTimestamp() {
+        return lastHealthTimestamp;
+    }
+
+    /**
+     * set lastHealthTimestamp.
+     *
+     * @param lastHealthTimestamp lastHealthTimestamp
+     */
+    public void setLastHealthTimestamp(final long lastHealthTimestamp) {
+        this.lastHealthTimestamp = lastHealthTimestamp;
+    }
+
+    /**
+     * get lastUnhealthyTimestamp.
+     *
+     * @return lastUnhealthyTimestamp
+     */
+    public long getLastUnhealthyTimestamp() {
+        return lastUnhealthyTimestamp;
+    }
+
+    /**
+     * set lastUnhealthyTimestamp.
+     *
+     * @param lastUnhealthyTimestamp lastUnhealthyTimestamp
+     */
+    public void setLastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
+        this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DivideUpstream that = (DivideUpstream) o;
+        return Objects.equals(upstreamHost, that.upstreamHost)
+                && Objects.equals(protocol, that.protocol)
+                && Objects.equals(upstreamUrl, that.upstreamUrl);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(upstreamHost, protocol, upstreamUrl);
+    }
+
+    @Override
+    public String toString() {
+        return "DivideUpstream{"
+                + "upstreamHost='"
+                + upstreamHost
+                + '\''
+                + ", protocol='"
+                + protocol
+                + '\''
+                + ", upstreamUrl='"
+                + upstreamUrl
+                + '\''
+                + ", weight="
+                + weight
+                + ", status="
+                + status
+                + ", timestamp="
+                + timestamp
+                + ", warmup="
+                + warmup
+                + ", healthy="
+                + healthy
+                + ", lastHealthTimestamp="
+                + lastHealthTimestamp
+                + ", lastUnhealthyTimestamp="
+                + lastUnhealthyTimestamp
+                + '}';
+    }
 }

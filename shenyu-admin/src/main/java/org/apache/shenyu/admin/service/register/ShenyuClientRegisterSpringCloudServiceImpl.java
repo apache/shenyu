@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -65,7 +64,6 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
                                                       final ApplicationEventPublisher eventPublisher,
                                                       final SelectorService selectorService,
                                                       final RuleService ruleService,
-                                                      final RuleMapper ruleMapper,
                                                       final PluginService pluginService) {
         this.metaDataService = metaDataService;
         this.eventPublisher = eventPublisher;
@@ -153,6 +151,6 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
     }
 
     private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId) {
-        return SpringCloudSelectorHandle.builder().serviceId(serviceId).build();
+        return new SpringCloudSelectorHandle(serviceId);
     }
 }

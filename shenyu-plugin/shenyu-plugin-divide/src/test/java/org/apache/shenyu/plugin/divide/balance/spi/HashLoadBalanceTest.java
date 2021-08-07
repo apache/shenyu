@@ -53,19 +53,13 @@ public final class HashLoadBalanceTest {
         this.hash = HashLoadBalance.class.getDeclaredMethod("hash", String.class);
         this.hash.setAccessible(true);
         this.hashLoadBalancesOrdered = Stream.of(1, 2, 3)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, 0))
                 .collect(Collectors.toList());
         this.hashLoadBalancesDisordered = Stream.of(2, 1, 3)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, 0))
                 .collect(Collectors.toList());
         this.hashLoadBalancesReversed = Stream.of(3, 2, 1)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, 0))
                 .collect(Collectors.toList());
         this.treeMapOrdered = new ConcurrentSkipListMap<>();
         this.treeMapDisordered = new ConcurrentSkipListMap<>();

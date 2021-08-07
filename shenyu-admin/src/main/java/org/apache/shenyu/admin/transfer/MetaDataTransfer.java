@@ -115,21 +115,8 @@ public enum MetaDataTransfer {
         if (metaDataDTO == null) {
             return null;
         }
-
-        MetaData.MetaDataBuilder metaData = MetaData.builder();
-
-        metaData.id(metaDataDTO.getId());
-        metaData.appName(metaDataDTO.getAppName());
-        metaData.contextPath(metaDataDTO.getContextPath());
-        metaData.path(metaDataDTO.getPath());
-        metaData.rpcType(metaDataDTO.getRpcType());
-        metaData.serviceName(metaDataDTO.getServiceName());
-        metaData.methodName(metaDataDTO.getMethodName());
-        metaData.parameterTypes(metaDataDTO.getParameterTypes());
-        metaData.rpcExt(metaDataDTO.getRpcExt());
-        metaData.enabled(metaDataDTO.getEnabled());
-
-        return metaData.build();
+        return new MetaData(metaDataDTO.getId(), metaDataDTO.getAppName(), metaDataDTO.getContextPath(), metaDataDTO.getPath(), metaDataDTO.getRpcType(),
+                metaDataDTO.getServiceName(), metaDataDTO.getMethodName(), metaDataDTO.getParameterTypes(), metaDataDTO.getRpcExt(), metaDataDTO.getEnabled());
     }
 
     /**
@@ -142,20 +129,8 @@ public enum MetaDataTransfer {
         if (metaDataDO == null) {
             return null;
         }
-
-        MetaData.MetaDataBuilder metaData = MetaData.builder();
-
-        metaData.id(metaDataDO.getId());
-        metaData.appName(metaDataDO.getAppName());
-        metaData.path(metaDataDO.getPath());
-        metaData.rpcType(metaDataDO.getRpcType());
-        metaData.serviceName(metaDataDO.getServiceName());
-        metaData.methodName(metaDataDO.getMethodName());
-        metaData.parameterTypes(metaDataDO.getParameterTypes());
-        metaData.rpcExt(metaDataDO.getRpcExt());
-        metaData.enabled(metaDataDO.getEnabled());
-
-        return metaData.build();
+        return new MetaData(metaDataDO.getId(), metaDataDO.getAppName(), null, metaDataDO.getPath(), metaDataDO.getRpcType(),
+                metaDataDO.getServiceName(), metaDataDO.getMethodName(), metaDataDO.getParameterTypes(), metaDataDO.getRpcExt(), metaDataDO.getEnabled());
     }
 
     /**

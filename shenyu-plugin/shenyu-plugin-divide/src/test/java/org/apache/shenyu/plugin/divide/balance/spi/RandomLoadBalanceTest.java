@@ -40,24 +40,15 @@ public class RandomLoadBalanceTest {
     @Before
     public void setUp() {
         this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
-                        .weight(weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, weight))
                 .collect(Collectors.toList());
 
         this.randomLoadBalancesWeightOrdered = Stream.of(10, 40, 50)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
-                        .weight(weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, weight))
                 .collect(Collectors.toList());
 
         this.randomLoadBalancesWeightReversed = Stream.of(50, 40, 10)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
-                        .weight(weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, weight))
                 .collect(Collectors.toList());
     }
 

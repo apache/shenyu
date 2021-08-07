@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.healthcheck;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.awaitility.Awaitility;
@@ -27,16 +25,15 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test Cases for HealthCheckTask.
  */
-@Slf4j
 public class HealthCheckTaskTest {
 
     /**
@@ -45,7 +42,6 @@ public class HealthCheckTaskTest {
     private HealthCheckTask healthCheckTask = new HealthCheckTask(50000);
 
     @Test(timeout = 30000)
-    @SneakyThrows
     public void testRun() {
         // Mock selectorId1~selectorId4 to let it coverage 4 branch of `HealthCheckTask#check` method
         final String selectorId1 = "s1";

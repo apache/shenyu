@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.common.utils;
 
-import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,6 +34,8 @@ import java.util.regex.Pattern;
  * The type Http param converter.
  */
 public final class HttpParamConverter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpParamConverter.class);
 
     private static final Pattern PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
 
@@ -84,8 +88,12 @@ public final class HttpParamConverter {
      * @param value the value
      * @return the string
      */
-    @SneakyThrows
     public static String decodeQueryParam(final String value) {
-        return URLDecoder.decode(value, "UTF-8");
+        try {
+            return URLDecoder.decode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
     }
 }

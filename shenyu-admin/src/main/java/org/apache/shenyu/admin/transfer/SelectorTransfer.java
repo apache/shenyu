@@ -40,20 +40,17 @@ public enum SelectorTransfer {
         if (selectorDO == null) {
             return null;
         }
-
-        SelectorData.SelectorDataBuilder selectorData = SelectorData.builder();
-
-        selectorData.id(selectorDO.getId());
-        selectorData.pluginId(selectorDO.getPluginId());
-        selectorData.name(selectorDO.getName());
-        selectorData.matchMode(selectorDO.getMatchMode());
-        selectorData.type(selectorDO.getType());
-        selectorData.sort(selectorDO.getSort());
-        selectorData.enabled(selectorDO.getEnabled());
-        selectorData.continued(selectorDO.getContinued());
-        selectorData.handle(selectorDO.getHandle());
-
-        return selectorData.build();
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId(selectorDO.getId());
+        selectorData.setPluginId(selectorDO.getPluginId());
+        selectorData.setName(selectorDO.getName());
+        selectorData.setMatchMode(selectorDO.getMatchMode());
+        selectorData.setType(selectorDO.getType());
+        selectorData.setSort(selectorDO.getSort());
+        selectorData.setEnabled(selectorDO.getEnabled());
+        selectorData.setContinued(selectorDO.getContinued());
+        selectorData.setHandle(selectorDO.getHandle());
+        return selectorData;
     }
 
 }

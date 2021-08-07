@@ -46,11 +46,10 @@ public class DubboShenyuContextDecoratorTest {
 
     @Test
     public void decorator() {
-        MetaData metaData = MetaData.builder()
-                .appName(MOCK_APP_NAME)
-                .contextPath(MOCK_CONTEXT_PATH)
-                .serviceName(MOCK_SERVICE_NAME)
-                .build();
+        final MetaData metaData = new MetaData();
+        metaData.setAppName(MOCK_APP_NAME);
+        metaData.setContextPath(MOCK_CONTEXT_PATH);
+        metaData.setServiceName(MOCK_SERVICE_NAME);
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext = dubboShenyuContextDecorator.decorator(shenyuContext, metaData);
         assert MOCK_APP_NAME.equals(shenyuContext.getModule());

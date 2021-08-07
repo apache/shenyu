@@ -39,10 +39,7 @@ public final class RoundRobinLoadBalanceTest {
     public void roundRobinLoadBalanceDisorderedWeightTest() {
         List<DivideUpstream> divideUpstreamList =
                 Stream.of(50, 20, 30)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("divide-upstream-" + weight)
-                                .weight(weight)
-                                .build())
+                        .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, weight))
                         .collect(Collectors.toList());
 
         RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
@@ -59,10 +56,7 @@ public final class RoundRobinLoadBalanceTest {
     public void roundRobinLoadBalanceOrderedWeightTest() {
         List<DivideUpstream> divideUpstreamList =
                 Stream.of(20, 30, 50)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("divide-upstream-" + weight)
-                                .weight(weight)
-                                .build())
+                        .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, weight))
                         .collect(Collectors.toList());
 
         RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
@@ -79,10 +73,7 @@ public final class RoundRobinLoadBalanceTest {
     public void roundRobinLoadBalanceReversedWeightTest() {
         List<DivideUpstream> divideUpstreamList =
                 Stream.of(50, 30, 20)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("divide-upstream-" + weight)
-                                .weight(weight)
-                                .build())
+                        .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, weight))
                         .collect(Collectors.toList());
 
         RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();

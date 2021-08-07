@@ -29,7 +29,7 @@ import static org.junit.Assert.assertNull;
  * The Test Case For MetaDataAllSubscriber.
  */
 public final class MetaDataAllSubscriberTest {
-    
+
     private MetaDataAllSubscriber metaDataAllSubscriber;
 
     private MetaDataCache metaDataCache;
@@ -40,9 +40,8 @@ public final class MetaDataAllSubscriberTest {
     public void setUp() {
         metaDataAllSubscriber = new MetaDataAllSubscriber();
         metaDataCache = MetaDataCache.getInstance();
-        metaData = MetaData.builder()
-                .path("/home")
-                .build();
+        metaData = new MetaData();
+        metaData.setPath("/home");
     }
 
     @Test

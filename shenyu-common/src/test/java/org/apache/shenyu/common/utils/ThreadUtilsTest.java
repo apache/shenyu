@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.common.utils;
 
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
@@ -37,6 +39,8 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public final class ThreadUtilsTest {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ThreadUtilsTest.class);
+
     private TimeUnit timeUnit;
 
     @Before
@@ -45,18 +49,25 @@ public final class ThreadUtilsTest {
     }
 
     @Test
-    @SneakyThrows
     public void testSleep() {
         ThreadUtils.sleep(timeUnit, 1);
-        verify(timeUnit, times(1)).sleep(eq(1L));
+        try {
+            verify(timeUnit, times(1)).sleep(eq(1L));
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
+    @SuppressWarnings("AccessStaticViaInstance")
     @Test
-    @SneakyThrows
     public void testSleepInterrupt() {
-        doThrow(InterruptedException.class).when(timeUnit).sleep(1);
-        ThreadUtils.sleep(timeUnit, 1);
-        verify(timeUnit, times(1)).sleep(eq(1L));
+        try {
+            doThrow(InterruptedException.class).when(timeUnit).sleep(1);
+            ThreadUtils.sleep(timeUnit, 1);
+            verify(timeUnit, times(1)).sleep(eq(1L));
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
         assertTrue(Thread.currentThread().interrupted());
     }
 }

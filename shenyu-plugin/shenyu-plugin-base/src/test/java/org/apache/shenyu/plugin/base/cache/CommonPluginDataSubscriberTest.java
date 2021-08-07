@@ -47,7 +47,7 @@ public final class CommonPluginDataSubscriberTest {
     private final String mockSelectorId2 = "MOCK_SELECTOR_ID_2";
 
     private CommonPluginDataSubscriber commonPluginDataSubscriber;
-    
+
     private BaseDataCache baseDataCache;
 
     @Before
@@ -61,7 +61,8 @@ public final class CommonPluginDataSubscriberTest {
     public void testOnSubscribe() {
         baseDataCache.cleanPluginData();
 
-        PluginData pluginData = PluginData.builder().name(mockName1).build();
+        PluginData pluginData = new PluginData();
+        pluginData.setName(mockName1);
         commonPluginDataSubscriber.onSubscribe(pluginData);
         Assert.assertNotNull(baseDataCache.obtainPluginData(pluginData.getName()));
         Assert.assertEquals(pluginData, baseDataCache.obtainPluginData(pluginData.getName()));
@@ -70,10 +71,11 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testUnSubscribe() {
         baseDataCache.cleanPluginData();
-        PluginData pluginData = PluginData.builder().name(mockName1).build();
+        PluginData pluginData = new PluginData();
+        pluginData.setName(mockName1);
         baseDataCache.cachePluginData(pluginData);
         Assert.assertNotNull(baseDataCache.obtainPluginData(pluginData.getName()));
-        
+
         commonPluginDataSubscriber.unSubscribe(pluginData);
         Assert.assertNull(baseDataCache.obtainPluginData(pluginData.getName()));
     }
@@ -81,8 +83,10 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshPluginDataAll() {
         baseDataCache.cleanPluginData();
-        PluginData firstCachedPluginData = PluginData.builder().name(mockName1).build();
-        PluginData secondCachedPluginData = PluginData.builder().name(mockName2).build();
+        final PluginData firstCachedPluginData = new PluginData();
+        firstCachedPluginData.setName(mockName1);
+        final PluginData secondCachedPluginData = new PluginData();
+        secondCachedPluginData.setName(mockName2);
         baseDataCache.cachePluginData(firstCachedPluginData);
         baseDataCache.cachePluginData(secondCachedPluginData);
         Assert.assertNotNull(baseDataCache.obtainPluginData(firstCachedPluginData.getName()));
@@ -96,8 +100,10 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshPluginDataSelf() {
         baseDataCache.cleanPluginData();
-        PluginData firstCachedPluginData = PluginData.builder().name(mockName1).build();
-        PluginData secondCachedPluginData = PluginData.builder().name(mockName2).build();
+        final PluginData firstCachedPluginData = new PluginData();
+        firstCachedPluginData.setName(mockName1);
+        final PluginData secondCachedPluginData = new PluginData();
+        secondCachedPluginData.setName(mockName2);
         baseDataCache.cachePluginData(firstCachedPluginData);
         baseDataCache.cachePluginData(secondCachedPluginData);
         Assert.assertNotNull(baseDataCache.obtainPluginData(firstCachedPluginData.getName()));
@@ -111,8 +117,10 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testOnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
-
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setId("1");
+        selectorData.setPluginName(mockPluginName1);
+        selectorData.setSort(1);
         commonPluginDataSubscriber.onSelectorSubscribe(selectorData);
         List<SelectorData> obtainSelectorData = baseDataCache.obtainSelectorData(selectorData.getPluginName());
         Assert.assertEquals(Lists.newArrayList(selectorData), obtainSelectorData);
@@ -121,7 +129,9 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testUnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setId("1");
+        selectorData.setPluginName(mockPluginName1);
         baseDataCache.cacheSelectData(selectorData);
         Assert.assertNotNull(baseDataCache.obtainSelectorData(selectorData.getPluginName()));
 
@@ -132,8 +142,12 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshSelectorDataAll() {
         baseDataCache.cleanSelectorData();
-        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        final SelectorData firstCachedSelectorData = new SelectorData();
+        firstCachedSelectorData.setId("1");
+        firstCachedSelectorData.setPluginName(mockPluginName1);
+        final SelectorData secondCachedSelectorData = new SelectorData();
+        secondCachedSelectorData.setId("2");
+        secondCachedSelectorData.setPluginName(mockPluginName2);
         baseDataCache.cacheSelectData(firstCachedSelectorData);
         baseDataCache.cacheSelectData(secondCachedSelectorData);
         Assert.assertNotNull(baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
@@ -147,8 +161,12 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshSelectorDataSelf() {
         baseDataCache.cleanSelectorData();
-        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        final SelectorData firstCachedSelectorData = new SelectorData();
+        firstCachedSelectorData.setId("1");
+        firstCachedSelectorData.setPluginName(mockPluginName1);
+        final SelectorData secondCachedSelectorData = new SelectorData();
+        secondCachedSelectorData.setId("2");
+        secondCachedSelectorData.setPluginName(mockPluginName2);
         baseDataCache.cacheSelectData(firstCachedSelectorData);
         baseDataCache.cacheSelectData(secondCachedSelectorData);
         Assert.assertNotNull(baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
@@ -162,8 +180,11 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testOnRuleSubscribe() {
         baseDataCache.cleanRuleData();
-
-        RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).sort(1).build();
+        final RuleData ruleData = new RuleData();
+        ruleData.setId("1");
+        ruleData.setSelectorId(mockSelectorId1);
+        ruleData.setPluginName(mockPluginName1);
+        ruleData.setSort(1);
         commonPluginDataSubscriber.onRuleSubscribe(ruleData);
         Assert.assertNotNull(baseDataCache.obtainRuleData(ruleData.getSelectorId()));
         Assert.assertEquals(Lists.newArrayList(ruleData), baseDataCache.obtainRuleData(ruleData.getSelectorId()));
@@ -172,7 +193,11 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testUnRuleSubscribe() {
         baseDataCache.cleanRuleData();
-        RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).sort(1).build();
+        final RuleData ruleData = new RuleData();
+        ruleData.setId("1");
+        ruleData.setSelectorId(mockSelectorId1);
+        ruleData.setPluginName(mockPluginName1);
+        ruleData.setSort(1);
         baseDataCache.cacheRuleData(ruleData);
         Assert.assertNotNull(baseDataCache.obtainRuleData(ruleData.getSelectorId()));
 
@@ -183,8 +208,14 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshRuleDataAll() {
         baseDataCache.cleanRuleData();
-        RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
-        RuleData secondCachedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).pluginName(mockPluginName2).build();
+        final RuleData firstCachedRuleData = new RuleData();
+        firstCachedRuleData.setId("1");
+        firstCachedRuleData.setSelectorId(mockSelectorId1);
+        firstCachedRuleData.setPluginName(mockPluginName1);
+        final RuleData secondCachedRuleData = new RuleData();
+        secondCachedRuleData.setId("2");
+        secondCachedRuleData.setSelectorId(mockSelectorId2);
+        secondCachedRuleData.setPluginName(mockPluginName2);
         baseDataCache.cacheRuleData(firstCachedRuleData);
         baseDataCache.cacheRuleData(secondCachedRuleData);
         Assert.assertNotNull(baseDataCache.obtainRuleData(firstCachedRuleData.getSelectorId()));
@@ -198,8 +229,14 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshRuleDataSelf() {
         baseDataCache.cleanRuleData();
-        RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
-        RuleData secondCachedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).pluginName(mockPluginName2).build();
+        final RuleData firstCachedRuleData = new RuleData();
+        firstCachedRuleData.setId("1");
+        firstCachedRuleData.setSelectorId(mockSelectorId1);
+        firstCachedRuleData.setPluginName(mockPluginName1);
+        final RuleData secondCachedRuleData = new RuleData();
+        secondCachedRuleData.setId("2");
+        secondCachedRuleData.setSelectorId(mockSelectorId2);
+        secondCachedRuleData.setPluginName(mockPluginName2);
         baseDataCache.cacheRuleData(firstCachedRuleData);
         baseDataCache.cacheRuleData(secondCachedRuleData);
         Assert.assertNotNull(baseDataCache.obtainRuleData(firstCachedRuleData.getSelectorId()));

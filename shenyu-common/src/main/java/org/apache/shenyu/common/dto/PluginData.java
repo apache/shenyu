@@ -19,20 +19,13 @@
 
 package org.apache.shenyu.common.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.Objects;
 
 /**
  * PluginData.
  *
  * @since 2.0.0
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
 public class PluginData {
 
     private String id;
@@ -44,4 +37,158 @@ public class PluginData {
     private String role;
 
     private Boolean enabled;
+
+    /**
+     * no args constructor.
+     */
+    public PluginData() {
+    }
+
+    /**
+     * all args constructor.
+     *
+     * @param id      id
+     * @param name    name
+     * @param config  config
+     * @param role    role
+     * @param enabled enabled
+     */
+    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled) {
+        this.id = id;
+        this.name = name;
+        this.config = config;
+        this.role = role;
+        this.enabled = enabled;
+    }
+
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * set name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * get config.
+     *
+     * @return config
+     */
+    public String getConfig() {
+        return config;
+    }
+
+    /**
+     * set config.
+     *
+     * @param config config
+     */
+    public void setConfig(final String config) {
+        this.config = config;
+    }
+
+    /**
+     * get role.
+     *
+     * @return role
+     */
+    public String getRole() {
+        return role;
+    }
+
+    /**
+     * set role.
+     *
+     * @param role role
+     */
+    public void setRole(final String role) {
+        this.role = role;
+    }
+
+    /**
+     * get enabled.
+     *
+     * @return enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * set enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PluginData that = (PluginData) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(name, that.name)
+                && Objects.equals(config, that.config)
+                && Objects.equals(role, that.role)
+                && Objects.equals(enabled, that.enabled);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, config, role, enabled);
+    }
+
+    @Override
+    public String toString() {
+        return "PluginData{"
+                + "id='"
+                + id
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", config='"
+                + config
+                + '\''
+                + ", role='"
+                + role
+                + '\''
+                + ", enabled="
+                + enabled
+                + '}';
+    }
 }

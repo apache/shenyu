@@ -45,12 +45,19 @@ public final class RuleDataHandlerTest {
 
     @Test
     public void testConvert() {
-        List<RuleData> ruleDataList = new LinkedList<>();
+        final List<RuleData> ruleDataList = new LinkedList<>();
         ConditionData conditionData = new ConditionData();
         conditionData.setParamName("conditionName-" + 0);
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
-        ruleDataList.add(RuleData.builder().name("name1").enabled(true).conditionDataList(conditionDataList).build());
-        ruleDataList.add(RuleData.builder().name("name2").selectorId("0").build());
+        final RuleData ruleData1 = new RuleData();
+        ruleData1.setName("name1");
+        ruleData1.setEnabled(true);
+        ruleData1.setConditionDataList(conditionDataList);
+        final RuleData ruleData2 = new RuleData();
+        ruleData2.setName("name2");
+        ruleData2.setSelectorId("0");
+        ruleDataList.add(ruleData1);
+        ruleDataList.add(ruleData2);
         Gson gson = new Gson();
         String json = gson.toJson(ruleDataList);
         List<RuleData> convertedList = ruleDataHandler.convert(json);
@@ -82,7 +89,9 @@ public final class RuleDataHandlerTest {
     private List<RuleData> createFakeRuleDateObjects(final int count) {
         List<RuleData> result = new LinkedList<>();
         for (int i = 1; i <= count; i++) {
-            result.add(RuleData.builder().name("name-" + i).build());
+            RuleData ruleData = new RuleData();
+            ruleData.setName("name-" + i);
+            result.add(ruleData);
         }
         return result;
     }

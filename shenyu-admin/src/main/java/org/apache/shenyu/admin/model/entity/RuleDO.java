@@ -115,17 +115,7 @@ public final class RuleDO extends BaseDO {
      * @return the rule data
      */
     public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
-        return RuleData.builder()
-                .id(ruleDO.getId())
-                .name(ruleDO.getName())
-                .pluginName(pluginName)
-                .selectorId(ruleDO.getSelectorId())
-                .matchMode(ruleDO.getMatchMode())
-                .sort(ruleDO.getSort())
-                .enabled(ruleDO.getEnabled())
-                .loged(ruleDO.getLoged())
-                .handle(ruleDO.getHandle())
-                .conditionDataList(conditionDataList)
-                .build();
+        return new RuleData(ruleDO.getId(), ruleDO.getName(), pluginName, ruleDO.getSelectorId(), ruleDO.getMatchMode(),
+                ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), conditionDataList);
     }
 }

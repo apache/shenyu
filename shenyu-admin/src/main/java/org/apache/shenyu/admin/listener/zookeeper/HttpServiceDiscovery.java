@@ -180,12 +180,7 @@ public class HttpServiceDiscovery implements InitializingBean {
 
     private List<DivideUpstream> buildDivideUpstream(final List<String> uriList) {
         return uriList.stream().map(uri -> {
-            DivideUpstream divideUpstream = DivideUpstream.builder()
-                    .upstreamHost("localhost")
-                    .protocol("http://")
-                    .upstreamUrl(uri)
-                    .weight(50)
-                    .build();
+            DivideUpstream divideUpstream = new DivideUpstream("localhost", "http://", uri, 50);
             return divideUpstream;
         }).collect(Collectors.toList());
     }

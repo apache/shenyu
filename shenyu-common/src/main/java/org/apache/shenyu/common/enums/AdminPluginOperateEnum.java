@@ -17,15 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * the menu for plugin operate button.
- *
  */
-@RequiredArgsConstructor
-@Getter
 public enum AdminPluginOperateEnum {
 
     /**
@@ -54,4 +48,22 @@ public enum AdminPluginOperateEnum {
     SYNCHRONIZE("modify");
 
     private final String name;
+
+    /**
+     * all args constructor.
+     *
+     * @param name name
+     */
+    AdminPluginOperateEnum(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 }

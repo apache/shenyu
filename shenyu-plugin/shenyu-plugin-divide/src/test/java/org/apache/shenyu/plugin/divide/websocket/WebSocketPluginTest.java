@@ -84,9 +84,7 @@ public class WebSocketPluginTest {
         this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         this.divideUpstreamList = Stream.of(3)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("mock-" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "mock-" + weight, 0))
                 .collect(Collectors.toList());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))

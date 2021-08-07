@@ -70,7 +70,9 @@ public class EtcdDataDataChangedListenerTest {
      */
     @Test
     public void testOnAppAuthChanged() {
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(MOCK_APP_KEY);
+        appAuthData.setAppSecret(MOCK_APP_SECRET);
         etcdDataDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
@@ -84,7 +86,10 @@ public class EtcdDataDataChangedListenerTest {
     @SneakyThrows
     @Test
     public void testOnMetaDataChanged() {
-        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
+        MetaData metaData = new MetaData();
+        metaData.setId(MOCK_ID);
+        metaData.setPath(MOCK_PATH);
+        metaData.setAppName(MOCK_APP_NAME);
         etcdDataDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);
@@ -97,7 +102,10 @@ public class EtcdDataDataChangedListenerTest {
      */
     @Test
     public void testOnPluginChanged() {
-        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
+        PluginData pluginData = new PluginData();
+        pluginData.setId(MOCK_ID);
+        pluginData.setName(MOCK_NAME);
+        pluginData.setConfig(MOCK_CONFIG);
         etcdDataDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.DELETE);
@@ -110,7 +118,10 @@ public class EtcdDataDataChangedListenerTest {
      */
     @Test
     public void testOnSelectorChanged() {
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId(MOCK_ID);
+        selectorData.setName(MOCK_NAME);
+        selectorData.setPluginName(MOCK_PLUGIN_NAME);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
@@ -125,12 +136,11 @@ public class EtcdDataDataChangedListenerTest {
      */
     @Test
     public void testOnRuleChanged() {
-        RuleData ruleData = RuleData.builder()
-                .id(MOCK_ID)
-                .name(MOCK_NAME)
-                .pluginName(MOCK_PLUGIN_NAME)
-                .selectorId(MOCK_SELECTOR_ID)
-                .build();
+        RuleData ruleData = new RuleData();
+        ruleData.setId(MOCK_ID);
+        ruleData.setName(MOCK_NAME);
+        ruleData.setPluginName(MOCK_PLUGIN_NAME);
+        ruleData.setSelectorId(MOCK_SELECTOR_ID);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);

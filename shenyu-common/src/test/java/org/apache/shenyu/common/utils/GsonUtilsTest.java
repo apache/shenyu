@@ -25,9 +25,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.comparesEqualTo;
@@ -266,6 +264,7 @@ public class GsonUtilsTest {
         Assert.assertNull(GsonUtils.getInstance().convertToMap(null));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testPairGson() {
         Pair<String, String> testPair = Pair.of("1", "2");
@@ -289,32 +288,28 @@ public class GsonUtilsTest {
             testList.add("list_string_" + i);
             testMap.put("map_key_" + i, "map_value_" + i);
         }
-
-        return TestObject.builder()
-                .bool(true)
-                .iNumber(1)
-                .fNumber(1.0f)
-                .dNumber(1.0d)
-                .bigDecimal(BigDecimal.ONE)
-                .string("test")
-                .nullObject(null)
-                .testList(testList)
-                .testMap(testMap)
-                .emptyList(Lists.newLinkedList())
-                .emptyMap(Maps.newHashMap())
-                .nestedMap(new HashMap<String, Object>() {
-                    {
-                        put("map_1", testMap);
-                        put("map_2", Maps.newHashMap());
-                        put("bool", false);
-                    }
-                })
-                .build();
+        final TestObject testObject = new TestObject();
+        testObject.setBool(true);
+        testObject.setiNumber(1);
+        testObject.setfNumber(1.0f);
+        testObject.setdNumber(1.0d);
+        testObject.setBigDecimal(BigDecimal.ONE);
+        testObject.setString("test");
+        testObject.setNullObject(null);
+        testObject.setTestList(testList);
+        testObject.setTestMap(testMap);
+        testObject.setEmptyList(Lists.newLinkedList());
+        testObject.setEmptyMap(Maps.newHashMap());
+        testObject.setNestedMap(new HashMap<String, Object>() {
+            {
+                put("map_1", testMap);
+                put("map_2", Maps.newHashMap());
+                put("bool", false);
+            }
+        });
+        return testObject;
     }
 
-    @Data
-    @Builder
-    @EqualsAndHashCode
     private static class TestObject {
         private Boolean bool;
 
@@ -339,6 +334,250 @@ public class GsonUtilsTest {
         private Map<String, String> emptyMap;
 
         private Map<String, Object> nestedMap;
+
+        /**
+         * get bool.
+         *
+         * @return bool
+         */
+        public Boolean getBool() {
+            return bool;
+        }
+
+        /**
+         * set bool.
+         *
+         * @param bool bool
+         */
+        public void setBool(final Boolean bool) {
+            this.bool = bool;
+        }
+
+        /**
+         * get iNumber.
+         *
+         * @return iNumber
+         */
+        public Integer getiNumber() {
+            return iNumber;
+        }
+
+        /**
+         * set iNumber.
+         *
+         * @param iNumber iNumber
+         */
+        public void setiNumber(final Integer iNumber) {
+            this.iNumber = iNumber;
+        }
+
+        /**
+         * get fNumber.
+         *
+         * @return fNumber
+         */
+        public Float getfNumber() {
+            return fNumber;
+        }
+
+        /**
+         * set fNumber.
+         *
+         * @param fNumber fNumber
+         */
+        public void setfNumber(final Float fNumber) {
+            this.fNumber = fNumber;
+        }
+
+        /**
+         * get dNumber.
+         *
+         * @return dNumber
+         */
+        public Double getdNumber() {
+            return dNumber;
+        }
+
+        /**
+         * set dNumber.
+         *
+         * @param dNumber dNumber
+         */
+        public void setdNumber(final Double dNumber) {
+            this.dNumber = dNumber;
+        }
+
+        /**
+         * get bigDecimal.
+         *
+         * @return bigDecimal
+         */
+        public BigDecimal getBigDecimal() {
+            return bigDecimal;
+        }
+
+        /**
+         * set bigDecimal.
+         *
+         * @param bigDecimal bigDecimal
+         */
+        public void setBigDecimal(final BigDecimal bigDecimal) {
+            this.bigDecimal = bigDecimal;
+        }
+
+        /**
+         * get string.
+         *
+         * @return string
+         */
+        public String getString() {
+            return string;
+        }
+
+        /**
+         * set string.
+         *
+         * @param string string
+         */
+        public void setString(final String string) {
+            this.string = string;
+        }
+
+        /**
+         * get nullObject.
+         *
+         * @return nullObject
+         */
+        public Object getNullObject() {
+            return nullObject;
+        }
+
+        /**
+         * set nullObject.
+         *
+         * @param nullObject nullObject
+         */
+        public void setNullObject(final Object nullObject) {
+            this.nullObject = nullObject;
+        }
+
+        /**
+         * get testList.
+         *
+         * @return testList
+         */
+        public List<String> getTestList() {
+            return testList;
+        }
+
+        /**
+         * set testList.
+         *
+         * @param testList testList
+         */
+        public void setTestList(final List<String> testList) {
+            this.testList = testList;
+        }
+
+        /**
+         * get testMap.
+         *
+         * @return testMap
+         */
+        public Map<String, String> getTestMap() {
+            return testMap;
+        }
+
+        /**
+         * set testMap.
+         *
+         * @param testMap testMap
+         */
+        public void setTestMap(final Map<String, String> testMap) {
+            this.testMap = testMap;
+        }
+
+        /**
+         * get emptyList.
+         *
+         * @return emptyList
+         */
+        public List<String> getEmptyList() {
+            return emptyList;
+        }
+
+        /**
+         * set emptyList.
+         *
+         * @param emptyList emptyList
+         */
+        public void setEmptyList(final List<String> emptyList) {
+            this.emptyList = emptyList;
+        }
+
+        /**
+         * get emptyMap.
+         *
+         * @return emptyMap
+         */
+        public Map<String, String> getEmptyMap() {
+            return emptyMap;
+        }
+
+        /**
+         * set emptyMap.
+         *
+         * @param emptyMap emptyMap
+         */
+        public void setEmptyMap(final Map<String, String> emptyMap) {
+            this.emptyMap = emptyMap;
+        }
+
+        /**
+         * get nestedMap.
+         *
+         * @return nestedMap
+         */
+        public Map<String, Object> getNestedMap() {
+            return nestedMap;
+        }
+
+        /**
+         * set nestedMap.
+         *
+         * @param nestedMap nestedMap
+         */
+        public void setNestedMap(final Map<String, Object> nestedMap) {
+            this.nestedMap = nestedMap;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TestObject that = (TestObject) o;
+            return Objects.equals(bool, that.bool)
+                    && Objects.equals(iNumber, that.iNumber)
+                    && Objects.equals(fNumber, that.fNumber)
+                    && Objects.equals(dNumber, that.dNumber)
+                    && Objects.equals(bigDecimal, that.bigDecimal)
+                    && Objects.equals(string, that.string)
+                    && Objects.equals(nullObject, that.nullObject)
+                    && Objects.equals(testList, that.testList)
+                    && Objects.equals(testMap, that.testMap)
+                    && Objects.equals(emptyList, that.emptyList)
+                    && Objects.equals(emptyMap, that.emptyMap)
+                    && Objects.equals(nestedMap, that.nestedMap);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(bool, iNumber, fNumber, dNumber, bigDecimal, string, nullObject, testList, testMap, emptyList, emptyMap, nestedMap);
+        }
     }
 
 }

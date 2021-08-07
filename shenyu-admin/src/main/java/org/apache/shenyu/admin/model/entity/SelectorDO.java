@@ -130,19 +130,7 @@ public final class SelectorDO extends BaseDO {
      * @return the selector data
      */
     public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName, final List<ConditionData> conditionDataList) {
-        return SelectorData.builder()
-                .id(selectorDO.getId())
-                .pluginId(selectorDO.getPluginId())
-                .pluginName(pluginName)
-                .name(selectorDO.getName())
-                .matchMode(selectorDO.getMatchMode())
-                .type(selectorDO.getType())
-                .sort(selectorDO.getSort())
-                .enabled(selectorDO.getEnabled())
-                .logged(selectorDO.getLoged())
-                .continued(selectorDO.getContinued())
-                .handle(selectorDO.getHandle())
-                .conditionList(conditionDataList)
-                .build();
+        return new SelectorData(selectorDO.getId(), selectorDO.getPluginId(), pluginName, selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(),
+                selectorDO.getSort(), selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), conditionDataList);
     }
 }

@@ -45,12 +45,18 @@ public final class SelectorDataHandlerTest {
 
     @Test
     public void testConvert() {
-        List<SelectorData> selectorDataList = new LinkedList<>();
+        final List<SelectorData> selectorDataList = new LinkedList<>();
         ConditionData conditionData = new ConditionData();
         conditionData.setParamName("conditionName-" + 0);
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
-        selectorDataList.add(SelectorData.builder().name("name1").enabled(true).conditionList(conditionDataList).build());
-        selectorDataList.add(SelectorData.builder().name("name2").build());
+        final SelectorData selectorData1 = new SelectorData();
+        selectorData1.setName("name1");
+        selectorData1.setEnabled(true);
+        selectorData1.setConditionList(conditionDataList);
+        final SelectorData selectorData2 = new SelectorData();
+        selectorData2.setName("name2");
+        selectorDataList.add(selectorData1);
+        selectorDataList.add(selectorData2);
         Gson gson = new Gson();
         String json = gson.toJson(selectorDataList);
         List<SelectorData> convertedList = selectorDataHandler.convert(json);
@@ -82,7 +88,9 @@ public final class SelectorDataHandlerTest {
     private List<SelectorData> createFakeSelectorDataObjects(final int count) {
         List<SelectorData> result = new LinkedList<>();
         for (int i = 1; i <= count; i++) {
-            result.add(SelectorData.builder().name("name-" + i).build());
+            SelectorData selectorData = new SelectorData();
+            selectorData.setName("name-" + i);
+            result.add(selectorData);
         }
         return result;
     }

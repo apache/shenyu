@@ -40,10 +40,7 @@ public final class LoadBalanceUtilsTest {
     public void loadBalanceUtilsOrderedWeightTest() {
         List<DivideUpstream> upstreamList =
                 Stream.of(10, 20, 70)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("upstream-" + weight)
-                                .weight(weight)
-                                .build())
+                        .map(weight -> new DivideUpstream(null, null, "upstream-" + weight, weight))
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
@@ -58,10 +55,7 @@ public final class LoadBalanceUtilsTest {
     public void loadBalanceUtilsDisOrderedWeightTest() {
         List<DivideUpstream> upstreamList =
                 Stream.of(70, 10, 20)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("upstream-" + weight)
-                                .weight(weight)
-                                .build())
+                        .map(weight -> new DivideUpstream(null, null, "upstream-" + weight, weight))
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
@@ -76,10 +70,7 @@ public final class LoadBalanceUtilsTest {
     public void loadBalanceUtilsReversedWeightTest() {
         List<DivideUpstream> upstreamList =
                 Stream.of(70, 20, 10)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("upstream-" + weight)
-                                .weight(weight)
-                                .build())
+                        .map(weight -> new DivideUpstream(null, null, "upstream-" + weight, weight))
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {

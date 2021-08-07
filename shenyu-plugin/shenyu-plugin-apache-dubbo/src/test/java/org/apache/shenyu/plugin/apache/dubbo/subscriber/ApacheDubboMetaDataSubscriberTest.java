@@ -65,15 +65,16 @@ public final class ApacheDubboMetaDataSubscriberTest {
         field.setAccessible(true);
         ((LoadingCache) field.get(applicationConfigCache)).put("/dubbo/findAll", referenceConfig);
         apacheDubboMetaDataSubscriber.onSubscribe(metaData);
-        MetaData metaData = MetaData.builder()
-                .id("1332017966661636096")
-                .appName("dubbo")
-                .path("/dubbo/findAll")
-                .serviceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService")
-                .methodName("findById")
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .rpcExt("{\"group\":\"Group\",\"version\":\"2.7.5\",\"loadbalance\":\"Balance\",\"url\":\"http://192.168.55.113/dubbo\"}")
-                .parameterTypes("parameterTypes").build();
+
+        final MetaData metaData = new MetaData();
+        metaData.setId("1332017966661636096");
+        metaData.setAppName("dubbo");
+        metaData.setPath("/dubbo/findAll");
+        metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
+        metaData.setMethodName("findById");
+        metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
+        metaData.setRpcExt("{\"group\":\"Group\",\"version\":\"2.7.5\",\"loadbalance\":\"Balance\",\"url\":\"http://192.168.55.113/dubbo\"}");
+        metaData.setParameterTypes("parameterTypes");
         try {
             apacheDubboMetaDataSubscriber.onSubscribe(metaData);
         } catch (IllegalStateException ex) {

@@ -41,16 +41,8 @@ public enum PluginTransfer {
         if (pluginDO == null) {
             return null;
         }
-
-        PluginData.PluginDataBuilder pluginData = PluginData.builder();
-
-        pluginData.id(pluginDO.getId());
-        pluginData.name(pluginDO.getName());
-        pluginData.config(pluginDO.getConfig());
-        pluginData.role(pluginDO.getRole());
-        pluginData.enabled(pluginDO.getEnabled());
-
-        return pluginData.build();
+        return new PluginData(pluginDO.getId(), pluginDO.getName(), pluginDO.getConfig(),
+                pluginDO.getRole(), pluginDO.getEnabled());
     }
 
     /**
@@ -63,16 +55,8 @@ public enum PluginTransfer {
         if (pluginVO == null) {
             return null;
         }
-
-        PluginData.PluginDataBuilder pluginData = PluginData.builder();
-
-        pluginData.id(pluginVO.getId());
-        pluginData.name(pluginVO.getName());
-        pluginData.config(pluginVO.getConfig());
-        pluginData.role(pluginVO.getRole());
-        pluginData.enabled(pluginVO.getEnabled());
-
-        return pluginData.build();
+        return new PluginData(pluginVO.getId(), pluginVO.getName(), pluginVO.getConfig(),
+                pluginVO.getRole(), pluginVO.getEnabled());
     }
 
 }

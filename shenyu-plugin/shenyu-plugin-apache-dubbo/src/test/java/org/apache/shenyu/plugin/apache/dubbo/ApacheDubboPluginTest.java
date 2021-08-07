@@ -99,13 +99,13 @@ public final class ApacheDubboPluginTest {
         ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
-        MetaData metaData = MetaData.builder()
-                .id("1332017966661636096")
-                .appName("dubbo")
-                .path("/dubbo/findAll")
-                .serviceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService")
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .build();
+
+        final MetaData metaData = new MetaData();
+        metaData.setId("1332017966661636096");
+        metaData.setAppName("dubbo");
+        metaData.setPath("/dubbo/findAll");
+        metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
+        metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);

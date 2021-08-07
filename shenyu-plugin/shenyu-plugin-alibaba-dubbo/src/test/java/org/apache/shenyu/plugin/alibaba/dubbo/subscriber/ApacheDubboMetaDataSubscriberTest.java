@@ -57,6 +57,7 @@ public final class ApacheDubboMetaDataSubscriberTest {
         metaData.setParameterTypes("parameterTypes");
     }
 
+    @SuppressWarnings("unchecked")
     @SneakyThrows
     @Test
     public void testOnSubscribe() {
@@ -67,15 +68,8 @@ public final class ApacheDubboMetaDataSubscriberTest {
         field.setAccessible(true);
         ((LoadingCache) field.get(applicationConfigCache)).put("/dubbo/findAll", referenceConfig);
         alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
-        MetaData metaData = MetaData.builder()
-                .id("1332017966661636096")
-                .appName("dubbo")
-                .path("/dubbo/findAll")
-                .serviceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService")
-                .methodName("findById")
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .rpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"loadbalance\":\"roundrobin\",\"url\":\"http://192.168.55.113/dubbo\"}")
-                .parameterTypes("parameterTypes").build();
+        MetaData metaData = new MetaData("1332017966661636096", "dubbo", null, "/dubbo/findAll", RpcTypeEnum.DUBBO.getName(), "org.apache.shenyu.test.dubbo.api.service.DubboTestService",
+                "findById", "parameterTypes", "{\"group\":\"Group\",\"version\":\"2.6.5\",\"loadbalance\":\"roundrobin\",\"url\":\"http://192.168.55.113/dubbo\"}", null);
         alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
         alibabaDubboMetaDataSubscriber.unSubscribe(metaData);
     }

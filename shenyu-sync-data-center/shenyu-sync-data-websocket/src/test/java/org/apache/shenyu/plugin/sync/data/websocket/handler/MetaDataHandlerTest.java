@@ -46,9 +46,15 @@ public final class MetaDataHandlerTest {
 
     @Test
     public void testConvert() {
-        List<MetaData> metaDataList = new LinkedList<>();
-        metaDataList.add(MetaData.builder().appName("appName1").enabled(true).build());
-        metaDataList.add(MetaData.builder().appName("appName2").methodName("POST").build());
+        final List<MetaData> metaDataList = new LinkedList<>();
+        final MetaData metaData1 = new MetaData();
+        metaData1.setAppName("dubbo");
+        metaData1.setEnabled(true);
+        final MetaData metaData2 = new MetaData();
+        metaData2.setAppName("appName2");
+        metaData2.setMethodName("POST");
+        metaDataList.add(metaData1);
+        metaDataList.add(metaData2);
         Gson gson = new Gson();
         String json = gson.toJson(metaDataList);
         List<MetaData> convertedList = metaDataHandler.convert(json);

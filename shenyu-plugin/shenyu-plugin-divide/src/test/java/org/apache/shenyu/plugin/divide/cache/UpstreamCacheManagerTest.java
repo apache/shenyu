@@ -55,9 +55,7 @@ public final class UpstreamCacheManagerTest {
     @Before
     public void setUp() {
         this.loadBalances = Stream.of(3, 4, 5)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "divide-upstream-" + weight, 0))
                 .collect(Collectors.toList());
         selectorData = mock(SelectorData.class);
         when(selectorData.getId()).thenReturn("mock");
@@ -100,9 +98,7 @@ public final class UpstreamCacheManagerTest {
     @Test
     public void submit() {
         List<DivideUpstream> upstreams = Stream.of(5)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("mock" + weight)
-                        .build())
+                .map(weight -> new DivideUpstream(null, null, "mock" + weight, 0))
                 .collect(Collectors.toList());
         SelectorData selectorData = mock(SelectorData.class);
         when(selectorData.getId()).thenReturn("submit");

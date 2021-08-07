@@ -102,20 +102,16 @@ public class SpringCloudPluginTest {
     @Test(expected = NullPointerException.class)
     public void doExecute() {
         final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
-        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
-                .serviceId("serviceId")
-                .build();
-        final SelectorData selectorData = SelectorData.builder()
-                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
-                .build();
+        final SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle("serviceId");
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setHandle(GsonUtils.getInstance().toJson(springCloudSelectorHandle));
         SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, null)).expectSubscription().verifyComplete();
         final SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
         springCloudRuleHandle.setPath("/springcloud");
         springCloudRuleHandle.setTimeout(1000L);
-        final RuleData rule = RuleData.builder()
-                .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
-                .build();
+        final RuleData rule = new RuleData();
+        rule.setHandle(GsonUtils.getInstance().toJson(springCloudRuleHandle));
         SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setRealUrl("http://localhost/test");
@@ -150,15 +146,13 @@ public class SpringCloudPluginTest {
 
     @Test
     public void testSpringCloudPluginNotConfigServiceId() {
-        final SelectorData selectorData = SelectorData.builder()
-                .id("springcloud")
-                .handle("{}")
-                .build();
-        final RuleData rule = RuleData.builder()
-                .id("springcloud")
-                .selectorId("springcloud")
-                .handle("{}")
-                .build();
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setId("springcloud");
+        selectorData.setHandle("{}");
+        final RuleData rule = new RuleData();
+        rule.setId("springcloud");
+        rule.setSelectorId("springcloud");
+        rule.setHandle("{}");
         SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
                 .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
         SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
@@ -171,15 +165,13 @@ public class SpringCloudPluginTest {
 
     @Test
     public void testSpringCloudPluginErrorServiceId() {
-        final SelectorData selectorData = SelectorData.builder()
-                .id("springcloud")
-                .handle("{\"serviceId\":\"service1\"}")
-                .build();
-        final RuleData rule = RuleData.builder()
-                .id("springcloud")
-                .selectorId("springcloud")
-                .handle("{\"path\":\"service/\"}")
-                .build();
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setId("springcloud");
+        selectorData.setHandle("{\"serviceId\":\"service1\"}");
+        final RuleData rule = new RuleData();
+        rule.setId("springcloud");
+        rule.setSelectorId("springcloud");
+        rule.setHandle("{\"path\":\"service/\"}");
         SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
                 .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
         SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
@@ -193,15 +185,13 @@ public class SpringCloudPluginTest {
 
     @Test
     public void testSpringCloudPluginNormal() throws URISyntaxException {
-        final SelectorData selectorData = SelectorData.builder()
-                .id("springcloud")
-                .handle("{\"serviceId\":\"service1\"}")
-                .build();
-        final RuleData rule = RuleData.builder()
-                .id("springcloud")
-                .selectorId("springcloud")
-                .handle("{\"path\":\"service1/\"}")
-                .build();
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setId("springcloud");
+        selectorData.setHandle("{\"serviceId\":\"service1\"}");
+        final RuleData rule = new RuleData();
+        rule.setId("springcloud");
+        rule.setSelectorId("springcloud");
+        rule.setHandle("{\"path\":\"service1/\"}");
         SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
                 .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
         SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()

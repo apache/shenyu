@@ -92,24 +92,34 @@ public final class ZookeeperSyncDataServiceTest {
     public void setUp() {
         zkClient = mock(ZkClient.class);
         //mock plugin data & method
-        PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
+        final PluginData pluginData = new PluginData();
+        pluginData.setName(MOCK_PLUGIN_NAME);
+        pluginData.setEnabled(Boolean.FALSE);
         when(zkClient.exists(anyString())).thenReturn(Boolean.FALSE);
         when(zkClient.readData(MOCK_PLUGIN_PATH)).thenReturn(GsonUtils.getInstance().toJson(pluginData));
         when(zkClient.getChildren(MOCK_PLUGIN_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_PLUGIN_NAME));
         //mock selector data & method
-        SelectorData selectorData = SelectorData.builder().name(MOCK_SELECTOR_NAME).enabled(Boolean.FALSE).build();
+        final SelectorData selectorData = new SelectorData();
+        selectorData.setName(MOCK_SELECTOR_NAME);
+        selectorData.setEnabled(Boolean.FALSE);
         when(zkClient.readData(MOCK_SELECTOR_PATH)).thenReturn(GsonUtils.getInstance().toJson(selectorData));
         when(zkClient.getChildren(MOCK_SELECTOR_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_SELECTOR_NAME));
         //mock rule data & method
-        RuleData ruleData = RuleData.builder().name(MOCK_RULE_NAME).enabled(Boolean.FALSE).build();
+        final RuleData ruleData = new RuleData();
+        ruleData.setName(MOCK_RULE_NAME);
+        ruleData.setEnabled(Boolean.FALSE);
         when(zkClient.readData(MOCK_RULE_PATH)).thenReturn(GsonUtils.getInstance().toJson(ruleData));
         when(zkClient.getChildren(MOCK_RULE_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_RULE_NAME));
         //mock auth data & method
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_AUTH_KEY).enabled(Boolean.FALSE).build();
+        final AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(MOCK_APP_AUTH_KEY);
+        appAuthData.setEnabled(Boolean.FALSE);
         when(zkClient.readData(MOCK_APP_AUTH_PATH)).thenReturn(GsonUtils.getInstance().toJson(appAuthData));
         when(zkClient.getChildren(MOCK_APP_AUTH_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_APP_AUTH_KEY));
         //mock meta data & method
-        MetaData metaData = MetaData.builder().id(MOCK_META_DATA_ID).enabled(Boolean.FALSE).build();
+        final MetaData metaData = new MetaData();
+        metaData.setId(MOCK_META_DATA_ID);
+        metaData.setEnabled(Boolean.FALSE);
         when(zkClient.readData(MOCK_META_DATA_PATH)).thenReturn(GsonUtils.getInstance().toJson(metaData));
         when(zkClient.getChildren(MOCK_META_DATA_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_META_DATA_ID));
     }
@@ -129,7 +139,9 @@ public final class ZookeeperSyncDataServiceTest {
 
     @Test
     public void testWatchPluginWhenDataChange() throws Exception {
-        final PluginData changedPluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.TRUE).build();
+        final PluginData changedPluginData = new PluginData();
+        changedPluginData.setName(MOCK_PLUGIN_NAME);
+        changedPluginData.setEnabled(Boolean.TRUE);
         final List<PluginData> subscribeList = new ArrayList<>(2);
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
             @Override
@@ -175,7 +187,9 @@ public final class ZookeeperSyncDataServiceTest {
 
     @Test
     public void testWatchSelectorWhenDataChange() throws Exception {
-        final SelectorData changedSelectorData = SelectorData.builder().name(MOCK_SELECTOR_NAME).enabled(Boolean.TRUE).build();
+        final SelectorData changedSelectorData = new SelectorData();
+        changedSelectorData.setName(MOCK_SELECTOR_NAME);
+        changedSelectorData.setEnabled(Boolean.TRUE);
         final List<SelectorData> subscribeList = new ArrayList<>(2);
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
             @Override
@@ -221,7 +235,9 @@ public final class ZookeeperSyncDataServiceTest {
 
     @Test
     public void testWatchRuleWhenDataChange() throws Exception {
-        final RuleData changedRuleData = RuleData.builder().name(MOCK_RULE_NAME).enabled(Boolean.TRUE).build();
+        final RuleData changedRuleData = new RuleData();
+        changedRuleData.setName(MOCK_RULE_NAME);
+        changedRuleData.setEnabled(Boolean.TRUE);
         final List<RuleData> subscribeList = new ArrayList<>(2);
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
             @Override
@@ -272,7 +288,9 @@ public final class ZookeeperSyncDataServiceTest {
 
     @Test
     public void testWatchAppAuthWhenDataChange() throws Exception {
-        final AppAuthData changedAppAuthData = AppAuthData.builder().appKey("test").enabled(Boolean.TRUE).build();
+        final AppAuthData changedAppAuthData = new AppAuthData();
+        changedAppAuthData.setAppKey("test");
+        changedAppAuthData.setEnabled(Boolean.TRUE);
         final List<AppAuthData> subscribeList = new ArrayList<>(1);
         AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
             @Override
@@ -335,7 +353,9 @@ public final class ZookeeperSyncDataServiceTest {
 
     @Test
     public void testWatchMetaDataWhenDataChange() throws Exception {
-        final MetaData changedMetaData = MetaData.builder().id(MOCK_META_DATA_ID).enabled(Boolean.TRUE).build();
+        final MetaData changedMetaData = new MetaData();
+        changedMetaData.setId(MOCK_META_DATA_ID);
+        changedMetaData.setEnabled(Boolean.TRUE);
         final List<MetaData> subscribeList = new ArrayList<>(2);
         MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
             @Override

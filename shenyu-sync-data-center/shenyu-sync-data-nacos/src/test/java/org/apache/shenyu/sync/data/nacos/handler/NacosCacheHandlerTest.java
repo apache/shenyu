@@ -95,12 +95,10 @@ public final class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdatePluginMap() {
-        String pluginName1 = "PLUGIN_NAME_1";
-        String pluginName2 = "PLUGIN_NAME_2";
-        PluginData pluginData1 =
-                PluginData.builder().name(pluginName1).id("plugin_1").config("config_1").build();
-        PluginData pluginData2 =
-                PluginData.builder().name(pluginName2).id("plugin_2").config("config_2").build();
+        final String pluginName1 = "PLUGIN_NAME_1";
+        final String pluginName2 = "PLUGIN_NAME_2";
+        final PluginData pluginData1 = new PluginData("plugin_1", pluginName1, "config_1", null, null);
+        final PluginData pluginData2 = new PluginData("plugin_2", pluginName1, "config_2", null, null);
         String pluginData = GsonUtils.getInstance()
                 .toJson(ImmutableMap.of(pluginName2, pluginData2, pluginName1, pluginData1));
 
@@ -135,20 +133,18 @@ public final class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateSelectorMap() {
-        String selectorDataPluginName1 = "SELECTOR_DATA_1";
-        String selectorDataPluginName2 = "SELECTOR_DATA_2";
-        SelectorData selectorData1 =
-                SelectorData.builder()
-                        .pluginName(selectorDataPluginName1)
-                        .id("select_1")
-                        .name("SELECT_DATA_NAME_1")
-                        .build();
-        SelectorData selectorData2 =
-                SelectorData.builder()
-                        .pluginName(selectorDataPluginName2)
-                        .id("select_2")
-                        .name("SELECT_DATA_NAME_2")
-                        .build();
+        final String selectorDataPluginName1 = "SELECTOR_DATA_1";
+        final String selectorDataPluginName2 = "SELECTOR_DATA_2";
+
+        final SelectorData selectorData1 = new SelectorData();
+        selectorData1.setId("select_1");
+        selectorData1.setName("SELECT_DATA_NAME_1");
+        selectorData1.setPluginName(selectorDataPluginName1);
+
+        final SelectorData selectorData2 = new SelectorData();
+        selectorData2.setId("select_2");
+        selectorData2.setName("SELECT_DATA_NAME_2");
+        selectorData2.setPluginName(selectorDataPluginName2);
 
         changeSelectorData(ImmutableList.of(selectorData1, selectorData2));
         String selectorDataParam = GsonUtils.getInstance()
@@ -187,12 +183,16 @@ public final class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateRuleMap() {
-        String ruleDataId1 = "RULE_DATA_1";
-        String ruleDataId2 = "RULE_DATA_2";
-        String selectorId1 = "ID_1";
-        String selectorId2 = "ID_2";
-        RuleData ruleData1 = RuleData.builder().selectorId(selectorId1).id(ruleDataId1).build();
-        RuleData ruleData2 = RuleData.builder().selectorId(selectorId2).id(ruleDataId2).build();
+        final String ruleDataId1 = "RULE_DATA_1";
+        final String ruleDataId2 = "RULE_DATA_2";
+        final String selectorId1 = "ID_1";
+        final String selectorId2 = "ID_2";
+        final RuleData ruleData1 = new RuleData();
+        ruleData1.setSelectorId(selectorId1);
+        ruleData1.setId(ruleDataId1);
+        final RuleData ruleData2 = new RuleData();
+        ruleData2.setSelectorId(selectorId2);
+        ruleData2.setId(ruleDataId2);
         String ruleDataParam = GsonUtils.getInstance()
                 .toJson(
                         ImmutableMap.of(
@@ -234,11 +234,14 @@ public final class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateMetaDataMap() {
-        String metadataPath1 = "METADATA_PATH_1";
-        String metadataPath2 = "METADATA_PATH_2";
-        MetaData metaData1 = MetaData.builder().path(metadataPath1).id("meta_1").build();
-        MetaData metaData2 = MetaData.builder().path(metadataPath2).id("meta_2").build();
-
+        final String metadataPath1 = "METADATA_PATH_1";
+        final String metadataPath2 = "METADATA_PATH_2";
+        final MetaData metaData1 = new MetaData();
+        metaData1.setPath(metadataPath1);
+        metaData1.setId("meta_1");
+        final MetaData metaData2 = new MetaData();
+        metaData2.setPath(metadataPath2);
+        metaData2.setId("meta_2");
         changeMetaData(ImmutableList.of(metaData1, metaData2));
         String metaDataParam = GsonUtils.getInstance()
                 .toJson(ImmutableMap.of(metadataPath1, metaData1, metadataPath2, metaData2));
@@ -272,14 +275,17 @@ public final class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateAuthMap() {
-        String mockAppKey = "MOCK_APP_KEY";
-        String mockAppKey2 = "MOCK_APP_KEY2";
-        String mockAppSecret = "MOCK_APP_SECRET";
-        AppAuthData appAuthData =
-                AppAuthData.builder().appKey(mockAppKey).appSecret(mockAppSecret).enabled(true).build();
-        AppAuthData appAuthData2 =
-                AppAuthData.builder().appKey(mockAppKey2).appSecret(mockAppSecret).enabled(true).build();
-
+        final String mockAppKey = "MOCK_APP_KEY";
+        final String mockAppKey2 = "MOCK_APP_KEY2";
+        final String mockAppSecret = "MOCK_APP_SECRET";
+        final AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(mockAppKey);
+        appAuthData.setAppSecret(mockAppSecret);
+        appAuthData.setEnabled(true);
+        final AppAuthData appAuthData2 = new AppAuthData();
+        appAuthData2.setAppKey(mockAppKey2);
+        appAuthData2.setAppSecret(mockAppSecret);
+        appAuthData2.setEnabled(true);
         changeAuthData(ImmutableList.of(appAuthData, appAuthData2));
         String appAuthDataParam = GsonUtils.getInstance()
                 .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData));
@@ -315,14 +321,17 @@ public final class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testWatcherData() {
-        String mockAppKey = "MOCK_APP_KEY";
-        String mockAppKey2 = "MOCK_APP_KEY2";
-        String mockAppSecret = "MOCK_APP_SECRET";
-        AppAuthData appAuthData =
-                AppAuthData.builder().appKey(mockAppKey).appSecret(mockAppSecret).enabled(true).build();
-        AppAuthData appAuthData2 =
-                AppAuthData.builder().appKey(mockAppKey2).appSecret(mockAppSecret).enabled(true).build();
-
+        final String mockAppKey = "MOCK_APP_KEY";
+        final String mockAppKey2 = "MOCK_APP_KEY2";
+        final String mockAppSecret = "MOCK_APP_SECRET";
+        final AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(mockAppKey);
+        appAuthData.setAppSecret(mockAppSecret);
+        appAuthData.setEnabled(true);
+        final AppAuthData appAuthData2 = new AppAuthData();
+        appAuthData2.setAppKey(mockAppKey2);
+        appAuthData2.setAppSecret(mockAppSecret);
+        appAuthData2.setEnabled(true);
         changeAuthData(ImmutableList.of(appAuthData, appAuthData2));
         String appAuthDataParam = GsonUtils.getInstance()
                 .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData));

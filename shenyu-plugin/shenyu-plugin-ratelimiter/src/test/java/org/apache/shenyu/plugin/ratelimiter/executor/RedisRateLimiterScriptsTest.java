@@ -58,14 +58,13 @@ public class RedisRateLimiterScriptsTest {
                 .setting("maxmemory 64m")
                 .build();
         redisServer.start();
-        RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
+        final RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
         RateLimiterConfig config = new RateLimiterConfig();
         config.setUrl("127.0.0.1:63792");
-        PluginData pluginData = PluginData.builder()
-                .enabled(true)
-                .config(GsonUtils.getInstance().toJson(config))
-                .build();
 
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setConfig(GsonUtils.getInstance().toJson(config));
         handler.handlerPlugin(pluginData);
     }
 

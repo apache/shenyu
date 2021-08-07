@@ -36,9 +36,8 @@ public final class MetaDataCacheTest {
 
     @Before
     public void setUp() {
-        metaData = MetaData.builder()
-                .path("/home")
-                .build();
+        metaData = new MetaData();
+        metaData.setPath("/home");
         metaDataCache = MetaDataCache.getInstance();
     }
 

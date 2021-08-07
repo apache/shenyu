@@ -17,16 +17,12 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type Spring cloud selector handle.
  */
-@Data
-@Builder
 public class SpringCloudSelectorHandle implements Serializable {
 
     private static final long serialVersionUID = -5325946855733519631L;
@@ -35,4 +31,63 @@ public class SpringCloudSelectorHandle implements Serializable {
      * this is register eureka serviceId.
      */
     private String serviceId;
+
+    /**
+     * no args constructor.
+     */
+    public SpringCloudSelectorHandle() {
+    }
+
+    /**
+     * all args constructor.
+     *
+     * @param serviceId serviceId
+     */
+    public SpringCloudSelectorHandle(final String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    /**
+     * get serviceId.
+     *
+     * @return serviceId
+     */
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    /**
+     * set serviceId.
+     *
+     * @param serviceId serviceId
+     */
+    public void setServiceId(final String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SpringCloudSelectorHandle that = (SpringCloudSelectorHandle) o;
+        return Objects.equals(serviceId, that.serviceId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceId);
+    }
+
+    @Override
+    public String toString() {
+        return "SpringCloudSelectorHandle{"
+                + "serviceId='"
+                + serviceId
+                + '\''
+                + '}';
+    }
 }

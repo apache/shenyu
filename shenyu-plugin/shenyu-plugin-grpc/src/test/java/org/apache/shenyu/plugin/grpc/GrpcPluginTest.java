@@ -136,16 +136,17 @@ public class GrpcPluginTest {
     }
 
     private MetaData getMetaData() {
-        return MetaData.builder()
-                .id("1332017977771636096")
-                .appName("grpc")
-                .contextPath("/grpc").path("/grpc/echo")
-                .serviceName("echo.EchoService")
-                .methodName("echo")
-                .rpcType(RpcTypeEnum.GRPC.getName())
-                .rpcExt("{timeout:5000}")
-                .parameterTypes("param")
-                .enabled(true).build();
+        final MetaData metaData = new MetaData();
+        metaData.setId("1332017977771636096");
+        metaData.setAppName("grpc");
+        metaData.setContextPath("/grpc");
+        metaData.setPath("/grpc/echo");
+        metaData.setServiceName("echo.EchoService");
+        metaData.setRpcType(RpcTypeEnum.GRPC.getName());
+        metaData.setRpcExt("{timeout:5000}");
+        metaData.setParameterTypes("param");
+        metaData.setEnabled(true);
+        return metaData;
     }
 
     private ServerWebExchange getServerWebExchange() {
