@@ -24,7 +24,6 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -34,6 +33,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -48,8 +49,9 @@ import java.util.stream.Collectors;
 /**
  *  Use Consul to push data changes.
  */
-@Slf4j
 public class ConsulDataChangedListener implements DataChangedListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConsulDataChangedListener.class);
 
     private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
 

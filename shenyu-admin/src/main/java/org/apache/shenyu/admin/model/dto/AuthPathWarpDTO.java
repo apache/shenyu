@@ -17,15 +17,12 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * The type Auth path warp dto.
  */
-@Data
 public class AuthPathWarpDTO implements Serializable {
 
     private static final long serialVersionUID = -3167442906221294444L;
@@ -33,4 +30,40 @@ public class AuthPathWarpDTO implements Serializable {
     private String id;
 
     private List<AuthPathDTO> authPathDTOList;
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of authPathDTOList.
+     *
+     * @return the value of authPathDTOList
+     */
+    public List<AuthPathDTO> getAuthPathDTOList() {
+        return authPathDTOList;
+    }
+
+    /**
+     * Sets the authPathDTOList.
+     *
+     * @param authPathDTOList authPathDTOList
+     */
+    public void setAuthPathDTOList(final List<AuthPathDTO> authPathDTOList) {
+        this.authPathDTOList = authPathDTOList;
+    }
 }

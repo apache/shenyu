@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -27,7 +25,6 @@ import java.util.List;
 /**
  * The type Batch common dto.
  */
-@Data
 public class BatchCommonDTO implements Serializable {
 
     private static final long serialVersionUID = 7154784370528669046L;
@@ -38,4 +35,40 @@ public class BatchCommonDTO implements Serializable {
 
     @NotNull
     private Boolean enabled;
+
+    /**
+     * Gets the value of ids.
+     *
+     * @return the value of ids
+     */
+    public List<String> getIds() {
+        return ids;
+    }
+
+    /**
+     * Sets the ids.
+     *
+     * @param ids ids
+     */
+    public void setIds(final List<String> ids) {
+        this.ids = ids;
+    }
+
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
 }

@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.Data;
-
 import java.io.Serializable;
 
 /**
  * The type Auth param vo.
  */
-@Data
 public class AuthParamVO implements Serializable {
 
     private static final long serialVersionUID = -6532871764171932078L;
@@ -32,4 +29,40 @@ public class AuthParamVO implements Serializable {
     private String appName;
 
     private String appParam;
+
+    /**
+     * Gets the value of appName.
+     *
+     * @return the value of appName
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * Sets the appName.
+     *
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
+
+    /**
+     * Gets the value of appParam.
+     *
+     * @return the value of appParam
+     */
+    public String getAppParam() {
+        return appParam;
+    }
+
+    /**
+     * Sets the appParam.
+     *
+     * @param appParam appParam
+     */
+    public void setAppParam(final String appParam) {
+        this.appParam = appParam;
+    }
 }

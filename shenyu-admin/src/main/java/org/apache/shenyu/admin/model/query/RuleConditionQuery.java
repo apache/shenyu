@@ -17,18 +17,11 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
 
 /**
  * this is rule condition query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class RuleConditionQuery implements Serializable {
 
     private static final long serialVersionUID = 7800172573976046019L;
@@ -37,4 +30,29 @@ public class RuleConditionQuery implements Serializable {
      * rule id.
      */
     private String ruleId;
+
+    public RuleConditionQuery() {
+    }
+
+    public RuleConditionQuery(final String ruleId) {
+        this.ruleId = ruleId;
+    }
+
+    /**
+     * Gets the value of ruleId.
+     *
+     * @return the value of ruleId
+     */
+    public String getRuleId() {
+        return ruleId;
+    }
+
+    /**
+     * Sets the ruleId.
+     *
+     * @param ruleId ruleId
+     */
+    public void setRuleId(final String ruleId) {
+        this.ruleId = ruleId;
+    }
 }

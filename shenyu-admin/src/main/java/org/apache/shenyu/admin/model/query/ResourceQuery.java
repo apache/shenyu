@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
@@ -27,9 +24,6 @@ import java.io.Serializable;
 /**
  * this is resource query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ResourceQuery implements Serializable {
 
     private static final long serialVersionUID = 3454409443837608172L;
@@ -43,4 +37,48 @@ public class ResourceQuery implements Serializable {
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public ResourceQuery() {
+    }
+
+    public ResourceQuery(final String title, final PageParameter pageParameter) {
+        this.title = title;
+        this.pageParameter = pageParameter;
+    }
+
+    /**
+     * Gets the value of title.
+     *
+     * @return the value of title
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Sets the title.
+     *
+     * @param title title
+     */
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
 }

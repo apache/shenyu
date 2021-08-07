@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
@@ -27,9 +24,6 @@ import java.io.Serializable;
 /**
  * this is dashboard user query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class DashboardUserQuery implements Serializable {
 
     private static final long serialVersionUID = 1141504916164252229L;
@@ -43,4 +37,48 @@ public class DashboardUserQuery implements Serializable {
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public DashboardUserQuery() {
+    }
+
+    public DashboardUserQuery(final String userName, final PageParameter pageParameter) {
+        this.userName = userName;
+        this.pageParameter = pageParameter;
+    }
+
+    /**
+     * Gets the value of userName.
+     *
+     * @return the value of userName
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * Sets the userName.
+     *
+     * @param userName userName
+     */
+    public void setUserName(final String userName) {
+        this.userName = userName;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
 }

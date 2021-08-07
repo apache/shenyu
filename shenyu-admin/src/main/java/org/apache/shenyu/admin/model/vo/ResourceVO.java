@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.common.utils.DateUtils;
 
@@ -29,9 +26,6 @@ import java.util.Optional;
 /**
  * this is resource for web front.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ResourceVO implements Serializable {
 
     private static final long serialVersionUID = -3205569090998147615L;
@@ -110,6 +104,311 @@ public class ResourceVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    public ResourceVO() {
+    }
+
+    public ResourceVO(final String id,
+                      final String parentId,
+                      final String title,
+                      final String name,
+                      final String url,
+                      final String component,
+                      final Integer resourceType,
+                      final Integer sort,
+                      final String icon,
+                      final Boolean isLeaf,
+                      final Integer isRoute,
+                      final String perms,
+                      final Integer status,
+                      final String dateCreated,
+                      final String dateUpdated) {
+        this.id = id;
+        this.parentId = parentId;
+        this.title = title;
+        this.name = name;
+        this.url = url;
+        this.component = component;
+        this.resourceType = resourceType;
+        this.sort = sort;
+        this.icon = icon;
+        this.isLeaf = isLeaf;
+        this.isRoute = isRoute;
+        this.perms = perms;
+        this.status = status;
+        this.dateCreated = dateCreated;
+        this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of parentId.
+     *
+     * @return the value of parentId
+     */
+    public String getParentId() {
+        return parentId;
+    }
+
+    /**
+     * Sets the parentId.
+     *
+     * @param parentId parentId
+     */
+    public void setParentId(final String parentId) {
+        this.parentId = parentId;
+    }
+
+    /**
+     * Gets the value of title.
+     *
+     * @return the value of title
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Sets the title.
+     *
+     * @param title title
+     */
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of url.
+     *
+     * @return the value of url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets the url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * Gets the value of component.
+     *
+     * @return the value of component
+     */
+    public String getComponent() {
+        return component;
+    }
+
+    /**
+     * Sets the component.
+     *
+     * @param component component
+     */
+    public void setComponent(final String component) {
+        this.component = component;
+    }
+
+    /**
+     * Gets the value of resourceType.
+     *
+     * @return the value of resourceType
+     */
+    public Integer getResourceType() {
+        return resourceType;
+    }
+
+    /**
+     * Sets the resourceType.
+     *
+     * @param resourceType resourceType
+     */
+    public void setResourceType(final Integer resourceType) {
+        this.resourceType = resourceType;
+    }
+
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * Gets the value of icon.
+     *
+     * @return the value of icon
+     */
+    public String getIcon() {
+        return icon;
+    }
+
+    /**
+     * Sets the icon.
+     *
+     * @param icon icon
+     */
+    public void setIcon(final String icon) {
+        this.icon = icon;
+    }
+
+    /**
+     * Gets the value of isLeaf.
+     *
+     * @return the value of isLeaf
+     */
+    public Boolean getIsLeaf() {
+        return isLeaf;
+    }
+
+    /**
+     * Sets the isLeaf.
+     *
+     * @param isLeaf isLeaf
+     */
+    public void setIsLeaf(final Boolean isLeaf) {
+        this.isLeaf = isLeaf;
+    }
+
+    /**
+     * Gets the value of isRoute.
+     *
+     * @return the value of isRoute
+     */
+    public Integer getIsRoute() {
+        return isRoute;
+    }
+
+    /**
+     * Sets the isRoute.
+     *
+     * @param isRoute isRoute
+     */
+    public void setIsRoute(final Integer isRoute) {
+        this.isRoute = isRoute;
+    }
+
+    /**
+     * Gets the value of perms.
+     *
+     * @return the value of perms
+     */
+    public String getPerms() {
+        return perms;
+    }
+
+    /**
+     * Sets the perms.
+     *
+     * @param perms perms
+     */
+    public void setPerms(final String perms) {
+        this.perms = perms;
+    }
+
+    /**
+     * Gets the value of status.
+     *
+     * @return the value of status
+     */
+    public Integer getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets the status.
+     *
+     * @param status status
+     */
+    public void setStatus(final Integer status) {
+        this.status = status;
+    }
+
+    /**
+     * Gets the value of dateCreated.
+     *
+     * @return the value of dateCreated
+     */
+    public String getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * Sets the dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final String dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * Gets the value of dateUpdated.
+     *
+     * @return the value of dateUpdated
+     */
+    public String getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * Sets the dateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final String dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
 
     /**
      * build ResourceVO.

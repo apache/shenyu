@@ -24,11 +24,11 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.Data;
-import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Optional;
@@ -36,10 +36,10 @@ import java.util.Optional;
 /**
  * JWT tools.
  */
-@UtilityClass
-@Slf4j
 @Data
 public final class JwtUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JwtUtils.class);
 
     private static final long TOKEN_EXPIRE_SECONDS = 24 * 60 * 60 * 1000L;
 
@@ -89,7 +89,7 @@ public final class JwtUtils {
                     .withExpiresAt(new Date(System.currentTimeMillis() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)))
                     .sign(Algorithm.HMAC256(key));
         } catch (IllegalArgumentException | JWTCreationException e) {
-            log.error("JWTToken generate fail ", e);
+            LOG.error("JWTToken generate fail ", e);
         }
         return StringUtils.EMPTY_STRING;
     }
@@ -100,7 +100,7 @@ public final class JwtUtils {
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException e) {
-            log.info("jwt decode fail, token: {} ", token, e);
+            LOG.info("jwt decode fail, token: {} ", token, e);
         }
         return false;
     }

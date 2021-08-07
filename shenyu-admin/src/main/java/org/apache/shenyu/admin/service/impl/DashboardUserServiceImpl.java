@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +60,6 @@ import java.util.stream.Collectors;
  * Implementation of the {@link org.apache.shenyu.admin.service.DashboardUserService}.
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class DashboardUserServiceImpl implements DashboardUserService {
 
@@ -82,6 +80,24 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private final LdapTemplate ldapTemplate;
 
     private final JwtProperties jwtProperties;
+
+    public DashboardUserServiceImpl(final SecretProperties secretProperties,
+                                    final DashboardUserMapper dashboardUserMapper,
+                                    final UserRoleMapper userRoleMapper,
+                                    final RoleMapper roleMapper,
+                                    final DataPermissionMapper dataPermissionMapper,
+                                    @Nullable final LdapProperties ldapProperties,
+                                    @Nullable final LdapTemplate ldapTemplate,
+                                    final JwtProperties jwtProperties) {
+        this.secretProperties = secretProperties;
+        this.dashboardUserMapper = dashboardUserMapper;
+        this.userRoleMapper = userRoleMapper;
+        this.roleMapper = roleMapper;
+        this.dataPermissionMapper = dataPermissionMapper;
+        this.ldapProperties = ldapProperties;
+        this.ldapTemplate = ldapTemplate;
+        this.jwtProperties = jwtProperties;
+    }
 
     /**
      * create or update dashboard user.

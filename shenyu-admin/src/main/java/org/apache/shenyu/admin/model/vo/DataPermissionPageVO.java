@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 
@@ -29,9 +26,6 @@ import java.util.Optional;
 /**
  * data permission page list vo.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class DataPermissionPageVO implements Serializable {
 
     private static final long serialVersionUID = -7532270386821533624L;
@@ -50,6 +44,69 @@ public class DataPermissionPageVO implements Serializable {
      * whether checked.
      */
     private Boolean isChecked;
+
+    public DataPermissionPageVO() {
+    }
+
+    public DataPermissionPageVO(final String dataId, final String dataName, final Boolean isChecked) {
+        this.dataId = dataId;
+        this.dataName = dataName;
+        this.isChecked = isChecked;
+    }
+
+    /**
+     * Gets the value of dataId.
+     *
+     * @return the value of dataId
+     */
+    public String getDataId() {
+        return dataId;
+    }
+
+    /**
+     * Sets the dataId.
+     *
+     * @param dataId dataId
+     */
+    public void setDataId(final String dataId) {
+        this.dataId = dataId;
+    }
+
+    /**
+     * Gets the value of dataName.
+     *
+     * @return the value of dataName
+     */
+    public String getDataName() {
+        return dataName;
+    }
+
+    /**
+     * Sets the dataName.
+     *
+     * @param dataName dataName
+     */
+    public void setDataName(final String dataName) {
+        this.dataName = dataName;
+    }
+
+    /**
+     * Gets the value of isChecked.
+     *
+     * @return the value of isChecked
+     */
+    public Boolean getIsChecked() {
+        return isChecked;
+    }
+
+    /**
+     * Sets the isChecked.
+     *
+     * @param isChecked isChecked
+     */
+    public void setIsChecked(final Boolean isChecked) {
+        this.isChecked = isChecked;
+    }
 
     /**
      * build vo by selector.

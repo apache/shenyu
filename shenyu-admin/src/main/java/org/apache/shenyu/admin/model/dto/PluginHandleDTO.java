@@ -17,15 +17,12 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
  * this plugin handle from web front.
  */
-@Data
 public class PluginHandleDTO implements Serializable {
 
     private static final long serialVersionUID = 8010034956423631265L;
@@ -77,4 +74,148 @@ public class PluginHandleDTO implements Serializable {
      * the attribute extObj.
      */
     private String extObj;
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of pluginId.
+     *
+     * @return the value of pluginId
+     */
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    /**
+     * Sets the pluginId.
+     *
+     * @param pluginId pluginId
+     */
+    public void setPluginId(final String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    /**
+     * Gets the value of field.
+     *
+     * @return the value of field
+     */
+    public String getField() {
+        return field;
+    }
+
+    /**
+     * Sets the field.
+     *
+     * @param field field
+     */
+    public void setField(final String field) {
+        this.field = field;
+    }
+
+    /**
+     * Gets the value of label.
+     *
+     * @return the value of label
+     */
+    public String getLabel() {
+        return label;
+    }
+
+    /**
+     * Sets the label.
+     *
+     * @param label label
+     */
+    public void setLabel(final String label) {
+        this.label = label;
+    }
+
+    /**
+     * Gets the value of dataType.
+     *
+     * @return the value of dataType
+     */
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    /**
+     * Sets the dataType.
+     *
+     * @param dataType dataType
+     */
+    public void setDataType(final Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    /**
+     * Gets the value of type.
+     *
+     * @return the value of type
+     */
+    public Integer getType() {
+        return type;
+    }
+
+    /**
+     * Sets the type.
+     *
+     * @param type type
+     */
+    public void setType(final Integer type) {
+        this.type = type;
+    }
+
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * Gets the value of extObj.
+     *
+     * @return the value of extObj
+     */
+    public String getExtObj() {
+        return extObj;
+    }
+
+    /**
+     * Sets the extObj.
+     *
+     * @param extObj extObj
+     */
+    public void setExtObj(final String extObj) {
+        this.extObj = extObj;
+    }
 }

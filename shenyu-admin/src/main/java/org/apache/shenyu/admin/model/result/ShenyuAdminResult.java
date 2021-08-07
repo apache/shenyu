@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.model.result;
 
-import lombok.Data;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.springframework.http.HttpStatus;
 
@@ -26,7 +25,6 @@ import java.io.Serializable;
 /**
  * ShenyuAdminResult.
  */
-@Data
 public class ShenyuAdminResult implements Serializable {
 
     private static final long serialVersionUID = -2792556188993845048L;
@@ -132,4 +130,57 @@ public class ShenyuAdminResult implements Serializable {
         return new ShenyuAdminResult(code, msg, data);
     }
 
+    /**
+     * Gets the value of code.
+     *
+     * @return the value of code
+     */
+    public Integer getCode() {
+        return code;
+    }
+
+    /**
+     * Sets the code.
+     *
+     * @param code code
+     */
+    public void setCode(final Integer code) {
+        this.code = code;
+    }
+
+    /**
+     * Gets the value of message.
+     *
+     * @return the value of message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Sets the message.
+     *
+     * @param message message
+     */
+    public void setMessage(final String message) {
+        this.message = message;
+    }
+
+    /**
+     * Gets the value of data.
+     *
+     * @return the value of data
+     */
+    public Object getData() {
+        return data;
+    }
+
+    /**
+     * Sets the data.
+     *
+     * @param data data
+     */
+    public void setData(final Object data) {
+        this.data = data;
+    }
 }

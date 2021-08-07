@@ -17,18 +17,11 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
 
 /**
  * this is selector condition query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class SelectorConditionQuery implements Serializable {
 
     private static final long serialVersionUID = 9107238465094879060L;
@@ -37,4 +30,29 @@ public class SelectorConditionQuery implements Serializable {
      * selector id.
      */
     private String selectorId;
+
+    public SelectorConditionQuery() {
+    }
+
+    public SelectorConditionQuery(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * Gets the value of selectorId.
+     *
+     * @return the value of selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * Sets the selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
 }

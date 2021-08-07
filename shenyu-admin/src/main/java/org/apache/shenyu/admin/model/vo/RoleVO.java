@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.common.utils.DateUtils;
 
@@ -29,9 +26,6 @@ import java.util.Optional;
 /**
  * this is role view to web front.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class RoleVO implements Serializable {
 
     private static final long serialVersionUID = 2783609252111382305L;
@@ -60,6 +54,107 @@ public class RoleVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    public RoleVO() {
+    }
+
+    public RoleVO(final String id, final String roleName, final String description, final String dateCreated, final String dateUpdated) {
+        this.id = id;
+        this.roleName = roleName;
+        this.description = description;
+        this.dateCreated = dateCreated;
+        this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of roleName.
+     *
+     * @return the value of roleName
+     */
+    public String getRoleName() {
+        return roleName;
+    }
+
+    /**
+     * Sets the roleName.
+     *
+     * @param roleName roleName
+     */
+    public void setRoleName(final String roleName) {
+        this.roleName = roleName;
+    }
+
+    /**
+     * Gets the value of description.
+     *
+     * @return the value of description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the description.
+     *
+     * @param description description
+     */
+    public void setDescription(final String description) {
+        this.description = description;
+    }
+
+    /**
+     * Gets the value of dateCreated.
+     *
+     * @return the value of dateCreated
+     */
+    public String getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * Sets the dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final String dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * Gets the value of dateUpdated.
+     *
+     * @return the value of dateUpdated
+     */
+    public String getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * Sets the dateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final String dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
 
     /**
      * build roleVO.

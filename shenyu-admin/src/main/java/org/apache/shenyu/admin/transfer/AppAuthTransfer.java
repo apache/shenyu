@@ -59,7 +59,7 @@ public enum AppAuthTransfer {
             return null;
         }
 
-        AppAuthDO.AppAuthDOBuilder<?, ?> appAuthDO = AppAuthDO.builder();
+        AppAuthDO.AppAuthDOBuilder appAuthDO = AppAuthDO.builder();
 
         appAuthDO.id(appAuthDTO.getId());
         appAuthDO.appKey(appAuthDTO.getAppKey());

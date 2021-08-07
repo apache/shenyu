@@ -63,7 +63,7 @@ public enum MetaDataTransfer {
             return null;
         }
 
-        MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
+        MetaDataDO.MetaDataDOBuilder metaDataDO = MetaDataDO.builder();
 
         metaDataDO.id(metaDataDTO.getId());
         metaDataDO.appName(metaDataDTO.getAppName());
@@ -90,7 +90,7 @@ public enum MetaDataTransfer {
             return null;
         }
 
-        MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
+        MetaDataDO.MetaDataDOBuilder metaDataDO = MetaDataDO.builder();
 
         metaDataDO.appName(metaDataDTO.getAppName());
         metaDataDO.path(metaDataDTO.getPath());

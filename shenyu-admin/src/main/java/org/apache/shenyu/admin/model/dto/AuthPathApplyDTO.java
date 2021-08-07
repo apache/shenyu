@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.Data;
-
 import java.io.Serializable;
 
 /**
  * The type Auth path apply dto.
  */
-@Data
 public class AuthPathApplyDTO implements Serializable {
 
     private static final long serialVersionUID = 6898559464876411474L;
@@ -32,4 +29,40 @@ public class AuthPathApplyDTO implements Serializable {
     private String appName;
 
     private String path;
+
+    /**
+     * Gets the value of appName.
+     *
+     * @return the value of appName
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * Sets the appName.
+     *
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
+
+    /**
+     * Gets the value of path.
+     *
+     * @return the value of path
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Sets the path.
+     *
+     * @param path path
+     */
+    public void setPath(final String path) {
+        this.path = path;
+    }
 }

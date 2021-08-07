@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.admin.model.page;
 
-import lombok.Data;
-
 import java.io.Serializable;
 
 /**
  * PageParameter.
  */
-@Data
 public class PageParameter implements Serializable {
 
     private static final long serialVersionUID = -8324693985921606090L;
@@ -76,5 +73,131 @@ public class PageParameter implements Serializable {
         this.totalPage = (int) Math.ceil((double) totalCount / (double) pageSize);
         this.prePage = currentPage <= 1 ? 1 : currentPage - 1;
         this.nextPage = currentPage >= this.totalPage ? this.totalPage : currentPage + 1;
+    }
+
+    /**
+     * Gets the value of currentPage.
+     *
+     * @return the value of currentPage
+     */
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    /**
+     * Sets the currentPage.
+     *
+     * @param currentPage currentPage
+     */
+    public void setCurrentPage(final int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    /**
+     * Gets the value of prePage.
+     *
+     * @return the value of prePage
+     */
+    public int getPrePage() {
+        return prePage;
+    }
+
+    /**
+     * Sets the prePage.
+     *
+     * @param prePage prePage
+     */
+    public void setPrePage(final int prePage) {
+        this.prePage = prePage;
+    }
+
+    /**
+     * Gets the value of nextPage.
+     *
+     * @return the value of nextPage
+     */
+    public int getNextPage() {
+        return nextPage;
+    }
+
+    /**
+     * Sets the nextPage.
+     *
+     * @param nextPage nextPage
+     */
+    public void setNextPage(final int nextPage) {
+        this.nextPage = nextPage;
+    }
+
+    /**
+     * Gets the value of pageSize.
+     *
+     * @return the value of pageSize
+     */
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    /**
+     * Sets the pageSize.
+     *
+     * @param pageSize pageSize
+     */
+    public void setPageSize(final int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    /**
+     * Gets the value of offset.
+     *
+     * @return the value of offset
+     */
+    public int getOffset() {
+        return offset;
+    }
+
+    /**
+     * Sets the offset.
+     *
+     * @param offset offset
+     */
+    public void setOffset(final int offset) {
+        this.offset = offset;
+    }
+
+    /**
+     * Gets the value of totalPage.
+     *
+     * @return the value of totalPage
+     */
+    public int getTotalPage() {
+        return totalPage;
+    }
+
+    /**
+     * Sets the totalPage.
+     *
+     * @param totalPage totalPage
+     */
+    public void setTotalPage(final int totalPage) {
+        this.totalPage = totalPage;
+    }
+
+    /**
+     * Gets the value of totalCount.
+     *
+     * @return the value of totalCount
+     */
+    public int getTotalCount() {
+        return totalCount;
+    }
+
+    /**
+     * Sets the totalCount.
+     *
+     * @param totalCount totalCount
+     */
+    public void setTotalCount(final int totalCount) {
+        this.totalCount = totalCount;
     }
 }

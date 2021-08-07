@@ -17,21 +17,16 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
-import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -40,10 +35,13 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
  */
-@RequiredArgsConstructor
 @Service
 public class SyncDataServiceImpl implements SyncDataService {
 
@@ -67,6 +65,20 @@ public class SyncDataServiceImpl implements SyncDataService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final MetaDataService metaDataService;
+
+    public SyncDataServiceImpl(final AppAuthService appAuthService,
+                               final PluginService pluginService,
+                               final SelectorService selectorService,
+                               final RuleService ruleService,
+                               final ApplicationEventPublisher eventPublisher,
+                               final MetaDataService metaDataService) {
+        this.appAuthService = appAuthService;
+        this.pluginService = pluginService;
+        this.selectorService = selectorService;
+        this.ruleService = ruleService;
+        this.eventPublisher = eventPublisher;
+        this.metaDataService = metaDataService;
+    }
 
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {

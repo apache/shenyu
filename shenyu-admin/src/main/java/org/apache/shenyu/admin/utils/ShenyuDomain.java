@@ -17,12 +17,9 @@
 
 package org.apache.shenyu.admin.utils;
 
-import lombok.Data;
-
 /**
  * The shenyu Domain.
  */
-@Data
 public final class ShenyuDomain {
 
     private static final ShenyuDomain SHENYU_DOMAIN = new ShenyuDomain();
@@ -33,6 +30,24 @@ public final class ShenyuDomain {
     private String httpPath;
 
     private ShenyuDomain() {
+    }
+
+    /**
+     * Gets the value of httpPath.
+     *
+     * @return the value of httpPath
+     */
+    public String getHttpPath() {
+        return httpPath;
+    }
+
+    /**
+     * Sets the httpPath.
+     *
+     * @param httpPath httpPath
+     */
+    public void setHttpPath(final String httpPath) {
+        this.httpPath = httpPath;
     }
 
     /**

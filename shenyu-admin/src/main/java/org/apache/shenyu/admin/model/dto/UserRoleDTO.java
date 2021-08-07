@@ -17,18 +17,9 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * this User Role Dto.
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserRoleDTO {
 
     /**
@@ -45,4 +36,134 @@ public class UserRoleDTO {
      * role key.
      */
     private String roleId;
+
+    public UserRoleDTO() {
+    }
+
+    public UserRoleDTO(final String id, final String userId, final String roleId) {
+        this.id = id;
+        this.userId = userId;
+        this.roleId = roleId;
+    }
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of userId.
+     *
+     * @return the value of userId
+     */
+    public String getUserId() {
+        return userId;
+    }
+
+    /**
+     * Sets the userId.
+     *
+     * @param userId userId
+     */
+    public void setUserId(final String userId) {
+        this.userId = userId;
+    }
+
+    /**
+     * Gets the value of roleId.
+     *
+     * @return the value of roleId
+     */
+    public String getRoleId() {
+        return roleId;
+    }
+
+    /**
+     * Sets the roleId.
+     *
+     * @param roleId roleId
+     */
+    public void setRoleId(final String roleId) {
+        this.roleId = roleId;
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static UserRoleDTO.UserRoleDTOBuilder builder() {
+        return new UserRoleDTO.UserRoleDTOBuilder();
+    }
+
+    public static final class UserRoleDTOBuilder {
+
+        private String id;
+
+        private String userId;
+
+        private String roleId;
+
+        private UserRoleDTOBuilder() {
+        }
+
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return UserRoleDTOBuilder.
+         */
+        public UserRoleDTOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * userId.
+         *
+         * @param userId the userId.
+         * @return UserRoleDTOBuilder.
+         */
+        public UserRoleDTOBuilder userId(final String userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        /**
+         * roleId.
+         *
+         * @param roleId the roleId.
+         * @return UserRoleDTOBuilder.
+         */
+        public UserRoleDTOBuilder roleId(final String roleId) {
+            this.roleId = roleId;
+            return this;
+        }
+
+        /**
+         * build method.
+         *
+         * @return build object.
+         */
+        public UserRoleDTO build() {
+            UserRoleDTO userRoleDTO = new UserRoleDTO();
+            userRoleDTO.setId(id);
+            userRoleDTO.setUserId(userId);
+            userRoleDTO.setRoleId(roleId);
+            return userRoleDTO;
+        }
+    }
 }

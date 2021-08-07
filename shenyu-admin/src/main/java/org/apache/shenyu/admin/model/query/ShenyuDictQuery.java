@@ -17,17 +17,11 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 /**
  * this is shenyu dict query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ShenyuDictQuery {
     /**
      * dict type.
@@ -48,4 +42,86 @@ public class ShenyuDictQuery {
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public ShenyuDictQuery() {
+    }
+
+    public ShenyuDictQuery(final String type, final String dictCode, final String dictName, final PageParameter pageParameter) {
+        this.type = type;
+        this.dictCode = dictCode;
+        this.dictName = dictName;
+        this.pageParameter = pageParameter;
+    }
+
+    /**
+     * Gets the value of type.
+     *
+     * @return the value of type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * Sets the type.
+     *
+     * @param type type
+     */
+    public void setType(final String type) {
+        this.type = type;
+    }
+
+    /**
+     * Gets the value of dictCode.
+     *
+     * @return the value of dictCode
+     */
+    public String getDictCode() {
+        return dictCode;
+    }
+
+    /**
+     * Sets the dictCode.
+     *
+     * @param dictCode dictCode
+     */
+    public void setDictCode(final String dictCode) {
+        this.dictCode = dictCode;
+    }
+
+    /**
+     * Gets the value of dictName.
+     *
+     * @return the value of dictName
+     */
+    public String getDictName() {
+        return dictName;
+    }
+
+    /**
+     * Sets the dictName.
+     *
+     * @param dictName dictName
+     */
+    public void setDictName(final String dictName) {
+        this.dictName = dictName;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
 }

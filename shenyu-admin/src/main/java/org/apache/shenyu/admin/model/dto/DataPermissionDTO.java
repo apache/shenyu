@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.Data;
-
 import java.io.Serializable;
 
 /**
  * data permission dto.
  */
-@Data
 public class DataPermissionDTO implements Serializable {
     private static final long serialVersionUID = -5977862582790251842L;
 
@@ -53,4 +50,93 @@ public class DataPermissionDTO implements Serializable {
      */
     private Boolean isSelected;
 
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of userId.
+     *
+     * @return the value of userId
+     */
+    public String getUserId() {
+        return userId;
+    }
+
+    /**
+     * Sets the userId.
+     *
+     * @param userId userId
+     */
+    public void setUserId(final String userId) {
+        this.userId = userId;
+    }
+
+    /**
+     * Gets the value of dataId.
+     *
+     * @return the value of dataId
+     */
+    public String getDataId() {
+        return dataId;
+    }
+
+    /**
+     * Sets the dataId.
+     *
+     * @param dataId dataId
+     */
+    public void setDataId(final String dataId) {
+        this.dataId = dataId;
+    }
+
+    /**
+     * Gets the value of dataType.
+     *
+     * @return the value of dataType
+     */
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    /**
+     * Sets the dataType.
+     *
+     * @param dataType dataType
+     */
+    public void setDataType(final Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    /**
+     * Gets the value of isSelected.
+     *
+     * @return the value of isSelected
+     */
+    public Boolean getIsSelected() {
+        return isSelected;
+    }
+
+    /**
+     * Sets the isSelected.
+     *
+     * @param isSelected isSelected
+     */
+    public void setIsSelected(final Boolean isSelected) {
+        this.isSelected = isSelected;
+    }
 }
