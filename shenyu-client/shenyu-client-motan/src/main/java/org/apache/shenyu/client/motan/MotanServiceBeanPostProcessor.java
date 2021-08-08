@@ -124,14 +124,14 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
                                                  final ShenyuMotanClient shenyuMotanClient, final Method method, final String rpcExt) {
         String appName = this.appName;
         String path = this.contextPath + shenyuMotanClient.path();
-        String desc = shenyuMotanClient.desc();
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
+        final String desc = shenyuMotanClient.desc();
+        final String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+        final int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = shenyuMotanClient.ruleName();
-        String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        String methodName = method.getName();
+        final String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
+        final String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
+        final String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
         String serviceName;
         if (void.class.equals(service.interfaceClass())) {
@@ -144,21 +144,21 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         } else {
             serviceName = service.interfaceClass().getName();
         }
-        return MetaDataRegisterDTO.builder()
-                .appName(appName)
-                .serviceName(serviceName)
-                .methodName(methodName)
-                .contextPath(this.contextPath)
-                .path(path)
-                .port(port)
-                .host(host)
-                .ruleName(ruleName)
-                .pathDesc(desc)
-                .parameterTypes(parameterTypes)
-                .rpcType("motan")
-                .rpcExt(rpcExt)
-                .enabled(shenyuMotanClient.enabled())
-                .build();
+        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
+        metaDataRegisterDTO.setAppName(appName);
+        metaDataRegisterDTO.setServiceName(serviceName);
+        metaDataRegisterDTO.setMethodName(methodName);
+        metaDataRegisterDTO.setContextPath(this.contextPath);
+        metaDataRegisterDTO.setPath(path);
+        metaDataRegisterDTO.setPort(port);
+        metaDataRegisterDTO.setHost(host);
+        metaDataRegisterDTO.setRuleName(ruleName);
+        metaDataRegisterDTO.setPathDesc(desc);
+        metaDataRegisterDTO.setParameterTypes(parameterTypes);
+        metaDataRegisterDTO.setRpcType("motan");
+        metaDataRegisterDTO.setRpcExt(rpcExt);
+        metaDataRegisterDTO.setEnabled(shenyuMotanClient.enabled());
+        return metaDataRegisterDTO;
     }
 
     private MotanRpcExt.RpcExt buildRpcExt(final Method method) {

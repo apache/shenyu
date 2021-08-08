@@ -111,21 +111,21 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
-        return MetaDataRegisterDTO.builder()
-                .appName(appName)
-                .serviceName(serviceName)
-                .methodName(methodName)
-                .contextPath(contextPath)
-                .host(host)
-                .port(port)
-                .path(path)
-                .ruleName(ruleName)
-                .pathDesc(desc)
-                .parameterTypes(parameterTypes)
-                .rpcExt(buildRpcExt(serviceBean))
-                .rpcType("dubbo")
-                .enabled(shenyuDubboClient.enabled())
-                .build();
+        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
+        metaDataRegisterDTO.setAppName(appName);
+        metaDataRegisterDTO.setServiceName(serviceName);
+        metaDataRegisterDTO.setMethodName(methodName);
+        metaDataRegisterDTO.setContextPath(contextPath);
+        metaDataRegisterDTO.setHost(host);
+        metaDataRegisterDTO.setPort(port);
+        metaDataRegisterDTO.setPath(path);
+        metaDataRegisterDTO.setRuleName(ruleName);
+        metaDataRegisterDTO.setPathDesc(desc);
+        metaDataRegisterDTO.setParameterTypes(parameterTypes);
+        metaDataRegisterDTO.setRpcExt(buildRpcExt(serviceBean));
+        metaDataRegisterDTO.setRpcType("dubbo");
+        metaDataRegisterDTO.setEnabled(shenyuDubboClient.enabled());
+        return metaDataRegisterDTO;
     }
 
     private String buildRpcExt(final ServiceBean serviceBean) {

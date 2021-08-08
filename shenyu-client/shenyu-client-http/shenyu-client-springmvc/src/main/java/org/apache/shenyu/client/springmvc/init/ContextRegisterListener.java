@@ -97,15 +97,15 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         Integer port = this.port;
         String path = contextPath + "/**";
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        return MetaDataRegisterDTO.builder()
-                .contextPath(contextPath)
-                .host(host)
-                .port(port)
-                .appName(appName)
-                .path(path)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .enabled(true)
-                .ruleName(path)
-                .build();
+        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
+        metaDataRegisterDTO.setContextPath(contextPath);
+        metaDataRegisterDTO.setHost(host);
+        metaDataRegisterDTO.setPort(port);
+        metaDataRegisterDTO.setAppName(appName);
+        metaDataRegisterDTO.setPath(path);
+        metaDataRegisterDTO.setRpcType(RpcTypeEnum.HTTP.getName());
+        metaDataRegisterDTO.setEnabled(true);
+        metaDataRegisterDTO.setRuleName(path);
+        return metaDataRegisterDTO;
     }
 }
