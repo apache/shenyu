@@ -18,25 +18,16 @@
 
 package org.apache.shenyu.register.common.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.EqualsAndHashCode;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type URI register dto.
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
 public class URIRegisterDTO implements DataTypeParent, Serializable {
 
     private static final long serialVersionUID = -653255079042814293L;
@@ -53,6 +44,19 @@ public class URIRegisterDTO implements DataTypeParent, Serializable {
 
     private EventType eventType;
 
+    public URIRegisterDTO(final String appName, final String contextPath, final String rpcType, final String host, final Integer port,
+                          final EventType eventType) {
+        this.appName = appName;
+        this.contextPath = contextPath;
+        this.rpcType = rpcType;
+        this.host = host;
+        this.port = port;
+        this.eventType = eventType;
+    }
+
+    public URIRegisterDTO() {
+    }
+
     /**
      * Trans form uri register dto.
      *
@@ -60,16 +64,154 @@ public class URIRegisterDTO implements DataTypeParent, Serializable {
      * @return the uri register dto
      */
     public static URIRegisterDTO transForm(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        return URIRegisterDTO.builder()
-                .appName(metaDataRegisterDTO.getAppName())
-                .contextPath(metaDataRegisterDTO.getContextPath())
-                .rpcType(metaDataRegisterDTO.getRpcType())
-                .host(metaDataRegisterDTO.getHost())
-                .port(metaDataRegisterDTO.getPort()).build();
+        URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
+        uriRegisterDTO.setAppName(metaDataRegisterDTO.getAppName());
+        uriRegisterDTO.setContextPath(metaDataRegisterDTO.getContextPath());
+        uriRegisterDTO.setRpcType(metaDataRegisterDTO.getRpcType());
+        uriRegisterDTO.setHost(metaDataRegisterDTO.getHost());
+        uriRegisterDTO.setPort(metaDataRegisterDTO.getPort());
+        return uriRegisterDTO;
     }
 
+    /**
+     * getType.
+     *
+     * @return String
+     */
     @Override
     public DataType getType() {
         return DataType.URI;
+    }
+
+    /**
+     * getAppName.
+     *
+     * @return String
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * setAppName.
+     *
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
+
+    /**
+     * getContextPath.
+     *
+     * @return String
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * setContextPath.
+     *
+     * @param contextPath contextPath
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    /**
+     * getRpcType.
+     *
+     * @return String
+     */
+    public String getRpcType() {
+        return rpcType;
+    }
+
+    /**
+     * setRpcType.
+     *
+     * @param rpcType rpcType
+     */
+    public void setRpcType(final String rpcType) {
+        this.rpcType = rpcType;
+    }
+
+    /**
+     * getHost.
+     *
+     * @return String
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * setHost.
+     *
+     * @param host host
+     */
+    public void setHost(final String host) {
+        this.host = host;
+    }
+
+    /**
+     * getPort.
+     *
+     * @return String
+     */
+    public Integer getPort() {
+        return port;
+    }
+
+    /**
+     * setPort.
+     *
+     * @param port port
+     */
+    public void setPort(final Integer port) {
+        this.port = port;
+    }
+
+    /**
+     * getEventType.
+     *
+     * @return String
+     */
+    public EventType getEventType() {
+        return eventType;
+    }
+
+    /**
+     * setEventType.
+     *
+     * @param eventType eventType
+     */
+    public void setEventType(final EventType eventType) {
+        this.eventType = eventType;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return Boolean.TRUE;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return Boolean.FALSE;
+        }
+
+        URIRegisterDTO that = (URIRegisterDTO) o;
+        return Objects.equals(getAppName(), that.getAppName())
+                && Objects.equals(getContextPath(), that.getContextPath())
+                && Objects.equals(getRpcType(), that.getRpcType())
+                && Objects.equals(getHost(), that.getHost())
+                && Objects.equals(getPort(), that.getPort())
+                && getEventType() == that.getEventType();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getAppName(), getContextPath(), getRpcType(), getHost(), getPort(), getEventType());
     }
 }

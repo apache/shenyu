@@ -26,12 +26,16 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
 
 @Join
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
-    
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulClientRegisterRepository.class);
+
     @Autowired
     private ConsulRegistration consulRegistration;
     
@@ -46,8 +50,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
             registerURI(metadata);
         }
-
-        LogUtils.info("{} Consul client register success: {}", rpcType, metadata);
+        LogUtils.info(LOGGER, "{} Consul client register success: {}", rpcType, metadata);
     }
     
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {

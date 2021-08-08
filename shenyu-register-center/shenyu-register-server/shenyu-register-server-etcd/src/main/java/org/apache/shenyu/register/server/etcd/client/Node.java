@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.register.server.etcd.client;
 
-import lombok.Data;
 
 /**
  * etcd data node.
  */
-@Data
 public class Node {
 
     private String key;
@@ -89,5 +87,95 @@ public class Node {
                 + ", modReversion=" + modReversion
                 + ", version=" + version
                 + '}';
+    }
+
+    /**
+     * getKeygetKey.
+     *
+     * @return String
+     */
+    public String getKey() {
+        return key;
+    }
+
+    /**
+     * setKey.
+     *
+     * @param key key
+     */
+    public void setKey(final String key) {
+        this.key = key;
+    }
+
+    /**
+     * getValue.
+     *
+     * @return String
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * setValue.
+     *
+     * @param value value
+     */
+    public void setValue(final String value) {
+        this.value = value;
+    }
+
+    /**
+     * getCreateReversion.
+     *
+     * @return String
+     */
+    public long getCreateReversion() {
+        return createReversion;
+    }
+
+    /**
+     * setCreateReversion.
+     *
+     * @param createReversion createReversion
+     */
+    public void setCreateReversion(final long createReversion) {
+        this.createReversion = createReversion;
+    }
+
+    /**
+     * getModReversion.
+     *
+     * @return long
+     */
+    public long getModReversion() {
+        return modReversion;
+    }
+
+    /**
+     * setModReversion.
+     *
+     * @param modReversion modReversion
+     */
+    public void setModReversion(final long modReversion) {
+        this.modReversion = modReversion;
+    }
+
+    /**
+     * getVersion.
+     *
+     * @return long
+     */
+    public long getVersion() {
+        return version;
+    }
+
+    /**
+     * setVersion.
+     *
+     * @param version version
+     */
+    public void setVersion(final long version) {
+        this.version = version;
     }
 }

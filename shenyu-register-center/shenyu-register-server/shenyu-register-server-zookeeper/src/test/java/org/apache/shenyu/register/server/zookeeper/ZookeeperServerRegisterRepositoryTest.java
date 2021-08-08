@@ -79,7 +79,7 @@ public class ZookeeperServerRegisterRepositoryTest implements ShenyuServerRegist
     }
 
     private ZkClient mockZkClient() {
-        MetaDataRegisterDTO data = MetaDataRegisterDTO.builder().build();
+        MetaDataRegisterDTO data = new MetaDataRegisterDTO();
         ZkClient client = mock(ZkClient.class);
 
         when(client.getChildren(anyString())).thenReturn(Arrays.asList("/path1", "/path2"));
@@ -112,7 +112,7 @@ public class ZookeeperServerRegisterRepositoryTest implements ShenyuServerRegist
         zkChildListener.handleChildChange("/path", Arrays.asList("/path1", "/path2", "/path3"));
         verify(publisher, times(10)).publish(any());
 
-        String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
+        String data = GsonUtils.getInstance().toJson(new MetaDataRegisterDTO());
         zkDataListener.handleDataChange("/path1", data);
         verify(publisher, times(11)).publish(any());
     }

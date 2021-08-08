@@ -18,12 +18,12 @@
 package org.apache.shenyu.register.server.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.naming.listener.EventListener;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -65,7 +65,7 @@ public class NacosServerRegisterRepositoryTest {
     private EventListener eventListener;
 
     @Before
-    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() throws NoSuchFieldException, IllegalAccessException, NacosException {
         this.publisher = mockPublish();
         this.repository = new NacosServerRegisterRepository();
         Class<? extends NacosServerRegisterRepository> clazz = this.repository.getClass();
@@ -86,8 +86,7 @@ public class NacosServerRegisterRepositoryTest {
         fieldPublisher.set(repository, publisher);
     }
 
-    @SneakyThrows
-    private ConfigService mockConfigService() {
+    private ConfigService mockConfigService() throws NacosException {
         ConfigService configService = mock(ConfigService.class);
 
         doAnswer(invocationOnMock -> {
@@ -97,15 +96,14 @@ public class NacosServerRegisterRepositoryTest {
 
         doAnswer(invocationOnMock -> {
             List<String> list = new ArrayList<>();
-            list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
+            list.add(GsonUtils.getInstance().toJson(new MetaDataRegisterDTO()));
             return GsonUtils.getInstance().toJson(list);
         }).when(configService).getConfig(anyString(), anyString(), anyLong());
 
         return configService;
     }
 
-    @SneakyThrows
-    private NamingService mockNamingService() {
+    private NamingService mockNamingService() throws NacosException {
         NamingService namingService = mock(NamingService.class);
 
         doAnswer(invocationOnMock -> mockInstances())
@@ -120,7 +118,7 @@ public class NacosServerRegisterRepositoryTest {
     }
 
     private List<Instance> mockInstances() {
-        MetaDataRegisterDTO metadata = MetaDataRegisterDTO.builder().build();
+        MetaDataRegisterDTO metadata = new MetaDataRegisterDTO();
         Map<String, String> metadataMap = new HashMap<>(1);
         metadataMap.put("contextPath", "contextPath");
         metadataMap.put("uriMetadata", GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
@@ -155,7 +153,7 @@ public class NacosServerRegisterRepositoryTest {
         verify(publisher, times(2)).publish(any());
 
         List<String> list = new ArrayList<>();
-        list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
+        list.add(GsonUtils.getInstance().toJson(new MetaDataRegisterDTO()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
         verify(publisher, times(3)).publish(any());
 
@@ -174,7 +172,7 @@ public class NacosServerRegisterRepositoryTest {
         verify(publisher, times(1)).publish(any());
 
         List<String> list = new ArrayList<>();
-        list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
+        list.add(GsonUtils.getInstance().toJson(new MetaDataRegisterDTO()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
         verify(publisher, times(2)).publish(any());
 
