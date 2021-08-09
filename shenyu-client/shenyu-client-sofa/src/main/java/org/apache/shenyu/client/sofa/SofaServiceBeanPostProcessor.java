@@ -122,22 +122,21 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        metaDataRegisterDTO.setAppName(appName);
-        metaDataRegisterDTO.setServiceName(serviceName);
-        metaDataRegisterDTO.setMethodName(methodName);
-        metaDataRegisterDTO.setContextPath(contextPath);
-        metaDataRegisterDTO.setHost(host);
-        metaDataRegisterDTO.setPort(port);
-        metaDataRegisterDTO.setPath(path);
-        metaDataRegisterDTO.setRuleName(ruleName);
-        metaDataRegisterDTO.setPathDesc(desc);
-        metaDataRegisterDTO.setParameterTypes(parameterTypes);
-        metaDataRegisterDTO.setRpcType("sofa");
-        metaDataRegisterDTO.setRpcExt(buildRpcExt(shenyuSofaClient));
-        metaDataRegisterDTO.setEnabled(shenyuSofaClient.enabled());
-        return metaDataRegisterDTO;
+        return MetaDataRegisterDTO.builder()
+                .appName(appName)
+                .serviceName(serviceName)
+                .methodName(methodName)
+                .contextPath(contextPath)
+                .host(host)
+                .port(port)
+                .path(path)
+                .ruleName(ruleName)
+                .pathDesc(desc)
+                .parameterTypes(parameterTypes)
+                .rpcType("sofa")
+                .rpcExt(buildRpcExt(shenyuSofaClient))
+                .enabled(shenyuSofaClient.enabled())
+                .build();
     }
 
     private String buildRpcExt(final ShenyuSofaClient shenyuSofaClient) {

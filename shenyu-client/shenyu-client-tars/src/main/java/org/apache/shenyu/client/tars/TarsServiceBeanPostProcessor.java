@@ -116,21 +116,21 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        metaDataRegisterDTO.setAppName(ipAndPort);
-        metaDataRegisterDTO.setServiceName(serviceName);
-        metaDataRegisterDTO.setMethodName(methodName);
-        metaDataRegisterDTO.setContextPath(this.contextPath);
-        metaDataRegisterDTO.setPath(path);
-        metaDataRegisterDTO.setHost(host);
-        metaDataRegisterDTO.setPort(port);
-        metaDataRegisterDTO.setRuleName(ruleName);
-        metaDataRegisterDTO.setPathDesc(desc);
-        metaDataRegisterDTO.setParameterTypes(parameterTypes);
-        metaDataRegisterDTO.setRpcType("tars");
-        metaDataRegisterDTO.setRpcExt(rpcExt);
-        metaDataRegisterDTO.setEnabled(shenyuTarsClient.enabled());
-        return metaDataRegisterDTO;
+        return MetaDataRegisterDTO.builder()
+                .appName(ipAndPort)
+                .serviceName(serviceName)
+                .methodName(methodName)
+                .contextPath(this.contextPath)
+                .path(path)
+                .host(host)
+                .port(port)
+                .ruleName(ruleName)
+                .pathDesc(desc)
+                .parameterTypes(parameterTypes)
+                .rpcType("tars")
+                .rpcExt(rpcExt)
+                .enabled(shenyuTarsClient.enabled())
+                .build();
     }
 
     private TarsRpcExt.RpcExt buildRpcExt(final Method method) {

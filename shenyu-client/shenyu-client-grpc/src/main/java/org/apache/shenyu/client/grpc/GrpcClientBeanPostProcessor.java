@@ -146,21 +146,21 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .collect(Collectors.joining(","));
         MethodDescriptor.MethodType methodType = JsonServerServiceInterceptor.getMethodTypeMap().get(packageName + "/" + methodName);
 
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        metaDataRegisterDTO.setAppName(ipAndPort);
-        metaDataRegisterDTO.setServiceName(packageName);
-        metaDataRegisterDTO.setMethodName(methodName);
-        metaDataRegisterDTO.setContextPath(contextPath);
-        metaDataRegisterDTO.setHost(host);
-        metaDataRegisterDTO.setPort(port);
-        metaDataRegisterDTO.setPath(path);
-        metaDataRegisterDTO.setRuleName(ruleName);
-        metaDataRegisterDTO.setPathDesc(desc);
-        metaDataRegisterDTO.setParameterTypes(parameterTypes);
-        metaDataRegisterDTO.setRpcExt(buildRpcExt(shenyuGrpcClient, methodType));
-        metaDataRegisterDTO.setRpcType("grpc");
-        metaDataRegisterDTO.setEnabled(shenyuGrpcClient.enabled());
-        return metaDataRegisterDTO;
+        return MetaDataRegisterDTO.builder()
+                .appName(ipAndPort)
+                .serviceName(packageName)
+                .methodName(methodName)
+                .contextPath(contextPath)
+                .host(host)
+                .port(port)
+                .path(path)
+                .ruleName(ruleName)
+                .pathDesc(desc)
+                .parameterTypes(parameterTypes)
+                .rpcType("grpc")
+                .rpcExt(buildRpcExt(shenyuGrpcClient, methodType))
+                .enabled(shenyuGrpcClient.enabled())
+                .build();
     }
 
     private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient,

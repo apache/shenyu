@@ -72,12 +72,13 @@ public class EtcdClientRegisterRepositoryTest {
 
     @Test
     public void testPersistInterface() {
-        final MetaDataRegisterDTO data = new MetaDataRegisterDTO();
-        data.setRpcType("http");
-        data.setHost("host");
-        data.setPort(80);
-        data.setContextPath("/context");
-        data.setRuleName("ruleName");
+        final MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
+                .rpcType("http")
+                .host("host")
+                .port(80)
+                .contextPath("/context")
+                .ruleName("ruleName")
+                .build();
 
         repository.persistInterface(data);
         String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
@@ -95,14 +96,15 @@ public class EtcdClientRegisterRepositoryTest {
 
     @Test
     public void testPersistInterface4Other() {
-        final MetaDataRegisterDTO data = new MetaDataRegisterDTO();
-        data.setRpcType("grpc");
-        data.setHost("host");
-        data.setPort(80);
-        data.setContextPath("/context");
-        data.setRuleName("ruleName");
-        data.setServiceName("testService");
-        data.setMethodName("testMethod");
+        final MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
+                .rpcType("grpc")
+                .host("host")
+                .port(80)
+                .contextPath("/context")
+                .ruleName("ruleName")
+                .serviceName("testService")
+                .methodName("testMethod")
+                .build();
 
         repository.persistInterface(data);
         String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";

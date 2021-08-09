@@ -76,7 +76,7 @@ public class EtcdServerRegisterRepositoryTest {
         method.invoke(repository, "http");
         verify(publisher, times(2)).publish(any());
 
-        String data = GsonUtils.getInstance().toJson(new MetaDataRegisterDTO());
+        String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
         watchHandler.updateHandler("/path", data);
         verify(publisher, times(3)).publish(any());
     }
@@ -88,10 +88,11 @@ public class EtcdServerRegisterRepositoryTest {
     }
 
     private EtcdClient mockEtcdClient() {
+        MetaDataRegisterDTO data = MetaDataRegisterDTO.builder().build();
         EtcdClient client = mock(EtcdClient.class);
 
         when(client.getChildren(anyString())).thenReturn(Arrays.asList("/path1", "/path2"));
-        when(client.read(anyString())).thenReturn(GsonUtils.getInstance().toJson(new MetaDataRegisterDTO()));
+        when(client.read(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
 
         doAnswer(invocationOnMock -> {
             this.watchHandler = invocationOnMock.getArgument(1);

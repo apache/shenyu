@@ -103,8 +103,7 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
 
     private void publishRegisterURI(final String contextPath, final List<URIRegisterDTO> registerDTOList) {
         if (registerDTOList.isEmpty()) {
-            URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
-            uriRegisterDTO.setContextPath(contextPath);
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(contextPath).build();
             registerDTOList.add(uriRegisterDTO);
         }
         publisher.publish(registerDTOList);

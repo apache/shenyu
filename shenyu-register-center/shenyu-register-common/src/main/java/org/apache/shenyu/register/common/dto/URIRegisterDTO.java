@@ -57,6 +57,15 @@ public class URIRegisterDTO implements DataTypeParent, Serializable {
     public URIRegisterDTO() {
     }
 
+    private URIRegisterDTO(final Builder builder) {
+        appName = builder.appName;
+        contextPath = builder.contextPath;
+        rpcType = builder.rpcType;
+        host = builder.host;
+        port = builder.port;
+        eventType = builder.eventType;
+    }
+
     /**
      * Trans form uri register dto.
      *
@@ -64,13 +73,21 @@ public class URIRegisterDTO implements DataTypeParent, Serializable {
      * @return the uri register dto
      */
     public static URIRegisterDTO transForm(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
-        uriRegisterDTO.setAppName(metaDataRegisterDTO.getAppName());
-        uriRegisterDTO.setContextPath(metaDataRegisterDTO.getContextPath());
-        uriRegisterDTO.setRpcType(metaDataRegisterDTO.getRpcType());
-        uriRegisterDTO.setHost(metaDataRegisterDTO.getHost());
-        uriRegisterDTO.setPort(metaDataRegisterDTO.getPort());
-        return uriRegisterDTO;
+        return URIRegisterDTO.builder()
+                .appName(metaDataRegisterDTO.getAppName())
+                .contextPath(metaDataRegisterDTO.getContextPath())
+                .rpcType(metaDataRegisterDTO.getRpcType())
+                .host(metaDataRegisterDTO.getHost())
+                .port(metaDataRegisterDTO.getPort()).build();
+    }
+
+    /**
+     * return builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
@@ -213,5 +230,104 @@ public class URIRegisterDTO implements DataTypeParent, Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(getAppName(), getContextPath(), getRpcType(), getHost(), getPort(), getEventType());
+    }
+
+    public static final class Builder {
+
+        private String appName;
+
+        private String contextPath;
+
+        private String rpcType;
+
+        private String host;
+
+        private Integer port;
+
+        private EventType eventType;
+
+        private Builder() {
+        }
+
+        /**
+         * appName.
+         *
+         * @param appName appName
+         *
+         * @return Builder
+         */
+        public Builder appName(final String appName) {
+            this.appName = appName;
+            return this;
+        }
+
+        /**
+         * contextPath.
+         *
+         * @param contextPath contextPath
+         *
+         * @return Builder
+         */
+        public Builder contextPath(final String contextPath) {
+            this.contextPath = contextPath;
+            return this;
+        }
+
+        /**
+         * rpcType.
+         *
+         * @param rpcType rpcType
+         *
+         * @return Builder
+         */
+        public Builder rpcType(final String rpcType) {
+            this.rpcType = rpcType;
+            return this;
+        }
+
+        /**
+         * host.
+         *
+         * @param host host
+         *
+         * @return Builder
+         */
+        public Builder host(final String host) {
+            this.host = host;
+            return this;
+        }
+
+        /**
+         * port.
+         *
+         * @param port port
+         *
+         * @return Builder
+         */
+        public Builder port(final Integer port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * eventType.
+         *
+         * @param eventType eventType
+         *
+         * @return Builder
+         */
+        public Builder eventType(final EventType eventType) {
+            this.eventType = eventType;
+            return this;
+        }
+
+        /**
+         * build.
+         *
+         * @return Builder
+         */
+        public URIRegisterDTO build() {
+            return new URIRegisterDTO(this);
+        }
     }
 }

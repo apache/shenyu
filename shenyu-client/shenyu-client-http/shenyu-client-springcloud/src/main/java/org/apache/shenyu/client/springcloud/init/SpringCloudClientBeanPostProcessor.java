@@ -132,18 +132,17 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         String desc = shenyuSpringCloudClient.desc();
         String configRuleName = shenyuSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        metaDataRegisterDTO.setContextPath(contextPath);
-        metaDataRegisterDTO.setAppName(appName);
-        metaDataRegisterDTO.setHost(host);
-        metaDataRegisterDTO.setPort(port);
-        metaDataRegisterDTO.setPath(path);
-        metaDataRegisterDTO.setPathDesc(desc);
-        metaDataRegisterDTO.setRpcType(shenyuSpringCloudClient.rpcType());
-        metaDataRegisterDTO.setEnabled(shenyuSpringCloudClient.enabled());
-        metaDataRegisterDTO.setRuleName(ruleName);
-        return metaDataRegisterDTO;
+        return MetaDataRegisterDTO.builder()
+                .contextPath(contextPath)
+                .appName(appName)
+                .host(host)
+                .port(port)
+                .path(path)
+                .pathDesc(desc)
+                .rpcType(shenyuSpringCloudClient.rpcType())
+                .enabled(shenyuSpringCloudClient.enabled())
+                .ruleName(ruleName)
+                .build();
     }
 }
 

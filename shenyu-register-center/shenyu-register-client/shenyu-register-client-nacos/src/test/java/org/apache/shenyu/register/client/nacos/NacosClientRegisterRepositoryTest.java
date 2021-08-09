@@ -112,12 +112,13 @@ public class NacosClientRegisterRepositoryTest {
 
     @Test
     public void testPersistInterface() {
-        final MetaDataRegisterDTO data = new MetaDataRegisterDTO();
-        data.setRpcType("http");
-        data.setHost("host");
-        data.setPort(80);
-        data.setContextPath("/context");
-        data.setRuleName("ruleName");
+        final MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
+                .rpcType("http")
+                .host("host")
+                .port(80)
+                .contextPath("/context")
+                .ruleName("ruleName")
+                .build();
 
         repository.persistInterface(data);
         String uriInstancePath = "shenyu.register.service.http";

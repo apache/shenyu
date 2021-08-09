@@ -126,8 +126,7 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
         List<URIRegisterDTO> uriRegisterDTOList = new ArrayList<>();
         client.getChildren(contextPath).forEach(path -> uriRegisterDTOList.add(GsonUtils.getInstance().fromJson(client.read(path), URIRegisterDTO.class)));
         if (uriRegisterDTOList.isEmpty()) {
-            URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
-            uriRegisterDTO.setContextPath("/" + context);
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + context).build();
             uriRegisterDTOList.add(uriRegisterDTO);
         }
         publishURI(uriRegisterDTOList);

@@ -96,7 +96,7 @@ public class NacosServerRegisterRepositoryTest {
 
         doAnswer(invocationOnMock -> {
             List<String> list = new ArrayList<>();
-            list.add(GsonUtils.getInstance().toJson(new MetaDataRegisterDTO()));
+            list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
             return GsonUtils.getInstance().toJson(list);
         }).when(configService).getConfig(anyString(), anyString(), anyLong());
 
@@ -118,7 +118,7 @@ public class NacosServerRegisterRepositoryTest {
     }
 
     private List<Instance> mockInstances() {
-        MetaDataRegisterDTO metadata = new MetaDataRegisterDTO();
+        MetaDataRegisterDTO metadata = MetaDataRegisterDTO.builder().build();
         Map<String, String> metadataMap = new HashMap<>(1);
         metadataMap.put("contextPath", "contextPath");
         metadataMap.put("uriMetadata", GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
@@ -153,7 +153,7 @@ public class NacosServerRegisterRepositoryTest {
         verify(publisher, times(2)).publish(any());
 
         List<String> list = new ArrayList<>();
-        list.add(GsonUtils.getInstance().toJson(new MetaDataRegisterDTO()));
+        list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
         verify(publisher, times(3)).publish(any());
 
@@ -172,7 +172,7 @@ public class NacosServerRegisterRepositoryTest {
         verify(publisher, times(1)).publish(any());
 
         List<String> list = new ArrayList<>();
-        list.add(GsonUtils.getInstance().toJson(new MetaDataRegisterDTO()));
+        list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
         verify(publisher, times(2)).publish(any());
 

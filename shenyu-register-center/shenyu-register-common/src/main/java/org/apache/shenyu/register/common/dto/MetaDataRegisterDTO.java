@@ -22,6 +22,7 @@ import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -87,6 +88,33 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     }
 
     public MetaDataRegisterDTO() {
+    }
+
+    private MetaDataRegisterDTO(final Builder builder) {
+        appName = builder.appName;
+        contextPath = builder.contextPath;
+        path = builder.path;
+        pathDesc = builder.pathDesc;
+        rpcType = builder.rpcType;
+        serviceName = builder.serviceName;
+        methodName = builder.methodName;
+        ruleName = builder.ruleName;
+        parameterTypes = builder.parameterTypes;
+        rpcExt = builder.rpcExt;
+        enabled = builder.enabled;
+        host = builder.host;
+        port = builder.port;
+        pluginNames = builder.pluginNames;
+        registerMetaData = builder.registerMetaData;
+    }
+
+    /**
+     * builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -362,5 +390,230 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
      */
     public void setRegisterMetaData(final boolean registerMetaData) {
         this.registerMetaData = registerMetaData;
+    }
+
+    public static final class Builder {
+
+        private String appName;
+
+        private String contextPath;
+
+        private String path;
+
+        private String pathDesc;
+
+        private String rpcType;
+
+        private String serviceName;
+
+        private String methodName;
+
+        private String ruleName;
+
+        private String parameterTypes;
+
+        private String rpcExt;
+
+        private boolean enabled;
+
+        private String host;
+
+        private Integer port;
+
+        private List<String> pluginNames = Collections.emptyList();
+
+        private boolean registerMetaData;
+
+        private Builder() {
+        }
+
+        /**
+         * appName.
+         *
+         * @param appName appName
+         *
+         * @return Builder
+         */
+        public Builder appName(final String appName) {
+            this.appName = appName;
+            return this;
+        }
+
+        /**
+         * contextPath.
+         *
+         * @param contextPath contextPath
+         *
+         * @return Builder
+         */
+        public Builder contextPath(final String contextPath) {
+            this.contextPath = contextPath;
+            return this;
+        }
+
+        /**
+         * path.
+         *
+         * @param path path
+         *
+         * @return Builder
+         */
+        public Builder path(final String path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * pathDesc.
+         *
+         * @param pathDesc pathDesc
+         *
+         * @return Builder
+         */
+        public Builder pathDesc(final String pathDesc) {
+            this.pathDesc = pathDesc;
+            return this;
+        }
+
+        /**
+         * rpcType.
+         *
+         * @param rpcType rpcType
+         *
+         * @return Builder
+         */
+        public Builder rpcType(final String rpcType) {
+            this.rpcType = rpcType;
+            return this;
+        }
+
+        /**
+         * serviceName.
+         *
+         * @param serviceName serviceName
+         *
+         * @return Builder
+         */
+        public Builder serviceName(final String serviceName) {
+            this.serviceName = serviceName;
+            return this;
+        }
+
+        /**
+         * methodName.
+         *
+         * @param methodName methodName
+         *
+         * @return Builder
+         */
+        public Builder methodName(final String methodName) {
+            this.methodName = methodName;
+            return this;
+        }
+
+        /**
+         * ruleName.
+         *
+         * @param ruleName ruleName
+         *
+         * @return Builder
+         */
+        public Builder ruleName(final String ruleName) {
+            this.ruleName = ruleName;
+            return this;
+        }
+
+        /**
+         * parameterTypes.
+         *
+         * @param parameterTypes parameterTypes
+         *
+         * @return Builder
+         */
+        public Builder parameterTypes(final String parameterTypes) {
+            this.parameterTypes = parameterTypes;
+            return this;
+        }
+
+        /**
+         * rpcExt.
+         *
+         * @param rpcExt rpcExt
+         *
+         * @return Builder
+         */
+        public Builder rpcExt(final String rpcExt) {
+            this.rpcExt = rpcExt;
+            return this;
+        }
+
+        /**
+         * enabled.
+         *
+         * @param enabled enabled
+         *
+         * @return Builder
+         */
+        public Builder enabled(final boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * appName.
+         *
+         * @param host host
+         *
+         * @return Builder
+         */
+        public Builder host(final String host) {
+            this.host = host;
+            return this;
+        }
+
+        /**
+         * port.
+         *
+         * @param port port
+         *
+         * @return Builder
+         */
+        public Builder port(final Integer port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * pluginNames.
+         *
+         * @param pluginNames pluginNames
+         *
+         * @return Builder
+         */
+        public Builder pluginNames(final List<String> pluginNames) {
+            this.pluginNames = pluginNames;
+            return this;
+        }
+
+        /**
+         * registerMetaData.
+         *
+         * @param registerMetaData registerMetaData
+         *
+         * @return Builder
+         */
+        public Builder registerMetaData(final boolean registerMetaData) {
+            this.registerMetaData = registerMetaData;
+            return this;
+        }
+
+        /**
+         * build.
+         *
+         * @return MetaDataRegisterDTO
+         */
+        public MetaDataRegisterDTO build() {
+            return new MetaDataRegisterDTO(this);
+        }
     }
 }

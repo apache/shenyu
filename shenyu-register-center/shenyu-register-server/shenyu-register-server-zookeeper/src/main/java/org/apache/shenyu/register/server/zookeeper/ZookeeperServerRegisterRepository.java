@@ -144,8 +144,7 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
         });
         if (registerDTOList.isEmpty()) {
             String contextPath = StringUtils.substringAfterLast(uriParentPath, "/");
-            URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
-            uriRegisterDTO.setContextPath("/" + contextPath);
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + contextPath).build();
             registerDTOList.add(uriRegisterDTO);
         }
         publishRegisterURI(registerDTOList);

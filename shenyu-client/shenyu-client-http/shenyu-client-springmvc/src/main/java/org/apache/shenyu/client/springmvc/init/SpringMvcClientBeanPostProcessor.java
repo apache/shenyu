@@ -114,9 +114,9 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringMvcClient shenyuSpringMvcClient, final String prePath) {
-        final String contextPath = this.contextPath;
-        final String appName = this.appName;
-        final Integer port = this.port;
+        String contextPath = this.contextPath;
+        String appName = this.appName;
+        Integer port = this.port;
         String path;
         if (StringUtils.isEmpty(contextPath)) {
             path = prePath + shenyuSpringMvcClient.path();
@@ -127,18 +127,18 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuSpringMvcClient.ruleName();
         String ruleName = StringUtils.isBlank(configRuleName) ? path : configRuleName;
-        MetaDataRegisterDTO metaDataRegisterDT = new MetaDataRegisterDTO();
-        metaDataRegisterDT.setContextPath(contextPath);
-        metaDataRegisterDT.setHost(host);
-        metaDataRegisterDT.setPort(port);
-        metaDataRegisterDT.setAppName(appName);
-        metaDataRegisterDT.setPath(path);
-        metaDataRegisterDT.setPathDesc(desc);
-        metaDataRegisterDT.setRpcType(shenyuSpringMvcClient.rpcType());
-        metaDataRegisterDT.setEnabled(shenyuSpringMvcClient.enabled());
-        metaDataRegisterDT.setRuleName(ruleName);
-        metaDataRegisterDT.setRegisterMetaData(shenyuSpringMvcClient.registerMetaData());
-        return metaDataRegisterDT;
+        return MetaDataRegisterDTO.builder()
+                .contextPath(contextPath)
+                .host(host)
+                .port(port)
+                .appName(appName)
+                .path(path)
+                .pathDesc(desc)
+                .rpcType(shenyuSpringMvcClient.rpcType())
+                .enabled(shenyuSpringMvcClient.enabled())
+                .ruleName(ruleName)
+                .registerMetaData(shenyuSpringMvcClient.registerMetaData())
+                .build();
     }
 }
 
