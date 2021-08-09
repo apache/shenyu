@@ -73,6 +73,14 @@
     </dependency>
     <!-- shenyu waf plugin end-->
 
+    <!-- apache shenyu redirect plugin start-->
+    <dependency>
+      <groupId>org.apache.shenyu</groupId>
+      <artifactId>shenyu-spring-boot-starter-plugin-redirect</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <!-- apache shenyu redirect plugin end-->
+
     <!--shenyu data sync start use websocket-->
     <dependency>
       <groupId>org.apache.shenyu</groupId>
