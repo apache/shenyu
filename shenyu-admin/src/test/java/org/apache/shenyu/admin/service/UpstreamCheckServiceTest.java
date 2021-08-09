@@ -94,9 +94,6 @@ public final class UpstreamCheckServiceTest {
     @Before
     public void setUp() {
         shenyuRegisterCenterConfig.setRegisterType("http");
-        Properties properties = new Properties();
-        properties.setProperty(Constants.IS_CHECKED, "true");
-        shenyuRegisterCenterConfig.setProps(properties);
 
         // get static variable reference by reflection
         upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
@@ -213,6 +210,10 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testClose() {
+        Properties properties = new Properties();
+        properties.setProperty(Constants.IS_CHECKED, "true");
+        shenyuRegisterCenterConfig.setProps(properties);
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig);
         ScheduledThreadPoolExecutor executor = Whitebox.getInternalState(upstreamCheckService, "executor");
         assertNotNull(executor);
         upstreamCheckService.close();
