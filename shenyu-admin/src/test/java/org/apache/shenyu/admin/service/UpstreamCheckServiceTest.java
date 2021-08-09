@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -45,8 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -206,6 +209,15 @@ public final class UpstreamCheckServiceTest {
         upstreamCheckService.fetchUpstreamData();
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
+    }
+
+    @Test
+    public void testClose() {
+        ScheduledThreadPoolExecutor executor = Whitebox.getInternalState(upstreamCheckService, "executor");
+        assertNotNull(executor);
+        upstreamCheckService.close();
+        executor = Whitebox.getInternalState(upstreamCheckService, "executor");
+        assertTrue(executor.isShutdown());
     }
 
     private void setupZombieSet() {

@@ -48,6 +48,7 @@ import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -84,6 +86,10 @@ public class UpstreamCheckService {
     private final PluginMapper pluginMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
+
+    private ScheduledThreadPoolExecutor executor;
+
+    private ScheduledFuture<?> scheduledFuture;
 
     /**
      * Instantiates a new Upstream check service.
@@ -117,8 +123,25 @@ public class UpstreamCheckService {
     public void setup() {
         if (checked) {
             this.fetchUpstreamData();
-            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), ShenyuThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+            executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+            scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * Close relative resource on container destroy.
+     */
+    @PreDestroy
+    public void close() {
+        if (Objects.nonNull(scheduledFuture)) {
+            scheduledFuture.cancel(false);
+            executor.shutdownNow();
+            try {
+                executor.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                log.error("shutdown executor error", ex);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
