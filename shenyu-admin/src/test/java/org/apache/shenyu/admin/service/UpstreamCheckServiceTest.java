@@ -170,8 +170,8 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testReplace() {
-        final DivideUpstream divideUpstream = new DivideUpstream(null, null, "localhost", 60);
-        final DivideUpstream divideUpstream2 = new DivideUpstream(null, null, "localhost2", 60);
+        final DivideUpstream divideUpstream = new DivideUpstream("localhost", null, null, 0);
+        final DivideUpstream divideUpstream2 = new DivideUpstream("localhost2", null, null, 0);
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_2, divideUpstream);
         upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, Collections.singletonList(divideUpstream2));
         Assert.assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
