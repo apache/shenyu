@@ -63,8 +63,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private static final List<RpcTypeEnum> RPC_URI_TYPE_SET = RpcTypeEnum.acquireSupportURIs();
 
-    private final String defaultGroup = NacosPathConstants.GROUP;
-
     private ConfigService configService;
 
     private NamingService namingService;
