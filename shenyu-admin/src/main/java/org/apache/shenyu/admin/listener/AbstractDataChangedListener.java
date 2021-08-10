@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.listener;
 
 import com.google.gson.reflect.TypeToken;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -35,6 +34,8 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Md5Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import javax.annotation.Resource;
@@ -51,7 +52,6 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @since 2.0.0
  */
-@Slf4j
 @SuppressWarnings("all")
 public abstract class AbstractDataChangedListener implements DataChangedListener, InitializingBean {
 
@@ -59,6 +59,8 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * The constant CACHE.
      */
     protected static final ConcurrentMap<String, ConfigDataCache> CACHE = new ConcurrentHashMap<>();
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractDataChangedListener.class);
 
     @Resource
     private AppAuthService appAuthService;
@@ -230,7 +232,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         String json = GsonUtils.getInstance().toJson(data);
         ConfigDataCache newVal = new ConfigDataCache(group.name(), json, Md5Utils.md5(json), System.currentTimeMillis());
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
-        log.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
+        LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
 
     /**

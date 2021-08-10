@@ -17,15 +17,13 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * data permission filter query.
  */
-@Data
 public class FilterQuery implements Serializable {
 
     private static final long serialVersionUID = 9107238465094879060L;
@@ -34,4 +32,39 @@ public class FilterQuery implements Serializable {
      * filter ids.
      */
     private List<String> filterIds;
+
+    /**
+     * Gets the value of filterIds.
+     *
+     * @return the value of filterIds
+     */
+    public List<String> getFilterIds() {
+        return filterIds;
+    }
+
+    /**
+     * Sets the filterIds.
+     *
+     * @param filterIds filterIds
+     */
+    public void setFilterIds(final List<String> filterIds) {
+        this.filterIds = filterIds;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof FilterQuery)) {
+            return false;
+        }
+        FilterQuery that = (FilterQuery) o;
+        return Objects.equals(filterIds, that.filterIds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(filterIds);
+    }
 }

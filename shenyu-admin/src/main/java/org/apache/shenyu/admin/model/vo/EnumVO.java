@@ -17,18 +17,11 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
 
 /**
  * this is enum view to web front.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class EnumVO implements Serializable {
 
     private static final long serialVersionUID = 213412846786447233L;
@@ -47,4 +40,67 @@ public class EnumVO implements Serializable {
      * whether support.
      */
     private Boolean support;
+
+    public EnumVO() {
+    }
+
+    public EnumVO(final Object code, final String name, final Boolean support) {
+        this.code = code;
+        this.name = name;
+        this.support = support;
+    }
+
+    /**
+     * Gets the value of code.
+     *
+     * @return the value of code
+     */
+    public Object getCode() {
+        return code;
+    }
+
+    /**
+     * Sets the code.
+     *
+     * @param code code
+     */
+    public void setCode(final Object code) {
+        this.code = code;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of support.
+     *
+     * @return the value of support
+     */
+    public Boolean getSupport() {
+        return support;
+    }
+
+    /**
+     * Sets the support.
+     *
+     * @param support support
+     */
+    public void setSupport(final Boolean support) {
+        this.support = support;
+    }
 }

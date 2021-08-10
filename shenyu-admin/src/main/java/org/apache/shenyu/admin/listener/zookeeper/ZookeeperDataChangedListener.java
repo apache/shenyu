@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
-import lombok.SneakyThrows;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
@@ -27,8 +26,12 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -36,6 +39,8 @@ import java.util.List;
  * Use zookeeper to push data changes.
  */
 public class ZookeeperDataChangedListener implements DataChangedListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperDataChangedListener.class);
 
     private final ZkClient zkClient;
 
@@ -57,18 +62,22 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
         }
     }
 
-    @SneakyThrows
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         for (MetaData data : changed) {
-            String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteZkPath(metaDataPath);
-                continue;
+            try {
+                String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
+                // delete
+                if (eventType == DataEventTypeEnum.DELETE) {
+                    deleteZkPath(metaDataPath);
+                    continue;
+                }
+                // create or update
+                insertZkNode(metaDataPath, data);
+            } catch (UnsupportedEncodingException e) {
+                LOG.error("Url encode error.", e);
+                throw new ShenyuException(e.getMessage());
             }
-            // create or update
-            insertZkNode(metaDataPath, data);
         }
     }
 
