@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.request;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
@@ -30,6 +28,8 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -49,15 +49,16 @@ import java.util.stream.Collectors;
 /**
  * The RequestPlugin.
  */
-@Slf4j
 public class RequestPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RequestPlugin.class);
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
             final RuleData rule) {
         RequestHandle requestHandle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(requestHandle) || requestHandle.isEmptyConfig()) {
-            log.error("request handler can not configuration：{}", requestHandle);
+            LOG.error("request handler can not configuration：{}", requestHandle);
             return chain.execute(exchange);
         }
         ServerHttpRequest request = exchange.getRequest();

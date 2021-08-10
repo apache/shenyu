@@ -19,13 +19,12 @@ package org.apache.shenyu.sync.data.etcd;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -33,18 +32,26 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Data synchronize of etcd.
  */
-@Slf4j
 public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdSyncDataService.class);
 
     private final EtcdClient etcdClient;
 
@@ -57,13 +64,13 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     /**
      * Instantiates a new Zookeeper cache manager.
      *
-     * @param etcdClient             the etcd client
+     * @param etcdClient           the etcd client
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers
      */
     public EtcdSyncDataService(final EtcdClient etcdClient, final PluginDataSubscriber pluginDataSubscriber,
-                                    final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
+                               final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         this.etcdClient = etcdClient;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
@@ -300,7 +307,12 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private List<String> etcdClientGetChildren(final String parent) {
-        return etcdClient.getChildrenKeys(parent, "/");
+        try {
+            return etcdClient.getChildrenKeys(parent, "/");
+        } catch (ExecutionException | InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return Collections.emptyList();
     }
 
     @Override

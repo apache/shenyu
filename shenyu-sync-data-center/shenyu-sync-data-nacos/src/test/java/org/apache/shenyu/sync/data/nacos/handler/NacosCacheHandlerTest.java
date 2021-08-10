@@ -18,19 +18,18 @@
 package org.apache.shenyu.sync.data.nacos.handler;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -39,14 +38,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Collections;
-import java.util.Set;
-import java.util.Objects;
-import java.util.Map;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -54,7 +53,6 @@ import java.util.stream.Collectors;
 /**
  * add test case for {@link NacosCacheHandler}.
  */
-@Slf4j
 @SuppressWarnings("all")
 public final class NacosCacheHandlerTest {
     private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
@@ -73,15 +71,15 @@ public final class NacosCacheHandlerTest {
 
     private static final String GROUP = "DEFAULT_GROUP";
 
-    private static final String PLUGIN_DATA_ID = "soul.plugin.json";
+    private static final String PLUGIN_DATA_ID = "shenyu.plugin.json";
 
-    private static final String SELECTOR_DATA_ID = "soul.selector.json";
+    private static final String SELECTOR_DATA_ID = "shenyu.selector.json";
 
-    private static final String RULE_DATA_ID = "soul.rule.json";
+    private static final String RULE_DATA_ID = "shenyu.rule.json";
 
-    private static final String AUTH_DATA_ID = "soul.auth.json";
+    private static final String AUTH_DATA_ID = "shenyu.auth.json";
 
-    private static final String META_DATA_ID = "soul.meta.json";
+    private static final String META_DATA_ID = "shenyu.meta.json";
 
     private NacosCacheHandler nacosCacheHandlerService;
 
@@ -92,9 +90,8 @@ public final class NacosCacheHandlerTest {
         configService = new NacosMockConfigService();
     }
 
-    @SneakyThrows
     @Test
-    public void testUpdatePluginMap() {
+    public void testUpdatePluginMap() throws NacosException {
         String pluginName1 = "PLUGIN_NAME_1";
         String pluginName2 = "PLUGIN_NAME_2";
         PluginData pluginData1 =
@@ -132,9 +129,8 @@ public final class NacosCacheHandlerTest {
 
     }
 
-    @SneakyThrows
     @Test
-    public void testUpdateSelectorMap() {
+    public void testUpdateSelectorMap() throws NacosException {
         String selectorDataPluginName1 = "SELECTOR_DATA_1";
         String selectorDataPluginName2 = "SELECTOR_DATA_2";
         SelectorData selectorData1 =
@@ -184,9 +180,8 @@ public final class NacosCacheHandlerTest {
                                         ImmutableList.of(selectorData1))));
     }
 
-    @SneakyThrows
     @Test
-    public void testUpdateRuleMap() {
+    public void testUpdateRuleMap() throws NacosException {
         String ruleDataId1 = "RULE_DATA_1";
         String ruleDataId2 = "RULE_DATA_2";
         String selectorId1 = "ID_1";
@@ -231,9 +226,8 @@ public final class NacosCacheHandlerTest {
                                         ImmutableList.of(ruleData1))));
     }
 
-    @SneakyThrows
     @Test
-    public void testUpdateMetaDataMap() {
+    public void testUpdateMetaDataMap() throws NacosException {
         String metadataPath1 = "METADATA_PATH_1";
         String metadataPath2 = "METADATA_PATH_2";
         MetaData metaData1 = MetaData.builder().path(metadataPath1).id("meta_1").build();
@@ -269,9 +263,8 @@ public final class NacosCacheHandlerTest {
                         .toJson(ImmutableMap.of(metadataPath1, metaData1, metadataPath2, metaData2)));
     }
 
-    @SneakyThrows
     @Test
-    public void testUpdateAuthMap() {
+    public void testUpdateAuthMap() throws NacosException {
         String mockAppKey = "MOCK_APP_KEY";
         String mockAppKey2 = "MOCK_APP_KEY2";
         String mockAppSecret = "MOCK_APP_SECRET";
@@ -312,9 +305,8 @@ public final class NacosCacheHandlerTest {
                         .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData)));
     }
 
-    @SneakyThrows
     @Test
-    public void testWatcherData() {
+    public void testWatcherData() throws NacosException {
         String mockAppKey = "MOCK_APP_KEY";
         String mockAppKey2 = "MOCK_APP_KEY2";
         String mockAppSecret = "MOCK_APP_SECRET";
@@ -350,7 +342,7 @@ public final class NacosCacheHandlerTest {
         nacosCacheHandlerService.watcherData(AUTH_DATA_ID, oc);
     }
 
-    private void changePluginData(final List<PluginData> changed) {
+    private void changePluginData(final List<PluginData> changed) throws NacosException {
         updateDataMap(getConfig(PLUGIN_DATA_ID));
 
         changed.forEach(plugin -> PLUGIN_MAP.put(plugin.getName(), plugin));
@@ -358,7 +350,7 @@ public final class NacosCacheHandlerTest {
         publishConfig(PLUGIN_DATA_ID, PLUGIN_MAP);
     }
 
-    private void changeSelectorData(final List<SelectorData> changed) {
+    private void changeSelectorData(final List<SelectorData> changed) throws NacosException {
         changeSelectorDataMap(getConfig(SELECTOR_DATA_ID));
 
         changed.forEach(selector -> {
@@ -375,7 +367,7 @@ public final class NacosCacheHandlerTest {
         publishConfig(SELECTOR_DATA_ID, SELECTOR_MAP);
     }
 
-    private void changeRuleData(final List<RuleData> changed) {
+    private void changeRuleData(final List<RuleData> changed) throws NacosException {
         changeRuleDataMap(getConfig(RULE_DATA_ID));
 
         changed.forEach(rule -> {
@@ -392,7 +384,7 @@ public final class NacosCacheHandlerTest {
         publishConfig(RULE_DATA_ID, RULE_MAP);
     }
 
-    private void changeMetaData(final List<MetaData> changed) {
+    private void changeMetaData(final List<MetaData> changed) throws NacosException {
         changeMetaDataMap(getConfig(META_DATA_ID));
 
         changed.forEach(meta -> {
@@ -407,7 +399,7 @@ public final class NacosCacheHandlerTest {
         publishConfig(META_DATA_ID, META_DATA);
     }
 
-    private void changeAuthData(final List<AppAuthData> changed) {
+    private void changeAuthData(final List<AppAuthData> changed) throws NacosException {
         changeAppAuthDataMap(getConfig(AUTH_DATA_ID));
 
         changed.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
@@ -470,13 +462,11 @@ public final class NacosCacheHandlerTest {
         PLUGIN_MAP.keySet().removeAll(set);
     }
 
-    @SneakyThrows
-    private String getConfig(final String dataId) {
+    private String getConfig(final String dataId) throws NacosException {
         return configService.getConfig(dataId, GROUP, 6000);
     }
 
-    @SneakyThrows
-    private void publishConfig(final String dataId, final Object data) {
+    private void publishConfig(final String dataId, final Object data) throws NacosException {
         configService.publishConfig(dataId, GROUP, GsonUtils.getInstance().toJson(data));
     }
 }

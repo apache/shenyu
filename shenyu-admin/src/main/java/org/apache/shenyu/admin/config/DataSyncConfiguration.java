@@ -18,12 +18,16 @@
 package org.apache.shenyu.admin.config;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.ecwid.consul.v1.ConsulClient;
 import io.etcd.jetcd.Client;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.consul.ConsulDataChangedListener;
+import org.apache.shenyu.admin.listener.consul.ConsulDataInit;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
 import org.apache.shenyu.admin.listener.etcd.EtcdDataDataChangedListener;
 import org.apache.shenyu.admin.listener.etcd.EtcdDataInit;
@@ -213,6 +217,50 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(EtcdDataInit.class)
         public EtcdDataInit etcdDataInit(final EtcdClient etcdClient, final SyncDataService syncDataService) {
             return new EtcdDataInit(etcdClient, syncDataService);
+        }
+    }
+
+    /**
+     * The type Consul listener.
+     */
+    @Configuration
+    @ConditionalOnProperty(prefix = "shenyu.sync.consul", name = "url")
+    @EnableConfigurationProperties(ConsulProperties.class)
+    static class ConsulListener {
+
+        /**
+         * init Consul client.
+         * @param consulProperties the consul properties
+         * @return Consul client
+         */
+        @Bean
+        public ConsulClient consulClient(final ConsulProperties consulProperties) {
+            return new ConsulClient(consulProperties.getUrl());
+        }
+
+        /**
+         * Config event listener data changed listener.
+         *
+         * @param consulClient the consul client
+         * @return the data changed listener
+         */
+        @Bean
+        @ConditionalOnMissingBean(ConsulDataChangedListener.class)
+        public DataChangedListener consulDataChangedListener(final ConsulClient consulClient) {
+            return new ConsulDataChangedListener(consulClient);
+        }
+
+        /**
+         * Consul data init.
+         *
+         * @param consulClient the consul client
+         * @param syncDataService the sync data service
+         * @return the consul data init
+         */
+        @Bean
+        @ConditionalOnMissingBean(ConsulDataInit.class)
+        public ConsulDataInit consulDataInit(final ConsulClient consulClient, final SyncDataService syncDataService) {
+            return new ConsulDataInit(consulClient, syncDataService);
         }
     }
 }

@@ -17,21 +17,19 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
@@ -39,10 +37,11 @@ import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
+import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.ResourceService;
+import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.AdminPluginOperateEnum;
@@ -63,7 +62,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.PluginService}.
  */
-@RequiredArgsConstructor
 @Service
 public class PluginServiceImpl implements PluginService {
 
@@ -80,6 +78,22 @@ public class PluginServiceImpl implements PluginService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final ResourceService resourceService;
+
+    public PluginServiceImpl(final PluginMapper pluginMapper,
+                             final SelectorMapper selectorMapper,
+                             final SelectorConditionMapper selectorConditionMapper,
+                             final RuleMapper ruleMapper,
+                             final RuleConditionMapper ruleConditionMapper,
+                             final ApplicationEventPublisher eventPublisher,
+                             final ResourceService resourceService) {
+        this.pluginMapper = pluginMapper;
+        this.selectorMapper = selectorMapper;
+        this.selectorConditionMapper = selectorConditionMapper;
+        this.ruleMapper = ruleMapper;
+        this.ruleConditionMapper = ruleConditionMapper;
+        this.eventPublisher = eventPublisher;
+        this.resourceService = resourceService;
+    }
 
     /**
      * create or update plugin.

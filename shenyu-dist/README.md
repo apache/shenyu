@@ -15,7 +15,7 @@ Then you will see the `dist` directory in root directory.
 docker build
 ```
 cd shenyu 
-mvn clean package -Pdist,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+mvn clean package -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 ```
 
 If build success, run `docker images` and you will see like this.

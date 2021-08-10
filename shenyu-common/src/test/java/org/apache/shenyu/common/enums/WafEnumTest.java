@@ -15,30 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.transfer;
+package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import static org.junit.Assert.assertEquals;
 
-/**
- * The interface Plugin transfer.
- */
-@Mapper
-public interface SelectorTransfer {
+import org.junit.Test;
 
-    /**
-     * The constant INSTANCE.
-     */
-    SelectorTransfer INSTANCE = Mappers.getMapper(SelectorTransfer.class);
+public class WafEnumTest {
+    @Test
+    public void testGetCode() {
+        assertEquals(0, WafEnum.REJECT.getCode());
+        assertEquals(1, WafEnum.ALLOW.getCode());
+    }
 
-    /**
-     * Map to data selector data.
-     *
-     * @param selectorDO the selector do
-     * @return the selector data
-     */
-    SelectorData mapToData(SelectorDO selectorDO);
-
+    @Test
+    public void testGetName() {
+        assertEquals("reject", WafEnum.REJECT.getName());
+        assertEquals("allow", WafEnum.ALLOW.getName());
+    }
 }

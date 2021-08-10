@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.shenyu.integratedtest.http.dto;
 
 import lombok.Getter;
@@ -22,7 +23,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AdminResponse<T> {
+
     private Integer code;
+
     private String message;
+
     private T data;
 }

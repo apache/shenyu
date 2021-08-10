@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
- * put http specific tests here
+ * put http specific tests here.
  */
 package org.apache.shenyu.integratedtest.http;

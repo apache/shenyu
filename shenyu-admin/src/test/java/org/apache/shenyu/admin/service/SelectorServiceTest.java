@@ -19,8 +19,11 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -38,16 +41,19 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shiro.SecurityUtils;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
@@ -60,6 +66,7 @@ import java.util.Random;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -69,6 +76,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test cases for SelectorService.
@@ -103,12 +111,9 @@ public final class SelectorServiceTest {
     @Mock
     private UpstreamCheckService upstreamCheckService;
 
-    @Mock
-    private org.apache.shiro.mgt.SecurityManager securityManager;
-
     @Before
     public void setUp() {
-        SecurityUtils.setSecurityManager(securityManager);
+        when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
                 ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService);
     }
@@ -120,11 +125,12 @@ public final class SelectorServiceTest {
         testRegisterUpdate();
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testCreateOrUpdate() {
+        given(pluginMapper.selectByName("divide")).willReturn(buildPluginDO());
         publishEvent();
-        testCreate();
         testUpdate();
+        testCreate();
     }
 
     @Test
@@ -210,16 +216,35 @@ public final class SelectorServiceTest {
         assertEquals(selectorDOs.size(), dataList.size());
     }
 
+    @Test
+    public void testHandlerSelectorNeedUpstreamCheck() {
+        publishEvent();
+
+        // Test the situation where the selector cannot be found based on the contextPath.
+        given(pluginMapper.selectByName("test")).willReturn(buildPluginDO());
+        assertNotNull(selectorService.handlerSelectorNeedUpstreamCheck(buildMetaDataRegisterDTO(), "test"));
+
+        // Test the situation where the selector can be found based on the contextPath.
+        given(selectorMapper.selectByName("/test")).willReturn(buildSelectorDO());
+        assertThat(selectorService.handlerSelectorNeedUpstreamCheck(buildMetaDataRegisterDTO(), "test"), is("456"));
+    }
+
     private void testUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
+        selectorDTO.setPluginId("789");
         given(this.selectorMapper.updateSelective(any())).willReturn(1);
         assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
     }
 
     private void testCreate() {
-        SelectorDTO selectorDTO = buildSelectorDTO("");
-        given(this.selectorMapper.insertSelective(any())).willReturn(1);
-        assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
+        try (MockedStatic<JwtUtils> mocked = mockStatic(JwtUtils.class)) {
+            mocked.when(JwtUtils::getUserInfo)
+                    .thenAnswer((Answer<UserInfo>) invocation -> UserInfo.builder().userId("1").userName("admin").build());
+            SelectorDTO selectorDTO = buildSelectorDTO("");
+            given(this.selectorMapper.insertSelective(any())).willReturn(1);
+            // Because of the lack of shiro configuration, there would be a NullPointerException here.
+            assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
+        }
     }
 
     private void testRegisterCreate() {
@@ -255,6 +280,7 @@ public final class SelectorServiceTest {
         selectorDTO.setPluginId("789");
         selectorDTO.setName("kuan");
         selectorDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        selectorDTO.setHandle("[{\"upstreamHost\": \"127.0.0.1\", \"protocol\": \"http://\", \"upstreamUrl\": \"anotherUrl\"}]");
         SelectorConditionDTO selectorConditionDTO1 = new SelectorConditionDTO();
         selectorConditionDTO1.setId("111");
         selectorConditionDTO1.setSelectorId("456");
@@ -276,8 +302,8 @@ public final class SelectorServiceTest {
         }
         selectorDTO.setName("test-name-" + new Random().nextInt());
         selectorDTO.setEnabled(true);
-        selectorDTO.setHandle("test-handle");
-        selectorDTO.setPluginId("test-pluginId");
+        selectorDTO.setHandle("[{\"upstreamHost\": \"127.0.0.1\", \"protocol\": \"http://\", \"upstreamUrl\": \"anotherUrl\"}]");
+        selectorDTO.setPluginId("789");
         selectorDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
         selectorDTO.setLoged(true);
         selectorDTO.setMatchMode(1);
@@ -303,5 +329,13 @@ public final class SelectorServiceTest {
         selectorQuery.setPluginId("789");
         selectorQuery.setPageParameter(new PageParameter());
         return selectorQuery;
+    }
+
+    private MetaDataRegisterDTO buildMetaDataRegisterDTO() {
+        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
+        metaDataRegisterDTO.setPath("/test");
+        metaDataRegisterDTO.setHost("127.0.0.1");
+        metaDataRegisterDTO.setPort(13307);
+        return metaDataRegisterDTO;
     }
 }

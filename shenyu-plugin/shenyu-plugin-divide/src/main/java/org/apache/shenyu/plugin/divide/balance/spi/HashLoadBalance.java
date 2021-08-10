@@ -41,7 +41,7 @@ public class HashLoadBalance extends AbstractLoadBalance {
         final ConcurrentSkipListMap<Long, DivideUpstream> treeMap = new ConcurrentSkipListMap<>();
         for (DivideUpstream address : upstreamList) {
             for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
-                long addressHash = hash("SOUL-" + address.getUpstreamUrl() + "-HASH-" + i);
+                long addressHash = hash("SHENYU-" + address.getUpstreamUrl() + "-HASH-" + i);
                 treeMap.put(addressHash, address);
             }
         }

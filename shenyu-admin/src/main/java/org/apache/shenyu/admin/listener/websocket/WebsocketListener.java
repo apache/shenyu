@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 
 import javax.servlet.ServletRequestEvent;
@@ -31,12 +32,13 @@ import javax.servlet.http.HttpSession;
  *
  * @since 2.0.0
  */
-@Slf4j
 @WebListener
 @Configuration
 public class WebsocketListener implements ServletRequestListener {
 
     public static final String CLIENT_IP_NAME = "ClientIP";
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketListener.class);
 
     @Override
     public void requestDestroyed(final ServletRequestEvent sre) {
@@ -48,7 +50,7 @@ public class WebsocketListener implements ServletRequestListener {
                 session.removeAttribute(CLIENT_IP_NAME);
             }
         } catch (Exception e) {
-            log.error("", e);
+            LOG.error("request destroyed error", e);
         }
     }
 
@@ -62,7 +64,7 @@ public class WebsocketListener implements ServletRequestListener {
                 session.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
             }
         } catch (Exception e) {
-            log.error("", e);
+            LOG.error("request initialized error", e);
         }
     }
 }

@@ -18,13 +18,12 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthParamDTO;
@@ -33,16 +32,16 @@ import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.service.AppAuthService;
-import org.apache.shenyu.admin.transfer.AppAuthTransfer;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthParamVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
+import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.transfer.AppAuthTransfer;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
@@ -63,7 +62,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.AppAuthService}.
  */
-@RequiredArgsConstructor
 @Service
 public class AppAuthServiceImpl implements AppAuthService {
 
@@ -74,6 +72,16 @@ public class AppAuthServiceImpl implements AppAuthService {
     private final AuthParamMapper authParamMapper;
 
     private final AuthPathMapper authPathMapper;
+
+    public AppAuthServiceImpl(final AppAuthMapper appAuthMapper,
+                              final ApplicationEventPublisher eventPublisher,
+                              final AuthParamMapper authParamMapper,
+                              final AuthPathMapper authPathMapper) {
+        this.appAuthMapper = appAuthMapper;
+        this.eventPublisher = eventPublisher;
+        this.authParamMapper = authParamMapper;
+        this.authPathMapper = authPathMapper;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

@@ -77,19 +77,6 @@ public class ShiroRealm extends AuthorizingRealm {
             return null;
         }
 
-        UserInfo userInfo = getUserInfoByToken(token);
-
-        return new SimpleAuthenticationInfo(userInfo, token, this.getName());
-    }
-
-    /**
-     * check token valid.
-     *
-     * @param token user token
-     * @return userInfo {@link UserInfo}
-     */
-    private UserInfo getUserInfoByToken(final String token) {
-
         String userName = JwtUtils.getIssuer(token);
         if (StringUtils.isEmpty(userName)) {
             throw new AuthenticationException("userName is null");
@@ -100,9 +87,13 @@ public class ShiroRealm extends AuthorizingRealm {
             throw new AuthenticationException(String.format("userName(%s) can not be found.", userName));
         }
 
-        return UserInfo.builder()
+        if (!JwtUtils.verifyToken(token, dashboardUserVO.getPassword())) {
+            throw new AuthenticationException("token is error.");
+        }
+
+        return new SimpleAuthenticationInfo(UserInfo.builder()
                 .userName(userName)
                 .userId(dashboardUserVO.getId())
-                .build();
+                .build(), token, this.getName());
     }
 }

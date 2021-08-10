@@ -17,26 +17,32 @@
 
 package org.apache.shenyu.plugin.grpc.loadbalance;
 
-import lombok.Getter;
-
 /**
  * LoadBalancerStrategy.
  */
 public enum LoadBalancerStrategy {
-    
+
     /**
      * Random load balancer strategy.
      */
-    Random("random"),
+    RANDOM("random"),
     /**
      * Round robin load balancer strategy.
      */
-    RoundRobin("round-robin");
+    ROUND_ROBIN("round-robin");
 
-    @Getter
     private final String strategy;
 
     LoadBalancerStrategy(final String strategy) {
         this.strategy = strategy;
+    }
+
+    /**
+     * Gets strategy.
+     *
+     * @return the strategy
+     */
+    public String getStrategy() {
+        return strategy;
     }
 }

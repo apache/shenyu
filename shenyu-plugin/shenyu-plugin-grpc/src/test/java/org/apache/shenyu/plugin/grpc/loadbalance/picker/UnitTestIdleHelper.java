@@ -23,7 +23,6 @@ import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannel;
 import io.grpc.NameResolver;
-import lombok.SneakyThrows;
 import javax.annotation.Nonnull;
 import java.net.SocketAddress;
 import java.util.Collections;
@@ -75,7 +74,6 @@ public class UnitTestIdleHelper extends LoadBalancer.Helper {
         public void requestConnection() {
         }
 
-        @SneakyThrows
         @Override
         public Attributes getAttributes() {
             return args.getAttributes();

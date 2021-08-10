@@ -20,19 +20,19 @@ package org.apache.shenyu.admin.transfer;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.apache.shenyu.common.utils.DateUtils;
+
+import java.util.Optional;
 
 /**
  * The interface App auth transfer.
  */
-@Mapper
-public interface AppAuthTransfer {
+public enum AppAuthTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    AppAuthTransfer INSTANCE = Mappers.getMapper(AppAuthTransfer.class);
+    INSTANCE;
 
     /**
      * Map to entity app auth do.
@@ -40,7 +40,22 @@ public interface AppAuthTransfer {
      * @param appAuthDTO the app auth dto
      * @return the app auth do
      */
-    AppAuthDO mapToEntity(AppAuthDTO appAuthDTO);
+    public AppAuthDO mapToEntity(final AppAuthDTO appAuthDTO) {
+        return Optional.ofNullable(appAuthDTO)
+                .map(v -> {
+                    AppAuthDO.AppAuthDOBuilder appAuthDO = AppAuthDO.builder();
+                    appAuthDO.id(v.getId());
+                    appAuthDO.appKey(v.getAppKey());
+                    appAuthDO.appSecret(v.getAppSecret());
+                    appAuthDO.enabled(v.getEnabled());
+                    appAuthDO.open(v.getOpen());
+                    appAuthDO.userId(v.getUserId());
+                    appAuthDO.phone(v.getPhone());
+                    appAuthDO.extInfo(v.getExtInfo());
+                    return appAuthDO.build();
+                })
+                .orElse(null);
+    }
 
     /**
      * Map to vo app auth vo.
@@ -48,6 +63,24 @@ public interface AppAuthTransfer {
      * @param appAuthDO the app auth do
      * @return the app auth vo
      */
-    AppAuthVO mapToVO(AppAuthDO appAuthDO);
+    public AppAuthVO mapToVO(final AppAuthDO appAuthDO) {
+        return Optional.ofNullable(appAuthDO)
+                .map(v -> {
+                    AppAuthVO appAuthVO = new AppAuthVO();
+                    appAuthVO.setId(v.getId());
+                    appAuthVO.setAppKey(v.getAppKey());
+                    appAuthVO.setAppSecret(v.getAppSecret());
+                    appAuthVO.setUserId(v.getUserId());
+                    appAuthVO.setPhone(v.getPhone());
+                    appAuthVO.setExtInfo(v.getExtInfo());
+                    appAuthVO.setOpen(v.getOpen());
+                    appAuthVO.setEnabled(appAuthDO.getEnabled());
+                    appAuthVO.setDateUpdated(Optional.ofNullable(appAuthDO.getDateUpdated())
+                            .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime()))
+                            .orElse(null));
+                    return appAuthVO;
+                })
+                .orElse(null);
+    }
 
 }

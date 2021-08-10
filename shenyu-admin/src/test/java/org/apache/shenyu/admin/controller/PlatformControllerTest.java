@@ -17,10 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
@@ -32,7 +30,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -43,8 +40,6 @@ import java.time.LocalDateTime;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -69,7 +64,7 @@ public final class PlatformControllerTest {
     /**
      * dashboardUser mock data.
      */
-    private final DashboardUserVO dashboardUserVO = new DashboardUserVO("1", "admin", "123456",
+    private final DashboardUserVO dashboardUserVO = new DashboardUserVO("1", "admin", "2095132720951327",
             1, true, DateUtils.localDateTimeToString(LocalDateTime.now()),
             DateUtils.localDateTimeToString(LocalDateTime.now()));
 
@@ -86,12 +81,6 @@ public final class PlatformControllerTest {
      */
     @Test
     public void testLoginDashboardUser() throws Exception {
-        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
-        JwtProperties jwtProperties = new JwtProperties();
-        jwtProperties.setKey("2095132720951327");
-        when(context.getBean(JwtProperties.class)).thenReturn(jwtProperties);
-
         final String loginUri = "/platform/login?userName=admin&password=123456";
 
         LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);

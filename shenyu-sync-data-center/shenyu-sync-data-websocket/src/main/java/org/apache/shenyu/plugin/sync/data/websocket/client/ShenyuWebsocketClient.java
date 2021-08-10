@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
-import java.net.URI;
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -30,31 +27,40 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.List;
 
 /**
  * The type shenyu websocket client.
  */
-@Slf4j
 public final class ShenyuWebsocketClient extends WebSocketClient {
-    
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
+
     private volatile boolean alreadySync = Boolean.FALSE;
-    
+
     private final WebsocketDataHandler websocketDataHandler;
-    
+
     /**
      * Instantiates a new shenyu websocket client.
      *
-     * @param serverUri             the server uri
+     * @param serverUri            the server uri
      * @param pluginDataSubscriber the plugin data subscriber
-     * @param metaDataSubscribers   the meta data subscribers
-     * @param authDataSubscribers   the auth data subscribers
+     * @param metaDataSubscribers  the meta data subscribers
+     * @param authDataSubscribers  the auth data subscribers
      */
     public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         super(serverUri);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
     }
-    
+
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         if (!alreadySync) {
@@ -62,24 +68,25 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             alreadySync = true;
         }
     }
-    
+
     @Override
     public void onMessage(final String result) {
         handleResult(result);
     }
-    
+
     @Override
     public void onClose(final int i, final String s, final boolean b) {
         this.close();
     }
-    
+
     @Override
     public void onError(final Exception e) {
         this.close();
     }
-    
+
     @SuppressWarnings("ALL")
     private void handleResult(final String result) {
+        LOG.info("handleResult({})", result);
         WebsocketData websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
         String eventType = websocketData.getEventType();

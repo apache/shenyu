@@ -17,15 +17,13 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is selector condition from by web front.
  */
-@Data
 public class SelectorConditionDTO implements Serializable {
 
     private static final long serialVersionUID = -7096949265173497354L;
@@ -63,4 +61,134 @@ public class SelectorConditionDTO implements Serializable {
      */
     @NotNull
     private String paramValue;
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of selectorId.
+     *
+     * @return the value of selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * Sets the selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * Gets the value of paramType.
+     *
+     * @return the value of paramType
+     */
+    public String getParamType() {
+        return paramType;
+    }
+
+    /**
+     * Sets the paramType.
+     *
+     * @param paramType paramType
+     */
+    public void setParamType(final String paramType) {
+        this.paramType = paramType;
+    }
+
+    /**
+     * Gets the value of operator.
+     *
+     * @return the value of operator
+     */
+    public String getOperator() {
+        return operator;
+    }
+
+    /**
+     * Sets the operator.
+     *
+     * @param operator operator
+     */
+    public void setOperator(final String operator) {
+        this.operator = operator;
+    }
+
+    /**
+     * Gets the value of paramName.
+     *
+     * @return the value of paramName
+     */
+    public String getParamName() {
+        return paramName;
+    }
+
+    /**
+     * Sets the paramName.
+     *
+     * @param paramName paramName
+     */
+    public void setParamName(final String paramName) {
+        this.paramName = paramName;
+    }
+
+    /**
+     * Gets the value of paramValue.
+     *
+     * @return the value of paramValue
+     */
+    public String getParamValue() {
+        return paramValue;
+    }
+
+    /**
+     * Sets the paramValue.
+     *
+     * @param paramValue paramValue
+     */
+    public void setParamValue(final String paramValue) {
+        this.paramValue = paramValue;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SelectorConditionDTO)) {
+            return false;
+        }
+        SelectorConditionDTO that = (SelectorConditionDTO) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(selectorId, that.selectorId)
+                && Objects.equals(paramType, that.paramType)
+                && Objects.equals(operator, that.operator)
+                && Objects.equals(paramName, that.paramName)
+                && Objects.equals(paramValue, that.paramValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, selectorId, paramType, operator, paramName, paramValue);
+    }
 }

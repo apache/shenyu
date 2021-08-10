@@ -53,9 +53,9 @@ public final class FallbackHandlerTest {
         DispatcherHandler handler = mock(DispatcherHandler.class);
         when(context.getBean(DispatcherHandler.class)).thenReturn(handler);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SOUL/SOUL")
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SHENYU/SHENYU")
                 .remoteAddress(new InetSocketAddress(8090))
-                .contextPath("/SOUL")
+                .contextPath("/SHENYU")
                 .build());
         when(handler.handle(any())).thenReturn(Mono.empty());
         this.testFallbackHandler = new TestFallbackHandler();

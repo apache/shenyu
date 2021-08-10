@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-soulValidation=org.apache.shenyu.client.apache.dubbo.validation.ApacheDubboClientValidation
+shenyuValidation=org.apache.shenyu.client.apache.dubbo.validation.ApacheDubboClientValidation

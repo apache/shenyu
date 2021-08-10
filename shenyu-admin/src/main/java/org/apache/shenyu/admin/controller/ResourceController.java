@@ -17,10 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.admin.service.ResourceService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -28,6 +25,8 @@ import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
+import org.apache.shenyu.admin.service.ResourceService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,12 +47,15 @@ import java.util.Optional;
  * this is resource controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/resource")
 public class ResourceController {
 
     private final ResourceService resourceService;
+
+    public ResourceController(final ResourceService resourceService) {
+        this.resourceService = resourceService;
+    }
 
     /**
      * query resource.

@@ -22,10 +22,10 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
-#   cloud:
+#  cloud:
 #    nacos:
-#       discovery:
-#          server-addr: 127.0.0.1:8848
+#      discovery:
+#        server-addr: 127.0.0.1:8848
 
 management:
   health:
@@ -42,27 +42,28 @@ shenyu:
   sync:
     websocket:
       urls: ws://shenyu-admin:9095/websocket
-  #        zookeeper:
-  #             url: localhost:2181
-  #             sessionTimeout: 5000
-  #             connectionTimeout: 2000
-  #        http:
-  #             url : http://localhost:9095
-  #        nacos:
-  #          url: localhost:8848
-  #          namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-  #          username:
-  #          password:
-  #          acm:
-  #            enabled: false
-  #            endpoint: acm.aliyun.com
-  #            namespace:
-  #            accessKey:
-  #            secretKey:
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
+#    http:
+#      url: http://localhost:9095
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
   exclude:
-    enabled: false
+    enabled: true
     paths:
       - /favicon.ico
+      - /actuator/health
 
 #eureka:
 #  client:

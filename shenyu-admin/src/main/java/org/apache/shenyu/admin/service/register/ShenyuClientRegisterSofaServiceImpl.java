@@ -58,7 +58,7 @@ public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientReg
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public synchronized String register(final MetaDataRegisterDTO dto) {
+    public String register(final MetaDataRegisterDTO dto) {
         MetaDataDO metaDataDO = metaDataService.findByPath(dto.getPath());
         if (checkPathExist(metaDataDO, dto)) {
             return "you path already exist!";

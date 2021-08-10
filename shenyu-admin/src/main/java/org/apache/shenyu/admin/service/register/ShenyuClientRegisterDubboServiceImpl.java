@@ -57,7 +57,7 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public synchronized String register(final MetaDataRegisterDTO dto) {
+    public String register(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataService.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerSelector(dto);

@@ -38,12 +38,14 @@ import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.bytecode.ClassGenerator;
 import org.apache.dubbo.common.utils.ReflectUtils;
 import org.apache.dubbo.validation.MethodValidated;
 import org.apache.dubbo.validation.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.validation.Constraint;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -67,8 +69,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * ApacheDubboClientValidator.
  */
-@Slf4j
 public class ApacheDubboClientValidator implements Validator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboClientValidator.class);
 
     private final Class<?> clazz;
 
@@ -79,10 +82,10 @@ public class ApacheDubboClientValidator implements Validator {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public ApacheDubboClientValidator(final URL url) {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
-        String soulValidation = url.getParameter("soulValidation");
+        String shenyuValidation = url.getParameter("shenyuValidation");
         ValidatorFactory factory;
-        if (soulValidation != null && soulValidation.length() > 0) {
-            factory = Validation.byProvider((Class) ReflectUtils.forName(soulValidation)).configure().buildValidatorFactory();
+        if (shenyuValidation != null && shenyuValidation.length() > 0) {
+            factory = Validation.byProvider((Class) ReflectUtils.forName(shenyuValidation)).configure().buildValidatorFactory();
         } else {
             factory = Validation.buildDefaultValidatorFactory();
         }
@@ -109,7 +112,7 @@ public class ApacheDubboClientValidator implements Validator {
             }
             return parameterBean;
         } catch (Exception e) {
-            log.warn(e.getMessage(), e);
+            LOG.warn(e.getMessage(), e);
             return null;
         }
     }
@@ -130,7 +133,7 @@ public class ApacheDubboClientValidator implements Validator {
             try {
                 ctClass = pool.getCtClass(parameterClassName);
             } catch (NotFoundException neglect) {
-                log.error(neglect.getMessage(), neglect);
+                LOG.error(neglect.getMessage(), neglect);
             }
 
             if (null == ctClass) {
@@ -279,7 +282,7 @@ public class ApacheDubboClientValidator implements Validator {
         }
 
         if (!violations.isEmpty()) {
-            log.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
+            LOG.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
             StringBuilder validateError = new StringBuilder();
             violations.forEach(each -> validateError.append(each.getMessage()).append(","));
             throw new ValidationException(validateError.substring(0, validateError.length() - 1));

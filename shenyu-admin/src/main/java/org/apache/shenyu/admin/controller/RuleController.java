@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,12 +44,15 @@ import java.util.List;
  * this is rule controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/rule")
 public class RuleController {
 
     private final RuleService ruleService;
+
+    public RuleController(final RuleService ruleService) {
+        this.ruleService = ruleService;
+    }
 
     /**
      * query rules.

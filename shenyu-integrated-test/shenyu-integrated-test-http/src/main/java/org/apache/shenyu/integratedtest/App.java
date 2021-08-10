@@ -21,11 +21,16 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Hello world!
+ * Hello world.
  */
 @SpringBootApplication
 public class App {
-    public static void main(String[] args) {
+
+    /**
+     * main method of App.
+     * @param args args
+     */
+    public static void main(final String[] args) {
         SpringApplication.run(App.class);
     }
 }

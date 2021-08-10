@@ -17,27 +17,36 @@
 
 package org.apache.shenyu.common.enums;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Test;
 
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-
-/**
- * Test Cases for HttpMethodEnum.
- */
+/** Test Cases for HttpMethodEnum. */
 public final class HttpMethodEnumTest {
 
     @Test
+    public void testGetName() {
+        assertEquals("delete", HttpMethodEnum.DELETE.getName());
+        assertEquals("get", HttpMethodEnum.GET.getName());
+        assertEquals("post", HttpMethodEnum.POST.getName());
+        assertEquals("put", HttpMethodEnum.PUT.getName());
+    }
+
+    @Test
+    public void testSupport() {
+        assertTrue(HttpMethodEnum.DELETE.getSupport());
+        assertTrue(HttpMethodEnum.GET.getSupport());
+        assertTrue(HttpMethodEnum.POST.getSupport());
+        assertTrue(HttpMethodEnum.PUT.getSupport());
+    }
+
+    @Test
     public void testAcquireByNameValid() {
-        Arrays.stream(HttpMethodEnum.values()).forEach(
-            e -> {
-                if (e.getSupport()) {
-                    assertEquals(e, HttpMethodEnum.acquireByName(e.getName()));
-                }
-            }
-        );
+        Arrays.stream(HttpMethodEnum.values())
+                .forEach(e -> assertEquals(e, HttpMethodEnum.acquireByName(e.getName())));
     }
 
     @Test(expected = ShenyuException.class)

@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.admin.service.RoleService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -27,6 +24,8 @@ import org.apache.shenyu.admin.model.query.RoleQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.apache.shenyu.admin.service.RoleService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,7 +46,6 @@ import java.util.Optional;
  * this is role controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/role")
 public class RoleController {
@@ -55,6 +53,10 @@ public class RoleController {
     private static final String SUPER = "super";
 
     private final RoleService roleService;
+
+    public RoleController(final RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     /**
      * get all roles.

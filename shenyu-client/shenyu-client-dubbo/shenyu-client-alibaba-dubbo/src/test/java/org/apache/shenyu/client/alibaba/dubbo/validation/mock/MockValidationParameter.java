@@ -17,19 +17,19 @@
 
 package org.apache.shenyu.client.alibaba.dubbo.validation.mock;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotNull;
 
 /**
  * Mock ValidationParameter.
  */
-@Data
 public class MockValidationParameter {
     
     @NotNull
     private String stringParameter;
 
+    /**
+     * constructor without parameter.
+     */
     public MockValidationParameter() {
     }
 
@@ -39,6 +39,24 @@ public class MockValidationParameter {
      * @param stringParameter the String parameter.
      */
     public MockValidationParameter(final String stringParameter) {
+        this.stringParameter = stringParameter;
+    }
+
+    /**
+     * get StringParameter.
+     *
+     * @return stringParameter
+     */
+    public String getStringParameter() {
+        return stringParameter;
+    }
+
+    /**
+     * set stringParameter.
+     *
+     * @param stringParameter the String parameter.
+     */
+    public void setStringParameter(final String stringParameter) {
         this.stringParameter = stringParameter;
     }
 }

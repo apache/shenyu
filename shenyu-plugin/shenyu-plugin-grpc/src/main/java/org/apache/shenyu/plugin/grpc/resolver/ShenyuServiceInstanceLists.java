@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.BeanUtils;
 
 import java.util.ArrayList;
@@ -30,15 +26,64 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Shenyu service instance list.
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class ShenyuServiceInstanceLists {
 
     private CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances;
 
     private String appName;
+
+    /**
+     * Instantiates a new Shenyu service instance lists.
+     */
+    public ShenyuServiceInstanceLists() {
+    }
+
+    /**
+     * Instantiates a new Shenyu service instance lists.
+     *
+     * @param shenyuServiceInstances the shenyu service instances
+     * @param appName                the app name
+     */
+    public ShenyuServiceInstanceLists(final CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances, final String appName) {
+        this.shenyuServiceInstances = shenyuServiceInstances;
+        this.appName = appName;
+    }
+
+    /**
+     * Gets shenyu service instances.
+     *
+     * @return the shenyu service instances
+     */
+    public CopyOnWriteArrayList<ShenyuServiceInstance> getShenyuServiceInstances() {
+        return shenyuServiceInstances;
+    }
+
+    /**
+     * Sets shenyu service instances.
+     *
+     * @param shenyuServiceInstances the shenyu service instances
+     */
+    public void setShenyuServiceInstances(final CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances) {
+        this.shenyuServiceInstances = shenyuServiceInstances;
+    }
+
+    /**
+     * Gets app name.
+     *
+     * @return the app name
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * Sets app name.
+     *
+     * @param appName the app name
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
 
     /**
      * Get instance copy.
