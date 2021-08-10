@@ -17,15 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * the admin resource type.
- *
  */
-@RequiredArgsConstructor
-@Getter
 public enum AdminResourceEnum {
 
     /**
@@ -44,4 +38,22 @@ public enum AdminResourceEnum {
     THREE_MENU(2);
 
     private final int code;
+
+    /**
+     * all args constructor.
+     *
+     * @param code code
+     */
+    AdminResourceEnum(final int code) {
+        this.code = code;
+    }
+
+    /**
+     * get code.
+     *
+     * @return code
+     */
+    public int getCode() {
+        return code;
+    }
 }

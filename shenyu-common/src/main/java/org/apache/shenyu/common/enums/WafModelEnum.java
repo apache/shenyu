@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * The enum Waf model enum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum WafModelEnum {
 
     /**
@@ -38,4 +33,22 @@ public enum WafModelEnum {
     MIXED("mixed");
 
     private final String name;
+
+    /**
+     * all args constructor.
+     *
+     * @param name name
+     */
+    WafModelEnum(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 }

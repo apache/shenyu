@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Arrays;
@@ -28,8 +26,6 @@ import java.util.stream.Collectors;
 /**
  * Param Type.
  */
-@RequiredArgsConstructor
-@Getter
 public enum ParamTypeEnum {
 
     /**
@@ -91,6 +87,35 @@ public enum ParamTypeEnum {
     private final String name;
 
     private final Boolean support;
+
+    /**
+     * all args constructor.
+     *
+     * @param name    name
+     * @param support support
+     */
+    ParamTypeEnum(final String name, final Boolean support) {
+        this.name = name;
+        this.support = support;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * get support.
+     *
+     * @return support
+     */
+    public Boolean getSupport() {
+        return support;
+    }
 
     /**
      * acquire param type supports.

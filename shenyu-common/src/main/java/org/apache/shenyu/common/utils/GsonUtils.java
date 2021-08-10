@@ -31,14 +31,17 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
@@ -54,6 +57,11 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * GSONUtils.
  */
 public class GsonUtils {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(GsonUtils.class);
 
     private static final GsonUtils INSTANCE = new GsonUtils();
 
@@ -315,7 +323,6 @@ public class GsonUtils {
 
     private static class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
         @SuppressWarnings("unchecked")
-        @SneakyThrows
         @Override
         public Map<T, U> deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
             if (!json.isJsonObject()) {
@@ -326,13 +333,22 @@ public class GsonUtils {
             Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
 
             String className = ((ParameterizedType) type).getRawType().getTypeName();
-            Class<Map<?, ?>> mapClass = (Class<Map<?, ?>>) Class.forName(className);
+            Class<Map<?, ?>> mapClass = null;
+            try {
+                mapClass = (Class<Map<?, ?>>) Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                LOG.error("failed to get class", e);
+            }
 
-            Map<T, U> resultMap;
+            Map<T, U> resultMap = null;
             if (mapClass.isInterface()) {
                 resultMap = new LinkedHashMap<>();
             } else {
-                resultMap = (Map<T, U>) mapClass.getConstructor().newInstance();
+                try {
+                    resultMap = (Map<T, U>) mapClass.getConstructor().newInstance();
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    LOG.error("failed to get constructor", e);
+                }
             }
 
             for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
@@ -378,24 +394,30 @@ public class GsonUtils {
     }
 
     private static class StringTypeAdapter extends TypeAdapter<String> {
-        @SneakyThrows
         @Override
         public void write(final JsonWriter out, final String value) {
-            if (StringUtils.isBlank(value)) {
-                out.nullValue();
-                return;
+            try {
+                if (StringUtils.isBlank(value)) {
+                    out.nullValue();
+                    return;
+                }
+                out.value(value);
+            } catch (IOException e) {
+                LOG.error("failed to write", e);
             }
-            out.value(value);
         }
 
-        @SneakyThrows
         @Override
         public String read(final JsonReader reader) {
-            if (reader.peek() == JsonToken.NULL) {
-                reader.nextNull();
-                return EMPTY;
+            try {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.nextNull();
+                    return EMPTY;
+                }
+                return reader.nextString();
+            } catch (IOException e) {
+                throw new ShenyuException(e);
             }
-            return reader.nextString();
         }
     }
 

@@ -17,19 +17,96 @@
 
 package org.apache.shenyu.common.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.Objects;
 
 /**
  * The type Auth param data.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class AuthParamData {
 
     private String appName;
 
     private String appParam;
+
+    /**
+     * no args constructor.
+     */
+    public AuthParamData() {
+    }
+
+    /**
+     * all args constructor.
+     *
+     * @param appName  appName
+     * @param appParam appParam
+     */
+    public AuthParamData(final String appName, final String appParam) {
+        this.appName = appName;
+        this.appParam = appParam;
+    }
+
+    /**
+     * get appName.
+     *
+     * @return appName
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * set appName.
+     *
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
+
+    /**
+     * get appParam.
+     *
+     * @return appParam
+     */
+    public String getAppParam() {
+        return appParam;
+    }
+
+    /**
+     * set appParam.
+     *
+     * @param appParam appParam
+     */
+    public void setAppParam(final String appParam) {
+        this.appParam = appParam;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AuthParamData that = (AuthParamData) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(appParam, that.appParam);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, appParam);
+    }
+
+    @Override
+    public String toString() {
+        return "AuthParamData{"
+                + "appName='"
+                + appName
+                + '\''
+                + ", appParam='"
+                + appParam
+                + '\''
+                + '}';
+    }
 }
