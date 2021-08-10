@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
@@ -25,15 +24,15 @@ import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
-import org.apache.shenyu.admin.service.ResourceService;
-import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
-import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
+import org.apache.shenyu.admin.service.PermissionService;
+import org.apache.shenyu.admin.service.ResourceService;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -49,7 +48,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.PermissionService}.
  */
-@RequiredArgsConstructor
 @Service
 public class PermissionServiceImpl implements PermissionService {
 
@@ -62,6 +60,18 @@ public class PermissionServiceImpl implements PermissionService {
     private final ResourceMapper resourceMapper;
 
     private final ResourceService resourceService;
+
+    public PermissionServiceImpl(final DashboardUserMapper dashboardUserMapper,
+                                 final UserRoleMapper userRoleMapper,
+                                 final PermissionMapper permissionMapper,
+                                 final ResourceMapper resourceMapper,
+                                 final ResourceService resourceService) {
+        this.dashboardUserMapper = dashboardUserMapper;
+        this.userRoleMapper = userRoleMapper;
+        this.permissionMapper = permissionMapper;
+        this.resourceMapper = resourceMapper;
+        this.resourceService = resourceService;
+    }
 
     /**
      * get user permission menu by token.

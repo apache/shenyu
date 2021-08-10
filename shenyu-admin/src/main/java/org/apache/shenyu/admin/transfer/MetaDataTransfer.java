@@ -47,7 +47,7 @@ public enum MetaDataTransfer {
     public MetaDataDO mapToEntity(final MetaDataDTO metaDataDTO) {
         return Optional.ofNullable(metaDataDTO)
                 .map(v -> {
-                    MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
+                    MetaDataDO.MetaDataDOBuilder metaDataDO = MetaDataDO.builder();
                     metaDataDO.id(v.getId());
                     metaDataDO.appName(v.getAppName());
                     metaDataDO.path(v.getPath());
@@ -73,7 +73,7 @@ public enum MetaDataTransfer {
     public MetaDataDO mapRegisterDTOToEntity(final MetaDataRegisterDTO metaDataDTO) {
         return Optional.ofNullable(metaDataDTO)
                 .map(v -> {
-                    MetaDataDO.MetaDataDOBuilder<?, ?> metaDataDO = MetaDataDO.builder();
+                    MetaDataDO.MetaDataDOBuilder metaDataDO = MetaDataDO.builder();
                     metaDataDO.appName(v.getAppName());
                     metaDataDO.path(v.getPath());
                     metaDataDO.pathDesc(v.getPathDesc());

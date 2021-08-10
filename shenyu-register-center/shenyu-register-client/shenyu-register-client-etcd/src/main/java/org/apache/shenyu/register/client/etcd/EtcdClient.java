@@ -23,7 +23,8 @@ import io.etcd.jetcd.KV;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
 import io.etcd.jetcd.options.PutOption;
 import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -34,10 +35,11 @@ import java.util.concurrent.TimeoutException;
 /**
  * etcd client.
  */
-@Slf4j
 public class EtcdClient {
 
     public static final Charset UTF_8 = StandardCharsets.UTF_8;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClient.class);
 
     private final Client client;
 
@@ -65,7 +67,7 @@ public class EtcdClient {
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    log.error("keep alive error", throwable);
+                    LOGGER.error("keep alive error", throwable);
                 }
 
                 @Override
@@ -74,7 +76,7 @@ public class EtcdClient {
                 }
             });
         } catch (InterruptedException | ExecutionException e) {
-            log.error("initLease error.", e);
+            LOGGER.error("initLease error.", e);
         }
     }
 
@@ -97,7 +99,7 @@ public class EtcdClient {
                     PutOption.newBuilder().withLeaseId(globalLeaseId).build())
                     .get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            log.error("putEphemeral(key:{},value:{}) error.", key, value, e);
+            LOGGER.error("putEphemeral(key:{},value:{}) error.", key, value, e);
         }
     }
 }

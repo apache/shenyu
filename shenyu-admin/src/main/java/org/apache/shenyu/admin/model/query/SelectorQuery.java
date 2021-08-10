@@ -17,19 +17,13 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
+
+import java.util.Objects;
 
 /**
  * this is selector query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class SelectorQuery extends FilterQuery {
 
     private static final long serialVersionUID = -1019736306667647529L;
@@ -48,4 +42,87 @@ public class SelectorQuery extends FilterQuery {
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public SelectorQuery() {
+    }
+
+    public SelectorQuery(final String pluginId, final String name, final PageParameter pageParameter) {
+        this.pluginId = pluginId;
+        this.name = name;
+        this.pageParameter = pageParameter;
+    }
+
+    /**
+     * Gets the value of pluginId.
+     *
+     * @return the value of pluginId
+     */
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    /**
+     * Sets the pluginId.
+     *
+     * @param pluginId pluginId
+     */
+    public void setPluginId(final String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SelectorQuery)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        SelectorQuery that = (SelectorQuery) o;
+        return Objects.equals(pluginId, that.pluginId) && Objects.equals(name, that.name) && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), pluginId, name, pageParameter);
+    }
 }

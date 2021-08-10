@@ -17,10 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -28,6 +25,8 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,12 +44,15 @@ import java.util.List;
  * The type Meta data controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/meta-data")
 public class MetaDataController {
 
     private final MetaDataService metaDataService;
+
+    public MetaDataController(final MetaDataService metaDataService) {
+        this.metaDataService = metaDataService;
+    }
 
     /**
      * Query metadata list.

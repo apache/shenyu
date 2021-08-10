@@ -18,7 +18,6 @@
 package org.apache.shenyu.register.server.etcd;
 
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -30,6 +29,8 @@ import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.register.server.etcd.client.EtcdClient;
 import org.apache.shenyu.register.server.etcd.client.EtcdListenHandler;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
@@ -41,8 +42,9 @@ import java.util.ArrayList;
  * etcd sever register repository.
  */
 @Join
-@Slf4j
 public class EtcdServerRegisterRepository implements ShenyuServerRegisterRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EtcdServerRegisterRepository.class);
 
     private ShenyuServerRegisterPublisher publisher;
 
@@ -73,7 +75,7 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
             publishMetadata(data);
         }
 
-        log.info("subscribe metadata change: {}", rpcPath);
+        LOGGER.info("subscribe metadata change: {}", rpcPath);
         client.subscribeChildChanges(rpcPath, new EtcdListenHandler() {
 
             @Override
@@ -102,7 +104,7 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
 
         contextList.forEach(context -> registerUriChildrenList(rpcPath, context));
 
-        log.info("subscribe uri change: {}", rpcPath);
+        LOGGER.info("subscribe uri change: {}", rpcPath);
         client.subscribeChildChanges(rpcPath, new EtcdListenHandler() {
 
             @Override

@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.utils;
 
 import org.slf4j.Logger;
-
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -26,20 +25,6 @@ import java.util.function.Supplier;
  * LogUtils.
  */
 public final class LogUtils {
-
-    private static final LogUtils LOG_UTIL = new LogUtils();
-
-    private LogUtils() {
-
-    }
-
-    /**
-     * getInstance.
-     * @return LogUtils
-     */
-    public static LogUtils getInstance() {
-        return LOG_UTIL;
-    }
 
     /**
      * debug log.
@@ -50,6 +35,18 @@ public final class LogUtils {
     public static void debug(final Logger logger, final String format, final Supplier<Object> supplier) {
         if (logger.isDebugEnabled()) {
             logger.debug(format, supplier.get());
+        }
+    }
+
+    /**
+     * debug log.
+     * @param logger   logger
+     * @param format   format
+     * @param objects objects
+     */
+    public static void debug(final Logger logger, final String format, final Object... objects) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(format, objects);
         }
     }
 
@@ -74,6 +71,19 @@ public final class LogUtils {
     public static void info(final Logger logger, final String format, final Supplier<Object> supplier) {
         if (logger.isInfoEnabled()) {
             logger.info(format, supplier.get());
+        }
+    }
+
+    /**
+     * info log.
+     *
+     * @param logger   logger
+     * @param format   format
+     * @param objects objects
+     */
+    public static void info(final Logger logger, final String format, final Object... objects) {
+        if (logger.isInfoEnabled()) {
+            logger.info(format, objects);
         }
     }
 
@@ -106,6 +116,19 @@ public final class LogUtils {
      * error log.
      *
      * @param logger   logger
+     * @param format   format
+     * @param objects objects
+     */
+    public static void error(final Logger logger, final String format, final Object... objects) {
+        if (logger.isErrorEnabled()) {
+            logger.error(format, objects);
+        }
+    }
+
+    /**
+     * error log.
+     *
+     * @param logger   logger
      * @param supplier {@linkplain Supplier}
      */
     public static void error(final Logger logger, final Supplier<Object> supplier) {
@@ -131,6 +154,19 @@ public final class LogUtils {
      * warn log.
      *
      * @param logger   logger
+     * @param format   format
+     * @param objects objects
+     */
+    public static void warn(final Logger logger, final String format, final Object... objects) {
+        if (logger.isWarnEnabled()) {
+            logger.warn(format, objects);
+        }
+    }
+
+    /**
+     * warn log.
+     *
+     * @param logger   logger
      * @param supplier {@linkplain Supplier}
      */
     public static void warn(final Logger logger, final Supplier<Object> supplier) {
@@ -138,4 +174,5 @@ public final class LogUtils {
             logger.warn(Objects.toString(supplier.get()));
         }
     }
+
 }
