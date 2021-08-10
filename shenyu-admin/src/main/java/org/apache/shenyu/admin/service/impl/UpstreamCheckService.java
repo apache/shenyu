@@ -141,7 +141,7 @@ public class UpstreamCheckService {
             try {
                 executor.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException ex) {
-                log.error("shutdown executor error", ex);
+                LOG.error("shutdown executor error", ex);
                 Thread.currentThread().interrupt();
             }
         }
