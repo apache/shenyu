@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.web.configuration;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
 import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
 import org.apache.shenyu.web.filter.CrossFilter;
@@ -33,6 +32,8 @@ import org.apache.shenyu.plugin.base.ParamTransformPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -56,8 +57,11 @@ import java.util.stream.Collectors;
 @Configuration
 @ComponentScan("org.apache.shenyu")
 @Import(value = {ErrorHandlerConfiguration.class, ShenyuExtConfiguration.class, SpringExtConfiguration.class})
-@Slf4j
 public class ShenyuConfiguration {
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuConfiguration.class);
 
     /**
      * Init ShenyuWebHandler.
@@ -70,7 +74,7 @@ public class ShenyuConfiguration {
         List<ShenyuPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         List<ShenyuPlugin> shenyuPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(ShenyuPlugin::getOrder)).collect(Collectors.toList());
-        shenyuPlugins.forEach(shenyuPlugin -> log.info("load plugin:[{}] [{}]", shenyuPlugin.named(), shenyuPlugin.getClass().getName()));
+        shenyuPlugins.forEach(shenyuPlugin -> LOG.info("load plugin:[{}] [{}]", shenyuPlugin.named(), shenyuPlugin.getClass().getName()));
         return new ShenyuWebHandler(shenyuPlugins);
     }
 

@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.plugin.api.result;
 
-import lombok.Data;
-
 import java.io.Serializable;
 
 /**
  * DefaultShenyuEntity.
  */
-@Data
 public class DefaultShenyuEntity implements Serializable {
 
     private static final long serialVersionUID = -2792556188993845048L;
@@ -49,6 +46,60 @@ public class DefaultShenyuEntity implements Serializable {
     public DefaultShenyuEntity(final Integer code, final String message, final Object data) {
         this.code = code;
         this.message = message;
+        this.data = data;
+    }
+
+    /**
+     * Gets code.
+     *
+     * @return the code
+     */
+    public Integer getCode() {
+        return code;
+    }
+
+    /**
+     * Sets code.
+     *
+     * @param code the code
+     */
+    public void setCode(final Integer code) {
+        this.code = code;
+    }
+
+    /**
+     * Gets message.
+     *
+     * @return the message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Sets message.
+     *
+     * @param message the message
+     */
+    public void setMessage(final String message) {
+        this.message = message;
+    }
+
+    /**
+     * Gets data.
+     *
+     * @return the data
+     */
+    public Object getData() {
+        return data;
+    }
+
+    /**
+     * Sets data.
+     *
+     * @param data the data
+     */
+    public void setData(final Object data) {
         this.data = data;
     }
 

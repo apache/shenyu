@@ -24,9 +24,6 @@ import com.qq.tars.client.Communicator;
 import com.qq.tars.client.CommunicatorConfig;
 import com.qq.tars.client.CommunicatorFactory;
 import com.qq.tars.protocol.annotation.Servant;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,6 +41,8 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -58,8 +57,9 @@ import java.util.stream.Collectors;
 /**
  * Tars config cache.
  */
-@Slf4j
 public final class ApplicationConfigCache {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
     private static final ReentrantLock LOCK = new ReentrantLock();
 
@@ -164,7 +164,7 @@ public final class ApplicationConfigCache {
                     break;
                 }
             } catch (Exception e) {
-                log.error("init tars ref ex:{}", e.getMessage());
+                LOG.error("init tars ref ex:{}", e.getMessage());
                 break;
             }
         }
@@ -180,7 +180,6 @@ public final class ApplicationConfigCache {
     public static String getClassMethodKey(final String className, final String methodName) {
         return className + "_" + methodName;
     }
-
 
     /**
      * Gets instance.
@@ -266,7 +265,6 @@ public final class ApplicationConfigCache {
     /**
      * The type Tars param ext info.
      */
-    @Data
     static class MethodInfo {
 
         private String methodName;
@@ -274,26 +272,76 @@ public final class ApplicationConfigCache {
         private List<Pair<String, String>> params;
 
         private String returnType;
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public void setMethodName(final String methodName) {
+            this.methodName = methodName;
+        }
+
+        public List<Pair<String, String>> getParams() {
+            return params;
+        }
+
+        public void setParams(final List<Pair<String, String>> params) {
+            this.params = params;
+        }
+
+        public String getReturnType() {
+            return returnType;
+        }
+
+        public void setReturnType(final String returnType) {
+            this.returnType = returnType;
+        }
     }
 
     /**
      * The type Tars param ext info.
      */
-    @Data
     static class TarsParamExtInfo {
 
         private List<MethodInfo> methodInfo;
+
+        public List<MethodInfo> getMethodInfo() {
+            return methodInfo;
+        }
+
+        public void setMethodInfo(final List<MethodInfo> methodInfo) {
+            this.methodInfo = methodInfo;
+        }
     }
 
     /**
      * The type Tars param ext info.
      */
-    @Data
-    @AllArgsConstructor
     static class TarsParamInfo {
 
         private Class<?>[] paramTypes;
 
         private String[] paramNames;
+
+        TarsParamInfo(final Class<?>[] paramTypes, final String[] paramNames) {
+            this.paramTypes = paramTypes;
+            this.paramNames = paramNames;
+        }
+
+        public Class<?>[] getParamTypes() {
+            return paramTypes;
+        }
+
+        public void setParamTypes(final Class<?>[] paramTypes) {
+            this.paramTypes = paramTypes;
+        }
+
+        public String[] getParamNames() {
+            return paramNames;
+        }
+
+        public void setParamNames(final String[] paramNames) {
+            this.paramNames = paramNames;
+        }
     }
 }

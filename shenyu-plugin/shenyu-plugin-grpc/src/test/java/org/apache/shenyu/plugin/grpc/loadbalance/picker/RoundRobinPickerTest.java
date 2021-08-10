@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.grpc.loadbalance.picker;
 import io.grpc.Attributes;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
-import lombok.SneakyThrows;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
 import org.junit.Assert;
@@ -41,7 +40,6 @@ public class RoundRobinPickerTest {
     private List<LoadBalancer.Subchannel> list;
 
     @Before
-    @SneakyThrows
     public void setUp() {
         Attributes attributes = SubChannels.createAttributes(1, "ok");
         LoadBalancer.Subchannel subchannel =

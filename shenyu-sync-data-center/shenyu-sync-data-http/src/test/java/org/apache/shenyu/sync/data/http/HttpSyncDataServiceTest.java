@@ -19,7 +19,6 @@ package org.apache.shenyu.sync.data.http;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -34,6 +33,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
@@ -55,6 +56,11 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpSyncDataServiceTest {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(HttpSyncDataServiceTest.class);
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
@@ -96,9 +102,12 @@ public class HttpSyncDataServiceTest {
     }
 
     @After
-    @SneakyThrows
     public void after() {
-        httpSyncDataService.close();
+        try {
+            httpSyncDataService.close();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
         AtomicBoolean running = (AtomicBoolean) ReflectionTestUtils.getField(httpSyncDataService, "RUNNING");
         assertFalse(running.get());
     }
@@ -123,7 +132,6 @@ public class HttpSyncDataServiceTest {
     }
 
     // mock configs fetch api response
-    @SneakyThrows
     private String mockConfigsFetchResponseJson() {
         ConfigData emptyData = new ConfigData()
                 .setLastModifyTime(System.currentTimeMillis()).setData(Collections.emptyList())

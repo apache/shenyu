@@ -45,7 +45,7 @@ public class GrpcClientBuilder {
      */
     public static ShenyuGrpcClient buildClient(final String contextPath) {
         ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(contextPath)
-                .defaultLoadBalancingPolicy(LoadBalancerStrategy.Random.getStrategy())
+                .defaultLoadBalancingPolicy(LoadBalancerStrategy.RANDOM.getStrategy())
                 .usePlaintext()
                 .maxInboundMessageSize(100 * 1024 * 1024)
                 .disableRetry();

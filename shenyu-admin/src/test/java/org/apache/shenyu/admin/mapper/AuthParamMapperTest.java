@@ -23,7 +23,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import static org.hamcrest.Matchers.comparesEqualTo;
@@ -104,7 +103,7 @@ public final class AuthParamMapperTest extends AbstractSpringIntegrationTest {
      * @return the auth param do
      */
     private AuthParamDO buildAuthParamDO() {
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         String authId = UUIDUtils.getInstance().generateShortUuid();
         return AuthParamDO.builder()

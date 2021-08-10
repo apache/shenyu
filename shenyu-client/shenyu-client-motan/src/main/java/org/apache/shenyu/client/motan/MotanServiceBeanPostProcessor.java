@@ -20,7 +20,6 @@ package org.apache.shenyu.client.motan;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -100,7 +99,6 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         return bean;
     }
 
-    @SneakyThrows
     private void handler(final Object bean) {
         if (group == null) {
             group = ((BasicServiceConfigBean) applicationContext.getBean("baseServiceConfig")).getGroup();
@@ -170,9 +168,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
                 params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));
             }
         }
-        return MotanRpcExt.RpcExt.builder().methodName(method.getName())
-                .params(params)
-                .build();
+        return new MotanRpcExt.RpcExt(method.getName(), params);
     }
 
     private String buildRpcExt(final Method[] methods) {
@@ -183,10 +179,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
                 list.add(buildRpcExt(method));
             }
         }
-        MotanRpcExt buildList = MotanRpcExt.builder()
-                .methodInfo(list)
-                .group(group)
-                .build();
+        MotanRpcExt buildList = new MotanRpcExt(list, group);
         return GsonUtils.getInstance().toJson(buildList);
     }
 

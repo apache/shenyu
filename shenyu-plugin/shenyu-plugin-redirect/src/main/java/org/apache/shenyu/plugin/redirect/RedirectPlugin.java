@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.redirect;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -28,6 +27,8 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.UriUtils;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -41,10 +42,11 @@ import java.util.Objects;
 /**
  * Redirect Plugin.
  */
-@Slf4j
 public class RedirectPlugin extends AbstractShenyuPlugin {
 
     public static final String ROOT_PATH_PREFIX = "/";
+
+    private static final Logger LOG = LoggerFactory.getLogger(RedirectPlugin.class);
 
     private final DispatcherHandler dispatcherHandler;
 
@@ -69,7 +71,7 @@ public class RedirectPlugin extends AbstractShenyuPlugin {
         final RedirectHandle redirectHandle = RedirectPluginDataHandler.CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(redirectHandle) || StringUtils.isBlank(redirectHandle.getRedirectURI())) {
-            log.error("uri redirect rule can not configuration: {}", handle);
+            LOG.error("uri redirect rule can not configuration: {}", handle);
             return chain.execute(exchange);
         }
         if (redirectHandle.getRedirectURI().startsWith(ROOT_PATH_PREFIX)) {

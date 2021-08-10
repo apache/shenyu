@@ -17,17 +17,102 @@
 
 package org.apache.shenyu.sync.data.http.config;
 
-import lombok.Data;
+import java.util.Objects;
 
 /**
  * The type Http config.
  */
-@Data
 public class HttpConfig {
-    
+
     private String url;
-    
+
     private Integer delayTime;
-    
+
     private Integer connectionTimeout;
+
+    /**
+     * get url.
+     *
+     * @return url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * set url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * get delayTime.
+     *
+     * @return delayTime
+     */
+    public Integer getDelayTime() {
+        return delayTime;
+    }
+
+    /**
+     * set delayTime.
+     *
+     * @param delayTime delayTime
+     */
+    public void setDelayTime(final Integer delayTime) {
+        this.delayTime = delayTime;
+    }
+
+    /**
+     * get connectionTimeout.
+     *
+     * @return connectionTimeout
+     */
+    public Integer getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    /**
+     * set connectionTimeout.
+     *
+     * @param connectionTimeout connectionTimeout
+     */
+    public void setConnectionTimeout(final Integer connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        HttpConfig that = (HttpConfig) o;
+        return Objects.equals(url, that.url)
+                && Objects.equals(delayTime, that.delayTime)
+                && Objects.equals(connectionTimeout, that.connectionTimeout);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, delayTime, connectionTimeout);
+    }
+
+    @Override
+    public String toString() {
+        return "HttpConfig{"
+                + "url='"
+                + url
+                + '\''
+                + ", delayTime="
+                + delayTime
+                + ", connectionTimeout="
+                + connectionTimeout
+                + '}';
+    }
 }

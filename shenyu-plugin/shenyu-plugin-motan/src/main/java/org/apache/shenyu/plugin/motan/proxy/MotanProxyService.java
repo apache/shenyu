@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.motan.proxy;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.proxy.CommonHandler;
 import com.weibo.api.motan.rpc.ResponseFuture;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -28,6 +27,8 @@ import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -40,6 +41,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public class MotanProxyService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MotanProxyService.class);
+
     /**
      * Generic invoker object.
      *
@@ -49,7 +52,7 @@ public class MotanProxyService {
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-    @SneakyThrows
+
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         RefererConfig<CommonHandler> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
@@ -69,9 +72,18 @@ public class MotanProxyService {
                 params[i] = bodyMap.get(motanParamInfo.getParamNames()[i]).toString();
             }
         }
-        ResponseFuture responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(),
-                params, Object.class);
-        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> responseFuture.getValue());
+        ResponseFuture responseFuture;
+        //CHECKSTYLE:OFF IllegalCatch
+        try {
+            responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(),
+                    params, Object.class);
+        } catch (Throwable e) {
+            LOG.error("Exception caught in MotanProxyService#genericInvoker.");
+            return null;
+        }
+        //CHECKSTYLE:ON IllegalCatch
+        ResponseFuture finalResponseFuture = responseFuture;
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(finalResponseFuture::getValue);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.MOTAN_RPC_RESULT_EMPTY;

@@ -51,7 +51,6 @@ public class DataPermissionPageVO implements Serializable {
      */
     private Boolean isChecked;
 
-
     /**
      * build vo by selector.
      * @param selectorDO {@linkplain SelectorDO}

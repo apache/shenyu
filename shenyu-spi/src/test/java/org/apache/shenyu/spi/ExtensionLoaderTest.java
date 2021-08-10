@@ -173,7 +173,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("load extension resources error,class org.apache.shenyu.spi.fixture.SubNoJoinSPI with Join annotation"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param SPI class can not instantiated case.
      */
@@ -184,9 +184,7 @@ public final class ExtensionLoaderTest {
             fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), containsString(
-                    "Extension instance(name: canNotInstantiated, class: class org.apache.shenyu.spi.fixture.CanNotInstantiatedSPI)  "
-                            + "could not be instantiated: Class org.apache.shenyu.spi.ExtensionLoader "
-                            + "can not access a member of class org.apache.shenyu.spi.fixture.CanNotInstantiatedSPI with modifiers \"private\""));
+                    "Extension instance(name: canNotInstantiated, class: class org.apache.shenyu.spi.fixture.CanNotInstantiatedSPI)"));
         }
     }
     

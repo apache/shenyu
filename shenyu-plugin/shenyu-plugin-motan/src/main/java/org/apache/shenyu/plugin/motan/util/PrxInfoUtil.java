@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.plugin.motan.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -98,12 +95,23 @@ public class PrxInfoUtil {
         }
     }
 
-    @AllArgsConstructor
-    @Getter
-    static class PrimitiveType {
+    static final class PrimitiveType {
         
         private final Class<?> clazz;
 
         private final Function<Object, Object> func;
+
+        private PrimitiveType(final Class<?> clazz, final Function<Object, Object> func) {
+            this.clazz = clazz;
+            this.func = func;
+        }
+
+        public Class<?> getClazz() {
+            return clazz;
+        }
+
+        public Function<Object, Object> getFunc() {
+            return func;
+        }
     }
 }

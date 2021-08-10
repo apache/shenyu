@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ratelimiter.executor;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
@@ -46,7 +45,6 @@ import java.util.stream.Stream;
  * Test of rate limiter Lua scripts.
  */
 @RunWith(MockitoJUnitRunner.class)
-@Slf4j
 public class RedisRateLimiterScriptsTest {
 
     private static RedisServer redisServer;
