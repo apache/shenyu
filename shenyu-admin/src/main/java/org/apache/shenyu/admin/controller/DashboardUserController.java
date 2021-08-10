@@ -98,7 +98,7 @@ public class DashboardUserController {
         return Optional.ofNullable(dashboardUserEditVO).map(item -> {
             item.setPassword(AesUtils.aesDecryption(item.getPassword(), key, iv));
             return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item);
-        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
+        }).orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
     }
 
     /**
@@ -115,7 +115,7 @@ public class DashboardUserController {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), key, iv));
             Integer createCount = dashboardUserService.createOrUpdate(item);
             return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
-        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
+        }).orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
 
     /**

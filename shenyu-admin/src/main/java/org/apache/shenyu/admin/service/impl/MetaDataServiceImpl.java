@@ -161,7 +161,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public MetaDataVO findById(final String id) {
-        return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectById(id))).orElse(new MetaDataVO());
+        return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectById(id))).orElseGet(MetaDataVO::new);
     }
 
     @Override
