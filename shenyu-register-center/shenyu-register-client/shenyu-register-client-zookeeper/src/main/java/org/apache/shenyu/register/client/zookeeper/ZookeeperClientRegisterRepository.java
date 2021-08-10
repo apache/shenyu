@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.client.zookeeper;
 
-import lombok.extern.slf4j.Slf4j;
 import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.zookeeper.Watcher;
@@ -29,6 +28,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +39,9 @@ import java.util.Properties;
  * The type Zookeeper client register repository.
  */
 @Join
-@Slf4j
 public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientRegisterRepository.class);
 
     private ZkClient zkClient;
 
@@ -62,7 +64,7 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
             registerURI(rpcType, contextPath, metadata);
         }
-        log.info("{} zookeeper client register success: {}", rpcType, metadata);
+        LOGGER.info("{} zookeeper client register success: {}", rpcType, metadata);
     }
 
     @Override
@@ -122,7 +124,7 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
                 nodeDataMap.forEach((k, v) -> {
                     if (!zkClient.exists(k)) {
                         zkClient.createEphemeral(k, v);
-                        log.info("zookeeper client register success: {}", v);
+                        LOGGER.info("zookeeper client register success: {}", v);
                     }
                 });
             }
