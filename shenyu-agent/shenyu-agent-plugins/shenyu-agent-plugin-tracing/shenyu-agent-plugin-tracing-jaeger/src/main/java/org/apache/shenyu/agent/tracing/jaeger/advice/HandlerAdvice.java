@@ -15,24 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.tracing.jaeger.advice;
 
-import java.lang.instrument.Instrumentation;
+import net.bytebuddy.asm.Advice;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
- * The type Shenyu agent bootstrap.
+ * HandlerAdvice.
  */
-public class ShenyuAgentBootstrap {
-    
+public class HandlerAdvice {
+
     /**
-     * Premain for instrumentation.
+     * onEnter.
      *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
+     * @param exchange exchange.
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
+    @Advice.OnMethodEnter(suppress = Throwable.class)
+    public static void onEnter(@Advice.Argument(0) final ServerWebExchange exchange) {
+    }
+
+    /**
+     * onExit.
+     *
+     * @param throwable throw.
+     * @param exchange exchange.
+     */
+    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
+    public static void onExit(
+            @Advice.Thrown final Throwable throwable,
+            @Advice.Argument(0) final ServerWebExchange exchange) {
     }
 }

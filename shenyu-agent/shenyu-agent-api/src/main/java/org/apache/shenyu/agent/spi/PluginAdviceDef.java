@@ -15,24 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
-
-import java.lang.instrument.Instrumentation;
+package org.apache.shenyu.agent.spi;
 
 /**
- * The type Shenyu agent bootstrap.
+ * PluginAdviceDef.
  */
-public class ShenyuAgentBootstrap {
-    
+public interface PluginAdviceDef {
+
     /**
-     * Premain for instrumentation.
+     * return DoExecuteAdvice class name.
      *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
+     * @return DoExecuteAdvice name.
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
-    }
+    String getDoExecuteAdvice();
+
+    /**
+     * return ExecuteAdvice class name.
+     *
+     * @return ExecuteAdvice name.
+     */
+    String getExecuteAdvice();
+
+    /**
+     * return HandlerAdvice class name.
+     *
+     * @return HandlerAdvice name.
+     */
+    String getHandlerAdvice();
+
 }
