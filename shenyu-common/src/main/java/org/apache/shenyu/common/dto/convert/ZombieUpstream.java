@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import java.util.Objects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * this is zombie divide upstream.
@@ -129,13 +130,20 @@ public class ZombieUpstream {
             return false;
         }
         ZombieUpstream that = (ZombieUpstream) o;
-        return zombieCheckTimes == that.zombieCheckTimes && Objects.equals(divideUpstream, that.divideUpstream)
-                && Objects.equals(selectorName, that.selectorName);
+        return new EqualsBuilder()
+                .append(zombieCheckTimes, that.zombieCheckTimes)
+                .append(divideUpstream, that.divideUpstream)
+                .append(selectorName, that.selectorName)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(divideUpstream, zombieCheckTimes, selectorName);
+        return new HashCodeBuilder(17, 37)
+                .append(divideUpstream)
+                .append(zombieCheckTimes)
+                .append(selectorName)
+                .toHashCode();
     }
 
     @Override
