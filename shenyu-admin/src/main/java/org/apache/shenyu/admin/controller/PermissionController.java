@@ -52,6 +52,6 @@ public class PermissionController {
         PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(token);
         return Optional.ofNullable(permissionMenuVO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.MENU_SUCCESS, item))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));
     }
 }

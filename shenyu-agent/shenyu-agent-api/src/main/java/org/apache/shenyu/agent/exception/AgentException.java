@@ -15,24 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
-
-import org.apache.shenyu.spi.ExtensionLoader;
-
-import java.util.Optional;
+package org.apache.shenyu.agent.exception;
 
 /**
- * The type Rate limiter algorithm factory.
+ * Agent exception.
  */
-public class RateLimiterAlgorithmFactory {
+public final class AgentException extends RuntimeException {
     
-    /**
-     * New instance rate limiter algorithm.
-     *
-     * @param name the name
-     * @return the rate limiter algorithm
-     */
-    public static RateLimiterAlgorithm<?> newInstance(final String name) {
-        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterAlgorithm.class).getJoin(name)).orElseGet(TokenBucketRateLimiterAlgorithm::new);
+    public AgentException(final String errorMessage, final Object... args) {
+        super(String.format(errorMessage, args));
     }
 }

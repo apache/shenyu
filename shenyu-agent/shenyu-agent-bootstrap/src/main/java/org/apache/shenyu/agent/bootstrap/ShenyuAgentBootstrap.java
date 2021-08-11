@@ -15,24 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
+package org.apache.shenyu.agent.bootstrap;
 
-import org.apache.shenyu.spi.ExtensionLoader;
-
-import java.util.Optional;
+import java.lang.instrument.Instrumentation;
 
 /**
- * The type Rate limiter algorithm factory.
+ * The type Shenyu agent bootstrap.
  */
-public class RateLimiterAlgorithmFactory {
+public class ShenyuAgentBootstrap {
     
     /**
-     * New instance rate limiter algorithm.
+     * Premain for instrumentation.
      *
-     * @param name the name
-     * @return the rate limiter algorithm
+     * @param arguments arguments
+     * @param instrumentation instrumentation
      */
-    public static RateLimiterAlgorithm<?> newInstance(final String name) {
-        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterAlgorithm.class).getJoin(name)).orElseGet(TokenBucketRateLimiterAlgorithm::new);
+    public static void premain(final String arguments, final Instrumentation instrumentation) {
     }
 }

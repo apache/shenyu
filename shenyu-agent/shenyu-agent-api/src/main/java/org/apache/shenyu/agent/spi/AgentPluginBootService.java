@@ -15,24 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
+package org.apache.shenyu.agent.spi;
 
-import org.apache.shenyu.spi.ExtensionLoader;
-
-import java.util.Optional;
+import org.apache.shenyu.agent.config.AgentPluginConfig;
 
 /**
- * The type Rate limiter algorithm factory.
+ * Agent Plugin boot service that the lifecycle is from the agent start to shutdown.
  */
-public class RateLimiterAlgorithmFactory {
+public interface AgentPluginBootService extends AutoCloseable {
     
     /**
-     * New instance rate limiter algorithm.
+     * Start.
      *
-     * @param name the name
-     * @return the rate limiter algorithm
+     * @param agentPluginConfig the agent plugin config
      */
-    public static RateLimiterAlgorithm<?> newInstance(final String name) {
-        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterAlgorithm.class).getJoin(name)).orElseGet(TokenBucketRateLimiterAlgorithm::new);
-    }
+    void start(AgentPluginConfig agentPluginConfig);
 }
