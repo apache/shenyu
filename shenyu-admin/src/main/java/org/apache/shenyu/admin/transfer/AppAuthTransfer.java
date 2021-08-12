@@ -43,7 +43,7 @@ public enum AppAuthTransfer {
     public AppAuthDO mapToEntity(final AppAuthDTO appAuthDTO) {
         return Optional.ofNullable(appAuthDTO)
                 .map(v -> {
-                    AppAuthDO.AppAuthDOBuilder<?, ?> appAuthDO = AppAuthDO.builder();
+                    AppAuthDO.AppAuthDOBuilder appAuthDO = AppAuthDO.builder();
                     appAuthDO.id(v.getId());
                     appAuthDO.appKey(v.getAppKey());
                     appAuthDO.appSecret(v.getAppSecret());

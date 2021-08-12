@@ -21,9 +21,10 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.SmartLifecycle;
@@ -36,8 +37,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Slf4j
 public class ShenyuConsulConfigWatch implements SmartLifecycle {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuConsulConfigWatch.class);
 
     @Autowired
     private ConsulClient consul;
@@ -80,21 +82,21 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
                         if (newIndex != null && !newIndex.equals(currentIndex)) {
                             if (!this.consulIndexes.containsValue(newIndex)
                                     && !currentIndex.equals(-1L)) {
-                                log.trace("Context " + context + " has new index " + newIndex);
+                                LOGGER.trace("Context " + context + " has new index " + newIndex);
                                 Map<String, GetValue> valueMap = extractGetValue(response);
                                 publisher.publishEvent(new ConsulConfigChangedEvent(this, newIndex, valueMap));
-                            } else if (log.isTraceEnabled()) {
-                                log.info("Event for index already published for context " + context);
+                            } else if (LOGGER.isTraceEnabled()) {
+                                LOGGER.info("Event for index already published for context " + context);
                             }
                             this.consulIndexes.put(context, newIndex);
-                        } else if (log.isTraceEnabled()) {
-                            log.trace("Same index for context " + context);
+                        } else if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Same index for context " + context);
                         }
-                    } else if (log.isTraceEnabled()) {
-                        log.trace("No value for context " + context);
+                    } else if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("No value for context " + context);
                     }
                 } catch (Exception e) {
-                    log.warn("Error querying consul Key/Values for context '" + context + "'. Message: " + e.getMessage());
+                    LOGGER.warn("Error querying consul Key/Values for context '" + context + "'. Message: " + e.getMessage());
                 }
             }
         }

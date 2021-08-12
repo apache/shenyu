@@ -18,16 +18,21 @@
 package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
-import lombok.SneakyThrows;
+import com.alibaba.nacos.api.exception.NacosException;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 
 /**
  * The type Nacos data init.
  */
 public class NacosDataInit implements CommandLineRunner {
+
+    private static final Logger LOG = LoggerFactory.getLogger(NacosDataInit.class);
 
     private final ConfigService configService;
 
@@ -53,10 +58,14 @@ public class NacosDataInit implements CommandLineRunner {
         }
     }
 
-    @SneakyThrows
     private boolean dataIdNotExist(final String pluginDataId) {
-        String group = NacosPathConstants.GROUP;
-        long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
-        return configService.getConfig(pluginDataId, group, timeout) == null;
+        try {
+            String group = NacosPathConstants.GROUP;
+            long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
+            return configService.getConfig(pluginDataId, group, timeout) == null;
+        } catch (NacosException e) {
+            LOG.error("Get data from nacos error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
     }
 }

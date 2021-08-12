@@ -17,11 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -29,6 +25,9 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.SyncDataService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.validation.annotation.Validated;
@@ -50,7 +49,6 @@ import java.util.List;
  * this is plugin controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/plugin")
 public class PluginController {
@@ -58,6 +56,11 @@ public class PluginController {
     private final PluginService pluginService;
 
     private final SyncDataService syncDataService;
+
+    public PluginController(final PluginService pluginService, final SyncDataService syncDataService) {
+        this.pluginService = pluginService;
+        this.syncDataService = syncDataService;
+    }
 
     /**
      * query plugins.

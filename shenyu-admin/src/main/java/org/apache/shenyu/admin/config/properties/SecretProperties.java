@@ -17,16 +17,12 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
  * Aes Secret configuration.
  */
-@Getter
-@Setter
 @Component
 @ConfigurationProperties(prefix = "shenyu.aes.secret")
 public class SecretProperties {
@@ -34,4 +30,40 @@ public class SecretProperties {
     private String key;
 
     private String iv;
+
+    /**
+     * Gets the value of key.
+     *
+     * @return the value of key
+     */
+    public String getKey() {
+        return key;
+    }
+
+    /**
+     * Sets the key.
+     *
+     * @param key key
+     */
+    public void setKey(final String key) {
+        this.key = key;
+    }
+
+    /**
+     * Gets the value of iv.
+     *
+     * @return the value of iv
+     */
+    public String getIv() {
+        return iv;
+    }
+
+    /**
+     * Sets the iv.
+     *
+     * @param iv iv
+     */
+    public void setIv(final String iv) {
+        this.iv = iv;
+    }
 }

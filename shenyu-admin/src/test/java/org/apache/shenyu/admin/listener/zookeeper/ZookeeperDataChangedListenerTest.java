@@ -17,15 +17,7 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
-import static org.mockito.Mockito.atMostOnce;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.URLEncoder;
-
-import lombok.SneakyThrows;
-
+import com.google.common.collect.ImmutableList;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -41,7 +33,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.common.collect.ImmutableList;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * The testCase for ZookeeperDataChangedListener.
@@ -117,9 +115,8 @@ public final class ZookeeperDataChangedListenerTest {
     /**
      * test case onMetaDataChanged create event.
      */
-    @SneakyThrows
     @Test
-    public void testOnMetaDataChangedCreate() {
+    public void testOnMetaDataChangedCreate() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
         String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), "UTF-8"));
 
@@ -132,9 +129,8 @@ public final class ZookeeperDataChangedListenerTest {
     /**
      * test case onMetaDataChanged update event.
      */
-    @SneakyThrows
     @Test
-    public void testOnMetaDataChangedUpdate() {
+    public void testOnMetaDataChangedUpdate() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
         String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), "UTF-8"));
 
@@ -147,9 +143,8 @@ public final class ZookeeperDataChangedListenerTest {
     /**
      * test case onMetaDataChanged delete event.
      */
-    @SneakyThrows
     @Test
-    public void testOnMetaDataChangedDelete() {
+    public void testOnMetaDataChangedDelete() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
         String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), "UTF-8"));
 

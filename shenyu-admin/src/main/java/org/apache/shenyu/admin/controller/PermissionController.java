@@ -17,11 +17,10 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.admin.service.PermissionService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
+import org.apache.shenyu.admin.service.PermissionService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,12 +31,15 @@ import java.util.Optional;
 /**
  * this is permission controller.
  */
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/permission")
 public class PermissionController {
 
     private final PermissionService permissionService;
+
+    public PermissionController(final PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
 
     /**
      * get menu by token.
@@ -50,6 +52,6 @@ public class PermissionController {
         PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(token);
         return Optional.ofNullable(permissionMenuVO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.MENU_SUCCESS, item))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));
     }
 }
