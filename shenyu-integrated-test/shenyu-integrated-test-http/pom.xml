@@ -53,6 +53,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>4.9.1</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.shenyu</groupId>
       <artifactId>shenyu-spring-boot-starter-plugin-httpclient</artifactId>
@@ -80,60 +87,6 @@
     </dependency>
     <!-- apache shenyu redirect plugin end-->
 
-    <!--shenyu data sync start use websocket-->
-    <dependency>
-      <groupId>org.apache.shenyu</groupId>
-      <artifactId>shenyu-spring-boot-starter-sync-data-websocket</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webflux</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-
-    <!--shenyu gateway start-->
-    <dependency>
-      <groupId>org.apache.shenyu</groupId>
-      <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp</artifactId>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
