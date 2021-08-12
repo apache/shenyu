@@ -15,24 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
-
-import java.lang.instrument.Instrumentation;
+package org.apache.shenyu.agent.enums;
 
 /**
- * The type Shenyu agent bootstrap.
+ * TraceTypes.
  */
-public class ShenyuAgentBootstrap {
-    
-    /**
-     * Premain for instrumentation.
-     *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
-    }
+public enum TraceTypes {
+    OPENTELEMETRY,
+    OPENTRACING,
+    SKYWALKING,
+    ZIPKIN,
+    JAEGER
 }
