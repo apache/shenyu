@@ -17,24 +17,17 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * SelectorConditionDO.
  */
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public final class SelectorConditionDO extends BaseDO {
 
     private static final long serialVersionUID = 756287802698140201L;
@@ -64,6 +57,116 @@ public final class SelectorConditionDO extends BaseDO {
      */
     private String paramValue;
 
+    public SelectorConditionDO() {
+    }
+
+    public SelectorConditionDO(final String selectorId, final String paramType, final String operator, final String paramName, final String paramValue) {
+        this.selectorId = selectorId;
+        this.paramType = paramType;
+        this.operator = operator;
+        this.paramName = paramName;
+        this.paramValue = paramValue;
+    }
+
+    /**
+     * Gets the value of selectorId.
+     *
+     * @return the value of selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * Sets the selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * Gets the value of paramType.
+     *
+     * @return the value of paramType
+     */
+    public String getParamType() {
+        return paramType;
+    }
+
+    /**
+     * Sets the paramType.
+     *
+     * @param paramType paramType
+     */
+    public void setParamType(final String paramType) {
+        this.paramType = paramType;
+    }
+
+    /**
+     * Gets the value of operator.
+     *
+     * @return the value of operator
+     */
+    public String getOperator() {
+        return operator;
+    }
+
+    /**
+     * Sets the operator.
+     *
+     * @param operator operator
+     */
+    public void setOperator(final String operator) {
+        this.operator = operator;
+    }
+
+    /**
+     * Gets the value of paramName.
+     *
+     * @return the value of paramName
+     */
+    public String getParamName() {
+        return paramName;
+    }
+
+    /**
+     * Sets the paramName.
+     *
+     * @param paramName paramName
+     */
+    public void setParamName(final String paramName) {
+        this.paramName = paramName;
+    }
+
+    /**
+     * Gets the value of paramValue.
+     *
+     * @return the value of paramValue
+     */
+    public String getParamValue() {
+        return paramValue;
+    }
+
+    /**
+     * Sets the paramValue.
+     *
+     * @param paramValue paramValue
+     */
+    public void setParamValue(final String paramValue) {
+        this.paramValue = paramValue;
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static SelectorConditionDO.SelectorConditionDOBuilder builder() {
+        return new SelectorConditionDO.SelectorConditionDOBuilder();
+    }
+
     /**
      * build selectorConditionDO.
      *
@@ -89,5 +192,157 @@ public final class SelectorConditionDO extends BaseDO {
             }
             return selectorConditionDO;
         }).orElse(null);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        SelectorConditionDO that = (SelectorConditionDO) o;
+        return Objects.equals(selectorId, that.selectorId)
+                && Objects.equals(paramType, that.paramType)
+                && Objects.equals(operator, that.operator)
+                && Objects.equals(paramName, that.paramName)
+                && Objects.equals(paramValue, that.paramValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), selectorId, paramType, operator, paramName, paramValue);
+    }
+
+    public static final class SelectorConditionDOBuilder {
+
+        private String id;
+
+        private Timestamp dateCreated;
+
+        private Timestamp dateUpdated;
+
+        private String selectorId;
+
+        private String paramType;
+
+        private String operator;
+
+        private String paramName;
+
+        private String paramValue;
+
+        private SelectorConditionDOBuilder() {
+        }
+
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * dateCreated.
+         *
+         * @param dateCreated the dateCreated.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder dateCreated(final Timestamp dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /**
+         * dateUpdated.
+         *
+         * @param dateUpdated the dateUpdated.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder dateUpdated(final Timestamp dateUpdated) {
+            this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * selectorId.
+         *
+         * @param selectorId the selectorId.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder selectorId(final String selectorId) {
+            this.selectorId = selectorId;
+            return this;
+        }
+
+        /**
+         * paramType.
+         *
+         * @param paramType the paramType.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder paramType(final String paramType) {
+            this.paramType = paramType;
+            return this;
+        }
+
+        /**
+         * operator.
+         *
+         * @param operator the operator.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder operator(final String operator) {
+            this.operator = operator;
+            return this;
+        }
+
+        /**
+         * paramName.
+         *
+         * @param paramName the paramName.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder paramName(final String paramName) {
+            this.paramName = paramName;
+            return this;
+        }
+
+        /**
+         * paramValue.
+         *
+         * @param paramValue the paramValue.
+         * @return SelectorConditionDOBuilder.
+         */
+        public SelectorConditionDOBuilder paramValue(final String paramValue) {
+            this.paramValue = paramValue;
+            return this;
+        }
+
+        /**
+         * build method.
+         *
+         * @return build object.
+         */
+        public SelectorConditionDO build() {
+            SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
+            selectorConditionDO.setId(id);
+            selectorConditionDO.setDateCreated(dateCreated);
+            selectorConditionDO.setDateUpdated(dateUpdated);
+            selectorConditionDO.setSelectorId(selectorId);
+            selectorConditionDO.setParamType(paramType);
+            selectorConditionDO.setOperator(operator);
+            selectorConditionDO.setParamName(paramName);
+            selectorConditionDO.setParamValue(paramValue);
+            return selectorConditionDO;
+        }
     }
 }

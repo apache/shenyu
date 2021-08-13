@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Optional;
@@ -28,10 +24,6 @@ import java.util.Optional;
 /**
  * login dashboard return user info's vo.
  */
-@Accessors(chain = true)
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class LoginDashboardUserVO extends DashboardUserVO {
 
     private static final long serialVersionUID = -411996250594776944L;
@@ -40,6 +32,29 @@ public class LoginDashboardUserVO extends DashboardUserVO {
      * token.
      */
     private String token;
+
+    public LoginDashboardUserVO() {
+    }
+
+    /**
+     * Gets the value of token.
+     *
+     * @return the value of token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Sets the token.
+     *
+     * @param token token
+     * @return {@link LoginDashboardUserVO}
+     */
+    public LoginDashboardUserVO setToken(final String token) {
+        this.token = token;
+        return this;
+    }
 
     /**
      * build loginDashboardUserVO.

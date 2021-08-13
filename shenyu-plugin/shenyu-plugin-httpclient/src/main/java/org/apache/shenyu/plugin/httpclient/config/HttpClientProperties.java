@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.httpclient.config;
 
-import lombok.Data;
 import org.springframework.boot.web.server.WebServerException;
 import org.springframework.util.ResourceUtils;
 import reactor.netty.resources.ConnectionProvider;
@@ -37,7 +36,6 @@ import java.util.List;
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
  */
-@Data
 public class HttpClientProperties {
 
     /**
@@ -81,9 +79,152 @@ public class HttpClientProperties {
     private boolean wiretap;
 
     /**
+     * Gets connect timeout.
+     *
+     * @return the connect timeout
+     */
+    public Integer getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    /**
+     * Sets connect timeout.
+     *
+     * @param connectTimeout the connect timeout
+     */
+    public void setConnectTimeout(final Integer connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    /**
+     * Gets response timeout.
+     *
+     * @return the response timeout
+     */
+    public Duration getResponseTimeout() {
+        return responseTimeout;
+    }
+
+    /**
+     * Sets response timeout.
+     *
+     * @param responseTimeout the response timeout
+     */
+    public void setResponseTimeout(final Duration responseTimeout) {
+        this.responseTimeout = responseTimeout;
+    }
+
+    /**
+     * Gets read timeout.
+     *
+     * @return the read timeout
+     */
+    public Integer getReadTimeout() {
+        return readTimeout;
+    }
+
+    /**
+     * Sets read timeout.
+     *
+     * @param readTimeout the read timeout
+     */
+    public void setReadTimeout(final Integer readTimeout) {
+        this.readTimeout = readTimeout;
+    }
+
+    /**
+     * Gets write timeout.
+     *
+     * @return the write timeout
+     */
+    public Integer getWriteTimeout() {
+        return writeTimeout;
+    }
+
+    /**
+     * Sets write timeout.
+     *
+     * @param writeTimeout the write timeout
+     */
+    public void setWriteTimeout(final Integer writeTimeout) {
+        this.writeTimeout = writeTimeout;
+    }
+
+    /**
+     * Gets pool.
+     *
+     * @return the pool
+     */
+    public Pool getPool() {
+        return pool;
+    }
+
+    /**
+     * Sets pool.
+     *
+     * @param pool the pool
+     */
+    public void setPool(final Pool pool) {
+        this.pool = pool;
+    }
+
+    /**
+     * Gets proxy.
+     *
+     * @return the proxy
+     */
+    public Proxy getProxy() {
+        return proxy;
+    }
+
+    /**
+     * Sets proxy.
+     *
+     * @param proxy the proxy
+     */
+    public void setProxy(final Proxy proxy) {
+        this.proxy = proxy;
+    }
+
+    /**
+     * Gets ssl.
+     *
+     * @return the ssl
+     */
+    public Ssl getSsl() {
+        return ssl;
+    }
+
+    /**
+     * Sets ssl.
+     *
+     * @param ssl the ssl
+     */
+    public void setSsl(final Ssl ssl) {
+        this.ssl = ssl;
+    }
+
+    /**
+     * Is wiretap boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isWiretap() {
+        return wiretap;
+    }
+
+    /**
+     * Sets wiretap.
+     *
+     * @param wiretap the wiretap
+     */
+    public void setWiretap(final boolean wiretap) {
+        this.wiretap = wiretap;
+    }
+
+    /**
      * The type Pool.
      */
-    @Data
     public static class Pool {
 
         /**
@@ -106,6 +247,78 @@ public class HttpClientProperties {
          * Only for type FIXED, the maximum time in millis to wait for aquiring.
          */
         private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
+
+        /**
+         * Gets type.
+         *
+         * @return the type
+         */
+        public PoolType getType() {
+            return type;
+        }
+
+        /**
+         * Sets type.
+         *
+         * @param type the type
+         */
+        public void setType(final PoolType type) {
+            this.type = type;
+        }
+
+        /**
+         * Gets name.
+         *
+         * @return the name
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * Sets name.
+         *
+         * @param name the name
+         */
+        public void setName(final String name) {
+            this.name = name;
+        }
+
+        /**
+         * Gets max connections.
+         *
+         * @return the max connections
+         */
+        public Integer getMaxConnections() {
+            return maxConnections;
+        }
+
+        /**
+         * Sets max connections.
+         *
+         * @param maxConnections the max connections
+         */
+        public void setMaxConnections(final Integer maxConnections) {
+            this.maxConnections = maxConnections;
+        }
+
+        /**
+         * Gets acquire timeout.
+         *
+         * @return the acquire timeout
+         */
+        public Long getAcquireTimeout() {
+            return acquireTimeout;
+        }
+
+        /**
+         * Sets acquire timeout.
+         *
+         * @param acquireTimeout the acquire timeout
+         */
+        public void setAcquireTimeout(final Long acquireTimeout) {
+            this.acquireTimeout = acquireTimeout;
+        }
 
         /**
          * The enum Pool type.
@@ -132,7 +345,6 @@ public class HttpClientProperties {
     /**
      * The type Proxy.
      */
-    @Data
     public static class Proxy {
 
         /**
@@ -160,12 +372,101 @@ public class HttpClientProperties {
          * reached directly, bypassing the proxy
          */
         private String nonProxyHostsPattern;
+
+        /**
+         * Gets host.
+         *
+         * @return the host
+         */
+        public String getHost() {
+            return host;
+        }
+
+        /**
+         * Sets host.
+         *
+         * @param host the host
+         */
+        public void setHost(final String host) {
+            this.host = host;
+        }
+
+        /**
+         * Gets port.
+         *
+         * @return the port
+         */
+        public Integer getPort() {
+            return port;
+        }
+
+        /**
+         * Sets port.
+         *
+         * @param port the port
+         */
+        public void setPort(final Integer port) {
+            this.port = port;
+        }
+
+        /**
+         * Gets username.
+         *
+         * @return the username
+         */
+        public String getUsername() {
+            return username;
+        }
+
+        /**
+         * Sets username.
+         *
+         * @param username the username
+         */
+        public void setUsername(final String username) {
+            this.username = username;
+        }
+
+        /**
+         * Gets password.
+         *
+         * @return the password
+         */
+        public String getPassword() {
+            return password;
+        }
+
+        /**
+         * Sets password.
+         *
+         * @param password the password
+         */
+        public void setPassword(final String password) {
+            this.password = password;
+        }
+
+        /**
+         * Gets non proxy hosts pattern.
+         *
+         * @return the non proxy hosts pattern
+         */
+        public String getNonProxyHostsPattern() {
+            return nonProxyHostsPattern;
+        }
+
+        /**
+         * Sets non proxy hosts pattern.
+         *
+         * @param nonProxyHostsPattern the non proxy hosts pattern
+         */
+        public void setNonProxyHostsPattern(final String nonProxyHostsPattern) {
+            this.nonProxyHostsPattern = nonProxyHostsPattern;
+        }
     }
 
     /**
      * The type Ssl.
      */
-    @Data
     public class Ssl {
 
         /**
@@ -199,6 +500,114 @@ public class HttpClientProperties {
          * The default ssl configuration type. Defaults to TCP.
          */
         private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
+
+        /**
+         * Is use insecure trust manager boolean.
+         *
+         * @return the boolean
+         */
+        public boolean isUseInsecureTrustManager() {
+            return useInsecureTrustManager;
+        }
+
+        /**
+         * Sets use insecure trust manager.
+         *
+         * @param useInsecureTrustManager the use insecure trust manager
+         */
+        public void setUseInsecureTrustManager(final boolean useInsecureTrustManager) {
+            this.useInsecureTrustManager = useInsecureTrustManager;
+        }
+
+        /**
+         * Gets trusted x 509 certificates.
+         *
+         * @return the trusted x 509 certificates
+         */
+        public List<String> getTrustedX509Certificates() {
+            return trustedX509Certificates;
+        }
+
+        /**
+         * Sets trusted x 509 certificates.
+         *
+         * @param trustedX509Certificates the trusted x 509 certificates
+         */
+        public void setTrustedX509Certificates(final List<String> trustedX509Certificates) {
+            this.trustedX509Certificates = trustedX509Certificates;
+        }
+
+        /**
+         * Gets handshake timeout.
+         *
+         * @return the handshake timeout
+         */
+        public Duration getHandshakeTimeout() {
+            return handshakeTimeout;
+        }
+
+        /**
+         * Sets handshake timeout.
+         *
+         * @param handshakeTimeout the handshake timeout
+         */
+        public void setHandshakeTimeout(final Duration handshakeTimeout) {
+            this.handshakeTimeout = handshakeTimeout;
+        }
+
+        /**
+         * Gets close notify flush timeout.
+         *
+         * @return the close notify flush timeout
+         */
+        public Duration getCloseNotifyFlushTimeout() {
+            return closeNotifyFlushTimeout;
+        }
+
+        /**
+         * Sets close notify flush timeout.
+         *
+         * @param closeNotifyFlushTimeout the close notify flush timeout
+         */
+        public void setCloseNotifyFlushTimeout(final Duration closeNotifyFlushTimeout) {
+            this.closeNotifyFlushTimeout = closeNotifyFlushTimeout;
+        }
+
+        /**
+         * Gets close notify read timeout.
+         *
+         * @return the close notify read timeout
+         */
+        public Duration getCloseNotifyReadTimeout() {
+            return closeNotifyReadTimeout;
+        }
+
+        /**
+         * Sets close notify read timeout.
+         *
+         * @param closeNotifyReadTimeout the close notify read timeout
+         */
+        public void setCloseNotifyReadTimeout(final Duration closeNotifyReadTimeout) {
+            this.closeNotifyReadTimeout = closeNotifyReadTimeout;
+        }
+
+        /**
+         * Gets default configuration type.
+         *
+         * @return the default configuration type
+         */
+        public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {
+            return defaultConfigurationType;
+        }
+
+        /**
+         * Sets default configuration type.
+         *
+         * @param defaultConfigurationType the default configuration type
+         */
+        public void setDefaultConfigurationType(final SslProvider.DefaultConfigurationType defaultConfigurationType) {
+            this.defaultConfigurationType = defaultConfigurationType;
+        }
 
         /**
          * Get trusted x 509 certificates for trust manager x 509 certificate [ ].

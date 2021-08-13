@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
@@ -30,9 +27,6 @@ import java.util.List;
 /**
  * this is rule view to web front.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class RuleVO implements Serializable {
 
     private static final long serialVersionUID = -672321762440577372L;
@@ -96,6 +90,251 @@ public class RuleVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    public RuleVO() {
+    }
+
+    public RuleVO(final String id,
+                  final String selectorId,
+                  final Integer matchMode,
+                  final String matchModeName,
+                  final String name,
+                  final Boolean enabled,
+                  final Boolean loged,
+                  final Integer sort,
+                  final String handle,
+                  final List<RuleConditionVO> ruleConditions,
+                  final String dateCreated,
+                  final String dateUpdated) {
+        this.id = id;
+        this.selectorId = selectorId;
+        this.matchMode = matchMode;
+        this.matchModeName = matchModeName;
+        this.name = name;
+        this.enabled = enabled;
+        this.loged = loged;
+        this.sort = sort;
+        this.handle = handle;
+        this.ruleConditions = ruleConditions;
+        this.dateCreated = dateCreated;
+        this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of selectorId.
+     *
+     * @return the value of selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * Sets the selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * Gets the value of matchMode.
+     *
+     * @return the value of matchMode
+     */
+    public Integer getMatchMode() {
+        return matchMode;
+    }
+
+    /**
+     * Sets the matchMode.
+     *
+     * @param matchMode matchMode
+     */
+    public void setMatchMode(final Integer matchMode) {
+        this.matchMode = matchMode;
+    }
+
+    /**
+     * Gets the value of matchModeName.
+     *
+     * @return the value of matchModeName
+     */
+    public String getMatchModeName() {
+        return matchModeName;
+    }
+
+    /**
+     * Sets the matchModeName.
+     *
+     * @param matchModeName matchModeName
+     */
+    public void setMatchModeName(final String matchModeName) {
+        this.matchModeName = matchModeName;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of loged.
+     *
+     * @return the value of loged
+     */
+    public Boolean getLoged() {
+        return loged;
+    }
+
+    /**
+     * Sets the loged.
+     *
+     * @param loged loged
+     */
+    public void setLoged(final Boolean loged) {
+        this.loged = loged;
+    }
+
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * Gets the value of handle.
+     *
+     * @return the value of handle
+     */
+    public String getHandle() {
+        return handle;
+    }
+
+    /**
+     * Sets the handle.
+     *
+     * @param handle handle
+     */
+    public void setHandle(final String handle) {
+        this.handle = handle;
+    }
+
+    /**
+     * Gets the value of ruleConditions.
+     *
+     * @return the value of ruleConditions
+     */
+    public List<RuleConditionVO> getRuleConditions() {
+        return ruleConditions;
+    }
+
+    /**
+     * Sets the ruleConditions.
+     *
+     * @param ruleConditions ruleConditions
+     */
+    public void setRuleConditions(final List<RuleConditionVO> ruleConditions) {
+        this.ruleConditions = ruleConditions;
+    }
+
+    /**
+     * Gets the value of dateCreated.
+     *
+     * @return the value of dateCreated
+     */
+    public String getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * Sets the dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final String dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * Gets the value of dateUpdated.
+     *
+     * @return the value of dateUpdated
+     */
+    public String getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * Sets the dateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final String dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
 
     /**
      * build ruleVO.

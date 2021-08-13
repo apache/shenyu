@@ -20,14 +20,12 @@ package org.apache.shenyu.plugin.grpc.loadbalance;
 import io.grpc.ConnectivityStateInfo;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * SubChannelCopy.
  */
-@EqualsAndHashCode
-@Getter
 public class SubChannelCopy {
 
     private final int weight;
@@ -40,11 +38,79 @@ public class SubChannelCopy {
 
     private final ConnectivityStateInfo state;
 
+    /**
+     * Instantiates a new Sub channel copy.
+     *
+     * @param channel the channel
+     */
     public SubChannelCopy(final LoadBalancer.Subchannel channel) {
         this.channel = channel;
         this.addressGroup = channel.getAddresses();
         this.weight = SubChannels.getWeight(channel);
         this.state = SubChannels.getStateInfo(channel);
         this.status = SubChannels.getStatus(channel);
+    }
+
+    /**
+     * Gets weight.
+     *
+     * @return the weight
+     */
+    public int getWeight() {
+        return weight;
+    }
+
+    /**
+     * Gets status.
+     *
+     * @return the status
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * Gets channel.
+     *
+     * @return the channel
+     */
+    public LoadBalancer.Subchannel getChannel() {
+        return channel;
+    }
+
+    /**
+     * Gets address group.
+     *
+     * @return the address group
+     */
+    public EquivalentAddressGroup getAddressGroup() {
+        return addressGroup;
+    }
+
+    /**
+     * Gets state.
+     *
+     * @return the state
+     */
+    public ConnectivityStateInfo getState() {
+        return state;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SubChannelCopy that = (SubChannelCopy) o;
+        return weight == that.weight && Objects.equals(status, that.status) && Objects.equals(channel, that.channel)
+                && Objects.equals(addressGroup, that.addressGroup) && Objects.equals(state, that.state);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(weight, status, channel, addressGroup, state);
     }
 }

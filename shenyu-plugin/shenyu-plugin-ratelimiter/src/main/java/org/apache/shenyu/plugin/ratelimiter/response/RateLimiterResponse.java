@@ -17,17 +17,11 @@
 
 package org.apache.shenyu.plugin.ratelimiter.response;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import java.io.Serializable;
 
 /**
  * rateLimiter response.
- *
  */
-@Data
-@RequiredArgsConstructor
 public class RateLimiterResponse implements Serializable {
 
     private static final long serialVersionUID = 2896271355629004718L;
@@ -35,6 +29,35 @@ public class RateLimiterResponse implements Serializable {
     private final boolean allowed;
 
     private final long tokensRemaining;
+
+    /**
+     * Instantiates a new Rate limiter response.
+     *
+     * @param allowed         the allowed
+     * @param tokensRemaining the tokens remaining
+     */
+    public RateLimiterResponse(final boolean allowed, final long tokensRemaining) {
+        this.allowed = allowed;
+        this.tokensRemaining = tokensRemaining;
+    }
+
+    /**
+     * Is allowed boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isAllowed() {
+        return allowed;
+    }
+
+    /**
+     * Gets tokens remaining.
+     *
+     * @return the tokens remaining
+     */
+    public long getTokensRemaining() {
+        return tokensRemaining;
+    }
 
     @Override
     public String toString() {

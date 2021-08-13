@@ -17,15 +17,17 @@
 
 package org.apache.shenyu.register.server.etcd.client;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.BiConsumer;
 
 /**
  * etcd event handler.
  */
-@Slf4j
 public abstract class EtcdListenHandler implements BiConsumer<Event, Node> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EtcdListenHandler.class);
 
     /**
      * etcd data update event handler.
@@ -51,7 +53,7 @@ public abstract class EtcdListenHandler implements BiConsumer<Event, Node> {
                 updateHandler(node.getKey(), node.getValue());
                 break;
             default:
-                log.info(String.format("unrecognized event: %s, key: %s", event, node.getKey()));
+                LOGGER.info(String.format("unrecognized event: %s, key: %s", event, node.getKey()));
         }
     }
 }

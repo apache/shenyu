@@ -21,7 +21,6 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.ImmutableList;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -73,7 +72,6 @@ public class ConsulDataChangedListenerTest {
     private ConsulDataChangedListener consulDataChangedListener;
 
     @Test
-    @SneakyThrows
     public void testOnAppAuthChanged() {
         String config = "{\"divide\":{\"appKey\":\"appKey\",\"appSecret\":\"appSecret\",\"open\":true}}";
         final AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
@@ -99,7 +97,6 @@ public class ConsulDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
     public void testOnPluginChanged() {
         String config = "{\"divide\":{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}}";
         final PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
@@ -124,7 +121,6 @@ public class ConsulDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
     public void testOnSelectorChanged() {
         String config = "{\"divide\":[{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}]}";
         final SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
@@ -150,7 +146,6 @@ public class ConsulDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
     public void testOnMetaDataChanged() {
         String config = "{\"divide\":{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}}";
         final MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
@@ -176,7 +171,6 @@ public class ConsulDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
     public void testOnRuleChanged() {
         String config = "{\"divide\":[{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}]}";
         final RuleData ruleData = RuleData.builder()

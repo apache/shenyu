@@ -46,12 +46,12 @@ public final class PageParameterTest {
     @Test
     public void testHashCode() {
         final int result = pageParameterUnderTest.hashCode();
-        assertEquals(1837494617, result);
+        assertEquals(-1633878767, result);
     }
 
     @Test
     public void testToString() {
         final String result = pageParameterUnderTest.toString();
-        assertEquals("PageParameter(currentPage=1, prePage=1, nextPage=2, pageSize=10, offset=0, totalPage=10, totalCount=100)", result);
+        assertEquals("PageParameter{currentPage=1, prePage=1, nextPage=2, pageSize=10, offset=0, totalPage=10, totalCount=100}", result);
     }
 }

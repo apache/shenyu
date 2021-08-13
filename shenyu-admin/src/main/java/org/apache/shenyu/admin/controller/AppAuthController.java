@@ -17,10 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.service.AppAuthService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
@@ -30,6 +27,8 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
+import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,12 +46,15 @@ import java.util.List;
  * this is application authority controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/appAuth")
 public class AppAuthController {
 
     private final AppAuthService appAuthService;
+
+    public AppAuthController(final AppAuthService appAuthService) {
+        this.appAuthService = appAuthService;
+    }
 
     /**
      * Apply App auth.

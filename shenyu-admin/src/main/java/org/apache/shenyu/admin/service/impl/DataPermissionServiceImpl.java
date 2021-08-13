@@ -17,13 +17,10 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
-import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
@@ -32,6 +29,8 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
+import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.common.enums.AdminDataPermissionTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +46,6 @@ import java.util.stream.Stream;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.DataPermissionService}.
  */
-@RequiredArgsConstructor
 @Service
 public class DataPermissionServiceImpl implements DataPermissionService {
 
@@ -56,6 +54,12 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     private final RuleMapper ruleMapper;
 
     private final SelectorMapper selectorMapper;
+
+    public DataPermissionServiceImpl(final DataPermissionMapper dataPermissionMapper, final RuleMapper ruleMapper, final SelectorMapper selectorMapper) {
+        this.dataPermissionMapper = dataPermissionMapper;
+        this.ruleMapper = ruleMapper;
+        this.selectorMapper = selectorMapper;
+    }
 
     /**
      * Get all data permissions by user id.
