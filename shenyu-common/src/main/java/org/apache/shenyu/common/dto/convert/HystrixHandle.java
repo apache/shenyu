@@ -17,18 +17,14 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.HystrixIsolationModeEnum;
+
+import java.util.Objects;
 
 /**
  * this is hystrix handle.
  */
-@Getter
-@Setter
-@EqualsAndHashCode
 public class HystrixHandle {
 
     /**
@@ -82,5 +78,234 @@ public class HystrixHandle {
      */
     private HystrixThreadPoolConfig hystrixThreadPoolConfig;
 
+    /**
+     * get groupKey.
+     *
+     * @return groupKey
+     */
+    public String getGroupKey() {
+        return groupKey;
+    }
 
+    /**
+     * set groupKey.
+     *
+     * @param groupKey groupKey
+     */
+    public void setGroupKey(final String groupKey) {
+        this.groupKey = groupKey;
+    }
+
+    /**
+     * get commandKey.
+     *
+     * @return commandKey
+     */
+    public String getCommandKey() {
+        return commandKey;
+    }
+
+    /**
+     * set commandKey.
+     *
+     * @param commandKey commandKey
+     */
+    public void setCommandKey(final String commandKey) {
+        this.commandKey = commandKey;
+    }
+
+    /**
+     * get maxConcurrentRequests.
+     *
+     * @return maxConcurrentRequests
+     */
+    public int getMaxConcurrentRequests() {
+        return maxConcurrentRequests;
+    }
+
+    /**
+     * set maxConcurrentRequests.
+     *
+     * @param maxConcurrentRequests maxConcurrentRequests
+     */
+    public void setMaxConcurrentRequests(final int maxConcurrentRequests) {
+        this.maxConcurrentRequests = maxConcurrentRequests;
+    }
+
+    /**
+     * get errorThresholdPercentage.
+     *
+     * @return errorThresholdPercentage
+     */
+    public int getErrorThresholdPercentage() {
+        return errorThresholdPercentage;
+    }
+
+    /**
+     * set errorThresholdPercentage.
+     *
+     * @param errorThresholdPercentage errorThresholdPercentage
+     */
+    public void setErrorThresholdPercentage(final int errorThresholdPercentage) {
+        this.errorThresholdPercentage = errorThresholdPercentage;
+    }
+
+    /**
+     * get requestVolumeThreshold.
+     *
+     * @return requestVolumeThreshold
+     */
+    public int getRequestVolumeThreshold() {
+        return requestVolumeThreshold;
+    }
+
+    /**
+     * set requestVolumeThreshold.
+     *
+     * @param requestVolumeThreshold requestVolumeThreshold
+     */
+    public void setRequestVolumeThreshold(final int requestVolumeThreshold) {
+        this.requestVolumeThreshold = requestVolumeThreshold;
+    }
+
+    /**
+     * get sleepWindowInMilliseconds.
+     *
+     * @return sleepWindowInMilliseconds
+     */
+    public int getSleepWindowInMilliseconds() {
+        return sleepWindowInMilliseconds;
+    }
+
+    /**
+     * set sleepWindowInMilliseconds.
+     *
+     * @param sleepWindowInMilliseconds sleepWindowInMilliseconds
+     */
+    public void setSleepWindowInMilliseconds(final int sleepWindowInMilliseconds) {
+        this.sleepWindowInMilliseconds = sleepWindowInMilliseconds;
+    }
+
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public long getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     *
+     * @param timeout timeout
+     */
+    public void setTimeout(final long timeout) {
+        this.timeout = timeout;
+    }
+
+    /**
+     * get callBackUri.
+     *
+     * @return callBackUri
+     */
+    public String getCallBackUri() {
+        return callBackUri;
+    }
+
+    /**
+     * set callBackUri.
+     *
+     * @param callBackUri callBackUri
+     */
+    public void setCallBackUri(final String callBackUri) {
+        this.callBackUri = callBackUri;
+    }
+
+    /**
+     * get executionIsolationStrategy.
+     *
+     * @return executionIsolationStrategy
+     */
+    public int getExecutionIsolationStrategy() {
+        return executionIsolationStrategy;
+    }
+
+    /**
+     * set executionIsolationStrategy.
+     *
+     * @param executionIsolationStrategy executionIsolationStrategy
+     */
+    public void setExecutionIsolationStrategy(final int executionIsolationStrategy) {
+        this.executionIsolationStrategy = executionIsolationStrategy;
+    }
+
+    /**
+     * get hystrixThreadPoolConfig.
+     *
+     * @return hystrixThreadPoolConfig
+     */
+    public HystrixThreadPoolConfig getHystrixThreadPoolConfig() {
+        return hystrixThreadPoolConfig;
+    }
+
+    /**
+     * set hystrixThreadPoolConfig.
+     *
+     * @param hystrixThreadPoolConfig hystrixThreadPoolConfig
+     */
+    public void setHystrixThreadPoolConfig(final HystrixThreadPoolConfig hystrixThreadPoolConfig) {
+        this.hystrixThreadPoolConfig = hystrixThreadPoolConfig;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        HystrixHandle that = (HystrixHandle) o;
+        return maxConcurrentRequests == that.maxConcurrentRequests && errorThresholdPercentage == that.errorThresholdPercentage
+                && requestVolumeThreshold == that.requestVolumeThreshold && sleepWindowInMilliseconds == that.sleepWindowInMilliseconds
+                && timeout == that.timeout && executionIsolationStrategy == that.executionIsolationStrategy && Objects.equals(groupKey, that.groupKey)
+                && Objects.equals(commandKey, that.commandKey) && Objects.equals(callBackUri, that.callBackUri)
+                && Objects.equals(hystrixThreadPoolConfig, that.hystrixThreadPoolConfig);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(groupKey, commandKey, maxConcurrentRequests, errorThresholdPercentage, requestVolumeThreshold,
+                sleepWindowInMilliseconds, timeout, callBackUri, executionIsolationStrategy, hystrixThreadPoolConfig);
+    }
+
+    @Override
+    public String toString() {
+        return "HystrixHandle{"
+                + "groupKey='"
+                + groupKey
+                + '\''
+                + ", commandKey='"
+                + commandKey
+                + '\''
+                + ", maxConcurrentRequests="
+                + maxConcurrentRequests
+                + ", errorThresholdPercentage="
+                + errorThresholdPercentage
+                + ", requestVolumeThreshold="
+                + requestVolumeThreshold
+                + ", sleepWindowInMilliseconds="
+                + sleepWindowInMilliseconds
+                + ", timeout="
+                + timeout
+                + ", callBackUri='"
+                + callBackUri
+                + '\''
+                + ", executionIsolationStrategy="
+                + executionIsolationStrategy
+                + ", hystrixThreadPoolConfig="
+                + hystrixThreadPoolConfig
+                + '}';
+    }
 }

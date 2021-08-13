@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Arrays;
@@ -28,64 +26,90 @@ import java.util.stream.Collectors;
 /**
  * OperatorEnum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum OperatorEnum {
-    
+
     /**
      * Match operator enum.
      */
     MATCH("match", true),
-    
+
     /**
      * Eq operator enum.
      */
     EQ("=", true),
-    
+
     /**
      * Regex operator enum.
      */
     REGEX("regex", true),
-    
+
     /**
      * Gt operator enum.
      */
     GT(">", false),
-    
+
     /**
      * Lt operator enum.
      */
     LT("<", false),
-    
+
     /**
      * Contains operator enum.
      */
     CONTAINS("contains", true),
-    
+
     /**
      * SpEL enum.
      */
     SPEL("SpEL", true),
-    
+
     /**
      * Groovy enum.
      */
     GROOVY("Groovy", true),
-    
+
     /**
      * Time before operator enum.
      */
     TIME_BEFORE("TimeBefore", true),
-    
+
     /**
      * Time after operator enum.
      */
     TIME_AFTER("TimeAfter", true);
-    
+
     private final String alias;
-    
+
     private final Boolean support;
-    
+
+    /**
+     * all args constructor.
+     * @param alias alias
+     * @param support support
+     */
+    OperatorEnum(final String alias, final Boolean support) {
+        this.alias = alias;
+        this.support = support;
+    }
+
+    /**
+     * get alias.
+     *
+     * @return alias
+     */
+    public String getAlias() {
+        return alias;
+    }
+
+    /**
+     * get support.
+     *
+     * @return support
+     */
+    public Boolean getSupport() {
+        return support;
+    }
+
     /**
      * acquire operator supports.
      *
@@ -94,7 +118,7 @@ public enum OperatorEnum {
     public static List<OperatorEnum> acquireSupport() {
         return Arrays.stream(OperatorEnum.values()).filter(e -> e.support).collect(Collectors.toList());
     }
-    
+
     /**
      * get operator enum by alias.
      *
