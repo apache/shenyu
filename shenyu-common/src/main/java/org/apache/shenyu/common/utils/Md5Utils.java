@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +43,12 @@ public class Md5Utils {
      * @return the string
      */
     private static String md5(final String src, final String charset) {
-        MessageDigest md5 = null;
+        MessageDigest md5;
         StringBuilder hexValue = new StringBuilder(32);
         try {
             md5 = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            LOG.error(e.getMessage(), e);
+            throw new ShenyuException("MD5 not supported", e);
         }
         byte[] byteArray = new byte[0];
         try {
