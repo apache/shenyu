@@ -15,24 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.integratedtest.springcloud;
 
-import java.lang.instrument.Instrumentation;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
- * The type Shenyu agent bootstrap.
+ * Hello world.
  */
-public class ShenyuAgentBootstrap {
-    
+@SpringBootApplication
+@EnableDiscoveryClient
+public class ShenyuBootstrapApplication {
     /**
-     * Premain for instrumentation.
+     * main method of App.
      *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
+     * @param args args
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
+    public static void main(final String[] args) {
+        SpringApplication.run(ShenyuBootstrapApplication.class);
     }
 }

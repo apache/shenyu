@@ -15,24 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.tracing.jaeger;
 
-import java.lang.instrument.Instrumentation;
+import org.apache.shenyu.agent.spi.PluginAdviceDef;
 
 /**
- * The type Shenyu agent bootstrap.
+ * JaegerPluginAdviceDef.
  */
-public class ShenyuAgentBootstrap {
-    
-    /**
-     * Premain for instrumentation.
-     *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
+public class JaegerPluginAdviceDef implements PluginAdviceDef {
+
+    @Override
+    public String getDoExecuteAdvice() {
+        return "org.apache.shenyu.agent.tracing.jaeger.advice.DoExecuteAdvice";
     }
+
+    @Override
+    public String getExecuteAdvice() {
+        return "org.apache.shenyu.agent.tracing.jaeger.advice.ExecuteAdvice";
+    }
+
+    @Override
+    public String getHandlerAdvice() {
+        return "org.apache.shenyu.agent.tracing.jaeger.advice.HandlerAdvice";
+    }
+
 }

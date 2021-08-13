@@ -15,24 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.integratedtest.springcloud;
 
-import java.lang.instrument.Instrumentation;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * The type Shenyu agent bootstrap.
+ * all tests must extend this class
+ * we will do something here. For example, update DB to init the data
  */
-public class ShenyuAgentBootstrap {
-    
-    /**
-     * Premain for instrumentation.
-     *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
+public class AbstractTest {
+
+    private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
+
+    protected ExecutorService getService() {
+        return SERVICE;
     }
 }

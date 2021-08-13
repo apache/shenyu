@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.integratedtest.springcloud;
 
-import java.lang.instrument.Instrumentation;
+import static org.junit.Assert.assertEquals;
 
-/**
- * The type Shenyu agent bootstrap.
- */
-public class ShenyuAgentBootstrap {
-    
-    /**
-     * Premain for instrumentation.
-     *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
+import org.apache.shenyu.integratedtest.springcloud.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.springcloud.helper.HttpHelper;
+import org.junit.Test;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class HelloWorldTest extends AbstractTest {
+
+    @Test
+    public void testHelloWorld() throws Exception {
+        OrderDTO order = new OrderDTO("123", "Phoenix");
+        order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
+        assertEquals("hello world spring cloud save order", order.getName());
     }
 }
