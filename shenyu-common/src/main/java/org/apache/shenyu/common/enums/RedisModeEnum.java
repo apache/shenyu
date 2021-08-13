@@ -17,16 +17,11 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 
 /**
  * The enum Redis mode enum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum RedisModeEnum {
 
     /**
@@ -48,6 +43,24 @@ public enum RedisModeEnum {
      * Redis Mode Name.
      */
     private final String name;
+
+    /**
+     * all args constructor.
+     *
+     * @param name name
+     */
+    RedisModeEnum(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 
     /**
      * Acquire by name data sync enum.

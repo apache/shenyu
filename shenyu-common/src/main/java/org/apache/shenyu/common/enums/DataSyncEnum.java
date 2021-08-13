@@ -17,17 +17,11 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 
 /**
  * The enum Data sync enum.
- *
  */
-@RequiredArgsConstructor
-@Getter
 public enum DataSyncEnum {
 
     /**
@@ -43,9 +37,27 @@ public enum DataSyncEnum {
     /**
      * Websocket data sync enum.
      */
-    WEBSOCKET("websocket"),;
+    WEBSOCKET("websocket");
 
     private final String name;
+
+    /**
+     * all args constructor.
+     *
+     * @param name name
+     */
+    DataSyncEnum(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 
     /**
      * Acquire by name data sync enum.

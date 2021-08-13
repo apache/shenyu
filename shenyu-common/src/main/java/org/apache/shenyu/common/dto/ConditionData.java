@@ -19,19 +19,15 @@
 
 package org.apache.shenyu.common.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.common.enums.OperatorEnum;
+
+import java.util.Objects;
 
 /**
  * ConditionDTO.
  *
  * @since 2.0.0
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ConditionData {
 
     /**
@@ -53,4 +49,112 @@ public class ConditionData {
      * param value.
      */
     private String paramValue;
+
+    /**
+     * get paramType.
+     *
+     * @return paramType
+     */
+    public String getParamType() {
+        return paramType;
+    }
+
+    /**
+     * set paramType.
+     *
+     * @param paramType paramType
+     */
+    public void setParamType(final String paramType) {
+        this.paramType = paramType;
+    }
+
+    /**
+     * get operator.
+     *
+     * @return operator
+     */
+    public String getOperator() {
+        return operator;
+    }
+
+    /**
+     * set operator.
+     *
+     * @param operator operator
+     */
+    public void setOperator(final String operator) {
+        this.operator = operator;
+    }
+
+    /**
+     * get paramName.
+     *
+     * @return paramName
+     */
+    public String getParamName() {
+        return paramName;
+    }
+
+    /**
+     * set paramName.
+     *
+     * @param paramName paramName
+     */
+    public void setParamName(final String paramName) {
+        this.paramName = paramName;
+    }
+
+    /**
+     * get paramValue.
+     *
+     * @return paramValue
+     */
+    public String getParamValue() {
+        return paramValue;
+    }
+
+    /**
+     * set paramValue.
+     *
+     * @param paramValue paramValue
+     */
+    public void setParamValue(final String paramValue) {
+        this.paramValue = paramValue;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ConditionData that = (ConditionData) o;
+        return Objects.equals(paramType, that.paramType) && Objects.equals(operator, that.operator)
+                && Objects.equals(paramName, that.paramName) && Objects.equals(paramValue, that.paramValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(paramType, operator, paramName, paramValue);
+    }
+
+    @Override
+    public String toString() {
+        return "ConditionData{"
+                + "paramType='"
+                + paramType
+                + '\''
+                + ", operator='"
+                + operator
+                + '\''
+                + ", paramName='"
+                + paramName
+                + '\''
+                + ", paramValue='"
+                + paramValue
+                + '\''
+                + '}';
+    }
 }

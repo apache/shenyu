@@ -17,14 +17,12 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type Dubbo selector handle.
  */
-@Data
 public class DubboSelectorHandle implements Serializable {
 
     private static final long serialVersionUID = 8965968591478216223L;
@@ -49,4 +47,110 @@ public class DubboSelectorHandle implements Serializable {
      */
     private int port;
 
+    /**
+     * get registry.
+     *
+     * @return registry
+     */
+    public String getRegistry() {
+        return registry;
+    }
+
+    /**
+     * set registry.
+     *
+     * @param registry registry
+     */
+    public void setRegistry(final String registry) {
+        this.registry = registry;
+    }
+
+    /**
+     * get appName.
+     *
+     * @return appName
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * set appName.
+     *
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
+
+    /**
+     * get protocol.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * set protocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
+    /**
+     * get port.
+     *
+     * @return port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * set port.
+     *
+     * @param port port
+     */
+    public void setPort(final int port) {
+        this.port = port;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DubboSelectorHandle that = (DubboSelectorHandle) o;
+        return port == that.port && Objects.equals(registry, that.registry)
+                && Objects.equals(appName, that.appName) && Objects.equals(protocol, that.protocol);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(registry, appName, protocol, port);
+    }
+
+    @Override
+    public String toString() {
+        return "DubboSelectorHandle{"
+                + "registry='"
+                + registry
+                + '\''
+                + ", appName='"
+                + appName
+                + '\''
+                + ", protocol='"
+                + protocol
+                + '\''
+                + ", port="
+                + port
+                + '}';
+    }
 }

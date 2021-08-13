@@ -17,14 +17,12 @@
 
 package org.apache.shenyu.common.config;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The springCloud plugin configuration for eureka.
  */
-@Data
 public class SpringCloudConfig implements Serializable {
 
     private static final long serialVersionUID = -5750232000945431295L;
@@ -35,4 +33,88 @@ public class SpringCloudConfig implements Serializable {
 
     private Integer leaseExpirationDurationInSeconds;
 
+    /**
+     * get serviceUrl.
+     *
+     * @return serviceUrl
+     */
+    public String getServiceUrl() {
+        return serviceUrl;
+    }
+
+    /**
+     * set serviceUrl.
+     *
+     * @param serviceUrl serviceUrl
+     */
+    public void setServiceUrl(final String serviceUrl) {
+        this.serviceUrl = serviceUrl;
+    }
+
+    /**
+     * get leaseRenewalIntervalInSeconds.
+     *
+     * @return leaseRenewalIntervalInSeconds
+     */
+    public Integer getLeaseRenewalIntervalInSeconds() {
+        return leaseRenewalIntervalInSeconds;
+    }
+
+    /**
+     * set leaseRenewalIntervalInSeconds.
+     *
+     * @param leaseRenewalIntervalInSeconds leaseRenewalIntervalInSeconds
+     */
+    public void setLeaseRenewalIntervalInSeconds(final Integer leaseRenewalIntervalInSeconds) {
+        this.leaseRenewalIntervalInSeconds = leaseRenewalIntervalInSeconds;
+    }
+
+    /**
+     * get leaseExpirationDurationInSeconds.
+     *
+     * @return leaseExpirationDurationInSeconds
+     */
+    public Integer getLeaseExpirationDurationInSeconds() {
+        return leaseExpirationDurationInSeconds;
+    }
+
+    /**
+     * set leaseExpirationDurationInSeconds.
+     *
+     * @param leaseExpirationDurationInSeconds leaseExpirationDurationInSeconds
+     */
+    public void setLeaseExpirationDurationInSeconds(final Integer leaseExpirationDurationInSeconds) {
+        this.leaseExpirationDurationInSeconds = leaseExpirationDurationInSeconds;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SpringCloudConfig that = (SpringCloudConfig) o;
+        return Objects.equals(serviceUrl, that.serviceUrl) && Objects.equals(leaseRenewalIntervalInSeconds, that.leaseRenewalIntervalInSeconds)
+                && Objects.equals(leaseExpirationDurationInSeconds, that.leaseExpirationDurationInSeconds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceUrl, leaseRenewalIntervalInSeconds, leaseExpirationDurationInSeconds);
+    }
+
+    @Override
+    public String toString() {
+        return "SpringCloudConfig{"
+                + "serviceUrl='"
+                + serviceUrl
+                + '\''
+                + ", leaseRenewalIntervalInSeconds="
+                + leaseRenewalIntervalInSeconds
+                + ", leaseExpirationDurationInSeconds="
+                + leaseExpirationDurationInSeconds
+                + '}';
+    }
 }
