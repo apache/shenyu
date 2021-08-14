@@ -61,7 +61,7 @@ services:
       - shenyu
     volumes:
       - type: bind
-        source: ./src/main/test/resources/admin-config/
+        source: ./src/main/resources/admin-config/
         target: /opt/sql/
     depends_on:
       shenyu-redis:
