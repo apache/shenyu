@@ -27,6 +27,7 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.google.common.collect.Lists;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -62,7 +63,7 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private static final List<RpcTypeEnum> RPC_URI_TYPE_SET = RpcTypeEnum.acquireSupportURIs();
 
-    private final String defaultGroup = "default_group";
+    private final String defaultGroup = NacosPathConstants.GROUP;
 
     private ConfigService configService;
 
