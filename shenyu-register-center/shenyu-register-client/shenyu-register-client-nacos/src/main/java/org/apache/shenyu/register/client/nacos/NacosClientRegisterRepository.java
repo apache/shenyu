@@ -26,6 +26,7 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -49,7 +50,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosClientRegisterRepository.class);
 
-    private String defaultGroup = "default_group";
+    private final String defaultGroup = NacosPathConstants.GROUP;
 
     private ConfigService configService;
 

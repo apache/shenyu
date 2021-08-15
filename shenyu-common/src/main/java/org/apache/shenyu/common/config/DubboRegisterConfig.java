@@ -17,16 +17,12 @@
 
 package org.apache.shenyu.common.config;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type dubbo register config.
  */
-@Data
-@EqualsAndHashCode
 public class DubboRegisterConfig implements Serializable {
 
     private static final long serialVersionUID = -4156204056244019979L;
@@ -36,4 +32,90 @@ public class DubboRegisterConfig implements Serializable {
     private String group;
 
     private String protocol;
+
+    /**
+     * get register.
+     *
+     * @return register
+     */
+    public String getRegister() {
+        return register;
+    }
+
+    /**
+     * set register.
+     *
+     * @param register register
+     */
+    public void setRegister(final String register) {
+        this.register = register;
+    }
+
+    /**
+     * get group.
+     *
+     * @return group
+     */
+    public String getGroup() {
+        return group;
+    }
+
+    /**
+     * set group.
+     *
+     * @param group group
+     */
+    public void setGroup(final String group) {
+        this.group = group;
+    }
+
+    /**
+     * get protocol.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * set protocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DubboRegisterConfig that = (DubboRegisterConfig) o;
+        return Objects.equals(register, that.register) && Objects.equals(group, that.group) && Objects.equals(protocol, that.protocol);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(register, group, protocol);
+    }
+
+    @Override
+    public String toString() {
+        return "DubboRegisterConfig{"
+                + "register='"
+                + register
+                + '\''
+                + ", group='"
+                + group
+                + '\''
+                + ", protocol='"
+                + protocol
+                + '\''
+                + '}';
+    }
 }

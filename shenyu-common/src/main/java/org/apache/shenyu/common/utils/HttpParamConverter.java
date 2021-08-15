@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.common.utils;
 
-import lombok.SneakyThrows;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -84,8 +85,11 @@ public final class HttpParamConverter {
      * @param value the value
      * @return the string
      */
-    @SneakyThrows
     public static String decodeQueryParam(final String value) {
-        return URLDecoder.decode(value, "UTF-8");
+        try {
+            return URLDecoder.decode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new ShenyuException(e);
+        }
     }
 }

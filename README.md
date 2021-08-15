@@ -132,7 +132,7 @@
  
   Since all data have been cached using ConcurrentHashMap in the JVM, it's very fast.
   
-  When user have changed the configuration in the background management, ShenYu wiil dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
+  When user have changed the configuration in the background management, ShenYu will dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
   ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-en.png)
   

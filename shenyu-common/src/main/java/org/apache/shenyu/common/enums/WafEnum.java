@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * WafEnum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum WafEnum {
 
     /**
@@ -40,4 +35,33 @@ public enum WafEnum {
     private final int code;
 
     private final String name;
+
+    /**
+     * all args constructor.
+     *
+     * @param code code
+     * @param name name
+     */
+    WafEnum(final int code, final String name) {
+        this.code = code;
+        this.name = name;
+    }
+
+    /**
+     * get code.
+     *
+     * @return code
+     */
+    public int getCode() {
+        return code;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 }

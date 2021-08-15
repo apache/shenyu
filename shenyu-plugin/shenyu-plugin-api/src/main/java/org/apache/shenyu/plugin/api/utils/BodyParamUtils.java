@@ -23,20 +23,44 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.springframework.util.LinkedMultiValueMap;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Common rpc parameter builder utils.
  */
 public class BodyParamUtils {
 
+    private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
+
+    /**
+     * buildBodyParams.
+     *
+     * @param param param.
+     * @return the string change to linkedMultiValueMap.
+     */
+    public static LinkedMultiValueMap<String, String> buildBodyParams(final String param) {
+        LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        Matcher matcher = QUERY_PARAM_PATTERN.matcher(param);
+        while (matcher.find()) {
+            String name = matcher.group(1);
+            String eq = matcher.group(2);
+            String value = matcher.group(3);
+            params.add(name, value != null ? value : (StringUtils.isNotBlank(eq) ? "" : null));
+        }
+        return params;
+    }
+
     /**
      * build single parameter.
      *
-     * @param body the parameter body.
+     * @param body           the parameter body.
      * @param parameterTypes the parameter types.
      * @return the parameters.
      */
@@ -58,7 +82,7 @@ public class BodyParamUtils {
     /**
      * build multi parameters.
      *
-     * @param body the parameter body.
+     * @param body           the parameter body.
      * @param parameterTypes the parameter types.
      * @return the parameters.
      */

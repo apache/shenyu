@@ -17,22 +17,17 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
+import java.util.Objects;
+
 /**
  * The type Sofa rule handle.
  */
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
+
 public class SofaRuleHandle implements RuleHandle {
 
     private static final long serialVersionUID = 1534867207078368915L;
@@ -52,6 +47,90 @@ public class SofaRuleHandle implements RuleHandle {
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
+
+    /**
+     * get retries.
+     *
+     * @return retries
+     */
+    public Integer getRetries() {
+        return retries;
+    }
+
+    /**
+     * set retries.
+     *
+     * @param retries retries
+     */
+    public void setRetries(final Integer retries) {
+        this.retries = retries;
+    }
+
+    /**
+     * get loadBalance.
+     *
+     * @return loadBalance
+     */
+    public String getLoadBalance() {
+        return loadBalance;
+    }
+
+    /**
+     * set loadBalance.
+     *
+     * @param loadBalance loadBalance
+     */
+    public void setLoadBalance(final String loadBalance) {
+        this.loadBalance = loadBalance;
+    }
+
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public long getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     *
+     * @param timeout timeout
+     */
+    public void setTimeout(final long timeout) {
+        this.timeout = timeout;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SofaRuleHandle that = (SofaRuleHandle) o;
+        return timeout == that.timeout && Objects.equals(retries, that.retries) && Objects.equals(loadBalance, that.loadBalance);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(retries, loadBalance, timeout);
+    }
+
+    @Override
+    public String toString() {
+        return "SofaRuleHandle{"
+                + "retries="
+                + retries
+                + ", loadBalance='"
+                + loadBalance
+                + '\''
+                + ", timeout="
+                + timeout
+                + '}';
+    }
 
     @Override
     public RuleHandle createDefault(final String path) {

@@ -17,15 +17,13 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.apache.shenyu.common.constant.Constants;
+
+import java.util.Objects;
 
 /**
  * this is Resilience4J plugin handle.
  */
-@Data
-@EqualsAndHashCode
 public class Resilience4JHandle {
 
     /**
@@ -92,6 +90,297 @@ public class Resilience4JHandle {
      * circuitBreaker automaticTransitionFromOpenToHalfOpenEnabled.
      */
     private Boolean automaticTransitionFromOpenToHalfOpenEnabled = Constants.AUTOMATIC_TRANSITION_FROM_OPEN_TO_HALF_OPEN_ENABLED;
+
+    /**
+     * get timeoutDurationRate.
+     *
+     * @return timeoutDurationRate
+     */
+    public int getTimeoutDurationRate() {
+        return timeoutDurationRate;
+    }
+
+    /**
+     * set timeoutDurationRate.
+     *
+     * @param timeoutDurationRate timeoutDurationRate
+     */
+    public void setTimeoutDurationRate(final int timeoutDurationRate) {
+        this.timeoutDurationRate = timeoutDurationRate;
+    }
+
+    /**
+     * get limitRefreshPeriod.
+     *
+     * @return limitRefreshPeriod
+     */
+    public int getLimitRefreshPeriod() {
+        return limitRefreshPeriod;
+    }
+
+    /**
+     * set limitRefreshPeriod.
+     *
+     * @param limitRefreshPeriod limitRefreshPeriod
+     */
+    public void setLimitRefreshPeriod(final int limitRefreshPeriod) {
+        this.limitRefreshPeriod = limitRefreshPeriod;
+    }
+
+    /**
+     * get limitForPeriod.
+     *
+     * @return limitForPeriod
+     */
+    public int getLimitForPeriod() {
+        return limitForPeriod;
+    }
+
+    /**
+     * set limitForPeriod.
+     *
+     * @param limitForPeriod limitForPeriod
+     */
+    public void setLimitForPeriod(final int limitForPeriod) {
+        this.limitForPeriod = limitForPeriod;
+    }
+
+    /**
+     * get circuitEnable.
+     *
+     * @return circuitEnable
+     */
+    public int getCircuitEnable() {
+        return circuitEnable;
+    }
+
+    /**
+     * set circuitEnable.
+     *
+     * @param circuitEnable circuitEnable
+     */
+    public void setCircuitEnable(final int circuitEnable) {
+        this.circuitEnable = circuitEnable;
+    }
+
+    /**
+     * get timeoutDuration.
+     *
+     * @return timeoutDuration
+     */
+    public long getTimeoutDuration() {
+        return timeoutDuration;
+    }
+
+    /**
+     * set timeoutDuration.
+     *
+     * @param timeoutDuration timeoutDuration
+     */
+    public void setTimeoutDuration(final long timeoutDuration) {
+        this.timeoutDuration = timeoutDuration;
+    }
+
+    /**
+     * get fallbackUri.
+     *
+     * @return fallbackUri
+     */
+    public String getFallbackUri() {
+        return fallbackUri;
+    }
+
+    /**
+     * set fallbackUri.
+     *
+     * @param fallbackUri fallbackUri
+     */
+    public void setFallbackUri(final String fallbackUri) {
+        this.fallbackUri = fallbackUri;
+    }
+
+    /**
+     * get slidingWindowSize.
+     *
+     * @return slidingWindowSize
+     */
+    public int getSlidingWindowSize() {
+        return slidingWindowSize;
+    }
+
+    /**
+     * set slidingWindowSize.
+     *
+     * @param slidingWindowSize slidingWindowSize
+     */
+    public void setSlidingWindowSize(final int slidingWindowSize) {
+        this.slidingWindowSize = slidingWindowSize;
+    }
+
+    /**
+     * get slidingWindowType.
+     *
+     * @return slidingWindowType
+     */
+    public int getSlidingWindowType() {
+        return slidingWindowType;
+    }
+
+    /**
+     * set slidingWindowType.
+     *
+     * @param slidingWindowType slidingWindowType
+     */
+    public void setSlidingWindowType(final int slidingWindowType) {
+        this.slidingWindowType = slidingWindowType;
+    }
+
+    /**
+     * get minimumNumberOfCalls.
+     *
+     * @return minimumNumberOfCalls
+     */
+    public int getMinimumNumberOfCalls() {
+        return minimumNumberOfCalls;
+    }
+
+    /**
+     * set minimumNumberOfCalls.
+     *
+     * @param minimumNumberOfCalls minimumNumberOfCalls
+     */
+    public void setMinimumNumberOfCalls(final int minimumNumberOfCalls) {
+        this.minimumNumberOfCalls = minimumNumberOfCalls;
+    }
+
+    /**
+     * get waitIntervalFunctionInOpenState.
+     *
+     * @return waitIntervalFunctionInOpenState
+     */
+    public int getWaitIntervalFunctionInOpenState() {
+        return waitIntervalFunctionInOpenState;
+    }
+
+    /**
+     * set waitIntervalFunctionInOpenState.
+     *
+     * @param waitIntervalFunctionInOpenState waitIntervalFunctionInOpenState
+     */
+    public void setWaitIntervalFunctionInOpenState(final int waitIntervalFunctionInOpenState) {
+        this.waitIntervalFunctionInOpenState = waitIntervalFunctionInOpenState;
+    }
+
+    /**
+     * get permittedNumberOfCallsInHalfOpenState.
+     *
+     * @return permittedNumberOfCallsInHalfOpenState
+     */
+    public int getPermittedNumberOfCallsInHalfOpenState() {
+        return permittedNumberOfCallsInHalfOpenState;
+    }
+
+    /**
+     * set permittedNumberOfCallsInHalfOpenState.
+     *
+     * @param permittedNumberOfCallsInHalfOpenState permittedNumberOfCallsInHalfOpenState
+     */
+    public void setPermittedNumberOfCallsInHalfOpenState(final int permittedNumberOfCallsInHalfOpenState) {
+        this.permittedNumberOfCallsInHalfOpenState = permittedNumberOfCallsInHalfOpenState;
+    }
+
+    /**
+     * get failureRateThreshold.
+     *
+     * @return failureRateThreshold
+     */
+    public float getFailureRateThreshold() {
+        return failureRateThreshold;
+    }
+
+    /**
+     * set failureRateThreshold.
+     *
+     * @param failureRateThreshold failureRateThreshold
+     */
+    public void setFailureRateThreshold(final float failureRateThreshold) {
+        this.failureRateThreshold = failureRateThreshold;
+    }
+
+    /**
+     * get automaticTransitionFromOpenToHalfOpenEnabled.
+     *
+     * @return automaticTransitionFromOpenToHalfOpenEnabled
+     */
+    public Boolean getAutomaticTransitionFromOpenToHalfOpenEnabled() {
+        return automaticTransitionFromOpenToHalfOpenEnabled;
+    }
+
+    /**
+     * set automaticTransitionFromOpenToHalfOpenEnabled.
+     *
+     * @param automaticTransitionFromOpenToHalfOpenEnabled automaticTransitionFromOpenToHalfOpenEnabled
+     */
+    public void setAutomaticTransitionFromOpenToHalfOpenEnabled(final Boolean automaticTransitionFromOpenToHalfOpenEnabled) {
+        this.automaticTransitionFromOpenToHalfOpenEnabled = automaticTransitionFromOpenToHalfOpenEnabled;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Resilience4JHandle that = (Resilience4JHandle) o;
+        return timeoutDurationRate == that.timeoutDurationRate && limitRefreshPeriod == that.limitRefreshPeriod && limitForPeriod == that.limitForPeriod
+                && circuitEnable == that.circuitEnable && timeoutDuration == that.timeoutDuration && slidingWindowSize == that.slidingWindowSize
+                && slidingWindowType == that.slidingWindowType && minimumNumberOfCalls == that.minimumNumberOfCalls
+                && waitIntervalFunctionInOpenState == that.waitIntervalFunctionInOpenState && permittedNumberOfCallsInHalfOpenState == that.permittedNumberOfCallsInHalfOpenState
+                && Float.compare(that.failureRateThreshold, failureRateThreshold) == 0 && Objects.equals(fallbackUri, that.fallbackUri)
+                && Objects.equals(automaticTransitionFromOpenToHalfOpenEnabled, that.automaticTransitionFromOpenToHalfOpenEnabled);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(timeoutDurationRate, limitRefreshPeriod, limitForPeriod, circuitEnable, timeoutDuration, fallbackUri,
+                slidingWindowSize, slidingWindowType, minimumNumberOfCalls, waitIntervalFunctionInOpenState,
+                permittedNumberOfCallsInHalfOpenState, failureRateThreshold, automaticTransitionFromOpenToHalfOpenEnabled);
+    }
+
+    @Override
+    public String toString() {
+        return "Resilience4JHandle{"
+                + "timeoutDurationRate="
+                + timeoutDurationRate
+                + ", limitRefreshPeriod="
+                + limitRefreshPeriod
+                + ", limitForPeriod="
+                + limitForPeriod
+                + ", circuitEnable="
+                + circuitEnable
+                + ", timeoutDuration="
+                + timeoutDuration
+                + ", fallbackUri='"
+                + fallbackUri
+                + '\''
+                + ", slidingWindowSize="
+                + slidingWindowSize
+                + ", slidingWindowType="
+                + slidingWindowType
+                + ", minimumNumberOfCalls="
+                + minimumNumberOfCalls
+                + ", waitIntervalFunctionInOpenState="
+                + waitIntervalFunctionInOpenState
+                + ", permittedNumberOfCallsInHalfOpenState="
+                + permittedNumberOfCallsInHalfOpenState
+                + ", failureRateThreshold="
+                + failureRateThreshold
+                + ", automaticTransitionFromOpenToHalfOpenEnabled="
+                + automaticTransitionFromOpenToHalfOpenEnabled
+                + '}';
+    }
 
     /**
      * check filed default value.
