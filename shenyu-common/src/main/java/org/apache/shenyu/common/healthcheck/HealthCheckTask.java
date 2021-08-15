@@ -309,9 +309,10 @@ public final class HealthCheckTask implements Runnable {
         }
 
         SelectorData selectorData = selectorCache.get(selectorId);
-        LOG.info("[Health Check] Selector [{}] all upstream as removed.", selectorData.getName());
-
-        selectorCache.remove(selectorId);
+        if (selectorData != null) {
+            selectorCache.remove(selectorId);
+            LOG.info("[Health Check] Selector [{}] all upstream as removed.", selectorData.getName());
+        }     
     }
 
     /**
