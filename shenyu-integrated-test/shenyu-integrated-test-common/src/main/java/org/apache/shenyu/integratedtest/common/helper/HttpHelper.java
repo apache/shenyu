@@ -15,24 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.springcloud.helper;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Map;
-
-import org.springframework.util.CollectionUtils;
+package org.apache.shenyu.integratedtest.common.helper;
 
 import com.google.gson.Gson;
-
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
-@Slf4j
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
 public class HttpHelper {
 
     public static final HttpHelper INSTANCE = new HttpHelper();
@@ -40,6 +38,8 @@ public class HttpHelper {
     public static final String GATEWAY_END_POINT = "http://localhost:9195";
 
     public static final MediaType JSON = MediaType.parse("application/json");
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpHelper.class);
 
     private static final Gson GSON = new Gson();
 
@@ -63,7 +63,7 @@ public class HttpHelper {
                 .build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        log.info("postGateway({}) resp({})", path, respBody);
+        LOG.info("postGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, respType);
     }
 
@@ -98,16 +98,7 @@ public class HttpHelper {
         Request request = requestBuilder.build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        log.info("getFromGateway({}) resp({})", path, respBody);
+        LOG.info("getFromGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, type);
-    }
-
-    /**
-     * get client.
-     *
-     * @return client
-     */
-    public OkHttpClient getClient() {
-        return this.client;
     }
 }

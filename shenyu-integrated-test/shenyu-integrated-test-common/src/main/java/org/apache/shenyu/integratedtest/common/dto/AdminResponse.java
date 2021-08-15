@@ -15,13 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http.dto;
+package org.apache.shenyu.integratedtest.common.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class AdminResponse<T> {
 
     private Integer code;
@@ -29,4 +24,58 @@ public class AdminResponse<T> {
     private String message;
 
     private T data;
+
+    /**
+     * Get the code.
+     *
+     * @return the code
+     */
+    public Integer getCode() {
+        return code;
+    }
+
+    /**
+     * Set the code.
+     *
+     * @param code the code
+     */
+    public void setCode(final Integer code) {
+        this.code = code;
+    }
+
+    /**
+     * Get the message.
+     *
+     * @return the message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Set the message.
+     *
+     * @param message the message
+     */
+    public void setMessage(final String message) {
+        this.message = message;
+    }
+
+    /**
+     * Get the data.
+     *
+     * @return the data
+     */
+    public T getData() {
+        return data;
+    }
+
+    /**
+     * Set the data.
+     *
+     * @param data the data
+     */
+    public void setData(final T data) {
+        this.data = data;
+    }
 }

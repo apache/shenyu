@@ -18,9 +18,10 @@
 package org.apache.shenyu.integratedtest.http;
 
 import com.google.gson.reflect.TypeToken;
-import org.apache.shenyu.integratedtest.http.dto.AdminResponse;
-import org.apache.shenyu.integratedtest.http.dto.UserDTO;
-import org.apache.shenyu.integratedtest.http.helper.HttpHelper;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
+import org.apache.shenyu.integratedtest.common.dto.UserDTO;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
 import java.util.concurrent.Future;

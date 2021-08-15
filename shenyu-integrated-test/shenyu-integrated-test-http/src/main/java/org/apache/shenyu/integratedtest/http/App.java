@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest;
+package org.apache.shenyu.integratedtest.http;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

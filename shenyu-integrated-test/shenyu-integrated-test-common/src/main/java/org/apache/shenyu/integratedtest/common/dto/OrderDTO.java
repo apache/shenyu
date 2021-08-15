@@ -15,24 +15,60 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+package org.apache.shenyu.integratedtest.common.dto;
 
 import java.io.Serializable;
 
 /**
  * The type Order dto.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class OrderDTO implements Serializable {
 
     private String id;
 
     private String name;
 
+    public OrderDTO() {
+    }
+
+    public OrderDTO(final String id, final String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    /**
+     * Get the id.
+     *
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Set the id.
+     *
+     * @param id the id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Get the name.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Set the name.
+     *
+     * @param name the name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
 }
