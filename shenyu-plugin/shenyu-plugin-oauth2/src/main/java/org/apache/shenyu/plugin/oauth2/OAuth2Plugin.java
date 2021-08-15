@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.oauth2;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -34,7 +33,6 @@ import java.util.Objects;
 /**
  * The OAuth2Plugin.
  */
-@Slf4j
 public class OAuth2Plugin implements ShenyuPlugin {
 
     private static final String BEARER = "Bearer ";

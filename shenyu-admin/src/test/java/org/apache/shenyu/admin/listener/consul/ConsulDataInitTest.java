@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.listener.consul;
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.Test;
@@ -48,7 +47,6 @@ public class ConsulDataInitTest {
     private SyncDataService syncDataService;
 
     @Test
-    @SneakyThrows
     public void testRun() {
         ConsulDataInit consulDataInit = new ConsulDataInit(consulClient, syncDataService);
 

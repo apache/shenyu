@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.admin.shiro.bean;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.web.filter.AccessControlFilter;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.filter.AccessControlFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
 import javax.servlet.ServletRequest;
@@ -36,8 +37,9 @@ import java.io.IOException;
 /**
  * custom Stateless AccessControlFilter.
  */
-@Slf4j
 public class StatelessAuthFilter extends AccessControlFilter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(StatelessAuthFilter.class);
 
     private static final String HEAD_TOKEN = "X-Access-Token";
 
@@ -57,7 +59,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
 
         String tokenValue = httpServletRequest.getHeader(HEAD_TOKEN);
         if (StringUtils.isBlank(tokenValue)) {
-            log.error("token is null.");
+            LOG.error("token is null.");
             unionFailResponse(servletResponse);
             return false;
         }
@@ -69,7 +71,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
         try {
             subject.login(token);
         } catch (Exception e) {
-            log.error("token is warning. token : {}.", tokenValue, e);
+            LOG.error("token is warning. token : {}.", tokenValue, e);
             unionFailResponse(servletResponse);
             return false;
         }

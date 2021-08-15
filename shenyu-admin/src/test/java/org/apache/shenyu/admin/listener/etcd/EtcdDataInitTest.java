@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener.etcd;
 
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -51,8 +50,7 @@ public class EtcdDataInitTest {
     private SyncDataService syncDataService;
 
     @Test
-    @SneakyThrows
-    public void testRun() {
+    public void testRun() throws Exception {
         EtcdDataInit etcdDataInit = new EtcdDataInit(etcdClient, syncDataService);
         Assert.assertNotNull(etcdDataInit);
 

@@ -19,23 +19,31 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * The type Selector data refresh.
  */
-@Slf4j
-@RequiredArgsConstructor
 public class SelectorDataRefresh extends AbstractDataRefresh<SelectorData> {
 
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorDataRefresh.class);
+
     private final PluginDataSubscriber pluginDataSubscriber;
+
+    public SelectorDataRefresh(final PluginDataSubscriber pluginDataSubscriber) {
+        this.pluginDataSubscriber = pluginDataSubscriber;
+    }
 
     @Override
     protected JsonObject convert(final JsonObject data) {
@@ -61,7 +69,7 @@ public class SelectorDataRefresh extends AbstractDataRefresh<SelectorData> {
     @Override
     protected void refresh(final List<SelectorData> data) {
         if (CollectionUtils.isEmpty(data)) {
-            log.info("clear all selector cache, old cache");
+            LOG.info("clear all selector cache, old cache");
             data.forEach(pluginDataSubscriber::unSelectorSubscribe);
             pluginDataSubscriber.refreshSelectorDataAll();
         } else {

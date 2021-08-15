@@ -21,7 +21,6 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.dto.convert.HystrixHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.Before;
@@ -48,7 +47,6 @@ public final class HystrixCommandTest {
 
     private HystrixCommand hystrixCommand;
 
-    @SneakyThrows
     @Before
     public void setUp() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
@@ -85,7 +83,6 @@ public final class HystrixCommandTest {
     }
 
     @Test
-    @SneakyThrows
     public void testConstruct() {
         assertNotNull(ReflectionTestUtils.invokeMethod(this.hystrixCommand, "construct"));
     }

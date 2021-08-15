@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.metrics.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * Metric type.
  */
-@Getter
-@RequiredArgsConstructor
 public enum MetricType {
     
     /**
@@ -40,5 +35,8 @@ public enum MetricType {
     /**
      * Histogram metric type.
      */
-    HISTOGRAM
+    HISTOGRAM;
+
+    MetricType() {
+    }
 }

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.base.handler;
 
-import lombok.Data;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -138,7 +137,6 @@ public final class PluginDataHandlerTest {
         Assert.assertEquals("SHENYU_TEST", testPluginDataHandler.pluginNamed());
     }
 
-    @Data
     static class TestPluginDataHandler implements PluginDataHandler {
 
         private Map<String, PluginData> pluginDataMap = new HashMap<>();
@@ -146,6 +144,30 @@ public final class PluginDataHandlerTest {
         private Map<String, SelectorData> selectorDataMap = new HashMap<>();
 
         private Map<String, RuleData> ruleDataMap = new HashMap<>();
+
+        public Map<String, PluginData> getPluginDataMap() {
+            return pluginDataMap;
+        }
+
+        public void setPluginDataMap(final Map<String, PluginData> pluginDataMap) {
+            this.pluginDataMap = pluginDataMap;
+        }
+
+        public Map<String, SelectorData> getSelectorDataMap() {
+            return selectorDataMap;
+        }
+
+        public void setSelectorDataMap(final Map<String, SelectorData> selectorDataMap) {
+            this.selectorDataMap = selectorDataMap;
+        }
+
+        public Map<String, RuleData> getRuleDataMap() {
+            return ruleDataMap;
+        }
+
+        public void setRuleDataMap(final Map<String, RuleData> ruleDataMap) {
+            this.ruleDataMap = ruleDataMap;
+        }
 
         @Override
         public void handlerPlugin(final PluginData pluginData) {

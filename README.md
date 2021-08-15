@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-    <a target="_blank" href="https://search.maven.org/search?q=g:org.apache%20AND%20a:shenyu">
-        <img src="https://img.shields.io/maven-central/v/org.apache/shenyu.svg?label=maven%20central" />
+    <a target="_blank" href="https://search.maven.org/search?q=g:org.apache.shenyu%20AND%20a:shenyu">
+        <img src="https://img.shields.io/maven-central/v/org.apache.shenyu/shenyu.svg?label=maven%20central" />
     </a>
     <a target="_blank" href="https://github.com/apache/shenyu/blob/master/LICENSE">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
@@ -132,7 +132,7 @@
  
   Since all data have been cached using ConcurrentHashMap in the JVM, it's very fast.
   
-  When user have changed the configuration in the background management, ShenYu wiil dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
+  When user have changed the configuration in the background management, ShenYu will dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
   ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-en.png)
   

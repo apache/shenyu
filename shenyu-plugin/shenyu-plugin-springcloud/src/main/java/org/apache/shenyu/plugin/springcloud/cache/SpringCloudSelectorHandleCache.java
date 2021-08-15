@@ -17,14 +17,12 @@
 
 package org.apache.shenyu.plugin.springcloud.cache;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 
 /**
  * The spring cloud selector handle cache.
  */
-@Slf4j
 public final class SpringCloudSelectorHandleCache extends RuleHandleCache<String, SpringCloudSelectorHandle> {
 
     private SpringCloudSelectorHandleCache() {

@@ -17,23 +17,14 @@
 
 package org.apache.shenyu.plugin.tars.proxy;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.lang.reflect.Method;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tars path invoke metadata.
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@Data
 public class TarsInvokePrxList {
-    
+
     private CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList;
 
     private Method method;
@@ -41,4 +32,100 @@ public class TarsInvokePrxList {
     private Class<?>[] paramTypes;
 
     private String[] paramNames;
+
+    /**
+     * Instantiates a new Tars invoke prx list.
+     */
+    public TarsInvokePrxList() {
+    }
+
+    /**
+     * Instantiates a new Tars invoke prx list.
+     *
+     * @param tarsInvokePrxList the tars invoke prx list
+     * @param method            the method
+     * @param paramTypes        the param types
+     * @param paramNames        the param names
+     */
+    public TarsInvokePrxList(final CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList,
+                             final Method method,
+                             final Class<?>[] paramTypes,
+                             final String[] paramNames) {
+        this.tarsInvokePrxList = tarsInvokePrxList;
+        this.method = method;
+        this.paramTypes = paramTypes;
+        this.paramNames = paramNames;
+    }
+
+    /**
+     * Gets tars invoke prx list.
+     *
+     * @return the tars invoke prx list
+     */
+    public CopyOnWriteArrayList<TarsInvokePrx> getTarsInvokePrxList() {
+        return tarsInvokePrxList;
+    }
+
+    /**
+     * Sets tars invoke prx list.
+     *
+     * @param tarsInvokePrxList the tars invoke prx list
+     */
+    public void setTarsInvokePrxList(final CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList) {
+        this.tarsInvokePrxList = tarsInvokePrxList;
+    }
+
+    /**
+     * Gets method.
+     *
+     * @return the method
+     */
+    public Method getMethod() {
+        return method;
+    }
+
+    /**
+     * Sets method.
+     *
+     * @param method the method
+     */
+    public void setMethod(final Method method) {
+        this.method = method;
+    }
+
+    /**
+     * Get param types class [ ].
+     *
+     * @return the class [ ]
+     */
+    public Class<?>[] getParamTypes() {
+        return paramTypes;
+    }
+
+    /**
+     * Sets param types.
+     *
+     * @param paramTypes the param types
+     */
+    public void setParamTypes(final Class<?>[] paramTypes) {
+        this.paramTypes = paramTypes;
+    }
+
+    /**
+     * Get param names string [ ].
+     *
+     * @return the string [ ]
+     */
+    public String[] getParamNames() {
+        return paramNames;
+    }
+
+    /**
+     * Sets param names.
+     *
+     * @param paramNames the param names
+     */
+    public void setParamNames(final String[] paramNames) {
+        this.paramNames = paramNames;
+    }
 }

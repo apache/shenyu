@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,9 +44,12 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,15 +57,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * This is the upstream check service.
  */
-@Slf4j
 @Component
 public class UpstreamCheckService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckService.class);
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
@@ -84,6 +88,10 @@ public class UpstreamCheckService {
     private final PluginMapper pluginMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
+
+    private ScheduledThreadPoolExecutor executor;
+
+    private ScheduledFuture<?> scheduledFuture;
 
     /**
      * Instantiates a new Upstream check service.
@@ -117,8 +125,25 @@ public class UpstreamCheckService {
     public void setup() {
         if (checked) {
             this.fetchUpstreamData();
-            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), ShenyuThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+            executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+            scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * Close relative resource on container destroy.
+     */
+    @PreDestroy
+    public void close() {
+        if (Objects.nonNull(scheduledFuture)) {
+            scheduledFuture.cancel(false);
+            executor.shutdownNow();
+            try {
+                executor.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                LOG.error("shutdown executor error", ex);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -148,7 +173,7 @@ public class UpstreamCheckService {
             if (!exists.isPresent()) {
                 upstreams.add(divideUpstream);
             } else {
-                log.info("upstream host {} is exists.", divideUpstream.getUpstreamHost());
+                LOG.info("upstream host {} is exists.", divideUpstream.getUpstreamHost());
             }
         } else {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
@@ -177,7 +202,7 @@ public class UpstreamCheckService {
                 UPSTREAM_MAP.forEach(this::check);
             }
         } catch (Exception e) {
-            log.error("upstream scheduled check error -------- ", e);
+            LOG.error("upstream scheduled check error -------- ", e);
         }
     }
 
@@ -189,12 +214,12 @@ public class UpstreamCheckService {
         if (pass) {
             divideUpstream.setTimestamp(System.currentTimeMillis());
             divideUpstream.setStatus(true);
-            log.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+            LOG.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
             List<DivideUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList()));
             this.submit(selectorName, divideUpstream);
             updateHandler(selectorName, old, UPSTREAM_MAP.get(selectorName));
         } else {
-            log.error("check zombie upstream the url={} is fail", divideUpstream.getUpstreamUrl());
+            LOG.error("check zombie upstream the url={} is fail", divideUpstream.getUpstreamUrl());
             if (zombieUpstream.getZombieCheckTimes() > NumberUtils.INTEGER_ZERO) {
                 zombieUpstream.setZombieCheckTimes(zombieUpstream.getZombieCheckTimes() - NumberUtils.INTEGER_ONE);
                 ZOMBIE_SET.add(zombieUpstream);
@@ -210,13 +235,13 @@ public class UpstreamCheckService {
                 if (!divideUpstream.isStatus()) {
                     divideUpstream.setTimestamp(System.currentTimeMillis());
                     divideUpstream.setStatus(true);
-                    log.info("UpstreamCacheManager check success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+                    LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
                 }
                 successList.add(divideUpstream);
             } else {
                 divideUpstream.setStatus(false);
                 ZOMBIE_SET.add(ZombieUpstream.transform(divideUpstream, zombieCheckTimes, selectorName));
-                log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
+                LOG.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
             }
         }
         updateHandler(selectorName, upstreamList, successList);

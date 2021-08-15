@@ -17,18 +17,17 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
-import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
-import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.PluginHandleService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +37,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.PluginHandleService}.
  */
-@RequiredArgsConstructor
 @Service
 public class PluginHandleServiceImpl implements PluginHandleService {
 
@@ -47,6 +45,11 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     private final PluginHandleMapper pluginHandleMapper;
 
     private final ShenyuDictMapper shenyuDictMapper;
+
+    public PluginHandleServiceImpl(final PluginHandleMapper pluginHandleMapper, final ShenyuDictMapper shenyuDictMapper) {
+        this.pluginHandleMapper = pluginHandleMapper;
+        this.shenyuDictMapper = shenyuDictMapper;
+    }
 
     @Override
     public CommonPager<PluginHandleVO> listByPage(final PluginHandleQuery pluginHandleQuery) {

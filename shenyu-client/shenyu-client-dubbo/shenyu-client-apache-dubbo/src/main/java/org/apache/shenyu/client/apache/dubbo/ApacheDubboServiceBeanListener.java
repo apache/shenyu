@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.apache.dubbo;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.config.spring.ServiceBean;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
 /**
  * The Apache Dubbo ServiceBean Listener.
  */
-@Slf4j
 @SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 

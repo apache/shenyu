@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.admin.aspect;
 
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.model.query.FilterQuery;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -62,10 +62,15 @@ public class DataPermissionAspect {
      * @param point point {@link ProceedingJoinPoint}
      * @return result {@link Object}
      */
-    @SneakyThrows
     @Around("dataPermissionCut()")
     public Object around(final ProceedingJoinPoint point) {
-        return point.proceed(getFilterSQLData(point));
+        // CHECKSTYLE:OFF
+        try {
+            return point.proceed(getFilterSQLData(point));
+        } catch (Throwable throwable) {
+            throw new ShenyuException(throwable);
+        }
+        // CHECKSTYLE:ON
     }
 
     /**

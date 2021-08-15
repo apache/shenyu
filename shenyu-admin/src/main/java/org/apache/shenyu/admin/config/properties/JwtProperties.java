@@ -17,17 +17,33 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
  * Jwt Properties.
  */
-@Data
 @Component
 @ConfigurationProperties(prefix = "shenyu.jwt")
 public class JwtProperties {
 
     private Long expiredSeconds = 24 * 60 * 60 * 1000L;
+
+    /**
+     * Gets the value of expiredSeconds.
+     *
+     * @return the value of expiredSeconds
+     */
+    public Long getExpiredSeconds() {
+        return expiredSeconds;
+    }
+
+    /**
+     * Sets the expiredSeconds.
+     *
+     * @param expiredSeconds expiredSeconds
+     */
+    public void setExpiredSeconds(final Long expiredSeconds) {
+        this.expiredSeconds = expiredSeconds;
+    }
 }

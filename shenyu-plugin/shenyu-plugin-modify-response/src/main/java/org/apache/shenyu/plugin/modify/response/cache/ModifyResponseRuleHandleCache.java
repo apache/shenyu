@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.modify.response.cache;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 
@@ -25,7 +24,6 @@ import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
  * The rule handle cache.
  */
 @SuppressWarnings("all")
-@Slf4j
 public final class ModifyResponseRuleHandleCache extends RuleHandleCache<String, ModifyResponseRuleHandle> {
 
     private ModifyResponseRuleHandleCache() {

@@ -23,8 +23,9 @@ import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.common.dto.ConditionData;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The interface Condition transfer.
@@ -43,18 +44,16 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToSelectorDO(final SelectorConditionDO selectorConditionDO) {
-        if (selectorConditionDO == null) {
-            return null;
-        }
-
-        ConditionData conditionData = new ConditionData();
-
-        conditionData.setParamType(selectorConditionDO.getParamType());
-        conditionData.setOperator(selectorConditionDO.getOperator());
-        conditionData.setParamName(selectorConditionDO.getParamName());
-        conditionData.setParamValue(selectorConditionDO.getParamValue());
-
-        return conditionData;
+        return Optional.ofNullable(selectorConditionDO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
     }
 
     /**
@@ -64,16 +63,9 @@ public enum ConditionTransfer {
      * @return the condition data list
      */
     public List<ConditionData> mapToSelectorDOS(final List<SelectorConditionDO> selectorConditionDOS) {
-        if (selectorConditionDOS == null) {
-            return null;
-        }
-
-        List<ConditionData> list = new ArrayList<ConditionData>(selectorConditionDOS.size());
-        for (SelectorConditionDO selectorConditionDO : selectorConditionDOS) {
-            list.add(mapToSelectorDO(selectorConditionDO));
-        }
-
-        return list;
+        return Optional.ofNullable(selectorConditionDOS)
+                .map(v -> v.stream().map(this::mapToSelectorDO).collect(Collectors.toList()))
+                .orElse(null);
     }
 
     /**
@@ -83,18 +75,16 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToSelectorDTO(final SelectorConditionDTO selectorConditionDTO) {
-        if (selectorConditionDTO == null) {
-            return null;
-        }
-
-        ConditionData conditionData = new ConditionData();
-
-        conditionData.setParamType(selectorConditionDTO.getParamType());
-        conditionData.setOperator(selectorConditionDTO.getOperator());
-        conditionData.setParamName(selectorConditionDTO.getParamName());
-        conditionData.setParamValue(selectorConditionDTO.getParamValue());
-
-        return conditionData;
+        return Optional.ofNullable(selectorConditionDTO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
     }
 
     /**
@@ -104,18 +94,16 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToRuleDO(final RuleConditionDO ruleConditionDO) {
-        if (ruleConditionDO == null) {
-            return null;
-        }
-
-        ConditionData conditionData = new ConditionData();
-
-        conditionData.setParamType(ruleConditionDO.getParamType());
-        conditionData.setOperator(ruleConditionDO.getOperator());
-        conditionData.setParamName(ruleConditionDO.getParamName());
-        conditionData.setParamValue(ruleConditionDO.getParamValue());
-
-        return conditionData;
+        return Optional.ofNullable(ruleConditionDO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
     }
 
     /**
@@ -125,18 +113,16 @@ public enum ConditionTransfer {
      * @return the condition data
      */
     public ConditionData mapToRuleDTO(final RuleConditionDTO ruleConditionDTO) {
-        if (ruleConditionDTO == null) {
-            return null;
-        }
-
-        ConditionData conditionData = new ConditionData();
-
-        conditionData.setParamType(ruleConditionDTO.getParamType());
-        conditionData.setOperator(ruleConditionDTO.getOperator());
-        conditionData.setParamName(ruleConditionDTO.getParamName());
-        conditionData.setParamValue(ruleConditionDTO.getParamValue());
-
-        return conditionData;
+        return Optional.ofNullable(ruleConditionDTO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
     }
 
 }

@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.listener.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -52,7 +51,6 @@ public class ConsulDataInit implements CommandLineRunner {
         }
     }
 
-    @SneakyThrows
     private boolean dataKeyNotExist(final String dataKey) {
         return consulClient.getKVValue(dataKey).getValue() == null;
     }
