@@ -38,6 +38,7 @@
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
     </properties>
+
     <dependencies>
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
@@ -90,7 +91,13 @@
             <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <!-- shenyu jwt plugin starter-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu jwt plugin end-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

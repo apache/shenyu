@@ -63,3 +63,4 @@ INSERT IGNORE INTO selector_condition (id, selector_id, param_type, operator, pa
 INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, date_created, date_updated) VALUES ('1425390970652315648', '1425390877916254208', 1, 'http-jwt', 1, 1, 1,'2021-08-11 17:37:45','2021-08-11 21:07:26');
 INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425450010986262528', '1425390970652315648', 'uri', '=', '/', '/http/test/findByUserId','2021-08-04 13:09:32','2021-08-04 13:09:32');
 INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425479564999307264', '1425390970652315648', 'uri', '=', '/', '/http/test/path/1111/name','2021-08-04 13:09:32','2021-08-04 13:09:32');
+
