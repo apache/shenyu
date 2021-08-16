@@ -27,13 +27,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-sofa-api</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-    </dependencies>
-
     <build>
         <finalName>shenyu-examples-sofa-api</finalName>
     </build>

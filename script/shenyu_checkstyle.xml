@@ -197,7 +197,6 @@
 
         <!-- Class Design -->
         <module name="FinalClass"/>
-        <!-- cannot recognize for lombok @NoArgsConstructor(access = AccessLevel.PRIVATE), just ignore -->
         <!--<module name="HideUtilityClassConstructor"/>-->
         <module name="OneTopLevelClass"/>
         <module name="InterfaceIsType"/>
