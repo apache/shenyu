@@ -18,7 +18,6 @@
 package org.apache.shenyu.examples.dubbo.api.entity;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 public class ListResp {
 
@@ -72,10 +71,7 @@ public class ListResp {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", ListResp.class.getSimpleName() + "[", "]")
-                .add("total=" + total)
-                .add("users=" + users)
-                .toString();
+        return "ListResp{" + "total=" + total + ", users=" + users + '}';
     }
 
 }

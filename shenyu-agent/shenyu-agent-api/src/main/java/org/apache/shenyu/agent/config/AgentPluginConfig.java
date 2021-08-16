@@ -19,7 +19,6 @@ package org.apache.shenyu.agent.config;
 
 import java.util.Properties;
 
-
 /**
  * The type Agent plugin config.
  */

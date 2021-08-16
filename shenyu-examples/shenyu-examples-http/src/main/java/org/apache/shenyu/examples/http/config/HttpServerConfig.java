@@ -41,12 +41,12 @@ public class HttpServerConfig {
     private final Environment environment;
 
     @Autowired
-    public HttpServerConfig(Environment environment) {
+    public HttpServerConfig(final Environment environment) {
         this.environment = environment;
     }
 
     @Bean
-    public RouterFunction<ServerResponse> monoRouterFunction(ShenyuTestHttpRouter shenyuTestHttpRouter) {
+    public RouterFunction<ServerResponse> monoRouterFunction(final ShenyuTestHttpRouter shenyuTestHttpRouter) {
         return shenyuTestHttpRouter.routes();
     }
 
@@ -54,7 +54,8 @@ public class HttpServerConfig {
     public Scheduler scheduler() {
         ExecutorService threadPool = new ThreadPoolExecutor(100, 100,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), runnable -> {
+                new LinkedBlockingQueue<>(),
+                runnable -> {
                     Thread thread = new Thread(runnable, "http-exe");
                     thread.setDaemon(false);
                     if (thread.getPriority() != Thread.NORM_PRIORITY) {

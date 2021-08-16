@@ -17,13 +17,12 @@
 
 package org.apache.shenyu.examples.http.dto;
 
-import java.io.Serializable;
 import java.util.StringJoiner;
 
 /**
  * The type Request dto.
  */
-public class RequestDTO implements Serializable {
+public class RequestDTO {
 
     private String module;
 

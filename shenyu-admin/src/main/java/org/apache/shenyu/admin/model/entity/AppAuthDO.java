@@ -199,8 +199,6 @@ public final class AppAuthDO extends BaseDO {
         this.extInfo = extInfo;
     }
 
-
-
     /**
      * Build AppAuthDO object with given AppAuthDTO object.
      *

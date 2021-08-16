@@ -402,7 +402,6 @@ public class DivideUpstream implements Serializable {
          */
         private long lastUnhealthyTimestamp;
 
-
         /**
          * no args constructor.
          */

@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.examples.http.dto;
 
-import java.util.StringJoiner;
-
 public class OAuth2DTO {
 
     private String token;
@@ -43,9 +41,7 @@ public class OAuth2DTO {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", OAuth2DTO.class.getSimpleName() + "[", "]")
-                .add("token='" + token + "'")
-                .toString();
+        return "OAuth2DTO{" + "token='" + token + '\'' + '}';
     }
 
 }

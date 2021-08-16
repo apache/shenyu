@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.examples.http.result;
 
-import java.util.StringJoiner;
-
 /**
  * ResultBean.
  */
@@ -95,11 +93,7 @@ public class ResultBean {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", ResultBean.class.getSimpleName() + "[", "]")
-                .add("code=" + code)
-                .add("msg='" + msg + "'")
-                .add("data=" + data)
-                .toString();
+        return "ResultBean{" + "code=" + code + ", msg='" + msg + '\'' + ", data=" + data + '}';
     }
 
 }
