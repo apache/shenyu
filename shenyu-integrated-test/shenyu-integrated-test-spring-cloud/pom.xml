@@ -26,34 +26,9 @@
     </parent>
 
     <artifactId>shenyu-integrated-test-spring-cloud</artifactId>
-    <version>2.4.1-SNAPSHOT</version>
-    <name>shenyu-integrated-test-http</name>
-    
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
-    </properties>
+    <name>shenyu-integrated-test-spring-cloud</name>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!--shenyu gateway start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- shenyu waf plugin starter-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -120,7 +95,7 @@
         <dependency>
             <groupId>com.tencent.tars</groupId>
             <artifactId>tars-client</artifactId>
-            <version>1.7.2</version>
+            <version>${tars-client.version}</version>
         </dependency>
         <!--shenyu tars plugin end-->
 
@@ -136,7 +111,7 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>
-            <version>5.7.6</version>
+            <version>${sofa-rpc-all.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -155,7 +130,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-commons</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring-cloud.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -168,13 +143,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-sync-data-zookeeper</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!--shenyu data sync start use websocket-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-websocket</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -234,6 +202,12 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu param mapping end-->
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-integrated-test-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -260,7 +234,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.6</version>
+                <version>${dockerfile-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>shenyu-integrated-test-spring-cloud</id>

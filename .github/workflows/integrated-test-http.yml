@@ -57,7 +57,7 @@ jobs:
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-http/pom.xml
       - name: Build integrated tests
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
         run: docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-http/docker-compose.yml up -d

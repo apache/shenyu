@@ -17,16 +17,17 @@
 
 package org.apache.shenyu.integratedtest.http;
 
-import org.apache.shenyu.integratedtest.http.helper.HttpHelper;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public final class RedirectTest extends AbstractTest {
 

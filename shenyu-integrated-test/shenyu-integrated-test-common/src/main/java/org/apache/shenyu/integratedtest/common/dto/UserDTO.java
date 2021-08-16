@@ -15,24 +15,52 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.springcloud.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+package org.apache.shenyu.integratedtest.common.dto;
 
 import java.io.Serializable;
 
 /**
- * The type Order dto.
+ * The type User dto.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class UserDTO implements Serializable {
 
     private String userId;
 
     private String userName;
 
+    /**
+     * Get the userId.
+     *
+     * @return the userId
+     */
+    public String getUserId() {
+        return userId;
+    }
+
+    /**
+     * Set the userId.
+     *
+     * @param userId userId
+     */
+    public void setUserId(final String userId) {
+        this.userId = userId;
+    }
+
+    /**
+     * Get the userName.
+     *
+     * @return userName
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * Set the userName.
+     *
+     * @param userName userName
+     */
+    public void setUserName(final String userName) {
+        this.userName = userName;
+    }
 }

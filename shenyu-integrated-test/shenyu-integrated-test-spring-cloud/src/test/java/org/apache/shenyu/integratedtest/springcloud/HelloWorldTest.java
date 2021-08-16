@@ -17,19 +17,21 @@
 
 package org.apache.shenyu.integratedtest.springcloud;
 
-import static org.junit.Assert.assertEquals;
-
-import org.apache.shenyu.integratedtest.springcloud.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.springcloud.helper.HttpHelper;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
 
 @Slf4j
 public class HelloWorldTest extends AbstractTest {
 
     @Test
-    public void testHelloWorld() throws Exception {
+    public void testHelloWorld() throws IOException {
         OrderDTO order = new OrderDTO("123", "Phoenix");
         order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
         assertEquals("hello world spring cloud save order", order.getName());

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.springcloud;
+package org.apache.shenyu.integratedtest.common;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
