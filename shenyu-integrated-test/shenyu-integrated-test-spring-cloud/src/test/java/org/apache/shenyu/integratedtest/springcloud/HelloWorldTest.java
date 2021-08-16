@@ -17,16 +17,19 @@
 
 package org.apache.shenyu.integratedtest.springcloud;
 
-import org.apache.shenyu.integratedtest.springcloud.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.springcloud.helper.HttpHelper;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
 public class HelloWorldTest extends AbstractTest {
 
     @Test
-    public void testHelloWorld() throws Exception {
+    public void testHelloWorld() throws IOException {
         OrderDTO order = new OrderDTO("123", "Phoenix");
         order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
         assertEquals("hello world spring cloud save order", order.getName());

@@ -15,20 +15,58 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+package org.apache.shenyu.integratedtest.common.dto;
 
 /**
- * all tests must extend this class
- * we will do something here. For example, update DB to init the data
+ * The type Order dto.
  */
-public class AbstractTest {
+public class OrderDTO {
 
-    private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
+    private String id;
 
-    protected ExecutorService getService() {
-        return SERVICE;
+    private String name;
+
+    public OrderDTO() {
+    }
+
+    public OrderDTO(final String id, final String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    /**
+     * Get the id.
+     *
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Set the id.
+     *
+     * @param id the id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Get the name.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Set the name.
+     *
+     * @param name the name
+     */
+    public void setName(final String name) {
+        this.name = name;
     }
 }

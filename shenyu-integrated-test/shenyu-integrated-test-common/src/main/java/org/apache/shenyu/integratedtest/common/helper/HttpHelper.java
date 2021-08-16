@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http.helper;
+package org.apache.shenyu.integratedtest.common.helper;
 
 import com.google.gson.Gson;
 import okhttp3.MediaType;
@@ -33,13 +33,13 @@ import java.util.Map;
 
 public class HttpHelper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpHelper.class);
-
     public static final HttpHelper INSTANCE = new HttpHelper();
 
     public static final String GATEWAY_END_POINT = "http://localhost:9195";
 
     public static final MediaType JSON = MediaType.parse("application/json");
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpHelper.class);
 
     private static final Gson GSON = new Gson();
 
@@ -63,7 +63,7 @@ public class HttpHelper {
                 .build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        LOGGER.info("postGateway({}) resp({})", path, respBody);
+        LOG.info("postGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, respType);
     }
 
@@ -98,7 +98,7 @@ public class HttpHelper {
         Request request = requestBuilder.build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        LOGGER.info("getFromGateway({}) resp({})", path, respBody);
+        LOG.info("getFromGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, type);
     }
 }

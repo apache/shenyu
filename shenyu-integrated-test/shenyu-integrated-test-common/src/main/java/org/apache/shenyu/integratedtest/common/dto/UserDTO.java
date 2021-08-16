@@ -15,22 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+package org.apache.shenyu.integratedtest.common.dto;
 
 /**
- * Hello world.
+ * The type User dto.
  */
-@SpringBootApplication
-public class App {
+public class UserDTO {
+
+    private String userId;
+
+    private String userName;
 
     /**
-     * main method of App.
-     * @param args args
+     * Get the userId.
+     *
+     * @return the userId
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(App.class);
+    public String getUserId() {
+        return userId;
+    }
+
+    /**
+     * Set the userId.
+     *
+     * @param userId userId
+     */
+    public void setUserId(final String userId) {
+        this.userId = userId;
+    }
+
+    /**
+     * Get the userName.
+     *
+     * @return userName
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * Set the userName.
+     *
+     * @param userName userName
+     */
+    public void setUserName(final String userName) {
+        this.userName = userName;
     }
 }

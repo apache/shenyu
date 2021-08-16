@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.integratedtest.http;
 
-import org.apache.shenyu.integratedtest.http.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.http.helper.HttpHelper;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

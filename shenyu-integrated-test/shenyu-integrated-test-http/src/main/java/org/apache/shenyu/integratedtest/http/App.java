@@ -15,37 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http.dto;
+package org.apache.shenyu.integratedtest.http;
 
-public class AdminResponse<T> {
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-    private Integer code;
+/**
+ * Hello world.
+ */
+@SpringBootApplication
+public class App {
 
-    private String message;
-
-    private T data;
-
-    public Integer getCode() {
-        return code;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
+    /**
+     * main method of App.
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(App.class);
     }
 }

@@ -15,60 +15,67 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http.dto;
+package org.apache.shenyu.integratedtest.common.dto;
 
-import java.util.StringJoiner;
+public class AdminResponse<T> {
 
-/**
- * The type User dto.
- */
-public class UserDTO {
+    private Integer code;
 
-    private String userId;
+    private String message;
 
-    private String userName;
+    private T data;
 
     /**
-     * Get userId.
+     * Get the code.
      *
-     * @return userId
+     * @return the code
      */
-    public String getUserId() {
-        return userId;
+    public Integer getCode() {
+        return code;
     }
 
     /**
-     * Set userId.
+     * Set the code.
      *
-     * @param userId userId
+     * @param code the code
      */
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setCode(final Integer code) {
+        this.code = code;
     }
 
     /**
-     * Get userName.
+     * Get the message.
      *
-     * @return userName
+     * @return the message
      */
-    public String getUserName() {
-        return userName;
+    public String getMessage() {
+        return message;
     }
 
     /**
-     * Set userName.
+     * Set the message.
      *
-     * @param userName userName
+     * @param message the message
      */
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setMessage(final String message) {
+        this.message = message;
     }
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", UserDTO.class.getSimpleName() + "[", "]")
-                .add("userId='" + userId + "'")
-                .add("userName='" + userName + "'")
-                .toString();
+    /**
+     * Get the data.
+     *
+     * @return the data
+     */
+    public T getData() {
+        return data;
+    }
+
+    /**
+     * Set the data.
+     *
+     * @param data the data
+     */
+    public void setData(final T data) {
+        this.data = data;
     }
 }
