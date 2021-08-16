@@ -17,16 +17,18 @@
 
 package org.apache.shenyu.web.logo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The TestCase for ShenyuLogo.
  */
-@Slf4j
 public final class ShenyuLogoTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuLogoTest.class);
 
     private static final String SHENYU_LOGO = "\n"
         + "   _____ _                            \n"
@@ -46,6 +48,6 @@ public final class ShenyuLogoTest {
                 + Constants.LINE_SEPARATOR
                 + " :: Shenyu :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
                 + Constants.LINE_SEPARATOR;
-        log.info(buildBannerText);
+        LOGGER.info(buildBannerText);
     }
 }

@@ -17,23 +17,23 @@
 
 package org.apache.shenyu.integratedtest.springcloud.helper;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Map;
-
-import org.springframework.util.CollectionUtils;
-
 import com.google.gson.Gson;
-
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
-@Slf4j
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
 public class HttpHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpHelper.class);
 
     public static final HttpHelper INSTANCE = new HttpHelper();
 
@@ -63,7 +63,7 @@ public class HttpHelper {
                 .build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        log.info("postGateway({}) resp({})", path, respBody);
+        LOGGER.info("postGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, respType);
     }
 
@@ -98,7 +98,7 @@ public class HttpHelper {
         Request request = requestBuilder.build();
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
-        log.info("getFromGateway({}) resp({})", path, respBody);
+        LOGGER.info("getFromGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, type);
     }
 

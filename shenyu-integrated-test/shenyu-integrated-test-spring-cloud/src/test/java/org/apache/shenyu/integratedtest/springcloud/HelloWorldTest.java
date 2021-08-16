@@ -17,15 +17,12 @@
 
 package org.apache.shenyu.integratedtest.springcloud;
 
-import static org.junit.Assert.assertEquals;
-
 import org.apache.shenyu.integratedtest.springcloud.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.springcloud.helper.HttpHelper;
 import org.junit.Test;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.junit.Assert.assertEquals;
 
-@Slf4j
 public class HelloWorldTest extends AbstractTest {
 
     @Test
@@ -34,4 +31,5 @@ public class HelloWorldTest extends AbstractTest {
         order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
         assertEquals("hello world spring cloud save order", order.getName());
     }
+
 }

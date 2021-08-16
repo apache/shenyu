@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.springboot.starter.sync.data.websocket;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -40,8 +41,9 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(WebsocketSyncDataService.class)
 @ConditionalOnProperty(prefix = "shenyu.sync.websocket", name = "urls")
-@Slf4j
 public class WebsocketSyncDataConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketSyncDataConfiguration.class);
 
     /**
      * Websocket sync data service.
@@ -55,7 +57,7 @@ public class WebsocketSyncDataConfiguration {
     @Bean
     public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use websocket sync shenyu data.......");
+        LOGGER.info("you use websocket sync shenyu data.......");
         return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
@@ -70,4 +72,5 @@ public class WebsocketSyncDataConfiguration {
     public WebsocketConfig websocketConfig() {
         return new WebsocketConfig();
     }
+
 }

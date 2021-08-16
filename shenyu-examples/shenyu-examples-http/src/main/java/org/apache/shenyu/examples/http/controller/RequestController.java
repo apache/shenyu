@@ -17,39 +17,47 @@
 
 package org.apache.shenyu.examples.http.controller;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
  * RequestController.
  */
-@Slf4j
 @RestController
 @RequestMapping("/request")
 @ShenyuSpringMvcClient(path = "/request/**")
 public class RequestController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestController.class);
+
     @GetMapping(path = "/header")
     public Mono<String> testRequestHeader(@RequestHeader("header_key1") String headerKey1,
                                           ServerHttpRequest serverHttpRequest) {
-        log.info("header_key1:{}, receive headers: {}", headerKey1, serverHttpRequest.getHeaders());
+        LOGGER.info("header_key1:{}, receive headers: {}", headerKey1, serverHttpRequest.getHeaders());
         return Mono.just("response success: " + serverHttpRequest.getHeaders());
     }
 
     @PostMapping(path = "/parameter")
     public Mono<String> testRequestParameter(@RequestParam("parameter_key1") String parameterKey1,
                                              ServerHttpRequest serverHttpRequest) {
-        log.info("parameter_key1: {}, receive param: {}", parameterKey1, serverHttpRequest.getQueryParams());
+        LOGGER.info("parameter_key1: {}, receive param: {}", parameterKey1, serverHttpRequest.getQueryParams());
         return Mono.just("response success: " + serverHttpRequest.getQueryParams());
     }
 
     @GetMapping(path = "/cookie")
     public Mono<String> testRequestCookie(@CookieValue("userId") String userId,
                                           ServerHttpRequest serverHttpRequest) {
-        log.info("userId:{}, receive Cookies: {}", userId, serverHttpRequest.getCookies());
+        LOGGER.info("userId:{}, receive Cookies: {}", userId, serverHttpRequest.getCookies());
         return Mono.just("response success: " + serverHttpRequest.getCookies());
     }
 }

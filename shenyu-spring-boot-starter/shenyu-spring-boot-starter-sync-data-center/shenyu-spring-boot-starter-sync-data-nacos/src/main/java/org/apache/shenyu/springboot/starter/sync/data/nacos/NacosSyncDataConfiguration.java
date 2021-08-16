@@ -20,7 +20,6 @@ package org.apache.shenyu.springboot.starter.sync.data.nacos;
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -28,6 +27,8 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.nacos.NacosSyncDataService;
 import org.apache.shenyu.sync.data.nacos.config.NacosConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,8 +46,9 @@ import java.util.Properties;
 @Configuration
 @ConditionalOnClass(NacosSyncDataService.class)
 @ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
-@Slf4j
 public class NacosSyncDataConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(NacosSyncDataConfiguration.class);
 
     /**
      * Nacos sync data service.
@@ -60,7 +62,7 @@ public class NacosSyncDataConfiguration {
     @Bean
     public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use nacos sync shenyu data.......");
+        LOGGER.info("you use nacos sync shenyu data.......");
         return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
