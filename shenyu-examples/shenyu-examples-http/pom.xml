@@ -62,11 +62,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-
         <!--shenyu consul register center -->
         <!--<dependency>
             <groupId>org.springframework.cloud</groupId>

@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.integratedtest.common.dto;
 
-import java.io.Serializable;
-
 /**
  * The type Order dto.
  */
-public class OrderDTO implements Serializable {
+public class OrderDTO {
 
     private String id;
 

@@ -23,7 +23,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 /**
  * this is zombie divide upstream.
  */
-
 public class ZombieUpstream {
 
     /**
@@ -158,7 +157,6 @@ public class ZombieUpstream {
                 + '\''
                 + '}';
     }
-
 
     /**
      * create zombie upstream with divide upstream.

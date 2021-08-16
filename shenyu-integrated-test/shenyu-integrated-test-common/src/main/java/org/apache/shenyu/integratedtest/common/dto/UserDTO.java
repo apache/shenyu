@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.integratedtest.common.dto;
 
-import java.io.Serializable;
-
 /**
  * The type User dto.
  */
-public class UserDTO implements Serializable {
+public class UserDTO {
 
     private String userId;
 
