@@ -20,10 +20,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>shenyu-integrated-test</artifactId>
         <groupId>org.apache.shenyu</groupId>
+        <artifactId>shenyu-integrated-test</artifactId>
         <version>2.4.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>shenyu-integrated-test-http</artifactId>
@@ -110,7 +109,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>org.apache.shenyu.integratedtest.http.App</mainClass>
+                    <mainClass>org.apache.shenyu.integrated.test.http.HttpIntegratedBootstrap</mainClass>
                     <executable>true</executable>
                 </configuration>
             </plugin>
@@ -135,7 +134,6 @@
                     </buildArgs>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>
