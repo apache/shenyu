@@ -18,16 +18,16 @@
 package org.apache.shenyu.plugin.alibaba.dubbo.proxy;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
+import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
+import com.alibaba.dubbo.remoting.exchange.support.SimpleFuture;
+import com.alibaba.dubbo.rpc.RpcContext;
+import com.alibaba.dubbo.rpc.RpcResult;
+import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import com.alibaba.dubbo.rpc.service.GenericService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.junit.After;
@@ -37,6 +37,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * AlibabaDubboProxyServiceTest.
@@ -70,18 +74,26 @@ public final class AlibabaDubboProxyServiceTest {
     }
 
     @Test
-    public void testGenericInvoker() {
+    public void testGenericInvoker() throws Exception {
         ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
+        String sample = String.format("%x", System.nanoTime());
         when(referenceConfig.get()).thenReturn(genericService);
-        when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
+        when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT))
+                .then(invocationOnMock -> {
+                    RpcContext.getContext().setFuture(new FutureAdapter<>(new SimpleFuture(new RpcResult(sample))));
+                    return sample;
+                });
         try (MockedStatic<ApplicationConfigCache> applicationConfigCacheMockedStatic = mockStatic(ApplicationConfigCache.class)) {
             ApplicationConfigCache applicationConfigCache = mock(ApplicationConfigCache.class);
-            applicationConfigCacheMockedStatic.when(() -> ApplicationConfigCache.getInstance()).thenReturn(applicationConfigCache);
+            applicationConfigCacheMockedStatic.when(ApplicationConfigCache::getInstance).thenReturn(applicationConfigCache);
             when(applicationConfigCache.initRef(metaData)).thenReturn(referenceConfig);
 
             AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new BodyParamResolveServiceImpl());
-            Assert.assertNull(alibabaDubboProxyService.genericInvoker("", metaData));
+
+            ResponseFuture responseFuture = alibabaDubboProxyService.genericInvoker("", metaData);
+            Assert.assertNotNull(responseFuture);
+            Assert.assertEquals(sample, RpcContext.getContext().getFuture().get());
         }
     }
 

@@ -72,7 +72,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public synchronized String register(final MetaDataRegisterDTO dto) {
+    public String register(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataDO exist = metaDataService.findByPath(dto.getPath());
             if (Objects.isNull(exist)) {

@@ -17,17 +17,19 @@
 
 package org.apache.shenyu.admin.listener.etcd;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 
 /**
  * EtcdDataInit.
  */
-@Slf4j
 public class EtcdDataInit implements CommandLineRunner {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdDataInit.class);
 
     private final EtcdClient etcdClient;
 
@@ -44,7 +46,7 @@ public class EtcdDataInit implements CommandLineRunner {
         final String authPath = DefaultPathConstants.APP_AUTH_PARENT;
         final String metaDataPath = DefaultPathConstants.META_DATA;
         if (!etcdClient.exists(pluginPath) && !etcdClient.exists(authPath) && !etcdClient.exists(metaDataPath)) {
-            log.info("Init all data from database");
+            LOG.info("Init all data from database");
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         }
     }

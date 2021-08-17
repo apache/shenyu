@@ -18,27 +18,27 @@ server:
   address: 0.0.0.0
 
 spring:
-   main:
-     allow-bean-definition-overriding: true
-   application:
+  main:
+    allow-bean-definition-overriding: true
+  application:
     name: shenyu-bootstrap
-#   cloud:
+#  cloud:
 #    nacos:
-#       discovery:
-#          server-addr: 127.0.0.1:8848
-#   security:
-#      oauth2:
-#        client:
-#          registration:
-#            <your client-registration-id>:
-#              client-id: <your client-id>
-#              client-secret: <your client-secret>
-#          provider:
-#            <your client-registration-id>:
-#              authorization-uri: <your authorization-uri>
-#              token-uri: <your access-token-uri>
-#              user-info-uri: <your user-info-uri>
-#              jwk-set-uri: <your jwk-set-uri>
+#      discovery:
+#        server-addr: 127.0.0.1:8848
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          <your client-registration-id>:
+#            client-id: <your client-id>
+#            client-secret: <your client-secret>
+#        provider:
+#          <your client-registration-id>:
+#            authorization-uri: <your authorization-uri>
+#            token-uri: <your access-token-uri>
+#            user-info-uri: <your user-info-uri>
+#            jwk-set-uri: <your jwk-set-uri>
 
 management:
   health:
@@ -46,38 +46,42 @@ management:
       enabled: false
 
 shenyu:
-    file:
-      enabled: true
-    cross:
-      enabled: true
-    dubbo :
-      parameter: multi
-    sync:
-        websocket :
-             urls: ws://localhost:9095/websocket
-#        zookeeper:
-#             url: localhost:2181
-#             sessionTimeout: 5000
-#             connectionTimeout: 2000
-#        http:
-#             url : http://localhost:9095
-#        nacos:
-#          url: localhost:8848
-#          namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#          username:
-#          password:
-#          acm:
-#            enabled: false
-#            endpoint: acm.aliyun.com
-#            namespace:
-#            accessKey:
-#            secretKey:
-#       etcd:
-#         url: http://localhost:2379
-    exclude:
-      enabled: false
-      paths:
-        - /favicon.ico
+  file:
+    enabled: true
+  cross:
+    enabled: true
+  dubbo:
+    parameter: multi
+  sync:
+    websocket:
+      urls: ws://localhost:9095/websocket
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
+#    http:
+#      url: http://localhost:9095
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
+#    etcd:
+#      url: http://localhost:2379
+#    consul:
+#      url: http://localhost:8500
+#      waitTime: 1000
+#      watchDelay: 1000
+  exclude:
+    enabled: false
+    paths:
+      - /favicon.ico
 
 #eureka:
 #  client:
@@ -88,11 +92,11 @@ shenyu:
 
 
 logging:
-    level:
-        root: info
-        org.springframework.boot: info
-        org.apache.ibatis: info
-        org.apache.shenyu.bonuspoint: info
-        org.apache.shenyu.lottery: info
-        org.apache.shenyu: info
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.apache.shenyu.bonuspoint: info
+    org.apache.shenyu.lottery: info
+    org.apache.shenyu: info
 

@@ -18,9 +18,10 @@
 package org.apache.shenyu.plugin.hystrix.command;
 
 import com.netflix.hystrix.HystrixObservableCommand;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.UriUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Observable;
@@ -31,8 +32,9 @@ import java.net.URI;
 /**
  * the Hystrix command.
  */
-@Slf4j
 public class HystrixCommand extends HystrixObservableCommand<Void> implements Command {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HystrixCommand.class);
     
     private final ServerWebExchange exchange;
 
@@ -70,7 +72,7 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
 
     private Mono<Void> doFallback() {
         if (isFailedExecution()) {
-            log.error("hystrix execute have error: ", getExecutionException());
+            LOG.error("hystrix execute have error: ", getExecutionException());
         }
         final Throwable exception = getExecutionException();
         return doFallback(exchange, exception);

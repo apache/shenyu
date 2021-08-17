@@ -17,15 +17,11 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * the websocket sync strategy properties.
  */
-@Getter
-@Setter
 @ConfigurationProperties(prefix = "shenyu.sync.websocket")
 public class WebsocketSyncProperties {
 
@@ -34,4 +30,21 @@ public class WebsocketSyncProperties {
      */
     private boolean enabled = true;
 
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
 }

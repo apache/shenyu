@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.register.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * RegisterTypeEnum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum RegisterTypeEnum {
 
     /**
@@ -63,4 +58,17 @@ public enum RegisterTypeEnum {
     GRPC("grpc");
     
     private final String name;
+
+    RegisterTypeEnum(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * getName.
+     *
+     * @return String
+     */
+    public String getName() {
+        return name;
+    }
 }

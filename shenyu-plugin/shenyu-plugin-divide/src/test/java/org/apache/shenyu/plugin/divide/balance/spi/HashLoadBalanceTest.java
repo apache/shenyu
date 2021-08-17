@@ -72,21 +72,21 @@ public final class HashLoadBalanceTest {
         this.treeMapReversed = new ConcurrentSkipListMap<>();
         for (DivideUpstream address : hashLoadBalancesOrdered) {
             for (int i = 0; i < 5; i++) {
-                String hashKey = "SOUL-" + address.getUpstreamUrl() + "-HASH-" + i;
+                String hashKey = "SHENYU-" + address.getUpstreamUrl() + "-HASH-" + i;
                 Object o = hash.invoke(null, hashKey);
                 treeMapOrdered.put(Long.parseLong(o.toString()), address);
             }
         }
         for (DivideUpstream address : hashLoadBalancesReversed) {
             for (int i = 0; i < 5; i++) {
-                String hashKey = "SOUL-" + address.getUpstreamUrl() + "-HASH-" + i;
+                String hashKey = "SHENYU-" + address.getUpstreamUrl() + "-HASH-" + i;
                 Object o = hash.invoke(null, hashKey);
                 treeMapReversed.put(Long.parseLong(o.toString()), address);
             }
         }
         for (DivideUpstream address : hashLoadBalancesDisordered) {
             for (int i = 0; i < 5; i++) {
-                String hashKey = "SOUL-" + address.getUpstreamUrl() + "-HASH-" + i;
+                String hashKey = "SHENYU-" + address.getUpstreamUrl() + "-HASH-" + i;
                 Object o = hash.invoke(null, hashKey);
                 treeMapDisordered.put(Long.parseLong(o.toString()), address);
             }

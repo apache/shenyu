@@ -89,11 +89,4 @@ public interface PermissionMapper {
      * @param objectId object id
      */
     void deleteByObjectIds(List<String> objectId);
-
-    /**
-     * list All.
-     *
-     * @return {@linkplain List}
-     */
-    List<PermissionDO> selectAll();
 }

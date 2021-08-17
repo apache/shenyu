@@ -26,12 +26,15 @@ import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -46,7 +49,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.CONNECTION;
 import static org.springframework.http.HttpHeaders.UPGRADE;
@@ -70,6 +76,8 @@ public class WebSocketPluginTest {
 
     private WebSocketService webSocketService;
 
+    private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
+
     @Before
     public void setup() {
         this.ruleData = mock(RuleData.class);
@@ -89,6 +97,15 @@ public class WebSocketPluginTest {
         WebSocketClient webSocketClient = mock(WebSocketClient.class);
         this.webSocketService = mock(WebSocketService.class);
         this.webSocketPlugin = new WebSocketPlugin(webSocketClient, webSocketService);
+
+        // mock static
+        mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
+        mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+    }
+
+    @After
+    public void tearDown() {
+        mockCheckUtils.close();
     }
 
     /**

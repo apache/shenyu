@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.jwt.handle;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -24,6 +25,8 @@ import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -41,10 +44,12 @@ public final class JwtPluginDataHandlerTest {
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":[\"/cloud/ecg/common\"]}", "0", false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":\"/cloud/ecg/common,/cloud/ecg/selectAll\"}", "0", false);
         jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
-        assertEquals(GsonUtils.getInstance().toJson(jwtConfig), pluginData.getConfig());
+        Map<String, String> map = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
+        assertEquals(jwtConfig.getSecretKey(), map.get("secretKey"));
+        assertEquals(StringUtils.join(jwtConfig.getFilterPath(), ","), map.get("filterPath"));
     }
 
     @Test

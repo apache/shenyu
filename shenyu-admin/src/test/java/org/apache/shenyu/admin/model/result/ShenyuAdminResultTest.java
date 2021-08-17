@@ -53,13 +53,13 @@ public final class ShenyuAdminResultTest {
         shenyuAdminResultUnderTest.setMessage("message");
         shenyuAdminResultUnderTest.setData("data");
         final int result = shenyuAdminResultUnderTest.hashCode();
-        assertEquals(509285258, result);
+        assertEquals(-458988318, result);
     }
 
     @Test
     public void testToString() {
         final String result = shenyuAdminResultUnderTest.toString();
-        assertEquals("ShenyuAdminResult(code=0, message=message, data=data)", result);
+        assertEquals("ShenyuAdminResult{code=0, message='message', data=data}", result);
     }
 
     @Test
@@ -68,8 +68,8 @@ public final class ShenyuAdminResultTest {
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
         assertEquals("", result.getMessage());
         assertNull(result.getData());
-        assertEquals(901622, result.hashCode());
-        assertEquals("ShenyuAdminResult(code=200, message=, data=null)", result.toString());
+        assertEquals(221991, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=200, message='', data=null}", result.toString());
     }
 
     @Test
@@ -78,8 +78,8 @@ public final class ShenyuAdminResultTest {
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
         assertEquals("msg", result.getMessage());
         assertNull(result.getData());
-        assertEquals(7298225, result.hashCode());
-        assertEquals("ShenyuAdminResult(code=200, message=msg, data=null)", result.toString());
+        assertEquals(3582918, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=200, message='msg', data=null}", result.toString());
     }
 
     @Test
@@ -88,7 +88,7 @@ public final class ShenyuAdminResultTest {
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
         assertNull(result.getMessage());
         assertNotNull(result.getData());
-        assertEquals("ShenyuAdminResult(code=200, message=null, data=[data])", result.toString());
+        assertEquals("ShenyuAdminResult{code=200, message='null', data=[data]}", result.toString());
     }
 
     @Test
@@ -97,8 +97,8 @@ public final class ShenyuAdminResultTest {
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
         assertEquals("msg", result.getMessage());
         assertEquals("data", result.getData());
-        assertEquals(10374192, result.hashCode());
-        assertEquals("ShenyuAdminResult(code=200, message=msg, data=data)", result.toString());
+        assertEquals(6658928, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=200, message='msg', data=data}", result.toString());
     }
 
     @Test
@@ -107,8 +107,8 @@ public final class ShenyuAdminResultTest {
         assertEquals(CommonErrorCode.ERROR, result.getCode().intValue());
         assertEquals("msg", result.getMessage());
         assertNull(result.getData());
-        assertEquals(8342525, result.hashCode());
-        assertEquals("ShenyuAdminResult(code=500, message=msg, data=null)", result.toString());
+        assertEquals(3871218, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=500, message='msg', data=null}", result.toString());
     }
 
     @Test
@@ -117,8 +117,8 @@ public final class ShenyuAdminResultTest {
         assertEquals(0, result.getCode().intValue());
         assertEquals("msg", result.getMessage());
         assertNull(result.getData());
-        assertEquals(6602025, result.hashCode());
-        assertEquals("ShenyuAdminResult(code=0, message=msg, data=null)", result.toString());
+        assertEquals(3390718, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=0, message='msg', data=null}", result.toString());
     }
 
     @Test
@@ -127,7 +127,7 @@ public final class ShenyuAdminResultTest {
         assertEquals(HttpStatus.REQUEST_TIMEOUT.value(), result.getCode().intValue());
         assertEquals("msg", result.getMessage());
         assertNull(result.getData());
-        assertEquals(8022273, result.hashCode());
-        assertEquals("ShenyuAdminResult(code=408, message=msg, data=null)", result.toString());
+        assertEquals(3782806, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=408, message='msg', data=null}", result.toString());
     }
 }

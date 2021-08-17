@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.junit.Assert.assertThat;
@@ -184,7 +183,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private MetaDataDO getMetaDataDO() {
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         return MetaDataDO.builder()
                 .appName("testAppName")
                 .path("testPath")

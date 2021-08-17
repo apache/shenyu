@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
@@ -72,7 +71,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SelectorService}.
  */
-@RequiredArgsConstructor
 @Service
 public class SelectorServiceImpl implements SelectorService {
 
@@ -91,6 +89,24 @@ public class SelectorServiceImpl implements SelectorService {
     private final DataPermissionMapper dataPermissionMapper;
 
     private final UpstreamCheckService upstreamCheckService;
+
+    public SelectorServiceImpl(final SelectorMapper selectorMapper,
+                               final SelectorConditionMapper selectorConditionMapper,
+                               final PluginMapper pluginMapper,
+                               final RuleMapper ruleMapper,
+                               final RuleConditionMapper ruleConditionMapper,
+                               final ApplicationEventPublisher eventPublisher,
+                               final DataPermissionMapper dataPermissionMapper,
+                               final UpstreamCheckService upstreamCheckService) {
+        this.selectorMapper = selectorMapper;
+        this.selectorConditionMapper = selectorConditionMapper;
+        this.pluginMapper = pluginMapper;
+        this.ruleMapper = ruleMapper;
+        this.ruleConditionMapper = ruleConditionMapper;
+        this.eventPublisher = eventPublisher;
+        this.dataPermissionMapper = dataPermissionMapper;
+        this.upstreamCheckService = upstreamCheckService;
+    }
 
     @Override
     public String register(final SelectorDTO selectorDTO) {

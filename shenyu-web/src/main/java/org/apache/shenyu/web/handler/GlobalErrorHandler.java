@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.web.handler;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
@@ -31,14 +32,16 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-
 import java.util.Map;
 
 /**
  * GlobalErrorHandler.
  */
-@Slf4j
 public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(GlobalErrorHandler.class);
 
     /**
      * Instantiates a new Global error handler.
@@ -79,7 +82,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     private void logError(final ServerRequest request) {
         Throwable ex = getError(request);
-        log.error(request.exchange().getLogPrefix() + formatError(ex, request));
+        LOG.error(request.exchange().getLogPrefix() + formatError(ex, request));
     }
 
     private String formatError(final Throwable ex, final ServerRequest request) {

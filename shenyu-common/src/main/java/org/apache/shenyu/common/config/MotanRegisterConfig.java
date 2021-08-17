@@ -19,17 +19,57 @@
 
 package org.apache.shenyu.common.config;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Motan register config.
  */
-@Data
-@EqualsAndHashCode
 public class MotanRegisterConfig implements Serializable {
 
     private String register;
+
+    /**
+     * get register.
+     *
+     * @return register
+     */
+    public String getRegister() {
+        return register;
+    }
+
+    /**
+     * set register.
+     *
+     * @param register register
+     */
+    public void setRegister(final String register) {
+        this.register = register;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MotanRegisterConfig that = (MotanRegisterConfig) o;
+        return Objects.equals(register, that.register);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(register);
+    }
+
+    @Override
+    public String toString() {
+        return "MotanRegisterConfig{"
+                + "register='"
+                + register
+                + '\''
+                + '}';
+    }
 }

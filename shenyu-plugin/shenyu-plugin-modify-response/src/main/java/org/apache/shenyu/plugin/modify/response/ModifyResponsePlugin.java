@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.modify.response;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -60,7 +59,6 @@ import java.util.Set;
 /**
  * ModifyResponse plugin.
  */
-@Slf4j
 public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
     public ModifyResponsePlugin() {
@@ -72,33 +70,33 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
-        final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.nonNull(modifyResponseRuleHandle)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders httpHeaders = response.getHeaders();
-            if (Objects.nonNull(modifyResponseRuleHandle.getAddHeaders()) && MapUtils.isNotEmpty(modifyResponseRuleHandle.getAddHeaders())) {
+            if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getAddHeaders())) {
                 Map<String, String> addHeaderMap = modifyResponseRuleHandle.getAddHeaders();
-                addHeaderMap.entrySet().stream().forEach(a -> httpHeaders.add(a.getKey(), a.getValue()));
+                addHeaderMap.forEach(httpHeaders::add);
             }
 
-            if (Objects.nonNull(modifyResponseRuleHandle.getSetHeaders()) && MapUtils.isNotEmpty(modifyResponseRuleHandle.getSetHeaders())) {
+            if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getSetHeaders())) {
                 Map<String, String> setHeaderMap = modifyResponseRuleHandle.getSetHeaders();
-                setHeaderMap.entrySet().stream().forEach(a -> httpHeaders.set(a.getKey(), a.getValue()));
+                setHeaderMap.forEach(httpHeaders::set);
             }
 
-            if (Objects.nonNull(modifyResponseRuleHandle.getReplaceHeaderKeys()) && MapUtils.isNotEmpty(modifyResponseRuleHandle.getReplaceHeaderKeys())) {
+            if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getReplaceHeaderKeys())) {
                 Map<String, String> replaceHeaderMap = modifyResponseRuleHandle.getReplaceHeaderKeys();
-                replaceHeaderMap.entrySet().stream().forEach(a -> {
-                    httpHeaders.addAll(a.getValue(), httpHeaders.get(a.getKey()));
-                    httpHeaders.remove(a.getKey());
+                replaceHeaderMap.forEach((key, value) -> {
+                    httpHeaders.addAll(value, httpHeaders.get(key));
+                    httpHeaders.remove(key);
                 });
             }
 
             if (Objects.nonNull(modifyResponseRuleHandle.getRemoveHeaderKeys()) && !CollectionUtils.isEmpty(modifyResponseRuleHandle.getRemoveHeaderKeys())) {
                 Set<String> removeHeaderList = modifyResponseRuleHandle.getRemoveHeaderKeys();
-                removeHeaderList.stream().forEach(a -> httpHeaders.remove(a));
+                removeHeaderList.forEach(httpHeaders::remove);
             }
 
             if (modifyResponseRuleHandle.getStatusCode() > 0) {
@@ -174,26 +172,20 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
         private String operation(final String jsonValue, final ModifyResponseRuleHandle handle) {
             DocumentContext context = JsonPath.parse(jsonValue);
-            operation(context, handle);
+            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
+                handle.getAddBodyKeys().forEach(info -> {
+                    context.put(info.getPath(), info.getKey(), info.getValue());
+                });
+            }
             if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
                 handle.getReplaceBodyKeys().forEach(info -> {
                     context.renameKey(info.getPath(), info.getKey(), info.getValue());
                 });
             }
             if (!CollectionUtils.isEmpty(handle.getRemoveBodyKeys())) {
-                handle.getRemoveBodyKeys().forEach(info -> {
-                    context.delete(info);
-                });
+                handle.getRemoveBodyKeys().forEach(context::delete);
             }
             return context.jsonString();
-        }
-
-        private void operation(final DocumentContext context, final ModifyResponseRuleHandle handle) {
-            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
-                handle.getAddBodyKeys().forEach(info -> {
-                    context.put(info.getPath(), info.getKey(), info.getValue());
-                });
-            }
         }
 
         private ClientResponse prepareClientResponse(final Publisher<? extends DataBuffer> body, final HttpHeaders httpHeaders) {

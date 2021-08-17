@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
 @Deprecated
 public class HttpServiceDiscovery implements InitializingBean {
 
-    private static final String ROOT = "/shenyu/register";
+    public static final String ROOT = "/shenyu/register";
 
     private ZkClient zkClient;
 
@@ -92,7 +93,7 @@ public class HttpServiceDiscovery implements InitializingBean {
         }
         String zookeeperUrl = env.getProperty("shenyu.http.zookeeperUrl", "");
         if (StringUtils.isNoneBlank(zookeeperUrl)) {
-            zkClient = new ZkClient(zookeeperUrl, 5000, 2000);
+            zkClient = createZkClient(zookeeperUrl);
             boolean exists = zkClient.exists(ROOT);
             if (!exists) {
                 zkClient.createPersistent(ROOT, true);
@@ -105,6 +106,11 @@ public class HttpServiceDiscovery implements InitializingBean {
                 contextPathList = childs;
             });
         }
+    }
+
+    @VisibleForTesting
+    ZkClient createZkClient(final String zookeeperUrl) {
+        return new ZkClient(zookeeperUrl, 5000, 2000);
     }
 
     private void updateServerNode(final List<String> serverNodeList) {

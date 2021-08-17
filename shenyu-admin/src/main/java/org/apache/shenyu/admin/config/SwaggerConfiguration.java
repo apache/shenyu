@@ -78,7 +78,7 @@ public class SwaggerConfiguration {
                 .title("Shenyu Admin API Document")
                 .description("")
                 .version(version)
-                .contact(new Contact("shenyu", "https://github.com/dromara/shenyu", ""))
+                .contact(new Contact("shenyu", "https://github.com/apache/incubator-shenyu", ""))
                 .build();
     }
 }

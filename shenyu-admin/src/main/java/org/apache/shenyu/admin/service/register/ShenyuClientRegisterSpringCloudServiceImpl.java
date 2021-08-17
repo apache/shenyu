@@ -76,7 +76,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public synchronized String register(final MetaDataRegisterDTO dto) {
+    public String register(final MetaDataRegisterDTO dto) {
         MetaDataDO metaDataDO = metaDataService.findByPath(dto.getContextPath() + "/**");
         if (Objects.isNull(metaDataDO)) {
             saveOrUpdateMetaData(metaDataDO, dto);

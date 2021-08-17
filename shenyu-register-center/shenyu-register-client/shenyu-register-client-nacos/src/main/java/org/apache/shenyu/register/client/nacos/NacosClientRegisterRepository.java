@@ -24,9 +24,9 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -34,6 +34,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,10 +46,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * nacos register center client.
  */
 @Join
-@Slf4j
 public class NacosClientRegisterRepository implements ShenyuClientRegisterRepository {
 
-    private String defaultGroup = "default_group";
+    private static final Logger LOGGER = LoggerFactory.getLogger(NacosClientRegisterRepository.class);
+
+    private final String defaultGroup = NacosPathConstants.GROUP;
 
     private ConfigService configService;
 
@@ -57,7 +60,6 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
 
     private boolean registerService;
 
-    @SneakyThrows
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         String serverAddr = config.getServerLists();
@@ -75,8 +77,12 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         nacosProperties.put(PropertyKeyConst.ACCESS_KEY, properties.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
         // secret key for namespace
         nacosProperties.put(PropertyKeyConst.SECRET_KEY, properties.getProperty(PropertyKeyConst.SECRET_KEY, ""));
-        this.configService = ConfigFactory.createConfigService(nacosProperties);
-        this.namingService = NamingFactory.createNamingService(nacosProperties);
+        try {
+            this.configService = ConfigFactory.createConfigService(nacosProperties);
+            this.namingService = NamingFactory.createNamingService(nacosProperties);
+        } catch (NacosException e) {
+            throw new ShenyuException(e);
+        }
     }
 
     @Override
@@ -85,7 +91,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
             configService.shutDown();
             namingService.shutDown();
         } catch (NacosException e) {
-            log.error("NacosClientRegisterRepository close error!", e);
+            LOGGER.error("NacosClientRegisterRepository close error!", e);
         }
     }
 
@@ -100,7 +106,6 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         registerConfig(rpcType, contextPath, metadata);
     }
 
-    @SneakyThrows
     private synchronized void registerService(final String rpcType, final String contextPath, final String host,
                                               final int port, final MetaDataRegisterDTO metadata) {
         if (registerService) {
@@ -119,19 +124,26 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         instance.setMetadata(metadataMap);
 
         String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType);
-        namingService.registerInstance(serviceName, instance);
+        try {
+            namingService.registerInstance(serviceName, instance);
+        } catch (NacosException e) {
+            throw new ShenyuException(e);
+        }
 
-        log.info("register service success: {}", serviceName);
+        LOGGER.info("register service success: {}", serviceName);
     }
 
-    @SneakyThrows
     private synchronized void registerConfig(final String rpcType, final String contextPath,
                                              final MetaDataRegisterDTO metadata) {
         metadataCache.add(GsonUtils.getInstance().toJson(metadata));
 
         String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
-        configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache));
+        try {
+            configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache));
+        } catch (NacosException e) {
+            throw new ShenyuException(e);
+        }
 
-        log.info("register metadata success: {}", metadata.getRuleName());
+        LOGGER.info("register metadata success: {}", metadata.getRuleName());
     }
 }

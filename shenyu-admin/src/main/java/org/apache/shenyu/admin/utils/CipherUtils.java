@@ -17,88 +17,48 @@
 
 package org.apache.shenyu.admin.utils;
 
-import org.apache.shenyu.common.exception.ShenyuException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Optional;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
  *  Cipher Tools.
  */
 public class CipherUtils {
 
-    /**
-     *  Check if the packet is a multiple of 16.
-     *
-     * @param srcBytes the bytes
-     * @param blockSize block size
-     * @return the bytes
-     */
-    private static byte[] addZeroPadding(final byte[] srcBytes, final int blockSize) {
-        byte[] plainText;
-        int length = srcBytes.length;
-        if (length % blockSize != 0) {
-            length = length + (blockSize - (length % blockSize));
-        }
-        plainText = new byte[length];
-        System.arraycopy(srcBytes, 0, plainText, 0, srcBytes.length);
-        for (int i = srcBytes.length; i < length; i++) {
-            plainText[i] = '\0';
-        }
-        return plainText;
-    }
-
-    /**
-     *  delete zero padding.
-     *
-     * @param src the deleteZeroPadding source
-     * @return the bytes
-     */
-    private static byte[] deleteZeroPadding(final byte[] src) {
-        int length = 0;
-        byte[] plainText = null;
-        if (src.length > 0) {
-            for (int i = src.length - 1; i > 0; i--) {
-                if (src[i] != '\0') {
-                    length = i;
-                    break;
-                }
-            }
-            plainText = new byte[length + 1];
-            System.arraycopy(src, 0, plainText, 0, length + 1);
-        }
-        return plainText;
-    }
+    public static final String AES_CBC_PKCS_5_PADDING = "AES/CBC/PKCS5Padding";
 
     /**
      * cipherTool.
      *
      * @param content source
-     * @param mode encryption/decryption
-     * @param aesKey key
+     * @param mode    encryption/decryption
+     * @param aesKey  key
      * @return the bytes
      */
-    private static byte[] cipherTool(final byte[] content, final int mode, final String aesKey) {
+    private static byte[] cipherTool(final byte[] content, final int mode, final String aesKey,
+        final String iv) {
         byte[] plainText;
         try {
-            SecretKeySpec keySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");
-            Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
-            cipher.init(mode, keySpec);
-            if (mode == Cipher.ENCRYPT_MODE) {
-                plainText = addZeroPadding(content, cipher.getBlockSize());
-            } else {
-                plainText = content;
-            }
+            SecretKeySpec keySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8),
+                "AES");
+            final Cipher cipher = Cipher.getInstance(AES_CBC_PKCS_5_PADDING);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
+            cipher.init(mode, keySpec, ivSpec);
+            plainText = content;
             return cipher.doFinal(plainText);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException
+            | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
             throw new ShenyuException(e);
         }
     }
@@ -106,15 +66,16 @@ public class CipherUtils {
     /**
      * Aes encryption.
      *
-     * @param src  source
+     * @param src    source
      * @param aesKey key
+     * @param iv     iv
      * @return the string
      */
-    public static String encryptHex(final String src, final String aesKey) {
+    public static String encryptHex(final String src, final String aesKey, final String iv) {
         return Optional.ofNullable(src).map(item -> {
             try {
                 byte[] byteContent = item.getBytes(StandardCharsets.UTF_8);
-                byte[] result = cipherTool(byteContent, Cipher.ENCRYPT_MODE, aesKey);
+                byte[] result = cipherTool(byteContent, Cipher.ENCRYPT_MODE, aesKey, iv);
                 return Base64.getEncoder().encodeToString(result);
             } catch (Exception ex) {
                 throw new ShenyuException(ex);
@@ -125,16 +86,17 @@ public class CipherUtils {
     /**
      * decryptStr.
      *
-     * @param src source
+     * @param src    source
      * @param aesKey key
+     * @param iv     iv
      * @return the string
      */
-    public static String decryptStr(final String src, final String aesKey) {
+    public static String decryptStr(final String src, final String aesKey, final String iv) {
         return Optional.ofNullable(src).map(item -> {
             try {
                 byte[] byteContent = Base64.getDecoder().decode(item);
-                byte[] result = cipherTool(byteContent, Cipher.DECRYPT_MODE, aesKey);
-                return new String(deleteZeroPadding(result));
+                byte[] result = cipherTool(byteContent, Cipher.DECRYPT_MODE, aesKey, iv);
+                return new String(result);
             } catch (Exception ex) {
                 throw new ShenyuException(ex);
             }

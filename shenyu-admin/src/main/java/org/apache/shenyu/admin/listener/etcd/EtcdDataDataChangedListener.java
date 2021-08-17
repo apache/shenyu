@@ -17,26 +17,29 @@
 
 package org.apache.shenyu.admin.listener.etcd;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
 /**
  * EtcdDataDataChangedListener.
  */
-@Slf4j
 public class EtcdDataDataChangedListener implements DataChangedListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdDataDataChangedListener.class);
 
     private final EtcdClient etcdClient;
 
@@ -93,18 +96,22 @@ public class EtcdDataDataChangedListener implements DataChangedListener {
         }
     }
 
-    @SneakyThrows
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         for (MetaData data : changed) {
-            String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                etcdClient.delete(metaDataPath);
-                continue;
+            try {
+                String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
+                // delete
+                if (eventType == DataEventTypeEnum.DELETE) {
+                    etcdClient.delete(metaDataPath);
+                    continue;
+                }
+                // create or update
+                updateNode(metaDataPath, data);
+            } catch (UnsupportedEncodingException e) {
+                LOG.error("url encode error.", e);
+                throw new ShenyuException(e.getMessage());
             }
-            // create or update
-            updateNode(metaDataPath, data);
         }
     }
 

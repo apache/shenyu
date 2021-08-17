@@ -21,7 +21,6 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -29,6 +28,8 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
@@ -41,8 +42,9 @@ import java.util.List;
 import java.util.Map;
 
 @Join
-@Slf4j
 public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulServerRegisterRepository.class);
 
     @Autowired
     private ConsulDiscoveryClient discoveryClient;
@@ -118,7 +120,7 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
                 map.putIfAbsent(contextPath, new ArrayList<>());
                 map.get(contextPath).add(uriRegisterDTO);
             } else {
-                log.debug("maybe not shenyu client, ignore service instance: {}", serviceInstance);
+                LOGGER.debug("maybe not shenyu client, ignore service instance: {}", serviceInstance);
             }
         });
         return map;

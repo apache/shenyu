@@ -21,7 +21,6 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.SneakyThrows;
 import org.apache.shenyu.register.client.http.utils.OkHttpTools;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
@@ -70,9 +69,8 @@ public final class RegisterUtilsTest {
         url = "http://localhost:9095/shenyu-client/dubbo-register";
     }
     
-    @SneakyThrows
     @Test
-    public void testDoRegisterWhenSuccess() {
+    public void testDoRegisterWhenSuccess() throws IOException {
         when(okHttpTools.post(url, json)).thenReturn("SUCCESS");
         
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
@@ -82,9 +80,8 @@ public final class RegisterUtilsTest {
         }
     }
     
-    @SneakyThrows
     @Test
-    public void testDoRegisterWhenError() {
+    public void testDoRegisterWhenError() throws IOException {
         when(okHttpTools.post(url, json)).thenReturn("Error parameter！");
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
@@ -93,9 +90,8 @@ public final class RegisterUtilsTest {
         }
     }
     
-    @SneakyThrows
     @Test(expected = IOException.class)
-    public void testDoRegisterWhenThrowException() {
+    public void testDoRegisterWhenThrowException() throws IOException {
         when(okHttpTools.post(url, json)).thenThrow(IOException.class);
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);

@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  */
 public class WafPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, WafHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+    public static final Supplier<RuleHandleCache<String, WafHandle>> CACHED_HANDLE = new BeanHolder(RuleHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {

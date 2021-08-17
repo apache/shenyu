@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
 import com.jayway.jsonpath.DocumentContext;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.CollectionUtils;
@@ -26,6 +25,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -52,8 +53,9 @@ import java.util.stream.Collectors;
 /**
  * ApplicationFormStrategy.
  */
-@Slf4j
 public class FormDataOperator implements Operator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(FormDataOperator.class);
 
     @Override
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingHandle paramMappingHandle) {
@@ -64,7 +66,7 @@ public class FormDataOperator implements Operator {
                         return shenyuPluginChain.execute(exchange);
                     }
                     String original = GsonUtils.getInstance().toJson(multiValueMap);
-                    log.info("get from data success data:{}", original);
+                    LOG.info("get from data success data:{}", original);
                     String modify = operation(original, paramMappingHandle);
                     if (StringUtils.isEmpty(modify)) {
                         return shenyuPluginChain.execute(exchange);

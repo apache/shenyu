@@ -33,6 +33,6 @@ public class RateLimiterAlgorithmFactory {
      * @return the rate limiter algorithm
      */
     public static RateLimiterAlgorithm<?> newInstance(final String name) {
-        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterAlgorithm.class).getJoin(name)).orElse(new TokenBucketRateLimiterAlgorithm());
+        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterAlgorithm.class).getJoin(name)).orElseGet(TokenBucketRateLimiterAlgorithm::new);
     }
 }

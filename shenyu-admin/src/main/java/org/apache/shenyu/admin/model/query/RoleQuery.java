@@ -17,19 +17,14 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The Role Query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class RoleQuery implements Serializable {
 
     private static final long serialVersionUID = -2876510433944603583L;
@@ -43,4 +38,65 @@ public class RoleQuery implements Serializable {
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public RoleQuery() {
+    }
+
+    public RoleQuery(final String roleName, final PageParameter pageParameter) {
+        this.roleName = roleName;
+        this.pageParameter = pageParameter;
+    }
+
+    /**
+     * Gets the value of roleName.
+     *
+     * @return the value of roleName
+     */
+    public String getRoleName() {
+        return roleName;
+    }
+
+    /**
+     * Sets the roleName.
+     *
+     * @param roleName roleName
+     */
+    public void setRoleName(final String roleName) {
+        this.roleName = roleName;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RoleQuery)) {
+            return false;
+        }
+        RoleQuery roleQuery = (RoleQuery) o;
+        return Objects.equals(roleName, roleQuery.roleName) && Objects.equals(pageParameter, roleQuery.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(roleName, pageParameter);
+    }
 }

@@ -17,16 +17,12 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
  * Local DataSource configuration.
  */
-@Getter
-@Setter
 @Component
 @ConfigurationProperties(prefix = "shenyu.database")
 public class DataBaseProperties {
@@ -36,4 +32,58 @@ public class DataBaseProperties {
     private String initScript;
 
     private Boolean initEnable;
+
+    /**
+     * Gets the value of dialect.
+     *
+     * @return the value of dialect
+     */
+    public String getDialect() {
+        return dialect;
+    }
+
+    /**
+     * Sets the dialect.
+     *
+     * @param dialect dialect
+     */
+    public void setDialect(final String dialect) {
+        this.dialect = dialect;
+    }
+
+    /**
+     * Gets the value of initScript.
+     *
+     * @return the value of initScript
+     */
+    public String getInitScript() {
+        return initScript;
+    }
+
+    /**
+     * Sets the initScript.
+     *
+     * @param initScript initScript
+     */
+    public void setInitScript(final String initScript) {
+        this.initScript = initScript;
+    }
+
+    /**
+     * Gets the value of initEnable.
+     *
+     * @return the value of initEnable
+     */
+    public Boolean getInitEnable() {
+        return initEnable;
+    }
+
+    /**
+     * Sets the initEnable.
+     *
+     * @param initEnable initEnable
+     */
+    public void setInitEnable(final Boolean initEnable) {
+        this.initEnable = initEnable;
+    }
 }

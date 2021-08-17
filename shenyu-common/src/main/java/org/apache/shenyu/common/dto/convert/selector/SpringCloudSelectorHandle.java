@@ -17,16 +17,12 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type Spring cloud selector handle.
  */
-@Data
-@Builder
 public class SpringCloudSelectorHandle implements Serializable {
 
     private static final long serialVersionUID = -5325946855733519631L;
@@ -35,4 +31,108 @@ public class SpringCloudSelectorHandle implements Serializable {
      * this is register eureka serviceId.
      */
     private String serviceId;
+
+    /**
+     * no args constructor.
+     */
+    public SpringCloudSelectorHandle() {
+    }
+
+    /**
+     * builder constructor.
+     *
+     * @param builder builder
+     */
+    private SpringCloudSelectorHandle(final Builder builder) {
+        this.serviceId = builder.serviceId;
+    }
+
+    /**
+     * class builder.
+     *
+     * @return class Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * get serviceId.
+     *
+     * @return serviceId
+     */
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    /**
+     * set serviceId.
+     *
+     * @param serviceId serviceId
+     */
+    public void setServiceId(final String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SpringCloudSelectorHandle that = (SpringCloudSelectorHandle) o;
+        return Objects.equals(serviceId, that.serviceId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceId);
+    }
+
+    @Override
+    public String toString() {
+        return "SpringCloudSelectorHandle{"
+                + "serviceId='"
+                + serviceId
+                + '\''
+                + '}';
+    }
+
+    /**
+     * class builder.
+     */
+    public static final class Builder {
+        /**
+         * serviceId.
+         */
+        private String serviceId;
+
+        /**
+         * no args constructor.
+         */
+        private Builder() {
+        }
+
+        /**
+         * build new Object.
+         *
+         * @return SpringCloudSelectorHandle
+         */
+        public SpringCloudSelectorHandle build() {
+            return new SpringCloudSelectorHandle(this);
+        }
+
+        /**
+         * build serviceId.
+         *
+         * @param serviceId serviceId
+         * @return this
+         */
+        public Builder serviceId(final String serviceId) {
+            this.serviceId = serviceId;
+            return this;
+        }
+    }
 }

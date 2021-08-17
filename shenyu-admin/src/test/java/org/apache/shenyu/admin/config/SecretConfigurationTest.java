@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.junit.Test;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.Assertions;
 /**
  * Test SecretConfiguration.
  */
-@Slf4j
 public class SecretConfigurationTest extends AbstractConfigurationTest {
     
     @Test

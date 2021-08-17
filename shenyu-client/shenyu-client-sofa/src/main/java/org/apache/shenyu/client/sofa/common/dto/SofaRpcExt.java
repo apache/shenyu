@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.client.sofa.common.dto;
 
-import lombok.Builder;
-import lombok.Data;
-
 /**
  * The type Sofa rpc ext.
  */
-@Data
-@Builder
 public class SofaRpcExt {
 
     private String loadbalance;
@@ -32,4 +27,158 @@ public class SofaRpcExt {
     private Integer retries;
 
     private Integer timeout;
+
+    /**
+     * constructor without params.
+     */
+    public SofaRpcExt() {
+    }
+
+    /**
+     * constructor with all params.
+     *
+     * @param loadbalance loadbalance
+     * @param retries retries
+     * @param timeout timeout
+     */
+    public SofaRpcExt(final String loadbalance, final Integer retries, final Integer timeout) {
+        this.loadbalance = loadbalance;
+        this.retries = retries;
+        this.timeout = timeout;
+    }
+
+    /**
+     * get loadbalance.
+     *
+     * @return loadbalance
+     */
+    public String getLoadbalance() {
+        return loadbalance;
+    }
+
+    /**
+     * set loadbalance.
+     *
+     * @param loadbalance loadbalance
+     */
+    public void setLoadbalance(final String loadbalance) {
+        this.loadbalance = loadbalance;
+    }
+
+    /**
+     * get retries.
+     *
+     * @return retries
+     */
+    public Integer getRetries() {
+        return retries;
+    }
+
+    /**
+     * set retries.
+     *
+     * @param retries retries
+     */
+    public void setRetries(final Integer retries) {
+        this.retries = retries;
+    }
+
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public Integer getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     *
+     * @param timeout timeout
+     */
+    public void setTimeout(final Integer timeout) {
+        this.timeout = timeout;
+    }
+
+    @Override
+    public String toString() {
+        return "SofaRpcExt{"
+                + "loadbalance='" + loadbalance + '\''
+                + ", retries=" + retries
+                + ", timeout=" + timeout
+                + '}';
+    }
+
+    /**
+     * get the Builder of SofaRpcExt.
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * the Builder of SofaRpcExt.
+     */
+    public static final class Builder {
+
+        private String loadbalance;
+
+        private Integer retries;
+
+        private Integer timeout;
+
+        /**
+         * constructor without params.
+         */
+        private Builder() {
+        }
+
+        /**
+         * set loadbalance.
+         *
+         * @param loadbalance loadbalance
+         * @return Builder
+         */
+        public Builder loadbalance(final String loadbalance) {
+            this.loadbalance = loadbalance;
+            return this;
+        }
+
+        /**
+         * set retries.
+         *
+         * @param retries retries
+         * @return Builder
+         */
+        public Builder retries(final Integer retries) {
+            this.retries = retries;
+            return this;
+        }
+
+        /**
+         * set timeout.
+         *
+         * @param timeout timeout
+         * @return Builder
+         */
+        public Builder timeout(final Integer timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        /**
+         * build SofaRpcExt.
+         *
+         * @return SofaRpcExt
+         */
+        public SofaRpcExt build() {
+            SofaRpcExt sofaRpcExt = new SofaRpcExt();
+            sofaRpcExt.setLoadbalance(loadbalance);
+            sofaRpcExt.setRetries(retries);
+            sofaRpcExt.setTimeout(timeout);
+            return sofaRpcExt;
+        }
+    }
 }

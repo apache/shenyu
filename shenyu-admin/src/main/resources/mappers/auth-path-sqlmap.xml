@@ -91,28 +91,12 @@
         </foreach>
     </insert>
 
-    <update id="batchEnable">
-        update auth_path
-        set enabled = #{enabled,jdbcType=TINYINT}
-        where id in
-        <foreach collection="ids" index="index" item="item" open="(" close=")" separator=",">
-            #{item}
-        </foreach>
-    </update>
-
-
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
         update auth_path
         set
         path = #{path,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
-
-
-    <delete id="delete" parameterType="java.lang.String">
-        delete from auth_path
-        where id = #{id,jdbcType=VARCHAR}
-    </delete>
 
     <delete id="deleteByAuthIdAndAppName">
         delete from auth_path

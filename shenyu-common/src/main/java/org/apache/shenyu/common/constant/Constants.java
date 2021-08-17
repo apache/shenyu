@@ -309,6 +309,16 @@ public interface Constants {
     boolean AUTOMATIC_TRANSITION_FROM_OPEN_TO_HALF_OPEN_ENABLED = false;
 
     /**
+     * jwt handle key for secretKey.
+     */
+    String SECRET_KEY = "secretKey";
+
+    /**
+     * jwt handle key for filterPath.
+     */
+    String FILTER_PATH = "filterPath";
+
+    /**
      * Enable the flow rule.
      */
     int SENTINEL_ENABLE_FLOW_RULE = 1;
@@ -366,7 +376,7 @@ public interface Constants {
     /**
      * default checked value.
      */
-    String DEFAULT_CHECK_VALUE = "true";
+    String DEFAULT_CHECK_VALUE = "false";
 
     /**
      * zombie check times.

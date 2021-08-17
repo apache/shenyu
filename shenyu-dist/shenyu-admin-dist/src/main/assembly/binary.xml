@@ -54,6 +54,13 @@
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
         </fileSet>
+        <fileSet>
+            <directory>src/main/release-docs</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>

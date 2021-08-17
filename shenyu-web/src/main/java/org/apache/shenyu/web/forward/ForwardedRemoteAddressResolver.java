@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.web.forward;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -34,21 +35,23 @@ import java.util.List;
  * falls back to {@link RemoteAddressResolver} and
  * {@link ServerHttpRequest#getRemoteAddress()}. Use the static constructor methods which
  * meets your security requirements.
- *
  */
-@Slf4j
 public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
-    
     /**
      * Forwarded-For header name.
      */
     public static final String X_FORWARDED_FOR = "X-Forwarded-For";
-    
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ForwardedRemoteAddressResolver.class);
+
     private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {
     };
-    
+
     private final int maxTrustedIndex;
-    
+
     /**
      * Instantiates a new Forwarded remote address resolver.
      *
@@ -57,7 +60,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
     public ForwardedRemoteAddressResolver(final int maxTrustedIndex) {
         this.maxTrustedIndex = maxTrustedIndex;
     }
-    
+
     /**
      * Trust all forwarded remote address resolver.
      *
@@ -66,7 +69,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
     public static ForwardedRemoteAddressResolver trustAll() {
         return new ForwardedRemoteAddressResolver(Integer.MAX_VALUE);
     }
-    
+
     /**
      * Max trusted index forwarded remote address resolver.
      *
@@ -77,7 +80,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
         Assert.isTrue(maxTrustedIndex > 0, "An index greater than 0 is required");
         return new ForwardedRemoteAddressResolver(maxTrustedIndex);
     }
-    
+
     @Override
     public InetSocketAddress resolve(final ServerWebExchange exchange) {
         List<String> xForwardedValues = extractXForwardedValues(exchange);
@@ -88,7 +91,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
         }
         return defaultRemoteIpResolver.resolve(exchange);
     }
-    
+
     private List<String> extractXForwardedValues(final ServerWebExchange exchange) {
         List<String> xForwardedValues = exchange.getRequest().getHeaders()
                 .get(X_FORWARDED_FOR);
@@ -96,7 +99,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
             return Collections.emptyList();
         }
         if (xForwardedValues.size() > 1) {
-            log.warn("Multiple X-Forwarded-For headers found, discarding all");
+            LOG.warn("Multiple X-Forwarded-For headers found, discarding all");
             return Collections.emptyList();
         }
         List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));

@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.springboot.starter.sync.data.http;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.http.HttpSyncDataService;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,8 +42,9 @@ import java.util.Objects;
 @Configuration
 @ConditionalOnClass(HttpSyncDataService.class)
 @ConditionalOnProperty(prefix = "shenyu.sync.http", name = "url")
-@Slf4j
 public class HttpSyncDataConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpSyncDataConfiguration.class);
 
     /**
      * Http sync data service.
@@ -56,7 +58,7 @@ public class HttpSyncDataConfiguration {
     @Bean
     public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use http long pull sync shenyu data");
+        LOGGER.info("you use http long pull sync shenyu data");
         return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), Objects.requireNonNull(pluginSubscriber.getIfAvailable()),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }

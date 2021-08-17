@@ -25,9 +25,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.comparesEqualTo;
@@ -312,9 +310,6 @@ public class GsonUtilsTest {
                 .build();
     }
 
-    @Data
-    @Builder
-    @EqualsAndHashCode
     private static class TestObject {
         private Boolean bool;
 
@@ -339,6 +334,485 @@ public class GsonUtilsTest {
         private Map<String, String> emptyMap;
 
         private Map<String, Object> nestedMap;
+
+        /**
+         * no args constructor.
+         */
+        TestObject() {
+        }
+
+        /**
+         * builder constructor.
+         *
+         * @param builder builder
+         */
+        private TestObject(final Builder builder) {
+            this.bool = builder.bool;
+            this.iNumber = builder.iNumber;
+            this.fNumber = builder.fNumber;
+            this.dNumber = builder.dNumber;
+            this.bigDecimal = builder.bigDecimal;
+            this.string = builder.string;
+            this.nullObject = builder.nullObject;
+            this.testList = builder.testList;
+            this.testMap = builder.testMap;
+            this.emptyList = builder.emptyList;
+            this.emptyMap = builder.emptyMap;
+            this.nestedMap = builder.nestedMap;
+        }
+
+        /**
+         * class builder.
+         *
+         * @return Builder
+         */
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * get bool.
+         *
+         * @return bool
+         */
+        public Boolean getBool() {
+            return bool;
+        }
+
+        /**
+         * set bool.
+         *
+         * @param bool bool
+         */
+        public void setBool(final Boolean bool) {
+            this.bool = bool;
+        }
+
+        /**
+         * get iNumber.
+         *
+         * @return iNumber
+         */
+        public Integer getiNumber() {
+            return iNumber;
+        }
+
+        /**
+         * set iNumber.
+         *
+         * @param iNumber iNumber
+         */
+        public void setiNumber(final Integer iNumber) {
+            this.iNumber = iNumber;
+        }
+
+        /**
+         * get fNumber.
+         *
+         * @return fNumber
+         */
+        public Float getfNumber() {
+            return fNumber;
+        }
+
+        /**
+         * set fNumber.
+         *
+         * @param fNumber fNumber
+         */
+        public void setfNumber(final Float fNumber) {
+            this.fNumber = fNumber;
+        }
+
+        /**
+         * get dNumber.
+         *
+         * @return dNumber
+         */
+        public Double getdNumber() {
+            return dNumber;
+        }
+
+        /**
+         * set dNumber.
+         *
+         * @param dNumber dNumber
+         */
+        public void setdNumber(final Double dNumber) {
+            this.dNumber = dNumber;
+        }
+
+        /**
+         * get bigDecimal.
+         *
+         * @return bigDecimal
+         */
+        public BigDecimal getBigDecimal() {
+            return bigDecimal;
+        }
+
+        /**
+         * set bigDecimal.
+         *
+         * @param bigDecimal bigDecimal
+         */
+        public void setBigDecimal(final BigDecimal bigDecimal) {
+            this.bigDecimal = bigDecimal;
+        }
+
+        /**
+         * get string.
+         *
+         * @return string
+         */
+        public String getString() {
+            return string;
+        }
+
+        /**
+         * set string.
+         *
+         * @param string string
+         */
+        public void setString(final String string) {
+            this.string = string;
+        }
+
+        /**
+         * get nullObject.
+         *
+         * @return nullObject
+         */
+        public Object getNullObject() {
+            return nullObject;
+        }
+
+        /**
+         * set nullObject.
+         *
+         * @param nullObject nullObject
+         */
+        public void setNullObject(final Object nullObject) {
+            this.nullObject = nullObject;
+        }
+
+        /**
+         * get testList.
+         *
+         * @return testList
+         */
+        public List<String> getTestList() {
+            return testList;
+        }
+
+        /**
+         * set testList.
+         *
+         * @param testList testList
+         */
+        public void setTestList(final List<String> testList) {
+            this.testList = testList;
+        }
+
+        /**
+         * get testMap.
+         *
+         * @return testMap
+         */
+        public Map<String, String> getTestMap() {
+            return testMap;
+        }
+
+        /**
+         * set testMap.
+         *
+         * @param testMap testMap
+         */
+        public void setTestMap(final Map<String, String> testMap) {
+            this.testMap = testMap;
+        }
+
+        /**
+         * get emptyList.
+         *
+         * @return emptyList
+         */
+        public List<String> getEmptyList() {
+            return emptyList;
+        }
+
+        /**
+         * set emptyList.
+         *
+         * @param emptyList emptyList
+         */
+        public void setEmptyList(final List<String> emptyList) {
+            this.emptyList = emptyList;
+        }
+
+        /**
+         * get emptyMap.
+         *
+         * @return emptyMap
+         */
+        public Map<String, String> getEmptyMap() {
+            return emptyMap;
+        }
+
+        /**
+         * set emptyMap.
+         *
+         * @param emptyMap emptyMap
+         */
+        public void setEmptyMap(final Map<String, String> emptyMap) {
+            this.emptyMap = emptyMap;
+        }
+
+        /**
+         * get nestedMap.
+         *
+         * @return nestedMap
+         */
+        public Map<String, Object> getNestedMap() {
+            return nestedMap;
+        }
+
+        /**
+         * set nestedMap.
+         *
+         * @param nestedMap nestedMap
+         */
+        public void setNestedMap(final Map<String, Object> nestedMap) {
+            this.nestedMap = nestedMap;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TestObject that = (TestObject) o;
+            return Objects.equals(bool, that.bool) && Objects.equals(iNumber, that.iNumber) && Objects.equals(fNumber, that.fNumber) && Objects.equals(dNumber, that.dNumber)
+                    && Objects.equals(bigDecimal, that.bigDecimal) && Objects.equals(string, that.string) && Objects.equals(nullObject, that.nullObject)
+                    && Objects.equals(testList, that.testList) && Objects.equals(testMap, that.testMap) && Objects.equals(emptyList, that.emptyList)
+                    && Objects.equals(emptyMap, that.emptyMap) && Objects.equals(nestedMap, that.nestedMap);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(bool, iNumber, fNumber, dNumber, bigDecimal, string, nullObject, testList, testMap, emptyList, emptyMap, nestedMap);
+        }
+
+        @Override
+        public String toString() {
+            return "TestObject{"
+                    + "bool="
+                    + bool
+                    + ", iNumber="
+                    + iNumber
+                    + ", fNumber="
+                    + fNumber
+                    + ", dNumber="
+                    + dNumber
+                    + ", bigDecimal="
+                    + bigDecimal
+                    + ", string='"
+                    + string
+                    + '\''
+                    + ", nullObject="
+                    + nullObject
+                    + ", testList="
+                    + testList
+                    + ", testMap="
+                    + testMap
+                    + ", emptyList="
+                    + emptyList
+                    + ", emptyMap="
+                    + emptyMap
+                    + ", nestedMap="
+                    + nestedMap
+                    + '}';
+        }
+
+        /**
+         * class builder.
+         */
+        public static final class Builder {
+
+            private Boolean bool;
+
+            private Integer iNumber;
+
+            private Float fNumber;
+
+            private Double dNumber;
+
+            private BigDecimal bigDecimal;
+
+            private String string;
+
+            private Object nullObject;
+
+            private List<String> testList;
+
+            private Map<String, String> testMap;
+
+            private List<String> emptyList;
+
+            private Map<String, String> emptyMap;
+
+            private Map<String, Object> nestedMap;
+
+            /**
+             * no args constructor.
+             */
+            private Builder() {
+            }
+
+            /**
+             * build new Object.
+             *
+             * @return TestObject
+             */
+            public TestObject build() {
+                return new TestObject(this);
+            }
+
+            /**
+             * build bool.
+             *
+             * @param bool bool
+             * @return this
+             */
+            public Builder bool(final Boolean bool) {
+                this.bool = bool;
+                return this;
+            }
+
+            /**
+             * build iNumber.
+             *
+             * @param iNumber iNumber
+             * @return this
+             */
+            public Builder iNumber(final Integer iNumber) {
+                this.iNumber = iNumber;
+                return this;
+            }
+
+            /**
+             * build fNumber.
+             *
+             * @param fNumber fNumber
+             * @return this
+             */
+            public Builder fNumber(final Float fNumber) {
+                this.fNumber = fNumber;
+                return this;
+            }
+
+            /**
+             * build dNumber.
+             *
+             * @param dNumber dNumber
+             * @return this
+             */
+            public Builder dNumber(final Double dNumber) {
+                this.dNumber = dNumber;
+                return this;
+            }
+
+            /**
+             * return bigDecimal.
+             *
+             * @param bigDecimal bigDecimal
+             * @return this
+             */
+            public Builder bigDecimal(final BigDecimal bigDecimal) {
+                this.bigDecimal = bigDecimal;
+                return this;
+            }
+
+            /**
+             * build string.
+             *
+             * @param string string
+             * @return this
+             */
+            public Builder string(final String string) {
+                this.string = string;
+                return this;
+            }
+
+            /**
+             * build nullObject.
+             *
+             * @param nullObject nullObject
+             * @return this
+             */
+            public Builder nullObject(final Object nullObject) {
+                this.nullObject = nullObject;
+                return this;
+            }
+
+            /**
+             * build testList.
+             *
+             * @param testList testList
+             * @return this
+             */
+            public Builder testList(final List<String> testList) {
+                this.testList = testList;
+                return this;
+            }
+
+            /**
+             * build testMap.
+             *
+             * @param testMap testMap
+             * @return this
+             */
+            public Builder testMap(final Map<String, String> testMap) {
+                this.testMap = testMap;
+                return this;
+            }
+
+            /**
+             * build emptyList.
+             *
+             * @param emptyList emptyList
+             * @return this
+             */
+            public Builder emptyList(final List<String> emptyList) {
+                this.emptyList = emptyList;
+                return this;
+            }
+
+            /**
+             * build emptyMap.
+             *
+             * @param emptyMap emptyMap
+             * @return this
+             */
+            public Builder emptyMap(final Map<String, String> emptyMap) {
+                this.emptyMap = emptyMap;
+                return this;
+            }
+
+            /**
+             * build nestedMap.
+             *
+             * @param nestedMap nestedMap
+             * @return this
+             */
+            public Builder nestedMap(final Map<String, Object> nestedMap) {
+                this.nestedMap = nestedMap;
+                return this;
+            }
+        }
     }
 
 }

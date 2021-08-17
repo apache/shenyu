@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class ModifyResponsePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, ModifyResponseRuleHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+    public static final Supplier<RuleHandleCache<String, ModifyResponseRuleHandle>> CACHED_HANDLE = new BeanHolder(RuleHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {

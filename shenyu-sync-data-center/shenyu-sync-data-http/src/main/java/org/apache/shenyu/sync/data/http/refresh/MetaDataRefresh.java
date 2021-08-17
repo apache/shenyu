@@ -20,22 +20,28 @@ package org.apache.shenyu.sync.data.http.refresh;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The type meta data refresh.
  */
-@Slf4j
-@RequiredArgsConstructor
 public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(MetaDataRefresh.class);
 
     private final List<MetaDataSubscriber> metaDataSubscribers;
+
+    public MetaDataRefresh(final List<MetaDataSubscriber> metaDataSubscribers) {
+        this.metaDataSubscribers = metaDataSubscribers;
+    }
 
     @Override
     protected JsonObject convert(final JsonObject data) {
@@ -61,7 +67,7 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
     @Override
     protected void refresh(final List<MetaData> data) {
         if (CollectionUtils.isEmpty(data)) {
-            log.info("clear all metaData cache");
+            LOG.info("clear all metaData cache");
             metaDataSubscribers.forEach(MetaDataSubscriber::refresh);
         } else {
             data.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));

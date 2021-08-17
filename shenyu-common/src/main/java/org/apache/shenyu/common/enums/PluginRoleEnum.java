@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * Plugin Role.
  */
-@RequiredArgsConstructor
-@Getter
 public enum PluginRoleEnum {
 
     /**
@@ -41,4 +36,32 @@ public enum PluginRoleEnum {
 
     private final String name;
 
+    /**
+     * all args constructor.
+     *
+     * @param code code
+     * @param name name
+     */
+    PluginRoleEnum(final Integer code, final String name) {
+        this.code = code;
+        this.name = name;
+    }
+
+    /**
+     * get code.
+     *
+     * @return code
+     */
+    public Integer getCode() {
+        return code;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 }

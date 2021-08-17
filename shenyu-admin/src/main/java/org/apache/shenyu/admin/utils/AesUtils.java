@@ -29,25 +29,27 @@ public class AesUtils {
      *
      * @param src    the src
      * @param aesKey key
-     * @return  the string
+     * @param iv     iv
+     * @return the string
      */
-    public static String aesEncryption(final String src, final String aesKey) {
+    public static String aesEncryption(final String src, final String aesKey, final String iv) {
         if (Optional.ofNullable(src).isPresent() && !src.isEmpty()) {
-            return CipherUtils.encryptHex(src, aesKey);
+            return CipherUtils.encryptHex(src, aesKey, iv);
         }
         return null;
     }
 
     /**
      * Aes Decryption string.
-     * b
+     *
      * @param src    the src
      * @param aesKey key
+     * @param iv     iv
      * @return the string
      */
-    public static String aesDecryption(final String src, final String aesKey) {
+    public static String aesDecryption(final String src, final String aesKey, final String iv) {
         if (Optional.ofNullable(src).isPresent() && !src.isEmpty()) {
-            return CipherUtils.decryptStr(src, aesKey);
+            return CipherUtils.decryptStr(src, aesKey, iv);
         }
         return null;
     }

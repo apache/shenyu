@@ -28,9 +28,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public final class PrometheusMetricsRegisterTest {
-    
+
     private final PrometheusMetricsRegister prometheusMetricsRegister = new PrometheusMetricsRegister();
-    
+
     @Test
     @SuppressWarnings("unchecked")
     public void assertCounter() {
@@ -44,16 +44,16 @@ public final class PrometheusMetricsRegisterTest {
         Counter routeDatasourceCounter = counterMap.get(requestTotal);
         assertThat(routeDatasourceCounter.labels(labelNames).get(), is(3.0d));
     }
-    
+
     @Test
     @SuppressWarnings("unchecked")
     public void assertHistogram() {
         String name = "requests_latency_histogram_millis";
         String[] labelNames = new String[] {"name"};
-        prometheusMetricsRegister.registerHistogram(name, labelNames, "the soul proxy executor latency millis");
+        prometheusMetricsRegister.registerHistogram(name, labelNames, "the shenyu proxy executor latency millis");
         prometheusMetricsRegister.recordTime(name, labelNames, 1000);
         String latencyMillis = "execute_latency_millis";
-        prometheusMetricsRegister.registerHistogram(latencyMillis, null, "the soul executor latency millis");
+        prometheusMetricsRegister.registerHistogram(latencyMillis, null, "the shenyu executor latency millis");
         prometheusMetricsRegister.recordTime(latencyMillis, null, 1000);
         Map<String, Histogram> histogramMap = (Map<String, Histogram>) ReflectUtils.getFieldValue(prometheusMetricsRegister, "HISTOGRAM_MAP");
         assertThat(histogramMap.size(), is(2));

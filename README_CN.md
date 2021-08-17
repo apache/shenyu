@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-    <a target="_blank" href="https://search.maven.org/search?q=g:org.apache%20AND%20a:shenyu">
-        <img src="https://img.shields.io/maven-central/v/org.apache/shenyu.svg?label=maven%20central" />
+    <a target="_blank" href="https://search.maven.org/search?q=g:org.apache.shenyu%20AND%20a:shenyu">
+        <img src="https://img.shields.io/maven-central/v/org.apache.shenyu/shenyu.svg?label=maven%20central" />
     </a>
     <a target="_blank" href="https://github.com/apache/shenyu/blob/master/LICENSE">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />

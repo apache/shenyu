@@ -21,16 +21,22 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -44,6 +50,8 @@ public final class DividePluginDataHandlerTest {
 
     private DividePluginDataHandler dividePluginDataHandler;
 
+    private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
+
     @Before
     public void setUp() {
         this.dividePluginDataHandler = new DividePluginDataHandler();
@@ -55,6 +63,15 @@ public final class DividePluginDataHandlerTest {
         this.selectorData = mock(SelectorData.class);
         when(selectorData.getId()).thenReturn("handler");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
+
+        // mock static
+        mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
+        mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+    }
+
+    @After
+    public void tearDown() {
+        mockCheckUtils.close();
     }
 
     /**
@@ -64,7 +81,7 @@ public final class DividePluginDataHandlerTest {
     public void handlerSelectorTest() {
         dividePluginDataHandler.handlerSelector(selectorData);
         List<DivideUpstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
-        Assert.assertEquals(GsonUtils.getGson().toJson(divideUpstreamList), GsonUtils.getGson().toJson(result));
+        Assert.assertEquals(GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class).get(0), result.get(0));
     }
 
     /**

@@ -17,20 +17,15 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * this is dashboard user for role.
  */
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class DashboardUserEditVO extends DashboardUserVO {
 
     private static final long serialVersionUID = 7164406413090154990L;
@@ -44,6 +39,45 @@ public class DashboardUserEditVO extends DashboardUserVO {
      * all role list.
      */
     private List<RoleVO> allRoles;
+
+    public DashboardUserEditVO() {
+    }
+
+    /**
+     * Gets the value of roles.
+     *
+     * @return the value of roles
+     */
+    public List<RoleVO> getRoles() {
+        return roles;
+    }
+
+    /**
+     * Sets the roles.
+     *
+     * @param roles roles
+     */
+    public void setRoles(final List<RoleVO> roles) {
+        this.roles = roles;
+    }
+
+    /**
+     * Gets the value of allRoles.
+     *
+     * @return the value of allRoles
+     */
+    public List<RoleVO> getAllRoles() {
+        return allRoles;
+    }
+
+    /**
+     * Sets the allRoles.
+     *
+     * @param allRoles allRoles
+     */
+    public void setAllRoles(final List<RoleVO> allRoles) {
+        this.allRoles = allRoles;
+    }
 
     /**
      * get edit user info.
@@ -61,5 +95,25 @@ public class DashboardUserEditVO extends DashboardUserVO {
             vo.setAllRoles(allRoles);
             return vo;
         }).orElse(null);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DashboardUserEditVO)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        DashboardUserEditVO that = (DashboardUserEditVO) o;
+        return Objects.equals(roles, that.roles) && Objects.equals(allRoles, that.allRoles);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), roles, allRoles);
     }
 }

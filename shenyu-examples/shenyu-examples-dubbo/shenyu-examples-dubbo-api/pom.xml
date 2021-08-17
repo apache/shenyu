@@ -27,13 +27,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-dubbo-api</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-    </dependencies>
-
     <build>
         <finalName>shenyu-examples-dubbo-api</finalName>
     </build>

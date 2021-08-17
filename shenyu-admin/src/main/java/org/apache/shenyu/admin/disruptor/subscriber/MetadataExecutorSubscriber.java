@@ -24,6 +24,7 @@ import org.apache.shenyu.register.common.type.DataType;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Metadata executor subscriber.
@@ -40,11 +41,16 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
     public DataType getType() {
         return DataType.META_DATA;
     }
-    
+
     @Override
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
         for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
-            shenyuClientRegisterService.get(metaDataRegisterDTO.getRpcType()).register(metaDataRegisterDTO);
+            ShenyuClientRegisterServiceFactory shenyuClientRegisterServiceFactory = shenyuClientRegisterService.get(metaDataRegisterDTO.getRpcType());
+            Objects.requireNonNull(shenyuClientRegisterServiceFactory);
+
+            synchronized (shenyuClientRegisterServiceFactory) {
+                shenyuClientRegisterServiceFactory.register(metaDataRegisterDTO);
+            }
         }
     }
 }

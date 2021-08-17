@@ -19,6 +19,7 @@ package org.apache.shenyu.examples.http.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.http.dto.UserDTO;
+import org.apache.shenyu.examples.http.result.ResultBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -106,4 +107,19 @@ public class HttpTestController {
         return userDTO;
     }
 
+    @PostMapping("/waf/pass")
+    public ResultBean pass() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+        return response;
+    }
+
+    @PostMapping("/waf/deny")
+    public ResultBean deny() {
+        ResultBean response = new ResultBean();
+        response.setCode(403);
+        response.setMsg("deny");
+        return response;
+    }
 }

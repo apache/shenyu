@@ -17,15 +17,17 @@
 
 package org.apache.shenyu.register.client.http.utils;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
  * RegisterUtils.
  */
-@Slf4j
 public final class RegisterUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
 
     private RegisterUtils() {
     }
@@ -41,9 +43,9 @@ public final class RegisterUtils {
     public static void doRegister(final String json, final String url, final String rpcType) throws IOException {
         String result = OkHttpTools.getInstance().post(url, json);
         if ("success".equals(result)) {
-            log.info("{} client register success: {} ", rpcType, json);
+            LOGGER.info("{} client register success: {} ", rpcType, json);
         } else {
-            log.error("{} client register error: {} ", rpcType, json);
+            LOGGER.error("{} client register error: {} ", rpcType, json);
         }
     }
 }

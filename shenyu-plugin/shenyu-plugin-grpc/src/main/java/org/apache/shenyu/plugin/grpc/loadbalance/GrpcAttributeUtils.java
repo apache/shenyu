@@ -25,7 +25,7 @@ import io.grpc.Attributes;
 public class GrpcAttributeUtils {
 
     /**
-     * The soul instance appname.
+     * The instance appName.
      */
     private static Attributes.Key appName = Attributes.Key.create("appName");
 

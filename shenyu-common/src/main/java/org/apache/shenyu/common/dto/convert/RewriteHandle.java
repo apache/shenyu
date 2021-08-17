@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.Data;
+import java.util.Objects;
 
 /**
  * this is rewrite plugin handle.
  */
-@Data
 public class RewriteHandle {
 
     /**
@@ -35,4 +34,68 @@ public class RewriteHandle {
      */
     private String replace;
 
+    /**
+     * get regex.
+     *
+     * @return regex
+     */
+    public String getRegex() {
+        return regex;
+    }
+
+    /**
+     * set regex.
+     *
+     * @param regex regex
+     */
+    public void setRegex(final String regex) {
+        this.regex = regex;
+    }
+
+    /**
+     * get replace.
+     *
+     * @return replace
+     */
+    public String getReplace() {
+        return replace;
+    }
+
+    /**
+     * set replace.
+     *
+     * @param replace replace
+     */
+    public void setReplace(final String replace) {
+        this.replace = replace;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RewriteHandle that = (RewriteHandle) o;
+        return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(regex, replace);
+    }
+
+    @Override
+    public String toString() {
+        return "RewriteHandle{"
+                + "regex='"
+                + regex
+                + '\''
+                + ", replace='"
+                + replace
+                + '\''
+                + '}';
+    }
 }

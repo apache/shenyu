@@ -24,15 +24,21 @@ import org.apache.shenyu.common.utils.HttpParamConverter;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,14 +62,13 @@ public class ParamTransformPlugin implements ShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         if (Objects.nonNull(shenyuContext)) {
             MediaType mediaType = request.getHeaders().getContentType();
-            ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
-                return body(exchange, serverRequest, chain);
+                return body(exchange, request, chain);
             }
             if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
-                return formData(exchange, serverRequest, chain);
+                return formData(exchange, request, chain);
             }
-            return query(exchange, serverRequest, chain);
+            return query(exchange, request, chain);
         }
         return chain.execute(exchange);
     }
@@ -78,38 +83,51 @@ public class ParamTransformPlugin implements ShenyuPlugin {
         return PluginEnum.PARAM_TRANSFORM.getName();
     }
 
-    private Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final ShenyuPluginChain chain) {
-        return serverRequest.bodyToMono(String.class)
-                .switchIfEmpty(Mono.defer(() -> Mono.just("")))
+    private Mono<Void> body(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
+        return Mono.from(serverHttpRequest.getBody()
                 .flatMap(body -> {
-                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, body);
+                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, resolveBodyFromRequest(body));
                     return chain.execute(exchange);
-                });
+                }));
     }
-    
-    private Mono<Void> formData(final ServerWebExchange exchange, final ServerRequest serverRequest, final ShenyuPluginChain chain) {
-        return serverRequest.formData()
-                .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
+
+    private Mono<Void> formData(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
+        return Mono.from(serverHttpRequest.getBody()
                 .flatMap(map -> {
-                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> map));
+                    String param = resolveBodyFromRequest(map);
+                    LinkedMultiValueMap linkedMultiValueMap;
+                    try {
+                        linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8.name()));
+                    } catch (UnsupportedEncodingException e) {
+                        return Flux.error(e);
+                    }
+                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> linkedMultiValueMap));
                     return chain.execute(exchange);
-                });
+                }));
     }
-    
-    private Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final ShenyuPluginChain chain) {
-        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
+
+    private Mono<Void> query(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.ofString(() -> serverHttpRequest.getURI().getQuery()));
         return chain.execute(exchange);
     }
-    
+
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         String rpcType = shenyuContext.getRpcType();
-        return !Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName()) 
-                && !Objects.equals(rpcType, RpcTypeEnum.GRPC.getName()) 
+        return !Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName())
+                && !Objects.equals(rpcType, RpcTypeEnum.GRPC.getName())
                 && !Objects.equals(rpcType, RpcTypeEnum.TARS.getName())
                 && !Objects.equals(rpcType, RpcTypeEnum.MOTAN.getName())
                 && !Objects.equals(rpcType, RpcTypeEnum.SOFA.getName());
+    }
+
+    private String resolveBodyFromRequest(final DataBuffer dataBuffer) {
+        byte[] bytes = new byte[dataBuffer.readableByteCount()];
+        dataBuffer.read(bytes);
+        DataBufferUtils.release(dataBuffer);
+        String bodyString = new String(bytes, StandardCharsets.UTF_8);
+        return bodyString;
     }
 }

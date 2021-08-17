@@ -17,15 +17,58 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.Data;
+import java.util.Objects;
 
 /**
  * This is redirect plugin handle.
  */
-@Data
 public class RedirectHandle {
     /**
      * redirect url.
      */
     private String redirectURI;
+
+    /**
+     * get redirectURI.
+     *
+     * @return redirectURI
+     */
+    public String getRedirectURI() {
+        return redirectURI;
+    }
+
+    /**
+     * set redirectURI.
+     *
+     * @param redirectURI redirectURI
+     */
+    public void setRedirectURI(final String redirectURI) {
+        this.redirectURI = redirectURI;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RedirectHandle that = (RedirectHandle) o;
+        return Objects.equals(redirectURI, that.redirectURI);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(redirectURI);
+    }
+
+    @Override
+    public String toString() {
+        return "RedirectHandle{"
+                + "redirectURI='"
+                + redirectURI
+                + '\''
+                + '}';
+    }
 }

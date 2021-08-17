@@ -55,27 +55,30 @@ shenyu:
     websocket:
       enabled: true
 #      zookeeper:
-#          url: localhost:2181
-#          sessionTimeout: 5000
-#          connectionTimeout: 2000
+#        url: localhost:2181
+#        sessionTimeout: 5000
+#        connectionTimeout: 2000
 #      http:
 #        enabled: true
-  #    nacos:
-  #      url: localhost:8848
-  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-  #      username:
-  #      password:
-  #      acm:
-  #        enabled: false
-  #        endpoint: acm.aliyun.com
-  #        namespace:
-  #        accessKey:
-  #        secretKey:
+#      nacos:
+#        url: localhost:8848
+#        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#        username:
+#        password:
+#        acm:
+#          enabled: false
+#          endpoint: acm.aliyun.com
+#          namespace:
+#          accessKey:
+#          secretKey:
 #    etcd:
 #      url: http://localhost:2379
+#    consul:
+#      url: http://localhost:8500
   aes:
     secret:
       key: 2095132720951327
+      iv: 6075877187097700
   ldap:
     enabled: false
     url: ldap://xxxx:xxx
@@ -85,7 +88,7 @@ shenyu:
     object-class: person
     login-field: cn
   jwt:
-    key: 2095132720951327
+    expired-seconds: 86400000
   shiro:
     white-list:
       - /

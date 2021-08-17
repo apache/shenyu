@@ -30,33 +30,30 @@ public final class AesUtilsTest {
 
     private static final String AES_KEY = "2095132720951327";
 
-    @Test
-    public void testAesEncryption() {
-        assertThat(AesUtils.aesEncryption("123456", AES_KEY), is("jHcpKkiDbbQh7W7hh8yQSA=="));
-    }
+    private static final String IV = "6075877187097700";
 
     @Test
-    public void testAesEncryptionForEmptyString() {
-        assertThat(AesUtils.aesEncryption("", AES_KEY), nullValue());
+    public void testAesEncryption() {
+        assertThat(AesUtils.aesEncryption("123456", AES_KEY, IV), is("bbiB8zbUo3z3oA0VqEB/IA=="));
     }
 
     @Test
     public void testAesEncryptionForNull() {
-        assertThat(AesUtils.aesEncryption(null, AES_KEY), nullValue());
+        assertThat(AesUtils.aesEncryption(null, AES_KEY, IV), nullValue());
     }
 
     @Test
     public void testAesDecryption() {
-        assertThat(AesUtils.aesDecryption("jHcpKkiDbbQh7W7hh8yQSA==", AES_KEY), is("123456"));
+        assertThat(AesUtils.aesDecryption("bbiB8zbUo3z3oA0VqEB/IA==", AES_KEY, IV), is("123456"));
     }
 
     @Test
     public void testAesDecryptionForEmptyString() {
-        assertThat(AesUtils.aesDecryption("", AES_KEY), nullValue());
+        assertThat(AesUtils.aesDecryption("", AES_KEY, IV), nullValue());
     }
 
     @Test
     public void testAesDecryptionForNull() {
-        assertThat(AesUtils.aesDecryption(null, AES_KEY), nullValue());
+        assertThat(AesUtils.aesDecryption(null, AES_KEY, IV), nullValue());
     }
 }

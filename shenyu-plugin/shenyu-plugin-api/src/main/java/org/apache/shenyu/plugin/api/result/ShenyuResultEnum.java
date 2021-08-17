@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.plugin.api.result;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * The enum shenyu result enum.
  */
-@Getter
-@RequiredArgsConstructor
 public enum ShenyuResultEnum {
 
     /**
@@ -188,7 +183,34 @@ public enum ShenyuResultEnum {
      */
     REQUEST_ENTITY_TOO_LARGE(413, "Request Entity Too Large");
 
+    /**
+     * the code.
+     */
     private final int code;
 
+    /**
+     * the msg.
+     */
     private final String msg;
+
+    ShenyuResultEnum(final int code, final String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+
+    /**
+     * get code.
+     * @return code
+     */
+    public int getCode() {
+        return code;
+    }
+
+    /**
+     * get msg.
+     * @return msg
+     */
+    public String getMsg() {
+        return msg;
+    }
 }

@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,6 +70,15 @@ public final class MetaDataServiceTest {
 
     @Mock
     private MetaDataQuery metaDataQuery;
+
+    /**
+     * Test case for saveOrUpdateMetaData().
+     */
+    @Test
+    public void testSaveOrUpdateMetaData() {
+        testSaveOrUpdateMetaDataForInsert();
+        testSaveOrUpdateMetaDataForUpdate();
+    }
 
     /**
      * Test case for createOrUpdate.<br>
@@ -191,6 +201,16 @@ public final class MetaDataServiceTest {
         List<MetaData> all = metaDataService.listAll();
         Assert.assertEquals("The List should be contain " + (metaDataDOList.size() - 1) + " element.",
                 metaDataDOList.size() - 1, all.size());
+    }
+
+    private void testSaveOrUpdateMetaDataForInsert() {
+        metaDataService.saveOrUpdateMetaData(null, new MetaDataRegisterDTO());
+        verify(metaDataMapper).insert(any(MetaDataDO.class));
+    }
+
+    private void testSaveOrUpdateMetaDataForUpdate() {
+        metaDataService.saveOrUpdateMetaData(MetaDataDO.builder().id("1").build(), new MetaDataRegisterDTO());
+        verify(metaDataMapper).update(any(MetaDataDO.class));
     }
 
     /**

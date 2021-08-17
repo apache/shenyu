@@ -123,7 +123,7 @@ public final class RuleConditionMapperTest extends AbstractSpringIntegrationTest
      * @return new ruleCondition
      */
     public RuleConditionDO buildRuleConditionDo() {
-        Timestamp currentTimeStamp = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp currentTimeStamp = new Timestamp(System.currentTimeMillis());
         return RuleConditionDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .ruleId(UUIDUtils.getInstance().generateShortUuid())

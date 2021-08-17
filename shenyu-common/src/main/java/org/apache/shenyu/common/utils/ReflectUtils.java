@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.common.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,8 +27,12 @@ import java.lang.reflect.Method;
 /**
  * The type Reflect utils.
  */
-@Slf4j
 public class ReflectUtils {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ReflectUtils.class);
 
     /**
      * Gets field.
@@ -79,7 +84,7 @@ public class ReflectUtils {
         try {
             result = field.get(obj);
         } catch (IllegalAccessException e) {
-            log.error("", e);
+            LOG.error("", e);
         }
         return result;
     }
@@ -96,7 +101,7 @@ public class ReflectUtils {
             Method m = findMethod(clazz, method);
             return m.invoke(null);
         } catch (Exception e) {
-            log.error("", e);
+            LOG.error("", e);
         }
 
         return null;
@@ -113,7 +118,7 @@ public class ReflectUtils {
         try {
             return clazz.getMethod(method);
         } catch (Exception e) {
-            log.error("", e);
+            LOG.error("", e);
         }
 
         return null;

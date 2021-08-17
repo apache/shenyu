@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.client.etcd;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -25,6 +24,8 @@ import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
@@ -32,8 +33,9 @@ import java.util.Properties;
  * etcd register repository.
  */
 @Join
-@Slf4j
 public class EtcdClientRegisterRepository implements ShenyuClientRegisterRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClientRegisterRepository.class);
 
     private EtcdClient client;
 
@@ -65,7 +67,7 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
-        log.info("register metadata success: {}", realNode);
+        LOGGER.info("register metadata success: {}", realNode);
     }
 
     private void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
@@ -73,7 +75,7 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
         String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
-        log.info("register uri data success: {}", realNode);
+        LOGGER.info("register uri data success: {}", realNode);
     }
 
     private String buildURINodeName(final MetaDataRegisterDTO metadata) {
