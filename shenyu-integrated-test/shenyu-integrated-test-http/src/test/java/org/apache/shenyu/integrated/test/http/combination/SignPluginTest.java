@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integrated.test.http.combination;
 
 import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
@@ -32,7 +32,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class SignTest extends AbstractTest {
+public class SignPluginTest extends AbstractTest {
 
     @Test
     public void testSign() throws Exception {

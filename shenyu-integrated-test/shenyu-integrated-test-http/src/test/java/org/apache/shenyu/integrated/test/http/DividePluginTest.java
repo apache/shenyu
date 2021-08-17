@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integrated.test.http;
 
 import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class HelloWorldTest extends AbstractTest {
+public class DividePluginTest extends AbstractTest {
 
     @Test
     public void testHelloWorld() throws Exception {
