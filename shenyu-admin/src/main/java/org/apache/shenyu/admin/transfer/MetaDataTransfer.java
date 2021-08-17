@@ -98,7 +98,7 @@ public enum MetaDataTransfer {
     public MetaData mapToData(final MetaDataDTO metaDataDTO) {
         return Optional.ofNullable(metaDataDTO)
                 .map(v -> {
-                    MetaData.MetaDataBuilder metaData = MetaData.builder();
+                    MetaData.Builder metaData = MetaData.builder();
                     metaData.id(v.getId());
                     metaData.appName(v.getAppName());
                     metaData.contextPath(v.getContextPath());
@@ -124,7 +124,7 @@ public enum MetaDataTransfer {
     public MetaData mapToData(final MetaDataDO metaDataDO) {
         return Optional.ofNullable(metaDataDO)
                 .map(v -> {
-                    MetaData.MetaDataBuilder metaData = MetaData.builder();
+                    MetaData.Builder metaData = MetaData.builder();
                     metaData.id(v.getId());
                     metaData.appName(v.getAppName());
                     metaData.path(v.getPath());

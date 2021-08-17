@@ -42,7 +42,7 @@ public enum PluginTransfer {
     public PluginData mapToData(final PluginDO pluginDO) {
         return Optional.ofNullable(pluginDO)
                 .map(v -> {
-                    PluginData.PluginDataBuilder pluginData = PluginData.builder();
+                    PluginData.Builder pluginData = PluginData.builder();
                     pluginData.id(v.getId());
                     pluginData.name(v.getName());
                     pluginData.config(v.getConfig());
@@ -63,7 +63,7 @@ public enum PluginTransfer {
     public PluginData mapDataTOVO(final PluginVO pluginVO) {
         return Optional.ofNullable(pluginVO)
                 .map(v -> {
-                    PluginData.PluginDataBuilder pluginData = PluginData.builder();
+                    PluginData.Builder pluginData = PluginData.builder();
                     pluginData.id(v.getId());
                     pluginData.name(v.getName());
                     pluginData.config(v.getConfig());

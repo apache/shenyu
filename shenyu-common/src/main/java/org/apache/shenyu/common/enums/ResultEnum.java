@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * ResultEnum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum ResultEnum {
 
     /**
@@ -40,9 +35,25 @@ public enum ResultEnum {
     /**
      * Error result enum.
      */
-    ERROR("error"),;
+    ERROR("error");
 
     private final String name;
 
+    /**
+     * all args constructor.
+     *
+     * @param name name
+     */
+    ResultEnum(final String name) {
+        this.name = name;
+    }
 
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 }

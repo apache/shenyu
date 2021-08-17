@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.StringJoiner;
 
-
 /**
  * Metrics config.
  */

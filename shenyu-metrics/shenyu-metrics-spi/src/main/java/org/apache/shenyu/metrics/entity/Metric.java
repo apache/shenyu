@@ -48,7 +48,6 @@ public final class Metric {
         this.labels = labels;
     }
 
-
     /**
      * Gets type.
      *

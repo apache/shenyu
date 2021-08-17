@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.web.configuration.properties;
 
-
 /**
  * The type shenyu config.
  */

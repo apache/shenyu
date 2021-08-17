@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.springboot.sync.data.etcd;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.StringJoiner;
 
 /**
  * The type etcd configuration.
  */
-@Data
 @ConfigurationProperties(prefix = "shenyu.sync.etcd")
 public class EtcdConfig {
 
@@ -34,4 +34,87 @@ public class EtcdConfig {
     private Integer connectionTimeout;
 
     private String serializer;
+
+    /**
+     * Get url.
+     *
+     * @return url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Set url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * Get sessionTimeout.
+     *
+     * @return sessionTimeout
+     */
+    public Integer getSessionTimeout() {
+        return sessionTimeout;
+    }
+
+    /**
+     * Set sessionTimeout.
+     *
+     * @param sessionTimeout sessionTimeout
+     */
+    public void setSessionTimeout(final Integer sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
+    }
+
+    /**
+     * Get connectionTimeout.
+     *
+     * @return connectionTimeout
+     */
+    public Integer getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    /**
+     * Set connectionTimeout.
+     *
+     * @param connectionTimeout connectionTimeout
+     */
+    public void setConnectionTimeout(final Integer connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    /**
+     * Get serializer.
+     *
+     * @return serializer
+     */
+    public String getSerializer() {
+        return serializer;
+    }
+
+    /**
+     * Set serializer.
+     *
+     * @param serializer serializer
+     */
+    public void setSerializer(final String serializer) {
+        this.serializer = serializer;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", EtcdConfig.class.getSimpleName() + "[", "]")
+                .add("url='" + url + "'")
+                .add("sessionTimeout=" + sessionTimeout)
+                .add("connectionTimeout=" + connectionTimeout)
+                .add("serializer='" + serializer + "'")
+                .toString();
+    }
+
 }

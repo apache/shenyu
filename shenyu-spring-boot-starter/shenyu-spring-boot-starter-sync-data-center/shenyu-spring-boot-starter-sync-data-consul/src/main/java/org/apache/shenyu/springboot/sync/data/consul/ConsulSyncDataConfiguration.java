@@ -18,13 +18,14 @@
 package org.apache.shenyu.springboot.sync.data.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.consul.ConsulSyncDataService;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,8 +42,9 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(ConsulSyncDataConfiguration.class)
 @ConditionalOnProperty(prefix = "shenyu.sync.consul", name = "url")
-@Slf4j
 public class ConsulSyncDataConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulSyncDataConfiguration.class);
 
     /**
      * Sync data service.
@@ -60,7 +62,7 @@ public class ConsulSyncDataConfiguration {
                                            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use consul sync shenyu data.......");
+        LOGGER.info("you use consul sync shenyu data.......");
         return new ConsulSyncDataService(consulClient.getIfAvailable(), consulConfig.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }

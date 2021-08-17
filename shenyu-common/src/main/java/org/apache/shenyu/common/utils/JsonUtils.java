@@ -29,7 +29,9 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -41,8 +43,12 @@ import java.util.Map;
 /**
  * JsonUtils.
  */
-@Slf4j
 public final class JsonUtils {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(JsonUtils.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -75,7 +81,7 @@ public final class JsonUtils {
         try {
             return MAPPER.writeValueAsString(object);
         } catch (IOException e) {
-            log.warn("write to json string error: " + object, e);
+            LOG.warn("write to json string error: " + object, e);
             return "{}";
         }
     }
