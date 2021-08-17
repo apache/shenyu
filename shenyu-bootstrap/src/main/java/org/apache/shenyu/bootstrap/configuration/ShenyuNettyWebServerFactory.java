@@ -44,7 +44,7 @@ public class ShenyuNettyWebServerFactory {
         webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfig));
         return webServerFactory;
     }
-    
+
     /**
      * Netty tcp config.
      *
@@ -66,17 +66,16 @@ public class ShenyuNettyWebServerFactory {
         @Override
         public HttpServer apply(final HttpServer httpServer) {
             return httpServer
-                    .tcpConfiguration(tcpServer -> tcpServer
-                            .runOn(LoopResources.create("shenyu-netty", nettyTcpConfig.getSelectCount(), nettyTcpConfig.getWorkerCount(), true))
-                            .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpConfig.getSoBacklog())
-                            .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
-                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis())
-                            .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
-                                    nettyTcpConfig.getWriteBufferHighWaterMark()))
-                            .option(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive())
-                            .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
-                            .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
-                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay()));
-        } 
+                    .runOn(LoopResources.create("shenyu-netty", nettyTcpConfig.getSelectCount(), nettyTcpConfig.getWorkerCount(), true))
+                    .option(ChannelOption.SO_BACKLOG, nettyTcpConfig.getSoBacklog())
+                    .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
+                    .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis())
+                    .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
+                            nettyTcpConfig.getWriteBufferHighWaterMark()))
+                    .childOption(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive())
+                    .childOption(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
+                    .childOption(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
+                    .childOption(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay());
+        }
     }
 }
