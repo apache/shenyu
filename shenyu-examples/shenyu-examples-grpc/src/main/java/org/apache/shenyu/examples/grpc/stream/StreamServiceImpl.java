@@ -29,7 +29,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
 
     @Override
     @ShenyuGrpcClient(path = "/unaryFun", desc = "unaryFun")
-    public void unaryFun(RequestData request, StreamObserver<ResponseData> responseObserver) {
+    public void unaryFun(final RequestData request, final StreamObserver<ResponseData> responseObserver) {
         System.out.println("unaryFun received：" + request.getText());
 
         ResponseData responseData = ResponseData.newBuilder()
@@ -41,7 +41,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
 
     @Override
     @ShenyuGrpcClient(path = "/serverStreamingFun", desc = "serverStreamingFun")
-    public void serverStreamingFun(RequestData request, StreamObserver<ResponseData> responseObserver) {
+    public void serverStreamingFun(final RequestData request, final StreamObserver<ResponseData> responseObserver) {
         System.out.println("serverStreamingFun received：" + request.getText());
 
         for (int i = 0; i < 10; i++) {
@@ -63,12 +63,12 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             private ResponseData.Builder builder = ResponseData.newBuilder();
 
             @Override
-            public void onNext(RequestData value) {
+            public void onNext(final RequestData value) {
                 System.out.println("clientStreamingFun received: " + value.getText());
             }
 
             @Override
-            public void onError(Throwable t) {
+            public void onError(final Throwable t) {
 
             }
 
@@ -83,7 +83,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
 
     @Override
     @ShenyuGrpcClient(path = "/bidiStreamingFun", desc = "bidiStreamingFun")
-    public StreamObserver<RequestData> bidiStreamingFun(StreamObserver<ResponseData> responseObserver) {
+    public StreamObserver<RequestData> bidiStreamingFun(final StreamObserver<ResponseData> responseObserver) {
 
         return new StreamObserver<RequestData>() {
 
@@ -99,7 +99,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             }
 
             @Override
-            public void onError(Throwable t) { t.printStackTrace();
+            public void onError(final Throwable t) { t.printStackTrace();
             }
 
             @Override

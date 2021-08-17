@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.grpc.loadbalance.picker;
 import io.grpc.ConnectivityState;
 import io.grpc.LoadBalancer;
 import io.grpc.Status;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 /**
  * The AbstractReadyPicker result.
  */
-@Slf4j
 public abstract class AbstractReadyPicker extends AbstractPicker implements Picker {
 
     private final boolean hasIdleNode;

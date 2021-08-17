@@ -50,7 +50,7 @@ public class MonitorPlugin extends AbstractShenyuPlugin {
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TOTAL);
         MetricsReporter.counterIncrement(LabelNames.HTTP_REQUEST_TOTAL, new String[]{exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue()});
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        LocalDateTime startDateTime = Optional.ofNullable(shenyuContext).map(ShenyuContext::getStartDateTime).orElse(LocalDateTime.now());
+        LocalDateTime startDateTime = Optional.ofNullable(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
                 .doOnError(throwable -> responseCommitted(exchange, startDateTime));
     }

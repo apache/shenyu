@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -31,15 +27,12 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * SelectorDO.
  */
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public final class SelectorDO extends BaseDO {
 
     private static final long serialVersionUID = -1627940797162331235L;
@@ -84,7 +77,232 @@ public final class SelectorDO extends BaseDO {
      */
     private Boolean continued;
 
+    /**
+     * handle.
+     */
     private String handle;
+
+    public SelectorDO() {
+    }
+
+    public SelectorDO(final String pluginId,
+                      final String name,
+                      final Integer matchMode,
+                      final Integer type,
+                      final Integer sort,
+                      final Boolean enabled,
+                      final Boolean loged,
+                      final Boolean continued,
+                      final String handle) {
+        this.pluginId = pluginId;
+        this.name = name;
+        this.matchMode = matchMode;
+        this.type = type;
+        this.sort = sort;
+        this.enabled = enabled;
+        this.loged = loged;
+        this.continued = continued;
+        this.handle = handle;
+    }
+
+    /**
+     * Gets the value of pluginId.
+     *
+     * @return the value of pluginId
+     */
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    /**
+     * Sets the pluginId.
+     *
+     * @param pluginId pluginId
+     */
+    public void setPluginId(final String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of matchMode.
+     *
+     * @return the value of matchMode
+     */
+    public Integer getMatchMode() {
+        return matchMode;
+    }
+
+    /**
+     * Sets the matchMode.
+     *
+     * @param matchMode matchMode
+     */
+    public void setMatchMode(final Integer matchMode) {
+        this.matchMode = matchMode;
+    }
+
+    /**
+     * Gets the value of type.
+     *
+     * @return the value of type
+     */
+    public Integer getType() {
+        return type;
+    }
+
+    /**
+     * Sets the type.
+     *
+     * @param type type
+     */
+    public void setType(final Integer type) {
+        this.type = type;
+    }
+
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of loged.
+     *
+     * @return the value of loged
+     */
+    public Boolean getLoged() {
+        return loged;
+    }
+
+    /**
+     * Sets the loged.
+     *
+     * @param loged loged
+     */
+    public void setLoged(final Boolean loged) {
+        this.loged = loged;
+    }
+
+    /**
+     * Gets the value of continued.
+     *
+     * @return the value of continued
+     */
+    public Boolean getContinued() {
+        return continued;
+    }
+
+    /**
+     * Sets the continued.
+     *
+     * @param continued continued
+     */
+    public void setContinued(final Boolean continued) {
+        this.continued = continued;
+    }
+
+    /**
+     * Gets the value of handle.
+     *
+     * @return the value of handle
+     */
+    public String getHandle() {
+        return handle;
+    }
+
+    /**
+     * Sets the handle.
+     *
+     * @param handle handle
+     */
+    public void setHandle(final String handle) {
+        this.handle = handle;
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static SelectorDO.SelectorDOBuilder builder() {
+        return new SelectorDO.SelectorDOBuilder();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        SelectorDO that = (SelectorDO) o;
+        return Objects.equals(pluginId, that.pluginId)
+                && Objects.equals(name, that.name)
+                && Objects.equals(matchMode, that.matchMode)
+                && Objects.equals(type, that.type)
+                && Objects.equals(sort, that.sort)
+                && Objects.equals(enabled, that.enabled)
+                && Objects.equals(loged, that.loged)
+                && Objects.equals(continued, that.continued)
+                && Objects.equals(handle, that.handle);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle);
+    }
 
     /**
      * build selectorDO.
@@ -144,5 +362,189 @@ public final class SelectorDO extends BaseDO {
                 .handle(selectorDO.getHandle())
                 .conditionList(conditionDataList)
                 .build();
+    }
+
+    public static final class SelectorDOBuilder {
+
+        private String id;
+
+        private Timestamp dateCreated;
+
+        private Timestamp dateUpdated;
+
+        private String pluginId;
+
+        private String name;
+
+        private Integer matchMode;
+
+        private Integer type;
+
+        private Integer sort;
+
+        private Boolean enabled;
+
+        private Boolean loged;
+
+        private Boolean continued;
+
+        private String handle;
+
+        private SelectorDOBuilder() {
+        }
+
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * dateCreated.
+         *
+         * @param dateCreated the dateCreated.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder dateCreated(final Timestamp dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /**
+         * dateUpdated.
+         *
+         * @param dateUpdated the dateUpdated.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder dateUpdated(final Timestamp dateUpdated) {
+            this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * pluginId.
+         *
+         * @param pluginId the pluginId.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder pluginId(final String pluginId) {
+            this.pluginId = pluginId;
+            return this;
+        }
+
+        /**
+         * name.
+         *
+         * @param name the name.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * matchMode.
+         *
+         * @param matchMode the matchMode.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder matchMode(final Integer matchMode) {
+            this.matchMode = matchMode;
+            return this;
+        }
+
+        /**
+         * type.
+         *
+         * @param type the type.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder type(final Integer type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * sort.
+         *
+         * @param sort the sort.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder sort(final Integer sort) {
+            this.sort = sort;
+            return this;
+        }
+
+        /**
+         * enabled.
+         *
+         * @param enabled the enabled.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder enabled(final Boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * loged.
+         *
+         * @param loged the loged.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder loged(final Boolean loged) {
+            this.loged = loged;
+            return this;
+        }
+
+        /**
+         * continued.
+         *
+         * @param continued the continued.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder continued(final Boolean continued) {
+            this.continued = continued;
+            return this;
+        }
+
+        /**
+         * handle.
+         *
+         * @param handle the handle.
+         * @return SelectorDOBuilder.
+         */
+        public SelectorDOBuilder handle(final String handle) {
+            this.handle = handle;
+            return this;
+        }
+
+        /**
+         * build method.
+         *
+         * @return build object.
+         */
+        public SelectorDO build() {
+            SelectorDO selectorDO = new SelectorDO();
+            selectorDO.setId(id);
+            selectorDO.setDateCreated(dateCreated);
+            selectorDO.setDateUpdated(dateUpdated);
+            selectorDO.setPluginId(pluginId);
+            selectorDO.setName(name);
+            selectorDO.setMatchMode(matchMode);
+            selectorDO.setType(type);
+            selectorDO.setSort(sort);
+            selectorDO.setEnabled(enabled);
+            selectorDO.setLoged(loged);
+            selectorDO.setContinued(continued);
+            selectorDO.setHandle(handle);
+            return selectorDO;
+        }
     }
 }

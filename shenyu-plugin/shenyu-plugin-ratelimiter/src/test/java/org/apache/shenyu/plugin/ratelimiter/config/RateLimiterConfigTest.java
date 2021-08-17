@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.ratelimiter.config;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,7 +28,6 @@ import org.mockito.junit.MockitoJUnitRunner;
  * RateLimiterConfig default value test.
  */
 @RunWith(MockitoJUnitRunner.class)
-@Slf4j
 public final class RateLimiterConfigTest {
 
     private static final int DEFAULT_MAX_IDLE = 8;

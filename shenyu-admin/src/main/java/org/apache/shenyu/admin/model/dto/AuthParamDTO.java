@@ -17,14 +17,12 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The type Auth param dto.
  */
-@Data
 public class AuthParamDTO implements Serializable {
 
     private static final long serialVersionUID = -5758853682062396957L;
@@ -32,4 +30,57 @@ public class AuthParamDTO implements Serializable {
     private String appName;
 
     private String appParam;
+
+    /**
+     * Gets the value of appName.
+     *
+     * @return the value of appName
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * Sets the appName.
+     *
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
+
+    /**
+     * Gets the value of appParam.
+     *
+     * @return the value of appParam
+     */
+    public String getAppParam() {
+        return appParam;
+    }
+
+    /**
+     * Sets the appParam.
+     *
+     * @param appParam appParam
+     */
+    public void setAppParam(final String appParam) {
+        this.appParam = appParam;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AuthParamDTO)) {
+            return false;
+        }
+        AuthParamDTO that = (AuthParamDTO) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(appParam, that.appParam);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, appParam);
+    }
 }

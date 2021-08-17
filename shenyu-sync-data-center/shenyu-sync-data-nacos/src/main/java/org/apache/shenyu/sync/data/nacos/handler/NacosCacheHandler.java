@@ -19,11 +19,9 @@ package org.apache.shenyu.sync.data.nacos.handler;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -34,6 +32,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,12 +46,15 @@ import java.util.stream.Collectors;
 /**
  * Nacos cache handler.
  */
-@Slf4j
 public class NacosCacheHandler {
 
     protected static final Map<String, List<Listener>> LISTENERS = Maps.newConcurrentMap();
 
-    @Getter
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(NacosCacheHandler.class);
+
     private final ConfigService configService;
 
     private final PluginDataSubscriber pluginDataSubscriber;
@@ -69,6 +72,15 @@ public class NacosCacheHandler {
         this.authDataSubscribers = authDataSubscribers;
     }
 
+    /**
+     * get configService.
+     *
+     * @return configService
+     */
+    public ConfigService getConfigService() {
+        return this.configService;
+    }
+
     protected void updatePluginMap(final String configInfo) {
         try {
             // Fix bug #656(https://github.com/dromara/shenyu/issues/656)
@@ -78,7 +90,7 @@ public class NacosCacheHandler {
                 subscriber.onSubscribe(pluginData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync plugin data have error:", e);
+            LOG.error("sync plugin data have error:", e);
         }
     }
 
@@ -90,7 +102,7 @@ public class NacosCacheHandler {
                 subscriber.onSelectorSubscribe(selectorData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync selector data have error:", e);
+            LOG.error("sync selector data have error:", e);
         }
     }
 
@@ -104,7 +116,7 @@ public class NacosCacheHandler {
                 subscriber.onRuleSubscribe(ruleData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync rule data have error:", e);
+            LOG.error("sync rule data have error:", e);
         }
     }
 
@@ -116,7 +128,7 @@ public class NacosCacheHandler {
                 subscriber.onSubscribe(metaData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync meta data have error:", e);
+            LOG.error("sync meta data have error:", e);
         }
     }
 
@@ -128,13 +140,17 @@ public class NacosCacheHandler {
                 subscriber.onSubscribe(appAuthData);
             }));
         } catch (JsonParseException e) {
-            log.error("sync auth data have error:", e);
+            LOG.error("sync auth data have error:", e);
         }
     }
 
-    @SneakyThrows
     private String getConfigAndSignListener(final String dataId, final Listener listener) {
-        String config = configService.getConfigAndSignListener(dataId, NacosPathConstants.GROUP, 6000, listener);
+        String config = null;
+        try {
+            config = configService.getConfigAndSignListener(dataId, NacosPathConstants.GROUP, 6000, listener);
+        } catch (NacosException e) {
+            LOG.error(e.getMessage(), e);
+        }
         if (config == null) {
             config = "{}";
         }
@@ -158,7 +174,6 @@ public class NacosCacheHandler {
     }
 
     protected interface OnChange {
-
         void change(String changeData);
     }
 }

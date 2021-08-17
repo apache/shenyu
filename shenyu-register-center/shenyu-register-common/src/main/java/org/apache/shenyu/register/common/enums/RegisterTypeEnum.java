@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.common.enums;
 
-
 /**
  * RegisterTypeEnum.
  */

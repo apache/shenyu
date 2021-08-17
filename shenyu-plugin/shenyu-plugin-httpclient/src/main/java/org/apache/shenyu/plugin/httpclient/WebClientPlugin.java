@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -30,6 +29,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -47,8 +48,9 @@ import java.util.Optional;
 /**
  * The type Web client plugin.
  */
-@Slf4j
 public class WebClientPlugin implements ShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebClientPlugin.class);
 
     private final WebClient webClient;
 
@@ -72,7 +74,7 @@ public class WebClientPlugin implements ShenyuPlugin {
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
-        log.info("The request urlPath is {}, retryTimes is {}", urlPath, retryTimes);
+        LOG.info("The request urlPath is {}, retryTimes is {}", urlPath, retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
         return handleRequestBody(requestBodySpec, exchange, timeout, retryTimes, chain);
@@ -107,7 +109,7 @@ public class WebClientPlugin implements ShenyuPlugin {
         })
                 .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
                 .exchange()
-                .doOnError(e -> log.error(e.getMessage(), e))
+                .doOnError(e -> LOG.error(e.getMessage(), e))
                 .timeout(Duration.ofMillis(timeout))
                 .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
                     .retryMax(retryTimes)

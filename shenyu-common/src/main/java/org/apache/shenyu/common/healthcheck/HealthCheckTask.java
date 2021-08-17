@@ -19,18 +19,19 @@ package org.apache.shenyu.common.healthcheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -41,22 +42,24 @@ import java.util.stream.Collectors;
 /**
  * Health check manager for upstream servers.
  */
-@Slf4j
 public final class HealthCheckTask implements Runnable {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(HealthCheckTask.class);
 
     private final Map<String, List<DivideUpstream>> healthyUpstream = Maps.newConcurrentMap();
 
     private final Map<String, List<DivideUpstream>> unhealthyUpstream = Maps.newConcurrentMap();
 
-    @Getter
     private final Map<String, SelectorData> selectorCache = Maps.newConcurrentMap();
 
     private final Object lock = new Object();
 
-    @Getter
     private final AtomicBoolean checkStarted = new AtomicBoolean(false);
 
-    private final List<CompletableFuture<Void>> futures = Lists.newArrayList();
+    private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
 
     private final int checkInterval;
 
@@ -70,6 +73,24 @@ public final class HealthCheckTask implements Runnable {
 
     public HealthCheckTask(final int checkInterval) {
         this.checkInterval = checkInterval;
+    }
+
+    /**
+     * get selectorCache.
+     *
+     * @return selectorCache
+     */
+    public Map<String, SelectorData> getSelectorCache() {
+        return selectorCache;
+    }
+
+    /**
+     * get checkStarted.
+     *
+     * @return checkStarted
+     */
+    public AtomicBoolean getCheckStarted() {
+        return checkStarted;
     }
 
     /**
@@ -125,11 +146,11 @@ public final class HealthCheckTask implements Runnable {
             synchronized (lock) {
                 if (tryStartHealthCheck()) {
                     doHealthCheck();
+                    waitFinish();
                 }
             }
-            waitFinish();
         } catch (Exception e) {
-            log.error("[Health Check] Meet problem: ", e);
+            LOG.error("[Health Check] Meet problem: ", e);
         } finally {
             finishHealthCheck();
         }
@@ -141,8 +162,15 @@ public final class HealthCheckTask implements Runnable {
     }
 
     private void check(final Map<String, List<DivideUpstream>> map) {
-        map.forEach((k, v) -> v.forEach(i -> futures.add(
-                CompletableFuture.supplyAsync(() -> check(k, i), executor).thenAccept(d -> putEntityToMap(d)))));
+        for (Map.Entry<String, List<DivideUpstream>> entry : map.entrySet()) {
+            String key = entry.getKey();
+            List<DivideUpstream> value = entry.getValue();
+            for (DivideUpstream upstream : value) {
+                CompletableFuture<UpstreamWithSelectorId> future = CompletableFuture.supplyAsync(() -> check(key, upstream), executor);
+
+                futures.add(future);
+            }
+        }
     }
 
     private UpstreamWithSelectorId check(final String selectorId, final DivideUpstream upstream) {
@@ -157,7 +185,7 @@ public final class HealthCheckTask implements Runnable {
                 if (interval >= (long) checkInterval * healthyThreshold) {
                     upstream.setHealthy(true);
                     upstream.setLastHealthTimestamp(now);
-                    log.info("[Health Check] Selector [{}] upstream {} health check passed, server is back online.",
+                    LOG.info("[Health Check] Selector [{}] upstream {} health check passed, server is back online.",
                             selectorData.getName(), upstream.getUpstreamUrl());
                 }
             }
@@ -170,7 +198,7 @@ public final class HealthCheckTask implements Runnable {
                 if (interval >= (long) checkInterval * unhealthyThreshold) {
                     upstream.setHealthy(false);
                     upstream.setLastUnhealthyTimestamp(now);
-                    log.info("[Health Check] Selector [{}] upstream {} health check failed, server is offline.",
+                    LOG.info("[Health Check] Selector [{}] upstream {} health check failed, server is offline.",
                             selectorData.getName(), upstream.getUpstreamUrl());
                 }
             }
@@ -183,8 +211,13 @@ public final class HealthCheckTask implements Runnable {
         return checkStarted.compareAndSet(false, true);
     }
 
-    private void waitFinish() {
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).thenAccept(__ -> futures.clear()).join();
+    private void waitFinish() throws ExecutionException, InterruptedException {
+        for (CompletableFuture<UpstreamWithSelectorId> future : futures) {
+            UpstreamWithSelectorId entity = future.get();
+            putEntityToMap(entity);
+        }
+
+        futures.clear();
     }
 
     private void putEntityToMap(final UpstreamWithSelectorId entity) {
@@ -234,7 +267,7 @@ public final class HealthCheckTask implements Runnable {
         removeFromMap(unhealthyUpstream, selectorId, upstream);
 
         SelectorData selectorData = selectorCache.get(selectorId);
-        log.info("[Health Check] Selector [{}] upstream {} was removed.", selectorData.getName(), upstream.getUpstreamUrl());
+        LOG.info("[Health Check] Selector [{}] upstream {} was removed.", selectorData.getName(), upstream.getUpstreamUrl());
     }
 
     private void putToMap(final Map<String, List<DivideUpstream>> map, final String selectorId, final DivideUpstream upstream) {
@@ -276,9 +309,10 @@ public final class HealthCheckTask implements Runnable {
         }
 
         SelectorData selectorData = selectorCache.get(selectorId);
-        log.info("[Health Check] Selector [{}] all upstream as removed.", selectorData.getName());
-
-        selectorCache.remove(selectorId);
+        if (selectorData != null) {
+            selectorCache.remove(selectorId);
+            LOG.info("[Health Check] Selector [{}] all upstream as removed.", selectorData.getName());
+        }     
     }
 
     /**
@@ -289,7 +323,7 @@ public final class HealthCheckTask implements Runnable {
             if (v != null) {
                 SelectorData selectorData = selectorCache.get(k);
                 List<String> list = v.stream().map(DivideUpstream::getUpstreamUrl).collect(Collectors.toList());
-                log.info("[Health Check] Selector [{}] currently healthy upstream: {}",
+                LOG.info("[Health Check] Selector [{}] currently healthy upstream: {}",
                         selectorData.getName(), GsonUtils.getInstance().toJson(list));
             }
         });
@@ -303,7 +337,7 @@ public final class HealthCheckTask implements Runnable {
             if (v != null) {
                 SelectorData selectorData = selectorCache.get(k);
                 List<String> list = v.stream().map(DivideUpstream::getUpstreamUrl).collect(Collectors.toList());
-                log.info("[Health Check] Selector [{}] currently unhealthy upstream: {}",
+                LOG.info("[Health Check] Selector [{}] currently unhealthy upstream: {}",
                         selectorData.getName(), GsonUtils.getInstance().toJson(list));
             }
         });

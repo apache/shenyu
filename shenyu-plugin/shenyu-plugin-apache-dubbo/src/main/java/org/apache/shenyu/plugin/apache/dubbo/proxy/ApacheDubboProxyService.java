@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -42,7 +41,6 @@ import java.util.concurrent.CompletableFuture;
 /**
  * dubbo proxy service is  use GenericService.
  */
-@Slf4j
 public class ApacheDubboProxyService {
 
     private final BodyParamResolveService bodyParamResolveService;

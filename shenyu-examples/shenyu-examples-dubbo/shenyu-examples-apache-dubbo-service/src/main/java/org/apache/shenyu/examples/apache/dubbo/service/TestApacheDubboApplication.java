@@ -25,7 +25,7 @@ import org.springframework.context.annotation.ImportResource;
  * TestDubboApplication.
  */
 @SpringBootApplication
-@ImportResource({"classpath:spring-dubbo.xml"})
+@ImportResource("classpath:spring-dubbo.xml")
 public class TestApacheDubboApplication {
 
     /**

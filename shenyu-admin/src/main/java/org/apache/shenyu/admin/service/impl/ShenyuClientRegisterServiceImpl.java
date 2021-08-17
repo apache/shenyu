@@ -17,15 +17,12 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
@@ -34,9 +31,11 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
@@ -66,7 +65,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ShenyuClientRegisterService}.
  */
-@RequiredArgsConstructor
 @Service
 public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterService {
 
@@ -87,6 +85,24 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     private final SelectorMapper selectorMapper;
 
     private final PluginMapper pluginMapper;
+
+    public ShenyuClientRegisterServiceImpl(final MetaDataMapper metaDataMapper,
+                                           final ApplicationEventPublisher eventPublisher,
+                                           final SelectorService selectorService,
+                                           final RuleService ruleService,
+                                           final RuleMapper ruleMapper,
+                                           final UpstreamCheckService upstreamCheckService,
+                                           final SelectorMapper selectorMapper,
+                                           final PluginMapper pluginMapper) {
+        this.metaDataMapper = metaDataMapper;
+        this.eventPublisher = eventPublisher;
+        this.selectorService = selectorService;
+        this.ruleService = ruleService;
+        this.ruleMapper = ruleMapper;
+        this.upstreamCheckService = upstreamCheckService;
+        this.selectorMapper = selectorMapper;
+        this.pluginMapper = pluginMapper;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

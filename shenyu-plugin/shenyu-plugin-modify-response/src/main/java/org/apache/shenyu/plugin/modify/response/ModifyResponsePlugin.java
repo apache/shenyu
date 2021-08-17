@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.modify.response;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -60,7 +59,6 @@ import java.util.Set;
 /**
  * ModifyResponse plugin.
  */
-@Slf4j
 public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
     public ModifyResponsePlugin() {

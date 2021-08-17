@@ -17,19 +17,22 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 
+import java.util.List;
+
 /**
  * The type Plugin data handler.
  */
-@RequiredArgsConstructor
 public class PluginDataHandler extends AbstractDataHandler<PluginData> {
 
     private final PluginDataSubscriber pluginDataSubscriber;
+
+    public PluginDataHandler(final PluginDataSubscriber pluginDataSubscriber) {
+        this.pluginDataSubscriber = pluginDataSubscriber;
+    }
 
     @Override
     public List<PluginData> convert(final String json) {

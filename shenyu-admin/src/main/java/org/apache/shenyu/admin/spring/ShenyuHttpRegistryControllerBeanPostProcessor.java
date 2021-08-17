@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.spring;
 
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.controller.ShenyuHttpRegistryController;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
@@ -31,15 +31,18 @@ import java.lang.reflect.Method;
  */
 @Component
 public class ShenyuHttpRegistryControllerBeanPostProcessor implements BeanPostProcessor {
-    
-    @SneakyThrows
+
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean instanceof ShenyuHttpRegistryController) {
-            RequestMappingHandlerMapping requestMappingHandlerMapping = SpringBeanUtils.getInstance().getBean(RequestMappingHandlerMapping.class);
-            Method method = requestMappingHandlerMapping.getClass().getSuperclass().getSuperclass().getDeclaredMethod("detectHandlerMethods", Object.class);
-            method.setAccessible(true);
-            method.invoke(requestMappingHandlerMapping, beanName);
+            try {
+                RequestMappingHandlerMapping requestMappingHandlerMapping = SpringBeanUtils.getInstance().getBean(RequestMappingHandlerMapping.class);
+                Method method = requestMappingHandlerMapping.getClass().getSuperclass().getSuperclass().getDeclaredMethod("detectHandlerMethods", Object.class);
+                method.setAccessible(true);
+                method.invoke(requestMappingHandlerMapping, beanName);
+            } catch (Exception e) {
+                throw new ShenyuException(e.getMessage());
+            }
         }
         return bean;
     }

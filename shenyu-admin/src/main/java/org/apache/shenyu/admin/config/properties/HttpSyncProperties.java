@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -26,8 +24,6 @@ import java.time.Duration;
 /**
  * the http sync strategy properties.
  */
-@Getter
-@Setter
 @ConfigurationProperties(prefix = "shenyu.sync.http")
 public class HttpSyncProperties {
 
@@ -46,4 +42,57 @@ public class HttpSyncProperties {
      */
     private int notifyBatchSize = 100;
 
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of refreshInterval.
+     *
+     * @return the value of refreshInterval
+     */
+    public Duration getRefreshInterval() {
+        return refreshInterval;
+    }
+
+    /**
+     * Sets the refreshInterval.
+     *
+     * @param refreshInterval refreshInterval
+     */
+    public void setRefreshInterval(final Duration refreshInterval) {
+        this.refreshInterval = refreshInterval;
+    }
+
+    /**
+     * Gets the value of notifyBatchSize.
+     *
+     * @return the value of notifyBatchSize
+     */
+    public int getNotifyBatchSize() {
+        return notifyBatchSize;
+    }
+
+    /**
+     * Sets the notifyBatchSize.
+     *
+     * @param notifyBatchSize notifyBatchSize
+     */
+    public void setNotifyBatchSize(final int notifyBatchSize) {
+        this.notifyBatchSize = notifyBatchSize;
+    }
 }

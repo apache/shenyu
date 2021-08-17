@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.admin.service.PluginHandleService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
+import org.apache.shenyu.admin.service.PluginHandleService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,12 +44,15 @@ import java.util.List;
  * this is a plugin handle controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/plugin-handle")
 public class PluginHandleController {
 
     private final PluginHandleService pluginHandleService;
+
+    public PluginHandleController(final PluginHandleService pluginHandleService) {
+        this.pluginHandleService = pluginHandleService;
+    }
 
     /**
      * query plugin handle by plugin id.

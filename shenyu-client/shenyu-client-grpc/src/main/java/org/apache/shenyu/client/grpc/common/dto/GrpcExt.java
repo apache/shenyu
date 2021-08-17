@@ -18,16 +18,12 @@
 package org.apache.shenyu.client.grpc.common.dto;
 
 import io.grpc.MethodDescriptor;
-import lombok.Builder;
-import lombok.Data;
 
 import java.io.Serializable;
 
 /**
  * The type Grpc ext.
  */
-@Data
-@Builder
 public class GrpcExt implements Serializable {
 
     private static final long serialVersionUID = 346053551613199101L;
@@ -38,4 +34,158 @@ public class GrpcExt implements Serializable {
 
     private MethodDescriptor.MethodType methodType;
 
+    /**
+     * constructor without parameter.
+     */
+    public GrpcExt() {
+    }
+
+    /**
+     * constructor with all parameters.
+     *
+     * @param loadbalance loadbalance
+     * @param timeout timeout
+     * @param methodType methodType
+     */
+    public GrpcExt(final String loadbalance, final Integer timeout, final MethodDescriptor.MethodType methodType) {
+        this.loadbalance = loadbalance;
+        this.timeout = timeout;
+        this.methodType = methodType;
+    }
+
+    /**
+     * get loadbalance.
+     *
+     * @return loadbalance
+     */
+    public String getLoadbalance() {
+        return loadbalance;
+    }
+
+    /**
+     * set loadbalance.
+     *
+     * @param loadbalance loadbalance
+     */
+    public void setLoadbalance(final String loadbalance) {
+        this.loadbalance = loadbalance;
+    }
+
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public Integer getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     *
+     * @param timeout timeout
+     */
+    public void setTimeout(final Integer timeout) {
+        this.timeout = timeout;
+    }
+
+    /**
+     * get methodType.
+     *
+     * @return methodType
+     */
+    public MethodDescriptor.MethodType getMethodType() {
+        return methodType;
+    }
+
+    /**
+     * set methodType.
+     *
+     * @param methodType methodType
+     */
+    public void setMethodType(final MethodDescriptor.MethodType methodType) {
+        this.methodType = methodType;
+    }
+
+    @Override
+    public String toString() {
+        return "GrpcExt{"
+                + "loadbalance='" + loadbalance + '\''
+                + ", timeout=" + timeout
+                + ", methodType=" + methodType
+                + '}';
+    }
+
+    /**
+     * get Builder of GrpcExt.
+     *
+     * @return the Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * the Builder of GrpcExt.
+     */
+    public static final class Builder {
+
+        private String loadbalance;
+
+        private Integer timeout;
+
+        private MethodDescriptor.MethodType methodType;
+
+        /**
+         * constructor without parameter.
+         */
+        private Builder() {
+        }
+
+        /**
+         * set loadbalance.
+         *
+         * @param loadbalance loadbalance
+         * @return Builder
+         */
+        public Builder loadbalance(final String loadbalance) {
+            this.loadbalance = loadbalance;
+            return this;
+        }
+
+        /**
+         * set timeout.
+         *
+         * @param timeout timeout
+         * @return Builder
+         */
+        public Builder timeout(final Integer timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        /**
+         * set methodType.
+         *
+         * @param methodType methodType
+         * @return Builder
+         */
+        public Builder methodType(final MethodDescriptor.MethodType methodType) {
+            this.methodType = methodType;
+            return this;
+        }
+
+        /**
+         * build GrpcExt.
+         *
+         * @return GrpcExt
+         */
+        public GrpcExt build() {
+            GrpcExt grpcExt = new GrpcExt();
+            grpcExt.setLoadbalance(loadbalance);
+            grpcExt.setTimeout(timeout);
+            grpcExt.setMethodType(methodType);
+            return grpcExt;
+        }
+    }
 }

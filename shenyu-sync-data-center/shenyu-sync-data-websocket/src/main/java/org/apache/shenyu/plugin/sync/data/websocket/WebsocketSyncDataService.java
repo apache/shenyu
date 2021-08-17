@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.plugin.sync.data.websocket.client.ShenyuWebsocketClient;
@@ -27,6 +26,8 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.java_websocket.client.WebSocketClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,8 +40,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Websocket sync data service.
  */
-@Slf4j
 public class WebsocketSyncDataService implements SyncDataService, AutoCloseable {
+
+    /**
+     * logger. 
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketSyncDataService.class);
 
     private final List<WebSocketClient> clients = new ArrayList<>();
 
@@ -64,38 +69,38 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
             try {
                 clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
             } catch (URISyntaxException e) {
-                log.error("websocket url({}) is error", url, e);
+                LOG.error("websocket url({}) is error", url, e);
             }
         }
         try {
             for (WebSocketClient client : clients) {
                 boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
                 if (success) {
-                    log.info("websocket connection is successful.....");
+                    LOG.info("websocket connection is successful.....");
                 } else {
-                    log.error("websocket connection is error.....");
+                    LOG.error("websocket connection is error.....");
                 }
                 executor.scheduleAtFixedRate(() -> {
                     try {
                         if (client.isClosed()) {
                             boolean reconnectSuccess = client.reconnectBlocking();
                             if (reconnectSuccess) {
-                                log.info("websocket reconnect server[{}] is successful.....", client.getURI().toString());
+                                LOG.info("websocket reconnect server[{}] is successful.....", client.getURI().toString());
                             } else {
-                                log.error("websocket reconnection server[{}] is error.....", client.getURI().toString());
+                                LOG.error("websocket reconnection server[{}] is error.....", client.getURI().toString());
                             }
                         } else {
                             client.sendPing();
-                            log.debug("websocket send to [{}] ping message successful", client.getURI().toString());
+                            LOG.debug("websocket send to [{}] ping message successful", client.getURI().toString());
                         }
                     } catch (InterruptedException e) {
-                        log.error("websocket connect is error :{}", e.getMessage());
+                        LOG.error("websocket connect is error :{}", e.getMessage());
                     }
                 }, 10, 10, TimeUnit.SECONDS);
             }
             /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
         } catch (InterruptedException e) {
-            log.info("websocket connection...exception....", e);
+            LOG.info("websocket connection...exception....", e);
         }
 
     }

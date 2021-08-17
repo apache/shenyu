@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -40,14 +39,17 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * The type Default sign service.
  */
-@Slf4j
 public class DefaultSignService implements SignService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultSignService.class);
 
     @Value("${shenyu.sign.delay:5}")
     private int delay;
@@ -67,7 +69,7 @@ public class DefaultSignService implements SignService {
         if (StringUtils.isBlank(shenyuContext.getAppKey())
                 || StringUtils.isBlank(shenyuContext.getSign())
                 || StringUtils.isBlank(shenyuContext.getTimestamp())) {
-            log.error("sign parameters are incomplete,{}", shenyuContext);
+            LOG.error("sign parameters are incomplete,{}", shenyuContext);
             return Pair.of(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
         }
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(shenyuContext.getTimestamp()));
@@ -88,27 +90,27 @@ public class DefaultSignService implements SignService {
     private Pair<Boolean, String> sign(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
         final AppAuthData appAuthData = SignAuthDataCache.getInstance().obtainAuthData(shenyuContext.getAppKey());
         if (Objects.isNull(appAuthData) || !appAuthData.getEnabled()) {
-            log.error("sign APP_kEY does not exist or has been disabled,{}", shenyuContext.getAppKey());
+            LOG.error("sign APP_kEY does not exist or has been disabled,{}", shenyuContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
         if (appAuthData.getOpen()) {
             List<AuthPathData> pathDataList = appAuthData.getPathDataList();
             if (CollectionUtils.isEmpty(pathDataList)) {
-                log.error("You have not configured the sign path:{}", shenyuContext.getAppKey());
+                LOG.error("You have not configured the sign path:{}", shenyuContext.getAppKey());
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
 
             boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
                     .anyMatch(e -> PathMatchUtils.match(e.getPath(), shenyuContext.getPath()));
             if (!match) {
-                log.error("You have not configured the sign path:{},{}", shenyuContext.getAppKey(), shenyuContext.getRealUrl());
+                LOG.error("You have not configured the sign path:{},{}", shenyuContext.getAppKey(), shenyuContext.getRealUrl());
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
         }
         String sigKey = SignUtils.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext));
         boolean result = Objects.equals(sigKey, shenyuContext.getSign());
         if (!result) {
-            log.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
+            LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
             return Pair.of(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
         } else {
             List<AuthParamData> paramDataList = appAuthData.getParamDataList();

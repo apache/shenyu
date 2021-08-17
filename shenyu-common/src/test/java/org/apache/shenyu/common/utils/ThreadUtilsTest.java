@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.utils;
 
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,15 +44,13 @@ public final class ThreadUtilsTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testSleep() {
+    public void testSleep() throws InterruptedException {
         ThreadUtils.sleep(timeUnit, 1);
         verify(timeUnit, times(1)).sleep(eq(1L));
     }
 
     @Test
-    @SneakyThrows
-    public void testSleepInterrupt() {
+    public void testSleepInterrupt() throws InterruptedException {
         doThrow(InterruptedException.class).when(timeUnit).sleep(1);
         ThreadUtils.sleep(timeUnit, 1);
         verify(timeUnit, times(1)).sleep(eq(1L));

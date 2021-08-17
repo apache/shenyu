@@ -18,10 +18,10 @@
 package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lombok.SneakyThrows;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -30,7 +30,10 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -47,6 +50,8 @@ import java.util.stream.Collectors;
  * Use nacos to push data changes.
  */
 public class NacosDataChangedListener implements DataChangedListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(NacosDataChangedListener.class);
 
     private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
 
@@ -69,7 +74,6 @@ public class NacosDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    @SneakyThrows
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         updateAuthMap(getConfig(NacosPathConstants.AUTH_DATA_ID));
         switch (eventType) {
@@ -235,15 +239,23 @@ public class NacosDataChangedListener implements DataChangedListener {
         publishConfig(NacosPathConstants.RULE_DATA_ID, RULE_MAP);
     }
 
-    @SneakyThrows
     private void publishConfig(final String dataId, final Object data) {
-        configService.publishConfig(dataId, NacosPathConstants.GROUP, GsonUtils.getInstance().toJson(data));
+        try {
+            configService.publishConfig(dataId, NacosPathConstants.GROUP, GsonUtils.getInstance().toJson(data));
+        } catch (NacosException e) {
+            LOG.error("Publish data to nacos error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
     }
 
-    @SneakyThrows
     private String getConfig(final String dataId) {
-        String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
-        return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+        try {
+            String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
+            return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+        } catch (NacosException e) {
+            LOG.error("Get data from nacos error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
     }
 
     private void updateAuthMap(final String configInfo) {

@@ -44,7 +44,8 @@ import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintViolation;
@@ -68,8 +69,9 @@ import java.util.Set;
 /**
  * The type Alibaba dubbo client validator.
  */
-@Slf4j
 public class AlibabaDubboClientValidator implements Validator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AlibabaDubboClientValidator.class);
 
     private final Class<?> clazz;
 
@@ -161,7 +163,7 @@ public class AlibabaDubboClientValidator implements Validator {
             }
             return parameterBean;
         } catch (Exception e) {
-            log.warn(e.getMessage(), e);
+            LOG.warn(e.getMessage(), e);
             return null;
         }
     }
@@ -244,7 +246,7 @@ public class AlibabaDubboClientValidator implements Validator {
             Class<?> methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
             groups.add(methodClass);
         } catch (ClassNotFoundException e) {
-            log.error(e.getMessage(), e);
+            LOG.error(e.getMessage(), e);
         }
         Set<ConstraintViolation<?>> violations = new HashSet<>();
         Method method = clazz.getMethod(methodName, parameterTypes);
@@ -269,7 +271,7 @@ public class AlibabaDubboClientValidator implements Validator {
         }
 
         if (!violations.isEmpty()) {
-            log.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
+            LOG.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
             StringBuilder validateError = new StringBuilder();
             violations.forEach(each -> validateError.append(each.getMessage()).append(","));
             throw new ValidationException(validateError.substring(0, validateError.length() - 1));

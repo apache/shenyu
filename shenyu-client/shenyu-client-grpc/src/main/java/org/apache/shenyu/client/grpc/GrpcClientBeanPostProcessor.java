@@ -22,8 +22,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.BindableService;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
@@ -33,6 +31,8 @@ import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.lang.NonNull;
@@ -52,8 +52,9 @@ import java.util.stream.Collectors;
 /**
  * The type Shenyu grpc client bean post processor.
  */
-@Slf4j
 public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GrpcClientBeanPostProcessor.class);
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -67,7 +68,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final int port;
 
-    @Getter
     private List<ServerServiceDefinition> serviceDefinitions = Lists.newArrayList();
 
     /**
@@ -106,7 +106,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         try {
             clazz = serviceBean.getClass();
         } catch (Exception e) {
-            log.error("failed to get grpc target class");
+            LOG.error("failed to get grpc target class");
             return;
         }
         Class<?> parent = clazz.getSuperclass();
@@ -118,11 +118,11 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             field.setAccessible(true);
             packageName = field.get(null).toString();
         } catch (Exception e) {
-            log.error(String.format("SERVICE_NAME field not found: %s", classes));
+            LOG.error(String.format("SERVICE_NAME field not found: %s", classes));
             return;
         }
         if (StringUtils.isEmpty(packageName)) {
-            log.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
+            LOG.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
             return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
@@ -181,7 +181,16 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             serviceDefinitions.add(serviceDefinition);
             serviceDefinitions.add(jsonDefinition);
         } catch (Exception e) {
-            log.error("export json generic service is fail", e);
+            LOG.error("export json generic service is fail", e);
         }
+    }
+
+    /**
+     * get serviceDefinitions.
+     *
+     * @return serviceDefinitions
+     */
+    public List<ServerServiceDefinition> getServiceDefinitions() {
+        return serviceDefinitions;
     }
 }

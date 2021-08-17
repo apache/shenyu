@@ -17,17 +17,12 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * PluginEnum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum PluginEnum {
 
     /**
@@ -39,7 +34,7 @@ public enum PluginEnum {
      * Sign plugin enum.
      */
     SIGN(2, 0, "sign"),
-    
+
     /**
      * Jwt plugin enum.
      */
@@ -171,6 +166,46 @@ public enum PluginEnum {
     private final int role;
 
     private final String name;
+
+    /**
+     * all args constructor.
+     *
+     * @param code code
+     * @param role role
+     * @param name name
+     */
+    PluginEnum(final int code, final int role, final String name) {
+        this.code = code;
+        this.role = role;
+        this.name = name;
+    }
+
+    /**
+     * get code.
+     *
+     * @return code
+     */
+    public int getCode() {
+        return code;
+    }
+
+    /**
+     * get role.
+     *
+     * @return role
+     */
+    public int getRole() {
+        return role;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 
     /**
      * get plugin enum by name.

@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -63,7 +62,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.AppAuthService}.
  */
-@RequiredArgsConstructor
 @Service
 public class AppAuthServiceImpl implements AppAuthService {
 
@@ -74,6 +72,16 @@ public class AppAuthServiceImpl implements AppAuthService {
     private final AuthParamMapper authParamMapper;
 
     private final AuthPathMapper authPathMapper;
+
+    public AppAuthServiceImpl(final AppAuthMapper appAuthMapper,
+                              final ApplicationEventPublisher eventPublisher,
+                              final AuthParamMapper authParamMapper,
+                              final AuthPathMapper authPathMapper) {
+        this.appAuthMapper = appAuthMapper;
+        this.eventPublisher = eventPublisher;
+        this.authParamMapper = authParamMapper;
+        this.authPathMapper = authPathMapper;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

@@ -24,7 +24,6 @@ import com.alipay.sofa.rpc.context.RpcInvokeContext;
 import com.alipay.sofa.rpc.core.exception.SofaRpcException;
 import com.alipay.sofa.rpc.core.invoke.SofaResponseCallback;
 import com.alipay.sofa.rpc.core.request.RequestBase;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,7 +42,6 @@ import java.util.concurrent.CompletableFuture;
 /**
  * sofa proxy service is use GenericService.
  */
-@Slf4j
 public class SofaProxyService {
 
     private final BodyParamResolveService bodyParamResolveService;

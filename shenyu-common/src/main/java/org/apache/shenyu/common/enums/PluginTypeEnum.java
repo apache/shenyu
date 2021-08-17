@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * Plugin Type.
  */
-@RequiredArgsConstructor
-@Getter
 public enum PluginTypeEnum {
 
     /**
@@ -44,4 +39,21 @@ public enum PluginTypeEnum {
 
     private final String name;
 
+    /**
+     * all args constructor.
+     *
+     * @param name name
+     */
+    PluginTypeEnum(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 }

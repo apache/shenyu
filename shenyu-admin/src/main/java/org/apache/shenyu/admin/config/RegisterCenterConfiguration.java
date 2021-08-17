@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.disruptor.RegisterServerDisruptorPublisher;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterServiceFactory;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -32,10 +31,9 @@ import java.util.Map;
 /**
  * The type Register center configuration.
  */
-@Slf4j
 @Configuration
 public class RegisterCenterConfiguration {
-    
+
     /**
      * Shenyu register center config shenyu register center config.
      *

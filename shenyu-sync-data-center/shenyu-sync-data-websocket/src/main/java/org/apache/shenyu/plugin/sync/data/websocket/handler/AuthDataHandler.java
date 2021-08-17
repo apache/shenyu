@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -26,10 +25,13 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 /**
  * The type Auth data handler.
  */
-@RequiredArgsConstructor
 public class AuthDataHandler extends AbstractDataHandler<AppAuthData> {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
+
+    public AuthDataHandler(final List<AuthDataSubscriber> authDataSubscribers) {
+        this.authDataSubscribers = authDataSubscribers;
+    }
 
     @Override
     public List<AppAuthData> convert(final String json) {

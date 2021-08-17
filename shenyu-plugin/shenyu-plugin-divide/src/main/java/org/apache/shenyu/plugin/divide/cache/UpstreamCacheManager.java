@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.divide.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
@@ -28,6 +27,8 @@ import org.apache.shenyu.common.healthcheck.HealthCheckTask;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -38,8 +39,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * this is divide  http url upstream.
  */
-@Slf4j
 public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRuleHandle> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCacheManager.class);
 
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
 

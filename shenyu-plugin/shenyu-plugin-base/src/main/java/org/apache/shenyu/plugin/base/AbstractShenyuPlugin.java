@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.base;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -28,6 +26,8 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -38,9 +38,9 @@ import java.util.Objects;
 /**
  * abstract shenyu plugin please extends.
  */
-@RequiredArgsConstructor
-@Slf4j
 public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -129,13 +129,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
         if (selectorData.getLogged()) {
-            log.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
+            LOG.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
         }
     }
 
     private void ruleLog(final RuleData ruleData, final String pluginName) {
         if (ruleData.getLoged()) {
-            log.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
+            LOG.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
         }
     }
 }

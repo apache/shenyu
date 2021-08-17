@@ -17,15 +17,94 @@
 
 package org.apache.shenyu.common.healthcheck;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 
-@Data
-@AllArgsConstructor
+import java.util.Objects;
+
 public class UpstreamWithSelectorId {
 
     private String selectorId;
 
     private DivideUpstream divideUpstream;
+
+    /**
+     * no args constructor.
+     */
+    public UpstreamWithSelectorId() {
+    }
+
+    /**
+     * all args constructor.
+     *
+     * @param selectorId     selectorId
+     * @param divideUpstream divideUpstream
+     */
+    public UpstreamWithSelectorId(final String selectorId, final DivideUpstream divideUpstream) {
+        this.selectorId = selectorId;
+        this.divideUpstream = divideUpstream;
+    }
+
+    /**
+     * get selectorId.
+     *
+     * @return selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * set selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * get divideUpstream.
+     *
+     * @return divideUpstream
+     */
+    public DivideUpstream getDivideUpstream() {
+        return divideUpstream;
+    }
+
+    /**
+     * set divideUpstream.
+     *
+     * @param divideUpstream divideUpstream
+     */
+    public void setDivideUpstream(final DivideUpstream divideUpstream) {
+        this.divideUpstream = divideUpstream;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        UpstreamWithSelectorId that = (UpstreamWithSelectorId) o;
+        return Objects.equals(selectorId, that.selectorId) && Objects.equals(divideUpstream, that.divideUpstream);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(selectorId, divideUpstream);
+    }
+
+    @Override
+    public String toString() {
+        return "UpstreamWithSelectorId{"
+                + "selectorId='"
+                + selectorId
+                + '\''
+                + ", divideUpstream="
+                + divideUpstream
+                + '}';
+    }
 }

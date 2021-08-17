@@ -24,9 +24,10 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistryLite;
 import io.grpc.MethodDescriptor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +38,10 @@ import java.util.Map;
 /**
  * JsonMessage.
  */
-@Slf4j
 public class JsonMessage {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JsonMessage.class);
+
     /**
      * methodDescriptorCache.
      */
@@ -68,7 +71,7 @@ public class JsonMessage {
                     .buildFrom(fileDescriptorProto, new Descriptors.FileDescriptor[0]);
             return fileDescriptor.findMessageTypeByName(GrpcConstants.JSON_DESCRIPTOR_PROTO_NAME);
         } catch (Descriptors.DescriptorValidationException e) {
-            log.error("dynamic build JsonMarshaller descriptor is fail: {}", e.getMessage());
+            LOG.error("dynamic build JsonMarshaller descriptor is fail: {}", e.getMessage());
             throw new RuntimeException("dynamic build JsonMarshaller descriptor is fail", e);
         }
     }

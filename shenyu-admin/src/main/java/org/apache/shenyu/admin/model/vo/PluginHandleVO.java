@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.common.utils.DateUtils;
 
@@ -30,9 +27,6 @@ import java.util.Optional;
 /**
  * this is plugin handle view to web front.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class PluginHandleVO implements Serializable {
 
     private static final long serialVersionUID = 940877592520676748L;
@@ -93,6 +87,231 @@ public class PluginHandleVO implements Serializable {
     private String dateUpdated;
 
     private List<ShenyuDictVO> dictOptions;
+
+    public PluginHandleVO() {
+    }
+
+    public PluginHandleVO(final String id,
+                          final String pluginId,
+                          final String field,
+                          final String label,
+                          final Integer dataType,
+                          final Integer type,
+                          final Integer sort,
+                          final String extObj,
+                          final String dateCreated,
+                          final String dateUpdated,
+                          final List<ShenyuDictVO> dictOptions) {
+        this.id = id;
+        this.pluginId = pluginId;
+        this.field = field;
+        this.label = label;
+        this.dataType = dataType;
+        this.type = type;
+        this.sort = sort;
+        this.extObj = extObj;
+        this.dateCreated = dateCreated;
+        this.dateUpdated = dateUpdated;
+        this.dictOptions = dictOptions;
+    }
+
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the value of pluginId.
+     *
+     * @return the value of pluginId
+     */
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    /**
+     * Sets the pluginId.
+     *
+     * @param pluginId pluginId
+     */
+    public void setPluginId(final String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    /**
+     * Gets the value of field.
+     *
+     * @return the value of field
+     */
+    public String getField() {
+        return field;
+    }
+
+    /**
+     * Sets the field.
+     *
+     * @param field field
+     */
+    public void setField(final String field) {
+        this.field = field;
+    }
+
+    /**
+     * Gets the value of label.
+     *
+     * @return the value of label
+     */
+    public String getLabel() {
+        return label;
+    }
+
+    /**
+     * Sets the label.
+     *
+     * @param label label
+     */
+    public void setLabel(final String label) {
+        this.label = label;
+    }
+
+    /**
+     * Gets the value of dataType.
+     *
+     * @return the value of dataType
+     */
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    /**
+     * Sets the dataType.
+     *
+     * @param dataType dataType
+     */
+    public void setDataType(final Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    /**
+     * Gets the value of type.
+     *
+     * @return the value of type
+     */
+    public Integer getType() {
+        return type;
+    }
+
+    /**
+     * Sets the type.
+     *
+     * @param type type
+     */
+    public void setType(final Integer type) {
+        this.type = type;
+    }
+
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * Gets the value of extObj.
+     *
+     * @return the value of extObj
+     */
+    public String getExtObj() {
+        return extObj;
+    }
+
+    /**
+     * Sets the extObj.
+     *
+     * @param extObj extObj
+     */
+    public void setExtObj(final String extObj) {
+        this.extObj = extObj;
+    }
+
+    /**
+     * Gets the value of dateCreated.
+     *
+     * @return the value of dateCreated
+     */
+    public String getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * Sets the dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final String dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * Gets the value of dateUpdated.
+     *
+     * @return the value of dateUpdated
+     */
+    public String getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * Sets the dateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final String dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * Gets the value of dictOptions.
+     *
+     * @return the value of dictOptions
+     */
+    public List<ShenyuDictVO> getDictOptions() {
+        return dictOptions;
+    }
+
+    /**
+     * Sets the dictOptions.
+     *
+     * @param dictOptions dictOptions
+     */
+    public void setDictOptions(final List<ShenyuDictVO> dictOptions) {
+        this.dictOptions = dictOptions;
+    }
 
     /**
      * build {@linkplain PluginHandleVO}.

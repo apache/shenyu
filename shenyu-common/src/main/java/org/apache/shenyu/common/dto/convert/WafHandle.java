@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.Data;
+import java.util.Objects;
 
 /**
  * this is waf plugin handle.
  */
-@Data
 public class WafHandle {
 
     /**
@@ -35,4 +34,68 @@ public class WafHandle {
      */
     private String statusCode;
 
+    /**
+     * get permission.
+     *
+     * @return permission
+     */
+    public String getPermission() {
+        return permission;
+    }
+
+    /**
+     * set permission.
+     *
+     * @param permission permission
+     */
+    public void setPermission(final String permission) {
+        this.permission = permission;
+    }
+
+    /**
+     * get statusCode.
+     *
+     * @return statusCode
+     */
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    /**
+     * set statusCode.
+     *
+     * @param statusCode statusCode
+     */
+    public void setStatusCode(final String statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        WafHandle wafHandle = (WafHandle) o;
+        return Objects.equals(permission, wafHandle.permission) && Objects.equals(statusCode, wafHandle.statusCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(permission, statusCode);
+    }
+
+    @Override
+    public String toString() {
+        return "WafHandle{"
+                + "permission='"
+                + permission
+                + '\''
+                + ", statusCode='"
+                + statusCode
+                + '\''
+                + '}';
+    }
 }
