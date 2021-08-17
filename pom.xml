@@ -52,14 +52,14 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <scm>
         <url>https://github.com/apache/incubator-shenyu</url>
         <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-    
+
     <mailingLists>
         <mailingList>
             <name>Apache ShenYu Developer List</name>
@@ -68,7 +68,7 @@
             <unsubscribe>dev-unsubscribe@shenyu.apache.org</unsubscribe>
         </mailingList>
     </mailingLists>
-    
+
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/apache/incubator-shenyu/issues</url>
@@ -157,7 +157,7 @@
                 <artifactId>byte-buddy</artifactId>
                 <version>${bytebuddy.version}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-config</artifactId>
@@ -446,7 +446,7 @@
         </dependency>
 
     </dependencies>
-    
+
     <profiles>
         <profile>
             <id>release</id>
@@ -512,6 +512,7 @@
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
                     <sourcepath>src/main/java</sourcepath>
+                    <detectJavaApiLink>false</detectJavaApiLink>
                 </configuration>
                 <executions>
                     <execution>
