@@ -17,13 +17,17 @@
 
 package org.apache.shenyu.admin.exception;
 
+import ch.qos.logback.classic.Logger;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -41,6 +45,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -50,9 +55,19 @@ public final class ExceptionHandlersTest {
 
     private ExceptionHandlers exceptionHandlersUnderTest;
 
+    private MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
     @Before
     public void setUp() {
+        Logger loggerMock = mock(Logger.class);
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(()->LoggerFactory.getLogger(ExceptionHandlers.class)).thenReturn(loggerMock);
         exceptionHandlersUnderTest = new ExceptionHandlers();
+    }
+
+    @After
+    public void close() {
+        loggerFactoryMockedStatic.close();
     }
 
     @Test
