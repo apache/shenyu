@@ -280,8 +280,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         roleIds.forEach(item -> userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(item).build())));
     }
 
-    private String encodeForLDAP(String input) {
-        if( input == null ) {
+    private String encodeForLDAP(final String input) {
+        if (input == null) {
             return null;
         }
         StringBuilder sb = new StringBuilder();
