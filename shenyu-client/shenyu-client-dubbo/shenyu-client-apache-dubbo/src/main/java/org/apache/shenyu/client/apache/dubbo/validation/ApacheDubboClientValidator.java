@@ -257,6 +257,8 @@ public class ApacheDubboClientValidator implements Validator {
         if (methodClass != null) {
             groups.add(methodClass);
         }
+        LOG.info("testinfo");
+        LOG.error("testerror",new RuntimeException(""));
         Set<ConstraintViolation<?>> violations = new HashSet<>();
         Method method = clazz.getMethod(methodName, parameterTypes);
         Class<?>[] methodClasses;

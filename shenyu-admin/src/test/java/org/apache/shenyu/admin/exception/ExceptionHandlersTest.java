@@ -17,16 +17,14 @@
 
 package org.apache.shenyu.admin.exception;
 
-import ch.qos.logback.classic.Logger;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockedStatic;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.validation.BindingResult;
@@ -38,14 +36,19 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -55,24 +58,24 @@ public final class ExceptionHandlersTest {
 
     private ExceptionHandlers exceptionHandlersUnderTest;
 
-    private MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+    private Logger loggerSpy;
 
     @Before
-    public void setUp() {
-        Logger loggerMock = mock(Logger.class);
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
-        loggerFactoryMockedStatic.when(()->LoggerFactory.getLogger(ExceptionHandlers.class)).thenReturn(loggerMock);
+    public void setUp() throws Exception {
+        loggerSpy = spy(LoggerFactory.getLogger(ExceptionHandlers.class));
         exceptionHandlersUnderTest = new ExceptionHandlers();
-    }
-
-    @After
-    public void close() {
-        loggerFactoryMockedStatic.close();
+        Field logField = exceptionHandlersUnderTest.getClass().getDeclaredField("LOG");
+        logField.setAccessible(true);
+        Field modifiers = logField.getClass().getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
+        logField.set(exceptionHandlersUnderTest, loggerSpy);
     }
 
     @Test
     public void testServerExceptionHandlerByException() {
         Exception exception = new Exception();
+        doNothing().when(loggerSpy).error(exception.getMessage(), exception);
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleExceptionHandler(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), "The system is busy, please try again later");
@@ -81,6 +84,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testServerExceptionHandlerByShenyuException() {
         Exception shenyuException = new ShenyuException("Test shenyuException message!");
+        doNothing().when(loggerSpy).error(shenyuException.getMessage(), shenyuException);
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleExceptionHandler(shenyuException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), shenyuException.getMessage());
@@ -89,6 +93,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testServerExceptionHandlerByDuplicateKeyException() {
         DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
+        doNothing().when(loggerSpy).error(anyString(), eq(duplicateKeyException));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleDuplicateKeyException(duplicateKeyException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
@@ -97,6 +102,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testShiroExceptionHandler() {
         UnauthorizedException unauthorizedException = mock(UnauthorizedException.class);
+        doNothing().when(loggerSpy).error(anyString(), eq(unauthorizedException));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleUnauthorizedException(unauthorizedException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.TOKEN_NO_PERMISSION);
         assertEquals(result.getMessage(), ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
@@ -105,6 +111,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testNullPointExceptionHandler() {
         NullPointerException nullPointerException = mock(NullPointerException.class);
+        doNothing().when(loggerSpy).error(anyString(), eq(nullPointerException));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleNullPointException(nullPointerException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.NOT_FOUND_EXCEPTION);
         assertEquals(result.getMessage(), ShenyuResultMessage.NOT_FOUND_EXCEPTION);
@@ -113,6 +120,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testHandleHttpRequestMethodNotSupportedException() {
         HttpRequestMethodNotSupportedException exception = mock(HttpRequestMethodNotSupportedException.class);
+        doNothing().when(loggerSpy).warn(anyString(), eq(exception));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleHttpRequestMethodNotSupportedException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertThat(result.getMessage(), containsString("method is not supported for this request. Supported methods are"));
@@ -125,6 +133,7 @@ public final class ExceptionHandlersTest {
         when(exception.getBindingResult()).thenReturn(bindingResult);
         List<FieldError> fieldErrors = mock(List.class);
         when(bindingResult.getFieldErrors()).thenReturn(fieldErrors);
+        doNothing().when(loggerSpy).warn(anyString(), eq(exception));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMethodArgumentNotValidException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertThat(result.getMessage(), containsString("Request error! invalid argument"));
@@ -133,6 +142,7 @@ public final class ExceptionHandlersTest {
     @Test
     public void testHandleMissingServletRequestParameterException() {
         MissingServletRequestParameterException exception = mock(MissingServletRequestParameterException.class);
+        doNothing().when(loggerSpy).warn(anyString(), eq(exception));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMissingServletRequestParameterException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertThat(result.getMessage(), containsString("parameter is missing"));
@@ -143,6 +153,7 @@ public final class ExceptionHandlersTest {
         MethodArgumentTypeMismatchException exception = mock(MethodArgumentTypeMismatchException.class);
         Class clazz = MethodArgumentTypeMismatchException.class;
         when(exception.getRequiredType()).thenReturn(clazz);
+        doNothing().when(loggerSpy).warn(anyString(), eq(exception));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleMethodArgumentTypeMismatchException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertThat(result.getMessage(), containsString("should be of type"));
@@ -153,6 +164,7 @@ public final class ExceptionHandlersTest {
         ConstraintViolationException exception = mock(ConstraintViolationException.class);
         Set<ConstraintViolation<?>> violations = mock(Set.class);
         when(exception.getConstraintViolations()).thenReturn(violations);
+        doNothing().when(loggerSpy).warn(anyString(), eq(exception));
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleConstraintViolationException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
     }

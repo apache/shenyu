@@ -24,6 +24,10 @@ import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.MockedStatic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.ValidationException;
 import java.util.Collections;
@@ -31,9 +35,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 
 /**
  * Test case for {@link ApacheDubboClientValidator}.
@@ -92,16 +99,18 @@ public final class ApacheDubboClientValidatorTest {
                 .validate("methodOne", new Class<?>[]{String.class}, new Object[]{"anything"});
     }
 
-    @Test
-    public void testValidateWhenMeetsConstraintThenValidationFailed() {
-        try {
+    @Test(expected = ValidationException.class)
+    public void testValidateWhenMeetsConstraintThenValidationFailed() throws Exception {
+        Logger logger = LoggerFactory.getLogger(ApacheDubboClientValidator.class);
+        Logger spy = spy(logger);
+        doNothing().when(spy).error(anyString(), ArgumentMatchers.any(Throwable.class));
+        try(MockedStatic loggerFactoryMockedStatic = mockStatic(LoggerFactory.class)){
+            loggerFactoryMockedStatic.when(()->LoggerFactory.getLogger(ApacheDubboClientValidator.class)).thenReturn(spy);
             apacheDubboClientValidatorUnderTest
                     .validate(
                             "methodTwo",
                             new Class<?>[]{MockValidationParameter.class},
                             new Object[]{new MockValidationParameter("NotBeNull")});
-        } catch (Exception e) {
-            assertThat(e, instanceOf(ValidationException.class));
         }
     }
 
@@ -117,8 +126,8 @@ public final class ApacheDubboClientValidatorTest {
     public void testItWithCollectionArg() throws Exception {
         apacheDubboClientValidatorUnderTest
                 .validate(
-                        "methodFour", 
-                        new Class<?>[]{List.class}, 
+                        "methodFour",
+                        new Class<?>[]{List.class},
                         new Object[]{Collections.singletonList("parameter")});
     }
 
