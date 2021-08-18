@@ -48,11 +48,11 @@ shenyu:
   #    connectionTimeout: 2000
   # http:
   #    url : http://localhost:9095
-
   exclude:
-    enabled: false
+    enabled: true
     paths:
       - /favicon.ico
+      - /actuator/health
 
 eureka:
   client:
