@@ -223,7 +223,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), userName, ldapProperties.getBaseDn());
+        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), encodeForLDAP(userName), ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
         try {
             DashboardUserVO dashboardUserVO = null;
@@ -278,5 +278,35 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     private void bindUserRole(final String userId, final List<String> roleIds) {
         roleIds.forEach(item -> userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(item).build())));
+    }
+
+    private String encodeForLDAP(String input) {
+        if( input == null ) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            switch (c) {
+                case '\\':
+                    sb.append("\\5c");
+                    break;
+                case '*':
+                    sb.append("\\2a");
+                    break;
+                case '(':
+                    sb.append("\\28");
+                    break;
+                case ')':
+                    sb.append("\\29");
+                    break;
+                case '\0':
+                    sb.append("\\00");
+                    break;
+                default:
+                    sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }
