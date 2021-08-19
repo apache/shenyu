@@ -48,44 +48,6 @@
 
 --------------------------------------------------------------------------------
 
-# 结构图
-
-![](https://shenyu.apache.org/img/shenyu/activite/shenyu-xmind.png)
-
---------------------------------------------------------------------------------
-
-# 模块
-
- * shenyu-admin : 插件和其他信息配置的管理后台
-
- * shenyu-bootstrap : 用于启动项目，用户可以参考
-
- * shenyu-client : 用户可以使用 Spring MVC，Dubbo，Spring Cloud 快速访问
- 
- * shenyu-disruptor : 基于disruptor的封装
-  
- * shenyu-register-center : shenyu-client提供各种rpc接入注册中心的支持
-  
- * shenyu-common : 框架的通用类
-
- * shenyu-dist : 构建项目
-
- * shenyu-metrics : prometheus（普罗米修斯）实现的 metrics
-
- * shenyu-plugin : ShenYu 支持的插件集合
-
- * shenyu-spi : 定义 ShenYu spi
-
- * shenyu-spring-boot-starter : 支持 spring boot starter
-
- * shenyu-sync-data-center : 提供 ZooKeeper，HTTP，WebSocket，Nacos 的方式同步数据
-
- * shenyu-examples : RPC 示例项目
-
- * shenyu-web : 包括插件、请求路由和转发等的核心处理包
-
---------------------------------------------------------------------------------
-
 # 功能特点
 
    * 提供了诸如限流、熔断、转发 、重写、重定向、和路由监控等插件；
@@ -138,14 +100,6 @@
 # 必要条件
 
    * JDK 1.8+
-
---------------------------------------------------------------------------------
-
-# 关于
-
-ShenYu 已经被很多公司广泛使用在越来越多的业务系统，它能以高性能和灵活性让我们方便快捷的集成自己的服务和 API 。
-
-在中国的双 11 购物狂欢节中，ShenYu集群成功支撑了海量的互联网业务。
 
 --------------------------------------------------------------------------------
 
