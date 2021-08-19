@@ -49,7 +49,6 @@ public class PaymentTypeService {
      */
     private PaymentRemoteService paymentRemoteService;
 
-
     /**
      * Acquire remote payment types list.
      *
@@ -67,7 +66,6 @@ public class PaymentTypeService {
             try {
                 resultList.add(future.get());
             } catch (InterruptedException | ExecutionException e) {
-                //打印日志。。。。
                 e.printStackTrace();
             }
         }
