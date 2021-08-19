@@ -24,6 +24,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.web.reactive.context.AnnotationConfigReactiveWebApplicationContext;
@@ -40,6 +42,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.reactive.result.view.ViewResolver;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -48,7 +52,10 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -77,13 +84,23 @@ public class GlobalErrorHandlerTest {
     }
 
     @Test
-    public void getErrorAttributes() {
+    public void getErrorAttributes() throws Exception {
         ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/favicon.ico"));
         NullPointerException nullPointerException = new NullPointerException("nullPointerException");
         MockServerRequest serverRequest = MockServerRequest.builder()
                 .exchange(webExchange)
                 .attribute("org.springframework.boot.web.reactive.error.DefaultErrorAttributes.ERROR", nullPointerException)
                 .build();
+
+        Logger loggerSpy = spy(LoggerFactory.getLogger(GlobalErrorHandler.class));
+        Field logField = globalErrorHandler.getClass().getDeclaredField("LOG");
+        logField.setAccessible(true);
+        Field modifiers = logField.getClass().getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
+        logField.set(globalErrorHandler, loggerSpy);
+
+        doNothing().when(loggerSpy).error(anyString());
         Map<String, Object> response = globalErrorHandler.getErrorAttributes(serverRequest, false);
         assertNotNull(response);
         assertThat(response, hasEntry("code", 500L));
