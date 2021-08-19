@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
@@ -37,15 +38,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,7 +92,16 @@ public final class MetaDataServiceTest {
      * Note that the following methods have dependencies before and after.
      */
     @Test
-    public void testCreateOrUpdate() {
+    public void testCreateOrUpdate() throws Exception {
+        Logger loggerSpy = spy(LoggerFactory.getLogger(MetaDataServiceImpl.class));
+        Field logField = metaDataService.getClass().getDeclaredField("LOG");
+        logField.setAccessible(true);
+        Field modifiers = logField.getClass().getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
+        logField.set(metaDataService, loggerSpy);
+
+        doNothing().when(loggerSpy).error(anyString(), isA(MetaDataDTO.class));
         testCreateOrUpdateForParamsError();
         testCreateOrUpdateForPathExist();
         testCreateOrUpdateForInsert();

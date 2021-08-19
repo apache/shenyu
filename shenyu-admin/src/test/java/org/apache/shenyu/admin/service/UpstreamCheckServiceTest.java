@@ -38,9 +38,13 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +58,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -103,7 +110,17 @@ public final class UpstreamCheckServiceTest {
     }
 
     @Test
-    public void testScheduled() {
+    public void testScheduled() throws Exception {
+        Logger loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
+        Field logField = upstreamCheckService.getClass().getDeclaredField("LOG");
+        logField.setAccessible(true);
+        Field modifiers = logField.getClass().getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
+        logField.set(upstreamCheckService, loggerSpy);
+
+        doNothing().when(loggerSpy).error(anyString(), isNull(Object.class));
+
         PluginDO pluginDO = PluginDO.builder()
                 .name(PluginEnum.DIVIDE.getName())
                 .id(MOCK_PLUGIN_ID)
