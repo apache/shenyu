@@ -82,18 +82,6 @@ public final class ShenyuWebHandler implements WebHandler {
         }, 30, 300, TimeUnit.SECONDS);
     }
     
-    public void putExtPlugins(final List<ShenyuPlugin> extPlugins) {
-        if (CollectionUtils.isEmpty(extPlugins)) {
-            return;
-        }
-        List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
-                .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
-                .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
-            plugins.addAll(shenyuPlugins);
-        }
-    }
-    
     /**
      * Handle the web server exchange.
      *
@@ -107,6 +95,18 @@ public final class ShenyuWebHandler implements WebHandler {
             return execute.subscribeOn(scheduler);
         }
         return execute;
+    }
+    
+    private void putExtPlugins(final List<ShenyuPlugin> extPlugins) {
+        if (CollectionUtils.isEmpty(extPlugins)) {
+            return;
+        }
+        List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
+                .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
+            plugins.addAll(shenyuPlugins);
+        }
     }
 
     private static class DefaultShenyuPluginChain implements ShenyuPluginChain {

@@ -234,7 +234,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
          * @param jarFile the jar file
          * @param sourcePath the source path
          */
-        public PluginJar(final JarFile jarFile, final File sourcePath) {
+        PluginJar(final JarFile jarFile, final File sourcePath) {
             this.jarFile = jarFile;
             this.sourcePath = sourcePath;
         }
