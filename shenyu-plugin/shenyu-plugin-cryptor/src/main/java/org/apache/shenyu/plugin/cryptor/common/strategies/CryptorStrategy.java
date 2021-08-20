@@ -24,8 +24,8 @@ public interface CryptorStrategy {
 
     /**
      * strategy name.
-     * @param name 策略名
-     * @return 是否调过.
+     * @param name strategy name
+     * @return is skip
      */
     boolean skip(String name);
 

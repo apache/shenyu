@@ -57,7 +57,6 @@ import java.util.function.Function;
 
 /**
  * Cryptor response plugin.
- * @author sinsy.
  */
 public class CryptorResponsePlugin extends AbstractShenyuPlugin {
 

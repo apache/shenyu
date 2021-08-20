@@ -31,8 +31,8 @@ public class HttpUtil {
     private static final String CHUNKED = "chunked";
 
     /**
-     * 修改请求头.
-     * @param headers 请求头
+     * change header.
+     * @param headers headers
      * @return HttpHeaders.
      */
     public static HttpHeaders modifiedContentLength(final HttpHeaders headers) {

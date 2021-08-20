@@ -30,8 +30,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * rsa 加解密.
- * @author sinsy.
+ * rsa cryptor.
  */
 @Strategy
 public class RsaStrategy implements CryptorStrategy {

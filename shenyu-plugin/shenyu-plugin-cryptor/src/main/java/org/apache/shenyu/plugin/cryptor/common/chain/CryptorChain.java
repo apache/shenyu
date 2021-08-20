@@ -20,26 +20,25 @@ package org.apache.shenyu.plugin.cryptor.common.chain;
 import org.apache.shenyu.plugin.cryptor.common.strategies.CryptorStrategy;
 
 /**
- * 加解密过滤链.
- * @author sinsy.
+ * Cryptor chain.
  */
 public interface CryptorChain {
 
     /**
-     * 解密.
-     * @param cryptorStrategy 解密策略
-     * @param key 秘钥
-     * @param encryptData 加密数据
-     * @return 解密字符串.
+     * decrypt.
+     * @param cryptorStrategy strategy
+     * @param key key
+     * @param encryptData encryptData
+     * @return data.
      */
     String decryptExecute(CryptorStrategy cryptorStrategy, String key, String encryptData);
 
     /**
-     * 加密.
-     * @param cryptorStrategy 加密策略
-     * @param key 秘钥
-     * @param data 数据
-     * @return 加密字符串.
+     * encrypt.
+     * @param cryptorStrategy strategy
+     * @param key key
+     * @param data data
+     * @return encryptData.
      */
     String encryptExecute(CryptorStrategy cryptorStrategy, String key, String data);
 
