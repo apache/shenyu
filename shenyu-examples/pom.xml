@@ -47,6 +47,7 @@
         <module>shenyu-examples-tars</module>
         <module>shenyu-examples-grpc</module>
         <module>shenyu-examples-motan</module>
+        <module>shenyu-examples-plugin</module>
     </modules>
 
     <build>
