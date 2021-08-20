@@ -15,22 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.springcloud;
+package org.apache.shenyu.integrated.test.http;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Hello world.
+ * The type Http integrated bootstrap.
  */
 @SpringBootApplication
-public class ShenyuBootstrapApplication {
+public class HttpIntegratedBootstrap {
+    
     /**
      * main method of App.
      *
      * @param args args
      */
     public static void main(final String[] args) {
-        SpringApplication.run(ShenyuBootstrapApplication.class);
+        SpringApplication.run(HttpIntegratedBootstrap.class);
     }
 }

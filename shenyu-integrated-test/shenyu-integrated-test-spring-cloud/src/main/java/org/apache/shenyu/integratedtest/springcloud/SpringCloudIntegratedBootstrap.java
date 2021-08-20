@@ -15,21 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integratedtest.springcloud;
 
-import org.apache.shenyu.integratedtest.common.AbstractTest;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.Test;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import static org.junit.Assert.assertEquals;
+/**
+ * The type Spring cloud integrated bootstrap.
+ */
+@SpringBootApplication
+public class SpringCloudIntegratedBootstrap {
 
-public class HelloWorldTest extends AbstractTest {
-
-    @Test
-    public void testHelloWorld() throws Exception {
-        OrderDTO user = new OrderDTO("123", "Tom");
-        user = HttpHelper.INSTANCE.postGateway("/http/order/save", user, OrderDTO.class);
-        assertEquals("hello world save order", user.getName());
+    /**
+     * main method of App.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(SpringCloudIntegratedBootstrap.class);
     }
 }

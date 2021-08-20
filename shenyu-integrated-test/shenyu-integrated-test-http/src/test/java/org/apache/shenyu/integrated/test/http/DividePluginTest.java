@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integrated.test.http;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.Test;
 
-/**
- * Hello world.
- */
-@SpringBootApplication
-public class App {
+import static org.junit.Assert.assertEquals;
 
-    /**
-     * main method of App.
-     * @param args args
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(App.class);
+public class DividePluginTest extends AbstractTest {
+
+    @Test
+    public void testHelloWorld() throws Exception {
+        OrderDTO user = new OrderDTO("123", "Tom");
+        user = HttpHelper.INSTANCE.postGateway("/http/order/save", user, OrderDTO.class);
+        assertEquals("hello world save order", user.getName());
     }
 }

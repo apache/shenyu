@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integrated.test.http.combination;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -31,7 +31,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public final class JwtTest extends AbstractTest {
+public final class JwtPluginTest extends AbstractTest {
 
     @Test
     public void testJwt() throws IOException {

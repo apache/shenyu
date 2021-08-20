@@ -15,24 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.springcloud;
+package org.apache.shenyu.examples.plugin;
 
-import org.apache.shenyu.integratedtest.common.AbstractTest;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.Test;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-
-public class HelloWorldTest extends AbstractTest {
-
-    @Test
-    public void testHelloWorld() throws IOException {
-        OrderDTO order = new OrderDTO("123", "Phoenix");
-        order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
-        assertEquals("hello world spring cloud save order", order.getName());
+/**
+ * The type Custom shenyu plugin.
+ */
+public class CustomShenyuPlugin implements ShenyuPlugin {
+    
+    @Override
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        System.out.println("hello world im is custom Shenyu plugin");
+        return chain.execute(exchange);
     }
-
+    
+    @Override
+    public int getOrder() {
+        return 0;
+    }
+    
+    @Override
+    public String named() {
+        return "custom";
+    }
 }
