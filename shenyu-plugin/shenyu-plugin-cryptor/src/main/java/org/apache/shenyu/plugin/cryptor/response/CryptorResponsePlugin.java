@@ -1,0 +1,135 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.plugin.cryptor.response;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.CryptorResponseRuleHandle;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.support.BodyInserterContext;
+import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.cryptor.common.chain.Executor;
+import org.apache.shenyu.plugin.cryptor.common.config.SubscribeConfig;
+import org.apache.shenyu.plugin.cryptor.common.decorator.ResponseDecorator;
+import org.apache.shenyu.plugin.cryptor.common.handler.CryptorResponsePluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.common.strategies.CryptorStrategy;
+import org.apache.shenyu.plugin.cryptor.common.utils.HttpUtil;
+import org.apache.shenyu.plugin.cryptor.common.utils.JsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ReactiveHttpOutputMessage;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+
+/**
+ * Cryptor response plugin.
+ * @author sinsy.
+ */
+public class CryptorResponsePlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CryptorResponsePlugin.class);
+
+    private static final List<CryptorStrategy> STRATEGIES = SubscribeConfig.getStrategies();
+
+    private final Executor executor = new Executor();
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        CryptorResponseRuleHandle ruleHandle = CryptorResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (Objects.isNull(ruleHandle)) {
+            LOG.error("Cryptor response rule configuration is null :{}", rule.getId());
+            return chain.execute(exchange);
+        }
+        if (JsonUtil.checkParam(ruleHandle.toJson())) {
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getCode(),
+                    ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getMsg() + "[" + JsonUtil.getErrorCollector() + "]", null);
+            return WebFluxResultUtils.result(exchange, error);
+        }
+
+        if (HttpUtil.checkContextPath(ruleHandle.getContextPath(), exchange)) {
+            return chain.execute(exchange);
+        }
+        CachedBodyOutputMessage outputMessage = HttpUtil.newCachedBodyOutputMessage(exchange);
+        ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (clientResponse == null) {
+            return Mono.empty();
+        }
+        Mono<String> mono = clientResponse.bodyToMono(String.class)
+                .flatMap(originalBody ->
+                        strategyMatch(originalBody, ruleHandle));
+        BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
+        return bodyInserter.insert(outputMessage, new BodyInserterContext())
+                .then(Mono.defer(() -> {
+                    ServerHttpResponseDecorator decorator = new ResponseDecorator(exchange, outputMessage);
+                    return chain.execute(exchange.mutate().response(decorator).build());
+                })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> HttpUtil.release(outputMessage, throwable));
+
+    }
+
+    @Override
+    public int getOrder() {
+        return PluginEnum.CRYPTOR_RESPONSE.getCode();
+    }
+
+    @Override
+    public String named() {
+        return PluginEnum.CRYPTOR_RESPONSE.getName();
+    }
+
+    private Mono strategyMatch(final String originalBody, final CryptorResponseRuleHandle ruleHandle) {
+        AtomicInteger initDeep = new AtomicInteger();
+        initDeep.set(0);
+        for (CryptorStrategy strategy : STRATEGIES) {
+            if (strategy.skip(ruleHandle.getStrategyName())) {
+                String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
+                if (parseBody == null) {
+                    return Mono.just(originalBody);
+                }
+                String modifiedBody = executor.encryptExecute(strategy, ruleHandle.getKey(), parseBody);
+                JsonElement je = new JsonParser().parse(originalBody);
+                JsonElement resultJe = JsonUtil.replaceJsonNode(je,
+                        initDeep,
+                        modifiedBody,
+                        Arrays.asList(ruleHandle.getFieldNames().split("\\.")));
+                return Mono.just(resultJe.toString());
+            }
+        }
+        return Mono.just(originalBody);
+    }
+
+}
