@@ -17,8 +17,14 @@
 
 package org.apache.shenyu.web.handler;
 
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.web.loader.ShenyuPluginLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
@@ -26,13 +32,19 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This is web handler request starter.
  */
 public final class ShenyuWebHandler implements WebHandler {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
 
     private final List<ShenyuPlugin> plugins;
     
@@ -59,8 +71,29 @@ public final class ShenyuWebHandler implements WebHandler {
                 scheduler = Schedulers.elastic();
             }
         }
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("plugin-ext-loader", true));
+        executor.scheduleAtFixedRate(() -> {
+            try {
+                List<ShenyuPlugin> extendPlugins = ShenyuPluginLoader.getInstance().loadExtendPlugins();
+                putExtPlugins(extendPlugins);
+            } catch (ShenyuException | IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                LOG.error("shenyu ext plugins load has error ", e);
+            }
+        }, 30, 300, TimeUnit.SECONDS);
     }
-
+    
+    public void putExtPlugins(final List<ShenyuPlugin> extPlugins) {
+        if (CollectionUtils.isEmpty(extPlugins)) {
+            return;
+        }
+        List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
+                .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
+            plugins.addAll(shenyuPlugins);
+        }
+    }
+    
     /**
      * Handle the web server exchange.
      *
