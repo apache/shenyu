@@ -38,7 +38,8 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
+import reactor.retry.Backoff;
+import reactor.retry.Retry;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -110,10 +111,11 @@ public class WebClientPlugin implements ShenyuPlugin {
                 .exchange()
                 .doOnError(e -> LOG.error(e.getMessage(), e))
                 .timeout(Duration.ofMillis(timeout))
-                .retryWhen(Retry.backoff(retryTimes, Duration.ofMillis(200))
-                        .maxBackoff(Duration.ofSeconds(20))
-                        .filter(throwable -> throwable instanceof ConnectTimeoutException))
+                .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
+                        .retryMax(retryTimes)
+                        .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
+
     }
 
     private Mono<Void> doNext(final ClientResponse res, final ServerWebExchange exchange, final ShenyuPluginChain chain) {

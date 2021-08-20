@@ -37,10 +37,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.transport.ProxyProvider;
+import reactor.netty.tcp.ProxyProvider;
 
 import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -74,17 +73,11 @@ public class HttpClientPluginConfiguration {
         ConnectionProvider connectionProvider;
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
             connectionProvider = ConnectionProvider.newConnection();
+        } else if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
+            connectionProvider = ConnectionProvider.fixed(pool.getName(),
+                    pool.getMaxConnections(), pool.getAcquireTimeout());
         } else {
-            ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName());
-            if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
-                builder.maxConnections(pool.getMaxConnections())
-                        .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
-            } else {
-                // Elastic
-                builder.maxConnections(Integer.MAX_VALUE).pendingAcquireTimeout(Duration.ofMillis(0))
-                        .pendingAcquireMaxCount(-1);
-            }
-            connectionProvider = builder.build();
+            connectionProvider = ConnectionProvider.elastic(pool.getName());
         }
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .tcpConfiguration(tcpClient -> {
