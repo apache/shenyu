@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.cache;
 
-import lombok.SneakyThrows;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache.DubboParamExtInfo;
 import org.junit.Assert;
@@ -29,14 +27,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertThat;
 
 
 /**
@@ -121,12 +116,5 @@ public final class ApplicationConfigCacheTest {
     public void testInvalidate() {
         this.applicationConfigCache.invalidate("/test");
         this.applicationConfigCache.invalidateAll();
-    }
-
-    @SneakyThrows
-    @Test
-    public void testBuildLoadBalanceName() {
-        assertThat(ReflectionTestUtils.invokeMethod(this.applicationConfigCache, "buildLoadBalanceName", LoadBalanceEnum.HASH.getName()), is("consistenthash"));
-        assertThat(ReflectionTestUtils.invokeMethod(this.applicationConfigCache, "buildLoadBalanceName", LoadBalanceEnum.ROUND_ROBIN.getName()), is("roundrobin"));
     }
 }

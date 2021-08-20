@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.utils;
 
-import lombok.SneakyThrows;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -40,7 +39,6 @@ public final class UpstreamCheckUtilsTest {
     }
 
     @Test
-    @SneakyThrows
     public void testSocketConnect() {
         Runnable runnable = () -> {
             ServerSocket serverSocket;

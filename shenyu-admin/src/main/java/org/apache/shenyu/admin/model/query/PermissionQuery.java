@@ -17,18 +17,12 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * this is permission query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class PermissionQuery implements Serializable {
 
     private static final long serialVersionUID = 6937903404332979859L;
@@ -42,4 +36,65 @@ public class PermissionQuery implements Serializable {
      * resource id.
      */
     private String resourceId;
+
+    public PermissionQuery() {
+    }
+
+    public PermissionQuery(final String objectId, final String resourceId) {
+        this.objectId = objectId;
+        this.resourceId = resourceId;
+    }
+
+    /**
+     * Gets the value of objectId.
+     *
+     * @return the value of objectId
+     */
+    public String getObjectId() {
+        return objectId;
+    }
+
+    /**
+     * Sets the objectId.
+     *
+     * @param objectId objectId
+     */
+    public void setObjectId(final String objectId) {
+        this.objectId = objectId;
+    }
+
+    /**
+     * Gets the value of resourceId.
+     *
+     * @return the value of resourceId
+     */
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    /**
+     * Sets the resourceId.
+     *
+     * @param resourceId resourceId
+     */
+    public void setResourceId(final String resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PermissionQuery)) {
+            return false;
+        }
+        PermissionQuery that = (PermissionQuery) o;
+        return Objects.equals(objectId, that.objectId) && Objects.equals(resourceId, that.resourceId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(objectId, resourceId);
+    }
 }

@@ -17,16 +17,31 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Consul config.
  */
-@Data
 @ConfigurationProperties(prefix = "shenyu.sync.consul")
 public class ConsulProperties {
 
     private String url;
 
+    /**
+     * Gets the value of url.
+     *
+     * @return the value of url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets the url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
 }

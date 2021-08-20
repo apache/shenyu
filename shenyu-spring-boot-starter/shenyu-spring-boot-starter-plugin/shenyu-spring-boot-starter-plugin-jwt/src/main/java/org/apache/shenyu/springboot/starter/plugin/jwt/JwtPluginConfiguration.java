@@ -31,9 +31,9 @@ import org.springframework.context.annotation.Configuration;
 public class JwtPluginConfiguration {
 
     /**
-     * Jwt plugin soul plugin.
+     * Jwt plugin.
      *
-     * @return the soul plugin
+     * @return the JwtPlugin
      */
     @Bean
     public ShenyuPlugin jwtPlugin() {

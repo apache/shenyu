@@ -20,13 +20,11 @@ package org.apache.shenyu.sync.data.consul.handler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -34,18 +32,14 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * test case for {@link ConsulCacheHandler}.
  */
-@Slf4j
-@SuppressWarnings("all")
 public final class ConsulCacheHandlerTest {
-
-    @SneakyThrows
     @Test
     public void testUpdatePluginMap() {
         String pluginName1 = "PLUGIN_NAME_1";
@@ -75,7 +69,6 @@ public final class ConsulCacheHandlerTest {
         Assert.assertEquals(2, unsubscribeList.size());
     }
 
-    @SneakyThrows
     @Test
     public void testUpdateSelectorMap() {
         String selectorDataPluginName1 = "SELECTOR_DATA_1";
@@ -114,7 +107,6 @@ public final class ConsulCacheHandlerTest {
         Assert.assertEquals(2, unsubscribeList.size());
     }
 
-    @SneakyThrows
     @Test
     public void testUpdateRuleMap() {
         String ruleDataId1 = "RULE_DATA_1";
@@ -148,7 +140,6 @@ public final class ConsulCacheHandlerTest {
         Assert.assertEquals(2, unsubscribeList.size());
     }
 
-    @SneakyThrows
     @Test
     public void testUpdateMetaDataMap() {
         String metadataPath1 = "METADATA_PATH_1";
@@ -178,7 +169,6 @@ public final class ConsulCacheHandlerTest {
         Assert.assertEquals(2, unsubscribeList.size());
     }
 
-    @SneakyThrows
     @Test
     public void testUpdateAuthMap() {
         String mockAppKey = "MOCK_APP_KEY";

@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.grpc.cache;
 
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.plugin.grpc.client.GrpcClientBuilder;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 
@@ -28,7 +27,6 @@ import java.util.Objects;
 /**
  * The Grpc client cache.
  */
-@Slf4j
 public class GrpcClientCache {
 
     private static final Map<String, ShenyuGrpcClient> CLIENT_CACHE = Maps.newConcurrentMap();
@@ -56,7 +54,7 @@ public class GrpcClientCache {
      * Get the client.
      *
      * @param contextPath contextPath
-     * @return SoulGrpcClient  oulGrpcClient
+     * @return ShenyuGrpcClient shenyuGrpcClient
      */
     public static ShenyuGrpcClient getGrpcClient(final String contextPath) {
         return CLIENT_CACHE.get(contextPath);

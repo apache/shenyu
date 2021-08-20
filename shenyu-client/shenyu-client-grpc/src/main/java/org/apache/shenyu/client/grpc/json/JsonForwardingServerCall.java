@@ -26,8 +26,9 @@ import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.Status;
 import io.grpc.MethodDescriptor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handle response of json generic service.
@@ -35,8 +36,9 @@ import org.apache.shenyu.protocol.grpc.message.JsonMessage;
  * @param <R> request message
  * @param <P> response message
  */
-@Slf4j
 public class JsonForwardingServerCall<R, P> extends ServerCall<R, P> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JsonForwardingServerCall.class);
 
     private final ServerCall<P, P> call;
 
@@ -61,10 +63,10 @@ public class JsonForwardingServerCall<R, P> extends ServerCall<R, P> {
                     .print((MessageOrBuilder) message);
 
             DynamicMessage respMessage = JsonMessage.buildJsonMessage(jsonFormat);
-            log.debug("begin send json response");
+            LOG.debug("begin send json response");
             delegate().sendMessage((P) respMessage);
         } catch (InvalidProtocolBufferException e) {
-            log.error("handle json message is error", e);
+            LOG.error("handle json message is error", e);
             throw Status.INTERNAL.withDescription(e.getMessage()).asRuntimeException();
         }
     }

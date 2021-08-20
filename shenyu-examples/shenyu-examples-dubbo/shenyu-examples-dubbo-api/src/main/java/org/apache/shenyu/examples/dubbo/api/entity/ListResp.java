@@ -17,17 +17,61 @@
 
 package org.apache.shenyu.examples.dubbo.api.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ListResp {
 
     private Integer total;
+
     private List<DubboTest> users;
+
+    public ListResp() {
+    }
+
+    public ListResp(final Integer total, final List<DubboTest> users) {
+        this.total = total;
+        this.users = users;
+    }
+
+    /**
+     * Get total.
+     *
+     * @return total
+     */
+    public Integer getTotal() {
+        return total;
+    }
+
+    /**
+     * Set total.
+     *
+     * @param total total
+     */
+    public void setTotal(final Integer total) {
+        this.total = total;
+    }
+
+    /**
+     * Get users.
+     *
+     * @return users
+     */
+    public List<DubboTest> getUsers() {
+        return users;
+    }
+
+    /**
+     * Set users.
+     *
+     * @param users users
+     */
+    public void setUsers(final List<DubboTest> users) {
+        this.users = users;
+    }
+
+    @Override
+    public String toString() {
+        return "ListResp{" + "total=" + total + ", users=" + users + '}';
+    }
+
 }

@@ -24,7 +24,6 @@ import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.proto.CompleteObserver;
@@ -33,6 +32,8 @@ import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.apache.shenyu.plugin.grpc.proto.CompositeStreamObserver;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.List;
@@ -47,8 +48,9 @@ import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
 /**
  * The shenyu grpc client.
  */
-@Slf4j
 public class ShenyuGrpcClient implements Closeable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuGrpcClient.class);
 
     private final ManagedChannel channel;
 
@@ -80,14 +82,12 @@ public class ShenyuGrpcClient implements Closeable {
 
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
         StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse);
-
-        ShenyuGrpcCallRequest callParams = ShenyuGrpcCallRequest.builder()
-                .methodDescriptor(jsonMarshallerMethodDescriptor)
-                .channel(channel)
-                .callOptions(callOptions)
-                .requests(jsonRequestList)
-                .responseObserver(streamObserver)
-                .build();
+        ShenyuGrpcCallRequest callParams = new ShenyuGrpcCallRequest();
+        callParams.setMethodDescriptor(jsonMarshallerMethodDescriptor);
+        callParams.setChannel(channel);
+        callParams.setCallOptions(callOptions);
+        callParams.setResponseObserver(streamObserver);
+        callParams.setRequests(jsonRequestList);
         try {
             this.invoke(callParams).get();
         } catch (InterruptedException | ExecutionException e) {
@@ -129,7 +129,7 @@ public class ShenyuGrpcClient implements Closeable {
                 requestObserver.onCompleted();
                 return doneObserver.getCompletionFuture();
             default:
-                log.info("Unknown methodType:{}", methodType);
+                LOG.info("Unknown methodType:{}", methodType);
                 return null;
         }
     }

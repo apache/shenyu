@@ -64,7 +64,7 @@ public final class ApacheDubboClientValidatorTest {
         try {
             apacheDubboClientValidator.validate("test",
                     new Class[]{TestService.TestObject.class},
-                    new Object[]{TestService.TestObject.builder().age(1).build()});
+                    new Object[]{new TestService.TestObject(1)});
         } catch (Exception e) {
             assertThat("age cannot be null.", is(e.getMessage()));
         }

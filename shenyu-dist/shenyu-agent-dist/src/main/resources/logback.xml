@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration>
+
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
+    <property name="LOG_HOME" value="${log.home:-./logs}"/>
+    <property name="LOG_APP_NAME" value="${log.app-name:-shenyu-admin}"/>
+    <property name="MAX_SINGLE_LOG_FILE_SIZE" value="${log.max-single-log-file-size:-100MB}"/>
+    <property name="MAX_LOG_FILE_HISTORY" value="${log.max-log-file-history:-7}"/>
+    <property name="LOG_FILE_TOTAL_CAPACITY" value="${log.log-file-total-capacity:-10GB}"/>
+    <property name="ASYNC_DISCARDING_THRESHOLD" value="${log.async.discarding-threshold:-0}"/>
+    <property name="ASYNC_LOG_QUEUE_SIZE" value="${log.async.queue-size:-256}"/>
+
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
+        <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${LOG_APP_NAME}.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/logs/${LOG_APP_NAME}.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
+        <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${LOG_HOME}/${LOG_APP_NAME}-error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/logs/${LOG_APP_NAME}.%d{yyyy-MM-dd}-error.%i.log.zip</fileNamePattern>
+            <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
+        <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="ASYNC_STDOUT"/>
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_ERROR_FILE"/>
+    </root>
+</configuration>

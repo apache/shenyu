@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -29,6 +28,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,8 +52,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * The type Netty http client plugin.
  */
-@Slf4j
 public class NettyHttpClientPlugin implements ShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(NettyHttpClientPlugin.class);
 
     private final HttpClient httpClient;
 
@@ -79,7 +81,7 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        log.info("you request, The resulting urlPath is: {}", url);
+        LOG.info("you request, The resulting urlPath is: {}", url);
         Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> headers.add(httpHeaders))
                 .request(method).uri(url).send((req, nettyOutbound) ->
                         nettyOutbound.send(request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer) .getNativeBuffer())))

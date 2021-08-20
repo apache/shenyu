@@ -20,20 +20,17 @@ package org.apache.shenyu.metrics.prometheus.register;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.metrics.spi.MetricsRegister;
 import org.apache.shenyu.spi.Join;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Prometheus metrics register.
  */
-@Slf4j
 @Join
 public final class PrometheusMetricsRegister implements MetricsRegister {
-    
+
     private static final Map<String, Counter> COUNTER_MAP = new ConcurrentHashMap<>();
     
     private static final Map<String, Gauge> GAUGE_MAP = new ConcurrentHashMap<>();

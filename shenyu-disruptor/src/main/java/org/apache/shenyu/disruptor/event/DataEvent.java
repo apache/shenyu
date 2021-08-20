@@ -17,14 +17,27 @@
 
 package org.apache.shenyu.disruptor.event;
 
-import lombok.Data;
-
 /**
  * DataEvent.
  * disruptor data carrier .
  */
-@Data
 public class DataEvent<T> {
-    
+
     private T data;
+
+    /**
+     * get data.
+     * @return data
+     */
+    public T getData() {
+        return data;
+    }
+
+    /**
+     * set data.
+     * @param data data
+     */
+    public void setData(final T data) {
+        this.data = data;
+    }
 }

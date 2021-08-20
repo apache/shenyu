@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * hystrix execution isolation strategy.
  */
-@RequiredArgsConstructor
-@Getter
 public enum HystrixIsolationModeEnum {
     /**
      * thread pool mode.
@@ -38,4 +33,33 @@ public enum HystrixIsolationModeEnum {
     private final int code;
 
     private final String name;
+
+    /**
+     * all args constructor.
+     *
+     * @param code code
+     * @param name name
+     */
+    HystrixIsolationModeEnum(final int code, final String name) {
+        this.code = code;
+        this.name = name;
+    }
+
+    /**
+     * get code.
+     *
+     * @return code
+     */
+    public int getCode() {
+        return code;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
 }

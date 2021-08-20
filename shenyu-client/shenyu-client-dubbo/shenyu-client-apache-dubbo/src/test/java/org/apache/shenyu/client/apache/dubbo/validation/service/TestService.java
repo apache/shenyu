@@ -17,10 +17,8 @@
 
 package org.apache.shenyu.client.apache.dubbo.validation.service;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 /**
  * TestService.
@@ -35,11 +33,66 @@ public interface TestService {
      */
     String test(TestObject testObject);
 
-    @Data
-    @Builder
-    @EqualsAndHashCode
     class TestObject {
+
         @NotNull(message = "age cannot be null.")
         private Integer age;
+
+        /**
+         * constructor without parameter.
+         */
+        public TestObject() {
+        }
+
+        /**
+         * constructor with all params.
+         *
+         * @param age age
+         */
+        public TestObject(final Integer age) {
+            this.age = age;
+        }
+
+        /**
+         * get age.
+         *
+         * @return age
+         */
+        public Integer getAge() {
+            return age;
+        }
+
+        /**
+         * set age.
+         *
+         * @param age age
+         */
+        public void setAge(final Integer age) {
+            this.age = age;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TestObject that = (TestObject) o;
+            return getAge().equals(that.getAge());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getAge());
+        }
+
+        @Override
+        public String toString() {
+            return "TestObject{"
+                    + "age=" + age
+                    + '}';
+        }
     }
 }

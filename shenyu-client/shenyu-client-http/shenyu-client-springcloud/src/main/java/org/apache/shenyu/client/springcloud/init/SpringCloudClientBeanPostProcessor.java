@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.springcloud.init;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
@@ -26,6 +25,8 @@ import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -45,8 +46,9 @@ import java.util.concurrent.Executors;
 /**
  * The type Shenyu client bean post processor.
  */
-@Slf4j
 public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientBeanPostProcessor.class);
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -77,7 +79,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         String appName = env.getProperty("spring.application.name");
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
             String errorMsg = "spring cloud param must config the registerType , serverLists  and appName";
-            log.error(errorMsg);
+            LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-spring-cloud-client-thread-pool-%d").build());

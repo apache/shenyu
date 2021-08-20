@@ -17,19 +17,13 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
+
+import java.util.Objects;
 
 /**
  * this is rule query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class RuleQuery extends FilterQuery {
 
     private static final long serialVersionUID = -8048484230783429888L;
@@ -48,4 +42,87 @@ public class RuleQuery extends FilterQuery {
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public RuleQuery() {
+    }
+
+    public RuleQuery(final String selectorId, final String name, final PageParameter pageParameter) {
+        this.selectorId = selectorId;
+        this.name = name;
+        this.pageParameter = pageParameter;
+    }
+
+    /**
+     * Gets the value of selectorId.
+     *
+     * @return the value of selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * Sets the selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RuleQuery)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RuleQuery ruleQuery = (RuleQuery) o;
+        return Objects.equals(selectorId, ruleQuery.selectorId) && Objects.equals(name, ruleQuery.name) && Objects.equals(pageParameter, ruleQuery.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), selectorId, name, pageParameter);
+    }
 }

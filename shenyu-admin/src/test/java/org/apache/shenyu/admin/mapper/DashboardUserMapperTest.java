@@ -27,7 +27,6 @@ import org.junit.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.comparesEqualTo;
@@ -164,7 +163,7 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         String aseKey = "2095132720951327";
         String iv = "6075877187097700";
 
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         return DashboardUserDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .userName("adminTest")

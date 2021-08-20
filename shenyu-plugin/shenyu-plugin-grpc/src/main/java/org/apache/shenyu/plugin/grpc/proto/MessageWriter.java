@@ -20,14 +20,16 @@ package org.apache.shenyu.plugin.grpc.proto;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MessageWriter.
  */
-@Slf4j
 public final class MessageWriter<T extends Message> implements StreamObserver<T> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MessageWriter.class);
 
     private final ShenyuGrpcResponse grpcResponse;
 
@@ -54,11 +56,11 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
 
     @Override
     public void onError(final Throwable t) {
-        log.error("Messages write occur errors", t);
+        LOG.error("Messages write occur errors", t);
     }
 
     @Override
     public void onCompleted() {
-        log.info("Messages write complete");
+        LOG.info("Messages write complete");
     }
 }

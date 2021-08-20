@@ -65,7 +65,7 @@ public class FormDataOperatorTest {
         ParamMappingHandle.ParamMapInfo add = new ParamMappingHandle.ParamMapInfo();
         add.setPath("$");
         add.setKey("webName");
-        add.setValue("SOUL");
+        add.setValue("SHENYU");
         ParamMappingHandle.ParamMapInfo replace = new ParamMappingHandle.ParamMapInfo();
         replace.setPath("$");
         replace.setKey("name");

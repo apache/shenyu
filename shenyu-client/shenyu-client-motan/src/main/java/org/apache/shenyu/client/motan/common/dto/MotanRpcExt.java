@@ -18,8 +18,6 @@
 
 package org.apache.shenyu.client.motan.common.dto;
 
-import lombok.Builder;
-import lombok.Data;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
@@ -27,8 +25,6 @@ import java.util.List;
 /**
  * Motan rpc ext.
  */
-@Data
-@Builder
 public class MotanRpcExt {
 
     private List<RpcExt> methodInfo;
@@ -36,14 +32,133 @@ public class MotanRpcExt {
     private String group;
 
     /**
+     * constructor without params.
+     */
+    public MotanRpcExt() {
+    }
+
+    /**
+     * constructor with all params.
+     *
+     * @param methodInfo methodInfo
+     * @param group group
+     */
+    public MotanRpcExt(final List<RpcExt> methodInfo, final String group) {
+        this.methodInfo = methodInfo;
+        this.group = group;
+    }
+
+    /**
+     * get methodInfo.
+     *
+     * @return methodInfo
+     */
+    public List<RpcExt> getMethodInfo() {
+        return methodInfo;
+    }
+
+    /**
+     * set methodInfo.
+     *
+     * @param methodInfo methodInfo
+     */
+    public void setMethodInfo(final List<RpcExt> methodInfo) {
+        this.methodInfo = methodInfo;
+    }
+
+    /**
+     * get group.
+     *
+     * @return group
+     */
+    public String getGroup() {
+        return group;
+    }
+
+    /**
+     * set group.
+     * @param group group
+     */
+    public void setGroup(final String group) {
+        this.group = group;
+    }
+
+    @Override
+    public String toString() {
+        return "MotanRpcExt{"
+                + "methodInfo=" + methodInfo
+                + ", group='" + group + '\''
+                + '}';
+    }
+
+    /**
      * The type Rpc ext.
      */
-    @Data
-    @Builder
     public static class RpcExt {
 
         private String methodName;
 
         private List<Pair<String, String>> params;
+
+        /**
+         * constructor without params.
+         */
+        public RpcExt() {
+        }
+
+        /**
+         * constructor with all params.
+         *
+         * @param methodName methodName
+         * @param params params
+         */
+        public RpcExt(final String methodName, final List<Pair<String, String>> params) {
+            this.methodName = methodName;
+            this.params = params;
+        }
+
+        /**
+         * get methodName.
+         *
+         * @return methodName
+         */
+        public String getMethodName() {
+            return methodName;
+        }
+
+        /**
+         * set methodName.
+         *
+         * @param methodName methodName
+         */
+        public void setMethodName(final String methodName) {
+            this.methodName = methodName;
+        }
+
+        /**
+         * get params.
+         *
+         * @return params
+         */
+        public List<Pair<String, String>> getParams() {
+            return params;
+        }
+
+        /**
+         * set params.
+         *
+         * @param params params
+         */
+        public void setParams(final List<Pair<String, String>> params) {
+            this.params = params;
+        }
+
+        @Override
+        public String toString() {
+            return "RpcExt{"
+                    + "methodName='" + methodName + '\''
+                    + ", params=" + params
+                    + '}';
+        }
     }
 }

@@ -24,26 +24,26 @@ import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.DubboRegisterConfig;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
-
 
 /**
  * The type Application config cache.
  */
 @SuppressWarnings("all")
-@Slf4j
 public final class ApplicationConfigCache {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
     private ApplicationConfig applicationConfig;
 
@@ -64,7 +64,7 @@ public final class ApplicationConfigCache {
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
                         field.set(config, null);
                     } catch (NoSuchFieldException | IllegalAccessException e) {
-                        log.error("modify ref have exception", e);
+                        LOG.error("modify ref have exception", e);
                     }
                 }
             })
@@ -132,7 +132,7 @@ public final class ApplicationConfigCache {
                 return referenceConfig;
             }
         } catch (ExecutionException e) {
-            log.error("init dubbo ref ex:{}", e.getMessage());
+            LOG.error("init dubbo ref exception", e);
         }
         return build(metaData);
 
@@ -151,6 +151,7 @@ public final class ApplicationConfigCache {
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
+        reference.setAsync(true);
         String rpcExt = metaData.getRpcExt();
         DubboParamExtInfo dubboParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, DubboParamExtInfo.class);
         if (Objects.nonNull(dubboParamExtInfo)) {
@@ -161,8 +162,7 @@ public final class ApplicationConfigCache {
                 reference.setGroup(dubboParamExtInfo.getGroup());
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
-                final String loadBalance = dubboParamExtInfo.getLoadbalance();
-                reference.setLoadbalance(buildLoadBalanceName(loadBalance));
+                reference.setLoadbalance(dubboParamExtInfo.getLoadbalance());
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
                 reference.setUrl(dubboParamExtInfo.getUrl());
@@ -173,24 +173,14 @@ public final class ApplicationConfigCache {
         try {
             Object obj = reference.get();
             if (obj != null) {
-                log.info("init alibaba dubbo reference success there meteData is :{}", metaData.toString());
+                LOG.info("init alibaba dubbo reference success there meteData is :{}", metaData);
                 cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
-            log.error("init alibaba dubbo refernce ex:{}", e.getMessage());
+            LOG.error("init alibaba dubbo refernce exception", e);
         }
 
         return reference;
-    }
-
-    private String buildLoadBalanceName(final String loadBalance) {
-        if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
-            return "consistenthash";
-        }
-        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
-            return "roundrobin";
-        }
-        return loadBalance;
     }
 
     /**
@@ -237,7 +227,6 @@ public final class ApplicationConfigCache {
     /**
      * The type Dubbo param ext info.
      */
-    @Data
     static class DubboParamExtInfo {
 
         private String group;
@@ -251,6 +240,54 @@ public final class ApplicationConfigCache {
         private Integer timeout;
 
         private String url;
+
+        public String getGroup() {
+            return group;
+        }
+
+        public void setGroup(final String group) {
+            this.group = group;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(final String version) {
+            this.version = version;
+        }
+
+        public String getLoadbalance() {
+            return loadbalance;
+        }
+
+        public void setLoadbalance(final String loadbalance) {
+            this.loadbalance = loadbalance;
+        }
+
+        public Integer getRetries() {
+            return retries;
+        }
+
+        public void setRetries(final Integer retries) {
+            this.retries = retries;
+        }
+
+        public Integer getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(final Integer timeout) {
+            this.timeout = timeout;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(final String url) {
+            this.url = url;
+        }
     }
 
 }

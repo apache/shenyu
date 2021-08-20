@@ -34,17 +34,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * The Test Case For DefaultSoulContextBuilder.
+ * The Test Case For DefaultShenyuContextBuilder.
  */
 public final class DefaultShenyuContextBuilderTest {
 
-    private DefaultShenyuContextBuilder defaultSoulContextBuilder;
+    private DefaultShenyuContextBuilder defaultShenyuContextBuilder;
 
     @Before
     public void setUp() {
         Map<String, ShenyuContextDecorator> decoratorMap = new HashMap<>();
         decoratorMap.put("http", new FixtureShenyuContextDecorator());
-        defaultSoulContextBuilder = new DefaultShenyuContextBuilder(decoratorMap);
+        defaultShenyuContextBuilder = new DefaultShenyuContextBuilder(decoratorMap);
     }
 
     @Test
@@ -53,7 +53,7 @@ public final class DefaultShenyuContextBuilderTest {
                 .remoteAddress(new InetSocketAddress(8092))
                 .header("MetaDataCache", "Hello")
                 .build());
-        ShenyuContext shenyuContext = defaultSoulContextBuilder.build(exchange);
+        ShenyuContext shenyuContext = defaultShenyuContextBuilder.build(exchange);
         assertNotNull(shenyuContext);
         assertEquals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType());
     }

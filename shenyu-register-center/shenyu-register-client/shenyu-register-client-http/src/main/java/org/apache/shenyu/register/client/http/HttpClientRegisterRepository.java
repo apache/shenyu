@@ -20,13 +20,14 @@ package org.apache.shenyu.register.client.http;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,9 +36,10 @@ import java.util.Map;
 /**
  * The type Http client register repository.
  */
-@Slf4j
 @Join
 public class HttpClientRegisterRepository implements ShenyuClientRegisterRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
 
     private List<String> serverList;
 
@@ -69,7 +71,7 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
                 RegisterUtils.doRegister(gson.toJson(metadata), server + turn.get(rpcType), rpcType);
                 return;
             } catch (Exception e) {
-                log.error("register admin url :{} is fail, will retry", server);
+                LOGGER.error("register admin url :{} is fail, will retry", server);
             }
         }
     }

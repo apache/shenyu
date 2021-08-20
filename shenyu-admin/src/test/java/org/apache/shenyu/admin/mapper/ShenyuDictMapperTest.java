@@ -24,7 +24,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
@@ -63,7 +62,7 @@ public final class ShenyuDictMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private ShenyuDictDO buildShenyuDictDO() {
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         return ShenyuDictDO.builder()
                 .id(id)

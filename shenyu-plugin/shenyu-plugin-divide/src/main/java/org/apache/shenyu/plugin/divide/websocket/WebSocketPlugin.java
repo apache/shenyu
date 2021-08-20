@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.divide.websocket;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -35,6 +34,8 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
@@ -57,8 +58,9 @@ import java.util.stream.Collectors;
 /**
  * The type Web socket plugin.
  */
-@Slf4j
 public class WebSocketPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebSocketPlugin.class);
 
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
@@ -82,19 +84,19 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(shenyuContext)) {
-            log.error("divide upstream configuration error：{}", rule.toString());
+            LOG.error("divide upstream configuration error：{}", rule.toString());
             return chain.execute(exchange);
         }
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(divideUpstream)) {
-            log.error("websocket has no upstream");
+            LOG.error("websocket has no upstream");
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(divideUpstream, shenyuContext))).build().toUri();
-        log.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
+        LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));

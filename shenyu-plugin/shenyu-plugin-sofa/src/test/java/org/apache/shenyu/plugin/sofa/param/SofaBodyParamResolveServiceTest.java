@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.plugin.sofa.param;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 
 import org.junit.Test;
@@ -133,23 +130,76 @@ public final class SofaBodyParamResolveServiceTest {
         assertNull(pair.getRight()[0]);
     }
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
     private final class Student {
+
         private String id;
 
         private String name;
+
+        private Student() {
+        }
+
+        private Student(final String id, final String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        private String getId() {
+            return id;
+        }
+
+        private void setId(final String id) {
+            this.id = id;
+        }
+
+        private String getName() {
+            return name;
+        }
+
+        private void setName(final String name) {
+            this.name = name;
+        }
     }
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
     private final class ComplexBean {
+
         private Student dubboTest;
 
         private List<String> idLists;
 
         private Map<String, String> idMaps;
+
+        private ComplexBean() {
+        }
+
+        private ComplexBean(final Student dubboTest, final List<String> idLists, final Map<String, String> idMaps) {
+            this.dubboTest = dubboTest;
+            this.idLists = idLists;
+            this.idMaps = idMaps;
+        }
+
+        private Student getDubboTest() {
+            return dubboTest;
+        }
+
+        private void setDubboTest(final Student dubboTest) {
+            this.dubboTest = dubboTest;
+        }
+
+        private List<String> getIdLists() {
+            return idLists;
+        }
+
+        private void setIdLists(final List<String> idLists) {
+            this.idLists = idLists;
+        }
+
+        private Map<String, String> getIdMaps() {
+            return idMaps;
+        }
+
+        private void setIdMaps(final Map<String, String> idMaps) {
+            this.idMaps = idMaps;
+        }
     }
 }

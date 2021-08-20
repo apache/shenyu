@@ -17,17 +17,13 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.shenyu.common.constant.Constants;
+
+import java.util.Objects;
 
 /**
  * This is SentinelHandle.
  */
-@Getter
-@Setter
-@EqualsAndHashCode
 public class SentinelHandle {
 
     /**
@@ -89,6 +85,276 @@ public class SentinelHandle {
      * Sentinel fallback uri.
      */
     private String fallbackUri;
+
+    /**
+     * get flowRuleEnable.
+     *
+     * @return flowRuleEnable
+     */
+    public Integer getFlowRuleEnable() {
+        return flowRuleEnable;
+    }
+
+    /**
+     * set flowRuleEnable.
+     *
+     * @param flowRuleEnable flowRuleEnable
+     */
+    public void setFlowRuleEnable(final Integer flowRuleEnable) {
+        this.flowRuleEnable = flowRuleEnable;
+    }
+
+    /**
+     * get flowRuleGrade.
+     *
+     * @return flowRuleGrade
+     */
+    public Integer getFlowRuleGrade() {
+        return flowRuleGrade;
+    }
+
+    /**
+     * set flowRuleGrade.
+     *
+     * @param flowRuleGrade flowRuleGrade
+     */
+    public void setFlowRuleGrade(final Integer flowRuleGrade) {
+        this.flowRuleGrade = flowRuleGrade;
+    }
+
+    /**
+     * get flowRuleCount.
+     *
+     * @return flowRuleCount
+     */
+    public Integer getFlowRuleCount() {
+        return flowRuleCount;
+    }
+
+    /**
+     * set flowRuleCount.
+     *
+     * @param flowRuleCount flowRuleCount
+     */
+    public void setFlowRuleCount(final Integer flowRuleCount) {
+        this.flowRuleCount = flowRuleCount;
+    }
+
+    /**
+     * get flowRuleControlBehavior.
+     *
+     * @return flowRuleControlBehavior
+     */
+    public Integer getFlowRuleControlBehavior() {
+        return flowRuleControlBehavior;
+    }
+
+    /**
+     * set flowRuleControlBehavior.
+     *
+     * @param flowRuleControlBehavior flowRuleControlBehavior
+     */
+    public void setFlowRuleControlBehavior(final Integer flowRuleControlBehavior) {
+        this.flowRuleControlBehavior = flowRuleControlBehavior;
+    }
+
+    /**
+     * get degradeRuleEnable.
+     *
+     * @return degradeRuleEnable
+     */
+    public Integer getDegradeRuleEnable() {
+        return degradeRuleEnable;
+    }
+
+    /**
+     * set degradeRuleEnable.
+     *
+     * @param degradeRuleEnable degradeRuleEnable
+     */
+    public void setDegradeRuleEnable(final Integer degradeRuleEnable) {
+        this.degradeRuleEnable = degradeRuleEnable;
+    }
+
+    /**
+     * get degradeRuleGrade.
+     *
+     * @return degradeRuleGrade
+     */
+    public Integer getDegradeRuleGrade() {
+        return degradeRuleGrade;
+    }
+
+    /**
+     * set degradeRuleGrade.
+     *
+     * @param degradeRuleGrade degradeRuleGrade
+     */
+    public void setDegradeRuleGrade(final Integer degradeRuleGrade) {
+        this.degradeRuleGrade = degradeRuleGrade;
+    }
+
+    /**
+     * get degradeRuleCount.
+     *
+     * @return degradeRuleCount
+     */
+    public Integer getDegradeRuleCount() {
+        return degradeRuleCount;
+    }
+
+    /**
+     * set degradeRuleCount.
+     *
+     * @param degradeRuleCount degradeRuleCount
+     */
+    public void setDegradeRuleCount(final Integer degradeRuleCount) {
+        this.degradeRuleCount = degradeRuleCount;
+    }
+
+    /**
+     * get degradeRuleTimeWindow.
+     *
+     * @return degradeRuleTimeWindow
+     */
+    public Integer getDegradeRuleTimeWindow() {
+        return degradeRuleTimeWindow;
+    }
+
+    /**
+     * set degradeRuleTimeWindow.
+     *
+     * @param degradeRuleTimeWindow degradeRuleTimeWindow
+     */
+    public void setDegradeRuleTimeWindow(final Integer degradeRuleTimeWindow) {
+        this.degradeRuleTimeWindow = degradeRuleTimeWindow;
+    }
+
+    /**
+     * get degradeRuleMinRequestAmount.
+     *
+     * @return degradeRuleMinRequestAmount
+     */
+    public Integer getDegradeRuleMinRequestAmount() {
+        return degradeRuleMinRequestAmount;
+    }
+
+    /**
+     * set degradeRuleMinRequestAmount.
+     *
+     * @param degradeRuleMinRequestAmount degradeRuleMinRequestAmount
+     */
+    public void setDegradeRuleMinRequestAmount(final Integer degradeRuleMinRequestAmount) {
+        this.degradeRuleMinRequestAmount = degradeRuleMinRequestAmount;
+    }
+
+    /**
+     * get degradeRuleSlowRatioThreshold.
+     *
+     * @return degradeRuleSlowRatioThreshold
+     */
+    public Double getDegradeRuleSlowRatioThreshold() {
+        return degradeRuleSlowRatioThreshold;
+    }
+
+    /**
+     * set degradeRuleSlowRatioThreshold.
+     *
+     * @param degradeRuleSlowRatioThreshold degradeRuleSlowRatioThreshold
+     */
+    public void setDegradeRuleSlowRatioThreshold(final Double degradeRuleSlowRatioThreshold) {
+        this.degradeRuleSlowRatioThreshold = degradeRuleSlowRatioThreshold;
+    }
+
+    /**
+     * get degradeRuleStatIntervals.
+     *
+     * @return degradeRuleStatIntervals
+     */
+    public int getDegradeRuleStatIntervals() {
+        return degradeRuleStatIntervals;
+    }
+
+    /**
+     * set degradeRuleStatIntervals.
+     *
+     * @param degradeRuleStatIntervals degradeRuleStatIntervals
+     */
+    public void setDegradeRuleStatIntervals(final int degradeRuleStatIntervals) {
+        this.degradeRuleStatIntervals = degradeRuleStatIntervals;
+    }
+
+    /**
+     * get fallbackUri.
+     *
+     * @return fallbackUri
+     */
+    public String getFallbackUri() {
+        return fallbackUri;
+    }
+
+    /**
+     * set fallbackUri.
+     *
+     * @param fallbackUri fallbackUri
+     */
+    public void setFallbackUri(final String fallbackUri) {
+        this.fallbackUri = fallbackUri;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SentinelHandle that = (SentinelHandle) o;
+        return degradeRuleStatIntervals == that.degradeRuleStatIntervals && Objects.equals(flowRuleEnable, that.flowRuleEnable)
+                && Objects.equals(flowRuleGrade, that.flowRuleGrade) && Objects.equals(flowRuleCount, that.flowRuleCount)
+                && Objects.equals(flowRuleControlBehavior, that.flowRuleControlBehavior) && Objects.equals(degradeRuleEnable, that.degradeRuleEnable)
+                && Objects.equals(degradeRuleGrade, that.degradeRuleGrade) && Objects.equals(degradeRuleCount, that.degradeRuleCount)
+                && Objects.equals(degradeRuleTimeWindow, that.degradeRuleTimeWindow) && Objects.equals(degradeRuleMinRequestAmount, that.degradeRuleMinRequestAmount)
+                && Objects.equals(degradeRuleSlowRatioThreshold, that.degradeRuleSlowRatioThreshold) && Objects.equals(fallbackUri, that.fallbackUri);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(flowRuleEnable, flowRuleGrade, flowRuleCount, flowRuleControlBehavior, degradeRuleEnable, degradeRuleGrade,
+                degradeRuleCount, degradeRuleTimeWindow, degradeRuleMinRequestAmount, degradeRuleSlowRatioThreshold, degradeRuleStatIntervals, fallbackUri);
+    }
+
+    @Override
+    public String toString() {
+        return "SentinelHandle{"
+                + "flowRuleEnable="
+                + flowRuleEnable
+                + ", flowRuleGrade="
+                + flowRuleGrade
+                + ", flowRuleCount="
+                + flowRuleCount
+                + ", flowRuleControlBehavior="
+                + flowRuleControlBehavior
+                + ", degradeRuleEnable="
+                + degradeRuleEnable
+                + ", degradeRuleGrade="
+                + degradeRuleGrade
+                + ", degradeRuleCount="
+                + degradeRuleCount
+                + ", degradeRuleTimeWindow="
+                + degradeRuleTimeWindow
+                + ", degradeRuleMinRequestAmount="
+                + degradeRuleMinRequestAmount
+                + ", degradeRuleSlowRatioThreshold="
+                + degradeRuleSlowRatioThreshold
+                + ", degradeRuleStatIntervals="
+                + degradeRuleStatIntervals
+                + ", fallbackUri='"
+                + fallbackUri
+                + '\''
+                + '}';
+    }
 
     /**
      * check filed default value.

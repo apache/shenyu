@@ -32,7 +32,7 @@ import reactor.core.publisher.Mono;
  */
 public class TimeWebFilter extends AbstractWebFilter {
 
-    private ShenyuConfig shenyuConfig;
+    private final ShenyuConfig shenyuConfig;
 
     public TimeWebFilter(final ShenyuConfig shenyuConfig) {
         this.shenyuConfig = shenyuConfig;
@@ -40,12 +40,6 @@ public class TimeWebFilter extends AbstractWebFilter {
 
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
-       /* final LocalDateTime start = requestDTO.getStartDateTime();
-        final LocalDateTime now = LocalDateTime.now();
-        final long between = DateUtils.acquireMinutesBetween(start, now);
-        if (between < soulConfig.getFilterTime()) {
-            return Mono.just(true);
-        }*/
         return Mono.just(true);
     }
 

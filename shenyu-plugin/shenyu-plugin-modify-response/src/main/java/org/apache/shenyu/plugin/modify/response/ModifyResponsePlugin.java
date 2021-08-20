@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.modify.response;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -60,7 +59,6 @@ import java.util.Set;
 /**
  * ModifyResponse plugin.
  */
-@Slf4j
 public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
     public ModifyResponsePlugin() {
@@ -72,8 +70,8 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
-        final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.nonNull(modifyResponseRuleHandle)) {
             ServerHttpResponse response = exchange.getResponse();
@@ -174,7 +172,11 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
         private String operation(final String jsonValue, final ModifyResponseRuleHandle handle) {
             DocumentContext context = JsonPath.parse(jsonValue);
-            operation(context, handle);
+            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
+                handle.getAddBodyKeys().forEach(info -> {
+                    context.put(info.getPath(), info.getKey(), info.getValue());
+                });
+            }
             if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
                 handle.getReplaceBodyKeys().forEach(info -> {
                     context.renameKey(info.getPath(), info.getKey(), info.getValue());
@@ -184,14 +186,6 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 handle.getRemoveBodyKeys().forEach(context::delete);
             }
             return context.jsonString();
-        }
-
-        private void operation(final DocumentContext context, final ModifyResponseRuleHandle handle) {
-            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
-                handle.getAddBodyKeys().forEach(info -> {
-                    context.put(info.getPath(), info.getKey(), info.getValue());
-                });
-            }
         }
 
         private ClientResponse prepareClientResponse(final Publisher<? extends DataBuffer> body, final HttpHeaders httpHeaders) {

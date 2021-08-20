@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Component;
 /**
  * ApplicationStartListener.
  */
-@Slf4j
 @Component
 public class ApplicationStartListener implements ApplicationListener<WebServerInitializedEvent> {
 

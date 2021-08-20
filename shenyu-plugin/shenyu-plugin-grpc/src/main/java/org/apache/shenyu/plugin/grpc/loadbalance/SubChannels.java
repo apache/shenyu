@@ -22,7 +22,6 @@ import io.grpc.ConnectivityStateInfo;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ConnectivityState;
-import lombok.Data;
 
 /**
  * The grpc SubChannels.
@@ -149,12 +148,19 @@ public class SubChannels {
         setAttributeValue(subchannel, STATSU_KEY, attributes);
     }
 
-    @Data
     static final class Ref<T> {
 
         private T value;
 
         Ref(final T value) {
+            this.value = value;
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        public void setValue(final T value) {
             this.value = value;
         }
     }

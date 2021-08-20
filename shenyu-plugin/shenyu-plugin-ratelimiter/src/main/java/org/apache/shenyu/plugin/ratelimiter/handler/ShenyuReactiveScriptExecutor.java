@@ -20,7 +20,8 @@ package org.apache.shenyu.plugin.ratelimiter.handler;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReturnType;
@@ -38,8 +39,9 @@ import reactor.core.publisher.Mono;
 /**
  * The type reactive script executor.
  */
-@Slf4j
 public class ShenyuReactiveScriptExecutor<K> extends DefaultReactiveScriptExecutor<K> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuReactiveScriptExecutor.class);
 
     public ShenyuReactiveScriptExecutor(final ReactiveRedisConnectionFactory connectionFactory, final RedisSerializationContext<K, ?> serializationContext) {
         super(connectionFactory, serializationContext);
@@ -65,6 +67,6 @@ public class ShenyuReactiveScriptExecutor<K> extends DefaultReactiveScriptExecut
         Assert.notNull(action, "Callback object must not be null");
         ReactiveRedisConnectionFactory factory = getConnectionFactory();
         return Flux.usingWhen(Mono.fromSupplier(factory::getReactiveConnection), action::doInRedis, ReactiveRedisConnection::closeLater)
-                .doOnError(throwable -> log.error("Redis execute exception: {}", throwable.getMessage()));
+                .doOnError(throwable -> LOG.error("Redis execute exception: {}", throwable.getMessage()));
     }
 }

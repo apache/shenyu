@@ -16,8 +16,9 @@
 
 package org.apache.shenyu.spi;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,9 +35,10 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @see <a href="https://github.com/apache/dubbo/blob/master/dubbo-common/src/main/java/org/apache/dubbo/common/extension/ExtensionLoader.java">ExtensionLoader</a>
  */
-@Slf4j
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ExtensionLoader.class);
 
     private static final String SHENYU_DIRECTORY = "META-INF/shenyu/";
 
@@ -198,7 +200,7 @@ public final class ExtensionLoader<T> {
                 }
             }
         } catch (IOException t) {
-            log.error("load extension class error {}", fileName, t);
+            LOG.error("load extension class error {}", fileName, t);
         }
     }
 

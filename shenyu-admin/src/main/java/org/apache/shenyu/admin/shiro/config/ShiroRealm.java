@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.shiro.config;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.custom.UserInfo;
@@ -41,13 +40,17 @@ import java.util.Set;
 /**
  * shiro custom's realm.
  */
-@RequiredArgsConstructor
 @Service("shiroRealm")
 public class ShiroRealm extends AuthorizingRealm {
 
     private final PermissionService permissionService;
 
     private final DashboardUserService dashboardUserService;
+
+    public ShiroRealm(final PermissionService permissionService, final DashboardUserService dashboardUserService) {
+        this.permissionService = permissionService;
+        this.dashboardUserService = dashboardUserService;
+    }
 
     @Override
     public boolean supports(final AuthenticationToken token) {

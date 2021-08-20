@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -26,10 +26,13 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 /**
  * The type Meta data handler.
  */
-@RequiredArgsConstructor
 public class MetaDataHandler extends AbstractDataHandler<MetaData> {
 
     private final List<MetaDataSubscriber> metaDataSubscribers;
+
+    public MetaDataHandler(final List<MetaDataSubscriber> metaDataSubscribers) {
+        this.metaDataSubscribers = metaDataSubscribers;
+    }
 
     @Override
     public List<MetaData> convert(final String json) {

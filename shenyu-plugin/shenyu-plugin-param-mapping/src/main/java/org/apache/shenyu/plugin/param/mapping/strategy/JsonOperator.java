@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
@@ -41,8 +42,9 @@ import java.util.function.Function;
 /**
  * ApplicationJsonStrategy.
  */
-@Slf4j
 public class JsonOperator implements Operator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JsonOperator.class);
 
     private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
 
@@ -50,7 +52,7 @@ public class JsonOperator implements Operator {
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingHandle paramMappingHandle) {
         ServerRequest serverRequest = ServerRequest.create(exchange, MESSAGE_READERS);
         Mono<String> mono = serverRequest.bodyToMono(String.class).switchIfEmpty(Mono.defer(() -> Mono.just(""))).flatMap(originalBody -> {
-            log.info("get body data success data:{}", originalBody);
+            LOG.info("get body data success data:{}", originalBody);
             //process entity
             String modify = operation(originalBody, paramMappingHandle);
             return Mono.just(modify);

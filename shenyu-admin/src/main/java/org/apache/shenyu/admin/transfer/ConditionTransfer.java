@@ -17,26 +17,25 @@
 
 package org.apache.shenyu.admin.transfer;
 
-import java.util.List;
-
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The interface Condition transfer.
  */
-@Mapper
-public interface ConditionTransfer {
+public enum ConditionTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    ConditionTransfer INSTANCE = Mappers.getMapper(ConditionTransfer.class);
+    INSTANCE;
 
     /**
      * Map to selector data condition data.
@@ -44,7 +43,18 @@ public interface ConditionTransfer {
      * @param selectorConditionDO the selector condition do
      * @return the condition data
      */
-    ConditionData mapToSelectorDO(SelectorConditionDO selectorConditionDO);
+    public ConditionData mapToSelectorDO(final SelectorConditionDO selectorConditionDO) {
+        return Optional.ofNullable(selectorConditionDO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
+    }
 
     /**
      * Map to selector data condition data list.
@@ -52,7 +62,11 @@ public interface ConditionTransfer {
      * @param selectorConditionDOS the selector condition do list
      * @return the condition data list
      */
-    List<ConditionData> mapToSelectorDOS(List<SelectorConditionDO> selectorConditionDOS);
+    public List<ConditionData> mapToSelectorDOS(final List<SelectorConditionDO> selectorConditionDOS) {
+        return Optional.ofNullable(selectorConditionDOS)
+                .map(v -> v.stream().map(this::mapToSelectorDO).collect(Collectors.toList()))
+                .orElse(null);
+    }
 
     /**
      * Map to selector data dto condition data.
@@ -60,7 +74,18 @@ public interface ConditionTransfer {
      * @param selectorConditionDTO the selector condition dto
      * @return the condition data
      */
-    ConditionData mapToSelectorDTO(SelectorConditionDTO selectorConditionDTO);
+    public ConditionData mapToSelectorDTO(final SelectorConditionDTO selectorConditionDTO) {
+        return Optional.ofNullable(selectorConditionDTO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
+    }
 
     /**
      * Map to rule data condition data.
@@ -68,7 +93,18 @@ public interface ConditionTransfer {
      * @param ruleConditionDO the rule condition do
      * @return the condition data
      */
-    ConditionData mapToRuleDO(RuleConditionDO ruleConditionDO);
+    public ConditionData mapToRuleDO(final RuleConditionDO ruleConditionDO) {
+        return Optional.ofNullable(ruleConditionDO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
+    }
 
     /**
      * Map to rule data condition data.
@@ -76,6 +112,17 @@ public interface ConditionTransfer {
      * @param ruleConditionDTO the rule condition dto
      * @return the condition data
      */
-    ConditionData mapToRuleDTO(RuleConditionDTO ruleConditionDTO);
+    public ConditionData mapToRuleDTO(final RuleConditionDTO ruleConditionDTO) {
+        return Optional.ofNullable(ruleConditionDTO)
+                .map(v -> {
+                    ConditionData conditionData = new ConditionData();
+                    conditionData.setParamType(v.getParamType());
+                    conditionData.setOperator(v.getOperator());
+                    conditionData.setParamName(v.getParamName());
+                    conditionData.setParamValue(v.getParamValue());
+                    return conditionData;
+                })
+                .orElse(null);
+    }
 
 }

@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.tars.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 
@@ -155,12 +153,23 @@ public class PrxInfoUtil {
         return param;
     }
 
-    @AllArgsConstructor
-    @Getter
     static class PrimitiveType {
         
         private final Class<?> clazz;
 
         private final Function<Object, Object> func;
+
+        PrimitiveType(final Class<?> clazz, final Function<Object, Object> func) {
+            this.clazz = clazz;
+            this.func = func;
+        }
+
+        public Class<?> getClazz() {
+            return clazz;
+        }
+
+        public Function<Object, Object> getFunc() {
+            return func;
+        }
     }
 }

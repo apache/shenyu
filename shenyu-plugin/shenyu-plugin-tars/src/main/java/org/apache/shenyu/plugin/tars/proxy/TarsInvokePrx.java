@@ -17,21 +17,65 @@
 
 package org.apache.shenyu.plugin.tars.proxy;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * Tars path invoke metadata.
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@Data
 public class TarsInvokePrx {
     
     private Object invokePrx;
 
     private String host;
+
+    /**
+     * Instantiates a new Tars invoke prx.
+     */
+    public TarsInvokePrx() {
+    }
+
+    /**
+     * Instantiates a new Tars invoke prx.
+     *
+     * @param invokePrx the invoke prx
+     * @param host      the host
+     */
+    public TarsInvokePrx(final Object invokePrx, final String host) {
+        this.invokePrx = invokePrx;
+        this.host = host;
+    }
+
+    /**
+     * Gets invoke prx.
+     *
+     * @return the invoke prx
+     */
+    public Object getInvokePrx() {
+        return invokePrx;
+    }
+
+    /**
+     * Sets invoke prx.
+     *
+     * @param invokePrx the invoke prx
+     */
+    public void setInvokePrx(final Object invokePrx) {
+        this.invokePrx = invokePrx;
+    }
+
+    /**
+     * Gets host.
+     *
+     * @return the host
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * Sets host.
+     *
+     * @param host the host
+     */
+    public void setHost(final String host) {
+        this.host = host;
+    }
 }

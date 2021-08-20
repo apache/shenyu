@@ -17,30 +17,27 @@
 
 package org.apache.shenyu.register.client.nacos;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import lombok.SneakyThrows;
-
+import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingService;
+import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.alibaba.nacos.api.config.ConfigService;
-import com.alibaba.nacos.api.exception.NacosException;
-import com.alibaba.nacos.api.naming.NamingService;
-import com.alibaba.nacos.api.naming.pojo.Instance;
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test for nacos register center client.
@@ -56,7 +53,7 @@ public class NacosClientRegisterRepositoryTest {
     private NamingService namingService;
 
     @Before
-    public void setUp() throws IllegalAccessException, NoSuchFieldException {
+    public void setUp() throws IllegalAccessException, NoSuchFieldException, NacosException {
         this.repository = new NacosClientRegisterRepository();
         this.configService = mockConfigService();
         this.namingService = mockNamingService();
@@ -75,8 +72,7 @@ public class NacosClientRegisterRepositoryTest {
         nacosBroker.clear();
     }
 
-    @SneakyThrows
-    private ConfigService mockConfigService() {
+    private ConfigService mockConfigService() throws NacosException {
         ConfigService configService = mock(ConfigService.class);
 
         doAnswer(invocationOnMock -> {
@@ -89,8 +85,7 @@ public class NacosClientRegisterRepositoryTest {
         return configService;
     }
 
-    @SneakyThrows
-    private NamingService mockNamingService() {
+    private NamingService mockNamingService() throws NacosException {
         NamingService namingService = mock(NamingService.class);
 
         doAnswer(invocationOnMock -> {

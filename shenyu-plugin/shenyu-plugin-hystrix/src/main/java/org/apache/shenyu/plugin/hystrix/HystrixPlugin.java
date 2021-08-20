@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.hystrix;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -35,6 +34,8 @@ import org.apache.shenyu.plugin.hystrix.command.Command;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommand;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommandOnThread;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
@@ -44,8 +45,9 @@ import java.util.Objects;
 /**
  * Hystrix Plugin.
  */
-@Slf4j
 public class HystrixPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HystrixPlugin.class);
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -64,10 +66,10 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                log.error("hystrix execute have circuitBreaker is Open! groupKey:{},commandKey:{}", hystrixHandle.getGroupKey(), hystrixHandle.getCommandKey());
+                LOG.error("hystrix execute have circuitBreaker is Open! groupKey:{},commandKey:{}", hystrixHandle.getGroupKey(), hystrixHandle.getCommandKey());
             }
         }).doOnError(throwable -> {
-            log.error("hystrix execute exception:", throwable);
+            LOG.error("hystrix execute exception:", throwable);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
             chain.execute(exchange);
         }).then();

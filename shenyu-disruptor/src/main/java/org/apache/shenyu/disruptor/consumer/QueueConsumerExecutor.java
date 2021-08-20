@@ -17,17 +17,28 @@
 
 package org.apache.shenyu.disruptor.consumer;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * The type Queue consumer executor.
  *
  * @param <T> the type parameter
  */
-@Getter
-@Setter
 public abstract class QueueConsumerExecutor<T> implements Runnable {
-    
+
     private T data;
+
+    /**
+     * get data.
+     * @return data
+     */
+    public T getData() {
+        return data;
+    }
+
+    /**
+     * set data.
+     * @param data data
+     */
+    public void setData(final T data) {
+        this.data = data;
+    }
 }

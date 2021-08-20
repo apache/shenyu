@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sentinel;
 
 import com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorTransformer;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -39,7 +38,6 @@ import reactor.core.publisher.Mono;
 /**
  * Sentinel Plugin.
  */
-@Slf4j
 public class SentinelPlugin extends AbstractShenyuPlugin {
 
     private final FallbackHandler fallbackHandler;

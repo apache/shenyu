@@ -17,13 +17,11 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * The type Zookeeper configuration.
  */
-@Data
 @ConfigurationProperties(prefix = "shenyu.sync.zookeeper")
 public class ZookeeperProperties {
 
@@ -34,4 +32,76 @@ public class ZookeeperProperties {
     private Integer connectionTimeout;
 
     private String serializer;
+
+    /**
+     * Gets the value of url.
+     *
+     * @return the value of url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets the url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * Gets the value of sessionTimeout.
+     *
+     * @return the value of sessionTimeout
+     */
+    public Integer getSessionTimeout() {
+        return sessionTimeout;
+    }
+
+    /**
+     * Sets the sessionTimeout.
+     *
+     * @param sessionTimeout sessionTimeout
+     */
+    public void setSessionTimeout(final Integer sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
+    }
+
+    /**
+     * Gets the value of connectionTimeout.
+     *
+     * @return the value of connectionTimeout
+     */
+    public Integer getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    /**
+     * Sets the connectionTimeout.
+     *
+     * @param connectionTimeout connectionTimeout
+     */
+    public void setConnectionTimeout(final Integer connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    /**
+     * Gets the value of serializer.
+     *
+     * @return the value of serializer
+     */
+    public String getSerializer() {
+        return serializer;
+    }
+
+    /**
+     * Sets the serializer.
+     *
+     * @param serializer serializer
+     */
+    public void setSerializer(final String serializer) {
+        this.serializer = serializer;
+    }
 }
