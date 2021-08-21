@@ -195,10 +195,8 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
         verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), anyString());
-        verify(dashboardUserMapper).updateSelective(any(DashboardUserDO.class));
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
         verify(dashboardUserMapper, times(2)).findByQuery(eq(TEST_USER_NAME), anyString());
-        verify(dashboardUserMapper, times(2)).updateSelective(any(DashboardUserDO.class));
     }
 
     private DashboardUserDO createDashboardUserDO() {
