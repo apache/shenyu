@@ -78,25 +78,30 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     private void execute(final Connection conn) throws Exception {
         ScriptRunner runner = new ScriptRunner(conn);
-        // doesn't print logger
-        runner.setLogWriter(null);
-        Resources.setCharset(StandardCharsets.UTF_8);
-        String initScript = dataBaseProperties.getInitScript();
-        List<String> initScripts = Splitter.on(";").splitToList(initScript); 
-        for (String sqlScript : initScripts) {
-            if (sqlScript.startsWith(PRE_FIX)) {
-                String sqlFile = sqlScript.substring(PRE_FIX.length());
-                Reader fileReader = getResourceAsReader(sqlFile);
-                LOG.info("execute shenyu schema sql: {}", sqlFile);
-                runner.runScript(fileReader);
-            } else {
-                Reader fileReader = Resources.getResourceAsReader(sqlScript);
-                LOG.info("execute shenyu schema sql: {}", sqlScript);
-                runner.runScript(fileReader);
+        try {
+            // doesn't print logger
+            runner.setLogWriter(null);
+            Resources.setCharset(StandardCharsets.UTF_8);
+            String initScript = dataBaseProperties.getInitScript();
+            List<String> initScripts = Splitter.on(";").splitToList(initScript);
+            for (String sqlScript : initScripts) {
+                if (sqlScript.startsWith(PRE_FIX)) {
+                    String sqlFile = sqlScript.substring(PRE_FIX.length());
+                    try (Reader fileReader = getResourceAsReader(sqlFile)){
+                        LOG.info("execute shenyu schema sql: {}", sqlFile);
+                        runner.runScript(fileReader);
+                    }
+                } else {
+                    try(Reader fileReader = Resources.getResourceAsReader(sqlScript)){
+                        LOG.info("execute shenyu schema sql: {}", sqlScript);
+                        runner.runScript(fileReader);
+                    }
+
+                }
             }
+        }finally {
+            runner.closeConnection();
         }
-        runner.closeConnection();
-        conn.close();
     }
     
     private static Reader getResourceAsReader(final String resource) throws IOException {
