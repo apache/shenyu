@@ -178,7 +178,7 @@ public final class DashboardUserServiceTest {
         when(secretProperties.getKey()).thenReturn(key, key);
         when(secretProperties.getIv()).thenReturn(iv, iv);
         when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
-        given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
+//        given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
         given(ldapTemplate.authenticate(anyString(), anyString(), anyString())).willReturn(true);
         given(roleMapper.findByRoleName("default")).willReturn(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null)));
 
