@@ -256,18 +256,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        DashboardUserVO dashboardUserVO = findByQuery(userName, password);
-        if (!ObjectUtils.isEmpty(dashboardUserVO)) {
-            DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
-                    .id(dashboardUserVO.getId())
-                    .userName(dashboardUserVO.getUserName())
-                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), key, iv))
-                    .role(dashboardUserVO.getRole())
-                    .enabled(dashboardUserVO.getEnabled()).build();
-            createOrUpdate(dashboardUserDTO);
-        } else {
-            dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
-        }
+        DashboardUserVO dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
         return dashboardUserVO;
     }
 

@@ -92,11 +92,9 @@ public class DashboardUserController {
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detailDashboardUser(@PathVariable("id") final String id) {
-        String key = secretProperties.getKey();
-        String iv = secretProperties.getIv();
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserEditVO).map(item -> {
-            item.setPassword(AesUtils.aesDecryption(item.getPassword(), key, iv));
+            item.setPassword("");
             return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item);
         }).orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
     }
