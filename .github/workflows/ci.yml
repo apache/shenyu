@@ -28,12 +28,16 @@ jobs:
         java: [ 8, 11 ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         include:
-          - os: ubuntu-latest
-            java: 13
-          - os: ubuntu-latest
-            java: 15
-          - os: ubuntu-latest
-            java: 16
+          - java: 12
+            os: ubuntu-latest
+          - java: 13
+            os: ubuntu-latest
+          - java: 14
+            os: ubuntu-latest
+          - java: 15
+            os: ubuntu-latest
+          - java: 16
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Support longpaths

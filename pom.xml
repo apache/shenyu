@@ -139,6 +139,7 @@
         <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <bytebuddy.version>1.10.16</bytebuddy.version>
+        <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
     </properties>
 
     <dependencyManagement>
