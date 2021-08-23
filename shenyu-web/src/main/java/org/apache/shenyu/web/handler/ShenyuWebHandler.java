@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.web.handler;
 
-import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.web.loader.ShenyuPluginLoader;
+import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -32,11 +30,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -57,29 +52,17 @@ public final class ShenyuWebHandler implements WebHandler {
      *
      * @param plugins the plugins
      */
-    public ShenyuWebHandler(final List<ShenyuPlugin> plugins) {
+    public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuConfig shenyuConfig) {
         this.plugins = plugins;
-        String enabled = System.getProperty("shenyu.scheduler.enabled", "false");
-        this.scheduled = Boolean.parseBoolean(enabled);
+        ShenyuConfig.Scheduler config = shenyuConfig.getScheduler();
+        this.scheduled = config.getEnabled();
         if (scheduled) {
-            String schedulerType = System.getProperty("shenyu.scheduler.type", "fixed");
-            if (Objects.equals(schedulerType, "fixed")) {
-                int threads = Integer.parseInt(System.getProperty(
-                        "shenyu.work.threads", "" + Math.max((Runtime.getRuntime().availableProcessors() << 1) + 1, 16)));
-                scheduler = Schedulers.newParallel("shenyu-work-threads", threads);
+            if (Objects.equals(config.getType(), "fixed")) {
+                this.scheduler = Schedulers.newParallel("shenyu-work-threads", config.getThreads());
             } else {
-                scheduler = Schedulers.elastic();
+                this.scheduler = Schedulers.elastic();
             }
         }
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("plugin-ext-loader", true));
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                List<ShenyuPlugin> extendPlugins = ShenyuPluginLoader.getInstance().loadExtendPlugins();
-                putExtPlugins(extendPlugins);
-            } catch (ShenyuException | IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-                LOG.error("shenyu ext plugins load has error ", e);
-            }
-        }, 30, 300, TimeUnit.SECONDS);
     }
     
     /**
@@ -97,7 +80,12 @@ public final class ShenyuWebHandler implements WebHandler {
         return execute;
     }
     
-    private void putExtPlugins(final List<ShenyuPlugin> extPlugins) {
+    /**
+     * Put ext plugins.
+     *
+     * @param extPlugins the ext plugins
+     */
+    public void putExtPlugins(final List<ShenyuPlugin> extPlugins) {
         if (CollectionUtils.isEmpty(extPlugins)) {
             return;
         }
@@ -105,7 +93,10 @@ public final class ShenyuWebHandler implements WebHandler {
                 .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
-            plugins.addAll(shenyuPlugins);
+            shenyuPlugins.forEach(plugin -> {
+                plugins.add(plugin);
+                LOG.info("shenyu auto add extends plugins:{}", plugin.named());
+            });
         }
     }
 
@@ -114,7 +105,7 @@ public final class ShenyuWebHandler implements WebHandler {
         private int index;
 
         private final List<ShenyuPlugin> plugins;
-
+    
         /**
          * Instantiates a new Default shenyu plugin chain.
          *

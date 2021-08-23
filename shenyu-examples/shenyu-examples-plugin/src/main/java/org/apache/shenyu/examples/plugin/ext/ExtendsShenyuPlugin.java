@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.plugin;
+package org.apache.shenyu.examples.plugin.ext;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -27,11 +27,11 @@ import reactor.core.publisher.Mono;
 /**
  * The type My custom shenyu plugin.
  */
-public class MyCustomShenyuPlugin extends AbstractShenyuPlugin {
+public class ExtendsShenyuPlugin extends AbstractShenyuPlugin {
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        System.out.println("hello world im is my custom Shenyu plugin");
+        System.out.println("hello world im is my ext Shenyu plugin");
         return chain.execute(exchange);
     }
     
@@ -42,6 +42,6 @@ public class MyCustomShenyuPlugin extends AbstractShenyuPlugin {
     
     @Override
     public String named() {
-        return "MyCustom";
+        return "ext";
     }
 }

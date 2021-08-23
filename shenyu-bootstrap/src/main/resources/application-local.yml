@@ -82,6 +82,16 @@ shenyu:
     enabled: false
     paths:
       - /favicon.ico
+  extPlugin:
+    enabled: true
+    threads: 1
+    scheduleTime: 300
+    scheduleDelay: 30
+  scheduler:
+    enabled: false
+    type: fixed
+    threads: 16
+    
 
 #eureka:
 #  client:
