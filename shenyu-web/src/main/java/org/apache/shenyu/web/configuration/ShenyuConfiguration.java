@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 @ComponentScan("org.apache.shenyu")
 @Import(value = {ErrorHandlerConfiguration.class, ShenyuExtConfiguration.class, SpringExtConfiguration.class})
 public class ShenyuConfiguration {
+    
     /**
      * logger.
      */

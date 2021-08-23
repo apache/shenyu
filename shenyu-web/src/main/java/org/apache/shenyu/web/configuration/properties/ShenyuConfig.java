@@ -30,9 +30,9 @@ public class ShenyuConfig {
 
     private Integer fileMaxSize = 10;
     
-    private ExtPlugin extPlugin;
+    private ExtPlugin extPlugin = new ExtPlugin();
     
-    private Scheduler scheduler;
+    private Scheduler scheduler = new Scheduler();
     
     /**
      * Gets scheduler.
