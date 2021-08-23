@@ -20,6 +20,7 @@ package org.apache.shenyu.web.loader;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-
 import java.util.Objects;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
@@ -92,12 +91,12 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      * @throws InstantiationException the instantiation exception
      * @throws IllegalAccessException the illegal access exception
      */
-    public List<ShenyuPlugin> loadExtendPlugins() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public List<ShenyuLoaderResult> loadExtendPlugins() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         File[] jarFiles = ShenyuPluginPathBuilder.getPluginPath().listFiles(file -> file.getName().endsWith(".jar"));
         if (null == jarFiles) {
             return Collections.emptyList();
         }
-        List<ShenyuPlugin> shenyuPlugins = new ArrayList<>();
+        List<ShenyuLoaderResult> results = new ArrayList<>();
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             for (File each : jarFiles) {
                 outputStream.reset();
@@ -109,15 +108,15 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                     String entryName = jarEntry.getName();
                     if (entryName.endsWith(".class") && !entryName.contains("$")) {
                         String className = entryName.substring(0, entryName.length() - 6).replaceAll("/", ".");
-                        ShenyuPlugin shenyuPlugin = getOrCreateInstance(className, ShenyuPlugin.class);
-                        if (Objects.nonNull(shenyuPlugin)) {
-                            shenyuPlugins.add(shenyuPlugin);
+                        Object instance = getOrCreateInstance(className);
+                        if (Objects.nonNull(instance)) {
+                            results.add(buildResult(instance));
                         }
                     }
                 }
             }
         }
-        return shenyuPlugins;
+        return results;
     }
     
     @Override
@@ -184,7 +183,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
     
     @SuppressWarnings("unchecked")
-    private <T> T getOrCreateInstance(final String className, final Class<T> pluginClass) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private <T> T getOrCreateInstance(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (objectPool.containsKey(className)) {
             return (T) objectPool.get(className);
         }
@@ -193,7 +192,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             Object inst = objectPool.get(className);
             if (Objects.isNull(inst)) {
                 Class<?> clazz = Class.forName(className, true, this);
-                if (pluginClass.isAssignableFrom(clazz) && !pluginClass.equals(clazz)) {
+                if (ShenyuPlugin.class.isAssignableFrom(clazz) || PluginDataHandler.class.isAssignableFrom(clazz)) {
                     inst = clazz.newInstance();
                     objectPool.put(className, inst);
                 }
@@ -202,6 +201,16 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         } finally {
             lock.unlock();
         }
+    }
+    
+    private ShenyuLoaderResult buildResult(final Object instance) {
+        ShenyuLoaderResult result = new ShenyuLoaderResult();
+        if (instance instanceof ShenyuPlugin) {
+            result.setShenyuPlugin((ShenyuPlugin) instance);
+        } else if (instance instanceof PluginDataHandler) {
+            result.setPluginDataHandler((PluginDataHandler) instance);
+        }
+        return result;
     }
     
     private String classNameToPath(final String className) {
