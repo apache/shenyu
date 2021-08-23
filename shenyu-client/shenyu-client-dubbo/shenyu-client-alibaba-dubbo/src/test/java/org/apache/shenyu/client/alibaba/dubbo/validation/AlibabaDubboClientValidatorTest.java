@@ -19,7 +19,6 @@ package org.apache.shenyu.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidationParameter;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
@@ -40,18 +39,17 @@ import static org.mockito.Mockito.mockStatic;
 /**
  * Test case for {@link AlibabaDubboClientValidation}.
  */
-@Ignore
 public final class AlibabaDubboClientValidatorTest {
 
-    private static final String MOCK_SERVICE_URL = 
+    private static final String MOCK_SERVICE_URL =
             "mock://test:28000/org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidatorTarget";
 
     @Test(expected = NoSuchMethodException.class)
     public void testItWithNonExistMethod() throws Exception {
         final URL url = URL.valueOf(MOCK_SERVICE_URL);
-        try(MockedStatic loggerFactoryMockedStatic = mockStatic(LoggerFactory.class)){
+        try (MockedStatic loggerFactoryMockedStatic = mockStatic(LoggerFactory.class)) {
             Logger loggerMock = mock(Logger.class);
-            loggerFactoryMockedStatic.when(()->LoggerFactory.getLogger(AlibabaDubboClientValidator.class)).thenReturn(loggerMock);
+            loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(AlibabaDubboClientValidator.class)).thenReturn(loggerMock);
             doNothing().when(loggerMock).error(anyString(), any(Throwable.class));
             new AlibabaDubboClientValidation().getValidator(url)
                     .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});

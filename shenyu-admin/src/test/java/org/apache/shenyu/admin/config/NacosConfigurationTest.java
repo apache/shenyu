@@ -65,14 +65,14 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
             "shenyu.sync.nacos.acm.accessKey=accessKey",
             "shenyu.sync.nacos.acm.secretKey=secretKey",
         };
-        try(MockedStatic<NacosFactory> nacosFactoryMockedStatic = Mockito.mockStatic(NacosFactory.class)) {
+        try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = Mockito.mockStatic(NacosFactory.class)) {
             final ConfigService configServiceMock = Mockito.mock(ConfigService.class);
             ArgumentCaptor argument = ArgumentCaptor.forClass(Properties.class);
             nacosFactoryMockedStatic
-                    .when(()->NacosFactory.createConfigService((Properties) argument.capture()))
+                    .when(() -> NacosFactory.createConfigService((Properties) argument.capture()))
                     .thenReturn(configServiceMock);
             load(NacosConfiguration.class, inlinedProperties);
-            assertTrue(((Properties)argument.getValue()).containsKey(PropertyKeyConst.ENDPOINT));
+            assertTrue(((Properties) argument.getValue()).containsKey(PropertyKeyConst.ENDPOINT));
         }
         ConfigService configService = (ConfigService) getContext().getBean("nacosConfigService");
         assertNotNull(configService);

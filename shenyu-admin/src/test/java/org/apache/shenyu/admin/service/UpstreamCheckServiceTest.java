@@ -111,7 +111,7 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testScheduled() throws Exception {
-        Logger loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
+        final Logger loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
         Field logField = upstreamCheckService.getClass().getDeclaredField("LOG");
         logField.setAccessible(true);
         Field modifiers = logField.getClass().getDeclaredField("modifiers");

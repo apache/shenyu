@@ -85,14 +85,7 @@ public class GlobalErrorHandlerTest {
 
     @Test
     public void getErrorAttributes() throws Exception {
-        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/favicon.ico"));
-        NullPointerException nullPointerException = new NullPointerException("nullPointerException");
-        MockServerRequest serverRequest = MockServerRequest.builder()
-                .exchange(webExchange)
-                .attribute("org.springframework.boot.web.reactive.error.DefaultErrorAttributes.ERROR", nullPointerException)
-                .build();
-
-        Logger loggerSpy = spy(LoggerFactory.getLogger(GlobalErrorHandler.class));
+        final Logger loggerSpy = spy(LoggerFactory.getLogger(GlobalErrorHandler.class));
         Field logField = globalErrorHandler.getClass().getDeclaredField("LOG");
         logField.setAccessible(true);
         Field modifiers = logField.getClass().getDeclaredField("modifiers");
@@ -101,6 +94,12 @@ public class GlobalErrorHandlerTest {
         logField.set(globalErrorHandler, loggerSpy);
 
         doNothing().when(loggerSpy).error(anyString());
+        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/favicon.ico"));
+        NullPointerException nullPointerException = new NullPointerException("nullPointerException");
+        MockServerRequest serverRequest = MockServerRequest.builder()
+                .exchange(webExchange)
+                .attribute("org.springframework.boot.web.reactive.error.DefaultErrorAttributes.ERROR", nullPointerException)
+                .build();
         Map<String, Object> response = globalErrorHandler.getErrorAttributes(serverRequest, false);
         assertNotNull(response);
         assertThat(response, hasEntry("code", 500L));

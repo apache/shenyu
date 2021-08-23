@@ -22,14 +22,13 @@ import org.apache.dubbo.validation.Validator;
 import org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.MockedStatic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.ValidationException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -38,14 +37,13 @@ import java.util.Map;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 
 /**
  * Test case for {@link ApacheDubboClientValidator}.
  */
-@Ignore
 public final class ApacheDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL =
@@ -101,17 +99,20 @@ public final class ApacheDubboClientValidatorTest {
 
     @Test(expected = ValidationException.class)
     public void testValidateWhenMeetsConstraintThenValidationFailed() throws Exception {
-        Logger logger = LoggerFactory.getLogger(ApacheDubboClientValidator.class);
-        Logger spy = spy(logger);
-        doNothing().when(spy).error(anyString(), ArgumentMatchers.any(Throwable.class));
-        try(MockedStatic loggerFactoryMockedStatic = mockStatic(LoggerFactory.class)){
-            loggerFactoryMockedStatic.when(()->LoggerFactory.getLogger(ApacheDubboClientValidator.class)).thenReturn(spy);
-            apacheDubboClientValidatorUnderTest
-                    .validate(
-                            "methodTwo",
-                            new Class<?>[]{MockValidationParameter.class},
-                            new Object[]{new MockValidationParameter("NotBeNull")});
-        }
+        final Logger loggerSpy = spy(LoggerFactory.getLogger(ApacheDubboClientValidator.class));
+        Field logField = ApacheDubboClientValidator.class.getDeclaredField("LOG");
+        logField.setAccessible(true);
+        Field modifiers = logField.getClass().getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
+        logField.set(apacheDubboClientValidatorUnderTest, loggerSpy);
+        doNothing().when(loggerSpy).error(anyString(), isA(Throwable.class));
+
+        apacheDubboClientValidatorUnderTest
+                .validate(
+                        "methodTwo",
+                        new Class<?>[]{MockValidationParameter.class},
+                        new Object[]{new MockValidationParameter("NotBeNull")});
     }
 
     @Test

@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
@@ -93,7 +92,7 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testCreateOrUpdate() throws Exception {
-        Logger loggerSpy = spy(LoggerFactory.getLogger(MetaDataServiceImpl.class));
+        final Logger loggerSpy = spy(LoggerFactory.getLogger(MetaDataServiceImpl.class));
         Field logField = metaDataService.getClass().getDeclaredField("LOG");
         logField.setAccessible(true);
         Field modifiers = logField.getClass().getDeclaredField("modifiers");
