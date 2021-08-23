@@ -64,3 +64,7 @@ INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort
 INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425450010986262528', '1425390970652315648', 'uri', '=', '/', '/http/test/findByUserId','2021-08-04 13:09:32','2021-08-04 13:09:32');
 INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425479564999307264', '1425390970652315648', 'uri', '=', '/', '/http/test/path/1111/name','2021-08-04 13:09:32','2021-08-04 13:09:32');
 
+/** prepare context-path **/
+INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1429645721775689728', '14', '/context-path-test/error', 0, 1, 1, NULL, 1, 1, 1, '2021-08-23 11:24:36', '2021-08-23 11:24:36');
+INSERT IGNORE INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1429645721788272640', '1429645721775689728', 'uri', '=', '/', '/http/order/findById', '2021-08-23 11:24:36', '2021-08-23 11:24:36');
+INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1429645883050872832', '1429645721775689728', 0, '/context-path-test/error', 1, 1, 1, '{"contextPath":"/http","addPrefix":"/error"}', '2021-08-23 11:25:15', '2021-08-23 11:25:15');
