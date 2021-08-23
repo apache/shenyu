@@ -31,7 +31,7 @@ services:
       - SPRING_PROFILES_ACTIVE=h2
       - shenyu.database.init_script=META-INF/schema.h2.sql;file:/opt/sql/schema.sql
     healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:9095/actuator/health" ]
+      test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s
       retries: 3
       start_period: 5s
@@ -44,7 +44,7 @@ services:
     image: shenyu-examples-eureka:latest
     restart: always
     healthcheck:
-      test: [ "CMD",  "wget", "-q", "-O", "-", "http://localhost:8761" ]
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8761/actuator/health | grep UP || exit 1"]
       timeout: 2s
       retries: 3
       start_period: 5s
@@ -67,7 +67,7 @@ services:
       - shenyu.client.serverLists=http://shenyu-admin:9095
       - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/
     healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:8884/test/findByUserId?userId=tom" ]
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8884/actuator/health | grep UP || exit 1"]
       timeout: 2s
       retries: 3
       start_period: 5s
@@ -76,7 +76,7 @@ services:
     networks:
       - shenyu
     depends_on:
-       shenyu-examples-eureka:
+      shenyu-integrated-test-spring-cloud:
           condition: service_healthy
   #  from http plugin dockerfile
   shenyu-integrated-test-spring-cloud:
@@ -91,24 +91,17 @@ services:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
       - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/
     depends_on:
-      - shenyu-examples-springcloud
+      - shenyu-examples-eureka
       - shenyu-admin
     ports:
       - 9195:9195
     healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:9195/springcloud/test/findByUserId?userId=Tom" ]
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-spring-cloud:9195/actuator/health" ]
       timeout: 2s
       retries: 3
       start_period: 5s
     networks:
       - shenyu
-  health-checker:
-    container_name: health-checker
-    image: hello-world
-    restart: always
-    depends_on:
-      shenyu-integrated-test-spring-cloud:
-        condition: service_healthy
 
 networks:
   shenyu:
