@@ -28,6 +28,7 @@ import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
+import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.filter.TimeWebFilter;
 import org.apache.shenyu.web.filter.WebSocketParamFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
@@ -136,6 +137,19 @@ public class ShenyuConfiguration {
     @ConditionalOnMissingBean(RemoteAddressResolver.class)
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
+    }
+    
+    /**
+     * Local dispatcher filter web filter.
+     *
+     * @param dispatcherHandler the dispatcher handler
+     * @return the web filter
+     */
+    @Bean
+    @Order(-200)
+    @ConditionalOnProperty(name = "shenyu.local.enabled", havingValue = "true", matchIfMissing = true)
+    public WebFilter LocalDispatcherFilter(final DispatcherHandler dispatcherHandler) {
+        return new LocalDispatcherFilter(dispatcherHandler);
     }
     
     /**
