@@ -1,37 +1,42 @@
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# maven ignore
+target/
+*.class
 *.jar
 *.war
-*.ear
+*.zip
+*.tar
+*.tar.gz
+dependency-reduced-pom.xml
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-
-*~
+# maven plugin ignore
+release.properties
+cobertura.ser
+*.gpg
 
 # eclipse ignore
-.settings
+.settings/
 .project
 .classpath
-.tomcatplugin
-logPath_IS_UNDEFINED
-*.gz
-disconf
-dist
-logs
 
 # idea ignore
-.idea
+.idea/
+*.ipr
 *.iml
+*.iws
 
-# maven ignore
-target
-
-# other ignore
+# temp ignore
+logs/
 *.log
+*.doc
+*.cache
+*.diff
+*.patch
 *.tmp
+
+# system ignore
+.DS_Store
 Thumbs.db
-*.DS_Store
-.factorypath
+
+# agent build ignore
+/agent/
+
