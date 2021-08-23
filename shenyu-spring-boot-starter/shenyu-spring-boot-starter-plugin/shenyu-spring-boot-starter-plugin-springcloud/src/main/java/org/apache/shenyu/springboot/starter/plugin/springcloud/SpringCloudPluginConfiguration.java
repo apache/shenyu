@@ -54,12 +54,12 @@ public class SpringCloudPluginConfiguration {
     }
 
     /**
-     * Spring cloud dubbo shenyu context decorator shenyu context decorator.
+     * Spring cloud shenyu context decorator shenyu context decorator.
      *
      * @return the shenyu context decorator
      */
     @Bean
-    public ShenyuContextDecorator springCloudDubboShenyuContextDecorator() {
+    public ShenyuContextDecorator springCloudShenyuContextDecorator() {
         return new SpringCloudShenyuContextDecorator();
     }
 
