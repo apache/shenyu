@@ -33,7 +33,6 @@
         <module>shenyu-agent-api</module>
         <module>shenyu-agent-bootstrap</module>
         <module>shenyu-agent-core</module>
-        <module>shenyu-agent-distribution</module>
         <module>shenyu-agent-plugins</module>
     </modules>
 

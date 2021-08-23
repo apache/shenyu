@@ -32,19 +32,4 @@
         <module>shenyu-agent-plugin-tracing-jaeger</module>
     </modules>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-shade-plugin</artifactId>
-                <configuration>
-                    <outputFile>${tracing.target.directory}/${project.build.finalName}</outputFile>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
