@@ -112,8 +112,8 @@ public class WebClientPlugin implements ShenyuPlugin {
                 .doOnError(e -> LOG.error(e.getMessage(), e))
                 .timeout(Duration.ofMillis(timeout))
                 .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
-                    .retryMax(retryTimes)
-                    .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
+                        .retryMax(retryTimes)
+                        .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
 
     }
