@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -28,11 +24,20 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The type Common plugin data subscriber.
  */
 public class CommonPluginDataSubscriber implements PluginDataSubscriber {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(CommonPluginDataSubscriber.class);
     
     private final Map<String, PluginDataHandler> handlerMap;
     
@@ -43,6 +48,24 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      */
     public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+    }
+    
+    /**
+     * Put extend plugin data handler.
+     *
+     * @param handlers the handlers
+     */
+    public void putExtendPluginDataHandler(final List<PluginDataHandler> handlers) {
+        if (CollectionUtils.isEmpty(handlers)) {
+            return;
+        }
+        for (PluginDataHandler handler : handlers) {
+            String pluginNamed = handler.pluginNamed();
+            if (!handlerMap.containsKey(pluginNamed)) {
+                handlerMap.put(pluginNamed, handler);
+                LOG.info("shenyu auto add extends plugin data handler name is :{}", pluginNamed);
+            }
+        }
     }
     
     @Override
