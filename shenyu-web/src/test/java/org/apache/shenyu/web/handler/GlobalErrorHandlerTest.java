@@ -20,10 +20,14 @@ package org.apache.shenyu.web.handler;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockedStatic;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
@@ -42,8 +46,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.reactive.result.view.ViewResolver;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -55,6 +57,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -62,10 +65,28 @@ import static org.mockito.Mockito.when;
  * test for GlobalErrorHandler.
  *
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(GlobalErrorHandler.class)
 public class GlobalErrorHandlerTest {
 
+    private static Logger loggerSpy;
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
     private GlobalErrorHandler globalErrorHandler;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerSpy = spy(LoggerFactory.getLogger(GlobalErrorHandler.class));
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(GlobalErrorHandler.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
     public void setUp() {
@@ -84,15 +105,7 @@ public class GlobalErrorHandlerTest {
     }
 
     @Test
-    public void getErrorAttributes() throws Exception {
-        final Logger loggerSpy = spy(LoggerFactory.getLogger(GlobalErrorHandler.class));
-        Field logField = globalErrorHandler.getClass().getDeclaredField("LOG");
-        logField.setAccessible(true);
-        Field modifiers = logField.getClass().getDeclaredField("modifiers");
-        modifiers.setAccessible(true);
-        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
-        logField.set(globalErrorHandler, loggerSpy);
-
+    public void getErrorAttributes() {
         doNothing().when(loggerSpy).error(anyString());
         ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/favicon.ico"));
         NullPointerException nullPointerException = new NullPointerException("nullPointerException");
