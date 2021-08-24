@@ -15,7 +15,23 @@
  * limitations under the License.
  */
 
-/**
- * put http specific tests here.
- */
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integratedtest.springcloud;
+
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.Test;
+
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+
+public class SpringCloudPluginTest extends AbstractTest {
+
+    @Test
+    public void testHelloWorld() throws IOException {
+        OrderDTO order = new OrderDTO("123", "Phoenix");
+        order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
+        assertEquals("hello world spring cloud save order", order.getName());
+    }
+}

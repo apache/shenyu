@@ -31,12 +31,24 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
 
+/**
+ * The type Http helper.
+ */
 public class HttpHelper {
-
+    
+    /**
+     * The constant INSTANCE.
+     */
     public static final HttpHelper INSTANCE = new HttpHelper();
-
+    
+    /**
+     * The constant GATEWAY_END_POINT.
+     */
     public static final String GATEWAY_END_POINT = "http://localhost:9195";
-
+    
+    /**
+     * The constant JSON.
+     */
     public static final MediaType JSON = MediaType.parse("application/json");
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpHelper.class);
@@ -44,16 +56,16 @@ public class HttpHelper {
     private static final Gson GSON = new Gson();
 
     private final OkHttpClient client = new OkHttpClient.Builder().build();
-
+    
     /**
      * Send a post http request to shenyu gateway.
      *
+     * @param <S> type of response object
+     * @param <Q> type of request object
      * @param path path
      * @param req request body as an object
      * @param respType response type passed to {@link Gson#fromJson(String, Class)}
-     * @param <S> type of response object
-     * @param <Q> type of request object
-     * @return response
+     * @return response s
      * @throws IOException IO exception
      */
     public <S, Q> S postGateway(final String path, final Q req, final Class<S> respType) throws IOException {
@@ -66,28 +78,28 @@ public class HttpHelper {
         LOG.info("postGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, respType);
     }
-
+    
     /**
      * Send a get http request to shenyu gateway without headers.
      *
+     * @param <S> response type
      * @param path path
      * @param type type of response passed to {@link Gson#fromJson(String, Type)}
-     * @param <S> response type
-     * @return response
+     * @return response from gateway
      * @throws IOException IO exception
      */
     public <S> S getFromGateway(final String path, final Type type) throws IOException {
         return this.getFromGateway(path, null, type);
     }
-
+    
     /**
      * Send a get http request to shenyu gateway with headers.
      *
+     * @param <S> response type
      * @param path path
      * @param headers headers
      * @param type type of response passed to {@link Gson#fromJson(String, Type)}
-     * @param <S> response type
-     * @return response
+     * @return response from gateway
      * @throws IOException IO exception
      */
     public <S> S getFromGateway(final String path, final Map<String, Object> headers, final Type type) throws IOException {

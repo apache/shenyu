@@ -15,22 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.examples.plugin.simple;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertTrue;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
- * Unit test for simple App.
+ * The type Custom shenyu plugin.
  */
-public class AppTest {
-
-    /**
-     * Rigorous Test :-).
-     */
-    @Test
-    public void shouldAnswerWithTrue() {
-        assertTrue(true);
+public class CustomShenyuPlugin implements ShenyuPlugin {
+    
+    @Override
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        System.out.println("hello world im is custom Shenyu plugin");
+        return chain.execute(exchange);
+    }
+    
+    @Override
+    public int getOrder() {
+        return 0;
+    }
+    
+    @Override
+    public String named() {
+        return "custom";
     }
 }

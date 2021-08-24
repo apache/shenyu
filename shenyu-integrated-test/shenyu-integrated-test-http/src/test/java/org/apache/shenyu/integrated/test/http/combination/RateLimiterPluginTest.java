@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integrated.test.http.combination;
 
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
@@ -28,7 +28,7 @@ import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 
-public class HttpRateLimitTest extends AbstractTest {
+public class RateLimiterPluginTest extends AbstractTest {
 
     @Test
     public void testSlidingWindow() throws Exception {

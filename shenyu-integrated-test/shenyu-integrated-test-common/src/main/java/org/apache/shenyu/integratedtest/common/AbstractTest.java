@@ -27,7 +27,12 @@ import java.util.concurrent.Executors;
 public class AbstractTest {
 
     private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
-
+    
+    /**
+     * Gets service.
+     *
+     * @return the service
+     */
     protected ExecutorService getService() {
         return SERVICE;
     }

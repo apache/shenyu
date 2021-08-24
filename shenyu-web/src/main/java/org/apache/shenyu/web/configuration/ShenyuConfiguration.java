@@ -17,8 +17,14 @@
 
 package org.apache.shenyu.web.configuration;
 
-import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
+import org.apache.shenyu.plugin.api.RemoteAddressResolver;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.ParamTransformPlugin;
+import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
+import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
@@ -26,12 +32,7 @@ import org.apache.shenyu.web.filter.TimeWebFilter;
 import org.apache.shenyu.web.filter.WebSocketParamFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
-import org.apache.shenyu.plugin.api.RemoteAddressResolver;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.base.ParamTransformPlugin;
-import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -58,26 +59,28 @@ import java.util.stream.Collectors;
 @ComponentScan("org.apache.shenyu")
 @Import(value = {ErrorHandlerConfiguration.class, ShenyuExtConfiguration.class, SpringExtConfiguration.class})
 public class ShenyuConfiguration {
+    
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuConfiguration.class);
-
+    
     /**
      * Init ShenyuWebHandler.
      *
      * @param plugins this plugins is All impl ShenyuPlugin.
+     * @param config the config
      * @return {@linkplain ShenyuWebHandler}
      */
     @Bean("webHandler")
-    public ShenyuWebHandler shenyuWebHandler(final ObjectProvider<List<ShenyuPlugin>> plugins) {
+    public ShenyuWebHandler shenyuWebHandler(final ObjectProvider<List<ShenyuPlugin>> plugins, final ShenyuConfig config) {
         List<ShenyuPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         List<ShenyuPlugin> shenyuPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(ShenyuPlugin::getOrder)).collect(Collectors.toList());
         shenyuPlugins.forEach(shenyuPlugin -> LOG.info("load plugin:[{}] [{}]", shenyuPlugin.named(), shenyuPlugin.getClass().getName()));
-        return new ShenyuWebHandler(shenyuPlugins);
+        return new ShenyuWebHandler(shenyuPlugins, config);
     }
-
+    
     /**
      * init dispatch handler.
      *
@@ -87,7 +90,7 @@ public class ShenyuConfiguration {
     public DispatcherHandler dispatcherHandler() {
         return new DispatcherHandler();
     }
-
+    
     /**
      * Param transform plugin shenyu plugin.
      *
@@ -97,7 +100,7 @@ public class ShenyuConfiguration {
     public ShenyuPlugin paramTransformPlugin() {
         return new ParamTransformPlugin();
     }
-
+    
     /**
      * Plugin data subscriber plugin data subscriber.
      *
@@ -108,7 +111,22 @@ public class ShenyuConfiguration {
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
     }
-
+    
+    /**
+     * Shenyu loader service shenyu loader service.
+     *
+     * @param shenyuWebHandler the shenyu web handler
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param config the config
+     * @return the shenyu loader service
+     */
+    @Bean
+    public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler, 
+                                                   final PluginDataSubscriber pluginDataSubscriber,
+                                                   final ShenyuConfig config) {
+        return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config);
+    }
+    
     /**
      * Remote address resolver remote address resolver.
      *
@@ -119,7 +137,7 @@ public class ShenyuConfiguration {
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
     }
-
+    
     /**
      * Cross filter web filter.
      * if you application has cross-domain.
@@ -135,7 +153,7 @@ public class ShenyuConfiguration {
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
-
+    
     /**
      * Body web filter web filter.
      *
@@ -148,7 +166,7 @@ public class ShenyuConfiguration {
     public WebFilter fileSizeFilter(final ShenyuConfig shenyuConfig) {
         return new FileSizeFilter(shenyuConfig.getFileMaxSize());
     }
-
+    
     /**
      * Rule out the url Filter.
      *
@@ -161,7 +179,7 @@ public class ShenyuConfiguration {
     public WebFilter excludeFilter(final ExcludePathProperties excludePathProperties) {
         return new ExcludeFilter(excludePathProperties);
     }
-
+    
     /**
      * shenyu config.
      *
@@ -172,7 +190,7 @@ public class ShenyuConfiguration {
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
     }
-
+    
     /**
      * Init time web filter.
      *
@@ -185,7 +203,7 @@ public class ShenyuConfiguration {
     public WebFilter timeWebFilter(final ShenyuConfig shenyuConfig) {
         return new TimeWebFilter(shenyuConfig);
     }
-
+    
     /**
      * Web socket web filter web filter.
      *

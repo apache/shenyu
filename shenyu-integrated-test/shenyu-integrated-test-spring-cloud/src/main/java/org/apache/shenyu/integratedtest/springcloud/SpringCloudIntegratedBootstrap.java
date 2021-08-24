@@ -17,22 +17,21 @@
 
 package org.apache.shenyu.integratedtest.springcloud;
 
-import org.apache.shenyu.integratedtest.common.AbstractTest;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.Test;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.IOException;
+/**
+ * The type Spring cloud integrated bootstrap.
+ */
+@SpringBootApplication
+public class SpringCloudIntegratedBootstrap {
 
-import static org.junit.Assert.assertEquals;
-
-public class HelloWorldTest extends AbstractTest {
-
-    @Test
-    public void testHelloWorld() throws IOException {
-        OrderDTO order = new OrderDTO("123", "Phoenix");
-        order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
-        assertEquals("hello world spring cloud save order", order.getName());
+    /**
+     * main method of App.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(SpringCloudIntegratedBootstrap.class);
     }
-
 }

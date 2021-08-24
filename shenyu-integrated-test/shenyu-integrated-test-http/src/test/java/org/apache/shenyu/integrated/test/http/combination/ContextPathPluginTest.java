@@ -15,31 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.http;
+package org.apache.shenyu.integrated.test.http.combination;
 
 import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public final class WafTest extends AbstractTest {
+public final class ContextPathPluginTest extends AbstractTest {
 
     @Test
     public void test() throws IOException {
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway("/http/test/waf/pass", "", Map.class);
-        assertNotNull(result);
-        assertEquals("pass", result.get("msg"));
+        OrderDTO user = new OrderDTO("123", "Tom");
+        user = HttpHelper.INSTANCE.postGateway("/http/order/save", user, OrderDTO.class);
+        assertThat(user.getName(), is("hello world save order"));
 
-        result = HttpHelper.INSTANCE.postGateway("/http/test/waf/deny", "", Map.class);
-        assertNotNull(result);
-        assertThat(String.valueOf(result.get("message")), containsString("You are forbidden to visit"));
+        Map<String, Object> response = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1001", Map.class);
+        assertThat(response.get("error"), is("Not Found"));
+        assertThat(response.get("path"), is("/error/order/findById"));
     }
-
 }

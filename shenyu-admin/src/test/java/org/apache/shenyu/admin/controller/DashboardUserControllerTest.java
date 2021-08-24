@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -158,7 +159,7 @@ public final class DashboardUserControllerTest {
     @Test
     public void deleteDashboardUser() throws Exception {
         final String url = "/dashboardUser/batch";
-        final List<String> ids = Collections.emptyList();
+        final List<String> ids = Lists.newArrayList();
         given(dashboardUserService.delete(any())).willReturn(0);
         mockMvc.perform(delete(url, ids)
                 .content(GsonUtils.getInstance().toJson(ids))

@@ -99,11 +99,11 @@ public class ReflectUtils {
     public static Object invokeMethod(final Class<?> clazz, final String method) {
         try {
             Method m = findMethod(clazz, method);
+            assert m != null;
             return m.invoke(null);
         } catch (Exception e) {
             LOG.error("", e);
         }
-
         return null;
     }
 
@@ -120,7 +120,6 @@ public class ReflectUtils {
         } catch (Exception e) {
             LOG.error("", e);
         }
-
         return null;
     }
 }
