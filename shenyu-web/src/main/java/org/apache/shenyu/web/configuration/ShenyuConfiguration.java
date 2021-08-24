@@ -148,7 +148,7 @@ public class ShenyuConfiguration {
     @Bean
     @Order(-200)
     @ConditionalOnProperty(name = "shenyu.local.enabled", havingValue = "true", matchIfMissing = true)
-    public WebFilter LocalDispatcherFilter(final DispatcherHandler dispatcherHandler) {
+    public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler) {
         return new LocalDispatcherFilter(dispatcherHandler);
     }
     
