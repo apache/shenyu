@@ -81,7 +81,7 @@ public final class RateLimiterPluginDataHandlerTest {
         pluginData.setEnabled(true);
         pluginData.setConfig(GsonUtils.getInstance().toJson(rateLimiterConfig));
         rateLimiterPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertEquals(rateLimiterConfig, Singleton.INST.get(RateLimiterConfig.class));
+        Assert.assertEquals(rateLimiterConfig.getUrl(), Singleton.INST.get(RateLimiterConfig.class).getUrl());
         Assert.assertNotNull(Singleton.INST.get(ReactiveRedisTemplate.class));
     }
 

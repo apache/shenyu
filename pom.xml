@@ -52,14 +52,14 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <scm>
         <url>https://github.com/apache/incubator-shenyu</url>
         <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-    
+
     <mailingLists>
         <mailingList>
             <name>Apache ShenYu Developer List</name>
@@ -68,7 +68,7 @@
             <unsubscribe>dev-unsubscribe@shenyu.apache.org</unsubscribe>
         </mailingList>
     </mailingLists>
-    
+
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/apache/incubator-shenyu/issues</url>
@@ -125,7 +125,7 @@
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
-        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
@@ -139,6 +139,7 @@
         <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <bytebuddy.version>1.10.16</bytebuddy.version>
+        <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
     </properties>
 
     <dependencyManagement>
@@ -157,7 +158,7 @@
                 <artifactId>byte-buddy</artifactId>
                 <version>${bytebuddy.version}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-config</artifactId>
@@ -445,8 +446,12 @@
             <version>${powermock.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
     </dependencies>
-    
+
     <profiles>
         <profile>
             <id>release</id>
@@ -512,6 +517,7 @@
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
                     <sourcepath>src/main/java</sourcepath>
+                    <detectJavaApiLink>false</detectJavaApiLink>
                 </configuration>
                 <executions>
                     <execution>

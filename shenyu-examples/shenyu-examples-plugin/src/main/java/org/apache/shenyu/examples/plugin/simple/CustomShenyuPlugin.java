@@ -15,23 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.springcloud;
+package org.apache.shenyu.examples.plugin.simple;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
- * The type Spring cloud integrated bootstrap.
+ * The type Custom shenyu plugin.
  */
-@SpringBootApplication
-public class SpringCloudIntegratedBootstrap {
-
-    /**
-     * main method of App.
-     *
-     * @param args args
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(SpringCloudIntegratedBootstrap.class);
+public class CustomShenyuPlugin implements ShenyuPlugin {
+    
+    @Override
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        System.out.println("hello world im is custom Shenyu plugin");
+        return chain.execute(exchange);
+    }
+    
+    @Override
+    public int getOrder() {
+        return 0;
+    }
+    
+    @Override
+    public String named() {
+        return "custom";
     }
 }
