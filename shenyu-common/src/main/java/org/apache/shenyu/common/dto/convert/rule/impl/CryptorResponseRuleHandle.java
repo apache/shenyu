@@ -24,29 +24,11 @@ import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
  */
 public class CryptorResponseRuleHandle implements RuleHandle {
 
-    private String contextPath;
-
     private String strategyName;
 
     private String key;
 
     private String fieldNames;
-
-    /**
-     * get contextPath.
-     * @return contextPath
-     */
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    /**
-     * set contextPath.
-     * @param contextPath contextPath
-     */
-    public void setContextPath(final String contextPath) {
-        this.contextPath = contextPath;
-    }
 
     /**
      * get strategyName.
@@ -99,7 +81,6 @@ public class CryptorResponseRuleHandle implements RuleHandle {
     @Override
     public String toString() {
         return "CryptorResponseRuleHandle{"
-                + "contextPath='" + contextPath + '\''
                 + ", strategyName='" + strategyName + '\''
                 + ", key='" + key + '\''
                 + ", fieldNames='" + fieldNames + '\''
@@ -108,7 +89,6 @@ public class CryptorResponseRuleHandle implements RuleHandle {
 
     @Override
     public RuleHandle createDefault(final String path) {
-        this.contextPath = path;
         return this;
     }
 

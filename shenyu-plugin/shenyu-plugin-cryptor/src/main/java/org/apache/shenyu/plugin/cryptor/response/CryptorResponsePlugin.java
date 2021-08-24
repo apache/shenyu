@@ -77,9 +77,6 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
 
-        if (HttpUtil.checkContextPath(ruleHandle.getContextPath(), exchange)) {
-            return chain.execute(exchange);
-        }
         CachedBodyOutputMessage outputMessage = HttpUtil.newCachedBodyOutputMessage(exchange);
         ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (clientResponse == null) {

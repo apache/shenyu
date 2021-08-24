@@ -72,14 +72,4 @@ public class HttpUtil {
         return Mono.error(throwable);
     }
 
-    /**
-     * check path.
-     * @param contextPath contextPath
-     * @param exchange exchange
-     * @return e
-     */
-    public static boolean checkContextPath(final String contextPath, final ServerWebExchange exchange) {
-        String path = exchange.getRequest().getURI().getPath();
-        return !path.equals(contextPath);
-    }
 }

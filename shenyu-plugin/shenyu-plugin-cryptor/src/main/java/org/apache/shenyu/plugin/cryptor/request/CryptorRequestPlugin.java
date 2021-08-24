@@ -79,10 +79,6 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
 
-        if (HttpUtil.checkContextPath(ruleHandle.getContextPath(), exchange)) {
-            return chain.execute(exchange);
-        }
-
         ServerRequest serverRequest = ServerRequest.create(exchange, MESSAGE_READERS);
         Mono<String> mono = serverRequest.bodyToMono(String.class)
                 .switchIfEmpty(Mono.defer(() -> Mono.just("")))
