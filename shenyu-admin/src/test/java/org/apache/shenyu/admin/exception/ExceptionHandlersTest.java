@@ -22,8 +22,14 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -36,8 +42,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Set;
 
@@ -48,28 +52,38 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link ExceptionHandlers}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ExceptionHandlers.class)
 public final class ExceptionHandlersTest {
+
+    private static Logger loggerSpy;
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
     private ExceptionHandlers exceptionHandlersUnderTest;
 
-    private Logger loggerSpy;
+    @BeforeClass
+    public static void beforeClass() {
+        loggerSpy = spy(LoggerFactory.getLogger(ExceptionHandlers.class));
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ExceptionHandlers.class)).thenReturn(loggerSpy);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
-    public void setUp() throws Exception {
-        loggerSpy = spy(LoggerFactory.getLogger(ExceptionHandlers.class));
+    public void setUp() {
         exceptionHandlersUnderTest = new ExceptionHandlers();
-        Field logField = exceptionHandlersUnderTest.getClass().getDeclaredField("LOG");
-        logField.setAccessible(true);
-        Field modifiers = logField.getClass().getDeclaredField("modifiers");
-        modifiers.setAccessible(true);
-        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
-        logField.set(exceptionHandlersUnderTest, loggerSpy);
     }
 
     @Test

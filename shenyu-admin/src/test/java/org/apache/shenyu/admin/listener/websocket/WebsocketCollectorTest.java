@@ -21,12 +21,16 @@ import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtil;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -35,8 +39,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -45,14 +47,20 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * Test case for WebsocketCollector.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(WebsocketCollector.class)
 public final class WebsocketCollectorTest {
+
+    private static Logger loggerSpy;
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
     private WebsocketCollector websocketCollector;
 
@@ -62,19 +70,22 @@ public final class WebsocketCollectorTest {
     @Mock
     private SyncDataService syncDataService;
 
-    private Logger loggerSpy;
+    @BeforeClass
+    public static void beforeClass() {
+        loggerSpy = spy(LoggerFactory.getLogger(WebsocketCollector.class));
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(WebsocketCollector.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
+    }
+
+    @AfterClass
+    public static void close() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         websocketCollector = new WebsocketCollector();
-
-        loggerSpy = spy(LoggerFactory.getLogger(WebsocketCollector.class));
-        Field logField = websocketCollector.getClass().getDeclaredField("LOG");
-        logField.setAccessible(true);
-        Field modifiers = logField.getClass().getDeclaredField("modifiers");
-        modifiers.setAccessible(true);
-        modifiers.setInt(logField, logField.getModifiers() & ~Modifier.FINAL);
-        logField.set(websocketCollector, loggerSpy);
     }
 
     @Test
