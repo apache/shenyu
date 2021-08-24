@@ -140,6 +140,7 @@
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <bytebuddy.version>1.10.16</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
+        <jaxb.api.version>2.3.0</jaxb.api.version>
     </properties>
 
     <dependencyManagement>
@@ -451,6 +452,11 @@
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>${jaxb.api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
