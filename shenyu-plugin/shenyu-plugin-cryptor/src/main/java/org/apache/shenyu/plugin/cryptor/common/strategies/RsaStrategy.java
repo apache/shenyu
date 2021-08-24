@@ -34,14 +34,14 @@ import java.util.Base64;
 @Join
 public class RsaStrategy implements CryptorStrategy {
 
-    private final static String RSA = "rsa";
+    private static final String RSA = "rsa";
 
     @Override
     public String decrypt(final String key, final String encryptData) throws Exception {
         byte[] inputByte = Base64.getDecoder().decode(encryptData.getBytes(StandardCharsets.UTF_8));
         byte[] decoded = Base64.getDecoder().decode(key);
-        PrivateKey priKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(decoded));
-        Cipher cipher = Cipher.getInstance("RSA");
+        PrivateKey priKey = KeyFactory.getInstance(RSA).generatePrivate(new PKCS8EncodedKeySpec(decoded));
+        Cipher cipher = Cipher.getInstance(RSA);
         cipher.init(Cipher.DECRYPT_MODE, priKey);
         return new String(cipher.doFinal(inputByte));
     }
@@ -49,8 +49,8 @@ public class RsaStrategy implements CryptorStrategy {
     @Override
     public String encrypt(final String key, final String data) throws Exception {
         byte[] decoded = Base64.getDecoder().decode(key);
-        RSAPublicKey pubKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(decoded));
-        Cipher cipher = Cipher.getInstance("RSA");
+        RSAPublicKey pubKey = (RSAPublicKey) KeyFactory.getInstance(RSA).generatePublic(new X509EncodedKeySpec(decoded));
+        Cipher cipher = Cipher.getInstance(RSA);
         cipher.init(Cipher.ENCRYPT_MODE, pubKey);
         return Base64.getEncoder().encodeToString(cipher.doFinal(data.getBytes(StandardCharsets.UTF_8)));
     }
