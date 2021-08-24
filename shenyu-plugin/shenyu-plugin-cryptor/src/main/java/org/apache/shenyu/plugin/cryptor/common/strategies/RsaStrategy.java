@@ -34,7 +34,7 @@ import java.util.Base64;
 @Join
 public class RsaStrategy implements CryptorStrategy {
 
-    private final static String RSA = "rsa";
+    private static final String RSA = "rsa";
 
     @Override
     public String decrypt(final String key, final String encryptData) throws Exception {

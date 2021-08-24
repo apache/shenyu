@@ -33,12 +33,6 @@ public class CryptorResponseRuleHandle implements RuleHandle {
     private String fieldNames;
 
     /**
-     * no constructor.
-     */
-    public CryptorResponseRuleHandle() {
-    }
-
-    /**
      * get contextPath.
      * @return contextPath
      */
