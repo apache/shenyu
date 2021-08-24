@@ -447,10 +447,10 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('90','19' ,'filterPath','filterPath',2, 3, 1, null, '2021-06-12 19:17:10', '2021-06-12 19:17:10');
 
 /*insert plugin_handle data for plugin cryptor*/
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('101', '24', 'strategyName', 'strategyName', 2, 2, 1, NULL, '2021-08-06 14:35:50', '2021-08-06 14:35:50');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('101', '24', 'strategyName', 'strategyName', 3, 2, 1, NULL, '2021-08-06 14:35:50', '2021-08-06 14:35:50');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('103', '24', 'fieldNames', 'fieldNames', 2, 2, 3, NULL, '2021-08-06 14:37:13', '2021-08-06 14:37:46');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('104', '24', 'key', 'key', 2, 2, 3, NULL, '2021-08-06 14:37:22', '2021-08-06 14:37:48');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('108', '25', 'strategyName', 'strategyName', 2, 2, 2, NULL, '2021-08-13 15:10:53', '2021-08-13 15:11:11');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('108', '25', 'strategyName', 'strategyName', 3, 2, 2, NULL, '2021-08-13 15:10:53', '2021-08-13 15:11:11');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('109', '25', 'key', 'key', 2, 2, 3, NULL, '2021-08-13 15:14:07', '2021-08-13 15:14:36');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('110', '25', 'fieldNames', 'fieldNames', 2, 2, 4, NULL, '2021-08-13 15:16:30', '2021-08-13 15:16:45');
 
