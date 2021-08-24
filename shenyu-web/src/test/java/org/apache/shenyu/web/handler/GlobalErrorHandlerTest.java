@@ -26,7 +26,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockedStatic;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +65,6 @@ import static org.mockito.Mockito.when;
  *
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(GlobalErrorHandler.class)
 public class GlobalErrorHandlerTest {
 
     private static Logger loggerSpy;
