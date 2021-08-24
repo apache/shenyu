@@ -17,17 +17,13 @@
 
 package org.apache.shenyu.plugin.cryptor.common.strategies;
 
+import org.apache.shenyu.spi.SPI;
+
 /**
  * strategy.
  */
+@SPI
 public interface CryptorStrategy {
-
-    /**
-     * strategy name.
-     * @param name strategy name
-     * @return is skip
-     */
-    boolean skip(String name);
 
     /**
      * decrypt.

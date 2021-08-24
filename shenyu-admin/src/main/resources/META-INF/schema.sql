@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `plugin_handle` (
   `data_type` smallint(6) NOT NULL DEFAULT '1' COMMENT 'data type 1 number 2 string',
   `type` smallint(6) NULL COMMENT 'type, 1 means selector, 2 means rule, 3 means plugin',
   `sort` int(4)  NULL COMMENT 'sort',
-  `ext_obj` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'extra configuration (json format data)',
+  `ext_obj` varchar(4096) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'extra configuration (json format data)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`),
