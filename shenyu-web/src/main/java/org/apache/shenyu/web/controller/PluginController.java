@@ -153,24 +153,24 @@ public class PluginController {
     /**
      * Selector and rule mono.
      *
-     * @param SelectorRuleData the selector rule data
+     * @param selectorRuleData the selector rule data
      * @return the mono
      */
     @PostMapping("/plugin/selectorAndRule")
-    public Mono<String> selectorAndRule(@RequestBody final SelectorRuleData SelectorRuleData) {
+    public Mono<String> selectorAndRule(@RequestBody final SelectorRuleData selectorRuleData) {
         SelectorData selectorData = SelectorData.builder()
-                .pluginName(SelectorRuleData.getPluginName())
-                .handle(SelectorRuleData.getSelectorHandler())
-                .conditionList(SelectorRuleData.getConditionDataList())
+                .pluginName(selectorRuleData.getPluginName())
+                .handle(selectorRuleData.getSelectorHandler())
+                .conditionList(selectorRuleData.getConditionDataList())
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .build();
         SelectorData result = buildDefaultSelectorData(selectorData);
         subscriber.onSelectorSubscribe(result);
         RuleData ruleData = RuleData.builder()
                 .selectorId(result.getId())
-                .pluginName(SelectorRuleData.getPluginName())
-                .handle(SelectorRuleData.getRuleHandler())
-                .conditionDataList(SelectorRuleData.getConditionDataList())
+                .pluginName(selectorRuleData.getPluginName())
+                .handle(selectorRuleData.getRuleHandler())
+                .conditionDataList(selectorRuleData.getConditionDataList())
                 .build();
         subscriber.onRuleSubscribe(buildDefaultRuleData(ruleData));
         return Mono.just(SUCCESS);
@@ -268,7 +268,7 @@ public class PluginController {
             selectorData.setId(UUIDUtils.getInstance().generateShortUuid());
         }
         if (StringUtils.isEmpty(selectorData.getName())) {
-            selectorData.setName(selectorData.getPluginName() + ":selector" + RandomUtils.nextInt(1,1000));
+            selectorData.setName(selectorData.getPluginName() + ":selector" + RandomUtils.nextInt(1, 1000));
         }
         if (Objects.isNull(selectorData.getMatchMode())) {
             selectorData.setMatchMode(MatchModeEnum.AND.getCode());
@@ -288,13 +288,12 @@ public class PluginController {
         return selectorData;
     }
     
-    
     private RuleData buildDefaultRuleData(final RuleData ruleData) {
         if (StringUtils.isEmpty(ruleData.getId())) {
             ruleData.setId(UUIDUtils.getInstance().generateShortUuid());
         }
         if (StringUtils.isEmpty(ruleData.getName())) {
-            ruleData.setName(ruleData.getPluginName() + ":rule" + RandomUtils.nextInt(1,1000));
+            ruleData.setName(ruleData.getPluginName() + ":rule" + RandomUtils.nextInt(1, 1000));
         }
         if (Objects.isNull(ruleData.getMatchMode())) {
             ruleData.setMatchMode(MatchModeEnum.AND.getCode());

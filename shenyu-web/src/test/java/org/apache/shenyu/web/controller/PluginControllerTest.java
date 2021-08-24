@@ -54,6 +54,5 @@ public class PluginControllerTest {
         DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
         divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
         selectorRuleData.setRuleHandler(JsonUtils.toJson(divideRuleHandle));
-        System.out.println(JsonUtils.toJson(selectorRuleData));
     }
 }
