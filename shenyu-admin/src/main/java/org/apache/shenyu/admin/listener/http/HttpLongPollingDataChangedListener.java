@@ -90,6 +90,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     /**
      * Instantiates a new Http long polling data changed listener.
+     *
      * @param httpSyncProperties the HttpSyncProperties
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
@@ -194,14 +195,15 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     /**
      * check whether the client needs to update the cache.
-     * @param serverCache the admin local cache
-     * @param clientHashValue the client hashValue
+     *
+     * @param serverCache      the admin local cache
+     * @param clientHashValue  the client hashValue
      * @param clientModifyTime the client last modify time
      * @return true: the client needs to be updated, false: not need.
      */
     private boolean checkCacheDelayAndUpdate(final ConfigDataCache serverCache, final int clientHashValue, final long clientModifyTime) {
         // is the same, doesn't need to be updated
-        if (clientHashValue != serverCache.getHashValue()) {
+        if (clientHashValue == serverCache.getHashValue()) {
             return false;
         }
         // if the hash value is different, it is necessary to compare lastModifyTime.
@@ -310,7 +312,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
 
         private void doRun(final Collection<LongPollingClient> clients) {
-            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
+            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext(); ) {
                 LongPollingClient client = iter.next();
                 iter.remove();
                 client.sendResponse(Collections.singletonList(groupKey));
