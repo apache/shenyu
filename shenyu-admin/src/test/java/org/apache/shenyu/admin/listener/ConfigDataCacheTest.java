@@ -30,14 +30,14 @@ public final class ConfigDataCacheTest {
     public void testUpdate() {
         String group = "default";
         String json = "{\"name\":\"shenyu\"}";
-        String md51 = "8e8a3a2fdbd4368f169aa88c5fdce5a1";
-        ConfigDataCache cache = new ConfigDataCache(group, json, md51, 0);
-        assertEquals(cache.getMd5(), md51);
+        int hashValue1 = 697816813;
+        ConfigDataCache cache = new ConfigDataCache(group, json, hashValue1, 0);
+        assertEquals(cache.getHashValue(), hashValue1);
         assertEquals(cache.getJson(), json);
         assertEquals(cache.getGroup(), group);
-        String md52 = "8e8a3a2fdbd4368f169aa88c5fdce5au";
-        cache.update(md52, 1);
-        assertEquals(cache.getMd5(), md52);
+        int hashValue2 = 157496442;
+        cache.update(hashValue2, 1);
+        assertEquals(cache.getHashValue(), hashValue2);
         assertEquals(cache.getLastModifyTime(), 1);
     }
 }

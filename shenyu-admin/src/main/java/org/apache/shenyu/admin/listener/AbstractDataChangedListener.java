@@ -33,7 +33,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.Md5Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -46,7 +45,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Abstract class for ConfigEventListener.
- * As we think that the md5 value of the in-memory data is the same as the md5 value of the database,
+ * As we think that the hash value of the in-memory data is the same as the hash value of the database,
  * although it may be a little different, but it doesn't matter, we will have thread to periodically
  * pull the data in the database.
  *
@@ -98,23 +97,23 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             case APP_AUTH:
                 List<AppAuthData> appAuthList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<AppAuthData>>() {
                 }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), appAuthList);
+                return new ConfigData<>(config.getHashValue(), config.getLastModifyTime(), appAuthList);
             case PLUGIN:
                 List<PluginData> pluginList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<PluginData>>() {
                 }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), pluginList);
+                return new ConfigData<>(config.getHashValue(), config.getLastModifyTime(), pluginList);
             case RULE:
                 List<RuleData> ruleList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<RuleData>>() {
                 }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), ruleList);
+                return new ConfigData<>(config.getHashValue(), config.getLastModifyTime(), ruleList);
             case SELECTOR:
                 List<SelectorData> selectorList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<SelectorData>>() {
                 }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), selectorList);
+                return new ConfigData<>(config.getHashValue(), config.getLastModifyTime(), selectorList);
             case META_DATA:
                 List<MetaData> metaList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<MetaData>>() {
                 }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), metaList);
+                return new ConfigData<>(config.getHashValue(), config.getLastModifyTime(), metaList);
             default:
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
@@ -223,14 +222,14 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected abstract void afterInitialize();
 
     /**
-     * if md5 is not the same as the original, then update lcoal cache.
+     * if hashcode is not the same as the original, then update lcoal cache.
      * @param group ConfigGroupEnum
      * @param <T> the type of class
      * @param data the new config data
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data) {
         String json = GsonUtils.getInstance().toJson(data);
-        ConfigDataCache newVal = new ConfigDataCache(group.name(), json, Md5Utils.md5(json), System.currentTimeMillis());
+        ConfigDataCache newVal = new ConfigDataCache(group.name(), json, json.hashCode(), System.currentTimeMillis());
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }

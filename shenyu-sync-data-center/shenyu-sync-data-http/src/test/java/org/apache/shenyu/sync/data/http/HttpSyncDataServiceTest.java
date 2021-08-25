@@ -135,7 +135,7 @@ public class HttpSyncDataServiceTest {
     private String mockConfigsFetchResponseJson() {
         ConfigData emptyData = new ConfigData()
                 .setLastModifyTime(System.currentTimeMillis()).setData(Collections.emptyList())
-                .setMd5("d751713988987e9331980363e24189cf");
+                .setHashValue(123);
         ConfigData pluginData = new ConfigData()
                 .setLastModifyTime(System.currentTimeMillis()).setData(Collections.singletonList(PluginData.builder()
                         .id("9")
@@ -143,7 +143,7 @@ public class HttpSyncDataServiceTest {
                         .role("0")
                         .enabled(false)
                         .build()))
-                .setMd5("1298d5a533d0f896c60cbeca1ec7b017");
+                .setHashValue(1234);
         Map<String, Object> data = new HashMap<>();
         data.put(ConfigGroupEnum.PLUGIN.name(), pluginData);
         data.put(ConfigGroupEnum.META_DATA.name(), emptyData);

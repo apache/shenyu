@@ -181,11 +181,11 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             if (params == null || params.length != 2) {
                 throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
-            String clientMd5 = params[0];
+            int hashValue = params.hashCode();
             long clientModifyTime = NumberUtils.toLong(params[1]);
             ConfigDataCache serverCache = CACHE.get(group.name());
             // do check.
-            if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
+            if (this.checkCacheDelayAndUpdate(serverCache, hashValue, clientModifyTime)) {
                 changedGroup.add(group);
             }
         }
@@ -195,16 +195,16 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     /**
      * check whether the client needs to update the cache.
      * @param serverCache the admin local cache
-     * @param clientMd5 the client md5 value
+     * @param clientHashValue the client hashValue
      * @param clientModifyTime the client last modify time
      * @return true: the client needs to be updated, false: not need.
      */
-    private boolean checkCacheDelayAndUpdate(final ConfigDataCache serverCache, final String clientMd5, final long clientModifyTime) {
+    private boolean checkCacheDelayAndUpdate(final ConfigDataCache serverCache, final int clientHashValue, final long clientModifyTime) {
         // is the same, doesn't need to be updated
-        if (StringUtils.equals(clientMd5, serverCache.getMd5())) {
+        if (clientHashValue != serverCache.getHashValue()) {
             return false;
         }
-        // if the md5 value is different, it is necessary to compare lastModifyTime.
+        // if the hash value is different, it is necessary to compare lastModifyTime.
         long lastModifyTime = serverCache.getLastModifyTime();
         if (lastModifyTime >= clientModifyTime) {
             // the client's config is out of date.
@@ -224,13 +224,13 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             try {
                 ConfigDataCache latest = CACHE.get(serverCache.getGroup());
                 if (latest != serverCache) {
-                    // the cache of admin was updated. if the md5 value is the same, there's no need to update.
-                    return !StringUtils.equals(clientMd5, latest.getMd5());
+                    // the cache of admin was updated. if the hash value is the same, there's no need to update.
+                    return clientHashValue != latest.getHashValue();
                 }
                 // load cache from db.
                 this.refreshLocalCache();
                 latest = CACHE.get(serverCache.getGroup());
-                return !StringUtils.equals(clientMd5, latest.getMd5());
+                return clientHashValue != latest.getHashValue();
             } finally {
                 LOCK.unlock();
             }

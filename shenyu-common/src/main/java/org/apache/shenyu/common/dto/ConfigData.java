@@ -29,7 +29,7 @@ import java.util.Objects;
  */
 public class ConfigData<T> {
 
-    private String md5;
+    private int hashValue;
 
     private long lastModifyTime;
 
@@ -44,33 +44,33 @@ public class ConfigData<T> {
     /**
      * all args constructor.
      *
-     * @param md5            md5
+     * @param hashValue      hashValue
      * @param lastModifyTime lastModifyTime
      * @param data           data
      */
-    public ConfigData(final String md5, final long lastModifyTime, final List<T> data) {
-        this.md5 = md5;
+    public ConfigData(final int hashValue, final long lastModifyTime, final List<T> data) {
+        this.hashValue = hashValue;
         this.lastModifyTime = lastModifyTime;
         this.data = data;
     }
 
     /**
-     * get md5.
+     * get hashValue.
      *
-     * @return md5
+     * @return hashValue
      */
-    public String getMd5() {
-        return md5;
+    public int getHashValue() {
+        return hashValue;
     }
 
     /**
-     * set md5.
+     * set hashValue.
      *
-     * @param md5 md5
+     * @param hashValue hashValue
      * @return this
      */
-    public ConfigData<T> setMd5(final String md5) {
-        this.md5 = md5;
+    public ConfigData<T> setHashValue(final int hashValue) {
+        this.hashValue = hashValue;
         return this;
     }
 
@@ -123,12 +123,12 @@ public class ConfigData<T> {
             return false;
         }
         ConfigData<?> that = (ConfigData<?>) o;
-        return lastModifyTime == that.lastModifyTime && Objects.equals(md5, that.md5) && Objects.equals(data, that.data);
+        return lastModifyTime == that.lastModifyTime && Objects.equals(hashValue, that.hashValue) && Objects.equals(data, that.data);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(md5, lastModifyTime, data);
+        return Objects.hash(hashValue, lastModifyTime, data);
     }
 
     @Override

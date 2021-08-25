@@ -26,7 +26,7 @@ public class ConfigDataCache {
     
     private final String group;
 
-    private volatile String md5;
+    private volatile int hashValue;
 
     private final String json;
 
@@ -37,24 +37,24 @@ public class ConfigDataCache {
      *
      * @param group          the group
      * @param json           the json
-     * @param md5            the md5
+     * @param hashValue      the hashValue
      * @param lastModifyTime the last modify time
      */
-    public ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime) {
+    public ConfigDataCache(final String group, final String json, final int hashValue, final long lastModifyTime) {
         this.group = group;
         this.json = json;
-        this.md5 = md5;
+        this.hashValue = hashValue;
         this.lastModifyTime = lastModifyTime;
     }
     
     /**
      * Update.
      *
-     * @param md5            the md 5
+     * @param hashValue      the hashValue
      * @param lastModifyTime the last modify time
      */
-    protected synchronized void update(final String md5, final long lastModifyTime) {
-        this.md5 = md5;
+    protected synchronized void update(final int hashValue, final long lastModifyTime) {
+        this.hashValue = hashValue;
         this.lastModifyTime = lastModifyTime;
     }
     
@@ -68,12 +68,12 @@ public class ConfigDataCache {
     }
     
     /**
-     * Gets md5.
+     * Gets hashValue.
      *
-     * @return the md5
+     * @return the hashValue
      */
-    public String getMd5() {
-        return md5;
+    public int getHashValue() {
+        return hashValue;
     }
     
     /**
@@ -98,7 +98,7 @@ public class ConfigDataCache {
     public String toString() {
         return "{"
                 + "group='" + group + '\''
-                + ", md5='" + md5 + '\''
+                + ", hashValue='" + hashValue + '\''
                 + ", lastModifyTime=" + lastModifyTime
                 + '}';
     }

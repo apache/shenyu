@@ -97,7 +97,7 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
     protected abstract boolean updateCacheIfNeed(ConfigData<T> result);
 
     /**
-     * If the MD5 values are different and the last update time of the old data is less than
+     * If the hashcode values are different and the last update time of the old data is less than
      * the last update time of the new data, the configuration cache is considered to have been changed.
      *
      * @param newVal    the lasted config
@@ -111,8 +111,8 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         }
         ResultHolder holder = new ResultHolder(false);
         GROUP_CACHE.merge(groupEnum, newVal, (oldVal, value) -> {
-            if (StringUtils.equals(oldVal.getMd5(), newVal.getMd5())) {
-                LOG.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
+            if (oldVal.getHashValue() == newVal.getHashValue()) {
+                LOG.info("Get the same config, the [{}] config cache will not be updated, hashValue:{}", groupEnum, oldVal.getHashValue());
                 return oldVal;
             }
             // must compare the last update time

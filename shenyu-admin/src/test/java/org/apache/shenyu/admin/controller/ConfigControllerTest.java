@@ -67,7 +67,7 @@ public final class ConfigControllerTest {
     @Test
     public void testFetchConfigs() throws Exception {
         // Configure HttpLongPollingDataChangedListener.fetchConfig(...).
-        final ConfigData<?> configData = new ConfigData<>("md5-value1", 0L, Collections.emptyList());
+        final ConfigData<?> configData = new ConfigData<>(2914, 0L, Collections.emptyList());
         doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH);
 
         // Run the test
@@ -76,7 +76,7 @@ public final class ConfigControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
-                .andExpect(jsonPath("$.data['APP_AUTH'].md5", is("md5-value1")))
+                .andExpect(jsonPath("$.data['APP_AUTH'].hashValue", is(2914)))
                 .andReturn().getResponse();
 
         // Verify the results

@@ -182,7 +182,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = factory.cacheConfigData(group);
             if (cacheConfig != null) {
-                String value = String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime()));
+                String value = String.join(",", String.valueOf(cacheConfig.getHashValue()), String.valueOf(cacheConfig.getLastModifyTime()));
                 params.put(group.name(), Lists.newArrayList(value));
             }
         }
