@@ -30,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Http helper.
@@ -74,7 +75,7 @@ public class HttpHelper {
                 .post(RequestBody.create(GSON.toJson(req), JSON))
                 .build();
         Response response = client.newCall(request).execute();
-        String respBody = response.body().string();
+        String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("postGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, respType);
     }
@@ -109,7 +110,7 @@ public class HttpHelper {
         }
         Request request = requestBuilder.build();
         Response response = client.newCall(request).execute();
-        String respBody = response.body().string();
+        String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("getFromGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, type);
     }

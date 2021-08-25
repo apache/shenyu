@@ -83,6 +83,24 @@ public class PluginController {
     }
     
     /**
+     * Clean plugin mono.
+     *
+     * @param name the name
+     * @return the mono
+     */
+    @GetMapping("/cleanPlugin")
+    public Mono<String> cleanPlugin(@RequestParam("name") final String name) {
+        BaseDataCache.getInstance().removePluginDataByPluginName(name);
+        List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
+        List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
+        BaseDataCache.getInstance().removeSelectDataByPluginName(name);
+        for (String selectorId : selectorIds) {
+            BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
+        }
+        return Mono.just(SUCCESS);
+    }
+    
+    /**
      * Add plugin string.
      *
      * @param pluginData the plugin data
@@ -173,6 +191,36 @@ public class PluginController {
                 .conditionDataList(selectorRuleData.getConditionDataList())
                 .build();
         subscriber.onRuleSubscribe(buildDefaultRuleData(ruleData));
+        return Mono.just(SUCCESS);
+    }
+    
+    /**
+     * Selector and rules mono.
+     *
+     * @param selectorRulesData the selector rules data
+     * @return the mono
+     */
+    @PostMapping("/plugin/selectorAndRules")
+    public Mono<String> selectorAndRules(@RequestBody final SelectorRulesData selectorRulesData) {
+        SelectorData selectorData = SelectorData.builder()
+                .pluginName(selectorRulesData.getPluginName())
+                .handle(selectorRulesData.getSelectorHandler())
+                .conditionList(selectorRulesData.getConditionDataList())
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .build();
+        SelectorData result = buildDefaultSelectorData(selectorData);
+        subscriber.onSelectorSubscribe(result);
+        List<RuleLocalData> ruleDataList = selectorRulesData.getRuleDataList();
+        for (RuleLocalData data : ruleDataList) {
+            RuleData ruleData = RuleData.builder()
+                    .selectorId(result.getId())
+                    .pluginName(result.getPluginName())
+                    .name(data.getRuleName())
+                    .handle(data.getRuleHandler())
+                    .conditionDataList(data.getConditionDataList())
+                    .build();
+            subscriber.onRuleSubscribe(buildDefaultRuleData(ruleData));
+        }
         return Mono.just(SUCCESS);
     }
     
@@ -377,6 +425,179 @@ public class PluginController {
          */
         public void setSelectorHandler(final String selectorHandler) {
             this.selectorHandler = selectorHandler;
+        }
+    
+        /**
+         * Gets rule handler.
+         *
+         * @return the rule handler
+         */
+        public String getRuleHandler() {
+            return ruleHandler;
+        }
+    
+        /**
+         * Sets rule handler.
+         *
+         * @param ruleHandler the rule handler
+         */
+        public void setRuleHandler(final String ruleHandler) {
+            this.ruleHandler = ruleHandler;
+        }
+    
+        /**
+         * Gets condition data list.
+         *
+         * @return the condition data list
+         */
+        public List<ConditionData> getConditionDataList() {
+            return conditionDataList;
+        }
+    
+        /**
+         * Sets condition data list.
+         *
+         * @param conditionDataList the condition data list
+         */
+        public void setConditionDataList(final List<ConditionData> conditionDataList) {
+            this.conditionDataList = conditionDataList;
+        }
+    }
+    
+    /**
+     * The type Selector rules data.
+     */
+    public static class SelectorRulesData {
+        
+        private String pluginName;
+    
+        private String selectorName;
+    
+        private String selectorHandler;
+    
+        private List<ConditionData> conditionDataList;
+    
+        private List<RuleLocalData> ruleDataList;
+    
+        /**
+         * Gets plugin name.
+         *
+         * @return the plugin name
+         */
+        public String getPluginName() {
+            return pluginName;
+        }
+    
+        /**
+         * Sets plugin name.
+         *
+         * @param pluginName the plugin name
+         */
+        public void setPluginName(final String pluginName) {
+            this.pluginName = pluginName;
+        }
+    
+        /**
+         * Gets selector name.
+         *
+         * @return the selector name
+         */
+        public String getSelectorName() {
+            return selectorName;
+        }
+    
+        /**
+         * Sets selector name.
+         *
+         * @param selectorName the selector name
+         */
+        public void setSelectorName(final String selectorName) {
+            this.selectorName = selectorName;
+        }
+    
+        /**
+         * Gets selector handler.
+         *
+         * @return the selector handler
+         */
+        public String getSelectorHandler() {
+            return selectorHandler;
+        }
+    
+        /**
+         * Sets selector handler.
+         *
+         * @param selectorHandler the selector handler
+         */
+        public void setSelectorHandler(final String selectorHandler) {
+            this.selectorHandler = selectorHandler;
+        }
+    
+        /**
+         * Gets condition data list.
+         *
+         * @return the condition data list
+         */
+        public List<ConditionData> getConditionDataList() {
+            return conditionDataList;
+        }
+    
+        /**
+         * Sets condition data list.
+         *
+         * @param conditionDataList the condition data list
+         */
+        public void setConditionDataList(final List<ConditionData> conditionDataList) {
+            this.conditionDataList = conditionDataList;
+        }
+    
+        /**
+         * Gets rule data list.
+         *
+         * @return the rule data list
+         */
+        public List<RuleLocalData> getRuleDataList() {
+            return ruleDataList;
+        }
+    
+        /**
+         * Sets rule data list.
+         *
+         * @param ruleDataList the rule data list
+         */
+        public void setRuleDataList(final List<RuleLocalData> ruleDataList) {
+            this.ruleDataList = ruleDataList;
+        }
+        
+    }
+    
+    /**
+     * The type Rule data dto.
+     */
+    public static class RuleLocalData {
+        
+        private String ruleName;
+        
+        private String ruleHandler;
+        
+        private List<ConditionData> conditionDataList;
+    
+        /**
+         * Gets rule name.
+         *
+         * @return the rule name
+         */
+        public String getRuleName() {
+            return ruleName;
+        }
+    
+        /**
+         * Sets rule name.
+         *
+         * @param ruleName the rule name
+         */
+        public void setRuleName(final String ruleName) {
+            this.ruleName = ruleName;
         }
     
         /**

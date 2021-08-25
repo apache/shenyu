@@ -37,13 +37,13 @@ INSERT IGNORE INTO auth_param(id,auth_id,app_name,date_created, date_updated) VA
 INSERT IGNORE INTO auth_path(id,auth_id,app_name,path,enabled,date_created, date_updated) VALUES ('1412255231079411712','1412239238157819904','http-sign','/http/test/path/456',1,'2021-07-06 13:09:3','2021-07-06 13:09:33');
 
 /** prepare waf **/
-UPDATE plugin SET enabled = 1 WHERE id = '2';
-INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1422826261990641664', '2', '/http/test/waf', 0, 1, 1, null, 1, 1, 1,'2021-08-04 13:09:32','2021-08-04 13:09:32');
-INSERT IGNORE INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1422826261999030272', '1422826261990641664', 'uri', 'match', '/', '/http/test/waf/**','2021-08-04 13:09:32','2021-08-04 13:09:32');
-INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1422826330114527232', '1422826261990641664', 0, '/http/test/waf/pass', 1, 1, 1, '{"permission":"allow","statusCode":"200"}', '2021-08-04 13:09:32','2021-08-04 13:09:32');
-INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1422826385177350144', '1422826261990641664', 0, '/http/test/waf/deny', 1, 1, 1, '{"permission":"reject","statusCode":"403"}', '2021-08-04 13:09:32','2021-08-04 13:09:32');
-INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1422826330122915840', '1422826330114527232', 'uri', '=', '/', '/http/test/waf/pass','2021-08-04 13:09:32','2021-08-04 13:09:32');
-INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1422826385185738752', '1422826385177350144', 'uri', '=', '/', '/http/test/waf/deny','2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- UPDATE plugin SET enabled = 1 WHERE id = '2';
+-- INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1422826261990641664', '2', '/http/test/waf', 0, 1, 1, null, 1, 1, 1,'2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- INSERT IGNORE INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1422826261999030272', '1422826261990641664', 'uri', 'match', '/', '/http/test/waf/**','2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1422826330114527232', '1422826261990641664', 0, '/http/test/waf/pass', 1, 1, 1, '{"permission":"allow","statusCode":"200"}', '2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1422826385177350144', '1422826261990641664', 0, '/http/test/waf/deny', 1, 1, 1, '{"permission":"reject","statusCode":"403"}', '2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1422826330122915840', '1422826330114527232', 'uri', '=', '/', '/http/test/waf/pass','2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1422826385185738752', '1422826385177350144', 'uri', '=', '/', '/http/test/waf/deny','2021-08-04 13:09:32','2021-08-04 13:09:32');
 
 /** prepare redirect **/
 UPDATE plugin SET enabled = 1 WHERE id = '16';
