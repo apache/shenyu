@@ -63,8 +63,7 @@ public class CryptorRequestPluginTest {
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test");
         this.ruleData.setName("test-cryptor-request-plugin");
-        this.ruleData.setHandle("{\"contextPath\":\"/test\","
-                + "\"strategyName\":\"rsa\","
+        this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken\","
                 + "\"key\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
                 + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"

@@ -71,8 +71,7 @@ public class CryptorResponsePluginTest {
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test");
         this.ruleData.setName("test-cryptor-response-plugin");
-        this.ruleData.setHandle("{\"contextPath\":\"/test\","
-                + "\"strategyName\":\"rsa\","
+        this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"key\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6HhUnDe"
                 + "7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
                 + "\"fieldNames\":\"data\"}");
