@@ -41,16 +41,13 @@ public enum PluginTransfer {
      */
     public PluginData mapToData(final PluginDO pluginDO) {
         return Optional.ofNullable(pluginDO)
-                .map(v -> {
-                    PluginData.Builder pluginData = PluginData.builder();
-                    pluginData.id(v.getId());
-                    pluginData.name(v.getName());
-                    pluginData.config(v.getConfig());
-                    pluginData.role(v.getRole());
-                    pluginData.enabled(v.getEnabled());
-
-                    return pluginData.build();
-                })
+                .map(v -> PluginData.builder()
+                        .id(v.getId())
+                        .name(v.getName())
+                        .config(v.getConfig())
+                        .role(v.getRole())
+                        .enabled(v.getEnabled())
+                        .build())
                 .orElse(null);
     }
 
@@ -62,17 +59,13 @@ public enum PluginTransfer {
      */
     public PluginData mapDataTOVO(final PluginVO pluginVO) {
         return Optional.ofNullable(pluginVO)
-                .map(v -> {
-                    PluginData.Builder pluginData = PluginData.builder();
-                    pluginData.id(v.getId());
-                    pluginData.name(v.getName());
-                    pluginData.config(v.getConfig());
-                    pluginData.role(v.getRole());
-                    pluginData.enabled(v.getEnabled());
-
-                    return pluginData.build();
-                })
+                .map(v -> PluginData.builder()
+                        .id(v.getId())
+                        .name(v.getName())
+                        .config(v.getConfig())
+                        .role(v.getRole())
+                        .enabled(v.getEnabled())
+                        .build())
                 .orElse(null);
     }
-
 }

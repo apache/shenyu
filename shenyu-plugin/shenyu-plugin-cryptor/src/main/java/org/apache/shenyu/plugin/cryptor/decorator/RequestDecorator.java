@@ -15,33 +15,45 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.common.decorator;
+package org.apache.shenyu.plugin.cryptor.decorator;
 
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
-import org.reactivestreams.Publisher;
+import org.apache.shenyu.plugin.cryptor.utils.HttpUtil;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.util.annotation.NonNull;
 
 /**
- * Build and modify the response class.
+ * Build and modify the request class.
  */
-public class ResponseDecorator extends ServerHttpResponseDecorator {
+public class RequestDecorator extends ServerHttpRequestDecorator {
 
     private final CachedBodyOutputMessage cachedBodyOutputMessage;
 
-    public ResponseDecorator(final ServerWebExchange exchange,
-                             final CachedBodyOutputMessage cachedBodyOutputMessage) {
-        super(exchange.getResponse());
+    private final ServerWebExchange exchange;
+
+    public RequestDecorator(final ServerWebExchange exchange,
+                            final CachedBodyOutputMessage cachedBodyOutputMessage) {
+        super(exchange.getRequest());
         this.cachedBodyOutputMessage = cachedBodyOutputMessage;
+        this.exchange = exchange;
     }
 
     @Override
     @NonNull
-    public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-        return getDelegate().writeWith(cachedBodyOutputMessage.getBody());
+    public Flux<DataBuffer> getBody() {
+        return cachedBodyOutputMessage.getBody();
     }
 
+    @Override
+    @NonNull
+    public HttpHeaders getHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.putAll(exchange.getRequest().getHeaders());
+        headers.remove(HttpHeaders.CONTENT_LENGTH);
+        return HttpUtil.modifiedContentLength(headers);
+    }
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.common.utils;
+package org.apache.shenyu.plugin.cryptor.utils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

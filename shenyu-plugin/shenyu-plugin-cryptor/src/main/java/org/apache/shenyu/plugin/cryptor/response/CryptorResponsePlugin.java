@@ -32,13 +32,11 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.cryptor.common.chain.Executor;
-import org.apache.shenyu.plugin.cryptor.common.decorator.ResponseDecorator;
-import org.apache.shenyu.plugin.cryptor.common.handler.CryptorResponsePluginDataHandler;
-import org.apache.shenyu.plugin.cryptor.common.strategies.CryptorStrategy;
-import org.apache.shenyu.plugin.cryptor.common.utils.HttpUtil;
-import org.apache.shenyu.plugin.cryptor.common.utils.JsonUtil;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.plugin.cryptor.decorator.ResponseDecorator;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
+import org.apache.shenyu.plugin.cryptor.utils.HttpUtil;
+import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ReactiveHttpOutputMessage;
@@ -60,8 +58,6 @@ import java.util.function.Function;
 public class CryptorResponsePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(CryptorResponsePlugin.class);
-
-    private final Executor executor = new Executor();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -107,12 +103,11 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
     private Mono strategyMatch(final String originalBody, final CryptorResponseRuleHandle ruleHandle) {
         AtomicInteger initDeep = new AtomicInteger();
         initDeep.set(0);
-        CryptorStrategy strategy = ExtensionLoader.getExtensionLoader(CryptorStrategy.class).getJoin(ruleHandle.getStrategyName());
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         if (parseBody == null) {
             return Mono.just(originalBody);
         }
-        String modifiedBody = executor.encryptExecute(strategy, ruleHandle.getKey(), parseBody);
+        String modifiedBody = CryptorStrategyFactory.encrypt(ruleHandle.getStrategyName(), ruleHandle.getKey(), parseBody);
         JsonElement je = new JsonParser().parse(originalBody);
         JsonElement resultJe = JsonUtil.replaceJsonNode(je,
                 initDeep,
@@ -120,5 +115,4 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
                 Arrays.asList(ruleHandle.getFieldNames().split("\\.")));
         return Mono.just(resultJe.toString());
     }
-
 }
