@@ -89,7 +89,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getReplaceHeaderKeys())) {
                 Map<String, String> replaceHeaderMap = modifyResponseRuleHandle.getReplaceHeaderKeys();
                 replaceHeaderMap.forEach((key, value) -> {
-                    httpHeaders.addAll(value, httpHeaders.get(key));
+                    httpHeaders.addAll(value, Objects.requireNonNull(httpHeaders.get(key)));
                     httpHeaders.remove(key);
                 });
             }

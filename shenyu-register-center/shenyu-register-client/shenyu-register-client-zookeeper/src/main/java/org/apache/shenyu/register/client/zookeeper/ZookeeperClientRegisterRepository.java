@@ -50,9 +50,9 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         Properties props = config.getProps();
-        int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
-        int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
-        this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
+        int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));
+        int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
+        this.zkClient = new ZkClient(config.getServerLists(), sessionTimeout, connectionTimeout);
         this.zkClient.subscribeStateChanges(new ZkStateListener());
     }
 

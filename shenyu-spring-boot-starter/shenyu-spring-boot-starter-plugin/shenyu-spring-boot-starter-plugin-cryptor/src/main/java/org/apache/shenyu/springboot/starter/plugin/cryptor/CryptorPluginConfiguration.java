@@ -15,37 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.exception;
+package org.apache.shenyu.springboot.starter.plugin.cryptor;
+
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.cryptor.request.CryptorRequestPlugin;
+import org.apache.shenyu.plugin.cryptor.response.CryptorResponsePlugin;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Throwing wrap.
- * Handle exception, and return null.
- * Not all exceptions must be try catch, throw upwards, return null, you can use if to judge.
+ *  Cryptor plugin.
  */
-@FunctionalInterface
-public interface ThrowingFunction<T> {
+@Configuration
+public class CryptorPluginConfiguration {
 
     /**
-     * apply function.
+     * Cryptor request plugin.
      *
-     * @return T
-     * @throws Exception any error
+     * @return the soul plugin
      */
-    T apply() throws Exception;
-
-    /**
-     * operation function.
-     * If an exception occurs, it will directly return a null.
-     *
-     * @param function apply function.
-     * @param <T> t
-     * @return T
-     */
-    static <T> T wrap(ThrowingFunction<T> function) {
-        try {
-            return function.apply();
-        } catch (Exception e) {
-            return null;
-        }
+    @Bean
+    public ShenyuPlugin cryptorRequestPlugin() {
+        return new CryptorRequestPlugin();
     }
+
+    /**
+     * Cryptor response plugin.
+     *
+     * @return the soul plugin
+     */
+    @Bean
+    public ShenyuPlugin cryptorResponsePlugin() {
+        return new CryptorResponsePlugin();
+    }
+
 }

@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.context.path.handler;
+package org.apache.shenyu.plugin.cryptor.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.CryptorResponseRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
@@ -30,17 +30,17 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * The type context path plugin data subscriber.
+ * The type cryptor response plugin data subscriber.
  */
-public class ContextPathPluginDataHandler implements PluginDataHandler {
+public class CryptorResponsePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, ContextMappingHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<RuleHandleCache<String, CryptorResponseRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(s, ContextMappingHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
+            CryptorResponseRuleHandle cryptorResponseRuleHandle = GsonUtils.getInstance().fromJson(s, CryptorResponseRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), cryptorResponseRuleHandle);
         });
     }
 
@@ -51,6 +51,6 @@ public class ContextPathPluginDataHandler implements PluginDataHandler {
 
     @Override
     public String pluginNamed() {
-        return PluginEnum.CONTEXT_PATH.getName();
+        return PluginEnum.CRYPTOR_RESPONSE.getName();
     }
 }

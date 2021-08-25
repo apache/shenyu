@@ -57,5 +57,6 @@
         <module>shenyu-plugin-jwt</module>
         <module>shenyu-plugin-response</module>
         <module>shenyu-plugin-param-mapping</module>
+        <module>shenyu-plugin-cryptor</module>
     </modules>
 </project>
