@@ -17,29 +17,82 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.convert.WafHandle;
+import org.apache.shenyu.common.enums.OperatorEnum;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.WafEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
-public final class WafPluginTest extends AbstractTest {
+public final class WafPluginTest extends AbstractPluginDataInit {
+    
+    @Before
+    public void setup() throws IOException {
+        String pluginResult = initPlugin(PluginEnum.WAF.getName(), "");
+        assertThat(pluginResult, is("success"));
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.WAF.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
+        assertThat(selectorAndRulesResult, is("success"));
+    }
 
     @Test
     public void test() throws IOException {
         Map<String, Object> result = HttpHelper.INSTANCE.postGateway("/http/test/waf/pass", "", Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
-
         result = HttpHelper.INSTANCE.postGateway("/http/test/waf/deny", "", Map.class);
         assertNotNull(result);
         assertThat(String.valueOf(result.get("message")), containsString("You are forbidden to visit"));
     }
-
+    
+    private List<ConditionData> buildSelectorConditionList() {
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamValue("/http/test/waf/**");
+        return Collections.singletonList(conditionData);
+    }
+    
+    private List<RuleLocalData> buildRuleLocalDataList() {
+        List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
+        ruleLocalDataList.add(buildRuleLocalData(WafEnum.ALLOW.getName(), "200", "/http/test/waf/pass"));
+        ruleLocalDataList.add(buildRuleLocalData(WafEnum.REJECT.getName(), "403", "/http/test/waf/deny"));
+        return ruleLocalDataList;
+    }
+    
+    private RuleLocalData buildRuleLocalData(final String permission, final String statusCode, final String paramValue) {
+        RuleLocalData ruleLocalData = new RuleLocalData();
+        WafHandle wafHandle = new WafHandle();
+        wafHandle.setPermission(permission);
+        wafHandle.setStatusCode(statusCode);
+        ruleLocalData.setRuleHandler(JsonUtils.toJson(wafHandle));
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.EQ.getAlias());
+        conditionData.setParamValue(paramValue);
+        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
+        return ruleLocalData;
+    }
+    
+    @After
+    public void clean() throws IOException {
+        cleanPluginData(PluginEnum.WAF.getName());
+    }
 }
