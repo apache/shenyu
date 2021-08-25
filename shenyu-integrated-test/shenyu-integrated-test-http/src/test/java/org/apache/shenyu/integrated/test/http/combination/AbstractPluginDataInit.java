@@ -41,7 +41,7 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @return the string
      * @throws IOException the io exception
      */
-    public String initPlugin(final String pluginName, final String config) throws IOException {
+    public static String initPlugin(final String pluginName, final String config) throws IOException {
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
         pluginData.setName(pluginName);
@@ -59,7 +59,7 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @return the string
      * @throws IOException the io exception
      */
-    public String initSelectorAndRules(final String pluginName, final String selectorHandler, 
+    public static String initSelectorAndRules(final String pluginName, final String selectorHandler, 
                                        final List<ConditionData> selectorConditionData,
                                        final List<RuleLocalData> ruleDataList) throws IOException {
         SelectorRulesData selectorRulesData = new SelectorRulesData();
@@ -80,7 +80,7 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @return the string
      * @throws IOException the io exception
      */
-    public String initSelectorAndRule(final String pluginName, final String selectorHandler,
+    public static String initSelectorAndRule(final String pluginName, final String selectorHandler,
                                        final String ruleHandler,
                                        final List<ConditionData> conditionDataList) throws IOException {
         SelectorRuleData selectorRuleData = new SelectorRuleData();
@@ -98,7 +98,7 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @return the string
      * @throws IOException the io exception
      */
-    public String cleanPluginData(final String pluginName) throws IOException {
+    public static String cleanPluginData(final String pluginName) throws IOException {
         return HttpHelper.INSTANCE.getFromGateway("/shenyu/cleanPlugin?name=" + pluginName, String.class);
     }
 }

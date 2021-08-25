@@ -26,8 +26,8 @@ import org.apache.shenyu.common.enums.WafEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -44,8 +44,8 @@ import static org.junit.Assert.assertThat;
 
 public final class WafPluginTest extends AbstractPluginDataInit {
     
-    @Before
-    public void setup() throws IOException {
+    @BeforeClass
+    public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.WAF.getName(), "{\"model\":\"black\"}");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.WAF.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
@@ -62,7 +62,7 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         assertThat(String.valueOf(result.get("message")), containsString("You are forbidden to visit"));
     }
     
-    private List<ConditionData> buildSelectorConditionList() {
+    private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
@@ -70,14 +70,14 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
     
-    private List<RuleLocalData> buildRuleLocalDataList() {
+    private static List<RuleLocalData> buildRuleLocalDataList() {
         List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
         ruleLocalDataList.add(buildRuleLocalData(WafEnum.ALLOW.getName(), "200", "/http/test/waf/pass"));
         ruleLocalDataList.add(buildRuleLocalData(WafEnum.REJECT.getName(), "403", "/http/test/waf/deny"));
         return ruleLocalDataList;
     }
     
-    private RuleLocalData buildRuleLocalData(final String permission, final String statusCode, final String paramValue) {
+    private static RuleLocalData buildRuleLocalData(final String permission, final String statusCode, final String paramValue) {
         RuleLocalData ruleLocalData = new RuleLocalData();
         WafHandle wafHandle = new WafHandle();
         wafHandle.setPermission(permission);
@@ -91,8 +91,8 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         return ruleLocalData;
     }
     
-    @After
-    public void clean() throws IOException {
+    @AfterClass
+    public static void clean() throws IOException {
         cleanPluginData(PluginEnum.WAF.getName());
     }
 }
