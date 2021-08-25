@@ -29,17 +29,17 @@ import static org.junit.Assert.assertNotNull;
  */
 public class ConfigDataTest {
 
-    private static final String MD5 = "b48bacc7f914ee90162cd91865b83a3d";
+    private static final int HASHVALUE = 0;
 
     private static final long LAST_MODIFY_TIME = System.currentTimeMillis();
 
     @Test
     public void testToString() {
-        /*ConfigData<Object> configData = new ConfigData<>();
+        ConfigData<Object> configData = new ConfigData<>();
         configData.setLastModifyTime(LAST_MODIFY_TIME);
-        configData.setMd5(MD5);
+        configData.setHashValue(HASHVALUE);
         configData.setData(Collections.EMPTY_LIST);
-        assertNotNull(configData.toString());*/
+        assertNotNull(configData.toString());
     }
 
     /**
@@ -47,10 +47,10 @@ public class ConfigDataTest {
      */
     @Test
     public void testGetterSetter() {
-       /* ConfigData<Object> configData = new ConfigData<>(MD5, LAST_MODIFY_TIME, Collections.EMPTY_LIST);
+        ConfigData<Object> configData = new ConfigData<>(HASHVALUE, LAST_MODIFY_TIME, Collections.EMPTY_LIST);
         assertEquals(configData.getData(), Collections.EMPTY_LIST);
-        assertEquals(configData.getMd5(), MD5);
-        assertEquals(configData.getLastModifyTime(), LAST_MODIFY_TIME);*/
+        assertEquals(configData.getHashValue(), HASHVALUE);
+        assertEquals(configData.getLastModifyTime(), LAST_MODIFY_TIME);
     }
 
 }

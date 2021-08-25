@@ -19,12 +19,10 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
