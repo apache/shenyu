@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `plugin_handle` (
   `data_type` smallint(6) NOT NULL DEFAULT '1' COMMENT 'data type 1 number 2 string',
   `type` smallint(6) NULL COMMENT 'type, 1 means selector, 2 means rule, 3 means plugin',
   `sort` int(4)  NULL COMMENT 'sort',
-  `ext_obj` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'extra configuration (json format data)',
+  `ext_obj` varchar(4096) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'extra configuration (json format data)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`),
@@ -299,6 +299,7 @@ INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_v
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('50', 'automaticTransitionFromOpenToHalfOpenEnabled', 'AUTOMATIC_HALF_OPEN', 'open', 'true', '', 1, 1, '2021-07-18 22:59:17', '2021-07-18 22:59:17');
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('51', 'automaticTransitionFromOpenToHalfOpenEnabled', 'AUTOMATIC_HALF_OPEN', 'close', 'false', '', 2, 1, '2021-07-18 22:59:34', '2021-07-18 22:59:34');
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('52', 'paramType', 'PARAM_TYPE', 'domain', 'domain', 'domain', 8, 1, '2021-05-30 19:40:41', '2021-05-30 20:15:23');
+INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('53', 'strategyName', 'STRATEGY_NAME', 'rsa', 'rsa', 'rsa strategy', 1, 1, '2021-08-25 11:47:29', '2021-08-25 11:48:03');
 
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1','sign','authentication',  7, '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
@@ -324,6 +325,9 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_crea
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('21', 'oauth2', 'authentication', 10, '0', '2021-06-18 10:53:42', '2021-06-18 10:53:42');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('22', 'param_mapping','http process', 5,'{"ruleHandlePageType":"custom"}', '0', '2021-06-17 22:34:44', '2021-06-17 22:36:00');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('23', 'modifyResponse', 'http process',23, '{"ruleHandlePageType":"custom"}', '0', '2021-05-30 21:26:37', '2021-05-30 23:26:11');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('24', 'cryptor_request', 1, 25, 1, '2021-08-06 13:55:21', '2021-08-17 16:35:41');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('25', 'cryptor_response', 1, 26, 1, '2021-08-06 13:55:30', '2021-08-13 16:03:40');
+
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','bbiB8zbUo3z3oA0VqEB/IA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -446,6 +450,15 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 /*insert plugin_handle data for plugin jwt*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('89','19' ,'secretKey','secretKey',2, 3, 0, null, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('90','19' ,'filterPath','filterPath',2, 3, 1, null, '2021-06-12 19:17:10', '2021-06-12 19:17:10');
+
+/*insert plugin_handle data for plugin cryptor*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('101', '24', 'strategyName', 'strategyName', 3, 2, 1, NULL, '2021-08-06 14:35:50', '2021-08-06 14:35:50');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('103', '24', 'fieldNames', 'fieldNames', 2, 2, 3, NULL, '2021-08-06 14:37:13', '2021-08-06 14:37:46');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('104', '24', 'key', 'key', 2, 2, 3, NULL, '2021-08-06 14:37:22', '2021-08-06 14:37:48');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('108', '25', 'strategyName', 'strategyName', 3, 2, 2, NULL, '2021-08-13 15:10:53', '2021-08-13 15:11:11');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('109', '25', 'key', 'key', 2, 2, 3, NULL, '2021-08-13 15:14:07', '2021-08-13 15:14:36');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('110', '25', 'fieldNames', 'fieldNames', 2, 2, 4, NULL, '2021-08-13 15:16:30', '2021-08-13 15:16:45');
+
 
 /** insert permission role for role */
 INSERT IGNORE INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');

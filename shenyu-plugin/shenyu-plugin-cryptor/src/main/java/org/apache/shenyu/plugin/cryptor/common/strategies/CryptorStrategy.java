@@ -15,37 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.exception;
+package org.apache.shenyu.plugin.cryptor.common.strategies;
+
+import org.apache.shenyu.spi.SPI;
 
 /**
- * Throwing wrap.
- * Handle exception, and return null.
- * Not all exceptions must be try catch, throw upwards, return null, you can use if to judge.
+ * strategy.
  */
-@FunctionalInterface
-public interface ThrowingFunction<T> {
+@SPI
+public interface CryptorStrategy {
 
     /**
-     * apply function.
-     *
-     * @return T
-     * @throws Exception any error
+     * decrypt.
+     * @param key key
+     * @param encryptData encryptData
+     * @return data
+     * @throws Exception error
      */
-    T apply() throws Exception;
+    String decrypt(String key, String encryptData) throws Exception;
 
     /**
-     * operation function.
-     * If an exception occurs, it will directly return a null.
-     *
-     * @param function apply function.
-     * @param <T> t
-     * @return T
+     * encrypt.
+     * @param key key
+     * @param data data
+     * @return encryptData.
+     * @throws Exception error
      */
-    static <T> T wrap(ThrowingFunction<T> function) {
-        try {
-            return function.apply();
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    String encrypt(String key, String data) throws Exception;
+
 }
