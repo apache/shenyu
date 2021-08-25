@@ -46,7 +46,7 @@ public final class WafPluginTest extends AbstractPluginDataInit {
     
     @Before
     public void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.WAF.getName(), "");
+        String pluginResult = initPlugin(PluginEnum.WAF.getName(), "{\"model\":\"black\"}");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.WAF.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));

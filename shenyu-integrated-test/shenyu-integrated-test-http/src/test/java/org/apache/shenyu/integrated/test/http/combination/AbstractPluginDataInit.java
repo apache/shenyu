@@ -99,6 +99,6 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @throws IOException the io exception
      */
     public String cleanPluginData(final String pluginName) throws IOException {
-        return HttpHelper.INSTANCE.getFromGateway("/shenyu/cleanPlugin?name =" + pluginName, String.class);
+        return HttpHelper.INSTANCE.getFromGateway("/shenyu/cleanPlugin?name=" + pluginName, String.class);
     }
 }
