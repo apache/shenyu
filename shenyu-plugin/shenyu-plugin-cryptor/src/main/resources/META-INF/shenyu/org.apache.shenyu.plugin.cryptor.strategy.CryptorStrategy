@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-rsa=org.apache.shenyu.plugin.cryptor.common.strategies.RsaStrategy
+rsa=org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy

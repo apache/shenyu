@@ -29,13 +29,11 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.cryptor.common.chain.Executor;
-import org.apache.shenyu.plugin.cryptor.common.decorator.RequestDecorator;
-import org.apache.shenyu.plugin.cryptor.common.handler.CryptorRequestPluginDataHandler;
-import org.apache.shenyu.plugin.cryptor.common.strategies.CryptorStrategy;
-import org.apache.shenyu.plugin.cryptor.common.utils.HttpUtil;
-import org.apache.shenyu.plugin.cryptor.common.utils.JsonUtil;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.plugin.cryptor.decorator.RequestDecorator;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
+import org.apache.shenyu.plugin.cryptor.utils.HttpUtil;
+import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ReactiveHttpOutputMessage;
@@ -60,8 +58,6 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(CryptorRequestPlugin.class);
 
     private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
-
-    private final Executor executor = new Executor();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -104,20 +100,17 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     }
 
     private Mono strategyMatch(final CryptorRequestRuleHandle ruleHandle, final String originalBody, final ServerWebExchange exchange) {
-        CryptorStrategy strategy = ExtensionLoader.getExtensionLoader(CryptorStrategy.class).getJoin(ruleHandle.getStrategyName());
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         if (null == parseBody) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String modifiedBody = executor.decryptExecute(strategy, ruleHandle.getKey(), parseBody);
-
+        String modifiedBody = CryptorStrategyFactory.decrypt(ruleHandle.getStrategyName(), ruleHandle.getKey(), parseBody);
         if (modifiedBody == null) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DECRYPTION_ERROR.getCode(), ShenyuResultEnum.DECRYPTION_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return Mono.just(modifiedBody);
     }
-
 }

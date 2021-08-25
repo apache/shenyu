@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.common.handler;
+package org.apache.shenyu.plugin.cryptor.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.impl.CryptorRequestRuleHandle;
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class CryptorRequestPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, CryptorRequestRuleHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+    public static final Supplier<RuleHandleCache<String, CryptorRequestRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.common.strategies;
+package org.apache.shenyu.plugin.cryptor.strategy;
 
 import org.apache.shenyu.spi.Join;
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.common.handler;
+package org.apache.shenyu.plugin.cryptor.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.impl.CryptorResponseRuleHandle;
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class CryptorResponsePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, CryptorResponseRuleHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+    public static final Supplier<RuleHandleCache<String, CryptorResponseRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
@@ -46,7 +46,6 @@ public class CryptorResponsePluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeRule(final RuleData ruleData) {
-
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 

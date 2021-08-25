@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.common.utils;
+package org.apache.shenyu.plugin.cryptor.utils;
 
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.springframework.core.io.buffer.DataBufferUtils;

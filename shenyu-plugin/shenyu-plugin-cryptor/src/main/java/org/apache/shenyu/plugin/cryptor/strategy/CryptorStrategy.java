@@ -15,31 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.common.chain;
+package org.apache.shenyu.plugin.cryptor.strategy;
 
-import org.apache.shenyu.plugin.cryptor.common.strategies.CryptorStrategy;
+import org.apache.shenyu.spi.SPI;
 
 /**
- * Cryptor chain.
+ * strategy.
  */
-public interface CryptorChain {
+@SPI
+public interface CryptorStrategy {
 
     /**
      * decrypt.
-     * @param cryptorStrategy strategy
      * @param key key
      * @param encryptData encryptData
-     * @return data.
+     * @return data
+     * @throws Exception error
      */
-    String decryptExecute(CryptorStrategy cryptorStrategy, String key, String encryptData);
+    String decrypt(String key, String encryptData) throws Exception;
 
     /**
      * encrypt.
-     * @param cryptorStrategy strategy
      * @param key key
      * @param data data
      * @return encryptData.
+     * @throws Exception error
      */
-    String encryptExecute(CryptorStrategy cryptorStrategy, String key, String data);
-
+    String encrypt(String key, String data) throws Exception;
 }
