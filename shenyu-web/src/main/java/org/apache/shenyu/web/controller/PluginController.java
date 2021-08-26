@@ -205,6 +205,7 @@ public class PluginController {
         SelectorData selectorData = SelectorData.builder()
                 .pluginName(selectorRulesData.getPluginName())
                 .handle(selectorRulesData.getSelectorHandler())
+                .matchMode(selectorRulesData.getMatchMode())
                 .conditionList(selectorRulesData.getConditionDataList())
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .build();
@@ -216,6 +217,7 @@ public class PluginController {
                     .selectorId(result.getId())
                     .pluginName(result.getPluginName())
                     .name(data.getRuleName())
+                    .matchMode(data.getMatchMode())
                     .handle(data.getRuleHandler())
                     .conditionDataList(data.getConditionDataList())
                     .build();
@@ -473,6 +475,8 @@ public class PluginController {
     
         private String selectorName;
     
+        private Integer matchMode;
+    
         private String selectorHandler;
     
         private List<ConditionData> conditionDataList;
@@ -534,6 +538,24 @@ public class PluginController {
         }
     
         /**
+         * Gets match mode.
+         *
+         * @return the match mode
+         */
+        public Integer getMatchMode() {
+            return matchMode;
+        }
+    
+        /**
+         * Sets match mode.
+         *
+         * @param matchMode the match mode
+         */
+        public void setMatchMode(final Integer matchMode) {
+            this.matchMode = matchMode;
+        }
+    
+        /**
          * Gets condition data list.
          *
          * @return the condition data list
@@ -575,10 +597,12 @@ public class PluginController {
      * The type Rule data dto.
      */
     public static class RuleLocalData {
-        
+    
         private String ruleName;
         
         private String ruleHandler;
+        
+        private Integer matchMode;
         
         private List<ConditionData> conditionDataList;
     
@@ -616,6 +640,24 @@ public class PluginController {
          */
         public void setRuleHandler(final String ruleHandler) {
             this.ruleHandler = ruleHandler;
+        }
+    
+        /**
+         * Gets match mode.
+         *
+         * @return the match mode
+         */
+        public Integer getMatchMode() {
+            return matchMode;
+        }
+    
+        /**
+         * Sets match mode.
+         *
+         * @param matchMode the match mode
+         */
+        public void setMatchMode(final Integer matchMode) {
+            this.matchMode = matchMode;
         }
     
         /**
