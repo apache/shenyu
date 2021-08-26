@@ -104,12 +104,11 @@ public final class RedirectPluginTest extends AbstractPluginDataInit {
         uriData.setOperator(OperatorEnum.EQ.getAlias());
         uriData.setParamValue(uri);
         results.add(uriData);
-    
         ConditionData queryData = new ConditionData();
-        uriData.setParamType(ParamTypeEnum.QUERY.getName());
-        uriData.setOperator(OperatorEnum.EQ.getAlias());
-        uriData.setParamName("name");
-        uriData.setParamValue(query);
+        queryData.setParamType(ParamTypeEnum.QUERY.getName());
+        queryData.setOperator(OperatorEnum.EQ.getAlias());
+        queryData.setParamName("name");
+        queryData.setParamValue(query);
         results.add(queryData);
         return results;
     }
