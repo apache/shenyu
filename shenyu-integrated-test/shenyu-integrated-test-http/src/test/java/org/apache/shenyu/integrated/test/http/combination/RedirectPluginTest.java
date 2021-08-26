@@ -53,7 +53,7 @@ public final class RedirectPluginTest extends AbstractPluginDataInit {
     }
     
     @Test
-    public void test() throws IOException {
+    public void testRedirectPlugin() throws IOException {
         final String redirectUserId = "111";
         final String redirectToInnerPathUrl = "/http/test/path/" + redirectUserId + "?name=redirectToInnerPath";
         Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway(redirectToInnerPathUrl, Map.class);
@@ -99,18 +99,18 @@ public final class RedirectPluginTest extends AbstractPluginDataInit {
     
     private static List<ConditionData> buildRuleConditionList(final String uri, final String query) {
         List<ConditionData> results = new ArrayList<>();
-        ConditionData uriData = new ConditionData();
-        uriData.setParamType(ParamTypeEnum.URI.getName());
-        uriData.setOperator(OperatorEnum.EQ.getAlias());
-        uriData.setParamValue(uri);
-        results.add(uriData);
-        ConditionData queryData = new ConditionData();
-        queryData.setParamType(ParamTypeEnum.QUERY.getName());
-        queryData.setOperator(OperatorEnum.EQ.getAlias());
-        queryData.setParamName("name");
-        queryData.setParamValue(query);
-        results.add(queryData);
+        results.add(buildConditionData(ParamTypeEnum.URI.getName(), uri));
+        results.add(buildConditionData(ParamTypeEnum.QUERY.getName(), query));
         return results;
+    }
+    
+    private static ConditionData buildConditionData(final String paramType, final String paramValue) {
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(paramType);
+        conditionData.setOperator(OperatorEnum.EQ.getAlias());
+        conditionData.setParamName("name");
+        conditionData.setParamValue(paramValue);
+        return conditionData;
     }
     
     @AfterClass
