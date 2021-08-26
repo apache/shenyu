@@ -122,7 +122,7 @@ public final class DashboardUserControllerTest {
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andExpect(jsonPath("$.data.password", is("123456")));
+                .andExpect(jsonPath("$.data.password", is("")));
 
         given(dashboardUserService.findById(any())).willReturn(null);
         mockMvc.perform(get(url))
