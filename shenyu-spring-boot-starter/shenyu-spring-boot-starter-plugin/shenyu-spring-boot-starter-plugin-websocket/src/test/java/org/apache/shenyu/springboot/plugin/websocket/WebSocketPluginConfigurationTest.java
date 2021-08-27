@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WebSocketPluginConfigurationTest {
 
     @Test
-    public void testDividePlugin() {
+    public void testWebSocketPlugin() {
         new ApplicationContextRunner()
             .withConfiguration(
                 AutoConfigurations.of(
