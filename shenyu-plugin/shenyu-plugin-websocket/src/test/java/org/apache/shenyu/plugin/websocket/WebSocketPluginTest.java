@@ -132,7 +132,7 @@ public class WebSocketPluginTest {
      */
     @Test
     public void namedTest() {
-        Assert.assertEquals(PluginEnum.DIVIDE.getName(), webSocketPlugin.named());
+        Assert.assertEquals(PluginEnum.WEB_SOCKET.getName(), webSocketPlugin.named());
     }
 
     /**
