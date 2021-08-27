@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.handler;
+package org.apache.shenyu.plugin.websocket.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.dto.convert.WebsocketUpstream;
+import org.apache.shenyu.common.dto.convert.rule.impl.WebsocketRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -36,15 +36,15 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * The type Divide plugin data handler.
+ * The type WebSocket plugin data handler.
  */
-public class DividePluginDataHandler implements PluginDataHandler {
+public class WebSocketPluginDataHandler implements PluginDataHandler {
     
-    public static final Supplier<RuleHandleCache<String, DivideRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<RuleHandleCache<String, WebsocketRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
+        List<WebsocketUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), WebsocketUpstream.class);
         UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(upstreamList));
     }
 
@@ -56,8 +56,8 @@ public class DividePluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(s, DivideRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
+            WebsocketRuleHandle websocketRuleHandle = GsonUtils.getInstance().fromJson(s, WebsocketRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), websocketRuleHandle);
         });
     }
 
@@ -71,10 +71,10 @@ public class DividePluginDataHandler implements PluginDataHandler {
         return PluginEnum.DIVIDE.getName();
     }
     
-    private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
+    private List<Upstream> convertUpstreamList(final List<WebsocketUpstream> upstreamList) {
         return upstreamList.stream().map(u -> Upstream.builder()
                 .protocol(u.getProtocol())
-                .url(u.getUpstreamUrl())
+                .url(u.getUrl())
                 .weight(u.getWeight())
                 .status(u.isStatus())
                 .timestamp(u.getTimestamp())

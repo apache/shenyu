@@ -21,22 +21,31 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu</artifactId>
+        <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
         <version>2.4.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-loadbalancer</artifactId>
+    <artifactId>shenyu-spring-boot-starter-plugin-websocket</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spi</artifactId>
+            <artifactId>shenyu-plugin-websocket</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-common</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -29,7 +29,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

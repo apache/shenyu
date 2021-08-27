@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.websocket;
+package org.apache.shenyu.plugin.websocket;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -34,7 +34,6 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -82,15 +81,15 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(shenyuContext)) {
-            LOG.error("divide upstream configuration error：{}", rule.toString());
+            LOG.error("websocket upstream configuration error：{}", rule.toString());
             return chain.execute(exchange);
         }
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(upstreamList), ruleHandle.getLoadBalance(), ip);
+        Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("websocket has no upstream");
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
@@ -130,21 +129,10 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                         header.getValue()));
         return filtered;
     }
-    
-    private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
-        return upstreamList.stream().map(u -> Upstream.builder()
-                .protocol(u.getProtocol())
-                .url(u.getUpstreamUrl())
-                .weight(u.getWeight())
-                .status(u.isStatus())
-                .timestamp(u.getTimestamp())
-                .warmup(u.getWarmup())
-                .build()).collect(Collectors.toList());
-    }
 
     @Override
     public String named() {
-        return PluginEnum.DIVIDE.getName();
+        return PluginEnum.WEB_SOCKET.getName();
     }
 
     /**

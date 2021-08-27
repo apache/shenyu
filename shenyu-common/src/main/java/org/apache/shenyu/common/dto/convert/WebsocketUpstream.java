@@ -15,17 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.loadbalancer.entity;
+package org.apache.shenyu.common.dto.convert;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * this is upstream.
+ * this is Websocket upstream.
  */
-public final class Upstream {
-    
+public class WebsocketUpstream implements Serializable {
+
+    private static final long serialVersionUID = 6252280511262542360L;
+
     /**
-     * protocol.
+     * host.
+     */
+    private String host;
+
+    /**
+     * this is http protocol.
      */
     private String protocol;
 
@@ -38,29 +46,29 @@ public final class Upstream {
      * weight.
      */
     private int weight;
-    
+
     /**
      * false close/ true open.
      */
     private boolean status;
-    
+
     /**
      * startup time.
      */
     private long timestamp;
-    
+
     /**
      * warmup.
      */
     private int warmup;
-    
-    private boolean healthy;
-    
-    private long lastHealthTimestamp;
-    
-    private long lastUnhealthyTimestamp;
-    
-    private Upstream(final Builder builder) {
+
+    /**
+     * builder constructor.
+     *
+     * @param builder builder
+     */
+    private WebsocketUpstream(final Builder builder) {
+        this.host = builder.host;
         this.protocol = builder.protocol;
         this.url = builder.url;
         this.weight = builder.weight;
@@ -68,142 +76,143 @@ public final class Upstream {
         this.timestamp = builder.timestamp;
         this.warmup = builder.warmup;
     }
-    
-    /**
-     * Gets protocol.
-     *
-     * @return the protocol
-     */
-    public String getProtocol() {
-        return protocol;
-    }
-    
-    /**
-     * Is status boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isStatus() {
-        return status;
-    }
-    
-    /**
-     * Sets status.
-     *
-     * @param status the status
-     */
-    public void setStatus(final boolean status) {
-        this.status = status;
-    }
-    
-    /**
-     * Gets timestamp.
-     *
-     * @return the timestamp
-     */
-    public long getTimestamp() {
-        return timestamp;
-    }
-    
-    /**
-     * Gets warmup.
-     *
-     * @return the warmup
-     */
-    public int getWarmup() {
-        return warmup;
-    }
-    
-    /**
-     * Gets url.
-     *
-     * @return the url
-     */
-    public String getUrl() {
-        return url;
-    }
-    
-    /**
-     * Sets url.
-     *
-     * @param url the url
-     */
-    public void setUrl(final String url) {
-        this.url = url;
-    }
-    
-    /**
-     * get weight.
-     *
-     * @return weight weight
-     */
-    public int getWeight() {
-        return weight;
-    }
-    
-    /**
-     * Is healthy boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isHealthy() {
-        return healthy;
-    }
-    
-    /**
-     * Sets healthy.
-     *
-     * @param healthy the healthy
-     */
-    public void setHealthy(final boolean healthy) {
-        this.healthy = healthy;
-    }
-    
-    /**
-     * Gets last health timestamp.
-     *
-     * @return the last health timestamp
-     */
-    public long getLastHealthTimestamp() {
-        return lastHealthTimestamp;
-    }
-    
-    /**
-     * Sets last health timestamp.
-     *
-     * @param lastHealthTimestamp the last health timestamp
-     */
-    public void setLastHealthTimestamp(final long lastHealthTimestamp) {
-        this.lastHealthTimestamp = lastHealthTimestamp;
-    }
-    
-    /**
-     * Gets last unhealthy timestamp.
-     *
-     * @return the last unhealthy timestamp
-     */
-    public long getLastUnhealthyTimestamp() {
-        return lastUnhealthyTimestamp;
-    }
-    
-    /**
-     * Sets last unhealthy timestamp.
-     *
-     * @param lastUnhealthyTimestamp the last unhealthy timestamp
-     */
-    public void setLastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
-        this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
-    }
-    
+
     /**
      * class builder.
      *
-     * @return Builder builder
+     * @return Builder
      */
     public static Builder builder() {
         return new Builder();
     }
+
+    /**
+     * get host.
+     *
+     * @return host
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * set host.
+     *
+     * @param host upstreamHost
+     */
+    public void setHost(final String host) {
+        this.host = host;
+    }
+
+    /**
+     * get protocol.
+     *
+     * @return protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * set protocol.
+     *
+     * @param protocol protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
+    /**
+     * get url.
+     *
+     * @return url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * set url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * get weight.
+     *
+     * @return weight
+     */
+    public int getWeight() {
+        return weight;
+    }
+
+    /**
+     * set weight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
+    }
+
+    /**
+     * get status.
+     *
+     * @return status
+     */
+    public boolean isStatus() {
+        return status;
+    }
+
+    /**
+     * set status.
+     *
+     * @param status status
+     */
+    public void setStatus(final boolean status) {
+        this.status = status;
+    }
+
+    /**
+     * get timestamp.
+     *
+     * @return timestamp
+     */
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * set timestamp.
+     *
+     * @param timestamp timestamp
+     */
+    public void setTimestamp(final long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    /**
+     * get warmup.
+     *
+     * @return warmup
+     */
+    public int getWarmup() {
+        return warmup;
+    }
+
+    /**
+     * set warmup.
+     *
+     * @param warmup warmup
+     */
+    public void setWarmup(final int warmup) {
+        this.warmup = warmup;
+    }
     
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -212,22 +221,27 @@ public final class Upstream {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Upstream that = (Upstream) o;
-        return Objects.equals(url, that.url) && Objects.equals(protocol, that.protocol) && Objects.equals(weight, that.weight);
+        WebsocketUpstream that = (WebsocketUpstream) o;
+        return Objects.equals(host, that.host) && Objects.equals(protocol, that.protocol) && Objects.equals(url, that.url);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(protocol, url, weight);
+        return Objects.hash(host, protocol, url);
     }
 
     @Override
     public String toString() {
-        return "Upstream{"
-                + "protocol='"
+        return "DivideUpstream{"
+                + "host='"
+                + host
+                + '\''
+                + ", protocol='"
                 + protocol
+                + '\''
                 + ", url='"
-                + url 
+                + url
+                + '\''
                 + ", weight="
                 + weight
                 + ", status="
@@ -239,116 +253,134 @@ public final class Upstream {
                 + '}';
     }
     
+
     /**
      * class builder.
      */
     public static final class Builder {
-    
+
+        /**
+         * host.
+         */
+        private String host;
+
         /**
          * protocol.
          */
         private String protocol;
-        
+
         /**
          * url.
          */
         private String url;
-        
+
         /**
          * weight.
          */
-        private int weight = 50;
-        
+        private int weight;
+
         /**
          * status.
          */
-        private boolean status = true;
+        private boolean status;
         
+
         /**
          * timestamp.
          */
         private long timestamp;
-        
+
         /**
          * warmup.
          */
-        private int warmup = 10 * 60 * 1000;
-        
+        private int warmup;
+
         /**
          * no args constructor.
          */
         private Builder() {
         }
-    
+
         /**
          * build new Object.
          *
-         * @return Upstream upstream
+         * @return DivideUpstream
          */
-        public Upstream build() {
-            return new Upstream(this);
+        public WebsocketUpstream build() {
+            return new WebsocketUpstream(this);
         }
-    
+
+        /**
+         * build host.
+         *
+         * @param host host
+         * @return this
+         */
+        public Builder host(final String host) {
+            this.host = host;
+            return this;
+        }
+
         /**
          * build protocol.
          *
          * @param protocol protocol
-         * @return this builder
+         * @return this
          */
         public Builder protocol(final String protocol) {
             this.protocol = protocol;
             return this;
         }
-    
+
         /**
          * build url.
          *
          * @param url url
-         * @return this builder
+         * @return this
          */
-        public Builder url(final String url) {
+        public Builder upstreamUrl(final String url) {
             this.url = url;
             return this;
         }
-    
+
         /**
          * build weight.
          *
          * @param weight weight
-         * @return this builder
+         * @return this
          */
         public Builder weight(final int weight) {
             this.weight = weight;
             return this;
         }
-    
+
         /**
          * build status.
          *
          * @param status status
-         * @return this builder
+         * @return this
          */
         public Builder status(final boolean status) {
             this.status = status;
             return this;
         }
-    
+
         /**
          * build timestamp.
          *
          * @param timestamp timestamp
-         * @return this builder
+         * @return this
          */
         public Builder timestamp(final long timestamp) {
             this.timestamp = timestamp;
             return this;
         }
-    
+
         /**
          * build warmup.
          *
          * @param warmup warmup
-         * @return this builder
+         * @return this
          */
         public Builder warmup(final int warmup) {
             this.warmup = warmup;

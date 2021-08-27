@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.healthcheck;
+package org.apache.shenyu.loadbalancer.cache;
 
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 
@@ -27,20 +27,23 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertTrue;
 
 /**
- * Test Cases for HealthCheckTask.
+ * The type Upstream check task test.
  */
-public class HealthCheckTaskTest {
+public class UpstreamCheckTaskTest {
 
     /**
      *  Here to set interval with 50s to avoid running the second time.
      */
-    private HealthCheckTask healthCheckTask = new HealthCheckTask(50000);
-
+    private UpstreamCheckTask healthCheckTask = new UpstreamCheckTask(50000);
+    
+    /**
+     * Test run.
+     */
     @Test(timeout = 30000)
     public void testRun() {
         // Mock selectorId1~selectorId4 to let it coverage 4 branch of `HealthCheckTask#check` method
@@ -52,7 +55,7 @@ public class HealthCheckTaskTest {
         SelectorData selectorData3 = mock(SelectorData.class);
         final String selectorId4 = "s4";
         SelectorData selectorData4 = mock(SelectorData.class);
-        DivideUpstream divideUpstream = mock(DivideUpstream.class);
+        Upstream upstream = mock(Upstream.class);
         when(selectorData1.getId()).thenReturn(selectorId1);
         when(selectorData2.getId()).thenReturn(selectorId2);
         when(selectorData3.getId()).thenReturn(selectorId3);
@@ -62,63 +65,56 @@ public class HealthCheckTaskTest {
         // We should use powermock or mockito to mock static method of `UpstreamCheckUtils.checkUrl`,
         // But mocked static method is not valid across thread. Because `UpstreamCheckUtils.checkUrl` is called in
         // HealthCheckTask inner thread pool, but mocked in current thread. So we turn to do like below.
-        when(divideUpstream.getUpstreamUrl()).thenReturn("");
-        when(divideUpstream.isHealthy()).thenReturn(true).thenReturn(false);
+        when(upstream.getUrl()).thenReturn("");
+        when(upstream.isHealthy()).thenReturn(true).thenReturn(false);
 
-        healthCheckTask.triggerAddOne(selectorData1, divideUpstream);
-        healthCheckTask.triggerAddOne(selectorData2, divideUpstream);
-        healthCheckTask.triggerAddOne(selectorData3, divideUpstream);
-        healthCheckTask.triggerAddOne(selectorData4, divideUpstream);
+        healthCheckTask.triggerAddOne(selectorData1.getId(), upstream);
+        healthCheckTask.triggerAddOne(selectorData2.getId(), upstream);
+        healthCheckTask.triggerAddOne(selectorData3.getId(), upstream);
+        healthCheckTask.triggerAddOne(selectorData4.getId(), upstream);
         healthCheckTask.schedule();
         // Wait for the upstream-health-check thread to start.
-        Awaitility.await().pollDelay(3, TimeUnit.SECONDS).untilAsserted(() -> {
-            assertFalse(healthCheckTask.getCheckStarted().get());
-        });
+        Awaitility.await().pollDelay(3, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
         assertTrue(healthCheckTask.getHealthyUpstream().containsKey(selectorId1));
         // Let it coverage line 151~163
-        when(divideUpstream.isHealthy()).thenReturn(false).thenReturn(true);
+        when(upstream.isHealthy()).thenReturn(false).thenReturn(true);
         // Even if the address could not connect, it will return false, that mean it will not coverage 151~163.
-        when(divideUpstream.getUpstreamUrl()).thenReturn("http://www.baidu.com");
+        when(upstream.getUrl()).thenReturn("http://www.baidu.com");
         // Manually run one time
         healthCheckTask.run();
-        Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            assertFalse(healthCheckTask.getCheckStarted().get());
-        });
+        Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
         assertTrue(healthCheckTask.getUnhealthyUpstream().containsKey(selectorId1));
     }
-
+    
+    /**
+     * Test trigger remove one.
+     */
     @Test
     public void testTriggerRemoveOne() {
         final String selectorId = "s1";
-        SelectorData selectorData = mock(SelectorData.class);
-        DivideUpstream divideUpstream = mock(DivideUpstream.class);
-        when(selectorData.getId()).thenReturn(selectorId);
-        healthCheckTask.triggerAddOne(selectorData, divideUpstream);
-        healthCheckTask.triggerRemoveOne(selectorData, divideUpstream);
-        assertTrue(healthCheckTask.getSelectorCache().containsKey(selectorId));
+        Upstream upstream = mock(Upstream.class);
+        healthCheckTask.triggerAddOne(selectorId, upstream);
+        healthCheckTask.triggerRemoveOne(selectorId, upstream);
         assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(0));
 
-        healthCheckTask.triggerAddOne(selectorData, divideUpstream);
-        healthCheckTask.triggerRemoveOne(selectorId, divideUpstream);
-        assertTrue(healthCheckTask.getSelectorCache().containsKey(selectorId));
+        healthCheckTask.triggerAddOne(selectorId, upstream);
+        healthCheckTask.triggerRemoveOne(selectorId, upstream);
         assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(0));
-        healthCheckTask.getSelectorCache().clear();
     }
-
+    
+    /**
+     * Test trigger remove all.
+     */
     @Test
     public void testTriggerRemoveAll() {
         final String selectorId = "s1";
-        SelectorData selectorData = mock(SelectorData.class);
-        DivideUpstream divideUpstream = mock(DivideUpstream.class);
-        when(selectorData.getId()).thenReturn(selectorId);
-        healthCheckTask.triggerAddOne(selectorData, divideUpstream);
+        Upstream upstream = mock(Upstream.class);
+        healthCheckTask.triggerAddOne(selectorId, upstream);
         healthCheckTask.triggerRemoveAll(selectorId);
-        assertFalse(healthCheckTask.getSelectorCache().containsKey(selectorId));
         assertFalse(healthCheckTask.getHealthyUpstream().containsKey(selectorId));
 
-        healthCheckTask.triggerAddOne(selectorData, divideUpstream);
-        healthCheckTask.triggerRemoveAll(selectorData);
-        assertFalse(healthCheckTask.getSelectorCache().containsKey(selectorId));
+        healthCheckTask.triggerAddOne(selectorId, upstream);
+        healthCheckTask.triggerRemoveAll(selectorId);
         assertFalse(healthCheckTask.getHealthyUpstream().containsKey(selectorId));
     }
 }

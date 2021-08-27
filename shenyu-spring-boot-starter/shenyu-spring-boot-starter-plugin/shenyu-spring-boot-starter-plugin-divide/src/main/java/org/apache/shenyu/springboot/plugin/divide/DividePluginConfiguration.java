@@ -23,13 +23,8 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.divide.DividePlugin;
 import org.apache.shenyu.plugin.divide.context.DivideShenyuContextDecorator;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
-import org.apache.shenyu.plugin.divide.websocket.WebSocketPlugin;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
-import org.springframework.web.reactive.socket.client.WebSocketClient;
-import org.springframework.web.reactive.socket.server.WebSocketService;
-import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 
 /**
  * ShenyuConfiguration.
@@ -46,8 +41,7 @@ public class DividePluginConfiguration {
     public ShenyuPlugin dividePlugin() {
         return new DividePlugin();
     }
-
-
+    
     /**
      * Divide plugin data handler plugin data handler.
      *
@@ -56,38 +50,6 @@ public class DividePluginConfiguration {
     @Bean
     public PluginDataHandler dividePluginDataHandler() {
         return new DividePluginDataHandler();
-    }
-
-    /**
-     * Web socket plugin web socket plugin.
-     *
-     * @param webSocketClient  the web socket client
-     * @param webSocketService the web socket service
-     * @return the web socket plugin
-     */
-    @Bean
-    public WebSocketPlugin webSocketPlugin(final WebSocketClient webSocketClient, final WebSocketService webSocketService) {
-        return new WebSocketPlugin(webSocketClient, webSocketService);
-    }
-
-    /**
-     * Reactor netty web socket client reactor netty web socket client.
-     *
-     * @return the reactor netty web socket client
-     */
-    @Bean
-    public ReactorNettyWebSocketClient reactorNettyWebSocketClient() {
-        return new ReactorNettyWebSocketClient();
-    }
-
-    /**
-     * Web socket service web socket service.
-     *
-     * @return the web socket service
-     */
-    @Bean
-    public WebSocketService webSocketService() {
-        return new HandshakeWebSocketService();
     }
     
     /**
