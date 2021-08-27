@@ -57,12 +57,12 @@ INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name
 INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1424405341344010240', '1424405341335621632', 'query', '=', 'name', 'redirectToInnerPath', '2021-08-09 00:30:21', '2021-08-09 00:30:22');
 
 /** prepare jwt **/
-UPDATE plugin SET config = '{"secretKey":"key00000","filterPath":"/http/test/path/1111/name"}', enabled = 1 WHERE id = '19';
-INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1425390877916254208', '19', 'http-jwt', 0, 1, 1, null, 1, 1, 1,'2021-08-11 17:37:22','2021-08-11 21:08:25');
-INSERT IGNORE INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425390877920448512', '1425390877916254208', 'uri', 'match', '/', '/http/**','2021-08-11 17:37:22','2021-08-11 17:37:22');
-INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, date_created, date_updated) VALUES ('1425390970652315648', '1425390877916254208', 1, 'http-jwt', 1, 1, 1,'2021-08-11 17:37:45','2021-08-11 21:07:26');
-INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425450010986262528', '1425390970652315648', 'uri', '=', '/', '/http/test/findByUserId','2021-08-04 13:09:32','2021-08-04 13:09:32');
-INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425479564999307264', '1425390970652315648', 'uri', '=', '/', '/http/test/path/1111/name','2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- UPDATE plugin SET config = '{"secretKey":"key00000","filterPath":"/http/test/path/1111/name"}', enabled = 1 WHERE id = '19';
+-- INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1425390877916254208', '19', 'http-jwt', 0, 1, 1, null, 1, 1, 1,'2021-08-11 17:37:22','2021-08-11 21:08:25');
+-- INSERT IGNORE INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425390877920448512', '1425390877916254208', 'uri', 'match', '/', '/http/**','2021-08-11 17:37:22','2021-08-11 17:37:22');
+-- INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, date_created, date_updated) VALUES ('1425390970652315648', '1425390877916254208', 1, 'http-jwt', 1, 1, 1,'2021-08-11 17:37:45','2021-08-11 21:07:26');
+-- INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425450010986262528', '1425390970652315648', 'uri', '=', '/', '/http/test/findByUserId','2021-08-04 13:09:32','2021-08-04 13:09:32');
+-- INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1425479564999307264', '1425390970652315648', 'uri', '=', '/', '/http/test/path/1111/name','2021-08-04 13:09:32','2021-08-04 13:09:32');
 
 /** prepare context-path **/
 INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1429645721775689728', '14', '/context-path-test/error', 0, 1, 1, NULL, 1, 1, 1, '2021-08-23 11:24:36', '2021-08-23 11:24:36');
