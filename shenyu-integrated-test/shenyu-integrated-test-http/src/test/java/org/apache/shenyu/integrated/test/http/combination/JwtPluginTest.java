@@ -26,6 +26,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.PluginController;
 import org.hamcrest.CoreMatchers;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -45,9 +46,9 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
     @BeforeClass
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"key00000\",\"filterPath\":\"/http/test/path/1111/name\"}");
-        assertThat(pluginResult, CoreMatchers.is("success"));
+        assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.JWT.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
-        assertThat(selectorAndRulesResult, CoreMatchers.is("success"));
+        assertThat(selectorAndRulesResult, is("success"));
     }
 
     @Test
@@ -96,5 +97,10 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
         PluginController.RuleLocalData ruleLocalData = new PluginController.RuleLocalData();
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
         return ruleLocalData;
+    }
+
+    @AfterClass
+    public static void clean() throws IOException {
+        cleanPluginData(PluginEnum.JWT.getName());
     }
 }
