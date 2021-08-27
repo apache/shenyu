@@ -26,6 +26,8 @@ import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -33,7 +35,6 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Divide Plugin.
@@ -79,14 +81,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
-        if (Objects.isNull(divideUpstream)) {
+        Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(upstreamList), ruleHandle.getLoadBalance(), ip);
+        if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
-        String domain = buildDomain(divideUpstream);
+        String domain = buildDomain(upstream);
         String realURL = buildRealURL(domain, shenyuContext, exchange);
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         // set the http timeout
@@ -121,12 +123,12 @@ public class DividePlugin extends AbstractShenyuPlugin {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
 
-    private String buildDomain(final DivideUpstream divideUpstream) {
-        String protocol = divideUpstream.getProtocol();
+    private String buildDomain(final Upstream upstream) {
+        String protocol = upstream.getProtocol();
         if (StringUtils.isBlank(protocol)) {
             protocol = "http://";
         }
-        return protocol + divideUpstream.getUpstreamUrl().trim();
+        return protocol + upstream.getUrl().trim();
     }
 
     private String buildRealURL(final String domain, final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
@@ -145,5 +147,16 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return path + "?" + query;
         }
         return path;
+    }
+    
+    private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
+        return upstreamList.stream().map(u -> Upstream.builder()
+                .protocol(u.getProtocol())
+                .url(u.getUpstreamUrl())
+                .weight(u.getWeight())
+                .status(u.isStatus())
+                .timestamp(u.getTimestamp())
+                .warmup(u.getWarmup())
+                .build()).collect(Collectors.toList());
     }
 }

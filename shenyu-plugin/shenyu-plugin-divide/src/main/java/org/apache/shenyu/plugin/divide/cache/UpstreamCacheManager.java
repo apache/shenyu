@@ -27,8 +27,6 @@ import org.apache.shenyu.common.healthcheck.HealthCheckTask;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -40,8 +38,6 @@ import java.util.concurrent.TimeUnit;
  * this is divide  http url upstream.
  */
 public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRuleHandle> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCacheManager.class);
 
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
 
@@ -140,21 +136,18 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
         final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isNotEmpty(upstreamList)) {
             List<DivideUpstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorData.getId(), k -> Lists.newArrayList());
-
             // check upstream delete
             for (DivideUpstream upstream : existUpstream) {
                 if (!upstreamList.contains(upstream)) {
                     task.triggerRemoveOne(selectorData, upstream);
                 }
             }
-
             // check upstream add
             for (DivideUpstream upstream : upstreamList) {
                 if (!existUpstream.contains(upstream)) {
                     task.triggerAddOne(selectorData, upstream);
                 }
             }
-
             // replace upstream
             UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
         } else {

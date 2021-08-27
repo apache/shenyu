@@ -15,19 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.spi;
+package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.plugin.divide.balance.LoadBalance;
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 
 import java.util.List;
 
 /**
- * The type Abstract load balance.
+ * The type Abstract load balancer.
  */
-public abstract class AbstractLoadBalance implements LoadBalance {
+public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     /**
      * Do select divide upstream.
@@ -36,11 +33,11 @@ public abstract class AbstractLoadBalance implements LoadBalance {
      * @param ip           the ip
      * @return the divide upstream
      */
-    protected abstract DivideUpstream doSelect(List<DivideUpstream> upstreamList, String ip);
+    protected abstract Upstream doSelect(List<Upstream> upstreamList, String ip);
 
     @Override
-    public DivideUpstream select(final List<DivideUpstream> upstreamList, final String ip) {
-        if (CollectionUtils.isEmpty(upstreamList)) {
+    public Upstream select(final List<Upstream> upstreamList, final String ip) {
+        if (upstreamList == null || upstreamList.isEmpty()) {
             return null;
         }
         if (upstreamList.size() == 1) {
@@ -49,11 +46,11 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         return doSelect(upstreamList, ip);
     }
 
-    protected int getWeight(final DivideUpstream upstream) {
+    protected int getWeight(final Upstream upstream) {
         if (!upstream.isStatus()) {
             return 0;
         }
-        return getWeight(upstream.getTimestamp(), getWarmup(upstream.getWarmup(), Constants.DEFAULT_WARMUP), upstream.getWeight());
+        return getWeight(upstream.getTimestamp(), upstream.getWarmup(), upstream.getWeight());
     }
 
     private int getWeight(final long timestamp, final int warmup, final int weight) {
@@ -66,16 +63,8 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         return weight;
     }
 
-    private int getWarmup(final int warmup, final int defaultWarmup) {
-        if (warmup > 0) {
-            return warmup;
-        }
-        return defaultWarmup;
-    }
-
     private int calculateWarmupWeight(final int uptime, final int warmup, final int weight) {
         int ww = (int) ((float) uptime / ((float) warmup / (float) weight));
         return ww < 1 ? 1 : (Math.min(ww, weight));
     }
-
 }

@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.util;
+package org.apache.shenyu.loadbalancer.factory;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,61 +30,61 @@ import java.util.stream.Stream;
 /**
  * The type loadBalance utils test.
  */
-public final class LoadBalanceUtilsTest {
+public final class LoadBalancerFactoryTest {
 
     /**
      * Load balance util test.
      */
     @Test
     public void loadBalanceUtilsOrderedWeightTest() {
-        List<DivideUpstream> upstreamList =
+        List<Upstream> upstreamList =
                 Stream.of(10, 20, 70)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("upstream-" + weight)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
                                 .weight(weight)
                                 .build())
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
-            DivideUpstream result = LoadBalanceUtils.selector(upstreamList, "roundRobin", "");
-            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
-            countMap.put(result.getUpstreamUrl(), ++count);
+            Upstream result = LoadBalancerFactory.selector(upstreamList, "roundRobin", "");
+            int count = countMap.getOrDefault(result.getUrl(), 0);
+            countMap.put(result.getUrl(), ++count);
         }
         Assert.assertEquals(12, countMap.get("upstream-10").intValue());
     }
 
     @Test
     public void loadBalanceUtilsDisOrderedWeightTest() {
-        List<DivideUpstream> upstreamList =
+        List<Upstream> upstreamList =
                 Stream.of(70, 10, 20)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("upstream-" + weight)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
                                 .weight(weight)
                                 .build())
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
-            DivideUpstream result = LoadBalanceUtils.selector(upstreamList, "roundRobin", "");
-            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
-            countMap.put(result.getUpstreamUrl(), ++count);
+            Upstream result = LoadBalancerFactory.selector(upstreamList, "roundRobin", "");
+            int count = countMap.getOrDefault(result.getUrl(), 0);
+            countMap.put(result.getUrl(), ++count);
         }
         Assert.assertEquals(12, countMap.get("upstream-10").intValue());
     }
 
     @Test
     public void loadBalanceUtilsReversedWeightTest() {
-        List<DivideUpstream> upstreamList =
+        List<Upstream> upstreamList =
                 Stream.of(70, 20, 10)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("upstream-" + weight)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
                                 .weight(weight)
                                 .build())
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
-            DivideUpstream result = LoadBalanceUtils.selector(upstreamList, "roundRobin", "");
-            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
-            countMap.put(result.getUpstreamUrl(), ++count);
+            Upstream result = LoadBalancerFactory.selector(upstreamList, "roundRobin", "");
+            int count = countMap.getOrDefault(result.getUrl(), 0);
+            countMap.put(result.getUrl(), ++count);
         }
         Assert.assertEquals(12, countMap.get("upstream-10").intValue());
     }

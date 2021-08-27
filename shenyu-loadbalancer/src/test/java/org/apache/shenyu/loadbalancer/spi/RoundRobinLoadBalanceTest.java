@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.spi;
+package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,61 +37,61 @@ public final class RoundRobinLoadBalanceTest {
      */
     @Test
     public void roundRobinLoadBalanceDisorderedWeightTest() {
-        List<DivideUpstream> divideUpstreamList =
+        List<Upstream> upstreamList =
                 Stream.of(50, 20, 30)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("divide-upstream-" + weight)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
                                 .weight(weight)
                                 .build())
                         .collect(Collectors.toList());
 
-        RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
+        RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
-            DivideUpstream result = roundRobinLoadBalance.select(divideUpstreamList, "");
-            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
-            countMap.put(result.getUpstreamUrl(), ++count);
+            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            int count = countMap.getOrDefault(result.getUrl(), 0);
+            countMap.put(result.getUrl(), ++count);
         }
-        Assert.assertEquals(60, countMap.get("divide-upstream-50").intValue());
+        Assert.assertEquals(60, countMap.get("upstream-50").intValue());
     }
 
     @Test
     public void roundRobinLoadBalanceOrderedWeightTest() {
-        List<DivideUpstream> divideUpstreamList =
+        List<Upstream> upstreamList =
                 Stream.of(20, 30, 50)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("divide-upstream-" + weight)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
                                 .weight(weight)
                                 .build())
                         .collect(Collectors.toList());
 
-        RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
+        RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
-            DivideUpstream result = roundRobinLoadBalance.select(divideUpstreamList, "");
-            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
-            countMap.put(result.getUpstreamUrl(), ++count);
+            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            int count = countMap.getOrDefault(result.getUrl(), 0);
+            countMap.put(result.getUrl(), ++count);
         }
-        Assert.assertEquals(60, countMap.get("divide-upstream-50").intValue());
+        Assert.assertEquals(60, countMap.get("upstream-50").intValue());
     }
 
     @Test
     public void roundRobinLoadBalanceReversedWeightTest() {
-        List<DivideUpstream> divideUpstreamList =
+        List<Upstream> upstreamList =
                 Stream.of(50, 30, 20)
-                        .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("divide-upstream-" + weight)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
                                 .weight(weight)
                                 .build())
                         .collect(Collectors.toList());
 
-        RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
+        RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
-            DivideUpstream result = roundRobinLoadBalance.select(divideUpstreamList, "");
-            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
-            countMap.put(result.getUpstreamUrl(), ++count);
+            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            int count = countMap.getOrDefault(result.getUrl(), 0);
+            countMap.put(result.getUrl(), ++count);
         }
-        Assert.assertEquals(60, countMap.get("divide-upstream-50").intValue());
+        Assert.assertEquals(60, countMap.get("upstream-50").intValue());
     }
 }
