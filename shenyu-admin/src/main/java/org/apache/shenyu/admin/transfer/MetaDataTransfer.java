@@ -78,6 +78,7 @@ public enum MetaDataTransfer {
                         .methodName(dto.getMethodName())
                         .parameterTypes(dto.getParameterTypes())
                         .rpcExt(dto.getRpcExt())
+                        .enabled(dto.isEnabled())
                         .build())
                 .orElse(null);
     }
