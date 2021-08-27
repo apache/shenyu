@@ -23,7 +23,7 @@ import java.util.Objects;
 /**
  * this is Websocket upstream.
  */
-public class WebsocketUpstream implements Serializable {
+public final class WebsocketUpstream implements Serializable {
 
     private static final long serialVersionUID = 6252280511262542360L;
 
@@ -212,7 +212,6 @@ public class WebsocketUpstream implements Serializable {
         this.warmup = warmup;
     }
     
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

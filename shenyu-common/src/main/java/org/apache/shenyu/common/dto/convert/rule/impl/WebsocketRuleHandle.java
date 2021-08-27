@@ -100,7 +100,6 @@ public class WebsocketRuleHandle implements RuleHandle {
         this.timeout = timeout;
     }
     
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
