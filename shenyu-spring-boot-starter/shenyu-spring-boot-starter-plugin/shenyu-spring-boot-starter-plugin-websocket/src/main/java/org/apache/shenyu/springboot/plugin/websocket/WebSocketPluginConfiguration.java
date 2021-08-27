@@ -29,19 +29,26 @@ import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 
-
+/**
+ * The type Web socket plugin configuration.
+ */
 @Configuration
 public class WebSocketPluginConfiguration {
     
+    /**
+     * Websocket plugin data handler plugin data handler.
+     *
+     * @return the plugin data handler
+     */
     @Bean
     public PluginDataHandler websocketPluginDataHandler() {
         return new WebSocketPluginDataHandler();
     }
-
+    
     /**
      * Web socket plugin web socket plugin.
      *
-     * @param webSocketClient  the web socket client
+     * @param webSocketClient the web socket client
      * @param webSocketService the web socket service
      * @return the web socket plugin
      */
@@ -49,7 +56,7 @@ public class WebSocketPluginConfiguration {
     public WebSocketPlugin webSocketPlugin(final WebSocketClient webSocketClient, final WebSocketService webSocketService) {
         return new WebSocketPlugin(webSocketClient, webSocketService);
     }
-
+    
     /**
      * Reactor netty web socket client reactor netty web socket client.
      *
@@ -59,7 +66,7 @@ public class WebSocketPluginConfiguration {
     public ReactorNettyWebSocketClient reactorNettyWebSocketClient() {
         return new ReactorNettyWebSocketClient();
     }
-
+    
     /**
      * Web socket service web socket service.
      *
@@ -70,6 +77,11 @@ public class WebSocketPluginConfiguration {
         return new HandshakeWebSocketService();
     }
     
+    /**
+     * Web socket shenyu context decorator shenyu context decorator.
+     *
+     * @return the shenyu context decorator
+     */
     @Bean
     public ShenyuContextDecorator webSocketShenyuContextDecorator() {
         return new WebSocketShenyuContextDecorator();
