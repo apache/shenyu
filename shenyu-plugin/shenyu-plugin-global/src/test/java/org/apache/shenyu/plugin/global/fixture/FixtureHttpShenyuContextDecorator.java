@@ -22,7 +22,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
-public final class FixtureShenyuContextDecorator implements ShenyuContextDecorator {
+public final class FixtureHttpShenyuContextDecorator implements ShenyuContextDecorator {
     
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {

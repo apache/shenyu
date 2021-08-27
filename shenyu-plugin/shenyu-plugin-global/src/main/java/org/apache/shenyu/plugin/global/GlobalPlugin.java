@@ -44,7 +44,7 @@ public class GlobalPlugin implements ShenyuPlugin {
     
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        ShenyuContext shenyuContext = builder.build(exchange);;
+        ShenyuContext shenyuContext = builder.build(exchange);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         return chain.execute(exchange);
     }
