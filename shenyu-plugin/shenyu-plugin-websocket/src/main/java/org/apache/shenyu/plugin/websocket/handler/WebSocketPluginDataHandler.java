@@ -19,8 +19,8 @@ package org.apache.shenyu.plugin.websocket.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.WebsocketUpstream;
-import org.apache.shenyu.common.dto.convert.rule.impl.WebsocketRuleHandle;
+import org.apache.shenyu.common.dto.convert.WebSocketUpstream;
+import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -40,11 +40,11 @@ import java.util.stream.Collectors;
  */
 public class WebSocketPluginDataHandler implements PluginDataHandler {
     
-    public static final Supplier<RuleHandleCache<String, WebsocketRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<RuleHandleCache<String, WebSocketRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        List<WebsocketUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), WebsocketUpstream.class);
+        List<WebSocketUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), WebSocketUpstream.class);
         UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(upstreamList));
     }
 
@@ -56,7 +56,7 @@ public class WebSocketPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            WebsocketRuleHandle websocketRuleHandle = GsonUtils.getInstance().fromJson(s, WebsocketRuleHandle.class);
+            WebSocketRuleHandle websocketRuleHandle = GsonUtils.getInstance().fromJson(s, WebSocketRuleHandle.class);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), websocketRuleHandle);
         });
     }
@@ -71,7 +71,7 @@ public class WebSocketPluginDataHandler implements PluginDataHandler {
         return PluginEnum.DIVIDE.getName();
     }
     
-    private List<Upstream> convertUpstreamList(final List<WebsocketUpstream> upstreamList) {
+    private List<Upstream> convertUpstreamList(final List<WebSocketUpstream> upstreamList) {
         return upstreamList.stream().map(u -> Upstream.builder()
                 .protocol(u.getProtocol())
                 .url(u.getUrl())

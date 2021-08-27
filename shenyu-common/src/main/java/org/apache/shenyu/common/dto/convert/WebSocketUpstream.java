@@ -21,9 +21,9 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * this is Websocket upstream.
+ * this is WebSocket upstream.
  */
-public final class WebsocketUpstream implements Serializable {
+public final class WebSocketUpstream implements Serializable {
 
     private static final long serialVersionUID = 6252280511262542360L;
 
@@ -67,7 +67,7 @@ public final class WebsocketUpstream implements Serializable {
      *
      * @param builder builder
      */
-    private WebsocketUpstream(final Builder builder) {
+    private WebSocketUpstream(final Builder builder) {
         this.host = builder.host;
         this.protocol = builder.protocol;
         this.url = builder.url;
@@ -220,7 +220,7 @@ public final class WebsocketUpstream implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        WebsocketUpstream that = (WebsocketUpstream) o;
+        WebSocketUpstream that = (WebSocketUpstream) o;
         return Objects.equals(host, that.host) && Objects.equals(protocol, that.protocol) && Objects.equals(url, that.url);
     }
 
@@ -305,8 +305,8 @@ public final class WebsocketUpstream implements Serializable {
          *
          * @return DivideUpstream
          */
-        public WebsocketUpstream build() {
-            return new WebsocketUpstream(this);
+        public WebSocketUpstream build() {
+            return new WebSocketUpstream(this);
         }
 
         /**

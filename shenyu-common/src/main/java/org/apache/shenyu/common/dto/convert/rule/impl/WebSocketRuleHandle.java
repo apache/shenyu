@@ -25,9 +25,9 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import java.util.Objects;
 
 /**
- * The type Websocket rule handle.
+ * The type WebSocket rule handle.
  */
-public class WebsocketRuleHandle implements RuleHandle {
+public class WebSocketRuleHandle implements RuleHandle {
 
     /**
      * loadBalance.
@@ -108,7 +108,7 @@ public class WebsocketRuleHandle implements RuleHandle {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        WebsocketRuleHandle that = (WebsocketRuleHandle) o;
+        WebSocketRuleHandle that = (WebSocketRuleHandle) o;
         return retry == that.retry && timeout == that.timeout && Objects.equals(loadBalance, that.loadBalance);
     }
 

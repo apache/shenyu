@@ -91,7 +91,7 @@ public final class UpstreamCacheManager {
             }
         }
     }
-
+    
     /**
      * Gets instance.
      *
@@ -100,7 +100,7 @@ public final class UpstreamCacheManager {
     public static UpstreamCacheManager getInstance() {
         return INSTANCE;
     }
-
+    
     /**
      * Find upstream list by selector id list.
      *
@@ -110,7 +110,7 @@ public final class UpstreamCacheManager {
     public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
         return task.getHealthyUpstream().get(selectorId);
     }
-
+    
     /**
      * Remove by key.
      *
@@ -120,10 +120,12 @@ public final class UpstreamCacheManager {
         UPSTREAM_MAP.remove(key);
         task.triggerRemoveAll(key);
     }
-
+    
     /**
      * Submit.
      *
+     * @param selectorId the selector id
+     * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
         if (CollectionUtils.isNotEmpty(upstreamList)) {
