@@ -14,6 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-random=org.apache.shenyu.plugin.divide.balance.spi.RandomLoadBalance
-roundRobin=org.apache.shenyu.plugin.divide.balance.spi.RoundRobinLoadBalance
-hash=org.apache.shenyu.plugin.divide.balance.spi.HashLoadBalance
+random=org.apache.shenyu.loadbalancer.spi.RandomLoadBalancer
+roundRobin=org.apache.shenyu.loadbalancer.spi.RoundRobinLoadBalancer
+hash=org.apache.shenyu.loadbalancer.spi.HashLoadBalancer

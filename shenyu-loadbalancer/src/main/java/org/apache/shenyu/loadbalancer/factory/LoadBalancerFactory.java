@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.utils;
+package org.apache.shenyu.loadbalancer.factory;
 
-import org.apache.shenyu.plugin.divide.balance.LoadBalance;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 import java.util.List;
 
 /**
- * The type Load balance utils.
+ * The type Load balance Factory.
  */
-public class LoadBalanceUtils {
+public class LoadBalancerFactory {
 
     /**
      * Selector divide upstream.
@@ -36,8 +36,8 @@ public class LoadBalanceUtils {
      * @param ip           the ip
      * @return the divide upstream
      */
-    public static DivideUpstream selector(final List<DivideUpstream> upstreamList, final String algorithm, final String ip) {
-        LoadBalance loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getJoin(algorithm);
+    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
+        LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
         return loadBalance.select(upstreamList, ip);
     }
 }
