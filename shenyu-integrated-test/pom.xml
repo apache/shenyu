@@ -32,6 +32,8 @@
         <module>shenyu-integrated-test-http</module>
         <module>shenyu-integrated-test-spring-cloud</module>
         <module>shenyu-integrated-test-common</module>
+        <module>shenyu-integration-test-alibaba-dubbo</module>
+        <module>shenyu-integration-test-apache-dubbo</module>
     </modules>
 
     <properties>
