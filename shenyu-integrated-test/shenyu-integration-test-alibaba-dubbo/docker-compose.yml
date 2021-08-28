@@ -64,7 +64,7 @@ services:
       shenyu-admin:
         condition: service_healthy
       shenyu-zk:
-        condition: service_healthy
+        condition: service_started
   shenyu-integration-test-alibaba-dubbo:
     container_name: shenyu-integration-test-alibaba-dubbo
     image: apache/shenyu-integration-test-alibaba-dubbo:latest
