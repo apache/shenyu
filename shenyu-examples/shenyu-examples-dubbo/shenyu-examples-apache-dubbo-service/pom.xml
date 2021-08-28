@@ -137,7 +137,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.apache.shenyu.examples.apache.alibaba.service.TestApacheDubboApplication</mainClass>
+                    <mainClass>org.apache.shenyu.examples.apache.dubbo.service.TestApacheDubboApplication</mainClass>
                     <executable>true</executable>
                 </configuration>
             </plugin>
