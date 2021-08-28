@@ -54,19 +54,19 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-alibaba-dubbo-service/pom.xml
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-apache-dubbo-service/pom.xml
       - name: Build integrated tests
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
-        run: docker-compose -f ./shenyu-integrated-test/shenyu-integration-test-alibaba-dubbo/docker-compose.yml up -d
+        run: docker-compose -f ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
         if: env.SKIP_CI != 'true'
-        run: bash ./shenyu-integrated-test/shenyu-integration-test-alibaba-dubbo/script/healthcheck.sh
+        run: bash ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/script/healthcheck.sh
       - name: Debug log
         if: env.SKIP_CI != 'true'
-        run: cd ./shenyu-integrated-test/shenyu-integration-test-alibaba-dubbo; docker-compose logs -t --tail="all" && cd ../../; cd ../../
+        run: cd ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo; docker-compose logs -t --tail="all" && cd ../../; cd ../../
       - name: Run test
         if: env.SKIP_CI != 'true'
-        run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integration-test-alibaba-dubbo/pom.xml
+        run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/pom.xml
