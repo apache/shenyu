@@ -21,6 +21,8 @@ services:
     restart: always
     networks:
       - shenyu
+    ports:
+      - "2181:2181"
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
@@ -32,7 +34,7 @@ services:
         source: ./src/main/resources/admin-config/
         target: /opt/sql/
     ports:
-      - 9095:9095
+      - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
       - shenyu.database.init_script=META-INF/schema.h2.sql;file:/opt/sql/schema.sql
@@ -55,12 +57,13 @@ services:
       retries: 3
       start_period: 5s
     ports:
-      - 8011:8011
+      - "8011:8011"
     networks:
       - shenyu
     depends_on:
-      shenyu-admin:
+      - shenyu-admin:
         condition: service_healthy
+      - shenyu-zk
   shenyu-integration-test-apache-dubbo:
     container_name: shenyu-integration-test-apache-dubbo
     image: apache/shenyu-integration-test-apache-dubbo:latest
