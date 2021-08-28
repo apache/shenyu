@@ -26,7 +26,7 @@ services:
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     healthcheck:
-      test: [ "CMD-SHELL", "zkServer.sh status | grep Mode || exit 1" ]
+      test: [ "CMD-SHELL", "zkServer.sh srvr | grep Mode || exit 1" ]
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
