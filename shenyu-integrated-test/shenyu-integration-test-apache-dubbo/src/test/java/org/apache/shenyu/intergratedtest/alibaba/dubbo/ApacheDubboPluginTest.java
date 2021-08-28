@@ -31,7 +31,7 @@ public class ApacheDubboPluginTest extends AbstractTest {
     @Test
     public void testFindById() throws IOException {
         DubboTest dubboTest = new DubboTest("hello", "shenyu");
-        dubboTest = HttpHelper.INSTANCE.postGateway("/dubbo/findById", dubboTest.getId(), DubboTest.class);
-        assertEquals("hello world shenyu apache Dubbo, findById", dubboTest.getName());
+        dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById", dubboTest.getId(), DubboTest.class);
+        assertEquals("hello world shenyu Apache, findById", dubboTest.getName());
     }
 }
