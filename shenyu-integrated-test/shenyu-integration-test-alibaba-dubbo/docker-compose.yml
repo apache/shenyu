@@ -61,9 +61,9 @@ services:
     networks:
       - shenyu
     depends_on:
-      - shenyu-admin:
+      shenyu-admin:
           condition: service_healthy
-      - shenyu-zk
+      shenyu-zk
   shenyu-integration-test-alibaba-dubbo:
     container_name: shenyu-integration-test-alibaba-dubbo
     image: apache/shenyu-integration-test-alibaba-dubbo:latest
