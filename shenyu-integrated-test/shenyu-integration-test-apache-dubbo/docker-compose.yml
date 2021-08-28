@@ -21,12 +21,6 @@ services:
     restart: always
     networks:
       - shenyu
-    ports:
-      - "2181:2181"
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    healthcheck:
-      test: ["CMD-SHELL", "zkServer.sh status | grep Mode || exit 1"]
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
@@ -65,8 +59,6 @@ services:
     networks:
       - shenyu
     depends_on:
-      shenyu-zk:
-        condition: service_healthy
       shenyu-admin:
         condition: service_healthy
   shenyu-integration-test-apache-dubbo:
@@ -80,11 +72,10 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
-      - shenyu-zk
       - shenyu-examples-apache-dubbo-service
       - shenyu-admin
     ports:
-      - 9195:9195
+      - "9195:9195"
     healthcheck:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integration-test-apache-dubbo:9195/actuator/health" ]
       timeout: 2s
