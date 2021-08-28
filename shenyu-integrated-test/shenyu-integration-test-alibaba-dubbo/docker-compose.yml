@@ -21,6 +21,8 @@ services:
     restart: always
     networks:
       - shenyu
+    ports:
+      - "2181:2181"
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
@@ -32,7 +34,7 @@ services:
         source: ./src/main/resources/admin-config/
         target: /opt/sql/
     ports:
-      - 9095:9095
+      - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
       - shenyu.database.init_script=META-INF/schema.h2.sql;file:/opt/sql/schema.sql
@@ -59,8 +61,9 @@ services:
     networks:
       - shenyu
     depends_on:
-      shenyu-admin:
-        condition: service_healthy
+      - shenyu-admin:
+          condition: service_healthy
+      - shenyu-zk
   shenyu-integration-test-alibaba-dubbo:
     container_name: shenyu-integration-test-alibaba-dubbo
     image: apache/shenyu-integration-test-alibaba-dubbo:latest
@@ -75,7 +78,7 @@ services:
       - shenyu-examples-alibaba-dubbo-service
       - shenyu-admin
     ports:
-      - 9195:9195
+      - "9195:9195"
     healthcheck:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integration-test-alibaba-dubbo:9195/actuator/health" ]
       timeout: 2s
