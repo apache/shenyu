@@ -46,4 +46,38 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <finalName>shenyu-examples-dubbo</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.apache.shenyu.examples.apache.dubbo.service.TestApacheDubboApplication</mainClass>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.4.6</version>
+                <executions>
+                    <execution>
+                        <id>shenyu-examples-dubbo</id>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <repository>shenyu-examples-dubbo</repository>
+                    <tag>latest</tag>
+                    <buildArgs>
+                        <APP_NAME>shenyu-examples-dubbo</APP_NAME>
+                    </buildArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
