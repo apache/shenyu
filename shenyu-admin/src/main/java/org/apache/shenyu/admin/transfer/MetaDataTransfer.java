@@ -46,21 +46,18 @@ public enum MetaDataTransfer {
      */
     public MetaDataDO mapToEntity(final MetaDataDTO metaDataDTO) {
         return Optional.ofNullable(metaDataDTO)
-                .map(v -> {
-                    MetaDataDO.MetaDataDOBuilder metaDataDO = MetaDataDO.builder();
-                    metaDataDO.id(v.getId());
-                    metaDataDO.appName(v.getAppName());
-                    metaDataDO.path(v.getPath());
-                    metaDataDO.pathDesc(v.getPathDesc());
-                    metaDataDO.rpcType(v.getRpcType());
-                    metaDataDO.serviceName(v.getServiceName());
-                    metaDataDO.methodName(v.getMethodName());
-                    metaDataDO.parameterTypes(v.getParameterTypes());
-                    metaDataDO.rpcExt(v.getRpcExt());
-                    metaDataDO.enabled(v.getEnabled());
-
-                    return metaDataDO.build();
-                })
+                .map(dto -> MetaDataDO.builder()
+                        .id(dto.getId())
+                        .appName(dto.getAppName())
+                        .path(dto.getPath())
+                        .pathDesc(dto.getPathDesc())
+                        .rpcType(dto.getRpcType())
+                        .serviceName(dto.getServiceName())
+                        .methodName(dto.getMethodName())
+                        .parameterTypes(dto.getParameterTypes())
+                        .rpcExt(dto.getRpcExt())
+                        .enabled(dto.getEnabled())
+                        .build())
                 .orElse(null);
     }
 
@@ -72,20 +69,17 @@ public enum MetaDataTransfer {
      */
     public MetaDataDO mapRegisterDTOToEntity(final MetaDataRegisterDTO metaDataDTO) {
         return Optional.ofNullable(metaDataDTO)
-                .map(v -> {
-                    MetaDataDO.MetaDataDOBuilder metaDataDO = MetaDataDO.builder();
-                    metaDataDO.appName(v.getAppName());
-                    metaDataDO.path(v.getPath());
-                    metaDataDO.pathDesc(v.getPathDesc());
-                    metaDataDO.rpcType(v.getRpcType());
-                    metaDataDO.serviceName(v.getServiceName());
-                    metaDataDO.methodName(v.getMethodName());
-                    metaDataDO.parameterTypes(v.getParameterTypes());
-                    metaDataDO.rpcExt(v.getRpcExt());
-                    metaDataDO.enabled(v.isEnabled());
-
-                    return metaDataDO.build();
-                })
+                .map(dto -> MetaDataDO.builder()
+                        .appName(dto.getAppName())
+                        .path(dto.getPath())
+                        .pathDesc(dto.getPathDesc())
+                        .rpcType(dto.getRpcType())
+                        .serviceName(dto.getServiceName())
+                        .methodName(dto.getMethodName())
+                        .parameterTypes(dto.getParameterTypes())
+                        .rpcExt(dto.getRpcExt())
+                        .enabled(dto.isEnabled())
+                        .build())
                 .orElse(null);
     }
 
@@ -97,21 +91,18 @@ public enum MetaDataTransfer {
      */
     public MetaData mapToData(final MetaDataDTO metaDataDTO) {
         return Optional.ofNullable(metaDataDTO)
-                .map(v -> {
-                    MetaData.Builder metaData = MetaData.builder();
-                    metaData.id(v.getId());
-                    metaData.appName(v.getAppName());
-                    metaData.contextPath(v.getContextPath());
-                    metaData.path(v.getPath());
-                    metaData.rpcType(v.getRpcType());
-                    metaData.serviceName(v.getServiceName());
-                    metaData.methodName(v.getMethodName());
-                    metaData.parameterTypes(v.getParameterTypes());
-                    metaData.rpcExt(v.getRpcExt());
-                    metaData.enabled(v.getEnabled());
-
-                    return metaData.build();
-                })
+                .map(v -> MetaData.builder()
+                        .id(v.getId())
+                        .appName(v.getAppName())
+                        .contextPath(v.getContextPath())
+                        .path(v.getPath())
+                        .rpcType(v.getRpcType())
+                        .serviceName(v.getServiceName())
+                        .methodName(v.getMethodName())
+                        .parameterTypes(v.getParameterTypes())
+                        .rpcExt(v.getRpcExt())
+                        .enabled(v.getEnabled())
+                        .build())
                 .orElse(null);
     }
 
@@ -123,20 +114,17 @@ public enum MetaDataTransfer {
      */
     public MetaData mapToData(final MetaDataDO metaDataDO) {
         return Optional.ofNullable(metaDataDO)
-                .map(v -> {
-                    MetaData.Builder metaData = MetaData.builder();
-                    metaData.id(v.getId());
-                    metaData.appName(v.getAppName());
-                    metaData.path(v.getPath());
-                    metaData.rpcType(v.getRpcType());
-                    metaData.serviceName(v.getServiceName());
-                    metaData.methodName(v.getMethodName());
-                    metaData.parameterTypes(v.getParameterTypes());
-                    metaData.rpcExt(v.getRpcExt());
-                    metaData.enabled(v.getEnabled());
-
-                    return metaData.build();
-                })
+                .map(v -> MetaData.builder()
+                        .id(v.getId())
+                        .appName(v.getAppName())
+                        .path(v.getPath())
+                        .rpcType(v.getRpcType())
+                        .serviceName(v.getServiceName())
+                        .methodName(v.getMethodName())
+                        .parameterTypes(v.getParameterTypes())
+                        .rpcExt(v.getRpcExt())
+                        .enabled(v.getEnabled())
+                        .build())
                 .orElse(null);
     }
 
@@ -176,10 +164,8 @@ public enum MetaDataTransfer {
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime())).orElse(null));
                     metaDataVO.setDateUpdated(Optional.ofNullable(metaDataDO.getDateUpdated())
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime())).orElse(null));
-
                     return metaDataVO;
-                })
-                .orElse(null);
+                }).orElse(null);
     }
 
     /**
@@ -193,5 +179,4 @@ public enum MetaDataTransfer {
                 .map(v -> v.stream().map(this::mapToVO).collect(Collectors.toList()))
                 .orElse(null);
     }
-
 }

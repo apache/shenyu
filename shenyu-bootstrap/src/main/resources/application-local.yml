@@ -46,6 +46,8 @@ management:
       enabled: false
 
 shenyu:
+  local:
+    enabled: true
   file:
     enabled: true
   cross:

@@ -178,7 +178,6 @@ public final class DashboardUserServiceTest {
         when(secretProperties.getKey()).thenReturn(key, key);
         when(secretProperties.getIv()).thenReturn(iv, iv);
         when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
-        given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
         given(ldapTemplate.authenticate(anyString(), anyString(), anyString())).willReturn(true);
         given(roleMapper.findByRoleName("default")).willReturn(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null)));
 
@@ -195,10 +194,8 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
         verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), anyString());
-        verify(dashboardUserMapper).updateSelective(any(DashboardUserDO.class));
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD));
         verify(dashboardUserMapper, times(2)).findByQuery(eq(TEST_USER_NAME), anyString());
-        verify(dashboardUserMapper, times(2)).updateSelective(any(DashboardUserDO.class));
     }
 
     private DashboardUserDO createDashboardUserDO() {

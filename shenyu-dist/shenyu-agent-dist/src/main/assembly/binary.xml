@@ -19,9 +19,9 @@
     xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>admin-bin</id>
+    <id>shenyu-agent</id>
     <formats>
-        <format>tar.gz</format>
+        <format>jar</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
     <baseDirectory>${project.build.finalName}-agent-bin</baseDirectory>
@@ -37,29 +37,11 @@
             <outputDirectory>conf</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>src/main/resources/bin</directory>
-            <lineEnding>unix</lineEnding>
+            <directory>${project.basedir}/../../shenyu-agent/shenyu-agent-plugins/shenyu-agent-plugin-tracing/target/plugins</directory>
+            <outputDirectory>./plugins</outputDirectory>
             <includes>
-                <include>*.sh</include>
+                <include>**.jar</include>
             </includes>
-            <outputDirectory>bin</outputDirectory>
-            <fileMode>0755</fileMode>
-        </fileSet>
-        <fileSet>
-            <directory>src/main/resources/bin</directory>
-            <lineEnding>windows</lineEnding>
-            <includes>
-                <include>*.bat</include>
-            </includes>
-            <outputDirectory>bin</outputDirectory>
-            <fileMode>0755</fileMode>
-        </fileSet>
-        <fileSet>
-            <directory>src/main/release-docs</directory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <outputDirectory>/</outputDirectory>
         </fileSet>
     </fileSets>
     <dependencySets>
@@ -68,4 +50,18 @@
             <fileMode>0644</fileMode>
         </dependencySet>
     </dependencySets>
+    <moduleSets>
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>*:shenyu-agent-bootstrap</include>
+            </includes>
+            <binaries>
+                <unpack>false</unpack>
+                <outputDirectory>./</outputDirectory>
+                <includeDependencies>false</includeDependencies>
+                <outputFileNameMapping>shenyu-agent.jar</outputFileNameMapping>
+            </binaries>
+        </moduleSet>
+    </moduleSets>
 </assembly>
