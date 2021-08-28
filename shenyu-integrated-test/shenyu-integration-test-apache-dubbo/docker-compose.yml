@@ -62,7 +62,7 @@ services:
       shenyu-admin:
         condition: service_healthy
     environment:
-      - dubbo.registry.address=http://shenyu-zk:2181
+      - dubbo.registry.address=zookeeper://shenyu-zk:2181
   shenyu-integration-test-apache-dubbo:
     container_name: shenyu-integration-test-apache-dubbo
     image: apache/shenyu-integration-test-apache-dubbo:latest
