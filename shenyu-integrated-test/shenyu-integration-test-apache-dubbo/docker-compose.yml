@@ -41,13 +41,13 @@ services:
       timeout: 2s
       retries: 3
       start_period: 5s
-  shenyu-examples-apache-dubbo-service:
+  shenyu-examples-dubbo:
     deploy:
       resources:
         limits:
           memory: 2048M
-    container_name: shenyu-examples-eureka
-    image: shenyu-examples-eureka:latest
+    container_name: shenyu-examples-dubbo
+    image: shenyu-examples-dubbo:latest
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1"]
