@@ -26,13 +26,14 @@ import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,25 +90,25 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         }
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
-        if (Objects.isNull(divideUpstream)) {
+        Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(upstreamList), ruleHandle.getLoadBalance(), ip);
+        if (Objects.isNull(upstream)) {
             LOG.error("websocket has no upstream");
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(divideUpstream, shenyuContext))).build().toUri();
+        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(upstream, shenyuContext))).build().toUri();
         LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
     }
 
-    private String buildWsRealPath(final DivideUpstream divideUpstream, final ShenyuContext shenyuContext) {
-        String protocol = divideUpstream.getProtocol();
+    private String buildWsRealPath(final Upstream upstream, final ShenyuContext shenyuContext) {
+        String protocol = upstream.getProtocol();
         if (StringUtils.isEmpty(protocol)) {
             protocol = "ws://";
         }
-        return protocol + divideUpstream.getUpstreamUrl() + shenyuContext.getMethod();
+        return protocol + upstream.getUrl() + shenyuContext.getMethod();
     }
 
     private List<String> buildWsProtocols(final HttpHeaders headers) {
@@ -128,6 +129,17 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                 .forEach(header -> filtered.addAll(header.getKey(),
                         header.getValue()));
         return filtered;
+    }
+    
+    private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
+        return upstreamList.stream().map(u -> Upstream.builder()
+                .protocol(u.getProtocol())
+                .url(u.getUpstreamUrl())
+                .weight(u.getWeight())
+                .status(u.isStatus())
+                .timestamp(u.getTimestamp())
+                .warmup(u.getWarmup())
+                .build()).collect(Collectors.toList());
     }
 
     @Override

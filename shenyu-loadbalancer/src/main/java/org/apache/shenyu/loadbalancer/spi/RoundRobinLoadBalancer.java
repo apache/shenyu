@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.spi;
+package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Round robin load balance impl.
  */
 @Join
-public class RoundRobinLoadBalance extends AbstractLoadBalance {
+public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
 
     private final int recyclePeriod = 60000;
 
@@ -39,8 +39,8 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
     private final AtomicBoolean updateLock = new AtomicBoolean();
 
     @Override
-    public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
-        String key = upstreamList.get(0).getUpstreamUrl();
+    public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+        String key = upstreamList.get(0).getUrl();
         ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.get(key);
         if (map == null) {
             methodWeightMap.putIfAbsent(key, new ConcurrentHashMap<>(16));
@@ -49,10 +49,10 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         int totalWeight = 0;
         long maxCurrent = Long.MIN_VALUE;
         long now = System.currentTimeMillis();
-        DivideUpstream selectedInvoker = null;
+        Upstream selectedInvoker = null;
         WeightedRoundRobin selectedWRR = null;
-        for (DivideUpstream upstream : upstreamList) {
-            String rKey = upstream.getUpstreamUrl();
+        for (Upstream upstream : upstreamList) {
+            String rKey = upstream.getUrl();
             WeightedRoundRobin weightedRoundRobin = map.get(rKey);
             int weight = getWeight(upstream);
             if (weightedRoundRobin == null) {

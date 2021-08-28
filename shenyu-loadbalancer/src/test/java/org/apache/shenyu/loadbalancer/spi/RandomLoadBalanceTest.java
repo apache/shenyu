@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.spi;
+package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,31 +31,31 @@ import java.util.stream.Stream;
  */
 public class RandomLoadBalanceTest {
 
-    private List<DivideUpstream> randomLoadBalancesWeightDisordered;
+    private List<Upstream> randomLoadBalancesWeightDisordered;
 
-    private List<DivideUpstream> randomLoadBalancesWeightOrdered;
+    private List<Upstream> randomLoadBalancesWeightOrdered;
 
-    private List<DivideUpstream> randomLoadBalancesWeightReversed;
+    private List<Upstream> randomLoadBalancesWeightReversed;
 
     @Before
     public void setUp() {
         this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList());
 
         this.randomLoadBalancesWeightOrdered = Stream.of(10, 40, 50)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList());
 
         this.randomLoadBalancesWeightReversed = Stream.of(50, 40, 10)
-                .map(weight -> DivideUpstream.builder()
-                        .upstreamUrl("divide-upstream-" + weight)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList());
@@ -66,22 +66,22 @@ public class RandomLoadBalanceTest {
      */
     @Test
     public void randomLoadBalanceOrderedWeightTest() {
-        final RandomLoadBalance randomLoadBalance = new RandomLoadBalance();
-        final DivideUpstream upstreamOrdered = randomLoadBalance.select(randomLoadBalancesWeightOrdered, "");
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamOrdered = randomLoadBalancer.select(randomLoadBalancesWeightOrdered, "");
         Assert.assertNotNull(upstreamOrdered);
     }
 
     @Test
     public void randomLoadBalanceDisOrderedWeightTest() {
-        final RandomLoadBalance randomLoadBalance = new RandomLoadBalance();
-        final DivideUpstream upstreamDisordered = randomLoadBalance.select(randomLoadBalancesWeightDisordered, "");
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamDisordered = randomLoadBalancer.select(randomLoadBalancesWeightDisordered, "");
         Assert.assertNotNull(upstreamDisordered);
     }
 
     @Test
     public void randomLoadBalanceReversedWeightTest() {
-        final RandomLoadBalance randomLoadBalance = new RandomLoadBalance();
-        final DivideUpstream upstreamReversed = randomLoadBalance.select(randomLoadBalancesWeightReversed, "");
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamReversed = randomLoadBalancer.select(randomLoadBalancesWeightReversed, "");
         Assert.assertNotNull(upstreamReversed);
     }
 }

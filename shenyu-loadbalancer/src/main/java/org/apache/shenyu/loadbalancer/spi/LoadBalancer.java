@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance;
+package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.List;
 
 /**
- * LoadBalance interface spi .
+ * LoadBalancer interface spi .
  */
 @SPI
-public interface LoadBalance {
+public interface LoadBalancer {
 
     /**
      * this is select one for upstream list.
@@ -35,5 +35,5 @@ public interface LoadBalance {
      * @param ip ip
      * @return divide upstream
      */
-    DivideUpstream select(List<DivideUpstream> upstreamList, String ip);
+    Upstream select(List<Upstream> upstreamList, String ip);
 }

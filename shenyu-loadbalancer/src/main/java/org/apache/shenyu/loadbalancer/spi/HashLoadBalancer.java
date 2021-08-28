@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.spi;
+package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.nio.charset.StandardCharsets;
@@ -32,21 +31,21 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * hash algorithm impl.
  */
 @Join
-public class HashLoadBalance extends AbstractLoadBalance {
+public class HashLoadBalancer extends AbstractLoadBalancer {
 
     private static final int VIRTUAL_NODE_NUM = 5;
 
     @Override
-    public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
-        final ConcurrentSkipListMap<Long, DivideUpstream> treeMap = new ConcurrentSkipListMap<>();
-        for (DivideUpstream address : upstreamList) {
+    public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+        final ConcurrentSkipListMap<Long, Upstream> treeMap = new ConcurrentSkipListMap<>();
+        for (Upstream upstream : upstreamList) {
             for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
-                long addressHash = hash("SHENYU-" + address.getUpstreamUrl() + "-HASH-" + i);
-                treeMap.put(addressHash, address);
+                long addressHash = hash("SHENYU-" + upstream.getUrl() + "-HASH-" + i);
+                treeMap.put(addressHash, upstream);
             }
         }
         long hash = hash(String.valueOf(ip));
-        SortedMap<Long, DivideUpstream> lastRing = treeMap.tailMap(hash);
+        SortedMap<Long, Upstream> lastRing = treeMap.tailMap(hash);
         if (!lastRing.isEmpty()) {
             return lastRing.get(lastRing.firstKey());
         }
@@ -59,7 +58,7 @@ public class HashLoadBalance extends AbstractLoadBalance {
         try {
             md5 = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            throw new ShenyuException("MD5 not supported", e);
+            throw new RuntimeException("MD5 not supported", e);
         }
         md5.reset();
         byte[] keyBytes;
