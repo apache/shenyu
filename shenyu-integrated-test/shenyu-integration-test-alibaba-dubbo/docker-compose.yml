@@ -72,7 +72,7 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
-      - shenyu-examples-alibaba-dubbo-service
+      - shenyu-examples-dubbo
       - shenyu-admin
     ports:
       - 9195:9195
