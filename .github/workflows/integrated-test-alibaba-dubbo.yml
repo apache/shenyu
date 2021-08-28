@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - issue#1981
 
 jobs:
   build:
