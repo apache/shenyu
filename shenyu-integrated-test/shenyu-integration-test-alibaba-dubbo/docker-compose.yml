@@ -23,6 +23,8 @@ services:
       - shenyu
     ports:
       - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
@@ -76,6 +78,7 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
+      - shenyu-zk
       - shenyu-examples-alibaba-dubbo-service
       - shenyu-admin
     ports:
