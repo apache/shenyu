@@ -35,7 +35,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-alibaba-dubbo</artifactId>
@@ -123,7 +122,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.apache.shenyu.examples.alibaba.dubbo.service.TestApacheDubboApplication</mainClass>
+                    <mainClass>org.apache.shenyu.examples.alibaba.dubbo.service.TestAlibabaDubboApplication</mainClass>
                     <executable>true</executable>
                 </configuration>
             </plugin>
