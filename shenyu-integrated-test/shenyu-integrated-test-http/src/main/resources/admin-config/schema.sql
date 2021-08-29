@@ -68,3 +68,14 @@ INSERT IGNORE INTO rule_condition (id, rule_id, param_type, operator, param_name
 INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1429645721775689728', '14', '/context-path-test/error', 0, 1, 1, NULL, 1, 1, 1, '2021-08-23 11:24:36', '2021-08-23 11:24:36');
 INSERT IGNORE INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1429645721788272640', '1429645721775689728', 'uri', '=', '/', '/http/order/findById', '2021-08-23 11:24:36', '2021-08-23 11:24:36');
 INSERT IGNORE INTO rule (id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1429645883050872832', '1429645721775689728', 0, '/context-path-test/error', 1, 1, 1, '{"contextPath":"/http","addPrefix":"/error"}', '2021-08-23 11:25:15', '2021-08-23 11:25:15');
+
+
+/** prepare sentinel **/
+UPDATE plugin SET enabled = 1 WHERE id = '10';
+INSERT IGNORE INTO selector (id, plugin_id, name, match_mode, type, sort, handle, enabled, loged, continued, date_created, date_updated) VALUES ('1431636005607563264', '10', '/http/test/sentinel', 0, 1, 1, NULL, 1, 1, 1, '2021-08-28 23:13:17', '2021-08-28 23:13:17');
+INSERT IGNORE INTO selector_condition(id, selector_id, param_type, operator, param_name, param_value, date_created, date_updated) VALUES ('1431636005611757568', '1431636005607563264', 'uri', 'match', '/', '/http/test/sentinel/**', '2021-08-29 22:29:04', '2021-08-29 22:29:04');
+INSERT IGNORE INTO rule(id, selector_id, match_mode, name, enabled, loged, sort, handle, date_created, date_updated) VALUES ('1431665571333984256', '1431636005607563264', 0, '/http/test/sentinel/pass', 1, 1, 1, '{\"degradeRuleCount\":\"1\",\"degradeRuleEnable\":\"1\",\"degradeRuleGrade\":\"0\",\"degradeRuleMinRequestAmount\":\"1\",\"getDegradeRuleStatIntervals\":\"1\",\"degradeRuleSlowRatioThreshold\":\"1\",\"degradeRuleTimeWindow\":\"1\",\"flowRuleControlBehavior\":\"0\",\"flowRuleCount\":\"1\",\"flowRuleEnable\":\"1\",\"flowRuleGrade\":\"1\"}', '2021-08-29 01:10:46', '2021-08-29 22:29:07');
+
+
+
+
