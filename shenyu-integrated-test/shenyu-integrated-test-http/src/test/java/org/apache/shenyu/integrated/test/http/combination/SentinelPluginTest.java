@@ -34,7 +34,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public final class SentinelPluginTest extends AbstractPluginDataInit {
 
