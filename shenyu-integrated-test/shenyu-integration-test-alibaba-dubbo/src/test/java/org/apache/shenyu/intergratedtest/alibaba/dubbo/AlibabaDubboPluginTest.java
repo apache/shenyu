@@ -22,8 +22,6 @@ import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.junit.Assert.assertEquals;
 
 public class AlibabaDubboPluginTest extends AbstractTest {
