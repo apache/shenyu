@@ -67,8 +67,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
     private static List<RuleLocalData> buildRuleLocalDataList() {
         List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/waf/pass"));
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/waf/deny"));
+        ruleLocalDataList.add(buildRuleLocalData("/http/test/sentinel/pass"));
         return ruleLocalDataList;
     }
 
