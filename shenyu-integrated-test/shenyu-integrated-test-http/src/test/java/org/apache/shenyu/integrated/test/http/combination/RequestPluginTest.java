@@ -29,10 +29,15 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import java.io.IOException;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public final class RequestPluginTest extends AbstractPluginDataInit {
 
@@ -49,7 +54,6 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
         Map<String, Object> result = HttpHelper.INSTANCE.postGateway("/http/test/request/pass", "", Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
-
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
@@ -68,23 +72,23 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
 
     private static RuleLocalData buildRuleLocalData(final String paramValue) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
-        RequestHandle requestHandle=new RequestHandle();
-        RequestHandle.ShenyuRequestParameter requestParameter=requestHandle.new ShenyuRequestParameter();
-        RequestHandle.ShenyuRequestHeader requestHeader=requestHandle.new ShenyuRequestHeader();
-        RequestHandle.ShenyuCookie cookie=requestHandle.new ShenyuCookie();
+        RequestHandle requestHandle = new RequestHandle();
+        final RequestHandle.ShenyuRequestParameter requestParameter = requestHandle.new ShenyuRequestParameter();
+        final RequestHandle.ShenyuRequestHeader requestHeader = requestHandle.new ShenyuRequestHeader();
+        final RequestHandle.ShenyuCookie cookie = requestHandle.new ShenyuCookie();
 
         Map<String, String> paramMap = new HashMap<>();
-        paramMap.put("requestParameter","requestParameter");
+        paramMap.put("requestParameter", "requestParameter");
         requestParameter.setSetParameters(paramMap);
         requestHandle.setParameter(requestParameter);
 
         paramMap.clear();
-        paramMap.put("requestHeader","requestHeader");
+        paramMap.put("requestHeader", "requestHeader");
         requestHeader.setSetHeaders(paramMap);
         requestHandle.setHeader(requestHeader);
 
         paramMap.clear();
-        paramMap.put("cookie","cookie");
+        paramMap.put("cookie", "cookie");
         cookie.setSetCookies(paramMap);
         requestHandle.setCookie(cookie);
 
