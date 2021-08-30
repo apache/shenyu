@@ -344,7 +344,8 @@ public class MetaData {
      */
     public void updateContextPath() {
         if (StringUtils.isNoneBlank(this.path)) {
-            this.contextPath = this.path.substring(0, StringUtils.indexOf(path, "/", 1));
+            this.contextPath = StringUtils.indexOf(path, "/", 1) > -1
+                    ? this.path.substring(0, StringUtils.indexOf(path, "/", 1)) : path;
         }
     }
 
