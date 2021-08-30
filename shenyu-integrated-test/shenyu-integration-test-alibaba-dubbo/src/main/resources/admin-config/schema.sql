@@ -18,4 +18,3 @@
 
 /** prepare rate limit **/
 UPDATE `plugin` SET enabled = 1 WHERE id = '6';
-UPDATE `plugin` SET enabled = 0 WHERE id = '5';
