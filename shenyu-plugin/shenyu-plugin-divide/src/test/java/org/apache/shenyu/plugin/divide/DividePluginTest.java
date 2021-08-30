@@ -29,8 +29,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -76,7 +75,7 @@ public final class DividePluginTest {
     private List<DivideUpstream> divideUpstreamList;
 
     private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
-
+    
     @Before
     public void setup() {
         this.ruleData = mock(RuleData.class);
@@ -155,15 +154,16 @@ public final class DividePluginTest {
     /**
      * Init mock info.
      */
-    private void initMockInfo() {
+    private void initMockInfo() { 
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
         DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
-        DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(GsonUtils.getGson().toJson(handle), DivideRuleHandle.class);
-        UpstreamCacheManager.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
-        UpstreamCacheManager.getInstance().submit(selectorData);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        dividePluginDataHandler.handlerRule(ruleData);
+        dividePluginDataHandler.handlerSelector(selectorData);
         when(context.getRealUrl()).thenReturn("mock-real");
         exchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(exchange)).thenReturn(Mono.empty());

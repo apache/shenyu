@@ -48,5 +48,4 @@ public interface ThrowingFunction<T> {
             return null;
         }
     }
-
 }

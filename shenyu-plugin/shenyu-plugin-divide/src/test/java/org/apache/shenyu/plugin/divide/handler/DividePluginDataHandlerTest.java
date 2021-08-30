@@ -22,7 +22,8 @@ import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,8 +47,6 @@ public final class DividePluginDataHandlerTest {
 
     private SelectorData selectorData;
 
-    private List<DivideUpstream> divideUpstreamList;
-
     private DividePluginDataHandler dividePluginDataHandler;
 
     private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
@@ -55,7 +54,7 @@ public final class DividePluginDataHandlerTest {
     @Before
     public void setUp() {
         this.dividePluginDataHandler = new DividePluginDataHandler();
-        this.divideUpstreamList = Stream.of(3)
+        List<DivideUpstream> divideUpstreamList = Stream.of(3)
                 .map(weight -> DivideUpstream.builder()
                         .upstreamUrl("mock-" + weight)
                         .build())
@@ -80,8 +79,8 @@ public final class DividePluginDataHandlerTest {
     @Test
     public void handlerSelectorTest() {
         dividePluginDataHandler.handlerSelector(selectorData);
-        List<DivideUpstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
-        Assert.assertEquals(GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class).get(0), result.get(0));
+        List<Upstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        Assert.assertEquals(GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class).get(0).getUpstreamUrl(), result.get(0).getUrl());
     }
 
     /**
@@ -89,9 +88,9 @@ public final class DividePluginDataHandlerTest {
      */
     @Test
     public void removeSelectorTest() {
-        UpstreamCacheManager.getInstance().submit(selectorData);
+        dividePluginDataHandler.handlerSelector(selectorData);
         dividePluginDataHandler.removeSelector(selectorData);
-        List<DivideUpstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        List<Upstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
         Assert.assertNull(result);
     }
 

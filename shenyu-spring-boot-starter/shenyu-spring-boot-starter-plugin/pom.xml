@@ -55,5 +55,7 @@
         <module>shenyu-spring-boot-starter-plugin-jwt</module>
         <module>shenyu-spring-boot-starter-plugin-response</module>
         <module>shenyu-spring-boot-starter-plugin-param-mapping</module>
+        <module>shenyu-spring-boot-starter-plugin-cryptor</module>
+        <module>shenyu-spring-boot-starter-plugin-websocket</module>
     </modules>
 </project>

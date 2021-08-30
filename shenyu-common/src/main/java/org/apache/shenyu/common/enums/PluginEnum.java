@@ -71,6 +71,11 @@ public enum PluginEnum {
     REWRITE(30, 0, "rewrite"),
 
     /**
+     * Cryptor request plugin enum.
+     */
+    CRYPTOR_REQUEST(30, 0, "cryptor_request"),
+
+    /**
      * Redirect plugin enum.
      */
     REDIRECT(40, 0, "redirect"),
@@ -118,7 +123,7 @@ public enum PluginEnum {
     /**
      * webSocket plugin enum.
      */
-    WEB_SOCKET(55, 0, "webSocket"),
+    WEB_SOCKET(55, 0, "websocket"),
 
     /**
      * Param transform plugin enum.
@@ -154,6 +159,11 @@ public enum PluginEnum {
      * Monitor plugin enum.
      */
     MONITOR(80, 0, "monitor"),
+
+    /**
+     * Cryptor response plugin enum.
+     */
+    CRYPTOR_RESPONSE(99, 0, "cryptor_response"),
 
     /**
      * Response plugin enum.

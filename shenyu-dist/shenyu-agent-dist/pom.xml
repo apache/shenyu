@@ -28,6 +28,14 @@
     <artifactId>shenyu-agent-dist</artifactId>
     <packaging>pom</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-agent-bootstrap</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <finalName>shenyu-agent</finalName>
         <plugins>
