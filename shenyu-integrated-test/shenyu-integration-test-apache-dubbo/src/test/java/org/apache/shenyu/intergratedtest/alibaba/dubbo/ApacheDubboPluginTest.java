@@ -29,9 +29,8 @@ import static org.junit.Assert.assertEquals;
 public class ApacheDubboPluginTest extends AbstractTest {
 
     @Test
-    public void testFindById() throws IOException {
-        DubboTest dubboTest = new DubboTest("hello", "shenyu");
-        dubboTest = HttpHelper.INSTANCE.postGateway("/dubbo/findById", dubboTest.getId(), DubboTest.class);
+    public void testFindById() {
+        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", DubboTest.class);
         assertEquals("hello world shenyu Apache, findById", dubboTest.getName());
     }
 }
