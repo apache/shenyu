@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.mybatis.PostgreSqlQueryInterceptor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,8 +35,8 @@ public class MapperConfig {
      * @return {@linkplain PostgreSqlQueryInterceptor}
      */
     @Bean
+    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
     public PostgreSqlQueryInterceptor postgreSqlQueryInterceptor() {
         return new PostgreSqlQueryInterceptor();
     }
-
 }

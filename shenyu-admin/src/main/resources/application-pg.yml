@@ -16,8 +16,7 @@
 
 shenyu:
     database:
-      type: postgresql
-      dialect: mysql
+      dialect: postgresql
       db_script: "META-INF/pg/schema.dropdb.sql;META-INF/pg/schema.createdb.sql"
       db_enable: true
       init_script: "META-INF/pg/schema.pg.sql"

@@ -37,7 +37,7 @@ import java.sql.DriverManager;
  * for execute schema sql file.
  */
 @Component
-@DependsOn(value = "initDbLoader")
+@DependsOn(value = "postgreSqlLoader")
 public class LocalDataSourceLoader extends ScriptLoader implements InstantiationAwareBeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(LocalDataSourceLoader.class);
@@ -66,5 +66,4 @@ public class LocalDataSourceLoader extends ScriptLoader implements Instantiation
             throw new ShenyuException(e.getMessage());
         }
     }
-
 }

@@ -31,23 +31,22 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Objects;
 
 /**
  * for execute schema sql file. initialize the database.
  * PostgreSql library statements cannot be executed in the same transaction block as table statements.
  */
 @Component
-public class InitDbLoader extends ScriptLoader implements InstantiationAwareBeanPostProcessor {
+public class PostgreSqlLoader extends ScriptLoader implements InstantiationAwareBeanPostProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(InitDbLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlLoader.class);
 
     @Resource
     private DataBaseProperties dataBaseProperties;
     
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
-        if ((bean instanceof DataSourceProperties) && Objects.nonNull(dataBaseProperties.getDbEnable()) && dataBaseProperties.getDbEnable()) {
+        if ((bean instanceof DataSourceProperties) && dataBaseProperties.getDialect().equals("postgresql")) {
             this.init((DataSourceProperties) bean);
         }
         return bean;

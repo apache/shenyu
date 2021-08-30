@@ -31,10 +31,7 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
-import org.apache.shenyu.admin.config.properties.DataBaseProperties;
-import org.apache.shenyu.common.enums.AdminDataSourceEnum;
 import org.apache.shenyu.common.utils.ReflectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
@@ -57,17 +54,14 @@ public class PostgreSqlQueryInterceptor implements Interceptor {
     private static final String MATCH_REGEX = "(?s).*(((limit)|(LIMIT))+.*?\\?+.*?\\?).*";
 
     private static final String SQL_REPLACE_CHAR = "limit ? offset ?";
-
-    @Autowired
-    private DataBaseProperties dataBaseProperties;
-
+    
     @Override
     public Object intercept(final Invocation invocation) throws Throwable {
         Object[] args = invocation.getArgs();
         MappedStatement ms = (MappedStatement) args[0];
         Object parameter = args[1];
         RowBounds rowBounds = (RowBounds) args[2];
-        ResultHandler resultHandler = (ResultHandler) args[3];
+        ResultHandler<?> resultHandler = (ResultHandler<?>) args[3];
         Executor executor = (Executor) invocation.getTarget();
         CacheKey cacheKey;
         BoundSql boundSql;
@@ -78,17 +72,11 @@ public class PostgreSqlQueryInterceptor implements Interceptor {
             cacheKey = (CacheKey) args[4];
             boundSql = getProcessedBoundSql(ms, (BoundSql) args[5]);
         }
-
         return executor.query(ms, parameter, rowBounds, resultHandler, cacheKey, boundSql);
     }
 
     private BoundSql getProcessedBoundSql(final MappedStatement ms, final BoundSql boundSql) {
-        if (!AdminDataSourceEnum.POSTGRESQL.getValue().equals(dataBaseProperties.getType())) {
-            return boundSql;
-        }
-
         BoundSql result;
-
         List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
         Configuration configuration = ms.getConfiguration();
         Object parameterObject = boundSql.getParameterObject();
@@ -124,12 +112,12 @@ public class PostgreSqlQueryInterceptor implements Interceptor {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     private void copyParam(final BoundSql oldSql, final BoundSql newSql) {
         if (ReflectUtils.getFieldValue(oldSql, "metaParameters") != null) {
             MetaObject mo = (MetaObject) ReflectUtils.getFieldValue(oldSql, "metaParameters");
             ReflectUtils.setFieldValue(newSql, "metaParameters", mo);
         }
-
         if (ReflectUtils.getFieldValue(oldSql, "additionalParameters") != null) {
             Map<String, Object> map = (Map<String, Object>) ReflectUtils.getFieldValue(oldSql, "additionalParameters");
             ReflectUtils.setFieldValue(newSql, "additionalParameters", map);
@@ -143,6 +131,5 @@ public class PostgreSqlQueryInterceptor implements Interceptor {
 
     @Override
     public void setProperties(final Properties properties) {
-
     }
 }
