@@ -60,7 +60,6 @@ public class ScriptLoader {
                         LOG.info("execute shenyu schema sql: {}", sqlScript);
                         runner.runScript(fileReader);
                     }
-
                 }
             }
         } finally {
@@ -71,5 +70,4 @@ public class ScriptLoader {
     private static Reader getResourceAsReader(final String resource) throws IOException {
         return new InputStreamReader(new FileInputStream(resource), StandardCharsets.UTF_8);
     }
-
 }
