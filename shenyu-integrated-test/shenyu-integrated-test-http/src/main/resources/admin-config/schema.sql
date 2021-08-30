@@ -15,7 +15,6 @@
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
-
 /** prepare rate limit **/
 DELETE FROM plugin WHERE id = '4';
 INSERT IGNORE INTO plugin (id, name, config, role, enabled, date_created, date_updated) VALUES ('4', 'rate_limiter', '{"mode":"standalone","master":"mymaster","url":"shenyu-redis:6379","password":"abc"}', 1, 1, '2018-06-23 10:26:37', '2021-06-12 13:10:09');
