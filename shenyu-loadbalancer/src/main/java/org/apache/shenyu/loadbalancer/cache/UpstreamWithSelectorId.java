@@ -15,44 +15,41 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.healthcheck;
+package org.apache.shenyu.loadbalancer.cache;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 
 import java.util.Objects;
 
+/**
+ * The type Upstream with selector id.
+ */
 public class UpstreamWithSelectorId {
 
     private String selectorId;
 
-    private DivideUpstream divideUpstream;
-
-    /**
-     * no args constructor.
-     */
-    public UpstreamWithSelectorId() {
-    }
-
+    private Upstream upstream;
+    
     /**
      * all args constructor.
      *
-     * @param selectorId     selectorId
-     * @param divideUpstream divideUpstream
+     * @param selectorId selectorId
+     * @param upstream upstream
      */
-    public UpstreamWithSelectorId(final String selectorId, final DivideUpstream divideUpstream) {
+    public UpstreamWithSelectorId(final String selectorId, final Upstream upstream) {
         this.selectorId = selectorId;
-        this.divideUpstream = divideUpstream;
+        this.upstream = upstream;
     }
-
+    
     /**
      * get selectorId.
      *
-     * @return selectorId
+     * @return selectorId selector id
      */
     public String getSelectorId() {
         return selectorId;
     }
-
+    
     /**
      * set selectorId.
      *
@@ -61,23 +58,23 @@ public class UpstreamWithSelectorId {
     public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
-
+    
     /**
-     * get divideUpstream.
+     * get upstream.
      *
-     * @return divideUpstream
+     * @return upstream upstream
      */
-    public DivideUpstream getDivideUpstream() {
-        return divideUpstream;
+    public Upstream getUpstream() {
+        return upstream;
     }
-
+    
     /**
-     * set divideUpstream.
+     * set upstream.
      *
-     * @param divideUpstream divideUpstream
+     * @param upstream upstream
      */
-    public void setDivideUpstream(final DivideUpstream divideUpstream) {
-        this.divideUpstream = divideUpstream;
+    public void setUpstream(final Upstream upstream) {
+        this.upstream = upstream;
     }
 
     @Override
@@ -89,12 +86,12 @@ public class UpstreamWithSelectorId {
             return false;
         }
         UpstreamWithSelectorId that = (UpstreamWithSelectorId) o;
-        return Objects.equals(selectorId, that.selectorId) && Objects.equals(divideUpstream, that.divideUpstream);
+        return Objects.equals(selectorId, that.selectorId) && Objects.equals(upstream, that.upstream);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selectorId, divideUpstream);
+        return Objects.hash(selectorId, upstream);
     }
 
     @Override
@@ -103,8 +100,8 @@ public class UpstreamWithSelectorId {
                 + "selectorId='"
                 + selectorId
                 + '\''
-                + ", divideUpstream="
-                + divideUpstream
+                + ", upstream="
+                + upstream
                 + '}';
     }
 }

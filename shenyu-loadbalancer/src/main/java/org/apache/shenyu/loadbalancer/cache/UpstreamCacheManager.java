@@ -15,18 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.cache;
+package org.apache.shenyu.loadbalancer.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
-import org.apache.shenyu.common.healthcheck.HealthCheckTask;
 import org.apache.shenyu.common.utils.CollectionUtils;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 
 import java.util.List;
 import java.util.Map;
@@ -35,15 +30,15 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
- * this is divide  http url upstream.
+ * this is upstream .
  */
-public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRuleHandle> {
+public final class UpstreamCacheManager {
 
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
 
-    private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+    private static final Map<String, List<Upstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
-    private HealthCheckTask task;
+    private UpstreamCheckTask task;
 
     // health check parameters
     private Boolean checkEnable;
@@ -79,7 +74,7 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
     }
 
     private void createTask() {
-        task = new HealthCheckTask(checkInterval);
+        task = new UpstreamCheckTask(checkInterval);
         task.setCheckTimeout(checkTimeout);
         task.setHealthyThreshold(healthyThreshold);
         task.setUnhealthyThreshold(unhealthyThreshold);
@@ -88,7 +83,6 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
     private void scheduleHealthCheck() {
         if (checkEnable) {
             task.schedule();
-
             // executor for log print
             if (printEnable) {
                 ThreadFactory printFactory = ShenyuThreadFactory.create("upstream-health-print", true);
@@ -97,7 +91,7 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
             }
         }
     }
-
+    
     /**
      * Gets instance.
      *
@@ -106,17 +100,17 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
     public static UpstreamCacheManager getInstance() {
         return INSTANCE;
     }
-
+    
     /**
      * Find upstream list by selector id list.
      *
      * @param selectorId the selector id
      * @return the list
      */
-    public List<DivideUpstream> findUpstreamListBySelectorId(final String selectorId) {
+    public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
         return task.getHealthyUpstream().get(selectorId);
     }
-
+    
     /**
      * Remove by key.
      *
@@ -126,33 +120,33 @@ public final class UpstreamCacheManager extends RuleHandleCache<String, DivideRu
         UPSTREAM_MAP.remove(key);
         task.triggerRemoveAll(key);
     }
-
+    
     /**
      * Submit.
      *
-     * @param selectorData the selector data
+     * @param selectorId the selector id
+     * @param upstreamList the upstream list
      */
-    public void submit(final SelectorData selectorData) {
-        final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
+    public void submit(final String selectorId, final List<Upstream> upstreamList) {
         if (CollectionUtils.isNotEmpty(upstreamList)) {
-            List<DivideUpstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorData.getId(), k -> Lists.newArrayList());
+            List<Upstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> Lists.newArrayList());
             // check upstream delete
-            for (DivideUpstream upstream : existUpstream) {
+            for (Upstream upstream : existUpstream) {
                 if (!upstreamList.contains(upstream)) {
-                    task.triggerRemoveOne(selectorData, upstream);
+                    task.triggerRemoveOne(selectorId, upstream);
                 }
             }
             // check upstream add
-            for (DivideUpstream upstream : upstreamList) {
+            for (Upstream upstream : upstreamList) {
                 if (!existUpstream.contains(upstream)) {
-                    task.triggerAddOne(selectorData, upstream);
+                    task.triggerAddOne(selectorId, upstream);
                 }
             }
             // replace upstream
-            UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
+            UPSTREAM_MAP.put(selectorId, upstreamList);
         } else {
-            UPSTREAM_MAP.remove(selectorData.getId());
-            task.triggerRemoveAll(selectorData);
+            UPSTREAM_MAP.remove(selectorId);
+            task.triggerRemoveAll(selectorId);
         }
     }
 }

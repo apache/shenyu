@@ -123,7 +123,7 @@ public enum PluginEnum {
     /**
      * webSocket plugin enum.
      */
-    WEB_SOCKET(55, 0, "webSocket"),
+    WEB_SOCKET(55, 0, "websocket"),
 
     /**
      * Param transform plugin enum.

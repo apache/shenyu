@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.websocket;
+package org.apache.shenyu.plugin.websocket;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -29,7 +29,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -132,7 +132,7 @@ public class WebSocketPluginTest {
      */
     @Test
     public void namedTest() {
-        Assert.assertEquals(PluginEnum.DIVIDE.getName(), webSocketPlugin.named());
+        Assert.assertEquals(PluginEnum.WEB_SOCKET.getName(), webSocketPlugin.named());
     }
 
     /**
@@ -151,9 +151,11 @@ public class WebSocketPluginTest {
         context.setRpcType(RpcTypeEnum.HTTP.getName());
         DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
         when(selectorData.getId()).thenReturn("mock");
-        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
-        UpstreamCacheManager.getInstance().submit(selectorData);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        WebSocketPluginDataHandler webSocketPluginDataHandler = new WebSocketPluginDataHandler();
+        webSocketPluginDataHandler.handlerSelector(selectorData);
+        webSocketPluginDataHandler.handlerRule(ruleData);
         exchange.getAttributes().put(Constants.CONTEXT, context);
     }
 }
