@@ -23,12 +23,15 @@ import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.junit.Test;
-import org.springframework.beans.factory.BeanCreationException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import java.util.Properties;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for NacosConfiguration.
@@ -51,7 +54,7 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
         assertNotNull(configService);
     }
 
-    @Test(expected = BeanCreationException.class)
+    @Test
     public void testNacosConfigService() {
         String[] inlinedProperties = new String[]{
             "shenyu.sync.nacos.url=localhost:8848",
@@ -62,7 +65,15 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
             "shenyu.sync.nacos.acm.accessKey=accessKey",
             "shenyu.sync.nacos.acm.secretKey=secretKey",
         };
-        load(NacosConfiguration.class, inlinedProperties);
+        try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = Mockito.mockStatic(NacosFactory.class)) {
+            final ConfigService configServiceMock = Mockito.mock(ConfigService.class);
+            ArgumentCaptor argument = ArgumentCaptor.forClass(Properties.class);
+            nacosFactoryMockedStatic
+                    .when(() -> NacosFactory.createConfigService((Properties) argument.capture()))
+                    .thenReturn(configServiceMock);
+            load(NacosConfiguration.class, inlinedProperties);
+            assertTrue(((Properties) argument.getValue()).containsKey(PropertyKeyConst.ENDPOINT));
+        }
         ConfigService configService = (ConfigService) getContext().getBean("nacosConfigService");
         assertNotNull(configService);
     }
