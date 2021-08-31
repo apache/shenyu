@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.common.utils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
