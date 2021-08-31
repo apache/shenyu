@@ -107,6 +107,11 @@ public class HttpTestController {
         return userDTO;
     }
 
+    /**
+     * the waf pass.
+     *
+     * @return the string
+     */
     @PostMapping("/waf/pass")
     public ResultBean pass() {
         ResultBean response = new ResultBean();
@@ -115,6 +120,10 @@ public class HttpTestController {
         return response;
     }
 
+    /**
+     * the waf deny.
+     * @return response.
+     */
     @PostMapping("/waf/deny")
     public ResultBean deny() {
         ResultBean response = new ResultBean();
@@ -122,4 +131,17 @@ public class HttpTestController {
         response.setMsg("deny");
         return response;
     }
+
+    /**
+     * post sentinel.
+     * @return response
+     */
+    @PostMapping("/sentinel/pass")
+    public ResultBean sentinelPass() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+        return response;
+    }
+
 }
