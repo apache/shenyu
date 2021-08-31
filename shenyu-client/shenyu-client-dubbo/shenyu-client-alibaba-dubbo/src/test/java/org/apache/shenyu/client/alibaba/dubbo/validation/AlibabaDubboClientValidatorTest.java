@@ -19,7 +19,6 @@ package org.apache.shenyu.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidationParameter;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.validation.ValidationException;
@@ -31,7 +30,6 @@ import java.util.Map;
 /**
  * Test case for {@link AlibabaDubboClientValidation}.
  */
-@Ignore
 public final class AlibabaDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL =
@@ -42,6 +40,7 @@ public final class AlibabaDubboClientValidatorTest {
         final URL url = URL.valueOf(MOCK_SERVICE_URL);
         new AlibabaDubboClientValidation().getValidator(url)
                 .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
+
     }
 
     @Test

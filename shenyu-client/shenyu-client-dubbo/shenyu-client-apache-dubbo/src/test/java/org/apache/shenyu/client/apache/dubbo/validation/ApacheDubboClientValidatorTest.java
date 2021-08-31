@@ -21,16 +21,8 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.validation.Validator;
 import org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.MockedStatic;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.validation.ValidationException;
 import java.util.Collections;
@@ -38,47 +30,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-
 /**
  * Test case for {@link ApacheDubboClientValidator}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ApacheDubboClientValidator.class)
 public final class ApacheDubboClientValidatorTest {
-
-    private static Logger loggerSpy;
-
-    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
     private static final String MOCK_SERVICE_URL =
             "mock://localhost:28000/org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidatorTarget";
 
     private ApacheDubboClientValidator apacheDubboClientValidatorUnderTest;
 
-    @BeforeClass
-    public static void beforeClass() {
-        loggerSpy = spy(LoggerFactory.getLogger(ApacheDubboClientValidator.class));
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ApacheDubboClientValidator.class)).thenReturn(loggerSpy);
-    }
-
-    @AfterClass
-    public static void afterClass() {
-        loggerFactoryMockedStatic.close();
-    }
-
     /**
      * test method {@link ApacheDubboClientValidator#validate(java.lang.String, java.lang.Class[], java.lang.Object[])}.
      */
     @Test
-    public void validate() {
+    public void validate() throws Exception {
         URL url = URL.valueOf("dubbo://127.0.0.1:20880/org.apache.shenyu"
                 + ".client.apache.dubbo.validation.service.TestService"
                 + "?accepts=500&anyhost=true&application=shenyu-proxy"
@@ -89,13 +55,10 @@ public final class ApacheDubboClientValidatorTest {
                 + "&side=provider&threadpool=fixed&threads=500&timeout=20000"
                 + "&timestamp=1608119259859&validation=shenyuValidation");
         Validator apacheDubboClientValidator = new ApacheDubboClientValidation().getValidator(url);
-        try {
-            apacheDubboClientValidator.validate("test",
-                    new Class[]{TestService.TestObject.class},
-                    new Object[]{new TestService.TestObject(1)});
-        } catch (Exception e) {
-            assertThat("age cannot be null.", is(e.getMessage()));
-        }
+
+        apacheDubboClientValidator.validate("test",
+                new Class[]{TestService.TestObject.class},
+                new Object[]{new TestService.TestObject(1)});
     }
 
     @Before
@@ -122,9 +85,6 @@ public final class ApacheDubboClientValidatorTest {
 
     @Test(expected = ValidationException.class)
     public void testValidateWhenMeetsConstraintThenValidationFailed() throws Exception {
-        doNothing().when(loggerSpy).error(anyString(), isA(Throwable.class));
-        doNothing().when(loggerSpy).error(anyString());
-
         apacheDubboClientValidatorUnderTest
                 .validate(
                         "methodTwo",
