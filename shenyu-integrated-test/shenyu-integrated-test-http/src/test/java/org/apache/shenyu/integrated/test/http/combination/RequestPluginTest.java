@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-import com.google.gson.Gson;
-import okhttp3.*;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.RequestHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -30,24 +28,19 @@ import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.net.CookieStore;
 import java.net.HttpCookie;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public final class RequestPluginTest extends AbstractPluginDataInit {
-    /**
-     * logger
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(RequestPluginTest.class);
 
     @BeforeClass
     public static void setup() throws IOException {
