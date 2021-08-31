@@ -160,8 +160,10 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
+
+    /**
      * post sentinel.
-     * @return response
+     * @return response.
      */
     @PostMapping("/sentinel/pass")
     public ResultBean sentinelPass() {
