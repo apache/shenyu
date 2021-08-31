@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
 import org.apache.shenyu.common.enums.RateLimitEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.spi.Join;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;

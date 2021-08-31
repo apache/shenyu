@@ -15,21 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration;
+package org.apache.shenyu.springboot.starter.gateway;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.ParamTransformPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
-import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
+import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
+import org.apache.shenyu.web.configuration.ShenyuExtConfiguration;
+import org.apache.shenyu.web.configuration.SpringExtConfiguration;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
-import org.apache.shenyu.web.filter.TimeWebFilter;
 import org.apache.shenyu.web.filter.WebSocketParamFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -37,6 +38,8 @@ import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -58,7 +61,9 @@ import java.util.stream.Collectors;
  */
 @Configuration
 @ComponentScan("org.apache.shenyu")
-@Import(value = {ErrorHandlerConfiguration.class, ShenyuExtConfiguration.class, SpringExtConfiguration.class})
+@AutoConfigureBefore(value = SpringExtConfiguration.class)
+@Import(value = ErrorHandlerConfiguration.class)
+@AutoConfigureAfter(value = ShenyuExtConfiguration.class)
 public class ShenyuConfiguration {
     
     /**
@@ -147,7 +152,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(-200)
-    @ConditionalOnProperty(name = "shenyu.local.enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.switchConfig.local", havingValue = "true", matchIfMissing = true)
     public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler) {
         return new LocalDispatcherFilter(dispatcherHandler);
     }
@@ -163,7 +168,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(-100)
-    @ConditionalOnProperty(name = "shenyu.cross.enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.switchConfig.cross", havingValue = "true")
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
@@ -178,20 +183,20 @@ public class ShenyuConfiguration {
     @Order(-10)
     @ConditionalOnProperty(name = "shenyu.file.enabled", havingValue = "true")
     public WebFilter fileSizeFilter(final ShenyuConfig shenyuConfig) {
-        return new FileSizeFilter(shenyuConfig.getFileMaxSize());
+        return new FileSizeFilter(shenyuConfig.getFile().getMaxSize());
     }
     
     /**
-     * Rule out the url Filter.
+     * Exclude filter web filter.
      *
-     * @param excludePathProperties the exclude path
+     * @param shenyuConfig the shenyu config
      * @return the web filter
      */
     @Bean
     @Order(-5)
     @ConditionalOnProperty(name = "shenyu.exclude.enabled", havingValue = "true")
-    public WebFilter excludeFilter(final ExcludePathProperties excludePathProperties) {
-        return new ExcludeFilter(excludePathProperties);
+    public WebFilter excludeFilter(final ShenyuConfig shenyuConfig) {
+        return new ExcludeFilter(shenyuConfig.getExclude().getPaths());
     }
     
     /**
@@ -203,19 +208,6 @@ public class ShenyuConfiguration {
     @ConfigurationProperties(prefix = "shenyu")
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
-    }
-    
-    /**
-     * Init time web filter.
-     *
-     * @param shenyuConfig the shenyu config
-     * @return {@linkplain TimeWebFilter}
-     */
-    @Bean
-    @Order(30)
-    @ConditionalOnProperty(name = "shenyu.filterTimeEnable")
-    public WebFilter timeWebFilter(final ShenyuConfig shenyuConfig) {
-        return new TimeWebFilter(shenyuConfig);
     }
     
     /**

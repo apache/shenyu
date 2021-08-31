@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.WebSocketUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -45,6 +46,9 @@ public class WebSocketPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         List<WebSocketUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), WebSocketUpstream.class);
+        if (CollectionUtils.isEmpty(upstreamList)) {
+            return;
+        }
         UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(upstreamList));
     }
 
