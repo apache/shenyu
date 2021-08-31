@@ -28,6 +28,7 @@ import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -54,8 +56,7 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
     public void test() throws IOException {
         Map<String, Object> headerMap = new HashMap<>();
         headerMap.put("requestHeader", "123");
-        headerMap.put("cookie", new HttpCookie("cookie","123"));
-
+        headerMap.put("cookie", new HttpCookie("cookie", "123"));
         Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/pass?requestParameter=shenyu", headerMap, Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
