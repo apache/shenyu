@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
@@ -34,20 +33,20 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 /**
- * for execute schema sql file.
+ * for execute schema sql file. initialize the database.
+ * PostgreSql library statements cannot be executed in the same transaction block as table statements.
  */
 @Component
-@DependsOn(value = "postgreSqlLoader")
-public class LocalDataSourceLoader extends ScriptLoader implements InstantiationAwareBeanPostProcessor {
+public class PostgreSqlLoader extends ScriptLoader implements InstantiationAwareBeanPostProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LocalDataSourceLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlLoader.class);
 
     @Resource
     private DataBaseProperties dataBaseProperties;
     
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
-        if ((bean instanceof DataSourceProperties) && dataBaseProperties.getInitEnable()) {
+        if ((bean instanceof DataSourceProperties) && dataBaseProperties.getDialect().equals("postgresql")) {
             this.init((DataSourceProperties) bean);
         }
         return bean;
@@ -55,12 +54,12 @@ public class LocalDataSourceLoader extends ScriptLoader implements Instantiation
 
     protected void init(final DataSourceProperties properties) {
         try {
-            // If jdbcUrl in the configuration file specifies the shenyu database, it is removed,
-            // because the shenyu database does not need to be specified when executing the SQL file,
+            // If jdbcUrl in the configuration file specifies the shenyu database, It will be replaced by postgres,
+            // because postgresSql creates database scripts that require the Postgres database to execute,
             // otherwise the shenyu database will be disconnected when the shenyu database does not exist
-            String jdbcUrl = StringUtils.replace(properties.getUrl(), "/shenyu?", "?");
+            String jdbcUrl = StringUtils.replace(properties.getUrl(), "/shenyu", "/postgres");
             Connection connection = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword());
-            super.execute(connection, dataBaseProperties.getInitScript());
+            super.execute(connection, dataBaseProperties.getDbScript());
         } catch (Exception e) {
             LOG.error("Datasource init error.", e);
             throw new ShenyuException(e.getMessage());

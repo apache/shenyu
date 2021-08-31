@@ -37,6 +37,13 @@ public final class ReflectUtilsTest {
         assertNull(ReflectUtils.getFieldValue(reflectNonField, "a"));
     }
 
+    @Test
+    public void testSetFieldValue() {
+        final Reflect reflect = new Reflect();
+        ReflectUtils.setFieldValue(reflect, "a", "2");
+        assertEquals("2", ReflectUtils.getFieldValue(reflect, "a"));
+    }
+
     static class Reflect {
         private String a = "1";
     }

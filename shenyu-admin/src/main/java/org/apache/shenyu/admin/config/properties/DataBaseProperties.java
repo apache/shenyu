@@ -33,6 +33,8 @@ public class DataBaseProperties {
 
     private Boolean initEnable;
 
+    private String dbScript;
+
     /**
      * Gets the value of dialect.
      *
@@ -85,5 +87,23 @@ public class DataBaseProperties {
      */
     public void setInitEnable(final Boolean initEnable) {
         this.initEnable = initEnable;
+    }
+
+    /**
+     * Gets the value of dbScript.
+     *
+     * @return the value of dbScript
+     */
+    public String getDbScript() {
+        return dbScript;
+    }
+
+    /**
+     * Sets the dbScript.
+     *
+     * @param dbScript dbScript
+     */
+    public void setDbScript(final String dbScript) {
+        this.dbScript = dbScript;
     }
 }
