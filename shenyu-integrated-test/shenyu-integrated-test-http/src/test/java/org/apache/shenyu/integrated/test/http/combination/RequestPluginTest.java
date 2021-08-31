@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
+import com.google.gson.Gson;
+import okhttp3.*;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.RequestHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -28,18 +30,24 @@ import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.lang.reflect.Type;
+import java.net.CookieStore;
+import java.net.HttpCookie;
+import java.util.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public final class RequestPluginTest extends AbstractPluginDataInit {
+    /**
+     * logger
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(RequestPluginTest.class);
 
     @BeforeClass
     public static void setup() throws IOException {
@@ -51,7 +59,11 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void test() throws IOException {
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway("/http/test/request/pass", "", Map.class);
+        Map<String, Object> headerMap = new HashMap<>();
+        headerMap.put("requestHeader", "123");
+        headerMap.put("cookie", new HttpCookie("cookie","123"));
+
+        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/pass?requestParameter=shenyu", headerMap, Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
     }
