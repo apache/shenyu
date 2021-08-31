@@ -145,7 +145,7 @@ public class HttpTestController {
      * @param cookie           the cookie.
      * @return ResultBean
      */
-    @PostMapping("/request/pass")
+    @GetMapping("/request/pass")
     public ResultBean requestPass(@RequestParam("requestParameter") final String requestParameter,
                                   @RequestHeader("requestHeader") final String requestHeader,
                                   @CookieValue("cookie") final String cookie) {
