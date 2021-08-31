@@ -75,7 +75,7 @@ public final class FallbackHandlerTest {
     @Test
     public void fallbackTest() {
         StepVerifier.create(testFallbackHandler.fallback(exchange, null, mock(RuntimeException.class))).expectSubscription().verifyComplete();
-        StepVerifier.create(testFallbackHandler.fallback(exchange, URI.create("http://wwww.baidu.com"), mock(RuntimeException.class))).expectSubscription().verifyComplete();
+        StepVerifier.create(testFallbackHandler.fallback(exchange, URI.create("http://127.0.0.1:8090/SHENYU"), mock(RuntimeException.class))).expectSubscription().verifyComplete();
     }
 
     static class TestFallbackHandler implements FallbackHandler {

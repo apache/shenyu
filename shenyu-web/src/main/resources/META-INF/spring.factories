@@ -1,5 +1,0 @@
-# Auto Configure
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.web.configuration.ShenyuConfiguration
-org.springframework.context.ApplicationListener=\
-org.apache.shenyu.web.logo.ShenyuLogo

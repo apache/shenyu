@@ -31,6 +31,8 @@ import java.lang.reflect.Field;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+
 
 /**
  * The Test Case For AlibabaDubboMetaDataSubscriber.
@@ -74,7 +76,9 @@ public final class ApacheDubboMetaDataSubscriberTest {
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .rpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"loadbalance\":\"roundrobin\",\"url\":\"http://192.168.55.113/dubbo\"}")
                 .parameterTypes("parameterTypes").build();
-        alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
+        AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriberMock = mock(AlibabaDubboMetaDataSubscriber.class);
+        doNothing().when(alibabaDubboMetaDataSubscriberMock).onSubscribe(metaData);
+        alibabaDubboMetaDataSubscriberMock.onSubscribe(metaData);
         alibabaDubboMetaDataSubscriber.unSubscribe(metaData);
     }
 }

@@ -33,12 +33,9 @@ management:
       enabled: false
 
 shenyu:
-  file:
-    enabled: true
-  cross:
-    enabled: true
-  dubbo:
-    parameter: multi
+  switchConfig:
+    local: true
+    cross: true
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
@@ -48,19 +45,11 @@ shenyu:
   #    connectionTimeout: 2000
   # http:
   #    url : http://localhost:9095
-
   exclude:
-    enabled: false
+    enabled: true
     paths:
       - /favicon.ico
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
+      - /actuator/health
 
 logging:
   level:

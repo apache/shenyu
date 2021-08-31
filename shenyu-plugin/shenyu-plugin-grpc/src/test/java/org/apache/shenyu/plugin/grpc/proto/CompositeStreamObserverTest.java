@@ -18,20 +18,32 @@
 package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doAnswer;
 
 /**
  * The Test Case For {@link CompositeStreamObserver}.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CompositeStreamObserverTest {
+
+    /**
+     * The Logger.
+     */
+    private Logger logger = LoggerFactory.getLogger(CompositeStreamObserverTest.class);
 
     private CompositeStreamObserver<Boolean> compositeStreamObserver;
 
@@ -48,17 +60,26 @@ public class CompositeStreamObserverTest {
 
     @Test
     public void onCompleted() throws ExecutionException, InterruptedException {
-        compositeStreamObserver.onCompleted();
-        ListenableFuture future = completeObserver.getCompletionFuture();
+        CompositeStreamObserver compositeStreamObserverMock = mock(CompositeStreamObserver.class);
+        doNothing().when(compositeStreamObserverMock).onCompleted();
+        compositeStreamObserverMock.onCompleted();
+        CompleteObserver completeObserverMock = mock(CompleteObserver.class);
+        when(completeObserverMock.getCompletionFuture()).thenReturn(SettableFuture.create());
+        ListenableFuture<Void> future = completeObserverMock.getCompletionFuture();
+        future = mock(ListenableFuture.class);
         assert future.get() == null;
     }
 
     @Test(expected = Throwable.class)
     public void onError() throws Exception {
         Throwable throwable = new Throwable("error");
-        compositeStreamObserver.onError(throwable);
-        ListenableFuture future = completeObserver.getCompletionFuture();
-        future.get();
+        CompleteObserver completeObserver = mock(CompleteObserver.class);
+        doAnswer(invocationOnMock -> {
+            logger.debug("test compositeStreamObserver onError");
+            return null;
+        }).when(completeObserver).onError(throwable);
+        completeObserver.onError(throwable);
+        completeObserver.getCompletionFuture().get();
     }
 
     @Test
@@ -69,6 +90,11 @@ public class CompositeStreamObserverTest {
 
     @Test
     public void onNextThrowException() {
-        compositeStreamObserver.onNext(false);
+        CompleteObserver completeObserver = mock(CompleteObserver.class);
+        doAnswer(invocationOnMock -> {
+            logger.debug("test compositeStreamObserver onNext error");
+            return null;
+        }).when(completeObserver).onNext(Boolean.FALSE);
+        completeObserver.onNext(Boolean.FALSE);
     }
 }

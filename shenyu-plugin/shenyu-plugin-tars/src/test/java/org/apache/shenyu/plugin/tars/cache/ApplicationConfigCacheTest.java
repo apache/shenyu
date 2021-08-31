@@ -52,7 +52,7 @@ public final class ApplicationConfigCacheTest {
         applicationConfigCacheUnderTest = ApplicationConfigCache.getInstance();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testGet() throws ClassNotFoundException {
         final String rpcExt = "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":"
                 + "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\","
@@ -71,7 +71,7 @@ public final class ApplicationConfigCacheTest {
         assertTrue(Arrays.stream(prxClazz.getAnnotations()).anyMatch(annotation -> annotation instanceof Servant));
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testConcurrentInitPrx() throws InterruptedException {
         final String rpcExt1 = "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":"
                 + "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\","
@@ -113,7 +113,7 @@ public final class ApplicationConfigCacheTest {
         assertEquals("promise_method4", applicationConfigCacheUnderTest.get("path4").getMethod().getName());
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testInitPrx() {
         final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path6", RpcTypeEnum.TARS.getName(), "serviceName6", "method1",

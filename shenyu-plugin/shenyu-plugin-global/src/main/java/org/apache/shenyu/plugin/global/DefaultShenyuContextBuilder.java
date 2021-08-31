@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.cache.MetaDataCache;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -54,10 +55,14 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
         MetaData metaData = MetaDataCache.getInstance().obtain(path);
+        HttpHeaders headers = request.getHeaders();
+        String upgrade = headers.getFirst("Upgrade");
         String rpcType;
         if (Objects.nonNull(metaData) && metaData.getEnabled()) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             rpcType = metaData.getRpcType();
+        } else if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
+            rpcType = RpcTypeEnum.WEB_SOCKET.getName();
         } else {
             String rpcTypeParam = request.getHeaders().getFirst("rpc_type");
             rpcType = StringUtils.isEmpty(rpcTypeParam) ? RpcTypeEnum.HTTP.getName() : rpcTypeParam;

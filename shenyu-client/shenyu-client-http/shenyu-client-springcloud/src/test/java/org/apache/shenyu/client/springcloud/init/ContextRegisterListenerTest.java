@@ -20,7 +20,6 @@ package org.apache.shenyu.client.springcloud.init;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -32,7 +31,6 @@ import org.springframework.core.env.Environment;
 import java.util.Properties;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link ContextRegisterListener}.
@@ -45,14 +43,12 @@ public final class ContextRegisterListenerTest {
     private static Environment env;
 
     @Test
-    @Ignore
     public void testNotFullRegister() {
         Properties properties = new Properties();
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://127.0.0.1:58080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(mockRegisterCenter, env, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);

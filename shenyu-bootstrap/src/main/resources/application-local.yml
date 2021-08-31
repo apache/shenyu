@@ -46,12 +46,12 @@ management:
       enabled: false
 
 shenyu:
+  switchConfig:
+    local: true
+    cross: true
   file:
     enabled: true
-  cross:
-    enabled: true
-  dubbo:
-    parameter: multi
+    maxSize : 10
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
@@ -82,6 +82,24 @@ shenyu:
     enabled: false
     paths:
       - /favicon.ico
+  extPlugin:
+    enabled: true
+    threads: 1
+    scheduleTime: 300
+    scheduleDelay: 30
+  scheduler:
+    enabled: false
+    type: fixed
+    threads: 16
+  upstreamCheck:
+    enabled: false
+    timeout: 3000
+    healthyThreshold: 1
+    unhealthyThreshold: 1
+    interval: 5000
+    printEnabled: true
+    printInterval: 60000
+    
 
 #eureka:
 #  client:

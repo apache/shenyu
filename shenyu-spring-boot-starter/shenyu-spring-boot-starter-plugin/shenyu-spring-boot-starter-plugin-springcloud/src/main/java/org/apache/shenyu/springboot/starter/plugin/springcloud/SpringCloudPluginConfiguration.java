@@ -24,21 +24,13 @@ import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
 import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDecorator;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.DispatcherHandler;
 
 /**
  * The type Spring cloud plugin configuration.
  */
-@ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class})
-@AutoConfigureAfter(RibbonAutoConfiguration.class)
-@ConditionalOnBean(LoadBalancerClient.class)
 @Configuration
 public class SpringCloudPluginConfiguration {
 
@@ -54,12 +46,12 @@ public class SpringCloudPluginConfiguration {
     }
 
     /**
-     * Spring cloud dubbo shenyu context decorator shenyu context decorator.
+     * Spring cloud shenyu context decorator shenyu context decorator.
      *
      * @return the shenyu context decorator
      */
     @Bean
-    public ShenyuContextDecorator springCloudDubboShenyuContextDecorator() {
+    public ShenyuContextDecorator springCloudShenyuContextDecorator() {
         return new SpringCloudShenyuContextDecorator();
     }
 

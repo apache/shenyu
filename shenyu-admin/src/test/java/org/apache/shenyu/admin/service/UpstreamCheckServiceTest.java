@@ -30,14 +30,19 @@ import org.apache.shenyu.common.dto.convert.ZombieUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -54,13 +59,17 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for UpstreamCheckService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(UpstreamCheckService.class)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
@@ -70,6 +79,10 @@ public final class UpstreamCheckServiceTest {
     private static final String MOCK_SELECTOR_NAME_OTHER = "mockSelectorNameOther";
 
     private static final String MOCK_PLUGIN_ID = "mockPluginId";
+
+    private static Logger loggerSpy;
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
     private UpstreamCheckService upstreamCheckService;
 
@@ -91,6 +104,19 @@ public final class UpstreamCheckServiceTest {
 
     private Set<ZombieUpstream> zombieSet;
 
+    @BeforeClass
+    public static void beforeClass() {
+        loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckService.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
+
     @Before
     public void setUp() {
         shenyuRegisterCenterConfig.setRegisterType("http");
@@ -104,6 +130,8 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testScheduled() {
+        doNothing().when(loggerSpy).error(anyString(), isNull(Object.class));
+
         PluginDO pluginDO = PluginDO.builder()
                 .name(PluginEnum.DIVIDE.getName())
                 .id(MOCK_PLUGIN_ID)

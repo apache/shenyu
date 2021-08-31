@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -29,6 +28,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,17 +38,22 @@ public class ExcludeFilter implements WebFilter {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    private ExcludePathProperties excludePathProperties;
-
-    public ExcludeFilter(final ExcludePathProperties excludePathProperties) {
-        this.excludePathProperties = excludePathProperties;
+    private List<String> paths;
+    
+    /**
+     * Instantiates a new Exclude filter.
+     *
+     * @param paths the paths
+     */
+    public ExcludeFilter(final List<String> paths) {
+        this.paths = paths;
     }
 
     @Override
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        Set<String> excludedPaths = Collections.unmodifiableSet(new HashSet<>(excludePathProperties.getPaths()));
+        Set<String> excludedPaths = Collections.unmodifiableSet(new HashSet<>(paths));
         boolean match = excludedPaths.stream().anyMatch(url -> reg(url, path));
         if (match) {
             ServerHttpResponse response = exchange.getResponse();
