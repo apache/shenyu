@@ -115,6 +115,7 @@ public class HttpTestController {
      * the waf pass.
      *
      * @return response.
+     * @return the string
      */
     @PostMapping("/waf/pass")
     public ResultBean pass() {
@@ -159,4 +160,15 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
+     * post sentinel.
+     * @return response
+     */
+    @PostMapping("/sentinel/pass")
+    public ResultBean sentinelPass() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+        return response;
+    }
+
 }
