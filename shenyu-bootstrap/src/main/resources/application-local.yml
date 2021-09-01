@@ -46,9 +46,16 @@ management:
       enabled: false
 
 shenyu:
+  cross:
+    enabled: true
+    allowedHeaders:
+    allowedMethods: "*"
+    allowedOrigin: "*"
+    allowedExpose: "*"
+    maxAge: "18000"
+    allowCredentials: true
   switchConfig:
     local: true
-    cross: true
   file:
     enabled: true
     maxSize : 10
@@ -83,6 +90,7 @@ shenyu:
     paths:
       - /favicon.ico
   extPlugin:
+    path:
     enabled: true
     threads: 1
     scheduleTime: 300
@@ -100,7 +108,6 @@ shenyu:
     printEnabled: true
     printInterval: 60000
     
-
 #eureka:
 #  client:
 #    serviceUrl:

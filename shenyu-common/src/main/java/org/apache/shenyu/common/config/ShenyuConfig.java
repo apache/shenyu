@@ -43,8 +43,8 @@ public class ShenyuConfig {
     
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
-    private CrosFilterConfig crosFilterConfig = new CrosFilterConfig();
-
+    private CrossFilterConfig cross = new CrossFilterConfig();
+    
     /**
      * Gets switch config.
      *
@@ -152,25 +152,25 @@ public class ShenyuConfig {
     public void setUpstreamCheck(final UpstreamCheck upstreamCheck) {
         this.upstreamCheck = upstreamCheck;
     }
-
+    
     /**
-     * Gets crosFilterConfig.
+     * Gets cross.
      *
-     * @return the crosFilterConfig
+     * @return the cross
      */
-    public CrosFilterConfig getCrosFilterConfig() {
-        return crosFilterConfig;
+    public CrossFilterConfig getCross() {
+        return cross;
     }
-
+    
     /**
-     * Sets crosFilterConfig.
+     * Sets cross.
      *
-     * @param crosFilterConfig the crosFilterConfig
+     * @param cross the cross
      */
-    public void setCrosFilterConfig(final CrosFilterConfig crosFilterConfig) {
-        this.crosFilterConfig = crosFilterConfig;
+    public void setCross(final CrossFilterConfig cross) {
+        this.cross = cross;
     }
-
+    
     /**
      * The type Scheduler.
      */
@@ -243,6 +243,8 @@ public class ShenyuConfig {
      */
     public static class ExtPlugin {
         
+        private String path;
+        
         private Boolean enabled = true;
     
         private Integer threads = 1;
@@ -250,6 +252,24 @@ public class ShenyuConfig {
         private Integer scheduleTime = 300;
     
         private Integer scheduleDelay = 30;
+    
+        /**
+         * Gets path.
+         *
+         * @return the path
+         */
+        public String getPath() {
+            return path;
+        }
+    
+        /**
+         * Sets path.
+         *
+         * @param path the path
+         */
+        public void setPath(final String path) {
+            this.path = path;
+        }
     
         /**
          * Gets enabled.
@@ -424,8 +444,6 @@ public class ShenyuConfig {
         
         private Boolean local = true;
     
-        private Boolean cross = true;
-    
         /**
          * Gets local.
          *
@@ -443,24 +461,7 @@ public class ShenyuConfig {
         public void setLocal(final Boolean local) {
             this.local = local;
         }
-    
-        /**
-         * Gets cross.
-         *
-         * @return the cross
-         */
-        public Boolean getCross() {
-            return cross;
-        }
-    
-        /**
-         * Sets cross.
-         *
-         * @param cross the cross
-         */
-        public void setCross(final Boolean cross) {
-            this.cross = cross;
-        }
+        
     }
     
     /**
@@ -608,11 +609,11 @@ public class ShenyuConfig {
             this.printInterval = printInterval;
         }
     }
-
+    
     /**
-     * The Cros Filter Config.
+     * The Cross Filter Config.
      */
-    public static class CrosFilterConfig {
+    public static class CrossFilterConfig {
 
         private static final Set<String> DEFAULT_ALLOWED_HEADERS;
 
@@ -631,6 +632,8 @@ public class ShenyuConfig {
                 }
             };
         }
+    
+        private Boolean enabled = true;
 
         /**
          * Comma-separated of “header”.
@@ -663,7 +666,25 @@ public class ShenyuConfig {
             }
             return String.join(",", headerSet);
         }
-
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+    
         /**
          * Gets the value of allowedHeaders.
          *
@@ -672,7 +693,7 @@ public class ShenyuConfig {
         public String getAllowedHeaders() {
             return allowedHeaders = wrapperHeaders(allowedHeaders);
         }
-
+    
         /**
          * Sets the allowedHeaders.
          *
@@ -681,7 +702,7 @@ public class ShenyuConfig {
         public void setAllowedHeaders(final String allowedHeaders) {
             this.allowedHeaders = wrapperHeaders(allowedHeaders);
         }
-
+    
         /**
          * Gets the value of allowedMethods.
          *
@@ -690,7 +711,7 @@ public class ShenyuConfig {
         public String getAllowedMethods() {
             return allowedMethods;
         }
-
+    
         /**
          * Sets the allowedMethods.
          *
@@ -699,7 +720,7 @@ public class ShenyuConfig {
         public void setAllowedMethods(final String allowedMethods) {
             this.allowedMethods = allowedMethods;
         }
-
+    
         /**
          * Gets the value of allowedOrigin.
          *
@@ -708,7 +729,7 @@ public class ShenyuConfig {
         public String getAllowedOrigin() {
             return allowedOrigin;
         }
-
+    
         /**
          * Sets the allowedOrigin.
          *
@@ -717,7 +738,7 @@ public class ShenyuConfig {
         public void setAllowedOrigin(final String allowedOrigin) {
             this.allowedOrigin = allowedOrigin;
         }
-
+    
         /**
          * Gets the value of allowedExpose.
          *
@@ -726,7 +747,7 @@ public class ShenyuConfig {
         public String getAllowedExpose() {
             return allowedExpose;
         }
-
+    
         /**
          * Sets the allowedExpose.
          *
@@ -735,7 +756,7 @@ public class ShenyuConfig {
         public void setAllowedExpose(final String allowedExpose) {
             this.allowedExpose = allowedExpose;
         }
-
+    
         /**
          * Gets the value of maxAge.
          *
@@ -744,7 +765,7 @@ public class ShenyuConfig {
         public String getMaxAge() {
             return maxAge;
         }
-
+    
         /**
          * Sets the maxAge.
          *
@@ -753,7 +774,7 @@ public class ShenyuConfig {
         public void setMaxAge(final String maxAge) {
             this.maxAge = maxAge;
         }
-
+    
         /**
          * Gets the value of allowCredentials.
          *
@@ -762,7 +783,7 @@ public class ShenyuConfig {
         public boolean isAllowCredentials() {
             return allowCredentials;
         }
-
+    
         /**
          * Sets the allowCredentials.
          *
