@@ -49,10 +49,10 @@ shenyu:
   cross:
     enabled: true
     allowedHeaders:
-    allowedMethods: *
-    allowedOrigin: *
-    allowedExpose: *
-    maxAge: 18000
+    allowedMethods: "*"
+    allowedOrigin: "*"
+    allowedExpose: "*"
+    maxAge: "18000"
     allowCredentials: true
   switchConfig:
     local: true
