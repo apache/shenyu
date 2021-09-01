@@ -23,10 +23,12 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * The type shenyu result configuration.
  */
+@Configuration
 public class ShenyuExtConfiguration {
 
     /**

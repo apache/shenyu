@@ -30,7 +30,7 @@ import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisNode;

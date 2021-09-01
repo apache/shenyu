@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.utils.Singleton;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -99,6 +99,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- shenyu sentinel plugin starter-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-sentinel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
