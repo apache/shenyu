@@ -169,9 +169,9 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(-100)
-    @ConditionalOnProperty(name = "shenyu.switchConfig.cross", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.cross.enabled", havingValue = "true")
     public WebFilter crossFilter(final ShenyuConfig shenyuConfig) {
-        return new CrossFilter(shenyuConfig.getCrosFilterConfig());
+        return new CrossFilter(shenyuConfig.getCross());
     }
     
     /**

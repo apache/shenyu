@@ -35,7 +35,8 @@ management:
 shenyu:
   switchConfig:
     local: true
-    cross: true
+  cross:
+    enabled: true 
   sync:
     websocket:
       urls: ws://shenyu-admin:9095/websocket

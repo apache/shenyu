@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -34,9 +34,9 @@ import reactor.core.publisher.Mono;
  */
 public class CrossFilter implements WebFilter {
 
-    private final ShenyuConfig.CrosFilterConfig filterConfig;
+    private final CrossFilterConfig filterConfig;
 
-    public CrossFilter(final ShenyuConfig.CrosFilterConfig filterConfig) {
+    public CrossFilter(final CrossFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
     }
 
