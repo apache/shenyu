@@ -17,8 +17,14 @@
 
 package org.apache.shenyu.common.config;
 
+import org.springframework.util.StringUtils;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type shenyu config.
@@ -36,7 +42,9 @@ public class ShenyuConfig {
     private Scheduler scheduler = new Scheduler();
     
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
-    
+
+    private CrosFilterConfig crosFilterConfig = new CrosFilterConfig();
+
     /**
      * Gets switch config.
      *
@@ -144,7 +152,25 @@ public class ShenyuConfig {
     public void setUpstreamCheck(final UpstreamCheck upstreamCheck) {
         this.upstreamCheck = upstreamCheck;
     }
-    
+
+    /**
+     * Gets crosFilterConfig.
+     *
+     * @return the crosFilterConfig
+     */
+    public CrosFilterConfig getCrosFilterConfig() {
+        return crosFilterConfig;
+    }
+
+    /**
+     * Sets crosFilterConfig.
+     *
+     * @param crosFilterConfig the crosFilterConfig
+     */
+    public void setCrosFilterConfig(final CrosFilterConfig crosFilterConfig) {
+        this.crosFilterConfig = crosFilterConfig;
+    }
+
     /**
      * The type Scheduler.
      */
@@ -580,6 +606,170 @@ public class ShenyuConfig {
          */
         public void setPrintInterval(final Integer printInterval) {
             this.printInterval = printInterval;
+        }
+    }
+
+    /**
+     * The Cros Filter Config.
+     */
+    public static class CrosFilterConfig {
+
+        private static final Set<String> DEFAULT_ALLOWED_HEADERS;
+
+        static {
+            DEFAULT_ALLOWED_HEADERS = new HashSet<String>() {
+                {
+                    add("x-requested-with");
+                    add("authorization");
+                    add("Content-Type");
+                    add("Authorization");
+                    add("credential");
+                    add("X-XSRF-TOKEN");
+                    add("token");
+                    add("username");
+                    add("client");
+                }
+            };
+        }
+
+        /**
+         * Comma-separated of “header”.
+         */
+        private String allowedHeaders = "";
+
+        /**
+         * Comma-separated of “method”.
+         */
+        private String allowedMethods = "*";
+
+        private String allowedOrigin = "*";
+
+        private String allowedExpose = "*";
+
+        private String maxAge = "18000";
+
+        private boolean allowCredentials = true;
+
+        /**
+         * wrapper the headers.
+         *
+         * @param headers headers
+         * @return wrapped headers
+         */
+        private String wrapperHeaders(final String headers) {
+            final Set<String> headerSet = DEFAULT_ALLOWED_HEADERS;
+            if (StringUtils.hasText(headers)) {
+                headerSet.addAll(Stream.of(headers.split(",")).collect(Collectors.toSet()));
+            }
+            return String.join(",", headerSet);
+        }
+
+        /**
+         * Gets the value of allowedHeaders.
+         *
+         * @return the value of allowedHeaders
+         */
+        public String getAllowedHeaders() {
+            return allowedHeaders = wrapperHeaders(allowedHeaders);
+        }
+
+        /**
+         * Sets the allowedHeaders.
+         *
+         * @param allowedHeaders allowedHeaders
+         */
+        public void setAllowedHeaders(final String allowedHeaders) {
+            this.allowedHeaders = wrapperHeaders(allowedHeaders);
+        }
+
+        /**
+         * Gets the value of allowedMethods.
+         *
+         * @return the value of allowedMethods
+         */
+        public String getAllowedMethods() {
+            return allowedMethods;
+        }
+
+        /**
+         * Sets the allowedMethods.
+         *
+         * @param allowedMethods allowedMethods
+         */
+        public void setAllowedMethods(final String allowedMethods) {
+            this.allowedMethods = allowedMethods;
+        }
+
+        /**
+         * Gets the value of allowedOrigin.
+         *
+         * @return the value of allowedOrigin
+         */
+        public String getAllowedOrigin() {
+            return allowedOrigin;
+        }
+
+        /**
+         * Sets the allowedOrigin.
+         *
+         * @param allowedOrigin allowedOrigin
+         */
+        public void setAllowedOrigin(final String allowedOrigin) {
+            this.allowedOrigin = allowedOrigin;
+        }
+
+        /**
+         * Gets the value of allowedExpose.
+         *
+         * @return the value of allowedExpose
+         */
+        public String getAllowedExpose() {
+            return allowedExpose;
+        }
+
+        /**
+         * Sets the allowedExpose.
+         *
+         * @param allowedExpose allowedExpose
+         */
+        public void setAllowedExpose(final String allowedExpose) {
+            this.allowedExpose = allowedExpose;
+        }
+
+        /**
+         * Gets the value of maxAge.
+         *
+         * @return the value of maxAge
+         */
+        public String getMaxAge() {
+            return maxAge;
+        }
+
+        /**
+         * Sets the maxAge.
+         *
+         * @param maxAge maxAge
+         */
+        public void setMaxAge(final String maxAge) {
+            this.maxAge = maxAge;
+        }
+
+        /**
+         * Gets the value of allowCredentials.
+         *
+         * @return the value of allowCredentials
+         */
+        public boolean isAllowCredentials() {
+            return allowCredentials;
+        }
+
+        /**
+         * Sets the allowCredentials.
+         *
+         * @param allowCredentials allowCredentials
+         */
+        public void setAllowCredentials(final boolean allowCredentials) {
+            this.allowCredentials = allowCredentials;
         }
     }
 }

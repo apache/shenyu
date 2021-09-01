@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.web.handler;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
