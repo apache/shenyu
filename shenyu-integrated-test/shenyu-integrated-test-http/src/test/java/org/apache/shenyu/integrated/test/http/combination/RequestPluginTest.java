@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.convert.RequestHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
@@ -54,12 +55,26 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void test() throws IOException {
-        Map<String, Object> headerMap = new HashMap<>();
-        headerMap.put("requestHeader", "123");
-        headerMap.put("cookie", new HttpCookie("cookie", "123"));
-        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/pass?requestParameter=shenyu", headerMap, Map.class);
+        Map<String, Object> paramMap = new HashMap<>();
+
+        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/parameter/pass?requestParameter=requestParameter", paramMap, Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
+        assertEquals("requestParameter", GsonUtils.getInstance().convertToMap(String.valueOf(result.get("data"))).get("requestParameter"));
+
+        paramMap.clear();
+        paramMap.put("requestHeader", "requestHeader");
+        result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/header/pass", paramMap, Map.class);
+        assertNotNull(result);
+        assertEquals("pass", result.get("msg"));
+        assertEquals("requestHeader", GsonUtils.getInstance().convertToMap(String.valueOf(result.get("data"))).get("requestHeader"));
+
+        paramMap.clear();
+        paramMap.put("cookie", new HttpCookie("cookie", "cookie"));
+        result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/cookie/pass", paramMap, Map.class);
+        assertNotNull(result);
+        assertEquals("pass", result.get("msg"));
+        assertEquals("cookie", GsonUtils.getInstance().convertToMap(String.valueOf(result.get("data"))).get("cookie"));
     }
 
     private static List<ConditionData> buildSelectorConditionList() {

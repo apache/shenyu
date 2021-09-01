@@ -141,21 +141,49 @@ public class HttpTestController {
     /**
      * request Pass.
      * @param requestParameter the requestParameter.
-     * @param requestHeader    the requestHeader.
-     * @param cookie           the cookie.
      * @return ResultBean
      */
-    @GetMapping("/request/pass")
-    public ResultBean requestPass(@RequestParam("requestParameter") final String requestParameter,
-                                  @RequestHeader("requestHeader") final String requestHeader,
-                                  @CookieValue("cookie") final String cookie) {
+    @GetMapping("/request/parameter/pass")
+    public ResultBean requestParameter(@RequestParam("requestParameter") final String requestParameter) {
         ResultBean response = new ResultBean();
         response.setCode(200);
         response.setMsg("pass");
 
         Map<String, Object> param = new HashMap<>();
         param.put("requestParameter", requestParameter);
+        response.setData(param);
+        return response;
+    }
+
+    /**
+     * request Pass.
+     * @param requestHeader    the requestHeader.
+     * @return ResultBean
+     */
+    @GetMapping("/request/header/pass")
+    public ResultBean requestHeader(@RequestHeader("requestHeader") final String requestHeader) {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+
+        Map<String, Object> param = new HashMap<>();
         param.put("requestHeader", requestHeader);
+        response.setData(param);
+        return response;
+    }
+
+    /**
+     * request Pass.
+     * @param cookie           the cookie.
+     * @return ResultBean
+     */
+    @GetMapping("/request/cookie/pass")
+    public ResultBean requestCookie(@CookieValue("cookie") final String cookie) {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+
+        Map<String, Object> param = new HashMap<>();
         param.put("cookie", cookie);
         response.setData(param);
         return response;
