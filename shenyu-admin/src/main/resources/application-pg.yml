@@ -17,9 +17,8 @@
 shenyu:
     database:
       dialect: postgresql
-      db_script: "META-INF/pg/schema.dropdb.sql;META-INF/pg/schema.createdb.sql"
-      db_enable: true
-      init_script: "META-INF/pg/schema.pg.sql"
+      db_script: "sql-script/pg/schema.dropdb.sql;sql-script/pg/schema.createdb.sql"
+      init_script: "sql-script/pg/schema.sql"
       init_enable: true
 
 spring:
