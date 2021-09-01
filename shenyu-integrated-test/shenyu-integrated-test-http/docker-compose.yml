@@ -70,7 +70,7 @@ services:
       - 9095:9095
     environment:
       - SPRING_PROFILES_ACTIVE=h2
-      - "shenyu.database.init_script=META-INF/schema.h2.sql;file:/opt/sql/schema.sql"
+      - "shenyu.database.init_script=sql-script/h2/schema.sql;file:/opt/sql/schema.sql"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s
