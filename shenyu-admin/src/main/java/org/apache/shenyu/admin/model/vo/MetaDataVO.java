@@ -320,7 +320,7 @@ public class MetaDataVO implements Serializable {
      *
      * @param wrap wrap
      */
-    public void setWrap(Boolean wrap) {
+    public void setWrap(final Boolean wrap) {
         this.wrap = wrap;
     }
 
@@ -350,7 +350,7 @@ public class MetaDataVO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, id, dateCreated, dateUpdated, enabled,wrap);
+        return Objects.hash(appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, id, dateCreated, dateUpdated, enabled, wrap);
     }
 
     @Override

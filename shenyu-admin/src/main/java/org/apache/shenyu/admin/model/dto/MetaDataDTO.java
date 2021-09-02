@@ -288,7 +288,7 @@ public class MetaDataDTO implements Serializable {
      *
      * @param wrap wrap
      */
-    public void setWrap(Boolean wrap) {
+    public void setWrap(final Boolean wrap) {
         this.wrap = wrap;
     }
 

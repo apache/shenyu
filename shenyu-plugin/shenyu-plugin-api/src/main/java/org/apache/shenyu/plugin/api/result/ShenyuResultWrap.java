@@ -33,7 +33,7 @@ public final class ShenyuResultWrap<T> {
      * @param wrap    whether wrap
      * @return the object
      */
-    public static Object success(final int code, final String message, final Object object, boolean wrap) {
+    public static Object success(final int code, final String message, final Object object, final boolean wrap) {
         if (wrap) {
             return SpringBeanUtils.getInstance().getBean(ShenyuResult.class).success(code, message, object);
         }

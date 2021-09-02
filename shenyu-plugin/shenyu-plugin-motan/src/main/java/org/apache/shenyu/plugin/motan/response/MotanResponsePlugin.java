@@ -59,7 +59,7 @@ public class MotanResponsePlugin implements ShenyuPlugin {
             boolean wrap = true;
             MetaData metaData = exchange.getAttribute(Constants.META_DATA);
             if (metaData != null) {
-                wrap = (metaData.getWrap() == null || metaData.getWrap());
+                wrap = metaData.getWrap() == null || metaData.getWrap();
             }
             Object success = ShenyuResultWrap.success(ShenyuResultEnum.SUCCESS.getCode(), ShenyuResultEnum.SUCCESS.getMsg(), JsonUtils.removeClass(result), wrap);
             return WebFluxResultUtils.result(exchange, success);

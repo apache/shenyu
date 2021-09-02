@@ -60,7 +60,7 @@ public @interface ShenyuDubboClient {
     boolean enabled() default true;
 
     /**
-     * wrap the rpc response
+     * wrap the rpc response.
      *
      * @return the boolean
      */

@@ -339,7 +339,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
      *
      * @param wrap wrap
      */
-    public void setWrap(boolean wrap) {
+    public void setWrap(final boolean wrap) {
         this.wrap = wrap;
     }
 
@@ -585,7 +585,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
         }
 
         /**
-         * wrap the rpc response
+         * wrap the rpc response.
          *
          * @param wrap wrap
          *
