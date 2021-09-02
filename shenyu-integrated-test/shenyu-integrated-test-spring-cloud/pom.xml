@@ -84,41 +84,6 @@
         </dependency>
         <!--shenyu debug plugin end-->
 
-        <!--shenyu tars plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.tencent.tars</groupId>
-            <artifactId>tars-client</artifactId>
-            <version>${tars-client.version}</version>
-        </dependency>
-        <!--shenyu tars plugin end-->
-
-        <!--shenyu grpc plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-grpc</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu grpc plugin end-->
-
-        <!--shenyu sofa plugin start-->
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>sofa-rpc-all</artifactId>
-            <version>${sofa-rpc-all.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu sofa plugin end-->
-
         <!--shenyu springCloud plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -137,44 +102,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+            <version>${spring-cloud.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
             <version>${spring-cloud.version}</version>
         </dependency>
         <!--shenyu springCloud plugin start end-->
-
-        <!--shenyu data sync start use zookeeper-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-zookeeper</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!--shenyu data sync start use http-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-http</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!--shenyu data sync start use etcd-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-etcd</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-grpclb</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-netty</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--shenyu debug plugin end-->
 
         <!-- shenyu modify response plugin start-->
         <dependency>

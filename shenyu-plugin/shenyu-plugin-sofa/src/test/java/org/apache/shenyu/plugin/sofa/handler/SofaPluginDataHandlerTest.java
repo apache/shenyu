@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.sofa.handler;
 import org.apache.shenyu.common.config.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 
 import org.junit.Assert;
 import org.junit.Before;

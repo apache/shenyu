@@ -100,6 +100,8 @@ public final class SpringCloudClientBeanPostProcessorTest {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/test");
         properties.setProperty("isFull", full + "");
+        properties.setProperty("ip", "127.0.0.1");
+        properties.setProperty("port", "8081");
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");

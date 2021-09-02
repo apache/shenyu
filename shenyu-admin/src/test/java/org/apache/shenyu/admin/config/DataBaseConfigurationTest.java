@@ -34,11 +34,10 @@ public final class DataBaseConfigurationTest {
         DataBaseConfiguration dataBaseConfiguration = new DataBaseConfiguration();
         String dialect = "MySQL";
         String initScript = "/tmp/init.sql";
-        Boolean initEnable = true;
-        DataBaseProperties dataBaseProperties = dataBaseConfiguration.dataBaseProperties(dialect, initScript, initEnable);
+        DataBaseProperties dataBaseProperties = dataBaseConfiguration.dataBaseProperties(dialect, initScript, true, "");
         assertNotNull(dataBaseProperties);
         assertEquals(dataBaseProperties.getDialect(), dialect);
         assertEquals(dataBaseProperties.getInitScript(), initScript);
-        assertEquals(dataBaseProperties.getInitEnable(), initEnable);
+        assertEquals(dataBaseProperties.getInitEnable(), true);
     }
 }
