@@ -46,14 +46,19 @@ management:
       enabled: false
 
 shenyu:
-  local:
-    enabled: true
-  file:
-    enabled: true
   cross:
     enabled: true
-  dubbo:
-    parameter: multi
+    allowedHeaders:
+    allowedMethods: "*"
+    allowedOrigin: "*"
+    allowedExpose: "*"
+    maxAge: "18000"
+    allowCredentials: true
+  switchConfig:
+    local: true
+  file:
+    enabled: true
+    maxSize : 10
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
@@ -85,6 +90,7 @@ shenyu:
     paths:
       - /favicon.ico
   extPlugin:
+    path:
     enabled: true
     threads: 1
     scheduleTime: 300
@@ -93,8 +99,15 @@ shenyu:
     enabled: false
     type: fixed
     threads: 16
+  upstreamCheck:
+    enabled: false
+    timeout: 3000
+    healthyThreshold: 1
+    unhealthyThreshold: 1
+    interval: 5000
+    printEnabled: true
+    printInterval: 60000
     
-
 #eureka:
 #  client:
 #    serviceUrl:

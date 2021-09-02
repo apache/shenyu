@@ -49,7 +49,7 @@ shenyu:
       nacosNameSpace: ShenyuRegisterCenter
   database:
     dialect: mysql
-    init_script: "META-INF/schema.sql"
+    init_script: "sql-script/mysql/schema.sql"
     init_enable: true
   sync:
     websocket:
