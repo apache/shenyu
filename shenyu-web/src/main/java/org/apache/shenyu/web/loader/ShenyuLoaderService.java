@@ -53,7 +53,7 @@ public class ShenyuLoaderService {
             ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
             executor.scheduleAtFixedRate(() -> {
                 try {
-                    List<ShenyuLoaderResult> results = ShenyuPluginLoader.getInstance().loadExtendPlugins();
+                    List<ShenyuLoaderResult> results = ShenyuPluginLoader.getInstance().loadExtendPlugins(config.getPath());
                     List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
                     webHandler.putExtPlugins(shenyuExtendPlugins);
                     List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());

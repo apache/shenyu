@@ -164,13 +164,14 @@ public class ShenyuConfiguration {
      * 1. Customize webflux's cross-domain requests.
      * 2. Spring bean Sort is greater than -1.
      *
+     * @param shenyuConfig the shenyu config
      * @return the web filter
      */
     @Bean
     @Order(-100)
-    @ConditionalOnProperty(name = "shenyu.switchConfig.cross", havingValue = "true")
-    public WebFilter crossFilter() {
-        return new CrossFilter();
+    @ConditionalOnProperty(name = "shenyu.cross.enabled", havingValue = "true")
+    public WebFilter crossFilter(final ShenyuConfig shenyuConfig) {
+        return new CrossFilter(shenyuConfig.getCross());
     }
     
     /**

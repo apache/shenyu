@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Objects;
 
 /**
  * The type Shenyu plugin path builder.
@@ -36,19 +36,21 @@ public final class ShenyuPluginPathBuilder {
     
     private static final String PLUGIN_PATH = "plugin-ext";
     
-    private static File pluginPath;
-    
-    static {
-        pluginPath = buildPluginPath();
-    }
-    
     /**
      * Gets plugin path.
      *
+     * @param path the path
      * @return the plugin path
      */
-    public static File getPluginPath() {
-        return pluginPath;
+    public static File getPluginPath(final String path) {
+        if (StringUtils.isNotEmpty(path)) {
+            return new File(path);
+        }
+        String pluginPath = System.getProperty(PLUGIN_PATH);
+        if (StringUtils.isNotEmpty(pluginPath)) {
+            return new File(pluginPath);
+        }
+        return new File(String.join("", buildPluginJarPath().getPath(), "/ext-lib"));
     }
     
     private static File buildPluginJarPath() {
@@ -79,13 +81,5 @@ public final class ShenyuPluginPathBuilder {
             LOG.error(String.format("Can not locate shenyu plugin jar file by url %s", url), ex);
             return null;
         }
-    }
-    
-    private static File buildPluginPath() {
-        String pluginPath = System.getProperty(PLUGIN_PATH);
-        if (Objects.nonNull(pluginPath)) {
-            return new File(pluginPath);
-        }
-        return new File(String.join("", buildPluginJarPath().getPath(), "/ext-lib"));
     }
 }
