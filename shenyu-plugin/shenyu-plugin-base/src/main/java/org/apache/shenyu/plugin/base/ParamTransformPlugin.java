@@ -112,7 +112,7 @@ public class ParamTransformPlugin implements ShenyuPlugin {
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         String rpcType = shenyuContext.getRpcType();

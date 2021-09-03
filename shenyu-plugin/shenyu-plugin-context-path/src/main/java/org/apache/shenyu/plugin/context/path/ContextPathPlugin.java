@@ -80,7 +80,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
         assert body != null;
         String rpcType = body.getRpcType();
