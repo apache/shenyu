@@ -39,6 +39,7 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * for execute schema sql file. initialize the database.
@@ -68,7 +69,16 @@ public class PostgreSqlLoader implements InstantiationAwareBeanPostProcessor {
             // otherwise the shenyu database will be disconnected when the shenyu database does not exist
             String jdbcUrl = StringUtils.replace(properties.getUrl(), "/shenyu", "/");
             Connection conn = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword());
-            ScriptRunner runner = new ScriptRunner(conn);
+            this.execute(properties, conn);
+        } catch (Exception e) {
+            LOG.error("Datasource init error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
+    }
+
+    private void execute(final DataSourceProperties properties, final Connection conn) throws IOException, SQLException {
+        ScriptRunner runner = new ScriptRunner(conn);
+        try {
             // doesn't print logger
             runner.setLogWriter(null);
             // doesn't print error
@@ -76,14 +86,12 @@ public class PostgreSqlLoader implements InstantiationAwareBeanPostProcessor {
             runner.setAutoCommit(false);
             runner.setSendFullScript(true);
             Resources.setCharset(StandardCharsets.UTF_8);
-            Reader read = fillInfoToSqlFile(properties.getUsername(), properties.getPassword());
+            Reader read = this.fillInfoToSqlFile(properties.getUsername(), properties.getPassword());
             runner.runScript(read);
             conn.commit();
+        } finally {
             runner.closeConnection();
             conn.close();
-        } catch (Exception e) {
-            LOG.error("Datasource init error.", e);
-            throw new ShenyuException(e.getMessage());
         }
     }
 
