@@ -17,9 +17,8 @@
 shenyu:
     database:
       dialect: oracle
-      db_script: "sql-script/oracle/schema.dropdb.sql;sql-script/oracle/schema.createdb.sql"
       init_script: "sql-script/oracle/schema.sql"
-      init_enable: true
+      init_enable: false
 
 spring:
   datasource:
