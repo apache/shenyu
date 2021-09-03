@@ -126,7 +126,7 @@ public final class ShenyuWebHandler implements WebHandler {
             return Mono.defer(() -> {
                 if (this.index < plugins.size()) {
                     ShenyuPlugin plugin = plugins.get(this.index++);
-                    Boolean skip = plugin.skip(exchange);
+                    boolean skip = plugin.skip(exchange);
                     if (skip) {
                         return this.execute(exchange);
                     }

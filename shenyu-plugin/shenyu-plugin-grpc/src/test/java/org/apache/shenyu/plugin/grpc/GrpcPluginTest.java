@@ -127,7 +127,7 @@ public class GrpcPluginTest {
 
     @Test
     public void testSkip() {
-        final Boolean result = grpcPlugin.skip(getServerWebExchange());
+        final boolean result = grpcPlugin.skip(getServerWebExchange());
         assertFalse(result);
     }
 

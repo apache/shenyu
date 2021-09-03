@@ -138,7 +138,7 @@ public class SpringCloudPluginTest {
 
     @Test
     public void skip() {
-        final Boolean result = springCloudPlugin.skip(exchange);
+        final boolean result = springCloudPlugin.skip(exchange);
         assertFalse(result);
     }
 
