@@ -157,7 +157,7 @@ public class TarsPluginTest {
         ShenyuContext context = mock(ShenyuContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.TARS.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        Boolean result = tarsPluginUnderTest.skip(exchange);
+        boolean result = tarsPluginUnderTest.skip(exchange);
         assertFalse(result);
     }
 }
