@@ -26,6 +26,9 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler;
@@ -51,6 +54,16 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(contextMappingHandle)) {
             LOG.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
+        }
+        if (StringUtils.isNoneBlank(contextMappingHandle.getContextPath())) {
+            if (!shenyuContext.getPath().startsWith(contextMappingHandle.getContextPath())) {
+                LOG.error("the context path '{}' is invalid.", contextMappingHandle.getContextPath());
+                Object error = ShenyuResultWrap.error(ShenyuResultEnum.CONTEXT_PATH_ERROR.getCode(),
+                        String.format("%s [invalid context path:'%s']",
+                                ShenyuResultEnum.CONTEXT_PATH_ERROR.getMsg(),
+                                contextMappingHandle.getContextPath()), null);
+                return WebFluxResultUtils.result(exchange, error);
+            }
         }
         buildContextPath(shenyuContext, contextMappingHandle);
         return chain.execute(exchange);
