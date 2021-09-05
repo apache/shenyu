@@ -32,6 +32,7 @@
         <module>shenyu-integrated-test-http</module>
         <module>shenyu-integrated-test-spring-cloud</module>
         <module>shenyu-integrated-test-common</module>
+        <module>shenyu-integrated-test-grpc</module>
     </modules>
 
     <properties>
