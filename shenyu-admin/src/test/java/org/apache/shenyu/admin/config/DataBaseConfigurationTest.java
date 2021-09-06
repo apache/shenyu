@@ -34,7 +34,7 @@ public final class DataBaseConfigurationTest {
         DataBaseConfiguration dataBaseConfiguration = new DataBaseConfiguration();
         String dialect = "MySQL";
         String initScript = "/tmp/init.sql";
-        DataBaseProperties dataBaseProperties = dataBaseConfiguration.dataBaseProperties(dialect, initScript, true, "");
+        DataBaseProperties dataBaseProperties = dataBaseConfiguration.dataBaseProperties(dialect, initScript, true);
         assertNotNull(dataBaseProperties);
         assertEquals(dataBaseProperties.getDialect(), dialect);
         assertEquals(dataBaseProperties.getInitScript(), initScript);
