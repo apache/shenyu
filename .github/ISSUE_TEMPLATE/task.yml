@@ -9,7 +9,7 @@ body:
     placeholder: A clear and concise description of Task
   validations:
     required: true
-- type: markdown
+- type: textarea
   attributes:
     value: |
       Task List:
