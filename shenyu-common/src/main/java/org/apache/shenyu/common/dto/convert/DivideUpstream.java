@@ -67,6 +67,11 @@ public class DivideUpstream implements Serializable {
      */
     private int warmup;
 
+    /**
+     * gray.
+     */
+    private boolean gray = false;
+
     // health parameters
 
     private boolean healthy;
@@ -294,6 +299,24 @@ public class DivideUpstream implements Serializable {
     }
 
     /**
+     * isGray.
+     *
+     * @return boolean boolean
+     */
+    public boolean isGray() {
+        return gray;
+    }
+
+    /**
+     * setGray.
+     *
+     * @param gray gray
+     */
+    public void setGray(boolean gray) {
+        this.gray = gray;
+    }
+
+    /**
      * get serviceId.
      *
      * @return serviceId serviceId
@@ -432,6 +455,11 @@ public class DivideUpstream implements Serializable {
         private long lastUnhealthyTimestamp;
 
         /**
+         * gray.
+         */
+        private boolean gray;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -566,6 +594,15 @@ public class DivideUpstream implements Serializable {
         public Builder lastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
             this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
             return this;
+        }
+
+        /**
+         * build gray.
+         *
+         * @param gray gray
+         */
+        public void gray(final boolean gray) {
+            this.gray = gray;
         }
     }
 }

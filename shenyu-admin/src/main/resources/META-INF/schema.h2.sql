@@ -296,6 +296,8 @@ INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_v
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('51', 'automaticTransitionFromOpenToHalfOpenEnabled', 'AUTOMATIC_HALF_OPEN', 'close', 'false', '', 2, 1, '2021-07-18 22:59:34', '2021-07-18 22:59:34');
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('52', 'paramType', 'PARAM_TYPE', 'domain', 'domain', 'domain', 8, 1, '2021-05-30 19:40:41', '2021-05-30 20:15:23');
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('53', 'strategyName', 'STRATEGY_NAME', 'rsa', 'rsa', 'rsa strategy', 1, 1, '2021-08-25 11:47:29', '2021-08-25 11:48:03');
+INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('54', 'gray', 'DIVIDE_STATUS', 'close', 'false', 'close', 1, 1, '2021-03-08 14:21:58', '2021-03-08 14:21:58');
+INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('55', 'gray', 'DIVIDE_STATUS', 'open', 'true', 'open', 0, 1, '2021-03-08 14:21:32', '2021-03-08 14:21:32');
 
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1','sign','authentication',  7, '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
@@ -365,6 +367,8 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('113', '8', 'warmup', 'warmupTime', 1, 1, 5, '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}', '2021-03-06 21:27:34', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('114', '8', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', '2021-03-06 21:29:16', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('115', '8', 'loadBalance', 'loadStrategy', 3, 2, 0, null, '2021-03-06 21:30:32', '2021-03-09 10:32:51');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('116', '8', 'gray', 'gray', 3, 1, 6, '{"defaultValue":"false","rule":""}', '2021-03-06 21:29:16', '2021-03-09 10:32:51');
+
 
 /*insert plugin_handle data for resilience4j*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('17', '12' ,'timeoutDurationRate','timeoutDurationRate (ms)', 1, 2, 1, '{"required":"1","defaultValue":"5000","rule":""}', '2020-11-28 11:08:14', '2020-11-28 11:19:12');

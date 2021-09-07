@@ -47,11 +47,17 @@ public class LoadBalanceRule extends ZoneAvoidanceRule {
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return super.choose(Constants.DEFAULT);
         }
+        List<DivideUpstream> grayUpstream = divideUpstreams.stream().filter(DivideUpstream::isGray).collect(Collectors.toList());
+        //choose from gray
+        if (CollectionUtils.isNotEmpty(grayUpstream)) {
+            Upstream upstream = LoadBalancerFactory.selector(convert(grayUpstream), loadBalanceKey.getLoadBalance(), loadBalanceKey.getIp());
+            return available.stream().filter(server -> server.getHostPort().equals(upstream.getUrl())).findFirst().orElse(null);
+        }
         //select server from available to choose
         List<DivideUpstream> choose = new ArrayList<>(available.size());
         for (Server server : available) {
             Optional<DivideUpstream> divideUpstream = Optional.ofNullable(divideUpstreams.stream()
-                     .filter(DivideUpstream::isStatus)
+                    .filter(DivideUpstream::isStatus)
                     .filter(upstream -> upstream.getUpstreamUrl().equals(server.getHostPort()))
                     .findFirst()).orElse(Optional.empty());
             if (divideUpstream.isPresent()) {
