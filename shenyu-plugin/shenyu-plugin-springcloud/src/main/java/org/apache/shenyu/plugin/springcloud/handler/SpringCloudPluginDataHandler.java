@@ -20,13 +20,12 @@ package org.apache.shenyu.plugin.springcloud.handler;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
+import org.apache.shenyu.plugin.springcloud.cache.InstanceCacheManager;
 
 import java.util.Optional;
 
@@ -37,15 +36,12 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> {
-            SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(s, SpringCloudSelectorHandle.class);
-            SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-        });
+        InstanceCacheManager.getInstance().submit(selectorData);
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> SpringCloudSelectorHandleCache.getInstance().removeHandle(selectorData.getId()));
+        InstanceCacheManager.getInstance().removeByKey(selectorData.getId());
     }
 
     @Override

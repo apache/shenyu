@@ -30,11 +30,9 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -114,17 +112,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
 
     @Override
     public String handlerSelector(final MetaDataRegisterDTO dto) {
-        String contextPath = dto.getContextPath();
-        if (StringUtils.isEmpty(contextPath)) {
-            contextPath = buildContextPath(dto.getPath());
-        }
-        SelectorDO selectorDO = selectorService.findByName(contextPath);
-        if (Objects.nonNull(selectorDO)) {
-            return selectorDO.getId();
-        }
-        SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
-        selectorDTO.setHandle(GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(dto.getAppName())));
-        return selectorService.register(selectorDTO);
+        return selectorService.handlerSelectorNeedUpstreamCheck(dto, PluginEnum.SPRING_CLOUD.getName());
     }
 
     @Override
@@ -150,9 +138,5 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
         selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.CONTEXT_PATH.getName()));
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
-    }
-
-    private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId) {
-        return SpringCloudSelectorHandle.builder().serviceId(serviceId).build();
     }
 }

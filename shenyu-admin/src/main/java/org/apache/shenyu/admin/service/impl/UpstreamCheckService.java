@@ -166,6 +166,7 @@ public class UpstreamCheckService {
         if (!Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
             return;
         }
+        divideUpstream.setTimestamp(System.currentTimeMillis());
         if (UPSTREAM_MAP.containsKey(selectorName)) {
             List<DivideUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList());
             Optional<DivideUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())

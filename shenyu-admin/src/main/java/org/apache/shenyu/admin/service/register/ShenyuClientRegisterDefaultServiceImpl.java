@@ -28,6 +28,7 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -71,6 +72,20 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
     }
 
     @Override
+    public String registerURIDefault(final String contextPath, final List<URIRegisterDTO> registerDTOList) {
+        SelectorDO selector = selectorService.findByName(contextPath);
+        SelectorData selectorData = selectorService.buildByName(contextPath);
+        String handler = GsonUtils.getInstance().toJson(buildDivideUpstreams(registerDTOList));
+        selector.setHandle(handler);
+        selectorData.setHandle(handler);
+        selectorService.updateSelective(selector);
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(selectorData)));
+        return ShenyuResultMessage.SUCCESS;
+    }
+
+    @Override
     protected void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
 
     }
@@ -87,5 +102,10 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<String> uriList) {
         return uriList.stream().map(this::buildDivideUpstream).collect(Collectors.toList());
+    }
+
+    private List<DivideUpstream> buildDivideUpstreams(final List<URIRegisterDTO> registerDTOList) {
+        return registerDTOList.stream()
+                .map(s -> buildDivideUpstream(String.join(":", s.getHost(), s.getPort().toString()), s.getAppName())).collect(Collectors.toList());
     }
 }

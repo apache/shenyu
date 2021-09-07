@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * The type Thread local util.
  */
-public class ThreadLocalUtil {
+public class ThreadLocalUtils {
     
     private static final ThreadLocal<Map<String, Object>> THREAD_CONTEXT = ThreadLocal.withInitial(HashMap::new);
     

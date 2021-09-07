@@ -28,14 +28,19 @@ public class DivideUpstream implements Serializable {
     private static final long serialVersionUID = 6252280511262542360L;
 
     /**
-     * host.
+     * this is service id.
      */
-    private String upstreamHost;
+    private String serviceId;
 
     /**
      * this is http protocol.
      */
     private String protocol;
+
+    /**
+     * host.
+     */
+    private String upstreamHost;
 
     /**
      * url.
@@ -86,6 +91,7 @@ public class DivideUpstream implements Serializable {
         if (!builder.statusSet) {
             statusValue = DivideUpstream.defaultStatus();
         }
+        this.serviceId = builder.serviceId;
         this.upstreamHost = builder.upstreamHost;
         this.protocol = builder.protocol;
         this.upstreamUrl = builder.upstreamUrl;
@@ -287,6 +293,24 @@ public class DivideUpstream implements Serializable {
         this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
     }
 
+    /**
+     * get serviceId.
+     *
+     * @return serviceId serviceId
+     */
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    /**
+     * set serviceId.
+     *
+     * @param serviceId serviceId
+     */
+    public void setServiceId(final String serviceId) {
+        this.serviceId = serviceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -346,6 +370,11 @@ public class DivideUpstream implements Serializable {
      * class builder.
      */
     public static final class Builder {
+
+        /**
+         * this is service id.
+         */
+        private String serviceId;
 
         /**
          * upstreamHost.
@@ -415,6 +444,17 @@ public class DivideUpstream implements Serializable {
          */
         public DivideUpstream build() {
             return new DivideUpstream(this);
+        }
+
+        /**
+         * build serviceId.
+         *
+         * @param serviceId serviceId
+         * @return this
+         */
+        public Builder serviceId(final String serviceId) {
+            this.serviceId = serviceId;
+            return this;
         }
 
         /**
