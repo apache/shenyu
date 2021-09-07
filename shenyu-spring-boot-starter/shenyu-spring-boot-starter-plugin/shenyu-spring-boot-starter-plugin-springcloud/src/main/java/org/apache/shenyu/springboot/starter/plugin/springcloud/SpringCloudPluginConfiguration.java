@@ -37,7 +37,6 @@ import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.DispatcherHandler;
 
 /**
  * The type Spring cloud plugin configuration.

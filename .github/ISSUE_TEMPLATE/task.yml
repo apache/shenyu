@@ -1,0 +1,22 @@
+name: 🚀 Task
+description: Used to create tasks for the community.
+title: "[Task] <title>"
+labels: ["status: volunteer wanted"]
+body:
+- type: textarea
+  attributes:
+    label: Description
+    placeholder: A clear and concise description of Task
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    value: |
+      Task List:
+      - [ ] task1
+      - [ ] task2
+      - [ ] task3
+- type: markdown
+  attributes:
+    value: |
+      Please read the [Contribution Guideline](https://shenyu.apache.org/community/contributor) before submitting the PR

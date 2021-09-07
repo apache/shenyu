@@ -33,12 +33,10 @@ management:
       enabled: false
 
 shenyu:
-  file:
-    enabled: true
+  switchConfig:
+    local: true
   cross:
-    enabled: true
-  dubbo:
-    parameter: multi
+    enabled: true 
   sync:
     websocket:
       urls: ws://shenyu-admin:9095/websocket

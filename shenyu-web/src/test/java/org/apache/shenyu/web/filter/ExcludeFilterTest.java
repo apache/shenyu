@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -30,7 +28,8 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -38,20 +37,18 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class ExcludeFilterTest {
-
-    @Mock
-    private ExcludePathProperties mockExcludePathProperties;
-
+    
     private ExcludeFilter excludeFilter;
 
     private WebFilterChain webFilterChain;
 
     @Before
     public void setUp() {
-        excludeFilter = new ExcludeFilter(mockExcludePathProperties);
+        List<String> paths = new ArrayList<>();
+        paths.add("/favicon.ico");
+        excludeFilter = new ExcludeFilter(paths);
         webFilterChain = mock(WebFilterChain.class);
         when(webFilterChain.filter(any())).thenReturn(Mono.empty());
-        when(mockExcludePathProperties.getPaths()).thenReturn(Arrays.asList("/favicon.ico"));
     }
 
     @Test

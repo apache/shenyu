@@ -24,7 +24,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 
 /**
  * The type Alibaba dubbo plugin data subscriber.

@@ -54,6 +54,12 @@ public final class Upstream {
      */
     private int warmup;
     
+    private boolean healthy;
+    
+    private long lastHealthTimestamp;
+    
+    private long lastUnhealthyTimestamp;
+    
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
         this.url = builder.url;
@@ -133,6 +139,60 @@ public final class Upstream {
      */
     public int getWeight() {
         return weight;
+    }
+    
+    /**
+     * Is healthy boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isHealthy() {
+        return healthy;
+    }
+    
+    /**
+     * Sets healthy.
+     *
+     * @param healthy the healthy
+     */
+    public void setHealthy(final boolean healthy) {
+        this.healthy = healthy;
+    }
+    
+    /**
+     * Gets last health timestamp.
+     *
+     * @return the last health timestamp
+     */
+    public long getLastHealthTimestamp() {
+        return lastHealthTimestamp;
+    }
+    
+    /**
+     * Sets last health timestamp.
+     *
+     * @param lastHealthTimestamp the last health timestamp
+     */
+    public void setLastHealthTimestamp(final long lastHealthTimestamp) {
+        this.lastHealthTimestamp = lastHealthTimestamp;
+    }
+    
+    /**
+     * Gets last unhealthy timestamp.
+     *
+     * @return the last unhealthy timestamp
+     */
+    public long getLastUnhealthyTimestamp() {
+        return lastUnhealthyTimestamp;
+    }
+    
+    /**
+     * Sets last unhealthy timestamp.
+     *
+     * @param lastUnhealthyTimestamp the last unhealthy timestamp
+     */
+    public void setLastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
+        this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
     }
     
     /**

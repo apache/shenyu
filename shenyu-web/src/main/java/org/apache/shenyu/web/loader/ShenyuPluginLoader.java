@@ -85,14 +85,15 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     /**
      * Load extend plugins list.
      *
+     * @param path the path
      * @return the list
      * @throws IOException the io exception
      * @throws ClassNotFoundException the class not found exception
      * @throws InstantiationException the instantiation exception
      * @throws IllegalAccessException the illegal access exception
      */
-    public List<ShenyuLoaderResult> loadExtendPlugins() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        File[] jarFiles = ShenyuPluginPathBuilder.getPluginPath().listFiles(file -> file.getName().endsWith(".jar"));
+    public List<ShenyuLoaderResult> loadExtendPlugins(final String path) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        File[] jarFiles = ShenyuPluginPathBuilder.getPluginPath(path).listFiles(file -> file.getName().endsWith(".jar"));
         if (null == jarFiles) {
             return Collections.emptyList();
         }

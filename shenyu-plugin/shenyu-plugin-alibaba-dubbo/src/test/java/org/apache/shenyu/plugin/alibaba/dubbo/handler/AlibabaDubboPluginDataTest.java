@@ -21,7 +21,7 @@ import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;

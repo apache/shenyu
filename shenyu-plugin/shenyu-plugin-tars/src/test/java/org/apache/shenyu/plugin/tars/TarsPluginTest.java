@@ -109,7 +109,7 @@ public class TarsPluginTest {
         StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testTarsPluginWithArgumentTypeMissMatch() {
         ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
@@ -121,7 +121,7 @@ public class TarsPluginTest {
         StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testTarsPluginNormal() throws InvocationTargetException, IllegalAccessException {
         ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
@@ -157,7 +157,7 @@ public class TarsPluginTest {
         ShenyuContext context = mock(ShenyuContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.TARS.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        Boolean result = tarsPluginUnderTest.skip(exchange);
+        boolean result = tarsPluginUnderTest.skip(exchange);
         assertFalse(result);
     }
 }

@@ -95,7 +95,7 @@ public final class SofaPluginTest {
         when(context.getRpcType()).thenReturn(RpcTypeEnum.SOFA.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
-        final Boolean result = sofaPlugin.skip(exchange);
+        final boolean result = sofaPlugin.skip(exchange);
         assertFalse(result);
     }
 

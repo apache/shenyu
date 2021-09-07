@@ -119,7 +119,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         return false;
     }
 

@@ -20,7 +20,7 @@ package org.apache.shenyu.web.handler;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -126,7 +126,7 @@ public final class ShenyuWebHandler implements WebHandler {
             return Mono.defer(() -> {
                 if (this.index < plugins.size()) {
                     ShenyuPlugin plugin = plugins.get(this.index++);
-                    Boolean skip = plugin.skip(exchange);
+                    boolean skip = plugin.skip(exchange);
                     if (skip) {
                         return this.execute(exchange);
                     }
