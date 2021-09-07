@@ -27,11 +27,6 @@ import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDeco
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceRule;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
 import org.springframework.cloud.netflix.ribbon.RibbonClientSpecification;
 import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
@@ -41,9 +36,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * The type Spring cloud plugin configuration.
  */
-@ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class})
-@AutoConfigureAfter(RibbonAutoConfiguration.class)
-@ConditionalOnBean(LoadBalancerClient.class)
 @Configuration
 public class SpringCloudPluginConfiguration {
 
