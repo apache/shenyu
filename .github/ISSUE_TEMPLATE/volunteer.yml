@@ -5,11 +5,13 @@ labels: ["status: volunteer wanted"]
 body:
 - type: textarea
   attributes:
-    label: Volunteer
+    label: Volunteer help
     placeholder: >
-      your Volunteer here;
+      your need volunteer help here;
   validations:
     required: true
 - type: markdown
-  value: "Please read the [Contribution Guideline](https://shenyu.apache.org/community/contributor) before submitting the PR"
+  attributes:
+    value: |
+      Please read the [Contribution Guideline](https://shenyu.apache.org/community/contributor) before submitting the PR
 
