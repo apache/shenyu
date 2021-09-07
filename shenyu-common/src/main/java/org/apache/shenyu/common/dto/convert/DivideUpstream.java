@@ -70,7 +70,7 @@ public class DivideUpstream implements Serializable {
     /**
      * gray.
      */
-    private boolean gray = false;
+    private boolean gray;
 
     // health parameters
 
@@ -102,6 +102,7 @@ public class DivideUpstream implements Serializable {
         this.upstreamUrl = builder.upstreamUrl;
         this.weight = builder.weight;
         this.status = statusValue;
+        this.gray = builder.gray;
         this.timestamp = builder.timestamp;
         this.warmup = builder.warmup;
         this.healthy = builder.healthy;
@@ -312,7 +313,7 @@ public class DivideUpstream implements Serializable {
      *
      * @param gray gray
      */
-    public void setGray(boolean gray) {
+    public void setGray(final boolean gray) {
         this.gray = gray;
     }
 
