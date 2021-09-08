@@ -16,6 +16,5 @@
 
 http://localhost:9095/actuator/health
 http://localhost:9195/actuator/health
-http://localhost:55290/actuator/health
-http://localhost:8080/grpc/echo
+http://localhost:8080/echo
 
