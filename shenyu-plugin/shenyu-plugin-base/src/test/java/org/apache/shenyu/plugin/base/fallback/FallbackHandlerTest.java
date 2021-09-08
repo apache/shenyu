@@ -52,7 +52,7 @@ public final class FallbackHandlerTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         DispatcherHandler handler = mock(DispatcherHandler.class);
         when(context.getBean(DispatcherHandler.class)).thenReturn(handler);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SHENYU/SHENYU")
                 .remoteAddress(new InetSocketAddress(8090))
                 .contextPath("/SHENYU")

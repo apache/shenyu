@@ -85,7 +85,7 @@ public class SpringCloudPluginTest {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(applicationContext);
+        springBeanUtils.setApplicationContext(applicationContext);
         MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
         valueMap.put("type", Lists.newArrayList("cloud"));
         exchange = MockServerWebExchange.from(

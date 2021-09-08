@@ -32,7 +32,10 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * GlobalErrorHandler.
@@ -42,6 +45,11 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(GlobalErrorHandler.class);
+
+    /**
+     * the http status holder.
+     */
+    private static final ThreadLocal<Integer> HTTP_STATUS_HOLDER = new ThreadLocal<>();
 
     /**
      * Instantiates a new Global error handler.
@@ -71,12 +79,22 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     @Override
     protected int getHttpStatus(final Map<String, Object> errorAttributes) {
-        return HttpStatus.INTERNAL_SERVER_ERROR.value();
+        try {
+            Integer status = HTTP_STATUS_HOLDER.get();
+            return Objects.nonNull(status) ? status : HttpStatus.INTERNAL_SERVER_ERROR.value();
+        } finally {
+            HTTP_STATUS_HOLDER.remove();
+        }
     }
 
     private Map<String, Object> response(final ServerRequest request) {
         Throwable ex = getError(request);
-        Object error = ShenyuResultWrap.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), ex.getMessage());
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        if (ex instanceof ResponseStatusException) {
+            httpStatus = ((ResponseStatusException) ex).getStatus();
+        }
+        HTTP_STATUS_HOLDER.set(httpStatus.value());
+        Object error = ShenyuResultWrap.error(httpStatus.value(), httpStatus.getReasonPhrase(), ex.getMessage());
         return GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(error));
     }
 

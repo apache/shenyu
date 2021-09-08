@@ -99,7 +99,7 @@ public final class WebsocketCollectorTest {
     @Test
     public void testOnMessage() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
         when(syncDataService.syncAll(DataEventTypeEnum.MYSELF)).thenReturn(true);
         websocketCollector.onOpen(session);

@@ -59,7 +59,7 @@ public final class JwtPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(context);
+        springBeanUtils.setApplicationContext(context);
         final PluginData pluginData =
                 new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":\"/cloud/ecg/common,/cloud/ecg/selectAll\"}", "0", false);
         JwtPluginDataHandler jwtPluginDataHandler = new JwtPluginDataHandler();

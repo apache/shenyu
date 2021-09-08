@@ -73,7 +73,7 @@ public final class ContextPathPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         final DefaultShenyuResult shenyuResult = new DefaultShenyuResult();
         when(context.getBean(ShenyuResult.class)).thenReturn(shenyuResult);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 
     /**

@@ -43,7 +43,7 @@ public class DefaultSignProviderTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 
