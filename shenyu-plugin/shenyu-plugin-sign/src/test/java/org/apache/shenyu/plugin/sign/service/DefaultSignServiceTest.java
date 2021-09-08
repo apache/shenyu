@@ -110,7 +110,7 @@ public final class DefaultSignServiceTest {
         this.passed.setRealUrl("/demo/test");
 
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 

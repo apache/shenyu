@@ -54,7 +54,7 @@ public final class SentinelFallbackHandlerTest {
                 .contextPath("/Sentinel")
                 .build());
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
     }
 
