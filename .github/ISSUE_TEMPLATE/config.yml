@@ -1,3 +1,4 @@
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,26 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-
-shenyu:
-    database:
-      dialect: postgresql
-      init_script: "sql-script/pg/schema.sql"
-      init_enable: true
-
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/shenyu
-    username: postgres
-    password: 123456
-    driver-class-name: org.postgresql.Driver
-
-
-mybatis:
-  type-handlers-package: org.apache.shenyu.admin.mybatis.pg.handler
-
-
-
-
-
+blank_issues_enabled: false

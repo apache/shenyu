@@ -35,20 +35,17 @@ public class DataBaseConfiguration {
      * @param dialect database dialect
      * @param initScript database init script
      * @param initEnable database init enable
-     * @param dbScript the db script
      * @return {@linkplain DataBaseProperties}
      */
     @Bean
     @ConditionalOnMissingBean(value = DataBaseProperties.class)
     public DataBaseProperties dataBaseProperties(@Value("${shenyu.database.dialect:h2}") final String dialect,
                                                    @Value("${shenyu.database.init_script:sql-script/h2/schema.sql}") final String initScript,
-                                                   @Value("${shenyu.database.init_enable:true}") final Boolean initEnable,
-                                                   @Value("${shenyu.database.db_script}") final String dbScript) {
+                                                   @Value("${shenyu.database.init_enable:true}") final Boolean initEnable) {
         DataBaseProperties dataSourceProperties = new DataBaseProperties();
         dataSourceProperties.setDialect(dialect);
         dataSourceProperties.setInitScript(initScript);
         dataSourceProperties.setInitEnable(initEnable);
-        dataSourceProperties.setDbScript(dbScript);
         return dataSourceProperties;
     }
 }
