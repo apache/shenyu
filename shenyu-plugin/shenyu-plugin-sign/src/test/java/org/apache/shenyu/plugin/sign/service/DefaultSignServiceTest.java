@@ -26,9 +26,12 @@ import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.SignUtils;
-import org.apache.shenyu.plugin.api.SignService;
+import org.apache.shenyu.plugin.api.sign.DefaultSignProvider;
+import org.apache.shenyu.plugin.api.sign.SignService;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.sign.SignProvider;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 
@@ -38,12 +41,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * DefaultSignService Test.
@@ -101,6 +108,10 @@ public final class DefaultSignServiceTest {
         this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
+
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setCfgContext(context);
+        when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 
     @Test
