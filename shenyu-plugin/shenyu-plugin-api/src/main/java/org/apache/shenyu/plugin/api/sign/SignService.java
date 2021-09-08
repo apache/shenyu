@@ -15,21 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.spring;
+package org.apache.shenyu.plugin.api.sign;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
- * The type shenyu application context aware.
+ * The interface Sign service.
  */
-@Component
-public class ShenyuApplicationContextAware implements ApplicationContextAware {
+public interface SignService {
 
-    @Override
-    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
-        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
-    }
+    /**
+     * Sign verify pair.
+     * @param exchange   the exchange
+     * @return the pair
+     */
+    Pair<Boolean, String> signVerify(ServerWebExchange exchange);
 }

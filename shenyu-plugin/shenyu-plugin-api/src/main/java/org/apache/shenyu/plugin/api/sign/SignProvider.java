@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.spring;
+package org.apache.shenyu.plugin.api.sign;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import java.util.Map;
 
 /**
- * The type shenyu application context aware.
+ * The Sign plugin sign provider.
  */
-@Component
-public class ShenyuApplicationContextAware implements ApplicationContextAware {
+public interface SignProvider {
 
-    @Override
-    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
-        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
-    }
+    /**
+     * acquired sign.
+     *
+     * @param signKey sign key
+     * @param params  params
+     * @return sign
+     */
+    String generateSign(String signKey, Map<String, String> params);
 }
