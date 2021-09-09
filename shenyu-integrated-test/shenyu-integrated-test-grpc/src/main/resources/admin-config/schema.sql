@@ -17,5 +17,4 @@
 -- limitations under the License.
 
 /** prepare grpc **/
-UPDATE `plugin` SET enabled = 1 WHERE id = '8';
 UPDATE `plugin` SET enabled = 1 WHERE id = '15';
