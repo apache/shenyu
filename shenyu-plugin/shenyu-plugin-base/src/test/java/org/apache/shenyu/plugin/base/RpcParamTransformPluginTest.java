@@ -41,18 +41,18 @@ import static org.mockito.Mockito.mock;
  * TThe param transform plugin test.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class ParamTransformPluginTest {
+public final class RpcParamTransformPluginTest {
     
     private ShenyuPluginChain chain;
     
-    private ParamTransformPlugin paramTransformPlugin;
+    private RpcParamTransformPlugin rpcParamTransformPlugin;
     
     /**
      * Sets up.
      */
     @Before
     public void setUp() {
-        paramTransformPlugin = new ParamTransformPlugin();
+        rpcParamTransformPlugin = new RpcParamTransformPlugin();
         chain = mock(ShenyuPluginChain.class);
     }
     
@@ -61,8 +61,8 @@ public final class ParamTransformPluginTest {
      */
     @Test
     public void testGetOrder() {
-        int result = paramTransformPlugin.getOrder();
-        assertEquals(PluginEnum.PARAM_TRANSFORM.getCode(), result);
+        int result = rpcParamTransformPlugin.getOrder();
+        assertEquals(PluginEnum.RPC_PARAM_TRANSFORM.getCode(), result);
     }
     
     /**
@@ -70,8 +70,8 @@ public final class ParamTransformPluginTest {
      */
     @Test
     public void testNamed() {
-        String result = paramTransformPlugin.named();
-        assertEquals(PluginEnum.PARAM_TRANSFORM.getName(), result);
+        String result = rpcParamTransformPlugin.named();
+        assertEquals(PluginEnum.RPC_PARAM_TRANSFORM.getName(), result);
     }
     
     /**
@@ -85,7 +85,7 @@ public final class ParamTransformPluginTest {
         ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
+        Mono<Void> result = rpcParamTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -100,7 +100,7 @@ public final class ParamTransformPluginTest {
         ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
+        Mono<Void> result = rpcParamTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -115,7 +115,7 @@ public final class ParamTransformPluginTest {
         ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
+        Mono<Void> result = rpcParamTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -130,7 +130,7 @@ public final class ParamTransformPluginTest {
         ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
+        Mono<Void> result = rpcParamTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 }
