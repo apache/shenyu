@@ -28,148 +28,147 @@ public enum PluginEnum {
     /**
      * Global plugin enum.
      */
-    GLOBAL(1, 0, "global"),
+    GLOBAL(10, 0, "global"),
 
     /**
      * Sign plugin enum.
      */
-    SIGN(2, 0, "sign"),
+    SIGN(20, 0, "sign"),
 
     /**
      * Jwt plugin enum.
      */
-    JWT(9, 0, "jwt"),
+    JWT(30, 0, "jwt"),
 
     /**
      * OAuth2 plugin enum.
      */
-    OAUTH2(3, 0, "oauth2"),
+    OAUTH2(40, 0, "oauth2"),
 
     /**
      * Waf plugin enum.
      */
-    WAF(10, 0, "waf"),
+    WAF(50, 0, "waf"),
 
     /**
      * Rate limiter plugin enum.
      */
-    RATE_LIMITER(20, 0, "rate_limiter"),
+    RATE_LIMITER(60, 0, "rate_limiter"),
 
     /**
      * Param mapping plugin enum.
      */
-    PARAM_MAPPING(22, 0, "param_mapping"),
+    PARAM_MAPPING(70, 0, "param_mapping"),
 
     /**
      * Context path plugin enum.
      */
-    CONTEXT_PATH(25, 0, "context_path"),
+    CONTEXT_PATH(80, 0, "context_path"),
 
     /**
      * Rewrite plugin enum.
      */
-    REWRITE(30, 0, "rewrite"),
+    REWRITE(90, 0, "rewrite"),
 
     /**
      * Cryptor request plugin enum.
      */
-    CRYPTOR_REQUEST(30, 0, "cryptor_request"),
+    CRYPTOR_REQUEST(100, 0, "cryptor_request"),
 
     /**
      * Redirect plugin enum.
      */
-    REDIRECT(40, 0, "redirect"),
+    REDIRECT(110, 0, "redirect"),
 
     /**
      * Request plugin enum.
      */
-    REQUEST(42, 0, "request"),
+    REQUEST(120, 0, "request"),
 
     /**
      * ModifyResponse plugin enum.
      */
-    MODIFY_RESPONSE(44, 0, "modifyResponse"),
+    MODIFY_RESPONSE(130, 0, "modifyResponse"),
 
     /**
      * Hystrix plugin enum.
      */
-    HYSTRIX(45, 0, "hystrix"),
+    HYSTRIX(140, 0, "hystrix"),
 
     /**
      * Sentinel plugin enum.
      */
-    SENTINEL(45, 0, "sentinel"),
+    SENTINEL(150, 0, "sentinel"),
 
     /**
      * Resilence4J plugin enum.
      */
-    RESILIENCE4J(45, 0, "resilience4j"),
+    RESILIENCE4J(160, 0, "resilience4j"),
 
     /**
      * Logging plugin enum.
      */
-    LOGGING(45, 0, "logging"),
+    LOGGING(170, 0, "logging"),
 
     /**
      * Divide plugin enum.
      */
-    DIVIDE(50, 0, "divide"),
+    DIVIDE(180, 0, "divide"),
 
     /**
      * springCloud plugin enum.
      */
-    SPRING_CLOUD(50, 0, "springCloud"),
+    SPRING_CLOUD(190, 0, "springCloud"),
 
     /**
      * webSocket plugin enum.
      */
-    WEB_SOCKET(55, 0, "websocket"),
+    WEB_SOCKET(200, 0, "websocket"),
 
     /**
      * Param transform plugin enum.
      */
-    PARAM_TRANSFORM(58, 0, "paramTransform"),
+    PARAM_TRANSFORM(210, 0, "paramTransform"),
 
     /**
      * Dubbo plugin enum.
      */
-    DUBBO(60, 0, "dubbo"),
+    DUBBO(220, 0, "dubbo"),
 
     /**
      * Sofa plugin enum.
      */
-    SOFA(60, 0, "sofa"),
+    SOFA(230, 0, "sofa"),
 
     /**
      * Tars plugin enum.
      */
-    TARS(60, 0, "tars"),
+    TARS(240, 0, "tars"),
 
     /**
      * GPRC plugin enum.
      */
-    GRPC(60, 0, "grpc"),
+    GRPC(250, 0, "grpc"),
 
     /**
      * Motan plugin enum.
      */
-    MOTAN(60, 0, "motan"),
+    MOTAN(260, 0, "motan"),
 
     /**
      * Monitor plugin enum.
      */
-    MONITOR(80, 0, "monitor"),
+    MONITOR(270, 0, "monitor"),
 
     /**
      * Cryptor response plugin enum.
      */
-    CRYPTOR_RESPONSE(99, 0, "cryptor_response"),
+    CRYPTOR_RESPONSE(280, 0, "cryptor_response"),
 
     /**
      * Response plugin enum.
      */
-    RESPONSE(100, 0, "response");
-
+    RESPONSE(290, 0, "response");
 
     private final int code;
 

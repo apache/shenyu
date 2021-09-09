@@ -128,10 +128,10 @@ public class DefaultSignService implements SignService {
         return Pair.of(Boolean.TRUE, "");
     }
 
-    private Map<String, String> buildParamsMap(final ShenyuContext dto) {
+    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
-        map.put(Constants.TIMESTAMP, dto.getTimestamp());
-        map.put(Constants.PATH, dto.getPath());
+        map.put(Constants.TIMESTAMP, shenyuContext.getTimestamp());
+        map.put(Constants.PATH, shenyuContext.getPath());
         map.put(Constants.VERSION, "1.0.0");
         return map;
     }
