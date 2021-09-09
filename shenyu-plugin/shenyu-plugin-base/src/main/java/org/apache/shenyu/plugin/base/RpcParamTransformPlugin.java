@@ -45,14 +45,14 @@ import java.util.Objects;
 /**
  * The param transform plugin.
  */
-public class ParamTransformPlugin implements ShenyuPlugin {
+public class RpcParamTransformPlugin implements ShenyuPlugin {
 
     private final List<HttpMessageReader<?>> messageReaders;
 
     /**
      * Instantiates a new param transform plugin.
      */
-    public ParamTransformPlugin() {
+    public RpcParamTransformPlugin() {
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
 
@@ -75,12 +75,12 @@ public class ParamTransformPlugin implements ShenyuPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.PARAM_TRANSFORM.getCode();
+        return PluginEnum.RPC_PARAM_TRANSFORM.getCode();
     }
 
     @Override
     public String named() {
-        return PluginEnum.PARAM_TRANSFORM.getName();
+        return PluginEnum.RPC_PARAM_TRANSFORM.getName();
     }
 
     private Mono<Void> body(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
@@ -127,7 +127,6 @@ public class ParamTransformPlugin implements ShenyuPlugin {
         byte[] bytes = new byte[dataBuffer.readableByteCount()];
         dataBuffer.read(bytes);
         DataBufferUtils.release(dataBuffer);
-        String bodyString = new String(bytes, StandardCharsets.UTF_8);
-        return bodyString;
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }

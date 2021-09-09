@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integrated.test.http.combination;
+package org.apache.shenyu.integratedtest.common;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
 import org.apache.shenyu.web.controller.PluginController.SelectorRuleData;
