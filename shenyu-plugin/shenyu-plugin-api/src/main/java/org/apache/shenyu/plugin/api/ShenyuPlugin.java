@@ -61,7 +61,7 @@ public interface ShenyuPlugin {
      * @param exchange the current server exchange
      * @return default false.
      */
-    default Boolean skip(ServerWebExchange exchange) {
+    default boolean skip(ServerWebExchange exchange) {
         return false;
     }
 }

@@ -30,7 +30,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
 import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
 import org.slf4j.Logger;

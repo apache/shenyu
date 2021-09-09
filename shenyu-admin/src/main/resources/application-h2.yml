@@ -16,7 +16,7 @@
 shenyu:
   database:
     dialect: h2
-    init_script: "META-INF/schema.h2.sql"
+    init_script: "sql-script/h2/schema.sql"
     init_enable: true
 
 spring:

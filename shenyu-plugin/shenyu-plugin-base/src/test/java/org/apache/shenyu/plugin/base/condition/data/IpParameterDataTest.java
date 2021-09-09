@@ -49,7 +49,7 @@ public class IpParameterDataTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         this.remoteAddressResolver = new RemoteAddressResolver() {
         };
 

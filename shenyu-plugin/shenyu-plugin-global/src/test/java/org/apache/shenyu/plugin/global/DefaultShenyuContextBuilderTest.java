@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.global;
 
-import org.apache.shenyu.plugin.global.fixture.FixtureShenyuContextDecorator;
+import org.apache.shenyu.plugin.global.fixture.FixtureHttpShenyuContextDecorator;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
@@ -43,7 +43,7 @@ public final class DefaultShenyuContextBuilderTest {
     @Before
     public void setUp() {
         Map<String, ShenyuContextDecorator> decoratorMap = new HashMap<>();
-        decoratorMap.put("http", new FixtureShenyuContextDecorator());
+        decoratorMap.put("http", new FixtureHttpShenyuContextDecorator());
         defaultShenyuContextBuilder = new DefaultShenyuContextBuilder(decoratorMap);
     }
 

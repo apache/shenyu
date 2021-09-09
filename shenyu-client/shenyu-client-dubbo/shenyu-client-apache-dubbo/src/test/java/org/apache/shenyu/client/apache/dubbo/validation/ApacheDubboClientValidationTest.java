@@ -19,13 +19,11 @@ package org.apache.shenyu.client.apache.dubbo.validation;
 
 import org.apache.dubbo.common.URL;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Test case for {@link ApacheDubboClientValidation}.
  */
-@Ignore
 public final class ApacheDubboClientValidationTest {
 
     private ApacheDubboClientValidation apacheDubboClientValidationUnderTest;

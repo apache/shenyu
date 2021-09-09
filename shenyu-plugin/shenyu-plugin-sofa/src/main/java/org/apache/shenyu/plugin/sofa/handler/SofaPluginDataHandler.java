@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 
 import java.util.Objects;

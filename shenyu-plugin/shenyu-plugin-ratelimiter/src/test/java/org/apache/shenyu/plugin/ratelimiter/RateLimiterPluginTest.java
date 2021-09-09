@@ -97,7 +97,7 @@ public final class RateLimiterPluginTest {
                 Mono.just(new RateLimiterResponse(false, 1)));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
         Assert.assertEquals(HttpStatus.TOO_MANY_REQUESTS, exchange.getResponse().getStatusCode());

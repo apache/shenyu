@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
+import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -33,15 +34,11 @@ import reactor.core.publisher.Mono;
  */
 public class CrossFilter implements WebFilter {
 
-    private static final String ALLOWED_HEADERS = "x-requested-with, authorization, Content-Type, Authorization, credential, X-XSRF-TOKEN,token,username,client";
+    private final CrossFilterConfig filterConfig;
 
-    private static final String ALLOWED_METHODS = "*";
-
-    private static final String ALLOWED_ORIGIN = "*";
-
-    private static final String ALLOWED_EXPOSE = "*";
-
-    private static final String MAX_AGE = "18000";
+    public CrossFilter(final CrossFilterConfig filterConfig) {
+        this.filterConfig = filterConfig;
+    }
 
     @Override
     @SuppressWarnings("all")
@@ -50,12 +47,12 @@ public class CrossFilter implements WebFilter {
         if (CorsUtils.isCorsRequest(request)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
-            headers.add("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-            headers.add("Access-Control-Allow-Methods", ALLOWED_METHODS);
-            headers.add("Access-Control-Max-Age", MAX_AGE);
-            headers.add("Access-Control-Allow-Headers", ALLOWED_HEADERS);
-            headers.add("Access-Control-Expose-Headers", ALLOWED_EXPOSE);
-            headers.add("Access-Control-Allow-Credentials", "true");
+            headers.add("Access-Control-Allow-Origin", this.filterConfig.getAllowedOrigin());
+            headers.add("Access-Control-Allow-Methods", this.filterConfig.getAllowedMethods());
+            headers.add("Access-Control-Max-Age", this.filterConfig.getMaxAge());
+            headers.add("Access-Control-Allow-Headers", this.filterConfig.getAllowedHeaders());
+            headers.add("Access-Control-Expose-Headers", this.filterConfig.getAllowedExpose());
+            headers.add("Access-Control-Allow-Credentials", String.valueOf(this.filterConfig.isAllowCredentials()));
             if (request.getMethod() == HttpMethod.OPTIONS) {
                 response.setStatusCode(HttpStatus.OK);
                 return Mono.empty();

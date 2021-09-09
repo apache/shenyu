@@ -18,11 +18,14 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  * The type Reflect utils.
@@ -121,5 +124,62 @@ public class ReflectUtils {
             LOG.error("", e);
         }
         return null;
+    }
+
+    /**
+     * Set object property values directly.
+     *
+     * @param obj       object
+     * @param fieldName tje field name
+     * @param value     the field value
+     */
+    public static void setFieldValue(final Object obj, final String fieldName, final Object value) {
+        Field field = getAccessibleField(obj, fieldName);
+
+        if (field == null) {
+            throw new IllegalArgumentException("Could not find field [" + fieldName + "] on target [" + obj + "]");
+        }
+
+        try {
+            field.set(obj, value);
+        } catch (IllegalAccessException e) {
+            LOG.error("Failed to assign to the element.", e);
+            throw new ShenyuException(e.getMessage());
+        }
+    }
+
+    /**
+     * get the object's declared field.
+     *
+     * @param obj       object
+     * @param fieldName tje field name
+     * @return {@linkplain Field}
+     */
+    private static Field getAccessibleField(final Object obj, final String fieldName) {
+        Validate.notNull(obj, "object can't be null");
+        Validate.notBlank(fieldName, "fieldName can't be blank");
+        for (Class<?> superClass = obj.getClass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
+            try {
+                Field field = superClass.getDeclaredField(fieldName);
+                makeAccessible(field);
+                return field;
+            } catch (NoSuchFieldException e) {
+                // Field is not defined in the current class and continues to transition up
+                // new add
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Change the private/protected member variables to public.
+     *
+     * @param field field
+     */
+    private static void makeAccessible(final Field field) {
+        if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers()) || Modifier
+                .isFinal(field.getModifiers())) && !field.isAccessible()) {
+            field.setAccessible(true);
+        }
     }
 }

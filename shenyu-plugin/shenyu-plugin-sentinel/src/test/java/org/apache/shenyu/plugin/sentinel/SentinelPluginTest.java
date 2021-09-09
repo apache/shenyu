@@ -82,7 +82,7 @@ public final class SentinelPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(applicationContext);
+        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
 
         sentinelPlugin = new SentinelPlugin(sentinelFallbackHandler);

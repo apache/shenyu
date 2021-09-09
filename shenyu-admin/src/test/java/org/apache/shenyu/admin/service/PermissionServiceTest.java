@@ -81,7 +81,7 @@ public final class PermissionServiceTest {
     public void setUp() throws Exception {
         SecurityUtils.setSecurityManager(securityManager);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         final DashboardUserDO dashboardUserDO = DashboardUserDO.builder().id("1").userName("admin").role(1).enabled(true).build();
         final UserRoleDO userRoleDO = UserRoleDO.builder().userId("1").roleId("1346358560427216896")
                 .id("1351007709096976384").dateCreated(new Timestamp(1610940313000L)).dateUpdated(new Timestamp(1610940313000L)).build();

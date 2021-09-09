@@ -19,7 +19,6 @@ package org.apache.shenyu.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidationParameter;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.validation.ValidationException;
@@ -28,27 +27,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
-
 /**
  * Test case for {@link AlibabaDubboClientValidation}.
  */
-@Ignore
 public final class AlibabaDubboClientValidatorTest {
 
-    private static final String MOCK_SERVICE_URL = 
+    private static final String MOCK_SERVICE_URL =
             "mock://test:28000/org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidatorTarget";
 
-    @Test
-    public void testItWithNonExistMethod() {
-        try {
-            final URL url = URL.valueOf(MOCK_SERVICE_URL);
-            new AlibabaDubboClientValidation().getValidator(url)
-                    .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
-        } catch (Exception e) {
-            assertThat(e, instanceOf(NoSuchMethodException.class));
-        }
+    @Test(expected = NoSuchMethodException.class)
+    public void testItWithNonExistMethod() throws Exception {
+        final URL url = URL.valueOf(MOCK_SERVICE_URL);
+        new AlibabaDubboClientValidation().getValidator(url)
+                .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
+
     }
 
     @Test
@@ -58,15 +50,11 @@ public final class AlibabaDubboClientValidatorTest {
                 .validate("method1", new Class<?>[]{String.class}, new Object[]{"anything"});
     }
 
-    @Test
-    public void testValidateWhenMeetsConstraintThenValidationFailed() {
-        try {
-            final URL url = URL.valueOf(MOCK_SERVICE_URL);
-            new AlibabaDubboClientValidation().getValidator(url)
-                    .validate("method2", new Class<?>[]{MockValidationParameter.class}, new Object[]{new MockValidationParameter("NotBeNull")});
-        } catch (Exception e) {
-            assertThat(e, instanceOf(ValidationException.class));
-        }
+    @Test(expected = ValidationException.class)
+    public void testValidateWhenMeetsConstraintThenValidationFailed() throws Exception {
+        final URL url = URL.valueOf(MOCK_SERVICE_URL);
+        new AlibabaDubboClientValidation().getValidator(url)
+                .validate("method2", new Class<?>[]{MockValidationParameter.class}, new Object[]{new MockValidationParameter("NotBeNull")});
     }
 
     @Test
