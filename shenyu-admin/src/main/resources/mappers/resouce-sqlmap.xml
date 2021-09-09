@@ -62,9 +62,6 @@
         <if test="title != null">
             and title = #{title,jdbcType=VARCHAR}
         </if>
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <select id="selectByTitle" parameterType="java.lang.String" resultMap="BaseResultMap">

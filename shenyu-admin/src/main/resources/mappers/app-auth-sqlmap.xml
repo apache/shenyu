@@ -63,10 +63,6 @@
                 and phone = #{phone,jdbcType=VARCHAR}
             </if>
         </where>
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
-
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.AppAuthQuery" resultType="java.lang.Integer">
