@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
+import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -43,7 +44,7 @@ public final class CrossFilterTest {
                 .build());
         WebFilterChain chainNoHeader = mock(WebFilterChain.class);
         when(chainNoHeader.filter(exchangeNoHeader)).thenReturn(Mono.empty());
-        CrossFilter filterNoHeader = new CrossFilter();
+        CrossFilter filterNoHeader = new CrossFilter(new CrossFilterConfig());
         StepVerifier.create(filterNoHeader.filter(exchangeNoHeader, chainNoHeader))
                 .expectSubscription()
                 .verifyComplete();
@@ -54,7 +55,7 @@ public final class CrossFilterTest {
                 .build());
         WebFilterChain chainNormal = mock(WebFilterChain.class);
         when(chainNormal.filter(exchangeNormal)).thenReturn(Mono.empty());
-        CrossFilter filterNormal = new CrossFilter();
+        CrossFilter filterNormal = new CrossFilter(new CrossFilterConfig());
         StepVerifier.create(filterNormal.filter(exchangeNormal, chainNormal))
                 .expectSubscription()
                 .verifyComplete();
@@ -65,7 +66,7 @@ public final class CrossFilterTest {
                 .build());
         WebFilterChain chainOption = mock(WebFilterChain.class);
         when(chainOption.filter(exchangeOption)).thenReturn(Mono.empty());
-        CrossFilter filterOption = new CrossFilter();
+        CrossFilter filterOption = new CrossFilter(new CrossFilterConfig());
         StepVerifier.create(filterOption.filter(exchangeOption, chainOption))
                 .expectSubscription()
                 .verifyComplete();

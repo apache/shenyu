@@ -96,13 +96,6 @@
             <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- shenyu jwt plugin starter-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu jwt plugin end-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

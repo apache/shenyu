@@ -113,7 +113,7 @@ public interface Constants {
     String HTTP_URL = "httpUrl";
 
     /**
-     * The constant PARAM_TRANSFORM.
+     * The constant RPC_PARAM_TRANSFORM.
      */
     String PARAM_TRANSFORM = "param_transform";
 

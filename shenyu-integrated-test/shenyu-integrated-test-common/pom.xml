@@ -22,7 +22,6 @@
         <artifactId>shenyu-integrated-test</artifactId>
         <groupId>org.apache.shenyu</groupId>
         <version>2.4.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>shenyu-integrated-test-common</artifactId>
     <name>shenyu-integrated-test-common</name>

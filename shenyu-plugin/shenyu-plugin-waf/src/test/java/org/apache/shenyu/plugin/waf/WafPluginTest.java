@@ -62,7 +62,7 @@ public final class WafPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(context);
+        springBeanUtils.setApplicationContext(context);
 
         final PluginData pluginData =
                 new PluginData("pluginId", "pluginName", "{\"model\":\"mix\"}", "0", false);
