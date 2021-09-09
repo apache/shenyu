@@ -16,5 +16,5 @@
 
 http://localhost:9095/actuator/health
 http://localhost:9195/actuator/health
-http://localhost:8080/echo
+http://localhost:55290/test/grpc/hello
 

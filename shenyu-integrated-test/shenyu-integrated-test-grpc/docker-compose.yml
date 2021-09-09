@@ -55,30 +55,6 @@ services:
       retries: 30
       start_period: 5s
 
-  shenyu-examples-grpc:
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
-    container_name: shenyu-examples-grpc
-    image: shenyu-examples-grpc:latest
-    restart: always
-    environment:
-      - shenyu.client.serverLists=http://shenyu-admin:9095
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:55290/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
-      retries: 3
-      start_period: 5s
-    ports:
-      - 55290:55290
-      - 8080:8080
-    networks:
-      - shenyu
-    depends_on:
-      shenyu-integrated-test-grpc:
-        condition: service_healthy
-
   shenyu-integrated-test-grpc:
     container_name: shenyu-integrated-test-grpc
     image: apache/shenyu-integrated-test-grpc:latest
@@ -101,6 +77,30 @@ services:
       start_period: 5s
     networks:
       - shenyu
+
+  shenyu-examples-grpc:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-grpc
+    image: shenyu-examples-grpc:latest
+    restart: always
+    environment:
+      - shenyu.client.serverLists=http://shenyu-admin:9095
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://localhost:55290/test/grpc/hello | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - 55290:55290
+      - 8080:8080
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-integrated-test-grpc:
+        condition: service_healthy
 
 networks:
   shenyu:

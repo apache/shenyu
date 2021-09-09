@@ -33,6 +33,8 @@ management:
       enabled: false
 
 shenyu:
+  local:
+    enabled: true
   file:
     enabled: true
   cross:
@@ -49,10 +51,18 @@ shenyu:
   # http:
   #    url : http://localhost:9095
   exclude:
-    enabled: true
+    enabled: false
     paths:
       - /favicon.ico
-      - /actuator/health
+  extPlugin:
+    enabled: true
+    threads: 1
+    scheduleTime: 300
+    scheduleDelay: 30
+  scheduler:
+    enabled: false
+    type: fixed
+    threads: 16
 
 logging:
   level:

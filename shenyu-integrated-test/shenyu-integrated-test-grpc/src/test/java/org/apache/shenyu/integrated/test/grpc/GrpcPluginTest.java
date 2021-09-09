@@ -17,20 +17,30 @@
 
 package org.apache.shenyu.integrated.test.grpc;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.apache.shenyu.integrated.test.grpc.dto.GrpcResponse;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 
 public class GrpcPluginTest extends AbstractTest {
 
     @Test
     public void testHelloWorld() throws Exception {
-        OrderDTO user = new OrderDTO("123", "Bob");
-        user = HttpHelper.INSTANCE.postGateway("/grpc/echo", user, OrderDTO.class);
-        assertEquals("ReceivedHELLO", user.getName());
+        JsonObject request = buildGrpcRequest();
+        GrpcResponse response = HttpHelper.INSTANCE.postGateway("/grpc/echo", request, GrpcResponse.class);
+        assertEquals("200", response.getCode());
     }
 
+    private JsonObject buildGrpcRequest() {
+        JsonArray jsonArray = new JsonArray();
+        JsonObject child = new JsonObject();
+        child.addProperty("message", "hello rpc");
+        jsonArray.add(child);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("data", jsonArray);
+        return jsonObject;
+    }
 }
