@@ -77,7 +77,7 @@ public class HttpTestController {
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(id);
-        userDTO.setUserName("hello world");
+        userDTO.setUserName("hello world" + name);
         return userDTO;
     }
 
