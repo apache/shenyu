@@ -38,19 +38,20 @@ import java.util.stream.Collectors;
  * This is web handler request starter.
  */
 public final class ShenyuWebHandler implements WebHandler {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
 
     private final List<ShenyuPlugin> plugins;
-    
+
     private final boolean scheduled;
 
     private Scheduler scheduler;
-    
+
     /**
      * Instantiates a new shenyu web handler.
      *
      * @param plugins the plugins
+     * @param shenyuConfig plugins config
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuConfig shenyuConfig) {
         this.plugins = plugins;
@@ -64,7 +65,7 @@ public final class ShenyuWebHandler implements WebHandler {
             }
         }
     }
-    
+
     /**
      * Handle the web server exchange.
      *
@@ -79,7 +80,7 @@ public final class ShenyuWebHandler implements WebHandler {
         }
         return execute;
     }
-    
+
     /**
      * Put ext plugins.
      *
@@ -105,7 +106,7 @@ public final class ShenyuWebHandler implements WebHandler {
         private int index;
 
         private final List<ShenyuPlugin> plugins;
-    
+
         /**
          * Instantiates a new Default shenyu plugin chain.
          *
