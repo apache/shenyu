@@ -18,6 +18,8 @@
 package org.apache.shenyu.web.configuration;
 
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
+import org.apache.shenyu.plugin.api.request.id.DefaultRequestIdGenerator;
+import org.apache.shenyu.plugin.api.request.id.RequestIdGenerator;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -40,6 +42,17 @@ public class ShenyuExtConfiguration {
     @ConditionalOnMissingBean(value = ShenyuResult.class, search = SearchStrategy.ALL)
     public ShenyuResult<?> shenyuResult() {
         return new DefaultShenyuResult();
+    }
+
+    /**
+     * Shenyu request id generator.
+     *
+     * @return the shenyu request id generator
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = RequestIdGenerator.class, search = SearchStrategy.ALL)
+    public RequestIdGenerator shenyuRequestIdGenerator() {
+        return new DefaultRequestIdGenerator();
     }
 
     /**

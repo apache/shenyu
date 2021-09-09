@@ -59,5 +59,6 @@
         <module>shenyu-plugin-param-mapping</module>
         <module>shenyu-plugin-cryptor</module>
         <module>shenyu-plugin-websocket</module>
+        <module>shenyu-plugin-request-id</module>
     </modules>
 </project>

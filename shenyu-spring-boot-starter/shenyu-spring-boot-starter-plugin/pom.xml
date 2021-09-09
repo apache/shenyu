@@ -57,5 +57,6 @@
         <module>shenyu-spring-boot-starter-plugin-param-mapping</module>
         <module>shenyu-spring-boot-starter-plugin-cryptor</module>
         <module>shenyu-spring-boot-starter-plugin-websocket</module>
+        <module>shenyu-spring-boot-starter-plugin-request-id</module>
     </modules>
 </project>

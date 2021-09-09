@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.shenyu.common.enums.ThreadShareDataEnum;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -629,6 +630,8 @@ public class ShenyuConfig {
                     add("token");
                     add("username");
                     add("client");
+                    // request id
+                    add(ThreadShareDataEnum.REQUEST_ID.getName());
                 }
             };
         }
