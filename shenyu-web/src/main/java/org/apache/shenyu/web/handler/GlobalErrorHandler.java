@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.handler;
 
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ThreadShare;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
     /**
      * the http status holder.
      */
-    private static final ThreadLocal<Integer> HTTP_STATUS_HOLDER = new ThreadLocal<>();
+    private static final ThreadShare<Integer> HTTP_STATUS_HOLDER = new ThreadShare<>();
 
     /**
      * Instantiates a new Global error handler.
@@ -79,12 +80,8 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     @Override
     protected int getHttpStatus(final Map<String, Object> errorAttributes) {
-        try {
-            Integer status = HTTP_STATUS_HOLDER.get();
-            return Objects.nonNull(status) ? status : HttpStatus.INTERNAL_SERVER_ERROR.value();
-        } finally {
-            HTTP_STATUS_HOLDER.remove();
-        }
+        Integer status = HTTP_STATUS_HOLDER.getRemove();
+        return Objects.nonNull(status) ? status : HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
 
     private Map<String, Object> response(final ServerRequest request) {
