@@ -83,13 +83,16 @@
             <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--shenyu debug plugin end-->
-
-        <!--shenyu dubbo start-->
+        <!-- apache shenyu  apache dubbo plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>2.7.5</version>
         </dependency>
 
         <dependency>
