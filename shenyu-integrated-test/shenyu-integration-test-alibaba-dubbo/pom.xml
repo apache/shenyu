@@ -85,11 +85,11 @@
         </dependency>
         <!--shenyu debug plugin end-->
 
-        <!--shenyu tars plugin start-->
+        <!--shenyu dubbo start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
-            <version>${project.version}</version>
+            <artifactId>shenyu-spring-boot-starter-client-alibaba-dubbo</artifactId>
+            <version>${shenyu.version}</version>
         </dependency>
 
         <dependency>
