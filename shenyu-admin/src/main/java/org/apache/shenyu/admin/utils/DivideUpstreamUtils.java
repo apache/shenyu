@@ -35,8 +35,7 @@ public class DivideUpstreamUtils {
      * @return divideUpstream divideUpstream
      */
     public static DivideUpstream buildDivideUpstream(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        return DivideUpstream.builder().serviceId(metaDataRegisterDTO.getAppName()).upstreamHost("localhost")
-                .protocol("http://").upstreamUrl(buildUrl(metaDataRegisterDTO)).weight(50).build();
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(metaDataRegisterDTO)).weight(50).build();
     }
 
     /**

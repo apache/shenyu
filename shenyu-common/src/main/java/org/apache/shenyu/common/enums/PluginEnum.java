@@ -235,6 +235,6 @@ public enum PluginEnum {
      * @return List string
      */
     public static List<String> getUpstreamNames() {
-        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name);
+        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name, SPRING_CLOUD.name);
     }
 }

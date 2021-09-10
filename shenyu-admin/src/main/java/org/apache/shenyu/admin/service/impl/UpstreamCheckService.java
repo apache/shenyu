@@ -38,6 +38,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.ZombieUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -267,7 +268,17 @@ public class UpstreamCheckService {
             List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
                     selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-            String handler = CollectionUtils.isEmpty(upstreams) ? "" : GsonUtils.getInstance().toJson(upstreams);
+            String handler = null;
+            if (PluginEnum.SPRING_CLOUD.name().equals(pluginDO.getName())) {
+                if (Objects.nonNull(selectorDO.getHandle())) {
+                    SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
+                            .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
+                    springCloudSelectorHandle.setDivideUpstreams(upstreams);
+                    handler = GsonUtils.getInstance().toJson(springCloudSelectorHandle);
+                }
+            } else {
+                handler = CollectionUtils.isEmpty(upstreams) ? "" : GsonUtils.getInstance().toJson(upstreams);
+            }
             selectorDO.setHandle(handler);
             selectorMapper.updateSelective(selectorDO);
             if (Objects.nonNull(pluginDO)) {
@@ -293,7 +304,14 @@ public class UpstreamCheckService {
                 if (Objects.isNull(selectorDO)) {
                     continue;
                 }
-                final List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+                List<DivideUpstream> divideUpstreams = null;
+                if (PluginEnum.SPRING_CLOUD.name().equals(pluginDO.getName())) {
+                    SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
+                            .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
+                    divideUpstreams = springCloudSelectorHandle.getDivideUpstreams();
+                } else {
+                    divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+                }
                 if (CollectionUtils.isNotEmpty(divideUpstreams)) {
                     UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
                 }

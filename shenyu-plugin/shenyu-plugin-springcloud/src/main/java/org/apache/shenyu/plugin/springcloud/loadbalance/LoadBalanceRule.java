@@ -20,16 +20,16 @@ package org.apache.shenyu.plugin.springcloud.loadbalance;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ZoneAvoidanceRule;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.CollectionUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
-import org.apache.shenyu.plugin.springcloud.cache.InstanceCacheManager;
+import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * The spring cloud loadbalancer rule.
@@ -38,27 +38,25 @@ public class LoadBalanceRule extends ZoneAvoidanceRule {
 
     @Override
     public Server choose(final Object key) {
-        LoadBalanceKey loadBalanceKey = key instanceof LoadBalanceKey ? (LoadBalanceKey) key : null;
-        List<Server> available = getPredicate().getEligibleServers(getLoadBalancer().getReachableServers(), key);
+        final LoadBalanceKey loadBalanceKey = LoadBalanceKeyHolder.getLoadBalanceKey();
+        final List<Server> available = getPredicate().getEligibleServers(getLoadBalancer().getAllServers(), key);
         if (CollectionUtils.isEmpty(available)) {
             return null;
         }
-        List<DivideUpstream> divideUpstreams = InstanceCacheManager.getInstance().findUpstreamListBySelectorId(loadBalanceKey.getSelectorId());
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(loadBalanceKey.getSelectorId());
+        if (!springCloudSelectorHandle.getGray()) {
+            return super.choose(Constants.DEFAULT);
+        }
+        List<Upstream> divideUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(loadBalanceKey.getSelectorId());
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return super.choose(Constants.DEFAULT);
         }
-        List<DivideUpstream> grayUpstream = divideUpstreams.stream().filter(DivideUpstream::isGray).collect(Collectors.toList());
-        //choose from gray
-        if (CollectionUtils.isNotEmpty(grayUpstream)) {
-            Upstream upstream = LoadBalancerFactory.selector(convert(grayUpstream), loadBalanceKey.getLoadBalance(), loadBalanceKey.getIp());
-            return available.stream().filter(server -> server.getHostPort().equals(upstream.getUrl())).findFirst().orElse(null);
-        }
         //select server from available to choose
-        List<DivideUpstream> choose = new ArrayList<>(available.size());
+        final List<Upstream> choose = new ArrayList<>(available.size());
         for (Server server : available) {
-            Optional<DivideUpstream> divideUpstream = Optional.ofNullable(divideUpstreams.stream()
-                    .filter(DivideUpstream::isStatus)
-                    .filter(upstream -> upstream.getUpstreamUrl().equals(server.getHostPort()))
+            Optional<Upstream> divideUpstream = Optional.ofNullable(divideUpstreams.stream()
+                    .filter(Upstream::isStatus)
+                    .filter(upstream -> upstream.getUrl().equals(server.getHostPort()))
                     .findFirst()).orElse(Optional.empty());
             if (divideUpstream.isPresent()) {
                 choose.add(divideUpstream.get());
@@ -67,17 +65,7 @@ public class LoadBalanceRule extends ZoneAvoidanceRule {
         if (CollectionUtils.isEmpty(choose)) {
             return super.choose(Constants.DEFAULT);
         }
-        Upstream upstream = LoadBalancerFactory.selector(convert(choose), loadBalanceKey.getLoadBalance(), loadBalanceKey.getIp());
+        Upstream upstream = LoadBalancerFactory.selector(choose, loadBalanceKey.getLoadBalance(), loadBalanceKey.getIp());
         return available.stream().filter(server -> server.getHostPort().equals(upstream.getUrl())).findFirst().orElse(null);
-    }
-
-    private List<Upstream> convert(final List<DivideUpstream> upstreamList) {
-        return upstreamList.stream().map(u -> Upstream.builder()
-                .url(u.getUpstreamUrl())
-                .weight(u.getWeight())
-                .status(u.isStatus())
-                .timestamp(u.getTimestamp())
-                .warmup(u.getWarmup())
-                .build()).collect(Collectors.toList());
     }
 }

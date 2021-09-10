@@ -28,11 +28,6 @@ public class DivideUpstream implements Serializable {
     private static final long serialVersionUID = 6252280511262542360L;
 
     /**
-     * this is service id.
-     */
-    private String serviceId;
-
-    /**
      * this is http protocol.
      */
     private String protocol;
@@ -67,11 +62,6 @@ public class DivideUpstream implements Serializable {
      */
     private int warmup;
 
-    /**
-     * gray.
-     */
-    private boolean gray;
-
     // health parameters
 
     private boolean healthy;
@@ -96,13 +86,11 @@ public class DivideUpstream implements Serializable {
         if (!builder.statusSet) {
             statusValue = DivideUpstream.defaultStatus();
         }
-        this.serviceId = builder.serviceId;
         this.upstreamHost = builder.upstreamHost;
         this.protocol = builder.protocol;
         this.upstreamUrl = builder.upstreamUrl;
         this.weight = builder.weight;
         this.status = statusValue;
-        this.gray = builder.gray;
         this.timestamp = builder.timestamp;
         this.warmup = builder.warmup;
         this.healthy = builder.healthy;
@@ -299,42 +287,6 @@ public class DivideUpstream implements Serializable {
         this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
     }
 
-    /**
-     * isGray.
-     *
-     * @return boolean boolean
-     */
-    public boolean isGray() {
-        return gray;
-    }
-
-    /**
-     * setGray.
-     *
-     * @param gray gray
-     */
-    public void setGray(final boolean gray) {
-        this.gray = gray;
-    }
-
-    /**
-     * get serviceId.
-     *
-     * @return serviceId serviceId
-     */
-    public String getServiceId() {
-        return serviceId;
-    }
-
-    /**
-     * set serviceId.
-     *
-     * @param serviceId serviceId
-     */
-    public void setServiceId(final String serviceId) {
-        this.serviceId = serviceId;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -394,11 +346,6 @@ public class DivideUpstream implements Serializable {
      * class builder.
      */
     public static final class Builder {
-
-        /**
-         * this is service id.
-         */
-        private String serviceId;
 
         /**
          * upstreamHost.
@@ -473,17 +420,6 @@ public class DivideUpstream implements Serializable {
          */
         public DivideUpstream build() {
             return new DivideUpstream(this);
-        }
-
-        /**
-         * build serviceId.
-         *
-         * @param serviceId serviceId
-         * @return this
-         */
-        public Builder serviceId(final String serviceId) {
-            this.serviceId = serviceId;
-            return this;
         }
 
         /**
@@ -595,15 +531,6 @@ public class DivideUpstream implements Serializable {
         public Builder lastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
             this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
             return this;
-        }
-
-        /**
-         * build gray.
-         *
-         * @param gray gray
-         */
-        public void gray(final boolean gray) {
-            this.gray = gray;
         }
     }
 }

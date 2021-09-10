@@ -21,8 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -32,32 +32,32 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.springcloud.cache.InstanceCacheManager;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
+import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKey;
+import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKeyHolder;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * this is springCloud proxy impl.
  */
 public class SpringCloudPlugin extends AbstractShenyuPlugin {
 
-    private final RibbonLoadBalancerClient loadBalancer;
+    private final LoadBalancerClient loadBalancer;
 
     /**
      * Instantiates a new Spring cloud plugin.
      *
      * @param loadBalancer the load balancer
      */
-    public SpringCloudPlugin(final RibbonLoadBalancerClient loadBalancer) {
+    public SpringCloudPlugin(final LoadBalancerClient loadBalancer) {
         this.loadBalancer = loadBalancer;
     }
 
@@ -69,9 +69,9 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         }
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(selector.getId());
         final SpringCloudRuleHandle ruleHandle = SpringCloudRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        final Optional<DivideUpstream> optional = InstanceCacheManager.getInstance().getServiceId(selector.getId());
-        String serviceId = optional.isPresent() ? optional.get().getServiceId() : null;
+        String serviceId = springCloudSelectorHandle.getServiceId();
         if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(),
                     ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
@@ -79,7 +79,13 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         }
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         LoadBalanceKey loadBalanceKey = new LoadBalanceKey(ip, selector.getId(), ruleHandle.getLoadBalance());
-        final ServiceInstance serviceInstance = loadBalancer.choose(serviceId, loadBalanceKey);
+        ServiceInstance serviceInstance = null;
+        try {
+            LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
+            serviceInstance = loadBalancer.choose(serviceId);
+        } finally {
+            LoadBalanceKeyHolder.resetLoadBalanceKey();
+        }
         if (Objects.isNull(serviceInstance)) {
             Object error = ShenyuResultWrap
                     .error(ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getCode(), ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getMsg(), null);

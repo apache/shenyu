@@ -27,9 +27,8 @@ import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDeco
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceRule;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClientSpecification;
-import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
-import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,7 +45,7 @@ public class SpringCloudPluginConfiguration {
      * @return {@linkplain SpringCloudPlugin}
      */
     @Bean
-    public ShenyuPlugin springCloudPlugin(final ObjectProvider<RibbonLoadBalancerClient> loadBalancerClient) {
+    public ShenyuPlugin springCloudPlugin(final ObjectProvider<LoadBalancerClient> loadBalancerClient) {
         return new SpringCloudPlugin(loadBalancerClient.getIfAvailable());
     }
 
@@ -79,17 +78,6 @@ public class SpringCloudPluginConfiguration {
     public RibbonClientSpecification ribbonClientSpecification() {
         Class[] classes = new Class[]{SpringCloudClientConfiguration.class};
         return new RibbonClientSpecification(String.join(".", Constants.DEFAULT, RibbonClientSpecification.class.getName()), classes);
-    }
-
-    /**
-     * loadBalancerClient.
-     *
-     * @param factory factory
-     * @return RibbonLoadBalancerClient ribbonLoadBalancerClient
-     */
-    @Bean
-    public RibbonLoadBalancerClient loadBalancerClient(final SpringClientFactory factory) {
-        return new RibbonLoadBalancerClient(factory);
     }
 
     class SpringCloudClientConfiguration {

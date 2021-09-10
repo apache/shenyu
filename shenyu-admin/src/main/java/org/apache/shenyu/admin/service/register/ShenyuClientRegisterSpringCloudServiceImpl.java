@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -27,12 +26,18 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
+import org.apache.shenyu.admin.utils.DivideUpstreamUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -41,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -59,17 +65,20 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
 
     private final PluginService pluginService;
 
+    private final UpstreamCheckService upstreamCheckService;
+
     public ShenyuClientRegisterSpringCloudServiceImpl(final MetaDataService metaDataService,
                                                       final ApplicationEventPublisher eventPublisher,
                                                       final SelectorService selectorService,
                                                       final RuleService ruleService,
-                                                      final RuleMapper ruleMapper,
-                                                      final PluginService pluginService) {
+                                                      final PluginService pluginService,
+                                                      final UpstreamCheckService upstreamCheckService) {
         this.metaDataService = metaDataService;
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.pluginService = pluginService;
+        this.upstreamCheckService = upstreamCheckService;
     }
 
     @Override
@@ -112,7 +121,50 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
 
     @Override
     public String handlerSelector(final MetaDataRegisterDTO dto) {
-        return selectorService.handlerSelectorNeedUpstreamCheck(dto, PluginEnum.SPRING_CLOUD.getName());
+        String contextPath = dto.getContextPath();
+        if (StringUtils.isEmpty(contextPath)) {
+            contextPath = buildContextPath(dto.getPath());
+        }
+        SelectorDO selectorDO = selectorService.findByName(contextPath);
+        String selectorId;
+        if (Objects.isNull(selectorDO)) {
+            SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
+            DivideUpstream divideUpstream = DivideUpstreamUtils.buildDivideUpstream(dto);
+            selectorDTO.setHandle(GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(dto.getAppName(), Collections.singletonList(divideUpstream))));
+            return selectorService.register(selectorDTO);
+        } else {
+            selectorId = selectorDO.getId();
+            //update upstream
+            String handle = selectorDO.getHandle();
+            String handleAdd;
+            DivideUpstream addDivideUpstream = DivideUpstreamUtils.buildDivideUpstream(dto);
+            final SelectorData selectorData = selectorService.buildByName(contextPath);
+            // fetch UPSTREAM_MAP data from db
+            upstreamCheckService.fetchUpstreamData();
+            if (StringUtils.isBlank(handle)) {
+                handleAdd = GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(dto.getAppName(), Collections.singletonList(addDivideUpstream)));
+            } else {
+                SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(handle, SpringCloudSelectorHandle.class);
+                List<DivideUpstream> exist = springCloudSelectorHandle.getDivideUpstreams();
+                for (DivideUpstream upstream : exist) {
+                    if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
+                        return selectorId;
+                    }
+                }
+                exist.add(addDivideUpstream);
+                handleAdd = GsonUtils.getInstance().toJson(exist);
+            }
+            selectorDO.setHandle(handleAdd);
+            selectorData.setHandle(handleAdd);
+            // update db
+            selectorService.updateSelective(selectorDO);
+            // submit upstreamCheck
+            upstreamCheckService.submit(contextPath, addDivideUpstream);
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                    Collections.singletonList(selectorData)));
+        }
+        return selectorId;
     }
 
     @Override
@@ -138,5 +190,9 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
         selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.CONTEXT_PATH.getName()));
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
+    }
+
+    private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId, final List<DivideUpstream> divideUpstreams) {
+        return SpringCloudSelectorHandle.builder().serviceId(serviceId).divideUpstreams(divideUpstreams).build();
     }
 }
