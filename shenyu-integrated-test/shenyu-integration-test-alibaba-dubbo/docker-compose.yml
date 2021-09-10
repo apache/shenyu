@@ -31,7 +31,7 @@ services:
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:
