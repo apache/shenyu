@@ -78,6 +78,7 @@
                 <version>${os-maven-plugin.version}</version>
             </extension>
         </extensions>
+        <finalName>shenyu-examples-grpc</finalName>
         <plugins>
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
@@ -97,6 +98,35 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.apache.shenyu.examples.grpc.ShenyuTestGrpcApplication</mainClass>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.4.6</version>
+                <executions>
+                    <execution>
+                        <id>shenyu-examples-grpc</id>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <repository>shenyu-examples-grpc</repository>
+                    <tag>latest</tag>
+                    <buildArgs>
+                        <APP_NAME>shenyu-examples-grpc</APP_NAME>
+                    </buildArgs>
+                </configuration>
             </plugin>
         </plugins>
     </build>
