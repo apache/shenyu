@@ -18,10 +18,18 @@
 package org.apache.shenyu.common.utils;
 
 import java.io.Serializable;
-import java.net.*;
-import java.util.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.net.SocketException;
+import java.net.NetworkInterface;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Comparator;
 
 /**
  * The type Ip utils.
@@ -149,20 +157,13 @@ public final class IpUtils {
             } else if (!ipv6Result.isEmpty()) {
                 hostIp = ipv6Result.get(0).getIp();
             }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-
-        // If failed to find,fall back to localhost
-        if (hostIp == null) {
-            try {
+            // If failed to find,fall back to localhost
+            if (hostIp == null) {
                 hostIp = InetAddress.getLocalHost().getHostAddress();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                hostIp = "127.0.0.1";
             }
+        } catch (SocketException | UnknownHostException ignore) {
+            hostIp = "127.0.0.1";
         }
-
         return hostIp;
     }
 
@@ -216,7 +217,7 @@ public final class IpUtils {
      * @param name
      * @return the name
      */
-    private static String getName(String name) {
+    private static String getName(final String name) {
         Matcher matcher = NET_CARD_PATTERN.matcher(name);
         if (matcher.find()) {
             return name.replace(matcher.group(), "");
@@ -230,7 +231,7 @@ public final class IpUtils {
      * @param name
      * @return the name postfix
      */
-    private static Integer getNamePostfix(String name) {
+    private static Integer getNamePostfix(final String name) {
         Matcher matcher = NET_CARD_PATTERN.matcher(name);
         if (matcher.find()) {
             return Integer.parseInt(matcher.group());
