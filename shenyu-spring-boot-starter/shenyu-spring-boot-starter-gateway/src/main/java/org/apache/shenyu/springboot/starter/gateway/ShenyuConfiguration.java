@@ -20,7 +20,7 @@ package org.apache.shenyu.springboot.starter.gateway;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.base.ParamTransformPlugin;
+import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -104,7 +104,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     public ShenyuPlugin paramTransformPlugin() {
-        return new ParamTransformPlugin();
+        return new RpcParamTransformPlugin();
     }
     
     /**

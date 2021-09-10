@@ -60,11 +60,7 @@ import java.util.Set;
  * ModifyResponse plugin.
  */
 public class ModifyResponsePlugin extends AbstractShenyuPlugin {
-
-    public ModifyResponsePlugin() {
-
-    }
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         if (Objects.isNull(rule)) {
@@ -116,11 +112,6 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.MODIFY_RESPONSE.getName();
-    }
-
-    @Override
-    public boolean skip(final ServerWebExchange exchange) {
-        return false;
     }
 
     static class ModifyServerHttpResponse extends ServerHttpResponseDecorator {

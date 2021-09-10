@@ -23,7 +23,6 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
@@ -51,7 +50,7 @@ public class SpringExtConfiguration {
 
         @Override
         public void setApplicationContext(@NonNull final ApplicationContext applicationContext) throws BeansException {
-            SpringBeanUtils.getInstance().setCfgContext((ConfigurableApplicationContext) applicationContext);
+            SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
             Singleton.INST.single(ShenyuConfig.class, shenyuConfig);
         }

@@ -15,55 +15,43 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.plugin.sign.sign;
 
-import org.apache.shenyu.plugin.api.result.DefaultShenyuEntity;
-import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
-import org.apache.shenyu.plugin.api.result.ShenyuResult;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.sign.DefaultSignProvider;
+import org.apache.shenyu.plugin.api.sign.ShenyuSignProviderWrap;
+import org.apache.shenyu.plugin.api.sign.SignProvider;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The Shenyu result wrap test.
+ * The Shenyu default sign provider test.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class ShenyuResultWrapTest {
+public class DefaultSignProviderTest {
 
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 
-    /**
-     * The success test.
-     */
     @Test
-    public void successTest() {
-        Integer result = 0;
-        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.success(result, "success", new Object());
-        Assert.assertEquals(shenyuResult.getCode(), result);
-        Assert.assertEquals(shenyuResult.getMessage(), "success");
-    }
-
-    /**
-     * The error test.
-     */
-    @Test
-    public void errorTest() {
-        Integer result = 1;
-        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.error(result, "error", new Object());
-        Assert.assertEquals(shenyuResult.getCode(), result);
-        Assert.assertEquals(shenyuResult.getMessage(), "error");
+    public void testGenerateSign() {
+        Map<String, String> params = new HashMap<>();
+        params.put("a", "1");
+        params.put("b", "2");
+        assertNotNull(ShenyuSignProviderWrap.generateSign("test", params));
     }
 }

@@ -11,11 +11,14 @@ body:
     required: true
 - type: textarea
   attributes:
-    value: |
-      Task List:
-      - [ ] task1
-      - [ ] task2
-      - [ ] task3
+    label: Task List
+    placeholder: |
+      1. Task1...
+      2. Task2...
+      3. Task3...
+      4. Task4...
+  validations:
+    required: false
 - type: markdown
   attributes:
     value: |

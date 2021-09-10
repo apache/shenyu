@@ -75,7 +75,7 @@ public class TarsPluginTest {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(applicationContext);
+        springBeanUtils.setApplicationContext(applicationContext);
         metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
                 "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":"

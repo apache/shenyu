@@ -79,7 +79,7 @@ public final class WebSocketParamFilterTest<T> extends WebSocketParamFilter {
     @Test
     public void testDoDenyResponse() {
         final ConfigurableApplicationContext cfgContext = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(cfgContext);
+        SpringBeanUtils.getInstance().setApplicationContext(cfgContext);
         when(SpringBeanUtils.getInstance().getBean(ShenyuResult.class)).thenReturn(shenyuResult);
         final Mono<Void> result = doDenyResponse(createExchange(new LinkedMultiValueMap<>(1), new LinkedMultiValueMap<>(1)));
         StepVerifier.create(result).expectSubscription().verifyComplete();

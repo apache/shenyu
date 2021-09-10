@@ -82,7 +82,7 @@ public class ParameterDataFactoryTest {
     @Test
     public void testBuildHostData() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
@@ -96,7 +96,7 @@ public class ParameterDataFactoryTest {
     @Test
     public void testBuildIPData() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")

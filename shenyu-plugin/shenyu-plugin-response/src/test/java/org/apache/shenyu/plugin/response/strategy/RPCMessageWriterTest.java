@@ -55,7 +55,7 @@ public class RPCMessageWriterTest {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(applicationContext);
+        springBeanUtils.setApplicationContext(applicationContext);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         rpcMessageWriter = new RPCMessageWriter();
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
