@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.sign;
+package org.apache.shenyu.plugin.sign.api;
 
 import org.apache.shenyu.common.utils.SignUtils;
 

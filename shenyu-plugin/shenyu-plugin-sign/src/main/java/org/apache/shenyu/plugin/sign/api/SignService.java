@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.sign;
+package org.apache.shenyu.plugin.sign.api;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.server.ServerWebExchange;
