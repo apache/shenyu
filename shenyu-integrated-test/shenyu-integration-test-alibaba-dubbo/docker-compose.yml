@@ -56,6 +56,7 @@ services:
       start_period: 5s
     ports:
       - "8011:8011"
+      - "20888:20888"
     networks:
       - shenyu
     depends_on:
