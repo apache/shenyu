@@ -21,6 +21,15 @@ services:
     restart: always
     networks:
       - shenyu
+  shenyu-redis:
+    image: redis:6.0-alpine
+    container_name: shenyu-redis
+    restart: always
+    command: redis-server --requirepass abc
+    networks:
+      - shenyu
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
@@ -31,6 +40,9 @@ services:
       - type: bind
         source: ./src/main/resources/admin-config/
         target: /opt/sql/
+    depends_on:
+      shenyu-redis:
+        condition: service_healthy
     ports:
       - "9095:9095"
     environment:
@@ -60,7 +72,7 @@ services:
     networks:
       - shenyu
     depends_on:
-      shenyu-admin:
+      shenyu-integration-test-apache-dubbo:
         condition: service_healthy
     environment:
       - dubbo.registry.address=zookeeper://shenyu-zk:2181
@@ -75,8 +87,8 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
-      - shenyu-examples-apache-dubbo-service
-      - shenyu-admin
+      shenyu-admin:
+        condition: service_healthy
     ports:
       - "9195:9195"
     healthcheck:
