@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -76,6 +77,7 @@ public class RoleController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
+    @PageHelperControllerAnnotation
     @GetMapping("")
     public ShenyuAdminResult queryRole(final String roleName, final Integer currentPage, final Integer pageSize) {
         CommonPager<RoleVO> commonPager = roleService.listByPage(new RoleQuery(roleName, new PageParameter(currentPage, pageSize)));

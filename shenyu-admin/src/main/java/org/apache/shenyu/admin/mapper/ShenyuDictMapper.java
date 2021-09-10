@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 
@@ -76,6 +77,7 @@ public interface ShenyuDictMapper {
      * @param shenyuDictQuery {@linkplain ShenyuDictQuery}
      * @return the shenyu dict list
      */
+    @PageHelperMapperAnnotation
     List<ShenyuDictDO> selectByQuery(ShenyuDictQuery shenyuDictQuery);
 
     /**

@@ -207,8 +207,5 @@
             </if>
         </where>
         order by plugin_id,sort
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 </mapper>

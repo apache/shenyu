@@ -68,9 +68,6 @@
                 </foreach>
             </if>
         </where>
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <select id="findBySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">
