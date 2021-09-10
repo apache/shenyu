@@ -27,12 +27,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Vector;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Test case for {@link IpUtils}.
@@ -53,14 +49,29 @@ public final class IpUtilsTest {
 
     @Test
     public void testGetHost() throws Exception {
-        Vector<InetAddress> addresses = new Vector<>();
-        addresses.add(InetAddress.getByAddress("local", new byte[]{(byte) 192, (byte) 168, (byte) 50, (byte) 66}));
-        addresses.add(InetAddress.getByAddress("eth0", new byte[]{(byte) 172, (byte) 168, (byte) 166, (byte) 12}));
-        addresses.add(InetAddress.getByAddress("eth1", new byte[]{(byte) 10, (byte) 150, (byte) 111, (byte) 66}));
-        NetworkInterface nic = mock(NetworkInterface.class);
-        when(nic.getInetAddresses()).thenReturn(addresses.elements());
+        // first net card
+        Vector<InetAddress> addresses1 = new Vector<>();
+        addresses1.add(InetAddress.getByAddress("local", new byte[]{(byte) 192, (byte) 168, (byte) 50, (byte) 66}));
+        NetworkInterface nic1 = mock(NetworkInterface.class);
+        when(nic1.getInetAddresses()).thenReturn(addresses1.elements());
+        when(nic1.getName()).thenReturn("local");
+        // second net card
+        Vector<InetAddress> addresses2 = new Vector<>();
+        addresses2.add(InetAddress.getByAddress("eth0", new byte[]{(byte) 172, (byte) 168, (byte) 166, (byte) 12}));
+        NetworkInterface nic2 = mock(NetworkInterface.class);
+        when(nic2.getInetAddresses()).thenReturn(addresses2.elements());
+        when(nic2.getName()).thenReturn("eth0");
+        // third net card
+        Vector<InetAddress> addresses3 = new Vector<>();
+        addresses3.add(InetAddress.getByAddress("eth1", new byte[]{(byte) 10, (byte) 150, (byte) 111, (byte) 66}));
+        NetworkInterface nic3 = mock(NetworkInterface.class);
+        when(nic3.getInetAddresses()).thenReturn(addresses3.elements());
+        when(nic3.getName()).thenReturn("eth1");
+        // add all
         Vector<NetworkInterface> nics = new Vector<>();
-        nics.add(nic);
+        nics.add(nic1);
+        nics.add(nic2);
+        nics.add(nic3);
         networkInterfaceMockedStatic.when((MockedStatic.Verification) NetworkInterface.getNetworkInterfaces()).thenReturn(nics.elements());
         String prefix1 = "172.168";
         assertEquals("172.168.166.12", IpUtils.getHost(prefix1));

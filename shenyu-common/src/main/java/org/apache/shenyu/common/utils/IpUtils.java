@@ -248,13 +248,13 @@ public final class IpUtils {
         public NetCard() {
         }
 
-        public NetCard(final String ip, final String name,final  Integer namePostfix) {
+        public NetCard(final String ip, final String name, final Integer namePostfix) {
             this.ip = ip;
             this.name = name;
             this.namePostfix = namePostfix;
         }
 
-        public NetCard(final String ip, final String name, final Integer namePostfix,final  Integer postfix) {
+        public NetCard(final String ip, final String name, final Integer namePostfix, final Integer postfix) {
             this.ip = ip;
             this.name = name;
             this.namePostfix = namePostfix;
