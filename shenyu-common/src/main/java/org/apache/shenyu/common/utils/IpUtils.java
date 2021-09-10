@@ -248,13 +248,13 @@ public final class IpUtils {
         public NetCard() {
         }
 
-        public NetCard(String ip, String name, Integer namePostfix) {
+        public NetCard(final String ip, final String name,final  Integer namePostfix) {
             this.ip = ip;
             this.name = name;
             this.namePostfix = namePostfix;
         }
 
-        public NetCard(String ip, String name, Integer namePostfix, Integer postfix) {
+        public NetCard(final String ip, final String name, final Integer namePostfix,final  Integer postfix) {
             this.ip = ip;
             this.name = name;
             this.namePostfix = namePostfix;
@@ -265,7 +265,7 @@ public final class IpUtils {
             return ip;
         }
 
-        public void setIp(String ip) {
+        public void setIp(final String ip) {
             this.ip = ip;
         }
 
@@ -273,7 +273,7 @@ public final class IpUtils {
             return name;
         }
 
-        public void setName(String name) {
+        public void setName(final String name) {
             this.name = name;
         }
 
@@ -285,11 +285,11 @@ public final class IpUtils {
             return namePostfix;
         }
 
-        public void setNamePostfix(Integer namePostfix) {
+        public void setNamePostfix(final Integer namePostfix) {
             this.namePostfix = namePostfix;
         }
 
-        public void setIpv4Postfix(Integer ipv4Postfix) {
+        public void setIpv4Postfix(final Integer ipv4Postfix) {
             this.ipv4Postfix = ipv4Postfix;
         }
     }
