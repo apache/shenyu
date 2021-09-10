@@ -115,7 +115,7 @@ public final class IpUtils {
             // sort ip
             Comparator<NetCard> byName = new Comparator<NetCard>() {
                 @Override
-                public int compare(NetCard card1, NetCard card2) {
+                public int compare(final NetCard card1, final NetCard card2) {
                     int card1Score = -1;
                     int card2Score = -1;
                     for (String pre : preferList) {
@@ -136,7 +136,7 @@ public final class IpUtils {
             Comparator<NetCard> byNamePostfix = Comparator.comparing(NetCard::getNamePostfix);
             Comparator<NetCard> byIpv4Postfix = new Comparator<NetCard>() {
                 @Override
-                public int compare(NetCard card1, NetCard card2) {
+                public int compare(final NetCard card1, final NetCard card2) {
                     return card2.getIpv4Postfix() - card1.getIpv4Postfix();
                 }
             };
@@ -214,7 +214,7 @@ public final class IpUtils {
     /**
      * To obtain a prefix.
      *
-     * @param name
+     * @param name network interface name
      * @return the name
      */
     private static String getName(final String name) {
@@ -228,7 +228,7 @@ public final class IpUtils {
     /**
      * Get the last number.
      *
-     * @param name
+     * @param name network interface name
      * @return the name postfix
      */
     private static Integer getNamePostfix(final String name) {
@@ -240,21 +240,25 @@ public final class IpUtils {
     }
 
     private static class NetCard implements Serializable {
+
         private String ip;
+
         private String name;
+
         private Integer namePostfix;
+
         private Integer ipv4Postfix;
 
-        public NetCard() {
+        NetCard() {
         }
 
-        public NetCard(final String ip, final String name, final Integer namePostfix) {
+        NetCard(final String ip, final String name, final Integer namePostfix) {
             this.ip = ip;
             this.name = name;
             this.namePostfix = namePostfix;
         }
 
-        public NetCard(final String ip, final String name, final Integer namePostfix, final Integer postfix) {
+        NetCard(final String ip, final String name, final Integer namePostfix, final Integer postfix) {
             this.ip = ip;
             this.name = name;
             this.namePostfix = namePostfix;
