@@ -85,11 +85,16 @@
         </dependency>
         <!--shenyu debug plugin end-->
 
-        <!--shenyu dubbo start-->
+        <!-- apache shenyu alibaba dubbo plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-alibaba-dubbo</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>${alibaba.dubbo.version}</version>
         </dependency>
 
         <dependency>
