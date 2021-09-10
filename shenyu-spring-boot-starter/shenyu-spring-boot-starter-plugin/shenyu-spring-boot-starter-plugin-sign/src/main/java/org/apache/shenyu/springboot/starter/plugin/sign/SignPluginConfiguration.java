@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
-import org.apache.shenyu.plugin.api.sign.DefaultSignProvider;
-import org.apache.shenyu.plugin.api.sign.SignService;
+import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
+import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.sign.SignProvider;
+import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.sign.SignPlugin;
 import org.apache.shenyu.plugin.sign.service.DefaultSignService;
 import org.apache.shenyu.plugin.sign.subscriber.SignAuthDataSubscriber;
@@ -54,7 +54,7 @@ public class SignPluginConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = SignProvider.class, search = SearchStrategy.ALL)
-    public SignProvider signer() {
+    public SignProvider signProvider() {
         return new DefaultSignProvider();
     }
     

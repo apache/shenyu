@@ -34,6 +34,7 @@
         <module>shenyu-integrated-test-common</module>
         <module>shenyu-integration-test-alibaba-dubbo</module>
         <module>shenyu-integration-test-apache-dubbo</module>
+        <module>shenyu-integrated-test-grpc</module>
     </modules>
 
     <properties>

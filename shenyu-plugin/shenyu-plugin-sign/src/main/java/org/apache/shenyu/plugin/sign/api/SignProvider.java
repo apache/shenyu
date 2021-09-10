@@ -15,20 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.sign;
+package org.apache.shenyu.plugin.sign.api;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.web.server.ServerWebExchange;
+import java.util.Map;
 
 /**
- * The interface Sign service.
+ * The Sign plugin sign provider.
  */
-public interface SignService {
+public interface SignProvider {
 
     /**
-     * Sign verify pair.
-     * @param exchange   the exchange
-     * @return the pair
+     * acquired sign.
+     *
+     * @param signKey sign key
+     * @param params  params
+     * @return sign
      */
-    Pair<Boolean, String> signVerify(ServerWebExchange exchange);
+    String generateSign(String signKey, Map<String, String> params);
 }

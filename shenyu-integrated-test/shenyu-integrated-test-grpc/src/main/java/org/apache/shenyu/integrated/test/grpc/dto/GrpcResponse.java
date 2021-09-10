@@ -15,26 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.sign;
-
-import org.apache.shenyu.common.utils.SignUtils;
-
-import java.util.Map;
+package org.apache.shenyu.integrated.test.grpc.dto;
 
 /**
- * The Sign plugin default signer.
+ * The GrpcResponse.
  */
-public class DefaultSignProvider implements SignProvider {
+public class GrpcResponse {
+
+    private String code;
+
+    private String message;
 
     /**
-     * acquired sign.
+     * Get the code.
      *
-     * @param signKey sign key
-     * @param params  params
-     * @return sign
+     * @return the code
      */
-    @Override
-    public String generateSign(final String signKey, final Map<String, String> params) {
-        return SignUtils.generateSign(signKey, params);
+    public String getCode() {
+        return code;
+    }
+
+    /**
+     * Set the response code.
+     *
+     * @param code the response code
+     */
+    public void setCode(final String code) {
+        this.code = code;
+    }
+
+    /**
+     * Get the response message.
+     *
+     * @return the response message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Set the response message.
+     *
+     * @param message the response message
+     */
+    public void setMessage(final String message) {
+        this.message = message;
     }
 }
