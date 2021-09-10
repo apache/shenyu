@@ -32,7 +32,6 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -69,6 +68,9 @@ public class PageHelperAspect {
         // CHECKSTYLE:OFF
         try {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes == null){
+                return point.proceed();
+            }
             HttpServletRequest request = attributes.getRequest();
             Integer currentPage = Integer.valueOf(request.getParameter("currentPage"));
             Integer pageSize = Integer.valueOf(request.getParameter("pageSize"));
