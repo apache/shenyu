@@ -86,7 +86,7 @@ services:
         limits:
           memory: 2048M
     environment:
-      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu.zookeeper.url=zookeeper://shenyu-zk:2181
     depends_on:
       shenyu-admin:
         condition: service_healthy
