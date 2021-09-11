@@ -75,7 +75,7 @@
  
  Of course, users can also customize plugins to meet their own needs.
  
- If you want to customize, see [custom-plugin](https://shenyu.apache.org/projects/shenyu/custom-plugin/)
+ If you want to customize, see [custom-plugin](https://shenyu.apache.org/docs/developer/custom-plugin/)
  
 --------------------------------------------------------------------------------  
  
@@ -111,8 +111,8 @@
     
 # Document & Website
 
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/projects/shenyu/overview)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/projects/shenyu/overview)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/docs/index)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/docs/index/)
   
 --------------------------------------------------------------------------------  
         
@@ -126,4 +126,4 @@
 
 In order of registration, More access companies are welcome to register at [https://github.com/apache/incubator-shenyu/issues/68](https://github.com/apache/incubator-shenyu/issues/68) (For open source users only)
 
-All Users : [Known Users](https://shenyu.apache.org/awesome/)
+All Users : [Known Users](https://shenyu.apache.org/community/user-registration)
