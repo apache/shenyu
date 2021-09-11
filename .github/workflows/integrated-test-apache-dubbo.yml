@@ -60,7 +60,7 @@ jobs:
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
-        run: docker-compose -f ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/docker-compose.yml up -d
+        run: docker-compose -f ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/docker-compose.yml up -d && docker restart $(docker ps -a -f "name=shenyu-examples-apache-dubbo-service" -q)
       - name: Wait for docker compose start up completely
         if: env.SKIP_CI != 'true'
         run: bash ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/script/healthcheck.sh
