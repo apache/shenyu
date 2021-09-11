@@ -30,7 +30,7 @@ public class AlibabaDubboPluginTest extends AbstractTest {
 
     @Test
     public void testFindById() throws IOException {
-        DubboTest dubboTest = HttpHelper.INSTANCE.postGateway("/dubbo/findById", "1", DubboTest.class);
+        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", DubboTest.class);
         assertEquals("hello world shenyu Alibaba Dubbo, findById", dubboTest.getName());
     }
 }
