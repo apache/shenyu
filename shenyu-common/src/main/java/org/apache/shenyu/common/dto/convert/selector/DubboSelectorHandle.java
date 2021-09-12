@@ -48,7 +48,7 @@ public class DubboSelectorHandle implements Serializable {
     private int port;
 
     /**
-     * upstreamUrl
+     * upstreamUrl.
      */
     private String upstreamUrl;
 
@@ -261,7 +261,7 @@ public class DubboSelectorHandle implements Serializable {
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
-        };
+        }
         if (!(o instanceof DubboSelectorHandle)) {
             return false;
         }
@@ -285,17 +285,17 @@ public class DubboSelectorHandle implements Serializable {
 
     @Override
     public String toString() {
-        return "DubboSelectorHandle{" +
-                "registry='" + registry + '\'' +
-                ", appName='" + appName + '\'' +
-                ", protocol='" + protocol + '\'' +
-                ", port=" + port +
-                ", upstreamUrl='" + upstreamUrl + '\'' +
-                ", gray=" + gray +
-                ", weight=" + weight +
-                ", status=" + status +
-                ", timestamp=" + timestamp +
-                ", warmup=" + warmup +
-                '}';
+        return "DubboSelectorHandle{"
+                + "registry='" + registry + '\''
+                + ", appName='" + appName + '\''
+                + ", protocol='" + protocol + '\''
+                + ", port=" + port
+                + ", upstreamUrl='" + upstreamUrl + '\''
+                + ", gray=" + gray
+                + ", weight=" + weight
+                + ", status=" + status
+                + ", timestamp=" + timestamp
+                + ", warmup=" + warmup
+                + '}';
     }
 }

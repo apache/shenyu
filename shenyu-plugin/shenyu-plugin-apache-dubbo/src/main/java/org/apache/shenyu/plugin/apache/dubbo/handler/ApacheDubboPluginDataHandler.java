@@ -65,16 +65,16 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         List<DubboSelectorHandle> dubboSelectorHandles = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboSelectorHandle.class);
-        if (CollectionUtils.isEmpty(dubboSelectorHandles)){
+        if (CollectionUtils.isEmpty(dubboSelectorHandles)) {
             return;
         }
         List<DubboSelectorHandle> graySelectorHandle = new ArrayList<>();
         for (DubboSelectorHandle each : dubboSelectorHandles) {
-            if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && each.isGray()){
+            if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && each.isGray()) {
                 graySelectorHandle.add(each);
             }
         }
-        if (CollectionUtils.isNotEmpty(graySelectorHandle)){
+        if (CollectionUtils.isNotEmpty(graySelectorHandle)) {
             ApacheDubboSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), graySelectorHandle);
             UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(graySelectorHandle));
         }

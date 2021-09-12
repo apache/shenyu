@@ -63,7 +63,7 @@ public class DivideUpstream implements Serializable {
     private int warmup;
 
     /**
-     * health status
+     * health status.
      */
     private boolean healthy;
 

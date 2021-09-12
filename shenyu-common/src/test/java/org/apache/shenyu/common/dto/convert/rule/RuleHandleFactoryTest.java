@@ -35,11 +35,11 @@ public final class RuleHandleFactoryTest {
 
     @Test
     public void testRuleHandleCorrectType() {
-        RuleHandle handle = RuleHandleFactory.ruleHandle(PluginEnum.DUBBO.getName(), "","");
+        RuleHandle handle = RuleHandleFactory.ruleHandle(PluginEnum.DUBBO.getName(), "", "{\"loadbalance\":\"random\"}");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof DubboRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(PluginEnum.SOFA.getName(), "","");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.SOFA.getName(), "", "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof SofaRuleHandle, is(true));
 

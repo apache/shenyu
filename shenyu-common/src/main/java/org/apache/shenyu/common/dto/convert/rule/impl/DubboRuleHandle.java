@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -151,7 +153,7 @@ public class DubboRuleHandle implements RuleHandle {
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
-        };
+        }
         if (!(o instanceof DubboRuleHandle)) {
             return false;
         }
@@ -170,17 +172,22 @@ public class DubboRuleHandle implements RuleHandle {
 
     @Override
     public String toString() {
-        return "DubboRuleHandle{" +
-                "version='" + version + '\'' +
-                ", group='" + group + '\'' +
-                ", retries=" + retries +
-                ", loadbalance='" + loadbalance + '\'' +
-                ", timeout=" + timeout +
-                '}';
+        return "DubboRuleHandle{"
+                + "version='" + version + '\''
+                + ", group='" + group + '\''
+                + ", retries=" + retries
+                + ", loadbalance='" + loadbalance + '\''
+                + ", timeout=" + timeout
+                + '}';
     }
 
     @Override
     public RuleHandle createDefault(final String path, final String rpcExt) {
+        if (StringUtils.isBlank(rpcExt)) {
+            this.loadbalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
+            this.retries = RuleHandleConstants.DEFAULT_RETRIES;
+            return this;
+        }
         return GsonUtils.getInstance().fromJson(rpcExt, DubboRuleHandle.class);
     }
 }

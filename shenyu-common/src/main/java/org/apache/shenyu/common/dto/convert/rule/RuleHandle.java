@@ -32,7 +32,7 @@ public interface RuleHandle extends Serializable {
      * @param rpcExt rpc ext.
      * @return      it's self.
      */
-    RuleHandle createDefault(String path, final String rpcExt);
+    RuleHandle createDefault(String path, String rpcExt);
 
     /**
      * Format this object to json string.
