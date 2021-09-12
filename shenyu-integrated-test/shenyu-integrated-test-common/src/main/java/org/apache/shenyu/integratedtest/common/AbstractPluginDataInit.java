@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.integratedtest.common;
 
+import org.apache.shenyu.common.dto.AuthParamData;
+import org.apache.shenyu.common.dto.AuthPathData;
+import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
@@ -99,5 +102,41 @@ public class AbstractPluginDataInit extends AbstractTest {
      */
     public static String cleanPluginData(final String pluginName) throws IOException {
         return HttpHelper.INSTANCE.getFromGateway("/shenyu/cleanPlugin?name=" + pluginName, String.class);
+    }
+
+    /**
+     * Init auth data.
+     *
+     * @param appKey the appKey
+     * @param appSecret the appSecret
+     * @param paramDataList the paramDataList
+     * @param pathDataList the pathDataList
+     * @return the response string
+     * @throws IOException the io exception
+     */
+    public static String initAuthData(final String appKey, final String appSecret,
+                                      final List<AuthParamData> paramDataList,
+                                      final List<AuthPathData> pathDataList) throws IOException {
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setEnabled(true);
+        appAuthData.setOpen(true);
+        appAuthData.setAppKey(appKey);
+        appAuthData.setAppSecret(appSecret);
+        appAuthData.setParamDataList(paramDataList);
+        appAuthData.setPathDataList(pathDataList);
+        return HttpHelper.INSTANCE.postGateway("/shenyu/auth/saveOrUpdate", appAuthData, String.class);
+    }
+
+    /**
+     * Clean auth data.
+     *
+     * @param appKey the appKey
+     * @return the response string
+     * @throws IOException the io exception
+     */
+    public static String cleanAuthData(final String appKey) throws IOException {
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(appKey);
+        return HttpHelper.INSTANCE.getFromGateway("/shenyu/auth/delete?appKey=" + appKey, String.class);
     }
 }
