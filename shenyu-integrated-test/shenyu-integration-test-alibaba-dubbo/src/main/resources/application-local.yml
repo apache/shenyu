@@ -14,22 +14,44 @@
 # limitations under the License.
 
 server:
-  port: 8011
+  port: 9195
   address: 0.0.0.0
-  servlet:
-    context-path: /
+
 spring:
   main:
     allow-bean-definition-overriding: true
-dubbo:
-  registry:
-    address: zookeeper://localhost:2181
+  application:
+    name: shenyu-bootstrap
+#   cloud:
+#    nacos:
+#       discovery:
+#          server-addr: 127.0.0.1:8848
+
+management:
+  health:
+    defaults:
+      enabled: false
+
 shenyu:
-  client:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
-    props:
-      contextPath: /dubbo
-      appName: dubbo
-      nacosNameSpace: ShenyuRegisterCenter
-      port: 20888
+  file:
+    enabled: true
+  cross:
+    enabled: true
+  sync:
+    websocket:
+      urls: ws://localhost:9095/websocket
+  exclude:
+    enabled: true
+    paths:
+      - /favicon.ico
+      - /actuator/health
+
+logging:
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.apache.shenyu.bonuspoint: info
+    org.apache.shenyu.lottery: info
+    org.apache.shenyu: info
+
