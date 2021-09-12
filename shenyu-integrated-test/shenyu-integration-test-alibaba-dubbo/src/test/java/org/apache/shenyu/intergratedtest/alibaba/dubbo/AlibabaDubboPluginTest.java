@@ -19,7 +19,9 @@ package org.apache.shenyu.intergratedtest.alibaba.dubbo;
 
 import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
+import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import com.google.gson.reflect.TypeToken;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -30,7 +32,8 @@ public class AlibabaDubboPluginTest extends AbstractTest {
 
     @Test
     public void testFindById() throws IOException {
-        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", DubboTest.class);
-        assertEquals("hello world shenyu Alibaba Dubbo, findById", dubboTest.getName());
+        AdminResponse<DubboTest> dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", new TypeToken<AdminResponse<DubboTest>>() {
+        }.getType());
+        assertEquals("hello world shenyu Alibaba Dubbo, findById", dubboTest.getData().getName());
     }
 }

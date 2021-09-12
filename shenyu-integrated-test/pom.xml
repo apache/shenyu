@@ -52,6 +52,7 @@
         <sofa-rpc-all.version>5.7.6</sofa-rpc-all.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
         <curator.version>4.0.1</curator.version>
+        <apache.dubbo.version>2.7.5</apache.dubbo.version>
     </properties>
 
     <dependencies>
