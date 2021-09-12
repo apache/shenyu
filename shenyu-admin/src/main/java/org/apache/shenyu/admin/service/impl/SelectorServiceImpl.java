@@ -45,6 +45,7 @@ import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.utils.DivideUpstreamUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -236,8 +237,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorData buildByName(final String name) {
-        SelectorDO selectorDO = selectorMapper.selectByName(name);
-        return buildSelectorData(selectorDO);
+        return buildSelectorData(selectorMapper.selectByName(name));
     }
 
     /**
@@ -282,15 +282,14 @@ public class SelectorServiceImpl implements SelectorService {
         }
         SelectorDO selectorDO = selectorMapper.selectByName(contextPath);
         String selectorId;
-        String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerPluginSelector(contextPath, uri, rpcType);
+            selectorId = registerPluginSelector(contextPath, dto);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
             String handle = selectorDO.getHandle();
             String handleAdd;
-            DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
+            DivideUpstream addDivideUpstream = DivideUpstreamUtils.buildDivideUpstream(dto);
             final SelectorData selectorData = buildByName(contextPath);
             // fetch UPSTREAM_MAP data from db
             upstreamCheckService.fetchUpstreamData();
@@ -298,8 +297,8 @@ public class SelectorServiceImpl implements SelectorService {
                 handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
             } else {
                 List<DivideUpstream> exist = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                for (DivideUpstream upstream : exist) {
-                    if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
+                for (DivideUpstream each : exist) {
+                    if (each.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
                         return selectorId;
                     }
                 }
@@ -351,10 +350,10 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
 
-    private String registerPluginSelector(final String contextPath, final String uri, final String rpcType) {
-        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
+    private String registerPluginSelector(final String contextPath, final MetaDataRegisterDTO metaDataRegisterDTO) {
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(metaDataRegisterDTO.getRpcType()).getId());
         //is divide
-        DivideUpstream divideUpstream = buildDivideUpstream(uri);
+        DivideUpstream divideUpstream = DivideUpstreamUtils.buildDivideUpstream(metaDataRegisterDTO);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
         selectorDTO.setHandle(handler);
         upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);

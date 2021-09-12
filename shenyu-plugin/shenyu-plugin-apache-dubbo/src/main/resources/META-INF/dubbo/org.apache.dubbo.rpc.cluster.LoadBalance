@@ -1,0 +1,1 @@
+gray=org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboGrayLoadBalance

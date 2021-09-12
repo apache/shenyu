@@ -131,7 +131,7 @@ public class WebSocketRuleHandle implements RuleHandle {
     }
 
     @Override
-    public RuleHandle createDefault(final String path) {
+    public RuleHandle createDefault(final String path, final String rpcExt) {
         this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
         this.retry = RuleHandleConstants.DEFAULT_RETRY;
         this.timeout = Constants.TIME_OUT;
