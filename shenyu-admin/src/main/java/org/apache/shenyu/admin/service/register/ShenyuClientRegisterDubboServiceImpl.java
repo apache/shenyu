@@ -69,11 +69,6 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
 
     @Override
     public String handlerSelector(final MetaDataRegisterDTO metaDataDTO) {
-//        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
-//        if (Objects.nonNull(selectorDO)) {
-//            return selectorDO.getId();
-//        }
-//        return selectorService.register(registerSelector(metaDataDTO.getContextPath(), pluginService.selectIdByName(metaDataDTO.getRpcType())));
         return selectorService.handlerSelectorNeedUpstreamCheck(metaDataDTO, PluginEnum.DUBBO.getName());
     }
 
