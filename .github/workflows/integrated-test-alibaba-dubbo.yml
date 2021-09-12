@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - issue#1981
+      - master
 
 jobs:
   build:
@@ -60,7 +60,7 @@ jobs:
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
-        run: docker-compose -f ./shenyu-integrated-test/shenyu-integration-test-alibaba-dubbo/docker-compose.yml up -d && docker restart $(docker ps -a -f "name=shenyu-examples-alibaba-dubbo-service" -q)
+        run: docker-compose -f ./shenyu-integrated-test/shenyu-integration-test-alibaba-dubbo/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
         if: env.SKIP_CI != 'true'
         run: bash ./shenyu-integrated-test/shenyu-integration-test-alibaba-dubbo/script/healthcheck.sh
