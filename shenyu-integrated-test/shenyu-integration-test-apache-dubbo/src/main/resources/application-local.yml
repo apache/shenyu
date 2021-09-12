@@ -22,10 +22,6 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
-#   cloud:
-#    nacos:
-#       discovery:
-#          server-addr: 127.0.0.1:8848
 
 management:
   health:
@@ -37,17 +33,9 @@ shenyu:
     enabled: true
   cross:
     enabled: true
-  dubbo:
-    parameter: multi
   sync:
-  # websocket:
-  #   urls: ws://localhost:9095/websocket
-    zookeeper:
-      url: localhost:2181
-      sessionTimeout: 5000
-      connectionTimeout: 2000
-  # http:
-  #    url : http://localhost:9095
+    websocket:
+      urls: ws://localhost:9095/websocket
   exclude:
     enabled: true
     paths:

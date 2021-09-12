@@ -37,17 +37,9 @@ shenyu:
     enabled: true
   cross:
     enabled: true
-  dubbo:
-    parameter: multi
   sync:
-  #    websocket:
-  #      urls: ws://localhost:9095/websocket
-    zookeeper:
-      url: localhost:2181
-      sessionTimeout: 5000
-      connectionTimeout: 2000
-  # http:
-  #    url : http://localhost:9095
+    websocket:
+      urls: ws://localhost:9095/websocket
   exclude:
     enabled: true
     paths:

@@ -16,5 +16,5 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-/** prepare rate limit **/
-UPDATE `plugin` SET enabled = 1 WHERE id = '6';
+/** prepare dubbo plugin **/
+UPDATE `plugin` SET enabled = 1, config = '{"register":"zookeeper://shenyu-zk:2181"}' WHERE id = '6';
