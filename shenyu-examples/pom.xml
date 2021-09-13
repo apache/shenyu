@@ -48,6 +48,7 @@
         <module>shenyu-examples-grpc</module>
         <module>shenyu-examples-motan</module>
         <module>shenyu-examples-plugin</module>
+        <module>shenyu-examples-websocket</module>
     </modules>
 
     <build>
