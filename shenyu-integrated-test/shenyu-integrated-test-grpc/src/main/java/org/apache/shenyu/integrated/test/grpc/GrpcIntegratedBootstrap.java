@@ -15,21 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.sign;
+package org.apache.shenyu.integrated.test.grpc;
 
-import java.util.Map;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * The Sign plugin sign provider.
+ * The type grpc integrated bootstrap.
  */
-public interface SignProvider {
+@SpringBootApplication
+public class GrpcIntegratedBootstrap {
 
     /**
-     * acquired sign.
+     * main method of App.
      *
-     * @param signKey sign key
-     * @param params  params
-     * @return sign
+     * @param args args
      */
-    String generateSign(String signKey, Map<String, String> params);
+    public static void main(final String[] args) {
+        SpringApplication.run(GrpcIntegratedBootstrap.class);
+    }
+
 }

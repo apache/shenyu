@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,17 +14,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-shenyu:
-  database:
-    dialect: h2
-    init_script: "META-INF/schema.sql"
-    init_enable: true
+PRGDIR=`dirname "$0"`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+do
+    for loop in `seq 1 30`
+    do
+        status=`curl -o /dev/null -s -w %{http_code} $service`
+        echo -e "curl $service response $status"
 
-spring:
-  datasource:
-    url: jdbc:h2:mem:~/shenyu;DB_CLOSE_DELAY=-1;MODE=MySQL;
-    username: sa
-    password: sa
-    driver-class-name: org.h2.Driver
+        if [ $status -eq 200  ]; then
+            break
+        fi
 
+        sleep 2
+    done
+done
+
+sleep 3
+echo -e "\n-------------------"

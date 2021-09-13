@@ -69,7 +69,7 @@
 
 当然，用户也可以定制化插件去满足他们自己的需求。
 
-如果你有定制化插件的需求，请参看这里：[custom-plugin](https://shenyu.apache.org/zh/projects/shenyu/custom-plugin/)
+如果你有定制化插件的需求，请参看这里：[custom-plugin](https://shenyu.apache.org/zh/docs/developer/custom-plugin)
 
 --------------------------------------------------------------------------------
 
@@ -105,8 +105,8 @@
 
 # 文档 & 网站
 
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/projects/shenyu/overview)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/projects/shenyu/overview)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/docs/index)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/docs/index/)
 
 --------------------------------------------------------------------------------
 
@@ -120,4 +120,4 @@
 
 为了便于登记，欢迎已经使用了 ShenYu 的公司在 [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) 注册。（仅适用于开源用户）
 
-所有用户 : [Known Users](https://shenyu.apache.org/awesome/)
+所有用户 : [Known Users](https://shenyu.apache.org/zh/community/user-registration/)

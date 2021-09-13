@@ -17,16 +17,26 @@
 
 package org.apache.shenyu.integratedtest.springcloud;
 
-import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
-public class SpringCloudPluginTest extends AbstractTest {
+public class SpringCloudPluginTest extends AbstractPluginDataInit {
+    
+    @BeforeClass
+    public static void setup() throws IOException {
+        String pluginResult = initPlugin(PluginEnum.SPRING_CLOUD.getName(), "");
+        assertThat(pluginResult, is("success"));
+    }
 
     @Test
     public void testHelloWorld() throws IOException {
