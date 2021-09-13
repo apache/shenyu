@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
 
@@ -53,7 +52,6 @@ public interface ResourceMapper {
      * @param resourceQuery {@linkplain ResourceQuery}
      * @return {@linkplain List}
      */
-    @PageHelperMapperAnnotation
     List<ResourceDO> selectByQuery(ResourceQuery resourceQuery);
 
     /**

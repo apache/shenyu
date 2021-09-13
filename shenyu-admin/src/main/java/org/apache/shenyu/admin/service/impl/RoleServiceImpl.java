@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -126,9 +127,9 @@ public class RoleServiceImpl implements RoleService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<RoleVO> listByPage(final RoleQuery roleQuery) {
         return PageResultUtils.result(roleQuery.getPageParameter(),
-            () -> roleMapper.countByQuery(roleQuery),
             () -> roleMapper.selectByQuery(roleQuery).stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
     }
 

@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.query.RoleQuery;
 
@@ -44,7 +43,6 @@ public interface RoleMapper {
      * @param roleQuery {@linkplain RoleQuery}
      * @return  {@linkplain List}
      */
-    @PageHelperMapperAnnotation
     List<RoleDO> selectByQuery(RoleQuery roleQuery);
 
     /**

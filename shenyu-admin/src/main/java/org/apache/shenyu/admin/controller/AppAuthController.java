@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
@@ -92,7 +91,6 @@ public class AppAuthController {
      * @param pageSize    page size of query
      * @return the shenyu result
      */
-    @PageHelperControllerAnnotation
     @GetMapping("/findPageByQuery")
     public ShenyuAdminResult findPageByQuery(final String appKey, final String phone, final Integer currentPage, final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
