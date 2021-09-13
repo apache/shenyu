@@ -58,6 +58,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <!--aop支持-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -131,10 +135,35 @@
     </dependencies>
 
     <build>
+        <finalName>shenyu-examples-apache-dubbo-service</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.apache.shenyu.examples.apache.dubbo.service.TestApacheDubboApplication</mainClass>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.4.6</version>
+                <executions>
+                    <execution>
+                        <id>shenyu-examples-apache-dubbo-service</id>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <repository>shenyu-examples-apache-dubbo-service</repository>
+                    <tag>latest</tag>
+                    <buildArgs>
+                        <APP_NAME>shenyu-examples-apache-dubbo-service</APP_NAME>
+                    </buildArgs>
+                </configuration>
             </plugin>
         </plugins>
     </build>

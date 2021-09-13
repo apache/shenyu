@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,24 +14,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-server:
-  port: 8011
-  address: 0.0.0.0
-  servlet:
-    context-path: /
-spring:
-  main:
-    allow-bean-definition-overriding: true
-dubbo:
-  registry:
-    address: zookeeper://localhost:2181
-shenyu:
-  client:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
-    props:
-      contextPath: /dubbo
-      appName: dubbo
-      nacosNameSpace: ShenyuRegisterCenter
-      port: 20888
+PRGDIR=`dirname "$0"`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+do
+    for loop in `seq 1 30`
+    do
+        status=`curl -o /dev/null -s -w %{http_code} $service`
+        echo -e "curl $service response $status"
+
+        if [ $status -eq 200  ]; then
+            break
+        fi
+
+        sleep 2
+    done
+done
+
+sleep 3
+echo -e "\n-------------------"
