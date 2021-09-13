@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -66,7 +65,6 @@ public class ResourceController {
      * @param pageSize page size
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PageHelperControllerAnnotation
     @GetMapping("")
     public ShenyuAdminResult queryResource(final String title, final Integer currentPage, final Integer pageSize) {
         CommonPager<ResourceVO> commonPager = resourceService.listByPage(new ResourceQuery(title, new PageParameter(currentPage, pageSize)));

@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 
@@ -44,7 +43,6 @@ public interface SelectorConditionMapper {
      * @param selectorConditionQuery {@linkplain SelectorConditionQuery}
      * @return {@linkplain List}
      */
-    @PageHelperMapperAnnotation
     List<SelectorConditionDO> selectByQuery(SelectorConditionQuery selectorConditionQuery);
 
     /**

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -200,9 +201,9 @@ public class PluginServiceImpl implements PluginService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
         return PageResultUtils.result(pluginQuery.getPageParameter(),
-            () -> pluginMapper.countByQuery(pluginQuery),
             () -> pluginMapper.selectByQuery(pluginQuery).stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
     }
 

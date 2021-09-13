@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -248,9 +249,9 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_SELECTOR)
+    @Pageable
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         return PageResultUtils.result(selectorQuery.getPageParameter(),
-            () -> selectorMapper.countByQuery(selectorQuery),
             () -> selectorMapper.selectByQuery(selectorQuery)
                         .stream()
                         .map(SelectorVO::buildSelectorVO)

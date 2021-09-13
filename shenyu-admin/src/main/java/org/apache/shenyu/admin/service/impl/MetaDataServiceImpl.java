@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -165,9 +166,9 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    @Pageable
     public CommonPager<MetaDataVO> listByPage(final MetaDataQuery metaDataQuery) {
         return PageResultUtils.result(metaDataQuery.getPageParameter(),
-            () -> metaDataMapper.countByQuery(metaDataQuery),
             () -> metaDataMapper.selectByQuery(metaDataQuery)
                         .stream()
                         .map(MetaDataTransfer.INSTANCE::mapToVO)
