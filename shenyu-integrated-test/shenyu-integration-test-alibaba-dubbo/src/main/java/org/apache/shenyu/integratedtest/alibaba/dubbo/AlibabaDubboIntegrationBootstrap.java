@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.intergratedtest.alibaba.dubbo;
+package org.apache.shenyu.integratedtest.alibaba.dubbo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * The type Alibaba dubbo intergrated bootstrap.
+ * The type Alibaba dubbo integration bootstrap.
  */
 @SpringBootApplication
-public class AlibabaDubboIntergratedBootstrap {
+public class AlibabaDubboIntegrationBootstrap {
 
     /**
      * The entry point of application.
@@ -32,6 +32,6 @@ public class AlibabaDubboIntergratedBootstrap {
      * @param args the input arguments
      */
     public static void main(final String[] args) {
-        SpringApplication.run(AlibabaDubboIntergratedBootstrap.class);
+        SpringApplication.run(AlibabaDubboIntegrationBootstrap.class);
     }
 }

@@ -15,20 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.intergratedtest.alibaba.dubbo;
+package org.apache.shenyu.integratedtest.alibaba.dubbo;
 
-import org.apache.shenyu.integratedtest.common.AbstractTest;
-import org.apache.shenyu.integratedtest.common.dto.DubboTest;
-import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
-import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import com.google.gson.reflect.TypeToken;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
+import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
+import org.apache.shenyu.integratedtest.common.dto.DubboTest;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
-public class ApacheDubboPluginTest extends AbstractTest {
+public class ApacheDubboPluginTest extends AbstractPluginDataInit {
+    
+    @BeforeClass
+    public static void setup() throws IOException {
+        String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\"}");
+        assertThat(pluginResult, is("success"));
+    }
 
     @Test
     public void testFindById() throws IOException {

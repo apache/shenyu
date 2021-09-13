@@ -82,12 +82,12 @@ public class WebClientPlugin implements ShenyuPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.DIVIDE.getCode() + 1;
+        return PluginEnum.WEB_CLIENT.getCode();
     }
 
     @Override
     public String named() {
-        return "webClient";
+        return PluginEnum.WEB_CLIENT.getName();
     }
 
     @Override

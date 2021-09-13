@@ -93,12 +93,6 @@
             <artifactId>gson</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-integrated-test-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- shenyu sentinel plugin starter-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
