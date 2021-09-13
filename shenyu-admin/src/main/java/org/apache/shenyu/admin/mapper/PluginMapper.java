@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 
@@ -59,6 +60,7 @@ public interface PluginMapper {
      * @param pluginQuery {@linkplain PluginQuery}
      * @return {@linkplain List}
      */
+    @PageHelperMapperAnnotation
     List<PluginDO> selectByQuery(PluginQuery pluginQuery);
 
     /**

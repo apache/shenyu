@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 
@@ -61,6 +62,7 @@ public interface DashboardUserMapper {
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
      * @return {@linkplain List}
      */
+    @PageHelperMapperAnnotation
     List<DashboardUserDO> selectByQuery(DashboardUserQuery dashboardUserQuery);
 
     /**

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -66,6 +67,7 @@ public class ShenyuDictController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
+    @PageHelperControllerAnnotation
     @GetMapping("")
     public ShenyuAdminResult queryDicts(final String type, final String dictCode, final String dictName, final Integer currentPage, final Integer pageSize) {
         CommonPager<ShenyuDictVO> commonPager = shenyuDictService.listByPage(new ShenyuDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
