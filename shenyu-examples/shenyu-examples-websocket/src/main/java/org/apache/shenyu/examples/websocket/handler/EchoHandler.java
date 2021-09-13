@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.websocket;
+package org.apache.shenyu.examples.websocket.handler;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -32,6 +32,6 @@ public class EchoHandler implements WebSocketHandler {
         return session.send(
                 session.receive()
                         .map(msg -> session.textMessage(
-                                "result xiaoyu， -> " + msg.getPayloadAsText())));
+                                "result apache shenyu : -> " + msg.getPayloadAsText())));
     }
 }
