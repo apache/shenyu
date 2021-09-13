@@ -40,7 +40,6 @@ public class GrpcPluginTest extends AbstractPluginDataInit {
         assertThat(pluginResult, is("success"));
     }
     
-    
     @Test
     public void testHelloWorld() throws Exception {
         JsonObject request = buildGrpcRequest();
