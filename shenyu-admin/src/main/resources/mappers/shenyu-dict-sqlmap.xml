@@ -209,9 +209,6 @@
             </if>
         </where>
         order by `type`,sort asc
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <update id="enabled">

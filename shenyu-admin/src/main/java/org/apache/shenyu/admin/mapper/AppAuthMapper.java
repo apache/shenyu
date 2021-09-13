@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 
@@ -44,6 +45,7 @@ public interface AppAuthMapper {
      * @param appAuthQuery {@linkplain AppAuthQuery}
      * @return {@linkplain List}
      */
+    @PageHelperMapperAnnotation
     List<AppAuthDO> selectByQuery(AppAuthQuery appAuthQuery);
 
     /**

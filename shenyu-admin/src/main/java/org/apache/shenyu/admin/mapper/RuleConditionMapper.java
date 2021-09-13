@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 
@@ -43,6 +44,7 @@ public interface RuleConditionMapper {
      * @param ruleConditionQuery {@linkplain RuleConditionQuery}
      * @return {@linkplain List}
      */
+    @PageHelperMapperAnnotation
     List<RuleConditionDO> selectByQuery(RuleConditionQuery ruleConditionQuery);
 
     /**

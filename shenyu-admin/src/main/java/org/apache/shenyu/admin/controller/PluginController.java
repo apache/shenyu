@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -71,6 +72,7 @@ public class PluginController {
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
+    @PageHelperControllerAnnotation
     @GetMapping("")
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled, final Integer currentPage, final Integer pageSize) {
         CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, new PageParameter(currentPage, pageSize)));

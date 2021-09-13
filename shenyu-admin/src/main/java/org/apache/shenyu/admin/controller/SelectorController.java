@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -63,6 +64,7 @@ public class SelectorController {
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
+    @PageHelperControllerAnnotation
     @GetMapping("")
     public ShenyuAdminResult querySelectors(final String pluginId, final String name, final Integer currentPage, final Integer pageSize) {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));

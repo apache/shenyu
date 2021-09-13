@@ -64,7 +64,6 @@
                 user_name = #{userName,jdbcType=VARCHAR}
             </if>
         </where>
-        limit #{pageParameter.offset},#{pageParameter.pageSize}
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"

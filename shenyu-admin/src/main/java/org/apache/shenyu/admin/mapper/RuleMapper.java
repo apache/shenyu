@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 
@@ -43,6 +44,7 @@ public interface RuleMapper {
      * @param ruleQuery {@linkplain RuleQuery}
      * @return {@linkplain List}
      */
+    @PageHelperMapperAnnotation
     List<RuleDO> selectByQuery(RuleQuery ruleQuery);
 
     /**

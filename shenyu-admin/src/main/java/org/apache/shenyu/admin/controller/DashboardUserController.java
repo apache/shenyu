@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -70,6 +71,7 @@ public class DashboardUserController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
+    @PageHelperControllerAnnotation
     @GetMapping("")
     public ShenyuAdminResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
         String key = secretProperties.getKey();
