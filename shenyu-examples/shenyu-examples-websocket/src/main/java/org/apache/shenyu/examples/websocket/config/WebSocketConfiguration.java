@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.config;
+package org.apache.shenyu.examples.websocket.config;
 
-import org.apache.shenyu.examples.http.websocket.EchoHandler;
+import org.apache.shenyu.examples.websocket.handler.EchoHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -44,7 +44,7 @@ public class WebSocketConfiguration {
     @Bean
     public HandlerMapping webSocketMapping(final EchoHandler echoHandler) {
         final Map<String, WebSocketHandler> map = new HashMap<>(1);
-        map.put("/echo", echoHandler);
+        map.put("/websocket", echoHandler);
         final SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
         mapping.setOrder(Ordered.HIGHEST_PRECEDENCE);
         mapping.setUrlMap(map);
