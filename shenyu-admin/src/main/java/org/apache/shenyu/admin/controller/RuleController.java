@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.aspect.annotation.PageHelperControllerAnnotation;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -64,7 +63,6 @@ public class RuleController {
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PageHelperControllerAnnotation
     @GetMapping("")
     public ShenyuAdminResult queryRules(final String selectorId, final String name, final Integer currentPage, final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)));

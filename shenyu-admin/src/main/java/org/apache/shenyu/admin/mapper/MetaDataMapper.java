@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.shenyu.admin.aspect.annotation.PageHelperMapperAnnotation;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 
@@ -69,7 +68,6 @@ public interface MetaDataMapper {
      * @param metaDataQuery the meta data query
      * @return the list
      */
-    @PageHelperMapperAnnotation
     List<MetaDataDO> selectByQuery(MetaDataQuery metaDataQuery);
 
     /**
