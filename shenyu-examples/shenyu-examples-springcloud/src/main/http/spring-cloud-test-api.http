@@ -1,0 +1,39 @@
+### shengyu getway proxy orderSave
+POST http://localhost:9195/springcloud/order/save
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": 123,
+  "name": "order"
+}
+
+
+### shengyu getway proxy orderSave
+GET http://localhost:9195/springcloud/order/findById?id=123
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/springcloud/order/path/123/hahah
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/springcloud/order/path/123/name
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy oauth2
+GET http://localhost:9195/springcloud/order/oauth2/test
+Accept: application/json
+Content-Type: application/json
+Authorization:AuthorizationContext
+
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/springcloud/test/findByUserId?userId=123
+Accept: application/json
+Content-Type: application/json
+
+

@@ -1,0 +1,70 @@
+
+### shengyu getway proxy echo
+POST http://localhost:9195/grpc/echo
+Accept: application/json
+Content-Type: application/json
+
+{
+  "data": [
+    {
+      "message": "hello grpc"
+    }
+  ]
+}
+
+### 在src/main/http/下创建文件grpc-test-api.http
+### shengyu getway proxy unaryFun
+POST http://localhost:9195/grpc/unaryFun
+Accept: application/json
+Content-Type: application/json
+
+{
+  "data": [
+    {
+      "message": "hello grpc"
+    }
+  ]
+}
+### shengyu getway proxy bidiStreamingFun
+POST http://localhost:9195/grpc/bidiStreamingFun
+Accept: application/json
+Content-Type: application/json
+
+{
+  "data": [
+    {
+      "message": "hello grpc"
+    }
+  ]
+}
+### shengyu getway proxy bidiStreamingFun
+POST http://localhost:9195/grpc/serverStreamingFun
+Accept: application/json
+Content-Type: application/json
+
+{
+  "data": [
+    {
+      "message": "hello grpc"
+    },
+    {
+      "message": "hello grpc"
+    }
+  ]
+}
+
+### shengyu getway proxy clientStreamingFun
+POST http://localhost:9195/grpc/serverStreamingFun
+Accept: application/json
+Content-Type: application/json
+
+{
+  "data": [
+    {
+      "message": "hello grpc"
+    },
+    {
+      "message": "hello grpc"
+    }
+  ]
+}
