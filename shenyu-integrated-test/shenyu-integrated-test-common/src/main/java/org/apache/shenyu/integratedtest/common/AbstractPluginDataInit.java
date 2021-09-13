@@ -135,8 +135,6 @@ public class AbstractPluginDataInit extends AbstractTest {
      * @throws IOException the io exception
      */
     public static String cleanAuthData(final String appKey) throws IOException {
-        AppAuthData appAuthData = new AppAuthData();
-        appAuthData.setAppKey(appKey);
         return HttpHelper.INSTANCE.getFromGateway("/shenyu/auth/delete?appKey=" + appKey, String.class);
     }
 }
