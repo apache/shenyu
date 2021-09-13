@@ -77,12 +77,6 @@
             <version>${guava.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-integrated-test-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!--shenyu data sync start use websocket-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -113,8 +107,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <dependencyManagement>
-    </dependencyManagement>
     <build>
         <plugins>
             <plugin>

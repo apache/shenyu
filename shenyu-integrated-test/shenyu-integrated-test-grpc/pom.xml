@@ -146,7 +146,11 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu param mapping end-->
-
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-integrated-test-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -28,6 +28,12 @@
     <name>shenyu-integrated-test-spring-cloud</name>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-integrated-test-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- shenyu waf plugin starter-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

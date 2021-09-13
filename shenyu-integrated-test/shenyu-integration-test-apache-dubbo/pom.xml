@@ -29,6 +29,11 @@
     <name>shenyu-integration-test-apache-dubbo</name>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-integrated-test-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- shenyu ratelimiter plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
