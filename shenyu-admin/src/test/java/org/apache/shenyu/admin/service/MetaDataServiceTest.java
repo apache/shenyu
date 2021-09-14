@@ -186,7 +186,6 @@ public final class MetaDataServiceTest {
     @Test
     public void testListByPage() {
         when(metaDataQuery.getPageParameter()).thenReturn(new PageParameter(1, 10, 5));
-        when(metaDataMapper.countByQuery(any())).thenReturn(3);
         ArrayList<MetaDataDO> metaDataDOList = getMetaDataDOList();
         when(metaDataMapper.selectByQuery(any())).thenReturn(metaDataDOList);
         CommonPager<MetaDataVO> pager = metaDataService.listByPage(metaDataQuery);

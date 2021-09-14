@@ -119,7 +119,7 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.DIVIDE.getCode() + 1;
+        return PluginEnum.NETTY_HTTP_CLIENT.getCode();
     }
 
     @Override
@@ -132,6 +132,6 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
 
     @Override
     public String named() {
-        return "NettyHttpClient";
+        return PluginEnum.NETTY_HTTP_CLIENT.getName();
     }
 }

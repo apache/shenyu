@@ -131,6 +131,11 @@ public enum PluginEnum {
     WEB_CLIENT(210, 0, "webClient"),
     
     /**
+     * Netty http client plugin enum.
+     */
+    NETTY_HTTP_CLIENT(210, 0, "nettyHttpClient"),
+    
+    /**
      * Param transform plugin enum.
      */
     RPC_PARAM_TRANSFORM(300, 0, "paramTransform"),

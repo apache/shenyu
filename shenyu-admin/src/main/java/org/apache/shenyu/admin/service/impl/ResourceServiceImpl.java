@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.PermissionDTO;
@@ -132,9 +133,9 @@ public class ResourceServiceImpl implements ResourceService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<ResourceVO> listByPage(final ResourceQuery resourceQuery) {
         return PageResultUtils.result(resourceQuery.getPageParameter(),
-            () -> resourceMapper.countByQuery(resourceQuery),
             () -> resourceMapper.selectByQuery(resourceQuery)
                             .stream()
                             .map(ResourceVO::buildResourceVO)

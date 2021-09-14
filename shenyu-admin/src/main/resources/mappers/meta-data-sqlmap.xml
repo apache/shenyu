@@ -75,11 +75,6 @@
         <if test="appName != null">
             where app_name = #{appName,jdbcType=VARCHAR}
         </if>
-
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
-
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.MetaDataQuery" resultType="java.lang.Integer">

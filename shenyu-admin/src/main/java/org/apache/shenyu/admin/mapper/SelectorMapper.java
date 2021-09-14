@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
-
 import java.util.List;
 
 /**

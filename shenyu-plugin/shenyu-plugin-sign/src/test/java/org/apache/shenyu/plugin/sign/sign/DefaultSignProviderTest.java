@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.plugin.sign.sign;
 
-import org.apache.shenyu.plugin.api.sign.DefaultSignProvider;
-import org.apache.shenyu.plugin.api.sign.ShenyuSignProviderWrap;
-import org.apache.shenyu.plugin.api.sign.SignProvider;
+import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
+import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
+import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
