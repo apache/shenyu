@@ -86,7 +86,7 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
         SelectorData selectorData = selectorService.buildByName(contextPath);
         PluginDO pluginDO = pluginMapper.selectById(selector.getPluginId());
         String handler = null;
-        if (PluginEnum.SPRING_CLOUD.name().equals(pluginDO.getName())) {
+        if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
             if (Objects.nonNull(selector.getHandle())) {
                 SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
                         .fromJson(selector.getHandle(), SpringCloudSelectorHandle.class);

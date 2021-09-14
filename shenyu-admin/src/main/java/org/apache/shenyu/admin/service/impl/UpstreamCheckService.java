@@ -269,7 +269,7 @@ public class UpstreamCheckService {
                     selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
             String handler = null;
-            if (PluginEnum.SPRING_CLOUD.name().equals(pluginDO.getName())) {
+            if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
                 if (Objects.nonNull(selectorDO.getHandle())) {
                     SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
                             .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
@@ -305,7 +305,7 @@ public class UpstreamCheckService {
                     continue;
                 }
                 List<DivideUpstream> divideUpstreams = null;
-                if (PluginEnum.SPRING_CLOUD.name().equals(pluginDO.getName())) {
+                if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
                     SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
                             .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
                     divideUpstreams = springCloudSelectorHandle.getDivideUpstreams();

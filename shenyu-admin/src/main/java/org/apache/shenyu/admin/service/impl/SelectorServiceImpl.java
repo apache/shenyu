@@ -51,6 +51,7 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
@@ -340,14 +341,23 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     private void updateDivideUpstream(final SelectorDO selectorDO) {
-        PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
-        if (Objects.nonNull(pluginDO) && pluginDO.getId().equals(selectorDO.getPluginId())) {
-            String selectorName = selectorDO.getName();
+        String selectorName = selectorDO.getName();
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        List<DivideUpstream> existDivideUpstreams = null;
+        if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
+            if (Objects.nonNull(selectorDO.getHandle())) {
+                SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
+                        .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
+                existDivideUpstreams = springCloudSelectorHandle.getDivideUpstreams();
+            }
+        } else if (PluginEnum.DIVIDE.getName().equals(pluginDO.getName())) {
             String handle = selectorDO.getHandle();
             if (StringUtils.isNotBlank(handle)) {
-                List<DivideUpstream> existDivideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                upstreamCheckService.replace(selectorName, existDivideUpstreams);
+                existDivideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
             }
+        }
+        if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
+            upstreamCheckService.replace(selectorName, existDivideUpstreams);
         }
     }
 
