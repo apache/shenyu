@@ -88,27 +88,27 @@ public enum PluginEnum {
     /**
      * Hystrix plugin enum.
      */
-    HYSTRIX(140, 0, "hystrix"),
+    HYSTRIX(130, 0, "hystrix"),
     
     /**
      * Sentinel plugin enum.
      */
-    SENTINEL(150, 0, "sentinel"),
+    SENTINEL(140, 0, "sentinel"),
     
     /**
      * Resilence4J plugin enum.
      */
-    RESILIENCE4J(160, 0, "resilience4j"),
+    RESILIENCE4J(150, 0, "resilience4j"),
     
     /**
      * Logging plugin enum.
      */
-    LOGGING(170, 0, "logging"),
+    LOGGING(160, 0, "logging"),
     
     /**
      * Monitor plugin enum.
      */
-    MONITOR(180, 0, "monitor"),
+    MONITOR(170, 0, "monitor"),
     
     /**
      * Divide plugin enum.
@@ -134,6 +134,11 @@ public enum PluginEnum {
      * Netty http client plugin enum.
      */
     NETTY_HTTP_CLIENT(210, 0, "nettyHttpClient"),
+
+    /**
+     * ModifyResponse plugin enum.
+     */
+    MODIFY_RESPONSE(220, 0, "modifyResponse"),
     
     /**
      * Param transform plugin enum.
@@ -173,12 +178,7 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(420, 0, "response"),
-    
-    /**
-     * ModifyResponse plugin enum.
-     */
-    MODIFY_RESPONSE(430, 0, "modifyResponse");
+    RESPONSE(420, 0, "response");
 
     private final int code;
 
