@@ -127,7 +127,6 @@ public final class SelectorServiceTest {
 
     @Test
     public void testCreateOrUpdate() {
-        given(pluginMapper.selectByName("divide")).willReturn(buildPluginDO());
         publishEvent();
         testUpdate();
         testCreate();
