@@ -18,7 +18,6 @@
 package org.apache.shenyu.web.loader;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +62,7 @@ public final class ShenyuPluginPathBuilder {
             boolean isInJar = existFileInJarIndex > -1;
             return isInJar ? getFileInJar(url, existFileInJarIndex) : getFileInResource(url, classResourcePath);
         }
-        throw new ShenyuException("Can not locate shenyu plugin jar file.");
+        return new File("/ext-lib");
     }
     
     private static File getFileInResource(final String url, final String classResourcePath) {

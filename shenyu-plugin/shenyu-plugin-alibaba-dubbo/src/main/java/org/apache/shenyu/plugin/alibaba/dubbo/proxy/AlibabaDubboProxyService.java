@@ -68,8 +68,8 @@ public class AlibabaDubboProxyService {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
-        GenericService genericService = reference.get();
         try {
+            GenericService genericService = reference.get();
             Pair<String[], Object[]> pair;
             if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.dubboBodyIsEmpty(body)) {
                 pair = new ImmutablePair<>(new String[]{}, new Object[]{});

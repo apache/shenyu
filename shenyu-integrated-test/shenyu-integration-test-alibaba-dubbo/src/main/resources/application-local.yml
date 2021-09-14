@@ -33,8 +33,8 @@ management:
       enabled: false
 
 shenyu:
-  file:
-    enabled: true
+  switchConfig:
+    local: true
   cross:
     enabled: true
   sync:
