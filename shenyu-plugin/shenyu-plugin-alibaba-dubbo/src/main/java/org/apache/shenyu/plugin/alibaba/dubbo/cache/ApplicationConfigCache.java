@@ -135,7 +135,6 @@ public final class ApplicationConfigCache {
             LOG.error("init dubbo ref exception", e);
         }
         return build(metaData);
-
     }
 
     /**
@@ -145,6 +144,9 @@ public final class ApplicationConfigCache {
      * @return the reference config
      */
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
+        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
+            return new ReferenceConfig<>();
+        }
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric(true);
         reference.setApplication(applicationConfig);
@@ -179,7 +181,6 @@ public final class ApplicationConfigCache {
         } catch (Exception e) {
             LOG.error("init alibaba dubbo refernce exception", e);
         }
-
         return reference;
     }
 
