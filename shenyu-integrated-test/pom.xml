@@ -107,8 +107,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <dependencyManagement>
-    </dependencyManagement>
     <build>
         <plugins>
             <plugin>

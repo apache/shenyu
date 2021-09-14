@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.loader;
 
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -54,6 +55,9 @@ public class ShenyuLoaderService {
             executor.scheduleAtFixedRate(() -> {
                 try {
                     List<ShenyuLoaderResult> results = ShenyuPluginLoader.getInstance().loadExtendPlugins(config.getPath());
+                    if (CollectionUtils.isEmpty(results)) {
+                        return;
+                    }
                     List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
                     webHandler.putExtPlugins(shenyuExtendPlugins);
                     List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
@@ -63,6 +67,5 @@ public class ShenyuLoaderService {
                 }
             }, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
         }
-       
     }
 }

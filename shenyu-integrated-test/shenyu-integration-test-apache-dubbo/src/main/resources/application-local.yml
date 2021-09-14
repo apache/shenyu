@@ -29,8 +29,8 @@ management:
       enabled: false
 
 shenyu:
-  file:
-    enabled: true
+  switchConfig:
+    local: true
   cross:
     enabled: true
   sync:
@@ -41,7 +41,6 @@ shenyu:
     paths:
       - /favicon.ico
       - /actuator/health
-
 logging:
   level:
     root: info

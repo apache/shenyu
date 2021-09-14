@@ -40,12 +40,6 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
-  # zookeeper:
-  #    url: localhost:2181
-  #    sessionTimeout: 5000
-  #    connectionTimeout: 2000
-  # http:
-  #    url : http://localhost:9095
   exclude:
     enabled: true
     paths:
