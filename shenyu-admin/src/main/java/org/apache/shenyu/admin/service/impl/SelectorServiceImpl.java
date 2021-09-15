@@ -362,10 +362,10 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
 
-    private String registerPluginSelector(final String contextPath, final String url, final String rpcType) {
+    private String registerPluginSelector(final String contextPath, final String uri, final String rpcType) {
         SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
         //is divide
-        DivideUpstream divideUpstream = buildDivideUpstream(url);
+        DivideUpstream divideUpstream = buildDivideUpstream(uri);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
         selectorDTO.setHandle(handler);
         upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
