@@ -19,7 +19,7 @@ package org.apache.shenyu.integrated.test.http.combination;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonObject;
 import okhttp3.Headers;
 import okhttp3.Response;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -38,28 +38,46 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
 /**
  * ModifyResponsePluginTest.
  */
 public class ModifyResponsePluginTest extends AbstractPluginDataInit {
 
-    private static final String addHeader = "addHeader";
-    private static final String setHeadersExist = "setHeadersExist";
-    private static final String setHeaderNotExist = "setHeaderNotExist";
-    private static final String replaceHeaderKeys = "replaceHeaderKeys";
-    private static final String removeHeaderKeys = "removeHeaderKeys";
-    private static final String addBodyKeys = "addBodyKeys";
-    private static final String originReplaceBodyKeys = "originReplaceBodyKeys";
-    private static final String replaceBodyKeys = "replaceBodyKeys";
-    private static final String removeBodyKeys = "removeBodyKeys";
-    private static final int exceptStatusCode = 201;
+    private static final String ADD_HEADER = "addHeader";
+
+    private static final String SET_HEADERS_EXIST = "setHeadersExist";
+
+    private static final String SET_HEADER_NOT_EXIST = "setHeaderNotExist";
+
+    private static final String REPLACE_HEADER_KEYS = "replaceHeaderKeys";
+
+    private static final String REMOVE_HEADER_KEYS = "removeHeaderKeys";
+
+    private static final String ADD_BODY_KEYS = "addBodyKeys";
+
+    private static final String ORIGIN_REPLACE_BODY_KEYS = "originReplaceBodyKeys";
+
+    private static final String REPLACE_BODY_KEYS = "replaceBodyKeys";
+
+    private static final String REMOVE_BODY_KEYS = "removeBodyKeys";
+
+    private static final int EXCEPT_STATUS_CODE = 201;
 
     @BeforeClass
     public static void setup() throws IOException {
@@ -85,23 +103,23 @@ public class ModifyResponsePluginTest extends AbstractPluginDataInit {
 
     private static PluginController.RuleLocalData buildRuleLocalData() {
         final ModifyResponseRuleHandle modifyResponseRuleHandle = new ModifyResponseRuleHandle();
-        modifyResponseRuleHandle.setAddHeaders(ImmutableMap.<String, String>builder().put(addHeader, "true").build());
-        modifyResponseRuleHandle.setSetHeaders(ImmutableMap.<String, String>builder().put(setHeadersExist, "false").put(setHeaderNotExist, "true").build());
-        modifyResponseRuleHandle.setReplaceHeaderKeys(ImmutableMap.<String, String>builder().put(replaceHeaderKeys, "false").build());
-        modifyResponseRuleHandle.setRemoveHeaderKeys(ImmutableSet.<String>builder().add(removeHeaderKeys).build());
-        modifyResponseRuleHandle.setStatusCode(exceptStatusCode);
-        modifyResponseRuleHandle.setRemoveBodyKeys(ImmutableSet.<String>builder().add(removeBodyKeys).build());
+        modifyResponseRuleHandle.setAddHeaders(ImmutableMap.<String, String>builder().put(ADD_HEADER, "true").build());
+        modifyResponseRuleHandle.setSetHeaders(ImmutableMap.<String, String>builder().put(SET_HEADERS_EXIST, "false").put(SET_HEADER_NOT_EXIST, "true").build());
+        modifyResponseRuleHandle.setReplaceHeaderKeys(ImmutableMap.<String, String>builder().put(REPLACE_HEADER_KEYS, "false").build());
+        modifyResponseRuleHandle.setRemoveHeaderKeys(ImmutableSet.<String>builder().add(REMOVE_HEADER_KEYS).build());
+        modifyResponseRuleHandle.setStatusCode(EXCEPT_STATUS_CODE);
+        modifyResponseRuleHandle.setRemoveBodyKeys(ImmutableSet.<String>builder().add(REMOVE_BODY_KEYS).build());
 
         final ParamMappingHandle.ParamMapInfo addBodyKeysHandler = new ParamMappingHandle.ParamMapInfo();
         addBodyKeysHandler.setPath("$");
-        addBodyKeysHandler.setKey(addBodyKeys);
+        addBodyKeysHandler.setKey(ADD_BODY_KEYS);
         addBodyKeysHandler.setValue("true");
         modifyResponseRuleHandle.setAddBodyKeys(Collections.singletonList(addBodyKeysHandler));
 
         final ParamMappingHandle.ParamMapInfo replaceBodyKeysHandler = new ParamMappingHandle.ParamMapInfo();
         replaceBodyKeysHandler.setPath("$");
-        replaceBodyKeysHandler.setKey(originReplaceBodyKeys);
-        replaceBodyKeysHandler.setValue(replaceBodyKeys);
+        replaceBodyKeysHandler.setKey(ORIGIN_REPLACE_BODY_KEYS);
+        replaceBodyKeysHandler.setValue(REPLACE_BODY_KEYS);
         modifyResponseRuleHandle.setReplaceBodyKeys(Collections.singletonList(replaceBodyKeysHandler));
 
         final Set<String> removeBodyKeysHandler = new HashSet<>();
@@ -126,20 +144,19 @@ public class ModifyResponsePluginTest extends AbstractPluginDataInit {
     @Test
     public void test() throws IOException {
         final Response response = HttpHelper.INSTANCE.getResponseFromGateway("/http/test/modifyResponse", new HashMap<>(0));
-        final Type mapType = new TypeToken<Map<String, Boolean>>() {}.getType();
-        final Map<String, Boolean> body = GsonUtils.getGson().fromJson(Objects.requireNonNull(response.body()).string(), mapType);
         assertNotNull(response);
-        assertEquals(exceptStatusCode, response.code());
+        assertEquals(EXCEPT_STATUS_CODE, response.code());
 
         final Headers headers = response.headers();
-        assertTrue(Boolean.parseBoolean(headers.get(addHeader)));
-        assertFalse(Boolean.parseBoolean(headers.get(setHeadersExist)));
-        assertTrue(Boolean.parseBoolean(headers.get(setHeaderNotExist)));
-        assertFalse(Boolean.parseBoolean(headers.get(replaceHeaderKeys)));
-        assertFalse(headers.toMultimap().containsKey(removeHeaderKeys));
+        assertTrue(Boolean.parseBoolean(headers.get(ADD_HEADER)));
+        assertFalse(Boolean.parseBoolean(headers.get(SET_HEADERS_EXIST)));
+        assertTrue(Boolean.parseBoolean(headers.get(SET_HEADER_NOT_EXIST)));
+        assertFalse(Boolean.parseBoolean(headers.get(REPLACE_HEADER_KEYS)));
+        assertFalse(headers.toMultimap().containsKey(REMOVE_HEADER_KEYS));
 
-        assertTrue(body.get(addBodyKeys));
-        assertNull(body.get(originReplaceBodyKeys));
-        assertTrue(body.get(replaceBodyKeys));
+        final JsonObject body = GsonUtils.getInstance().fromJson(Objects.requireNonNull(response.body()).string(), JsonObject.class);
+        assertTrue(body.get(ADD_BODY_KEYS).getAsBoolean());
+        assertNull(body.get(ORIGIN_REPLACE_BODY_KEYS));
+        assertTrue(body.get(REPLACE_BODY_KEYS).getAsBoolean());
     }
 }
