@@ -126,6 +126,6 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
 
     private List<DivideUpstream> buildDivideUpstreams(final List<URIRegisterDTO> registerDTOList) {
         return registerDTOList.stream()
-                .map(s -> buildDivideUpstream(String.join(":", s.getHost(), s.getPort().toString()), s.getAppName())).collect(Collectors.toList());
+                .map(s -> buildDivideUpstream(String.join(":", s.getHost(), s.getPort().toString()))).collect(Collectors.toList());
     }
 }

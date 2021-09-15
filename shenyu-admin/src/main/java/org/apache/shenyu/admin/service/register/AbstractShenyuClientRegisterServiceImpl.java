@@ -135,10 +135,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
                 .build();
     }
 
-    protected DivideUpstream buildDivideUpstream(final String uri, final String appName) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
-    }
-
     protected DivideUpstream buildDivideUpstream(final String uri) {
         return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }

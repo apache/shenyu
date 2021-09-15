@@ -254,7 +254,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Pageable
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         return PageResultUtils.result(selectorQuery.getPageParameter(),
-            () -> selectorMapper.selectByQuery(selectorQuery)
+                () -> selectorMapper.selectByQuery(selectorQuery)
                         .stream()
                         .map(SelectorVO::buildSelectorVO)
                         .collect(Collectors.toList()));
@@ -285,8 +285,9 @@ public class SelectorServiceImpl implements SelectorService {
         }
         SelectorDO selectorDO = selectorMapper.selectByName(contextPath);
         String selectorId;
+        String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerPluginSelector(contextPath, dto);
+            selectorId = registerPluginSelector(contextPath, uri, rpcType);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
@@ -362,10 +363,10 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
 
-    private String registerPluginSelector(final String contextPath, final MetaDataRegisterDTO metaDataRegisterDTO) {
-        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(metaDataRegisterDTO.getRpcType()).getId());
+    private String registerPluginSelector(final String contextPath, final String url, String rpcType) {
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
         //is divide
-        DivideUpstream divideUpstream = DivideUpstreamUtils.buildDivideUpstream(metaDataRegisterDTO);
+        DivideUpstream divideUpstream = buildDivideUpstream(url);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
         selectorDTO.setHandle(handler);
         upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
@@ -407,5 +408,9 @@ public class SelectorServiceImpl implements SelectorService {
             return split.concat(splitList[0]);
         }
         return split;
+    }
+
+    private DivideUpstream buildDivideUpstream(final String uri) {
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }
 }
