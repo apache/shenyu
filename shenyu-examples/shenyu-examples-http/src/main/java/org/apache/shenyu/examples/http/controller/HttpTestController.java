@@ -144,4 +144,16 @@ public class HttpTestController {
         return response;
     }
 
+    /**
+     * fault tolerance timeout
+     * @return response
+     */
+    @PostMapping("/fault-tolerance/timeout")
+    public ResultBean faultToleranceTimeout() throws InterruptedException {
+        Thread.sleep(1000);
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+        return response;
+    }
 }
