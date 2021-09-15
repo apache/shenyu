@@ -253,11 +253,10 @@ public class SelectorServiceImpl implements SelectorService {
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_SELECTOR)
     @Pageable
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
-        return PageResultUtils.result(selectorQuery.getPageParameter(),
-                () -> selectorMapper.selectByQuery(selectorQuery)
-                        .stream()
-                        .map(SelectorVO::buildSelectorVO)
-                        .collect(Collectors.toList()));
+        return PageResultUtils.result(selectorQuery.getPageParameter(), () -> selectorMapper.selectByQuery(selectorQuery)
+                .stream()
+                .map(SelectorVO::buildSelectorVO)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -363,7 +362,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
 
-    private String registerPluginSelector(final String contextPath, final String url, String rpcType) {
+    private String registerPluginSelector(final String contextPath, final String url, final String rpcType) {
         SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
         //is divide
         DivideUpstream divideUpstream = buildDivideUpstream(url);
