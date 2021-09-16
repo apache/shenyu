@@ -40,8 +40,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -51,6 +51,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -66,8 +67,9 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         assert shenyuContext != null;
         final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.nonNull(modifyResponseRuleHandle)) {
-            ServerHttpResponse response = exchange.getResponse();
-            HttpHeaders httpHeaders = response.getHeaders();
+            ClientResponse response = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.addAll(Objects.requireNonNull(response).headers().asHttpHeaders());
             if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getAddHeaders())) {
                 Map<String, String> addHeaderMap = modifyResponseRuleHandle.getAddHeaders();
                 addHeaderMap.forEach(httpHeaders::add);
@@ -80,10 +82,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
             if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getReplaceHeaderKeys())) {
                 Map<String, String> replaceHeaderMap = modifyResponseRuleHandle.getReplaceHeaderKeys();
-                replaceHeaderMap.forEach((key, value) -> {
-                    httpHeaders.addAll(value, Objects.requireNonNull(httpHeaders.get(key)));
-                    httpHeaders.remove(key);
-                });
+                replaceHeaderMap.forEach((key, value) -> httpHeaders.replace(key, Collections.singletonList(value)));
             }
 
             if (Objects.nonNull(modifyResponseRuleHandle.getRemoveHeaderKeys()) && !CollectionUtils.isEmpty(modifyResponseRuleHandle.getRemoveHeaderKeys())) {
@@ -92,8 +91,18 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             }
 
             if (modifyResponseRuleHandle.getStatusCode() > 0) {
-                response.setStatusCode(HttpStatus.valueOf(modifyResponseRuleHandle.getStatusCode()));
+                exchange.getResponse().setStatusCode(HttpStatus.valueOf(modifyResponseRuleHandle.getStatusCode()));
             }
+
+            ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(exchange.getResponse().getStatusCode()),
+                    ServerCodecConfigurer.create().getReaders());
+            Flux<DataBuffer> body = response.body(BodyExtractors.toDataBuffers());
+            ClientResponse modifyResponse = builder
+                    .headers(headers -> headers.putAll(httpHeaders))
+                    .body(body)
+                    .cookies(cookies -> cookies.putAll(response.cookies()))
+                    .build();
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, modifyResponse);
         }
 
         return chain.execute(exchange.mutate()

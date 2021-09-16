@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.http.dto.UserDTO;
 import org.apache.shenyu.examples.http.result.ResultBean;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -30,6 +32,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -201,4 +206,21 @@ public class HttpTestController {
         return response;
     }
 
+    /**
+     * modify response.
+     * @param exchange exchange
+     * @return response
+     */
+    @GetMapping(path = "/modifyResponse")
+    public Mono<String> modifyResponse(final ServerWebExchange exchange) {
+        exchange.getResponse().getHeaders().add("useByModifyResponse", String.valueOf(true));
+        exchange.getResponse().getHeaders().add("setHeadersExist", String.valueOf(true));
+        exchange.getResponse().getHeaders().add("replaceHeaderKeys", String.valueOf(true));
+        exchange.getResponse().getHeaders().add("removeHeaderKeys", String.valueOf(true));
+        final Map<String, Boolean> body = ImmutableMap.<String, Boolean>builder()
+                .put("originReplaceBodyKeys", true)
+                .put("removeBodyKeys", true)
+                .build();
+        return Mono.just(GsonUtils.getInstance().toJson(body));
+    }
 }
