@@ -36,8 +36,6 @@ import org.apache.shenyu.common.utils.ReflectUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Pattern;
-
 
 /**
  * The limit syntax of postgreSql conflicts with that of mysql,
@@ -49,12 +47,6 @@ import java.util.regex.Pattern;
 })
 public class PostgreSqlQueryInterceptor implements Interceptor {
 
-    private static final String REGEX = "((limit)|(LIMIT))+.*?\\?+.*?\\?";
-
-    private static final String MATCH_REGEX = "(?s).*(((limit)|(LIMIT))+.*?\\?+.*?\\?).*";
-
-    private static final String SQL_REPLACE_CHAR = "limit ? offset ?";
-    
     @Override
     public Object intercept(final Invocation invocation) throws Throwable {
         Object[] args = invocation.getArgs();
@@ -83,30 +75,7 @@ public class PostgreSqlQueryInterceptor implements Interceptor {
         // Postgresql does not support the mysql escape character {`}, so replace it with {"}.
         // Convert SQL statements to lowercase.
         String script = boundSql.getSql().replace("`", "\"").toLowerCase();
-        if (!Pattern.matches(MATCH_REGEX, script)) {
-            result = new BoundSql(configuration, script, parameterMappings, parameterObject);
-            // Resolve MyBatis interceptor plugin foreach parameter invalidation.
-            this.copyParam(boundSql, result);
-            return result;
-        }
-
-        // PostgreSql has a different limit syntax than mysql
-        // The postgreSql limit syntax is limit ${pageSize} offset ${offset}.
-        // The 'pageSize' and 'offset' positions of the query statement are swapped here.
-        int size = parameterMappings.size();
-        int offsetIndex = size - 1;
-        int pageSizeIndex = size - 2;
-        ParameterMapping offset = parameterMappings.get(offsetIndex);
-        ParameterMapping pageSize = parameterMappings.get(pageSizeIndex);
-        parameterMappings.set(offsetIndex, pageSize);
-        parameterMappings.set(pageSizeIndex, offset);
-
-        result = new BoundSql(
-                configuration,
-                script.replaceAll(REGEX, SQL_REPLACE_CHAR),
-                parameterMappings,
-                parameterObject
-        );
+        result = new BoundSql(configuration, script, parameterMappings, parameterObject);
         // Resolve MyBatis interceptor plugin foreach parameter invalidation.
         this.copyParam(boundSql, result);
         return result;
