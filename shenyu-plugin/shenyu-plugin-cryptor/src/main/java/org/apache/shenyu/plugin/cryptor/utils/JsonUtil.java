@@ -114,7 +114,6 @@ public class JsonUtil {
             JsonObject object = jsonElement.getAsJsonObject();
             JsonObject objectNew = new JsonObject();
             for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-
                 if (deepKey.get(initDeep.get()).equals(entry.getKey())) {
                     initDeep.incrementAndGet();
                 }
@@ -131,5 +130,4 @@ public class JsonUtil {
         }
         return jsonElement;
     }
-
 }

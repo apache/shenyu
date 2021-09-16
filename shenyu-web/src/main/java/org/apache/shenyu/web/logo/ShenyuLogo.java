@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Order(LoggingApplicationListener.DEFAULT_ORDER + 1)
 public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+    
     /**
      * logger.
      */
