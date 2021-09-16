@@ -118,7 +118,7 @@ public enum RpcTypeEnum {
      * @return operator support.
      */
     public static List<RpcTypeEnum> acquireSupportURIs() {
-        return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS,RpcTypeEnum.SPRING_CLOUD);
+        return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS, RpcTypeEnum.SPRING_CLOUD);
     }
 
     /**
