@@ -19,7 +19,6 @@ package org.apache.shenyu.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -38,6 +37,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
@@ -119,9 +120,23 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String configRuleName = shenyuSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
-        Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-                .collect(Collectors.joining(","));
+//        Class<?>[] parameterTypesClazz = method.getParameterTypes();
+
+        String parameterTypes = Arrays.stream(method.getParameters())
+                .map(parameter -> {
+                    StringBuilder result = new StringBuilder(parameter.getType().getName());
+                    final Type type = parameter.getParameterizedType();
+                    if (type instanceof ParameterizedType) {
+                        final Type[] actualTypeArguments = ((ParameterizedType) type).getActualTypeArguments();
+                        for (Type actualTypeArgument : actualTypeArguments) {
+                            result.append("#").append(actualTypeArgument.getTypeName());
+                        }
+                    }
+                    return result.toString();
+                }).collect(Collectors.joining(","));
+
+//        String parameterTypes = Arrays.stream(parameterTypesClazz).map(t -> t.getName())
+//                .collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
