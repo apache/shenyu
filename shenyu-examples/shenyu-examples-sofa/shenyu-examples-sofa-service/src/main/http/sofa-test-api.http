@@ -135,7 +135,7 @@ Content-Type: application/json
       "name": "test"
     }
   ],
-  "id": "123",
+  "id": 123,
   "name": "test"
 }
 
@@ -145,27 +145,7 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "sofaSimpleTypeBean": {
-    "id": "123",
-    "name": "test"
-  },
-  "idLists": [
-    123,
-    124
-  ],
-  "idMaps": {
-    "abc": "abc",
-    "cbd": "cbd"
-  }
-}
 
-### shengyu getway proxy saveComplexBeanAndName
-PUT http://localhost:9195/sofa/saveComplexBeanAndName
-Accept: application/json
-Content-Type: application/json
-
-{
-  "sofaComplexTypeBean": {
     "sofaSimpleTypeBean": {
       "id": "123",
       "name": "test"
@@ -178,38 +158,9 @@ Content-Type: application/json
       "abc": "abc",
       "cbd": "cbd"
     }
-  },
-  "name": "name"
+
 }
 
-### shengyu getway proxy saveTwoList
-PUT http://localhost:9195/sofa/saveTwoList
-Accept: application/json
-Content-Type: application/json
 
-{
-  "sofaComplexTypeBeanList": [
-    {
-      "sofaSimpleTypeBean": {
-        "id": "123",
-        "name": "test"
-      },
-      "idLists": [
-        123,
-        124
-      ],
-      "idMaps": {
-        "abc": "abc",
-        "cbd": "cbd"
-      }
-    }
-  ],
-  "testKey1": {
-    "id": "123",
-    "name": "test"
-  },
-  "testKey2": {
-    "id": "123",
-    "name": "test"
-  }
-}
+
+
