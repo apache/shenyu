@@ -15,51 +15,55 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
+package org.apache.shenyu.examples.motan.service.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * The type Thread local util.
+ * Motan Registry config.
  */
-public class ThreadLocalUtil {
-    
-    private static final ThreadLocal<Map<String, Object>> THREAD_CONTEXT = ThreadLocal.withInitial(HashMap::new);
-    
+@Configuration
+@ConfigurationProperties(prefix = "motan.registry")
+public class RegistryProperties {
+
+    private String protocol;
+
+    private String address;
+
     /**
-     * save thread variable.
+     * Get the protocol.
      *
-     * @param key   put key
-     * @param value put value
+     * @return the protocol
      */
-    public static void put(final String key, final Object value) {
-        THREAD_CONTEXT.get().put(key, value);
+    public String getProtocol() {
+        return protocol;
     }
-    
+
     /**
-     * remove thread variable.
+     * Set the protocol.
      *
-     * @param key remove key
+     * @param protocol the protocol
      */
-    public static void remove(final String key) {
-        THREAD_CONTEXT.get().remove(key);
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
     }
-    
+
     /**
-     * get thread variables.
+     * Get the address.
      *
-     * @param key get key
-     * @return the Object
+     * @return the address
      */
-    public static Object get(final String key) {
-        return THREAD_CONTEXT.get().get(key);
+    public String getAddress() {
+        return address;
     }
-    
+
     /**
-     * remove all variables.
+     * Set the address.
+     *
+     * @param address the address
      */
-    public static void clear() {
-        THREAD_CONTEXT.remove();
+    public void setAddress(final String address) {
+        this.address = address;
     }
 }

@@ -1,0 +1,86 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+
+### shengyu getway proxy orderSave
+POST http://localhost:9195/http/order/save
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": 123,
+  "name": "order"
+}
+### shengyu getway proxy orderSave
+GET http://localhost:9195/http/order/findById?id=123
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/order/path/123/hahah
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/order/path/123/name
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy oauth2
+GET http://localhost:9195/http/order/oauth2/test
+Accept: application/json
+Content-Type: application/json
+Authorization:AuthorizationContext
+
+### shengyu getway proxy payment
+POST http://localhost:9195/http/test/payment
+Accept: application/json
+Content-Type: application/json
+
+{
+  "userId": 123,
+  "userName": "name"
+}
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/test/path/123?name=haha
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/test/path/123/name
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy waf pass
+POST http://localhost:9195/http/test/waf/pass
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy waf deny
+POST http://localhost:9195/http/test/waf/deny
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy request parameter pass
+GET http://localhost:9195/http/test/request/parameter/pass?requestParameter=test
+Accept: application/json
+Content-Type: application/json

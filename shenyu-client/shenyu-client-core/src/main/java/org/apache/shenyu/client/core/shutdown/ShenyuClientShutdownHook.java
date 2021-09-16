@@ -57,9 +57,7 @@ public class ShenyuClientShutdownHook {
      */
     public static void set(final ShenyuClientRegisterRepository result, final Properties props) {
         String name = hookNamePrefix + "-" + hookId.incrementAndGet();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            result.close();
-        }, name));
+        Runtime.getRuntime().addShutdownHook(new Thread(result::close, name));
         LOG.info("Add hook {}", name);
         ShenyuClientShutdownHook.props = props;
     }

@@ -19,16 +19,22 @@ package org.apache.shenyu.plugin.springcloud.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The type spring cloud plugin data handler.
@@ -37,15 +43,19 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> {
-            SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(s, SpringCloudSelectorHandle.class);
-            SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-        });
+        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
+        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        if (CollectionUtils.isEmpty(springCloudSelectorHandle.getDivideUpstreams())) {
+            UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+            return;
+        }
+        UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(springCloudSelectorHandle.getDivideUpstreams()));
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> SpringCloudSelectorHandleCache.getInstance().removeHandle(selectorData.getId()));
+        SpringCloudSelectorHandleCache.getInstance().removeHandle(selectorData.getId());
+        UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
     }
 
     @Override
@@ -64,5 +74,16 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     @Override
     public String pluginNamed() {
         return PluginEnum.SPRING_CLOUD.getName();
+    }
+
+    private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
+        return upstreamList.stream().map(u -> Upstream.builder()
+                .protocol(u.getProtocol())
+                .url(u.getUpstreamUrl())
+                .weight(u.getWeight())
+                .status(u.isStatus())
+                .timestamp(u.getTimestamp())
+                .warmup(u.getWarmup())
+                .build()).collect(Collectors.toList());
     }
 }
