@@ -23,7 +23,7 @@ import java.util.Objects;
  * this is upstream.
  */
 public final class Upstream {
-    
+
     /**
      * protocol.
      */
@@ -38,28 +38,28 @@ public final class Upstream {
      * weight.
      */
     private int weight;
-    
+
     /**
      * false close/ true open.
      */
     private boolean status;
-    
+
     /**
      * startup time.
      */
     private long timestamp;
-    
+
     /**
      * warmup.
      */
     private int warmup;
-    
+
     private boolean healthy;
-    
+
     private long lastHealthTimestamp;
-    
+
     private long lastUnhealthyTimestamp;
-    
+
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
         this.url = builder.url;
@@ -68,7 +68,7 @@ public final class Upstream {
         this.timestamp = builder.timestamp;
         this.warmup = builder.warmup;
     }
-    
+
     /**
      * Gets protocol.
      *
@@ -77,7 +77,7 @@ public final class Upstream {
     public String getProtocol() {
         return protocol;
     }
-    
+
     /**
      * Is status boolean.
      *
@@ -86,7 +86,7 @@ public final class Upstream {
     public boolean isStatus() {
         return status;
     }
-    
+
     /**
      * Sets status.
      *
@@ -95,7 +95,7 @@ public final class Upstream {
     public void setStatus(final boolean status) {
         this.status = status;
     }
-    
+
     /**
      * Gets timestamp.
      *
@@ -104,7 +104,7 @@ public final class Upstream {
     public long getTimestamp() {
         return timestamp;
     }
-    
+
     /**
      * Gets warmup.
      *
@@ -113,7 +113,7 @@ public final class Upstream {
     public int getWarmup() {
         return warmup;
     }
-    
+
     /**
      * Gets url.
      *
@@ -122,7 +122,7 @@ public final class Upstream {
     public String getUrl() {
         return url;
     }
-    
+
     /**
      * Sets url.
      *
@@ -131,7 +131,7 @@ public final class Upstream {
     public void setUrl(final String url) {
         this.url = url;
     }
-    
+
     /**
      * get weight.
      *
@@ -140,7 +140,7 @@ public final class Upstream {
     public int getWeight() {
         return weight;
     }
-    
+
     /**
      * Is healthy boolean.
      *
@@ -149,7 +149,7 @@ public final class Upstream {
     public boolean isHealthy() {
         return healthy;
     }
-    
+
     /**
      * Sets healthy.
      *
@@ -158,7 +158,7 @@ public final class Upstream {
     public void setHealthy(final boolean healthy) {
         this.healthy = healthy;
     }
-    
+
     /**
      * Gets last health timestamp.
      *
@@ -167,7 +167,7 @@ public final class Upstream {
     public long getLastHealthTimestamp() {
         return lastHealthTimestamp;
     }
-    
+
     /**
      * Sets last health timestamp.
      *
@@ -176,7 +176,7 @@ public final class Upstream {
     public void setLastHealthTimestamp(final long lastHealthTimestamp) {
         this.lastHealthTimestamp = lastHealthTimestamp;
     }
-    
+
     /**
      * Gets last unhealthy timestamp.
      *
@@ -185,7 +185,7 @@ public final class Upstream {
     public long getLastUnhealthyTimestamp() {
         return lastUnhealthyTimestamp;
     }
-    
+
     /**
      * Sets last unhealthy timestamp.
      *
@@ -194,7 +194,7 @@ public final class Upstream {
     public void setLastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
         this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
     }
-    
+
     /**
      * class builder.
      *
@@ -203,7 +203,7 @@ public final class Upstream {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -227,7 +227,7 @@ public final class Upstream {
                 + "protocol='"
                 + protocol
                 + ", url='"
-                + url 
+                + url
                 + ", weight="
                 + weight
                 + ", status="
@@ -238,48 +238,48 @@ public final class Upstream {
                 + warmup
                 + '}';
     }
-    
+
     /**
      * class builder.
      */
     public static final class Builder {
-    
+
         /**
          * protocol.
          */
         private String protocol;
-        
+
         /**
          * url.
          */
         private String url;
-        
+
         /**
          * weight.
          */
         private int weight = 50;
-        
+
         /**
          * status.
          */
         private boolean status = true;
-        
+
         /**
          * timestamp.
          */
         private long timestamp;
-        
+
         /**
          * warmup.
          */
         private int warmup = 10 * 60 * 1000;
-        
+
         /**
          * no args constructor.
          */
         private Builder() {
         }
-    
+
         /**
          * build new Object.
          *
@@ -288,7 +288,7 @@ public final class Upstream {
         public Upstream build() {
             return new Upstream(this);
         }
-    
+
         /**
          * build protocol.
          *
@@ -299,7 +299,7 @@ public final class Upstream {
             this.protocol = protocol;
             return this;
         }
-    
+
         /**
          * build url.
          *
@@ -310,7 +310,7 @@ public final class Upstream {
             this.url = url;
             return this;
         }
-    
+
         /**
          * build weight.
          *
@@ -321,7 +321,7 @@ public final class Upstream {
             this.weight = weight;
             return this;
         }
-    
+
         /**
          * build status.
          *
@@ -332,7 +332,7 @@ public final class Upstream {
             this.status = status;
             return this;
         }
-    
+
         /**
          * build timestamp.
          *
@@ -343,7 +343,7 @@ public final class Upstream {
             this.timestamp = timestamp;
             return this;
         }
-    
+
         /**
          * build warmup.
          *

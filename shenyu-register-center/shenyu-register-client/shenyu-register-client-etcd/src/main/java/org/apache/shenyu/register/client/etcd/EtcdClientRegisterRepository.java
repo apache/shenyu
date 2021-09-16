@@ -19,6 +19,7 @@ package org.apache.shenyu.register.client.etcd;
 
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -27,6 +28,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -57,9 +59,11 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
         String rpcType = metadata.getRpcType();
         String contextPath = metadata.getContextPath().substring(1);
         registerMetadata(rpcType, contextPath, metadata);
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
-            registerURI(rpcType, contextPath, metadata);
-        }
+        Optional.of(RpcTypeEnum.acquireSupportURIs().stream().filter(rpcTypeEnum -> rpcType.equals(rpcTypeEnum.getName())).findFirst())
+                .ifPresent(rpcTypeEnum -> {
+                    registerURI(rpcType, contextPath, metadata);
+                });
+        LogUtils.info(LOGGER, "{} etcd client register success: {}", rpcType, metadata);
     }
 
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
