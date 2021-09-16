@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ZoneAvoidanceRule;
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -45,11 +44,11 @@ public class LoadBalanceRule extends ZoneAvoidanceRule {
         }
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(loadBalanceKey.getSelectorId());
         if (!springCloudSelectorHandle.getGray()) {
-            return super.choose(Constants.DEFAULT);
+            return super.choose(key);
         }
         List<Upstream> divideUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(loadBalanceKey.getSelectorId());
         if (CollectionUtils.isEmpty(divideUpstreams)) {
-            return super.choose(Constants.DEFAULT);
+            return super.choose(key);
         }
         //select server from available to choose
         final List<Upstream> choose = new ArrayList<>(available.size());
@@ -63,7 +62,7 @@ public class LoadBalanceRule extends ZoneAvoidanceRule {
             }
         }
         if (CollectionUtils.isEmpty(choose)) {
-            return super.choose(Constants.DEFAULT);
+            return super.choose(key);
         }
         Upstream upstream = LoadBalancerFactory.selector(choose, loadBalanceKey.getLoadBalance(), loadBalanceKey.getIp());
         return available.stream().filter(server -> server.getHostPort().equals(upstream.getUrl())).findFirst().orElse(null);

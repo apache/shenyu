@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -146,6 +148,9 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
             } else {
                 SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(handle, SpringCloudSelectorHandle.class);
                 List<DivideUpstream> exist = springCloudSelectorHandle.getDivideUpstreams();
+                if (CollectionUtils.isEmpty(exist)) {
+                    exist = new ArrayList<>();
+                }
                 for (DivideUpstream upstream : exist) {
                     if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
                         return selectorId;
