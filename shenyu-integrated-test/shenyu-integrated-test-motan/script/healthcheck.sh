@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,34 +14,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-server:
-  port: 8081
-  servlet:
-    context-path: /
-  address: 0.0.0.0
+PRGDIR=`dirname "$0"`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+do
+    for loop in `seq 1 30`
+    do
+        status=`curl -o /dev/null -s -w %{http_code} $service`
+        echo -e "curl $service response $status"
 
-spring:
-  application:
-    name: motan-exmaples
+        if [ $status -eq 200  ]; then
+            break
+        fi
 
-shenyu:
-  client:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
-    props:
-      contextPath: /motan
-      ipAndPort: motan
-      appName: motan
-      port: 8081
-      nacosNameSpace: ShenyuRegisterCenter
+        sleep 2
+    done
+done
 
-motan:
-  registry:
-    protocol: zookeeper
-    address: 127.0.0.1:2181
-
-logging:
-  level:
-    root: info
-    org.apache.shenyu: debug
+sleep 3
+echo -e "\n-------------------"
