@@ -114,4 +114,21 @@ public class HttpHelper {
         LOG.info("getFromGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, type);
     }
+
+    /**
+     * Send a get http request to shenyu gateway with headers.
+     *
+     * @param path path
+     * @param headers headers
+     * @return response from gateway
+     * @throws IOException IO exception
+     */
+    public Response getResponseFromGateway(final String path, final Map<String, Object> headers) throws IOException {
+        Request.Builder requestBuilder = new Request.Builder().url(GATEWAY_END_POINT + path);
+        if (!CollectionUtils.isEmpty(headers)) {
+            headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
+        }
+        Request request = requestBuilder.build();
+        return client.newCall(request).execute();
+    }
 }
