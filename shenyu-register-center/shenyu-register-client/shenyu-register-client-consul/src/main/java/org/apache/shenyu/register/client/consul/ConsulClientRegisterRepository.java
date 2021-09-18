@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
 
+import java.util.Optional;
+
 @Join
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
 
@@ -47,9 +49,10 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         String rpcType = metadata.getRpcType();
         String contextPath = metadata.getContextPath().substring(1);
         registerMetadata(rpcType, contextPath, metadata);
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
-            registerURI(metadata);
-        }
+        Optional.of(RpcTypeEnum.acquireSupportURIs().stream().filter(rpcTypeEnum -> rpcType.equals(rpcTypeEnum.getName())).findFirst())
+                .ifPresent(rpcTypeEnum -> {
+                    registerURI(metadata);
+                });
         LogUtils.info(LOGGER, "{} Consul client register success: {}", rpcType, metadata);
     }
     

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.mybatis.pg.interceptor;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.Interceptor;
@@ -33,7 +34,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
-
 /**
  * The 'date_updated' field in the postgreSql library is not automatically updated.
  * So this interceptor intercepts the UPDATE statement.
@@ -44,7 +44,7 @@ import java.util.Properties;
 })
 public class PostgreSqlUpdateInterceptor implements Interceptor {
 
-    private static final List<String> AUTOMATIC_DATES = Arrays.asList("dateUpdated");
+    private static final List<String> AUTOMATIC_DATES = ImmutableList.of("dateUpdated");
 
     @Override
     public Object intercept(final Invocation invocation) throws Throwable {
@@ -53,17 +53,15 @@ public class PostgreSqlUpdateInterceptor implements Interceptor {
         Object parameter = args[1];
         Executor executor = (Executor) invocation.getTarget();
         for (Class<?> superClass = parameter.getClass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
-            final Field[] fields = superClass.getDeclaredFields();
-            for (Field field : fields) {
-                if (AUTOMATIC_DATES.contains(field.getName())) {
-                    Object fieldValue = ReflectUtils.getFieldValue(parameter, field);
-                    if (Objects.isNull(fieldValue)) {
-                        ReflectUtils.setFieldValue(parameter, field.getName(), new Timestamp(System.currentTimeMillis()));
-                    }
-                }
-            }
+            Arrays.stream(superClass.getDeclaredFields())
+                    .filter(f -> matchParam(parameter, f))
+                    .forEach(f -> ReflectUtils.setFieldValue(parameter, f.getName(), new Timestamp(System.currentTimeMillis())));
         }
         return executor.update(ms, parameter);
+    }
+
+    private boolean matchParam(final Object parameter, final Field f) {
+        return AUTOMATIC_DATES.contains(f.getName()) && Objects.isNull(ReflectUtils.getFieldValue(parameter, f));
     }
 
     @Override

@@ -127,7 +127,6 @@ public final class SelectorServiceTest {
 
     @Test
     public void testCreateOrUpdate() {
-        given(pluginMapper.selectByName("divide")).willReturn(buildPluginDO());
         publishEvent();
         testUpdate();
         testCreate();
@@ -335,6 +334,7 @@ public final class SelectorServiceTest {
         metaDataRegisterDTO.setPath("/test");
         metaDataRegisterDTO.setHost("127.0.0.1");
         metaDataRegisterDTO.setPort(13307);
+        metaDataRegisterDTO.setRpcType("test");
         return metaDataRegisterDTO;
     }
 }

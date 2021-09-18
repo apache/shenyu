@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
+import org.apache.shenyu.common.dto.convert.DivideUpstream;
+
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -33,6 +36,16 @@ public class SpringCloudSelectorHandle implements Serializable {
     private String serviceId;
 
     /**
+     * this is gray.
+     */
+    private boolean gray;
+
+    /**
+     * The divideUpstreams.
+     */
+    private List<DivideUpstream> divideUpstreams;
+
+    /**
      * no args constructor.
      */
     public SpringCloudSelectorHandle() {
@@ -44,7 +57,9 @@ public class SpringCloudSelectorHandle implements Serializable {
      * @param builder builder
      */
     private SpringCloudSelectorHandle(final Builder builder) {
+        this.gray = builder.gray;
         this.serviceId = builder.serviceId;
+        this.divideUpstreams = builder.divideUpstreams;
     }
 
     /**
@@ -72,6 +87,42 @@ public class SpringCloudSelectorHandle implements Serializable {
      */
     public void setServiceId(final String serviceId) {
         this.serviceId = serviceId;
+    }
+
+    /**
+     * get gray.
+     *
+     * @return the boolean
+     */
+    public boolean getGray() {
+        return gray;
+    }
+
+    /**
+     * set gray.
+     *
+     * @param gray gray
+     */
+    public void setGray(final Boolean gray) {
+        this.gray = gray;
+    }
+
+    /**
+     * get divideUpstreams.
+     *
+     * @return the divideUpstreams
+     */
+    public List<DivideUpstream> getDivideUpstreams() {
+        return divideUpstreams;
+    }
+
+    /**
+     * set divideUpstreams.
+     *
+     * @param divideUpstreams divideUpstreams
+     */
+    public void setDivideUpstreams(final List<DivideUpstream> divideUpstreams) {
+        this.divideUpstreams = divideUpstreams;
     }
 
     @Override
@@ -110,6 +161,16 @@ public class SpringCloudSelectorHandle implements Serializable {
         private String serviceId;
 
         /**
+         * this is gray.
+         */
+        private boolean gray;
+
+        /**
+         * The divideUpstreams.
+         */
+        private List<DivideUpstream> divideUpstreams;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -132,6 +193,28 @@ public class SpringCloudSelectorHandle implements Serializable {
          */
         public Builder serviceId(final String serviceId) {
             this.serviceId = serviceId;
+            return this;
+        }
+
+        /**
+         * build gray.
+         *
+         * @param gray gray
+         * @return this
+         */
+        public Builder gray(final boolean gray) {
+            this.gray = gray;
+            return this;
+        }
+
+        /**
+         * build serviceId.
+         *
+         * @param divideUpstreams divideUpstreams
+         * @return this
+         */
+        public Builder divideUpstreams(final List<DivideUpstream> divideUpstreams) {
+            this.divideUpstreams = divideUpstreams;
             return this;
         }
     }

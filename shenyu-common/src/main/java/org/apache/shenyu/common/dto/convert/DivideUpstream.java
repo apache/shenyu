@@ -28,14 +28,14 @@ public class DivideUpstream implements Serializable {
     private static final long serialVersionUID = 6252280511262542360L;
 
     /**
-     * host.
-     */
-    private String upstreamHost;
-
-    /**
      * this is http protocol.
      */
     private String protocol;
+
+    /**
+     * host.
+     */
+    private String upstreamHost;
 
     /**
      * url.
@@ -401,6 +401,11 @@ public class DivideUpstream implements Serializable {
          * lastUnhealthyTimestamp.
          */
         private long lastUnhealthyTimestamp;
+
+        /**
+         * gray.
+         */
+        private boolean gray;
 
         /**
          * no args constructor.
