@@ -57,13 +57,9 @@ public class DefaultSignService implements SignService {
 
     @Override
     public Pair<Boolean, String> signVerify(final ServerWebExchange exchange) {
-        PluginData signData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.SIGN.getName());
-        if (signData != null && signData.getEnabled()) {
-            final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-            assert shenyuContext != null;
-            return verify(shenyuContext, exchange);
-        }
-        return Pair.of(Boolean.TRUE, "");
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return verify(shenyuContext, exchange);
     }
 
     private Pair<Boolean, String> verify(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
