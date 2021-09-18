@@ -46,11 +46,13 @@ import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.utils.DivideUpstreamUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
@@ -251,11 +253,10 @@ public class SelectorServiceImpl implements SelectorService {
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_SELECTOR)
     @Pageable
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
-        return PageResultUtils.result(selectorQuery.getPageParameter(),
-            () -> selectorMapper.selectByQuery(selectorQuery)
-                        .stream()
-                        .map(SelectorVO::buildSelectorVO)
-                        .collect(Collectors.toList()));
+        return PageResultUtils.result(selectorQuery.getPageParameter(), () -> selectorMapper.selectByQuery(selectorQuery)
+                .stream()
+                .map(SelectorVO::buildSelectorVO)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -291,7 +292,7 @@ public class SelectorServiceImpl implements SelectorService {
             //update upstream
             String handle = selectorDO.getHandle();
             String handleAdd;
-            DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
+            DivideUpstream addDivideUpstream = DivideUpstreamUtils.buildDivideUpstream(dto);
             final SelectorData selectorData = buildByName(contextPath);
             // fetch UPSTREAM_MAP data from db
             upstreamCheckService.fetchUpstreamData();
@@ -341,14 +342,23 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     private void updateDivideUpstream(final SelectorDO selectorDO) {
-        PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
-        if (Objects.nonNull(pluginDO) && pluginDO.getId().equals(selectorDO.getPluginId())) {
-            String selectorName = selectorDO.getName();
+        String selectorName = selectorDO.getName();
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        List<DivideUpstream> existDivideUpstreams = null;
+        if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
+            if (Objects.nonNull(selectorDO.getHandle())) {
+                SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
+                        .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
+                existDivideUpstreams = springCloudSelectorHandle.getDivideUpstreams();
+            }
+        } else if (PluginEnum.DIVIDE.getName().equals(pluginDO.getName())) {
             String handle = selectorDO.getHandle();
             if (StringUtils.isNotBlank(handle)) {
-                List<DivideUpstream> existDivideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                upstreamCheckService.replace(selectorName, existDivideUpstreams);
+                existDivideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
             }
+        }
+        if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
+            upstreamCheckService.replace(selectorName, existDivideUpstreams);
         }
     }
 
