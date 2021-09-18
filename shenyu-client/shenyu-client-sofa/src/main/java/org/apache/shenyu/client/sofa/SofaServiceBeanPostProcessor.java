@@ -53,7 +53,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaServiceBeanPostProcessor.class);
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final ExecutorService executorService;
 
@@ -120,8 +120,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String configRuleName = shenyuSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
-//        Class<?>[] parameterTypesClazz = method.getParameterTypes();
-
         String parameterTypes = Arrays.stream(method.getParameters())
                 .map(parameter -> {
                     StringBuilder result = new StringBuilder(parameter.getType().getName());
@@ -134,9 +132,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                     }
                     return result.toString();
                 }).collect(Collectors.joining(","));
-
-//        String parameterTypes = Arrays.stream(parameterTypesClazz).map(t -> t.getName())
-//                .collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
