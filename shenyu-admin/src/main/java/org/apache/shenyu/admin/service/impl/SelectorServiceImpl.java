@@ -284,7 +284,7 @@ public class SelectorServiceImpl implements SelectorService {
         SelectorDO selectorDO = selectorMapper.selectByName(contextPath);
         String selectorId;
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerPluginSelector(contextPath, dto);
+            selectorId = registerPluginSelector(contextPath, dto, rpcType);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
@@ -360,8 +360,8 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
 
-    private String registerPluginSelector(final String contextPath, final MetaDataRegisterDTO metaDataRegisterDTO) {
-        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(metaDataRegisterDTO.getRpcType()).getId());
+    private String registerPluginSelector(final String contextPath, final MetaDataRegisterDTO metaDataRegisterDTO, final String rpcType) {
+        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
         //is divide
         DivideUpstream divideUpstream = DivideUpstreamUtils.buildDivideUpstream(metaDataRegisterDTO);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
