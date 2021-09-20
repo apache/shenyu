@@ -230,7 +230,7 @@ public final class Upstream {
      *
      * @param group the group
      */
-    public void setGroup(String group) {
+    public void setGroup(final String group) {
         this.group = group;
     }
 
@@ -248,7 +248,7 @@ public final class Upstream {
      *
      * @param version the version
      */
-    public void setVersion(String version) {
+    public void setVersion(final String version) {
         this.version = version;
     }
 

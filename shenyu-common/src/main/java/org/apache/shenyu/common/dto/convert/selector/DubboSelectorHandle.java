@@ -281,7 +281,7 @@ public class DubboSelectorHandle implements Serializable {
      *
      * @param group group
      */
-    public void setGroup(String group) {
+    public void setGroup(final String group) {
         this.group = group;
     }
 
@@ -299,7 +299,7 @@ public class DubboSelectorHandle implements Serializable {
      *
      * @param version version
      */
-    public void setVersion(String version) {
+    public void setVersion(final String version) {
         this.version = version;
     }
 
