@@ -29,7 +29,6 @@ public class ShenyuGrpcServerBuilder implements GrpcServerBuilder {
 
     @Override
     public ServerBuilder<?> buildServerBuilder() {
-        ServerBuilder<?> serverBuilder = ServerBuilder.forPort(8080);
-        return serverBuilder;
+        return ServerBuilder.forPort(8080);
     }
 }

@@ -19,14 +19,27 @@ package org.apache.shenyu.integrated.test.grpc;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integrated.test.grpc.dto.GrpcResponse;
-import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.IOException;
+
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
-public class GrpcPluginTest extends AbstractTest {
-
+public class GrpcPluginTest extends AbstractPluginDataInit {
+    
+    @BeforeClass
+    public static void setup() throws IOException {
+        String pluginResult = initPlugin(PluginEnum.GRPC.getName(), "");
+        assertThat(pluginResult, is("success"));
+    }
+    
     @Test
     public void testHelloWorld() throws Exception {
         JsonObject request = buildGrpcRequest();

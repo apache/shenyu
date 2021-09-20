@@ -82,8 +82,8 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
 
     private void watcherData() {
         final String pluginParent = DefaultPathConstants.PLUGIN_PARENT;
-        List<String> pluginZKs = etcdClientGetChildren(pluginParent);
-        for (String pluginName : pluginZKs) {
+        List<String> pluginChildren = etcdClientGetChildren(pluginParent);
+        for (String pluginName : pluginChildren) {
             watcherAll(pluginName);
         }
 

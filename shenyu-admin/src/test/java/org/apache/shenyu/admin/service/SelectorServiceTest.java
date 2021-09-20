@@ -127,7 +127,6 @@ public final class SelectorServiceTest {
 
     @Test
     public void testCreateOrUpdate() {
-        given(pluginMapper.selectByName("divide")).willReturn(buildPluginDO());
         publishEvent();
         testUpdate();
         testCreate();
@@ -189,7 +188,6 @@ public final class SelectorServiceTest {
     @Test
     public void testListByPage() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
-        given(this.selectorMapper.countByQuery(any())).willReturn(1);
         given(this.selectorMapper.selectByQuery(any())).willReturn(selectorDOs);
         SelectorQuery params = buildSelectorQuery();
         final CommonPager<SelectorVO> result = this.selectorService.listByPage(params);

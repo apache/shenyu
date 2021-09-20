@@ -23,12 +23,13 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import java.util.Optional;
 
 /**
- * Build upstream.
+ * Build upstream for rpc plugin.
  */
 public class DivideUpstreamUtils {
 
+
     /**
-     * build DivideUpstream.
+     * build divide upstream.
      *
      * @param metaDataRegisterDTO metaDataRegisterDTO
      * @return divideUpstream divideUpstream
@@ -38,7 +39,7 @@ public class DivideUpstreamUtils {
     }
 
     /**
-     * build Url.
+     * build url.
      *
      * @param metaDataRegisterDTO metaDataRegisterDTO
      * @return String String

@@ -145,6 +145,9 @@ public final class ApplicationConfigCache {
      * @return the reference config
      */
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
+        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
+            return new ReferenceConfig<>();
+        }
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);

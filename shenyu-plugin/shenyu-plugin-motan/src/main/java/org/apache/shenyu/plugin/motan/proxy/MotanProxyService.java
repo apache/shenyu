@@ -88,7 +88,7 @@ public class MotanProxyService {
             if (Objects.isNull(ret)) {
                 ret = Constants.MOTAN_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.MOTAN_RPC_RESULT, ret);
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new);

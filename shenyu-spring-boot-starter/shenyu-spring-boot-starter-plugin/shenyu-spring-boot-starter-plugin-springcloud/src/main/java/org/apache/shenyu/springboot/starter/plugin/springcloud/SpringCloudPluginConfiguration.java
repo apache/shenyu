@@ -17,14 +17,18 @@
 
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
+import com.netflix.loadbalancer.IRule;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
 import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDecorator;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceRule;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.netflix.ribbon.RibbonClientSpecification;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -63,5 +67,23 @@ public class SpringCloudPluginConfiguration {
     @Bean
     public PluginDataHandler springCloudPluginDataHandler() {
         return new SpringCloudPluginDataHandler();
+    }
+
+    /**
+     * Custom ribbon IRule.
+     *
+     * @return ribbonClientSpecification ribbonClientSpecification
+     */
+    @Bean
+    public RibbonClientSpecification ribbonClientSpecification() {
+        Class[] classes = new Class[]{SpringCloudClientConfiguration.class};
+        return new RibbonClientSpecification(String.join(".", Constants.DEFAULT, RibbonClientSpecification.class.getName()), classes);
+    }
+
+    class SpringCloudClientConfiguration {
+        @Bean
+        public IRule ribbonRule() {
+            return new LoadBalanceRule();
+        }
     }
 }

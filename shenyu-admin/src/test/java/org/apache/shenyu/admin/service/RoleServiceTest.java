@@ -152,7 +152,6 @@ public class RoleServiceTest {
         RoleQuery query = new RoleQuery(roleDO.getRoleName(), pageParameter);
         List<RoleDO> roleDOs = Collections.singletonList(roleDO);
         given(roleMapper.selectByQuery(query)).willReturn(roleDOs);
-        given(roleMapper.countByQuery(query)).willReturn(roleDOs.size());
         CommonPager<RoleVO> roleVOCommonPager = roleService.listByPage(query);
         assertEquals(roleDOs.stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()), roleVOCommonPager.getDataList());
     }

@@ -17,17 +17,23 @@
 
 package org.apache.shenyu.web.fallback;
 
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,6 +50,10 @@ public final class DefaultFallbackControllerTest {
 
     @Before
     public void setUp() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() { });
+
         this.mockMvc = MockMvcBuilders.standaloneSetup(defaultFallbackController).build();
     }
 
