@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.rpc.Invocation;
@@ -34,6 +35,7 @@ import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboRuleHandlerCache;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboSelectorHandleCache;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * ApacheDubboGrayLoadBalance.
@@ -50,10 +52,33 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         // if gray list is not empty,just use load balance to choose one.
         if (CollectionUtils.isNotEmpty(dubboSelectorHandles)) {
             Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadbalance(), remoteAddressIp);
-            return invokers.stream().filter(each -> {
-                URL eachUrl = each.getUrl();
-                return eachUrl.getAddress().equals(upstream.getUrl());
-            }).findFirst().orElse(null);
+            if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
+                return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokers, url, invocation);
+            }
+            // url is the first level, then is group, the version is the lowest.
+            final List<Invoker<T>> invokerListAfterShenyuGrayFilter = invokers.stream().filter(each -> {
+                if (StringUtils.isNotBlank(upstream.getUrl())) {
+                    URL eachUrl = each.getUrl();
+                    return eachUrl.getAddress().equals(upstream.getUrl());
+                }
+                return true;
+            }).filter(each -> {
+                if (StringUtils.isNotBlank(upstream.getGroup())) {
+                    final URL eachUrl = each.getUrl();
+                    return upstream.getGroup().equals(eachUrl.getParameter("group"));
+                }
+                return true;
+            }).filter(each -> {
+                if (StringUtils.isNotBlank(upstream.getVersion())) {
+                    final URL eachUrl = each.getUrl();
+                    return upstream.getVersion().equals(eachUrl.getParameter("version"));
+                }
+                return true;
+            }).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(invokerListAfterShenyuGrayFilter)) {
+                return null;
+            }
+            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokerListAfterShenyuGrayFilter, url, invocation);
         }
         return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokers, url, invocation);
     }

@@ -109,6 +109,8 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
                 .status(u.isStatus())
                 .timestamp(u.getTimestamp())
                 .warmup(u.getWarmup())
+                .group(u.getGroup())
+                .version(u.getVersion())
                 .build()).collect(Collectors.toList());
     }
 }

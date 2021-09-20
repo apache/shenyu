@@ -58,6 +58,16 @@ public class DubboSelectorHandle implements Serializable {
     private Boolean gray;
 
     /**
+     * group.
+     */
+    private String group;
+
+    /**
+     * version.
+     */
+    private String version;
+
+    /**
      * weight.
      */
     private int weight;
@@ -257,6 +267,42 @@ public class DubboSelectorHandle implements Serializable {
         this.warmup = warmup;
     }
 
+    /**
+     * Gets the value of group.
+     *
+     * @return the value of group
+     */
+    public String getGroup() {
+        return group;
+    }
+
+    /**
+     * Sets the group.
+     *
+     * @param group group
+     */
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    /**
+     * Gets the value of version.
+     *
+     * @return the value of version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Sets the version.
+     *
+     * @param version version
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -275,27 +321,31 @@ public class DubboSelectorHandle implements Serializable {
                 && Objects.equals(appName, that.appName)
                 && Objects.equals(protocol, that.protocol)
                 && Objects.equals(upstreamUrl, that.upstreamUrl)
-                && Objects.equals(gray, that.gray);
+                && Objects.equals(gray, that.gray)
+                && Objects.equals(group, that.group)
+                && Objects.equals(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(registry, appName, protocol, port, upstreamUrl, gray, weight, status, timestamp, warmup);
+        return Objects.hash(registry, appName, protocol, port, upstreamUrl, gray, weight, status, timestamp, warmup, group, version);
     }
 
     @Override
     public String toString() {
         return "DubboSelectorHandle{"
-                + "registry='" + registry + '\''
-                + ", appName='" + appName + '\''
-                + ", protocol='" + protocol + '\''
+                + "registry='" + registry
+                + ", appName='" + appName
+                + ", protocol='" + protocol
                 + ", port=" + port
-                + ", upstreamUrl='" + upstreamUrl + '\''
+                + ", upstreamUrl='" + upstreamUrl
                 + ", gray=" + gray
                 + ", weight=" + weight
                 + ", status=" + status
                 + ", timestamp=" + timestamp
                 + ", warmup=" + warmup
+                + ", group='" + group
+                + ", version='" + version
                 + '}';
     }
 }
