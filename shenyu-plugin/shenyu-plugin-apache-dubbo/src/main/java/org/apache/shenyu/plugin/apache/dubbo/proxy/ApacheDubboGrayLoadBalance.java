@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
@@ -65,13 +66,13 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
             }).filter(each -> {
                 if (StringUtils.isNotBlank(upstream.getGroup())) {
                     final URL eachUrl = each.getUrl();
-                    return upstream.getGroup().equals(eachUrl.getParameter("group"));
+                    return upstream.getGroup().equals(eachUrl.getParameter(CommonConstants.GROUP_KEY));
                 }
                 return true;
             }).filter(each -> {
                 if (StringUtils.isNotBlank(upstream.getVersion())) {
                     final URL eachUrl = each.getUrl();
-                    return upstream.getVersion().equals(eachUrl.getParameter("version"));
+                    return upstream.getVersion().equals(eachUrl.getParameter(CommonConstants.VERSION_KEY));
                 }
                 return true;
             }).collect(Collectors.toList());
