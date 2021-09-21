@@ -125,7 +125,7 @@ public final class ApacheDubboPluginTest {
         when(context.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
-        final Boolean result = apacheDubboPlugin.skip(exchange);
+        final boolean result = apacheDubboPlugin.skip(exchange);
         assertFalse(result);
     }
 

@@ -23,7 +23,6 @@ import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
@@ -44,6 +43,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.reset;
@@ -143,24 +143,16 @@ public class ResourceServiceTest {
         final String queryTitle = "mock query title";
         ResourceDO resourceDO = new ResourceDO();
         resourceDO.setId("mock resource id");
-        resourceDO.setParentId("mock resource parent id");
-        resourceDO.setTitle("mock resource title");
         resourceDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
         resourceDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-
-        final PageParameter pageParameter = new PageParameter();
-        final ResourceQuery query = new ResourceQuery();
+        PageParameter pageParameter = new PageParameter();
+        ResourceQuery query = new ResourceQuery();
         query.setTitle(queryTitle);
         query.setPageParameter(pageParameter);
-
-        reset(resourceMapper);
-        when(resourceMapper.countByQuery(query)).thenReturn(1);
         when(resourceMapper.selectByQuery(query)).thenReturn(Collections.singletonList(resourceDO));
-
-        final List<ResourceVO> resourceList = newArrayList(ResourceVO.buildResourceVO(resourceDO));
-        CommonPager<ResourceVO> expect = PageResultUtils.result(query.getPageParameter(), () -> 1, () -> resourceList);
-
-        assertThat(resourceService.listByPage(query), equalTo(expect));
+        List<ResourceVO> resourceList = newArrayList(ResourceVO.buildResourceVO(resourceDO));
+        CommonPager<ResourceVO> commonPager = resourceService.listByPage(query);
+        assertThat(commonPager.getDataList().size(), is(resourceList.size()));
     }
 
     @Test

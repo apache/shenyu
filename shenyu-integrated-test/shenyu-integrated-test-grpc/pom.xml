@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.apache.shenyu</groupId>
+        <artifactId>shenyu-integrated-test</artifactId>
+        <version>2.4.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>shenyu-integrated-test-grpc</artifactId>
+    <name>shenyu-integrated-test-grpc</name>
+
+    <dependencies>
+        <!-- shenyu ratelimiter plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ratelimiter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu ratelimiter plugin end-->
+
+        <!-- shenyu hystrix plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu hystrix plugin end-->
+
+        <!-- shenyu waf plugin starter-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-waf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu waf plugin end-->
+
+        <!-- shenyu monitor plugin starter-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-monitor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu monitor plugin end-->
+
+        <!-- shenyu sign plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-sign</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu sign plugin end-->
+
+        <!-- shenyu resilience4j plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-resilience4j</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu resilience4j plugin end-->
+
+        <!-- shenyu sentinel plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-sentinel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu sentinel plugin end-->
+
+        <!-- shenyu redirect plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-redirect</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu redirect plugin end-->
+
+        <!-- shenyu redirect plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-rewrite</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu redirect plugin end-->
+
+        <!--shenyu debug plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu debug plugin end-->
+
+        <!--shenyu grpc plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-grpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu grpc plugin end-->
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- shenyu modify response plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-modify-response</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu modify response plugin end-->
+
+        <!-- shenyu response plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-response</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu response plugin end-->
+
+        <!--shenyu param mapping plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu param mapping end-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-integrated-test-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>shenyu-integrated-test-grpc</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>org.apache.shenyu.integrated.test.grpc.GrpcIntegratedBootstrap</mainClass>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>${dockerfile-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>shenyu-integrated-test-grpc</id>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <repository>apache/shenyu-integrated-test-grpc</repository>
+                    <tag>latest</tag>
+                    <buildArgs>
+                        <APP_NAME>shenyu-integrated-test-grpc</APP_NAME>
+                    </buildArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.web.handler;
 
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ThreadShare;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,10 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * GlobalErrorHandler.
@@ -42,6 +46,11 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(GlobalErrorHandler.class);
+
+    /**
+     * the http status holder.
+     */
+    private static final ThreadShare<Integer> HTTP_STATUS_HOLDER = new ThreadShare<>();
 
     /**
      * Instantiates a new Global error handler.
@@ -71,13 +80,19 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     @Override
     protected int getHttpStatus(final Map<String, Object> errorAttributes) {
-        return HttpStatus.INTERNAL_SERVER_ERROR.value();
+        Integer status = HTTP_STATUS_HOLDER.getRemove();
+        return Objects.nonNull(status) ? status : HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
 
     private Map<String, Object> response(final ServerRequest request) {
         Throwable ex = getError(request);
-        Object error = ShenyuResultWrap.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), ex.getMessage());
-        return GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(error));
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        if (ex instanceof ResponseStatusException) {
+            httpStatus = ((ResponseStatusException) ex).getStatus();
+        }
+        HTTP_STATUS_HOLDER.set(httpStatus.value());
+        Object error = ShenyuResultWrap.error(httpStatus.value(), httpStatus.getReasonPhrase(), ex.getMessage());
+        return JsonUtils.toMap(error);
     }
 
     private void logError(final ServerRequest request) {

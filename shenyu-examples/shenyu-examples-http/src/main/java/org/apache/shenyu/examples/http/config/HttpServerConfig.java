@@ -18,10 +18,8 @@
 package org.apache.shenyu.examples.http.config;
 
 import org.apache.shenyu.examples.http.router.ShenyuTestHttpRouter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.scheduler.Scheduler;
@@ -37,13 +35,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 public class HttpServerConfig {
-
-    private final Environment environment;
-
-    @Autowired
-    public HttpServerConfig(final Environment environment) {
-        this.environment = environment;
-    }
 
     @Bean
     public RouterFunction<ServerResponse> monoRouterFunction(final ShenyuTestHttpRouter shenyuTestHttpRouter) {

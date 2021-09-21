@@ -67,7 +67,7 @@ public class OAuth2Plugin implements ShenyuPlugin {
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         return !Objects.requireNonNull(exchange.<Boolean>getAttribute("enable"));
     }
 

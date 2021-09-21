@@ -45,7 +45,7 @@ public class FileSizeFilterTest {
     @Before
     public void setup() {
         GenericApplicationContext context = new GenericApplicationContext();
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         context.getBeanFactory().registerSingleton("shenyuResult", mock(ShenyuResult.class));
         context.refresh();
     }

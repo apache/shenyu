@@ -18,10 +18,6 @@
 package org.apache.shenyu.plugin.sign.service;
 
 import com.google.common.collect.Maps;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -33,16 +29,21 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.PathMatchUtils;
-import org.apache.shenyu.common.utils.SignUtils;
-import org.apache.shenyu.plugin.api.SignService;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
+import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Default sign service.
@@ -107,7 +108,7 @@ public class DefaultSignService implements SignService {
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
         }
-        String sigKey = SignUtils.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext));
+        String sigKey = ShenyuSignProviderWrap.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext));
         boolean result = Objects.equals(sigKey, shenyuContext.getSign());
         if (!result) {
             LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
@@ -127,10 +128,10 @@ public class DefaultSignService implements SignService {
         return Pair.of(Boolean.TRUE, "");
     }
 
-    private Map<String, String> buildParamsMap(final ShenyuContext dto) {
+    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
-        map.put(Constants.TIMESTAMP, dto.getTimestamp());
-        map.put(Constants.PATH, dto.getPath());
+        map.put(Constants.TIMESTAMP, shenyuContext.getTimestamp());
+        map.put(Constants.PATH, shenyuContext.getPath());
         map.put(Constants.VERSION, "1.0.0");
         return map;
     }

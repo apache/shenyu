@@ -20,7 +20,7 @@ package org.apache.shenyu.springboot.starter.gateway;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.base.ParamTransformPlugin;
+import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -31,7 +31,6 @@ import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
-import org.apache.shenyu.web.filter.WebSocketParamFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
@@ -104,7 +103,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     public ShenyuPlugin paramTransformPlugin() {
-        return new ParamTransformPlugin();
+        return new RpcParamTransformPlugin();
     }
     
     /**
@@ -209,16 +208,5 @@ public class ShenyuConfiguration {
     @ConfigurationProperties(prefix = "shenyu")
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
-    }
-    
-    /**
-     * Web socket web filter web filter.
-     *
-     * @return the web filter
-     */
-    @Bean
-    @Order(4)
-    public WebFilter webSocketWebFilter() {
-        return new WebSocketParamFilter();
     }
 }

@@ -99,7 +99,8 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
     public String named() {
         return PluginEnum.CRYPTOR_RESPONSE.getName();
     }
-
+    
+    @SuppressWarnings("rawtypes")
     private Mono strategyMatch(final String originalBody, final CryptorResponseRuleHandle ruleHandle) {
         AtomicInteger initDeep = new AtomicInteger();
         initDeep.set(0);

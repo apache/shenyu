@@ -45,7 +45,7 @@ public class JwtUtilsTest {
         JwtProperties jwtProperties = mock(JwtProperties.class);
         when(jwtProperties.getExpiredSeconds()).thenReturn(EXPIRED_SECONDS);
         when(context.getBean(JwtProperties.class)).thenReturn(jwtProperties);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 
     @Test

@@ -17,7 +17,6 @@
 shenyu:
     database:
       dialect: postgresql
-      db_script: "sql-script/pg/schema.dropdb.sql;sql-script/pg/schema.createdb.sql"
       init_script: "sql-script/pg/schema.sql"
       init_enable: true
 
@@ -27,6 +26,10 @@ spring:
     username: postgres
     password: 123456
     driver-class-name: org.postgresql.Driver
+
+
+mybatis:
+  type-handlers-package: org.apache.shenyu.admin.mybatis.pg.handler
 
 
 

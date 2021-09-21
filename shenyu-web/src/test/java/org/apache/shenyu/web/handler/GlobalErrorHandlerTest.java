@@ -89,7 +89,7 @@ public class GlobalErrorHandlerTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() { });
 
         ErrorAttributes errorAttributes = new DefaultErrorAttributes();
@@ -113,7 +113,7 @@ public class GlobalErrorHandlerTest {
                 .build();
         Map<String, Object> response = globalErrorHandler.getErrorAttributes(serverRequest, false);
         assertNotNull(response);
-        assertThat(response, hasEntry("code", 500L));
+        assertThat(response, hasEntry("code", 500));
         assertThat(response, hasEntry("message", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()));
         assertThat(response, hasEntry("data", nullPointerException.getMessage()));
     }

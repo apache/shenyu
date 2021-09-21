@@ -71,11 +71,6 @@
         </where>
 
         order by sort asc
-
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
-
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery" resultType="java.lang.Integer">

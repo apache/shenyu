@@ -31,8 +31,14 @@
             <directory>src/main/resources</directory>
             <lineEnding>unix</lineEnding>
             <includes>
-                <include>*.yml</include>
                 <include>*.xml</include>
+            </includes>
+            <outputDirectory>conf</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
+            <includes>
+                <include>*.yml</include>
             </includes>
             <outputDirectory>conf</outputDirectory>
         </fileSet>

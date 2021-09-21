@@ -125,7 +125,7 @@ public class AlibabaDubboPlugin extends AbstractShenyuPlugin {
      * @return default false.
      */
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.DUBBO.getName());

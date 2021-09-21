@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.utils.ThreadLocalUtil;
+import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -99,7 +99,7 @@ public final class WebsocketCollectorTest {
     @Test
     public void testOnMessage() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
         when(syncDataService.syncAll(DataEventTypeEnum.MYSELF)).thenReturn(true);
         websocketCollector.onOpen(session);
@@ -139,7 +139,7 @@ public final class WebsocketCollectorTest {
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
         Mockito.verify(basic, Mockito.times(0)).sendText(null);
-        ThreadLocalUtil.put("sessionKey", session);
+        ThreadLocalUtils.put("sessionKey", session);
         WebsocketCollector.send("test_message_1", DataEventTypeEnum.MYSELF);
         Mockito.verify(basic, Mockito.times(1)).sendText("test_message_1");
         WebsocketCollector.send("test_message_2", DataEventTypeEnum.CREATE);
@@ -154,6 +154,6 @@ public final class WebsocketCollectorTest {
     }
 
     private Session getSession() {
-        return (Session) ThreadLocalUtil.get("sessionKey");
+        return (Session) ThreadLocalUtils.get("sessionKey");
     }
 }

@@ -21,6 +21,8 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+dubbo:
+  zk: zookeeper://localhost:2181
 shenyu:
   client:
     registerType: http #zookeeper #etcd #nacos #consul
