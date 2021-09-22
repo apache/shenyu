@@ -109,4 +109,14 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
             histogram.observe(duration);
         }
     }
+    
+    /**
+     * Clean.
+     */
+    @Override
+    public void clean() {
+        COUNTER_MAP.clear();
+        GAUGE_MAP.clear();
+        HISTOGRAM_MAP.clear();
+    }
 }

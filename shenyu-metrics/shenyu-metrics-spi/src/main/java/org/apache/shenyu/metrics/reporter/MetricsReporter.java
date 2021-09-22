@@ -219,6 +219,13 @@ public final class MetricsReporter {
         recordTime(name, null, duration);
     }
     
+    /**
+     * Clean.
+     */
+    public static void clean() {
+        Optional.ofNullable(metricsRegister).ifPresent(MetricsRegister::clean);
+    }
+    
     private static String[] getLabelNames(final List<String> labels) {
         return labels.toArray(new String[0]);
     }
