@@ -26,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ import java.util.Map;
 /**
  * The type Default generic param resolve service.
  */
-public class SofaBodyParamResolveServiceImpl implements BodyParamResolveService {
+public class SofaParamResolveServiceImpl implements SofaParamResolveService {
 
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
