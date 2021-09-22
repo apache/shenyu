@@ -1330,7 +1330,7 @@ values ('1405534379185176577', '1346358560427216896', '1405534379185176576', to_
 commit;
 
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('1', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{"required":"1","defaultValue":"1","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('1', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{"required":"1","defaultValue":"1","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('10', '2', 'statusCode', 'statusCode', 2, 2, 2, null, to_date('22-11-2020 12:04:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('22-11-2020 12:04:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -1348,11 +1348,11 @@ values ('108', '25', 'strategyName', 'strategyName', 3, 2, 2, null, to_date('13-
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('109', '25', 'key', 'key', 2, 2, 3, null, to_date('13-08-2021 15:14:07', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:14:36', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('11', '4', 'replenishRate', 'replenishRate', 2, 2, 2, '{"required":"1","defaultValue":"10","rule":"""}', to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('11', '4', 'replenishRate', 'replenishRate', 2, 2, 2, '{"required":"1","defaultValue":"10","rule":""}', to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('110', '25', 'fieldNames', 'fieldNames', 2, 2, 4, null, to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('12', '4', 'burstCapacity', 'burstCapacity', 2, 2, 3, '{"required":"1","defaultValue":"100","rule":"""}', to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('12', '4', 'burstCapacity', 'burstCapacity', 2, 2, 3, '{"required":"1","defaultValue":"100","rule":""}', to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('130', '3', 'regex', 'regex', 2, 2, 1, null, to_date('24-05-2021 16:07:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('24-05-2021 16:07:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -1364,31 +1364,31 @@ values ('15', '8', 'timeout', 'timeout (ms)', 1, 2, 2, null, to_date('29-11-2020
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('16', '8', 'serviceId', 'serviceId', 2, 1, 1, null, to_date('29-11-2020 16:07:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-11-2020 16:07:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('17', '12', 'timeoutDurationRate', 'timeoutDurationRate (ms)', 1, 2, 1, '{"required":"1","defaultValue":"5000","rule":"""}', to_date('28-11-2020 11:08:14', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:19:12', 'dd-mm-yyyy hh24:mi:ss'));
+values ('17', '12', 'timeoutDurationRate', 'timeoutDurationRate (ms)', 1, 2, 1, '{"required":"1","defaultValue":"5000","rule":""}', to_date('28-11-2020 11:08:14', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:19:12', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('18', '12', 'limitRefreshPeriod', 'limitRefreshPeriod (ms)', 1, 2, 0, '{"required":"1","defaultValue":"500","rule":"""}', to_date('28-11-2020 11:18:54', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:22:40', 'dd-mm-yyyy hh24:mi:ss'));
+values ('18', '12', 'limitRefreshPeriod', 'limitRefreshPeriod (ms)', 1, 2, 0, '{"required":"1","defaultValue":"500","rule":""}', to_date('28-11-2020 11:18:54', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:22:40', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('19', '12', 'limitForPeriod', 'limitForPeriod', 1, 2, 0, '{"required":"1","defaultValue":"50","rule":"""}', to_date('28-11-2020 11:20:11', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:20:11', 'dd-mm-yyyy hh24:mi:ss'));
+values ('19', '12', 'limitForPeriod', 'limitForPeriod', 1, 2, 0, '{"required":"1","defaultValue":"50","rule":""}', to_date('28-11-2020 11:20:11', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:20:11', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('2', '10', 'flowRuleControlBehavior', 'flowRuleControlBehavior', 3, 2, 5, '{"required":"1","defaultValue":"0","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('2', '10', 'flowRuleControlBehavior', 'flowRuleControlBehavior', 3, 2, 5, '{"required":"1","defaultValue":"0","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('20', '12', 'circuitEnable', 'circuitEnable', 1, 2, 2, '{"required":"1","defaultValue":"0","rule":"/^[01]$/"}', to_date('28-11-2020 11:23:09', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:24:12', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('21', '12', 'timeoutDuration', 'timeoutDuration (ms)', 1, 2, 2, '{"required":"1","defaultValue":"30000","rule":"""}', to_date('28-11-2020 11:25:56', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:25:56', 'dd-mm-yyyy hh24:mi:ss'));
+values ('21', '12', 'timeoutDuration', 'timeoutDuration (ms)', 1, 2, 2, '{"required":"1","defaultValue":"30000","rule":""}', to_date('28-11-2020 11:25:56', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:25:56', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('22', '12', 'fallbackUri', 'fallbackUri', 2, 2, 2, null, to_date('28-11-2020 11:26:44', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:26:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('23', '12', 'slidingWindowSize', 'slidingWindowSize', 1, 2, 2, '{"required":"1","defaultValue":"100","rule":"""}', to_date('28-11-2020 11:27:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:27:34', 'dd-mm-yyyy hh24:mi:ss'));
+values ('23', '12', 'slidingWindowSize', 'slidingWindowSize', 1, 2, 2, '{"required":"1","defaultValue":"100","rule":""}', to_date('28-11-2020 11:27:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:27:34', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('24', '12', 'slidingWindowType', 'slidingWindowType', 1, 2, 2, '{"required":"1","defaultValue":"0","rule":"/^[01]$/"}', to_date('28-11-2020 11:28:05', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:28:05', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('25', '12', 'minimumNumberOfCalls', 'minimumNumberOfCalls', 1, 2, 2, '{"required":"1","defaultValue":"100","rule":"""}', to_date('28-11-2020 11:28:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:28:34', 'dd-mm-yyyy hh24:mi:ss'));
+values ('25', '12', 'minimumNumberOfCalls', 'minimumNumberOfCalls', 1, 2, 2, '{"required":"1","defaultValue":"100","rule":""}', to_date('28-11-2020 11:28:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:28:34', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('26', '12', 'waitIntervalFunctionInOpenState', 'waitIntervalInOpen', 1, 2, 2, '{"required":"1","defaultValue":"60000","rule":"""}', to_date('28-11-2020 11:29:01', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:29:01', 'dd-mm-yyyy hh24:mi:ss'));
+values ('26', '12', 'waitIntervalFunctionInOpenState', 'waitIntervalInOpen', 1, 2, 2, '{"required":"1","defaultValue":"60000","rule":""}', to_date('28-11-2020 11:29:01', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:29:01', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('27', '12', 'permittedNumberOfCallsInHalfOpenState', 'bufferSizeInHalfOpen', 1, 2, 2, '{"required":"1","defaultValue":"10","rule":"""}', to_date('28-11-2020 11:29:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:29:55', 'dd-mm-yyyy hh24:mi:ss'));
+values ('27', '12', 'permittedNumberOfCallsInHalfOpenState', 'bufferSizeInHalfOpen', 1, 2, 2, '{"required":"1","defaultValue":"10","rule":""}', to_date('28-11-2020 11:29:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:29:55', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('28', '12', 'failureRateThreshold', 'failureRateThreshold', 1, 2, 2, '{"required":"1","defaultValue":"50","rule":"""}', to_date('28-11-2020 11:30:40', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:30:40', 'dd-mm-yyyy hh24:mi:ss'));
+values ('28', '12', 'failureRateThreshold', 'failureRateThreshold', 1, 2, 2, '{"required":"1","defaultValue":"50","rule":""}', to_date('28-11-2020 11:30:40', 'dd-mm-yyyy hh24:mi:ss'), to_date('28-11-2020 11:30:40', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('3', '10', 'flowRuleEnable', 'flowRuleEnable (1 or 0)', 1, 2, 7, '{"required":"1","defaultValue":"1","rule":"/^[01]$/"}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -1412,7 +1412,7 @@ values ('38', '7', 'metricsName', 'metricsName', 2, 3, 1, null, to_date('25-12-2
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('39', '7', 'host', 'host', 2, 3, 2, null, to_date('25-12-2020', 'dd-mm-yyyy'), to_date('25-12-2020', 'dd-mm-yyyy'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('4', '10', 'flowRuleCount', 'flowRuleCount', 1, 2, 6, '{"required":"1","defaultValue":"0","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('4', '10', 'flowRuleCount', 'flowRuleCount', 1, 2, 6, '{"required":"1","defaultValue":"0","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('40', '7', 'port', 'port', 2, 3, 3, '{"rule":"/^[0-9]*$/"}', to_date('25-12-2020', 'dd-mm-yyyy'), to_date('25-12-2020', 'dd-mm-yyyy'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -1420,29 +1420,29 @@ values ('41', '7', 'async', 'async', 2, 3, 4, null, to_date('25-12-2020', 'dd-mm
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('42', '16', 'redirectURI', 'redirectURI', 2, 2, 1, null, to_date('29-11-2020 16:07:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-11-2020 16:07:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('43', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('43', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('44', '5', 'upstreamHost', 'host', 2, 1, 0, null, to_date('06-03-2021 21:23:41', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('45', '5', 'protocol', 'protocol', 2, 1, 2, '{"required":"0","defaultValue":""","placeholder":"http://","rule":"""}', to_date('06-03-2021 21:25:37', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('45', '5', 'protocol', 'protocol', 2, 1, 2, '{"required":"0","defaultValue":""","placeholder":"http://","rule":""}', to_date('06-03-2021 21:25:37', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('46', '5', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":""","rule":"""}', to_date('06-03-2021 21:25:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('46', '5', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":""","rule":""}', to_date('06-03-2021 21:25:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('47', '5', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":"""}', to_date('06-03-2021 21:26:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('47', '5', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":""}', to_date('06-03-2021 21:26:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('48', '5', 'timestamp', 'startupTime', 1, 1, 3, '{"defaultValue":"0","placeholder":"startup timestamp","rule":"""}', to_date('06-03-2021 21:27:11', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('48', '5', 'timestamp', 'startupTime', 1, 1, 3, '{"defaultValue":"0","placeholder":"startup timestamp","rule":""}', to_date('06-03-2021 21:27:11', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('49', '5', 'warmup', 'warmupTime', 1, 1, 5, '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":"""}', to_date('06-03-2021 21:27:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('49', '5', 'warmup', 'warmupTime', 1, 1, 5, '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}', to_date('06-03-2021 21:27:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('5', '10', 'degradeRuleEnable', 'degradeRuleEnable (1 or 0)', 1, 2, 2, '{"required":"1","defaultValue":"1","rule":"/^[01]$/"}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('50', '5', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":"""}', to_date('06-03-2021 21:29:16', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('50', '5', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', to_date('06-03-2021 21:29:16', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('51', '5', 'loadBalance', 'loadStrategy', 3, 2, 0, null, to_date('06-03-2021 21:30:32', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('52', '5', 'retry', 'retryCount', 1, 2, 1, null, to_date('06-03-2021 21:31:00', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('53', '5', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":"""}', to_date('07-03-2021 21:13:50', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('53', '5', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}', to_date('07-03-2021 21:13:50', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('54', '5', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, to_date('08-03-2021 13:18:44', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -1450,59 +1450,59 @@ values ('55', '5', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, to_date(
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('56', '13', 'upstreamHost', 'host', 2, 1, 0, null, to_date('06-03-2021 21:23:41', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('57', '13', 'protocol', 'protocol', 2, 1, 2, '{"defaultValue":""","rule":"""}', to_date('06-03-2021 21:25:37', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('57', '13', 'protocol', 'protocol', 2, 1, 2, '{"defaultValue":""","rule":""}', to_date('06-03-2021 21:25:37', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('58', '13', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":""","rule":"""}', to_date('06-03-2021 21:25:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('58', '13', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":""","rule":""}', to_date('06-03-2021 21:25:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('59', '13', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":"""}', to_date('06-03-2021 21:26:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('59', '13', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":""}', to_date('06-03-2021 21:26:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('6', '10', 'degradeRuleGrade', 'degradeRuleGrade', 3, 2, 3, '{"required":"1","defaultValue":"0","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('6', '10', 'degradeRuleGrade', 'degradeRuleGrade', 3, 2, 3, '{"required":"1","defaultValue":"0","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('60', '13', 'timestamp', 'startupTime', 1, 1, 3, '{"defaultValue":"0","placeholder":"startup timestamp","rule":"""}', to_date('06-03-2021 21:27:11', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('60', '13', 'timestamp', 'startupTime', 1, 1, 3, '{"defaultValue":"0","placeholder":"startup timestamp","rule":""}', to_date('06-03-2021 21:27:11', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('61', '13', 'warmup', 'warmupTime', 1, 1, 5, '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":"""}', to_date('06-03-2021 21:27:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('61', '13', 'warmup', 'warmupTime', 1, 1, 5, '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}', to_date('06-03-2021 21:27:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('62', '13', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":"""}', to_date('06-03-2021 21:29:16', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('62', '13', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', to_date('06-03-2021 21:29:16', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('63', '13', 'loadBalance', 'loadStrategy', 3, 2, 0, null, to_date('06-03-2021 21:30:32', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('64', '13', 'retry', 'retryCount', 1, 2, 1, null, to_date('06-03-2021 21:31:00', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('65', '13', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":"""}', to_date('07-03-2021 21:13:50', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('65', '13', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}', to_date('07-03-2021 21:13:50', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('66', '13', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, to_date('08-03-2021 13:18:44', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('67', '13', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, to_date('08-03-2021 13:37:12', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('7', '10', 'degradeRuleCount', 'degradeRuleCount', 1, 2, 1, '{"required":"1","defaultValue":"0","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('7', '10', 'degradeRuleCount', 'degradeRuleCount', 1, 2, 1, '{"required":"1","defaultValue":"0","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('70', '15', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":""","rule":"""}', to_date('06-03-2021 21:25:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('70', '15', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":""","rule":""}', to_date('06-03-2021 21:25:55', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('71', '15', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":"""}', to_date('06-03-2021 21:26:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('71', '15', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":""}', to_date('06-03-2021 21:26:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('74', '15', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":"""}', to_date('06-03-2021 21:29:16', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
+values ('74', '15', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', to_date('06-03-2021 21:29:16', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('78', '15', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, to_date('08-03-2021 13:18:44', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('79', '15', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, to_date('08-03-2021 13:37:12', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-03-2021 10:32:51', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('8', '10', 'degradeRuleTimeWindow', 'degradeRuleTimeWindow', 1, 2, 4, '{"required":"1","defaultValue":"0","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('8', '10', 'degradeRuleTimeWindow', 'degradeRuleTimeWindow', 1, 2, 4, '{"required":"1","defaultValue":"0","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('80', '5', 'headerMaxSize', 'headerMaxSize', 1, 2, 3, '{"defaultValue":"10240","rule":"""}', to_date('29-04-2021 12:28:45', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-04-2021 12:28:52', 'dd-mm-yyyy hh24:mi:ss'));
+values ('80', '5', 'headerMaxSize', 'headerMaxSize', 1, 2, 3, '{"defaultValue":"10240","rule":""}', to_date('29-04-2021 12:28:45', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-04-2021 12:28:52', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('81', '5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4, '{"defaultValue":"102400","rule":"""}', to_date('29-04-2021 14:24:13', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-04-2021 14:24:16', 'dd-mm-yyyy hh24:mi:ss'));
+values ('81', '5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4, '{"defaultValue":"102400","rule":""}', to_date('29-04-2021 14:24:13', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-04-2021 14:24:16', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('82', '4', 'keyResolverName', 'keyResolverName', 3, 2, 4, '{"required":"1","defaultValue":"WHOLE_KEY_RESOLVER","rule":"""}', to_date('12-06-2021 19:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('12-06-2021 19:17:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('82', '4', 'keyResolverName', 'keyResolverName', 3, 2, 4, '{"required":"1","defaultValue":"WHOLE_KEY_RESOLVER","rule":""}', to_date('12-06-2021 19:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('12-06-2021 19:17:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('83', '10', 'degradeRuleMinRequestAmount', 'degradeRuleMinRequestAmount', 1, 2, 3, '{"required":"1","defaultValue":"5","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('83', '10', 'degradeRuleMinRequestAmount', 'degradeRuleMinRequestAmount', 1, 2, 3, '{"required":"1","defaultValue":"5","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('84', '10', 'getDegradeRuleStatIntervals', 'getDegradeRuleStatIntervals', 1, 2, 3, '{"required":"1","defaultValue":"1","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('84', '10', 'getDegradeRuleStatIntervals', 'getDegradeRuleStatIntervals', 1, 2, 3, '{"required":"1","defaultValue":"1","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('85', '10', 'degradeRuleSlowRatioThreshold', 'degradeRuleSlowRatioThreshold', 1, 2, 3, '{"required":"1","defaultValue":"0.5","rule":"""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('85', '10', 'degradeRuleSlowRatioThreshold', 'degradeRuleSlowRatioThreshold', 1, 2, 3, '{"required":"1","defaultValue":"0.5","rule":""}', to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('86', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":"""}', to_date('27-05-2021 23:43:53', 'dd-mm-yyyy hh24:mi:ss'), to_date('30-05-2021 19:58:28', 'dd-mm-yyyy hh24:mi:ss'));
+values ('86', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', to_date('27-05-2021 23:43:53', 'dd-mm-yyyy hh24:mi:ss'), to_date('30-05-2021 19:58:28', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('88', '10', 'fallbackUri', 'fallbackUri', 2, 2, 9, '{"required":"0","rule":"""}', to_date('07-07-2021 21:24:18', 'dd-mm-yyyy hh24:mi:ss'), to_date('07-07-2021 21:35:00', 'dd-mm-yyyy hh24:mi:ss'));
+values ('88', '10', 'fallbackUri', 'fallbackUri', 2, 2, 9, '{"required":"0","rule":""}', to_date('07-07-2021 21:24:18', 'dd-mm-yyyy hh24:mi:ss'), to_date('07-07-2021 21:35:00', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('89', '19', 'secretKey', 'secretKey', 2, 3, 0, null, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -1510,8 +1510,11 @@ values ('9', '2', 'permission', 'permission', 3, 2, 1, null, to_date('22-11-2020
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('90', '19', 'filterPath', 'filterPath', 2, 3, 1, null, to_date('12-06-2021 19:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('12-06-2021 19:17:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-values ('99', '12', 'automaticTransitionFromOpenToHalfOpenEnabled', 'automaticHalfOpen', 3, 2, 1, '{"required":"1","defaultValue":"true","rule":"""}', to_date('18-07-2021 22:52:20', 'dd-mm-yyyy hh24:mi:ss'), to_date('18-07-2021 22:59:57', 'dd-mm-yyyy hh24:mi:ss'));
+values ('99', '12', 'automaticTransitionFromOpenToHalfOpenEnabled', 'automaticHalfOpen', 3, 2, 1, '{"required":"1","defaultValue":"true","rule":""}', to_date('18-07-2021 22:52:20', 'dd-mm-yyyy hh24:mi:ss'), to_date('18-07-2021 22:59:57', 'dd-mm-yyyy hh24:mi:ss'));
 commit;
+
+
+
 
 
 insert into shenyu."RESOURCE" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
