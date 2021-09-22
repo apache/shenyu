@@ -125,7 +125,6 @@
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
@@ -601,65 +600,6 @@
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <version>${apache-rat-plugin.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/target/**</exclude>
-                        <exclude>**/logs/**</exclude>
-                        <exclude>**/*.log</exclude>
-                        <exclude>**/*.tar.gz</exclude>
-                        <exclude>**/spring.factories</exclude>
-                        <exclude>**/spring.provides</exclude>
-                        <exclude>/script/**</exclude>
-                        <exclude>**/*.json</exclude>
-                        <!-- IDE files -->
-                        <exclude>**/*.iml</exclude>
-                        <exclude>**/.idea/**</exclude>
-                        <exclude>**/*.classpath</exclude>
-                        <exclude>**/.project</exclude>
-                        <exclude>**/.settings/**</exclude>
-                        <exclude>**/dependency-reduced-pom.xml</exclude>
-                        <!-- git files -->
-                        <exclude>**/.gitignore</exclude>
-                        <exclude>**/.gitmodules</exclude>
-                        <exclude>**/.git/**</exclude>
-                        <!-- CI files -->
-                        <exclude>**/.travis.yml</exclude>
-                        <exclude>**/.codecov.yml</exclude>
-                        <exclude>**/.mvn/jvm.config</exclude>
-                        <exclude>**/.mvn/wrapper/maven-wrapper.properties</exclude>
-                        <!-- GitHub files -->
-                        <exclude>**/.github/**</exclude>
-                        <!-- document files -->
-                        <exclude>**/*.md</exclude>
-                        <excldue>**/*.MD</excldue>
-                        <exclude>**/*.txt</exclude>
-                        <exclude>**/docs/**</exclude>
-                        <!-- UI files -->
-                        <exclude>**/.babelrc</exclude>
-                        <exclude>**/.editorconfig</exclude>
-                        <exclude>**/.eslintignore</exclude>
-                        <exclude>**/assets/**</exclude>
-                        <exclude>**/dist/**</exclude>
-                        <exclude>**/etc/**</exclude>
-                        <exclude>**/node/**</exclude>
-                        <exclude>**/node_modules/**</exclude>
-                        <exclude>**/test/coverage/**</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
