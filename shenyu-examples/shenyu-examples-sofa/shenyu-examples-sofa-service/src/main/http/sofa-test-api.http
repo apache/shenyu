@@ -35,8 +35,10 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "id": 123,
-  "name": "test"
+  "sofaSimpleTypeBean": {
+    "id": 123,
+    "name": "test"
+  }
 }
 
 ### shengyu getway proxy findByIdsAndName
@@ -145,17 +147,19 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "sofaSimpleTypeBean": {
-    "id": "123",
-    "name": "test"
-  },
-  "idLists": [
-    123,
-    124
-  ],
-  "idMaps": {
-    "abc": "abc",
-    "cbd": "cbd"
+  "sofaComplexTypeBean": {
+    "sofaSimpleTypeBean": {
+      "id": "123",
+      "name": "test"
+    },
+    "idLists": [
+      123,
+      124
+    ],
+    "idMaps": {
+      "abc": "abc",
+      "cbd": "cbd"
+    }
   }
 }
 
@@ -204,12 +208,14 @@ Content-Type: application/json
       }
     }
   ],
-  "testKey1": {
-    "id": "123",
-    "name": "test"
-  },
-  "testKey2": {
-    "id": "123",
-    "name": "test"
+  "sofaSimpleTypeBeanMap": {
+    "testKey1": {
+      "id": "123",
+      "name": "test"
+    },
+    "testKey2": {
+      "id": "123",
+      "name": "test"
+    }
   }
 }
