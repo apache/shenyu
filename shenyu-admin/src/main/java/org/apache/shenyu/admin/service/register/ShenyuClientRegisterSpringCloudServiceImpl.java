@@ -157,7 +157,8 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
                     }
                 }
                 exist.add(addDivideUpstream);
-                handleAdd = GsonUtils.getInstance().toJson(exist);
+                springCloudSelectorHandle.setDivideUpstreams(exist);
+                handleAdd = GsonUtils.getInstance().toJson(springCloudSelectorHandle);
             }
             selectorDO.setHandle(handleAdd);
             selectorData.setHandle(handleAdd);
