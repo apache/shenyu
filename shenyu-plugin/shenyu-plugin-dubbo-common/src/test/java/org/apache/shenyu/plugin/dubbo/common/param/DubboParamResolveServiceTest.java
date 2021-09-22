@@ -34,10 +34,10 @@ import static org.junit.Assert.assertThat;
  * Test cases for DefaultDubboParamResolveService.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DubboBodyParamResolveServiceTest {
+public class DubboParamResolveServiceTest {
     
     @InjectMocks
-    private DubboBodyParamResolveServiceImpl impl;
+    private DubboParamResolveServiceImpl impl;
     
     @Test
     public void testBuildParameterWithNull() {

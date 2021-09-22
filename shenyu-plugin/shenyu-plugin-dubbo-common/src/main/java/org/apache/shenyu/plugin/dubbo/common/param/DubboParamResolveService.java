@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.param;
+package org.apache.shenyu.plugin.dubbo.common.param;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * The interface Generic param service.
- * This service is used to construct the parameters required for the dubbo and sofa generalization.
+ * This service is used to construct the parameters required for the dubbo generalization.
  */
-public interface BodyParamResolveService {
+public interface DubboParamResolveService {
 
     /**
      * Build parameter pair.

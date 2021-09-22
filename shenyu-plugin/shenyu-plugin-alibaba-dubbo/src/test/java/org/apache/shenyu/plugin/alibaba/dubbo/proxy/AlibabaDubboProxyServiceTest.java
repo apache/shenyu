@@ -29,7 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
+import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -97,7 +97,7 @@ public final class AlibabaDubboProxyServiceTest {
         }
     }
 
-    class BodyParamResolveServiceImpl implements BodyParamResolveService {
+    class BodyParamResolveServiceImpl implements DubboParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
