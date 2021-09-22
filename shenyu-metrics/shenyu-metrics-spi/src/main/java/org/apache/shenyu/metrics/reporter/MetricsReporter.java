@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.metrics.reporter;
 
+import org.apache.shenyu.metrics.constant.LabelNames;
 import org.apache.shenyu.metrics.entity.Metric;
 import org.apache.shenyu.metrics.spi.MetricsRegister;
 
@@ -38,6 +39,9 @@ public final class MetricsReporter {
      */
     public static void register(final MetricsRegister metricsRegister) {
         MetricsReporter.metricsRegister = metricsRegister;
+        MetricsReporter.registerCounter(LabelNames.REQUEST_TOTAL, "shenyu request total count");
+        MetricsReporter.registerCounter(LabelNames.HTTP_REQUEST_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
+        MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
     }
     
     /**
