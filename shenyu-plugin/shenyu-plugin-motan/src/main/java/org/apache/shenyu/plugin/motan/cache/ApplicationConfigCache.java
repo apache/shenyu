@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
@@ -155,6 +156,9 @@ public final class ApplicationConfigCache {
      * @return the reference config
      */
     public RefererConfig<CommonHandler> build(final MetaData metaData) {
+        if (Objects.isNull(protocolConfig) || Objects.isNull(registryConfig)) {
+            return new RefererConfig<>();
+        }
         RefererConfig<CommonHandler> reference = new RefererConfig<>();
         reference.setInterface(CommonHandler.class);
         reference.setServiceInterface(metaData.getServiceName());
