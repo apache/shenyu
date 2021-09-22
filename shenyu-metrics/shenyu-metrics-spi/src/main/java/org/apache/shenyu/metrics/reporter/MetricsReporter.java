@@ -224,6 +224,7 @@ public final class MetricsReporter {
      */
     public static void clean() {
         Optional.ofNullable(metricsRegister).ifPresent(MetricsRegister::clean);
+        metricsRegister = null;
     }
     
     private static String[] getLabelNames(final List<String> labels) {
