@@ -22,7 +22,7 @@ import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandle
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.apache.shenyu.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
+import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.springboot.plugin.dubbo.common.DubboCommonConfiguration;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -43,12 +43,12 @@ public class ApacheDubboPluginConfiguration {
     /**
      * Dubbo plugin shenyu plugin.
      *
-     * @param dubboBodyParamResolveService the dubbo param resolve service
+     * @param dubboParamResolveServices the dubbo param resolve service
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin apacheDubboPlugin(final ObjectProvider<BodyParamResolveService> dubboBodyParamResolveService) {
-        return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboBodyParamResolveService.getIfAvailable()));
+    public ShenyuPlugin apacheDubboPlugin(final ObjectProvider<DubboParamResolveService> dubboParamResolveServices) {
+        return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboParamResolveServices.getIfAvailable()));
     }
     
     /**

@@ -39,7 +39,7 @@ import static org.junit.Assert.assertThat;
 public final class SofaBodyParamResolveServiceTest {
 
     @InjectMocks
-    private SofaBodyParamResolveServiceImpl impl;
+    private SofaParamResolveServiceImpl impl;
 
     @Test
     public void testBuildParameter() {

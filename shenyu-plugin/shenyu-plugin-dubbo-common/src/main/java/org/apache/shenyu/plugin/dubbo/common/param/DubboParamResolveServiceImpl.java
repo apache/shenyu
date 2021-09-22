@@ -18,13 +18,12 @@
 package org.apache.shenyu.plugin.dubbo.common.param;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
 
 /**
  * The type Default generic param resolve service.
  */
-public class DubboBodyParamResolveServiceImpl implements BodyParamResolveService {
+public class DubboParamResolveServiceImpl implements DubboParamResolveService {
 
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {

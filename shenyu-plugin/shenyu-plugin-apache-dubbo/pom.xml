@@ -28,6 +28,11 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-dubbo-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-base</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -47,6 +52,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-
 </project>
