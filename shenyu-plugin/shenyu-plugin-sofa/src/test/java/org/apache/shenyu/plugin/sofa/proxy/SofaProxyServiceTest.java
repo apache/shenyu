@@ -25,8 +25,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,7 +92,7 @@ public final class SofaProxyServiceTest {
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
     }
 
-    static class SofaParamResolveServiceImpl implements BodyParamResolveService {
+    static class SofaParamResolveServiceImpl implements SofaParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
