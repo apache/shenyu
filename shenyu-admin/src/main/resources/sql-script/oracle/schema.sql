@@ -1,10 +1,27 @@
-/* 删除表空间 */
+-- Licensed to the Apache Software Foundation (ASF) under one
+-- or more contributor license agreements.  See the NOTICE file
+-- distributed with this work for additional information
+-- regarding copyright ownership.  The ASF licenses this file
+-- to you under the Apache License, Version 2.0 (the
+-- "License"); you may not use this file except in compliance
+-- with the License.  You may obtain a copy of the License at
+--
+--     http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+
+
+/* DROP TABLESPACE */
 DROP TABLESPACE shenyu_data INCLUDING CONTENTS AND DATAFILES CASCADE CONSTRAINTS;
-/* 删除用户 */
+/* DROP USER  */
 DROP USER shenyu cascade;
 
 
-/*第2步：创建数据表空间  */
+/* create tablespace   */
 create tablespace shenyu_data
 logging
 datafile 'D:\oracle\shenyu_data.dbf'
@@ -13,11 +30,11 @@ autoextend on
 next 50m maxsize 20480m
 extent management local;
 
-/*第3步：创建用户并指定表空间  */
+/* create user xxx by xx  */
 create user shenyu identified by shenyu
 default tablespace shenyu_data;
 
-/*第4步：给用户授予权限  */
+/* grant */
 grant connect,resource,dba to shenyu;
 
 create table SHENYU.APP_AUTH

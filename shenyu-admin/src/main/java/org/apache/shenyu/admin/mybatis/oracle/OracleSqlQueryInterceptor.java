@@ -22,6 +22,8 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
+import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
@@ -32,6 +34,8 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.shenyu.common.utils.ReflectUtils;
+
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -43,7 +47,8 @@ import java.util.regex.Pattern;
  */
 @Intercepts({
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
-        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class})
+        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
+        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
 })
 public class OracleSqlQueryInterceptor implements Interceptor {
 
@@ -54,19 +59,27 @@ public class OracleSqlQueryInterceptor implements Interceptor {
         Object[] args = invocation.getArgs();
         MappedStatement ms = (MappedStatement) args[0];
         Object parameter = args[1];
-        RowBounds rowBounds = (RowBounds) args[2];
-        ResultHandler<?> resultHandler = (ResultHandler<?>) args[3];
         Executor executor = (Executor) invocation.getTarget();
-        CacheKey cacheKey;
         BoundSql boundSql;
-        if (args.length == 4) {
-            boundSql = getProcessedBoundSql(ms, ms.getBoundSql(parameter));
-            cacheKey = executor.createCacheKey(ms, parameter, rowBounds, boundSql);
+        CacheKey cacheKey;
+
+        if (ms.getSqlCommandType().compareTo(SqlCommandType.SELECT) == 0) {
+            RowBounds rowBounds = (RowBounds) args[2];
+            ResultHandler<?> resultHandler = (ResultHandler<?>) args[3];
+
+            if (args.length == 4) {
+                boundSql = getProcessedBoundSql(ms, ms.getBoundSql(parameter));
+                cacheKey = executor.createCacheKey(ms, parameter, rowBounds, boundSql);
+            } else {
+                cacheKey = (CacheKey) args[4];
+                boundSql = getProcessedBoundSql(ms, (BoundSql) args[5]);
+            }
+            return executor.query(ms, parameter, rowBounds, resultHandler, cacheKey, boundSql);
         } else {
-            cacheKey = (CacheKey) args[4];
-            boundSql = getProcessedBoundSql(ms, (BoundSql) args[5]);
+            boundSql = getProcessedBoundSql(ms, ms.getBoundSql(parameter));
+            MappedStatement newMs = copyFromMappedStatement(ms, new BoundSqlSqlSource(boundSql));
+            return executor.update(newMs, parameter);
         }
-        return executor.query(ms, parameter, rowBounds, resultHandler, cacheKey, boundSql);
     }
 
     private BoundSql getProcessedBoundSql(final MappedStatement ms, final BoundSql boundSql) {
@@ -112,4 +125,35 @@ public class OracleSqlQueryInterceptor implements Interceptor {
     public void setProperties(final Properties properties) {
     }
 
+
+    private MappedStatement copyFromMappedStatement(MappedStatement ms, SqlSource newSqlSource) {
+        MappedStatement.Builder builder = new MappedStatement.Builder(ms.getConfiguration(), ms.getId(), newSqlSource, ms.getSqlCommandType());
+        builder.resource(ms.getResource());
+        builder.fetchSize(ms.getFetchSize());
+        builder.statementType(ms.getStatementType());
+        builder.keyGenerator(ms.getKeyGenerator());
+        if (ms.getKeyProperties() != null && ms.getKeyProperties().length > 0) {
+            builder.keyProperty(ms.getKeyProperties()[0]);
+        }
+        builder.timeout(ms.getTimeout());
+        builder.parameterMap(ms.getParameterMap());
+        builder.resultMaps(ms.getResultMaps());
+        builder.resultSetType(ms.getResultSetType());
+        builder.cache(ms.getCache());
+        builder.flushCacheRequired(ms.isFlushCacheRequired());
+        builder.useCache(ms.isUseCache());
+        return builder.build();
+    }
+
+    public static class BoundSqlSqlSource implements SqlSource {
+        private BoundSql boundSql;
+
+        public BoundSqlSqlSource(BoundSql boundSql) {
+            this.boundSql = boundSql;
+        }
+
+        public BoundSql getBoundSql(Object parameterObject) {
+            return boundSql;
+        }
+    }
 }
