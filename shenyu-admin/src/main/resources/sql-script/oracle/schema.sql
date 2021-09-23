@@ -401,7 +401,7 @@ create table SHENYU."RESOURCE"
     icon          VARCHAR2(32),
     is_leaf       NUMBER(3) not null,
     is_route      NUMBER(10) not null,
-    perms         VARCHAR2(64) not null,
+    perms         VARCHAR2(64),
     status        NUMBER(10) not null,
     date_created  DATE default SYSDATE not null,
     date_updated  DATE default SYSDATE not null
@@ -2293,34 +2293,34 @@ commit;
 
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('1', 'sign', '<CLOB>', 'authentication', 7, 0, to_date('14-06-2018 10:17:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('14-06-2018 10:17:35', 'dd-mm-yyyy hh24:mi:ss'));
+values ('1', 'sign', EMPTY_CLOB(), 'authentication', 7, 0, to_date('14-06-2018 10:17:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('14-06-2018 10:17:35', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('10', 'sentinel', '<CLOB>', 'fault tolerance', 12, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('10', 'sentinel', EMPTY_CLOB(), 'fault tolerance', 12, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
 values ('11', 'sofa', '{"protocol":"zookeeper","register":"127.0.0.1:2181"}', 'rpc proxy', 18, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('12', 'resilience4j', '<CLOB>', 'fault tolerance', 13, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('12', 'resilience4j', EMPTY_CLOB(), 'fault tolerance', 13, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
 values ('13', 'tars', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 'rpc proxy', 19, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('14', 'context_path', '<CLOB>', 'http process', 2, 1, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('14', 'context_path', EMPTY_CLOB(), 'http process', 2, 1, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
 values ('15', 'grpc', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 'rpc proxy', 20, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('16', 'redirect', '<CLOB>', 'http process', 3, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('16', 'redirect', EMPTY_CLOB(), 'http process', 3, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
 values ('17', 'motan', '{"register":"127.0.0.1:2181"}', 'rpc proxy', 21, 0, to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('09-11-2020 01:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('18', 'logging', '<CLOB>', 'logging', 14, 0, to_date('29-04-2021 13:37:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-04-2021 13:37:35', 'dd-mm-yyyy hh24:mi:ss'));
+values ('18', 'logging', EMPTY_CLOB(), 'logging', 14, 0, to_date('29-04-2021 13:37:35', 'dd-mm-yyyy hh24:mi:ss'), to_date('29-04-2021 13:37:35', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
 values ('19', 'jwt', '{"secretKey":"key","filterPath":""}', 'authentication', 9, 0, to_date('24-05-2021 17:58:37', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-05-2021 15:38:04', 'dd-mm-yyyy hh24:mi:ss'));
@@ -2329,10 +2329,10 @@ insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, 
 values ('2', 'waf', '{"model":"black"}', 'authentication', 8, 0, to_date('23-06-2018 10:26:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-06-2018 15:43:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('20', 'request', '<CLOB>', 'http process', 4, 0, to_date('26-05-2021 21:38:48', 'dd-mm-yyyy hh24:mi:ss'), to_date('30-05-2021 19:55:22', 'dd-mm-yyyy hh24:mi:ss'));
+values ('20', 'request', EMPTY_CLOB(), 'http process', 4, 0, to_date('26-05-2021 21:38:48', 'dd-mm-yyyy hh24:mi:ss'), to_date('30-05-2021 19:55:22', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('21', 'oauth2', '<CLOB>', 'authentication', 10, 0, to_date('18-06-2021 10:53:42', 'dd-mm-yyyy hh24:mi:ss'), to_date('18-06-2021 10:53:42', 'dd-mm-yyyy hh24:mi:ss'));
+values ('21', 'oauth2', EMPTY_CLOB(), 'authentication', 10, 0, to_date('18-06-2021 10:53:42', 'dd-mm-yyyy hh24:mi:ss'), to_date('18-06-2021 10:53:42', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
 values ('22', 'param_mapping', '{"ruleHandlePageType":"custom"}', 'http process', 5, 0, to_date('17-06-2021 22:34:44', 'dd-mm-yyyy hh24:mi:ss'), to_date('17-06-2021 22:36:00', 'dd-mm-yyyy hh24:mi:ss'));
@@ -2341,13 +2341,13 @@ insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, 
 values ('23', 'modifyResponse', '{"ruleHandlePageType":"custom"}', 'http process', 23, 0, to_date('30-05-2021 21:26:37', 'dd-mm-yyyy hh24:mi:ss'), to_date('30-05-2021 23:26:11', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('24', 'cryptor_request', '<CLOB>', '1', 25, 1, to_date('06-08-2021 13:55:21', 'dd-mm-yyyy hh24:mi:ss'), to_date('17-08-2021 16:35:41', 'dd-mm-yyyy hh24:mi:ss'));
+values ('24', 'cryptor_request', EMPTY_CLOB(), '1', 25, 1, to_date('06-08-2021 13:55:21', 'dd-mm-yyyy hh24:mi:ss'), to_date('17-08-2021 16:35:41', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('25', 'cryptor_response', '<CLOB>', '1', 26, 1, to_date('06-08-2021 13:55:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 16:03:40', 'dd-mm-yyyy hh24:mi:ss'));
+values ('25', 'cryptor_response', EMPTY_CLOB(), '1', 26, 1, to_date('06-08-2021 13:55:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 16:03:40', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('3', 'rewrite', '<CLOB>', 'http process', 6, 0, to_date('23-06-2018 10:26:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-06-2018 13:59:31', 'dd-mm-yyyy hh24:mi:ss'));
+values ('3', 'rewrite', EMPTY_CLOB(), 'http process', 6, 0, to_date('23-06-2018 10:26:34', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-06-2018 13:59:31', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
 values ('4', 'rate_limiter', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 'fault tolerance', 10, 0, to_date('23-06-2018 10:26:37', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-06-2018 15:34:48', 'dd-mm-yyyy hh24:mi:ss'));
@@ -2362,10 +2362,10 @@ insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, 
 values ('7', 'monitor', '{"metricsName":"prometheus","host":"localhost","port":"9190","async":"true"}', 'monitor', 15, 0, to_date('25-06-2018 13:47:57', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-06-2018 13:47:57', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('8', 'springCloud', '<CLOB>', 'rpc proxy', 17, 0, to_date('25-06-2018 13:47:57', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-06-2018 13:47:57', 'dd-mm-yyyy hh24:mi:ss'));
+values ('8', 'springCloud', EMPTY_CLOB(), 'rpc proxy', 17, 0, to_date('25-06-2018 13:47:57', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-06-2018 13:47:57', 'dd-mm-yyyy hh24:mi:ss'));
 
 insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, DATE_UPDATED)
-values ('9', 'hystrix', '<CLOB>', 'fault tolerance', 11, 0, to_date('15-01-2020 10:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('15-01-2020 10:19:10', 'dd-mm-yyyy hh24:mi:ss'));
+values ('9', 'hystrix', EMPTY_CLOB(), 'fault tolerance', 11, 0, to_date('15-01-2020 10:19:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('15-01-2020 10:19:10', 'dd-mm-yyyy hh24:mi:ss'));
 
 commit;
 
