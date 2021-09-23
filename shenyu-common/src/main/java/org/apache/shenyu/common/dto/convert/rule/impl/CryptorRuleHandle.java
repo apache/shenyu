@@ -121,7 +121,7 @@ public class CryptorRuleHandle implements RuleHandle {
                 + ", decryptKey='" + decryptKey + '\''
                 + ", encryptKey='" + encryptKey + '\''
                 + ", fieldNames='" + fieldNames + '\''
-                + ", mode='" + way + '\''
+                + ", way='" + way + '\''
                 + '}';
     }
 
