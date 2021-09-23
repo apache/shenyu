@@ -35,7 +35,6 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.shenyu.common.utils.ReflectUtils;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -48,7 +47,7 @@ import java.util.regex.Pattern;
 @Intercepts({
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
-        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
+        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})
 })
 public class OracleSqlQueryInterceptor implements Interceptor {
 
@@ -125,8 +124,7 @@ public class OracleSqlQueryInterceptor implements Interceptor {
     public void setProperties(final Properties properties) {
     }
 
-
-    private MappedStatement copyFromMappedStatement(MappedStatement ms, SqlSource newSqlSource) {
+    private MappedStatement copyFromMappedStatement(final MappedStatement ms, final SqlSource newSqlSource) {
         MappedStatement.Builder builder = new MappedStatement.Builder(ms.getConfiguration(), ms.getId(), newSqlSource, ms.getSqlCommandType());
         builder.resource(ms.getResource());
         builder.fetchSize(ms.getFetchSize());
@@ -148,11 +146,16 @@ public class OracleSqlQueryInterceptor implements Interceptor {
     public static class BoundSqlSqlSource implements SqlSource {
         private BoundSql boundSql;
 
-        public BoundSqlSqlSource(BoundSql boundSql) {
+        public BoundSqlSqlSource(final BoundSql boundSql) {
             this.boundSql = boundSql;
         }
 
-        public BoundSql getBoundSql(Object parameterObject) {
+        /**
+         * get boundSql.
+         * @param parameterObject the parameterObject.
+         * @return boundSql.
+         */
+        public BoundSql getBoundSql(final Object parameterObject) {
             return boundSql;
         }
     }
