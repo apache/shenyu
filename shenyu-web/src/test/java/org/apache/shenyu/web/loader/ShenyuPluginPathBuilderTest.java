@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
@@ -33,6 +34,7 @@ public final class ShenyuPluginPathBuilderTest {
     @Test
     public void getPluginPath1() {
         File pluginPath = ShenyuPluginPathBuilder.getPluginPath("D:\\testpath");
+        Assert.assertNotNull(pluginPath);
     }
 
 
@@ -43,6 +45,7 @@ public final class ShenyuPluginPathBuilderTest {
     @Test
     public void getPluginPath2() {
         File pluginPath = ShenyuPluginPathBuilder.getPluginPath("");
+        Assert.assertNotNull(pluginPath);
     }
 
     /**
@@ -51,5 +54,6 @@ public final class ShenyuPluginPathBuilderTest {
     @Test
     public void getPluginPath3() {
         File pluginPath = ShenyuPluginPathBuilder.getPluginPath("");
+        Assert.assertNotNull(pluginPath);
     }
 }
