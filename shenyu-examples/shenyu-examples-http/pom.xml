@@ -82,27 +82,39 @@
                     <executable>true</executable>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.6</version>
-                <executions>
-                    <execution>
-                        <id>shenyu-examples-http</id>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <repository>shenyu-examples-http</repository>
-                    <tag>latest</tag>
-                    <buildArgs>
-                        <APP_NAME>shenyu-examples-http</APP_NAME>
-                    </buildArgs>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>docker</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>dockerfile-maven-plugin</artifactId>
+                        <version>1.4.6</version>
+                        <executions>
+                            <execution>
+                                <id>shenyu-examples-http</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <repository>shenyu-examples-http</repository>
+                            <tag>latest</tag>
+                            <buildArgs>
+                                <APP_NAME>shenyu-examples-http</APP_NAME>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

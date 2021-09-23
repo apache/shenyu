@@ -75,8 +75,7 @@ public class MotanProxyService {
         ResponseFuture responseFuture;
         //CHECKSTYLE:OFF IllegalCatch
         try {
-            responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(),
-                    params, Object.class);
+            responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(), params, Object.class);
         } catch (Throwable e) {
             LOG.error("Exception caught in MotanProxyService#genericInvoker.");
             return null;
@@ -93,14 +92,4 @@ public class MotanProxyService {
             return ret;
         })).onErrorMap(ShenyuException::new);
     }
-
-//    private GenericMessage buildGenericMessage(String name, Map<String, Object> map) {
-//        GenericMessage message = new GenericMessage();
-//        message.setName(name);
-//        for (Map.Entry<String, Object> e : map.entrySet()) {
-//            int nameIndex = CommonSerializer.getHash(e.getKey());
-//            message.putFields(nameIndex,e.getValue());
-//        }
-//        return message;
-//    }
 }

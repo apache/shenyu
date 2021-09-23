@@ -54,7 +54,7 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-springcloud/pom.xml
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-springcloud/pom.xml -Pdocker
       - name: Build eureka
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-eureka/pom.xml

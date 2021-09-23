@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sofa.param;
 
+import com.alipay.hessian.generic.model.GenericObject;
 import org.apache.commons.lang3.tuple.Pair;
 
 import org.junit.Test;
@@ -38,7 +39,7 @@ import static org.junit.Assert.assertThat;
 public final class SofaBodyParamResolveServiceTest {
 
     @InjectMocks
-    private SofaBodyParamResolveServiceImpl impl;
+    private SofaParamResolveServiceImpl impl;
 
     @Test
     public void testBuildParameter() {
@@ -93,32 +94,29 @@ public final class SofaBodyParamResolveServiceTest {
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
-        Map map = (Map) pair.getRight()[0];
-        map = (Map) map.get("student");
-        assertNull(map.get("id"));
-        assertNull(map.get("name"));
+        GenericObject student = (GenericObject) pair.getRight()[0];
+        assertNull(student.getField("id"));
+        assertNull(student.getField("name"));
 
         body = "{\"students\":[{\"id\":null,\"name\":null}]}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
-        map = (Map) pair.getRight()[0];
-        List list = (List) map.get("students");
-        map = (Map) list.get(0);
+        List list = (List) pair.getRight()[0];
+        Map map = (Map) list.get(0);
         assertNull(map.get("id"));
         assertNull(map.get("name"));
 
-        body = "{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}}";
+        body = "{\"complexBean\":{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}}}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
-        map = (Map) pair.getRight()[0];
-        Map dubboTest = (Map) map.get("dubboTest");
-        assertNull(dubboTest.get("id"));
-        assertNull(dubboTest.get("name"));
-        list = (List) map.get("idLists");
+        GenericObject dubboTest = (GenericObject) pair.getRight()[0];
+        assertNull(dubboTest.getField("id"));
+        assertNull(dubboTest.getField("name"));
+        list = (List) dubboTest.getField("idLists");
         assertNull(list.get(0));
         assertNull(list.get(1));
 

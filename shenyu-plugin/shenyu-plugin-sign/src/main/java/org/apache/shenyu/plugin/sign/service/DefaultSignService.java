@@ -25,15 +25,12 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
 import org.apache.shenyu.plugin.sign.api.SignService;
-import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,13 +54,9 @@ public class DefaultSignService implements SignService {
 
     @Override
     public Pair<Boolean, String> signVerify(final ServerWebExchange exchange) {
-        PluginData signData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.SIGN.getName());
-        if (signData != null && signData.getEnabled()) {
-            final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-            assert shenyuContext != null;
-            return verify(shenyuContext, exchange);
-        }
-        return Pair.of(Boolean.TRUE, "");
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return verify(shenyuContext, exchange);
     }
 
     private Pair<Boolean, String> verify(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {

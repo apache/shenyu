@@ -31,7 +31,7 @@ import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
+import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -43,15 +43,15 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ApacheDubboProxyService {
 
-    private final BodyParamResolveService bodyParamResolveService;
+    private final DubboParamResolveService dubboParamResolveService;
 
     /**
      * Instantiates a new Dubbo proxy service.
      *
-     * @param bodyParamResolveService the generic param resolve service
+     * @param dubboParamResolveService the generic param resolve service
      */
-    public ApacheDubboProxyService(final BodyParamResolveService bodyParamResolveService) {
-        this.bodyParamResolveService = bodyParamResolveService;
+    public ApacheDubboProxyService(final DubboParamResolveService dubboParamResolveService) {
+        this.dubboParamResolveService = dubboParamResolveService;
     }
 
     /**
@@ -79,7 +79,7 @@ public class ApacheDubboProxyService {
         if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.dubboBodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
-            pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
+            pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         return Mono.fromFuture(invokeAsync(genericService, metaData.getMethodName(), pair.getLeft(), pair.getRight()).thenApply(ret -> {
             if (Objects.isNull(ret)) {

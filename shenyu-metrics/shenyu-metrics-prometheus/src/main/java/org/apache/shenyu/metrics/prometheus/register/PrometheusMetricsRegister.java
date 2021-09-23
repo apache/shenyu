@@ -23,6 +23,7 @@ import io.prometheus.client.Histogram;
 import org.apache.shenyu.metrics.spi.MetricsRegister;
 import org.apache.shenyu.spi.Join;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -73,6 +74,9 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     @Override
     public void counterIncrement(final String name, final String[] labelValues, final long count) {
         Counter counter = COUNTER_MAP.get(name);
+        if (Objects.isNull(counter)) {
+            return;
+        }
         if (null != labelValues) {
             counter.labels(labelValues).inc(count);
         } else {
@@ -83,6 +87,9 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     @Override
     public void gaugeIncrement(final String name, final String[] labelValues) {
         Gauge gauge = GAUGE_MAP.get(name);
+        if (Objects.isNull(gauge)) {
+            return;
+        }
         if (null != labelValues) {
             gauge.labels(labelValues).inc();
         } else {
@@ -93,6 +100,9 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     @Override
     public void gaugeDecrement(final String name, final String[] labelValues) {
         Gauge gauge = GAUGE_MAP.get(name);
+        if (Objects.isNull(gauge)) {
+            return;
+        }
         if (null != labelValues) {
             gauge.labels(labelValues).dec();
         } else {
@@ -103,10 +113,23 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     @Override
     public void recordTime(final String name, final String[] labelValues, final long duration) {
         Histogram histogram = HISTOGRAM_MAP.get(name);
+        if (Objects.isNull(histogram)) {
+            return;
+        }
         if (null != labelValues) {
             histogram.labels(labelValues).observe(duration);
         } else {
             histogram.observe(duration);
         }
+    }
+    
+    /**
+     * Clean.
+     */
+    @Override
+    public void clean() {
+        COUNTER_MAP.clear();
+        GAUGE_MAP.clear();
+        HISTOGRAM_MAP.clear();
     }
 }
