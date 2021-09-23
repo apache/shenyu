@@ -74,15 +74,9 @@ public class OracleSqlQueryInterceptor implements Interceptor {
         List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
         Configuration configuration = ms.getConfiguration();
         Object parameterObject = boundSql.getParameterObject();
-        // Postgresql does not support the mysql escape character {`}, so replace it with {"}.
+        // Oracle does not support the mysql escape character {`}, so replace it with {"}.
         // Convert SQL statements to lowercase.
         String script = boundSql.getSql().replace("`", "\"").toLowerCase();
-        /*if (!Pattern.matches(MATCH_REGEX, script)) {
-            result = new BoundSql(configuration, script, parameterMappings, parameterObject);
-            // Resolve MyBatis interceptor plugin foreach parameter invalidation.
-            this.copyParam(boundSql, result);
-            return result;
-        }*/
 
         if (Pattern.compile(RESOURCE_PATTERN).matcher(script).find()) {
             script = script.replaceAll(RESOURCE_PATTERN, "\"RESOURCE\"");
