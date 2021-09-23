@@ -239,8 +239,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorData buildByName(final String name) {
-        SelectorDO selectorDO = selectorMapper.selectByName(name);
-        return buildSelectorData(selectorDO);
+        return buildSelectorData(selectorMapper.selectByName(name));
     }
 
     /**
@@ -284,9 +283,8 @@ public class SelectorServiceImpl implements SelectorService {
         }
         SelectorDO selectorDO = selectorMapper.selectByName(contextPath);
         String selectorId;
-        String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            selectorId = registerPluginSelector(contextPath, uri, rpcType);
+            selectorId = registerPluginSelector(contextPath, dto, rpcType);
         } else {
             selectorId = selectorDO.getId();
             //update upstream
@@ -300,8 +298,8 @@ public class SelectorServiceImpl implements SelectorService {
                 handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
             } else {
                 List<DivideUpstream> exist = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                for (DivideUpstream upstream : exist) {
-                    if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
+                for (DivideUpstream each : exist) {
+                    if (each.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
                         return selectorId;
                     }
                 }
@@ -362,10 +360,10 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
 
-    private String registerPluginSelector(final String contextPath, final String uri, final String rpcType) {
+    private String registerPluginSelector(final String contextPath, final MetaDataRegisterDTO metaDataRegisterDTO, final String rpcType) {
         SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
         //is divide
-        DivideUpstream divideUpstream = buildDivideUpstream(uri);
+        DivideUpstream divideUpstream = DivideUpstreamUtils.buildDivideUpstream(metaDataRegisterDTO);
         String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
         selectorDTO.setHandle(handler);
         upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);

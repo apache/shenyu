@@ -157,7 +157,7 @@ public final class DividePluginTest {
     private void initMockInfo() { 
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
+        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "", "");
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));

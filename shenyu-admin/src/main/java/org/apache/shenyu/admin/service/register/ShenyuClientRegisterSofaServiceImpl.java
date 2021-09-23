@@ -88,7 +88,7 @@ public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientReg
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.SOFA.getName(), metaDataDTO.getRuleName()),
+        ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.SOFA.getName()),
                 metaDataDTO.getPath(),
                 Objects.isNull(exist));
     }

@@ -521,7 +521,7 @@ public final class ShenyuClientRegisterServiceTest {
         metaDataDTO.setServiceName("serviceName3");
         metaDataDTO.setMethodName("methodName3");
         metaDataDTO.setParameterTypes("parameterTypes3");
-        metaDataDTO.setRpcExt("rpcExt3");
+        metaDataDTO.setRpcExt("{\"loadbalance\":\"random\"}");
         metaDataDTO.setEnabled(false);
         return metaDataDTO;
     }

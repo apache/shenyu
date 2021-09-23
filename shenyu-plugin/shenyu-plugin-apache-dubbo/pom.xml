@@ -51,5 +51,10 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-loadbalancer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

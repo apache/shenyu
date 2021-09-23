@@ -477,9 +477,9 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     private void registerRule(final String selectorId, final String path, final String pluginName, final String ruleName) {
         RuleHandle ruleHandle;
         if (pluginName.equals(PluginEnum.CONTEXT_PATH.getName())) {
-            ruleHandle = RuleHandleFactory.ruleHandle(pluginName, buildContextPath(path));
+            ruleHandle = RuleHandleFactory.ruleHandle(pluginName, buildContextPath(path), "");
         } else {
-            ruleHandle = RuleHandleFactory.ruleHandle(pluginName, path);
+            ruleHandle = RuleHandleFactory.ruleHandle(pluginName, path, "");
         }
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)

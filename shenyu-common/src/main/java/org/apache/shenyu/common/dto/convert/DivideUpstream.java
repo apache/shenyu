@@ -62,12 +62,19 @@ public class DivideUpstream implements Serializable {
      */
     private int warmup;
 
-    // health parameters
-
+    /**
+     * health status.
+     */
     private boolean healthy;
 
+    /**
+     * the last healthy time.
+     */
     private long lastHealthTimestamp;
 
+    /**
+     * the last unhealthy time.
+     */
     private long lastUnhealthyTimestamp;
 
     /**

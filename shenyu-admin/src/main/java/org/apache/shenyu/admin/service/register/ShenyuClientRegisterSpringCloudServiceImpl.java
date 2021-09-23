@@ -175,7 +175,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, dto.getPath(), PluginEnum.SPRING_CLOUD.getName(), dto.getRuleName()),
+        ruleService.register(registerRule(selectorId, dto, PluginEnum.SPRING_CLOUD.getName()),
                 dto.getRuleName(),
                 false);
     }
@@ -185,7 +185,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
         SelectorDO selectorDO = selectorService.findByName(name);
         if (Objects.isNull(selectorDO)) {
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
-            ruleService.register(registerRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
+            ruleService.register(registerContextPathRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
                     name,
                     false);
         }

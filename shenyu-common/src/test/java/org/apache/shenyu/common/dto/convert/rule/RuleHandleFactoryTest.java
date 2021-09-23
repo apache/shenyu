@@ -35,23 +35,23 @@ public final class RuleHandleFactoryTest {
 
     @Test
     public void testRuleHandleCorrectType() {
-        RuleHandle handle = RuleHandleFactory.ruleHandle(PluginEnum.DUBBO.getName(), "");
+        RuleHandle handle = RuleHandleFactory.ruleHandle(PluginEnum.DUBBO.getName(), "", "{\"loadbalance\":\"random\"}");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof DubboRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(PluginEnum.SOFA.getName(), "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.SOFA.getName(), "", "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof SofaRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "", "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof DivideRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(PluginEnum.GRPC.getName(), "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.GRPC.getName(), "", "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(PluginEnum.SPRING_CLOUD.getName(), "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.SPRING_CLOUD.getName(), "", "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof SpringCloudRuleHandle, is(true));
     }

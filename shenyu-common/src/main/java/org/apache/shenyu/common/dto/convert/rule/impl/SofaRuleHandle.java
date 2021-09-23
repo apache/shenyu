@@ -133,7 +133,7 @@ public class SofaRuleHandle implements RuleHandle {
     }
 
     @Override
-    public RuleHandle createDefault(final String path) {
+    public RuleHandle createDefault(final String path, final String rpcExt) {
         this.retries = RuleHandleConstants.DEFAULT_RETRIES;
         this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
         return this;

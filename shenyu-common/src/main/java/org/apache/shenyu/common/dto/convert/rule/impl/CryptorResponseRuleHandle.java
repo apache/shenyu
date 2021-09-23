@@ -88,7 +88,7 @@ public class CryptorResponseRuleHandle implements RuleHandle {
     }
 
     @Override
-    public RuleHandle createDefault(final String path) {
+    public RuleHandle createDefault(final String path, final String rpcExt) {
         return this;
     }
 

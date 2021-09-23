@@ -29,7 +29,7 @@ public class DivideUpstreamUtils {
 
 
     /**
-     * buildDivideUpstream.
+     * build divide upstream.
      *
      * @param metaDataRegisterDTO metaDataRegisterDTO
      * @return divideUpstream divideUpstream
@@ -39,7 +39,7 @@ public class DivideUpstreamUtils {
     }
 
     /**
-     * buildUrl.
+     * build url.
      *
      * @param metaDataRegisterDTO metaDataRegisterDTO
      * @return String String

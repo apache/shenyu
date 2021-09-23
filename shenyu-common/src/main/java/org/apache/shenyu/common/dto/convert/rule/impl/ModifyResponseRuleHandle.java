@@ -269,7 +269,7 @@ public class ModifyResponseRuleHandle implements RuleHandle {
     }
 
     @Override
-    public RuleHandle createDefault(final String path) {
+    public RuleHandle createDefault(final String path, final String rpcExt) {
         this.statusCode = HttpStatus.OK.value();
         return this;
     }

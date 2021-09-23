@@ -54,11 +54,30 @@ public final class Upstream {
      */
     private int warmup;
 
+    /**
+     * healthy.
+     */
     private boolean healthy;
 
+    /**
+     * lastHealthTimestamp.
+     */
     private long lastHealthTimestamp;
 
+    /**
+     * lastUnhealthyTimestamp.
+     */
     private long lastUnhealthyTimestamp;
+
+    /**
+     * group.
+     */
+    private String group;
+
+    /**
+     * version.
+     */
+    private String version;
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
@@ -67,6 +86,8 @@ public final class Upstream {
         this.status = builder.status;
         this.timestamp = builder.timestamp;
         this.warmup = builder.warmup;
+        this.group = builder.group;
+        this.version = builder.version;
     }
 
     /**
@@ -196,6 +217,42 @@ public final class Upstream {
     }
 
     /**
+     * Gets group.
+     *
+     * @return the group
+     */
+    public String getGroup() {
+        return group;
+    }
+
+    /**
+     * Sets group.
+     *
+     * @param group the group
+     */
+    public void setGroup(final String group) {
+        this.group = group;
+    }
+
+    /**
+     * Gets version.
+     *
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Sets version.
+     *
+     * @param version the version
+     */
+    public void setVersion(final String version) {
+        this.version = version;
+    }
+
+    /**
      * class builder.
      *
      * @return Builder builder
@@ -224,18 +281,14 @@ public final class Upstream {
     @Override
     public String toString() {
         return "Upstream{"
-                + "protocol='"
-                + protocol
-                + ", url='"
-                + url
-                + ", weight="
-                + weight
-                + ", status="
-                + status
-                + ", timestamp="
-                + timestamp
-                + ", warmup="
-                + warmup
+                + "protocol='" + protocol
+                + ", url='" + url
+                + ", weight=" + weight
+                + ", status=" + status
+                + ", timestamp=" + timestamp
+                + ", warmup=" + warmup
+                + ", group='" + group
+                + ", version='" + version
                 + '}';
     }
 
@@ -273,6 +326,16 @@ public final class Upstream {
          * warmup.
          */
         private int warmup = 10 * 60 * 1000;
+
+        /**
+         * group.
+         */
+        private String group;
+
+        /**
+         * version.
+         */
+        private String version;
 
         /**
          * no args constructor.
@@ -352,6 +415,28 @@ public final class Upstream {
          */
         public Builder warmup(final int warmup) {
             this.warmup = warmup;
+            return this;
+        }
+
+        /**
+         * build group.
+         *
+         * @param group group
+         * @return this builder
+         */
+        public Builder group(final String group) {
+            this.group = group;
+            return this;
+        }
+
+        /**
+         * build version.
+         *
+         * @param version version
+         * @return this builder
+         */
+        public Builder version(final String version) {
+            this.version = version;
             return this;
         }
     }

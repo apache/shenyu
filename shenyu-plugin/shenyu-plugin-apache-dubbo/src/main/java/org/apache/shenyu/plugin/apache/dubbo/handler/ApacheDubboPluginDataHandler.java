@@ -17,20 +17,38 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.handler;
 
-import java.util.Objects;
-
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.DubboSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The type Apache dubbo plugin data handler.
  */
 public class ApacheDubboPluginDataHandler implements PluginDataHandler {
+
+    public static final Supplier<RuleHandleCache<String, DubboRuleHandle>> RULE_CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+
+    public static final Supplier<RuleHandleCache<String, List<DubboSelectorHandle>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -50,7 +68,54 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
     }
 
     @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        List<DubboSelectorHandle> dubboSelectorHandles = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboSelectorHandle.class);
+        if (CollectionUtils.isEmpty(dubboSelectorHandles)) {
+            return;
+        }
+        List<DubboSelectorHandle> graySelectorHandle = new ArrayList<>();
+        for (DubboSelectorHandle each : dubboSelectorHandles) {
+            if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && each.isGray()) {
+                graySelectorHandle.add(each);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(graySelectorHandle)) {
+            SELECTOR_CACHED_HANDLE.get().cachedHandle(selectorData.getId(), graySelectorHandle);
+            UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(graySelectorHandle));
+        }
+    }
+
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        SELECTOR_CACHED_HANDLE.get().removeHandle(selectorData.getId());
+        UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+    }
+
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        RULE_CACHED_HANDLE.get().cachedHandle(ruleData.getId(), GsonUtils.getInstance().fromJson(ruleData.getHandle(), DubboRuleHandle.class));
+    }
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        RULE_CACHED_HANDLE.get().removeHandle(ruleData.getId());
+    }
+
+    @Override
     public String pluginNamed() {
         return PluginEnum.DUBBO.getName();
+    }
+
+    private List<Upstream> convertUpstreamList(final List<DubboSelectorHandle> handleList) {
+        return handleList.stream().map(u -> Upstream.builder()
+                .protocol(u.getProtocol())
+                .url(u.getUpstreamUrl())
+                .weight(u.getWeight())
+                .status(u.isStatus())
+                .timestamp(u.getTimestamp())
+                .warmup(u.getWarmup())
+                .group(u.getGroup())
+                .version(u.getVersion())
+                .build()).collect(Collectors.toList());
     }
 }
