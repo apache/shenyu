@@ -30,20 +30,25 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboRuleHandlerCache;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboSelectorHandleCache;
+import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * The type Apache dubbo plugin data handler.
  */
 public class ApacheDubboPluginDataHandler implements PluginDataHandler {
+
+    public static final Supplier<RuleHandleCache<String, DubboRuleHandle>> RULE_CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+
+    public static final Supplier<RuleHandleCache<String, List<DubboSelectorHandle>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -75,25 +80,25 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
             }
         }
         if (CollectionUtils.isNotEmpty(graySelectorHandle)) {
-            ApacheDubboSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), graySelectorHandle);
+            SELECTOR_CACHED_HANDLE.get().cachedHandle(selectorData.getId(), graySelectorHandle);
             UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(graySelectorHandle));
         }
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        ApacheDubboSelectorHandleCache.getInstance().removeHandle(selectorData.getId());
+        SELECTOR_CACHED_HANDLE.get().removeHandle(selectorData.getId());
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
     }
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        ApacheDubboRuleHandlerCache.getInstance().cachedHandle(ruleData.getId(), GsonUtils.getInstance().fromJson(ruleData.getHandle(), DubboRuleHandle.class));
+        RULE_CACHED_HANDLE.get().cachedHandle(ruleData.getId(), GsonUtils.getInstance().fromJson(ruleData.getHandle(), DubboRuleHandle.class));
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        ApacheDubboRuleHandlerCache.getInstance().removeHandle(ruleData.getId());
+        RULE_CACHED_HANDLE.get().removeHandle(ruleData.getId());
     }
 
     @Override
