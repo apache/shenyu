@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert;
+package org.apache.shenyu.common.dto.convert.selector;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

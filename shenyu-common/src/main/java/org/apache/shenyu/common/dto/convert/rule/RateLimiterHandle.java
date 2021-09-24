@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert;
+package org.apache.shenyu.common.dto.convert.rule;
 
 import java.util.Objects;
 

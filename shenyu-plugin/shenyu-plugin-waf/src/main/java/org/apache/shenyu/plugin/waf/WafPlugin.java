@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.WafHandle;
+import org.apache.shenyu.common.dto.convert.rule.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.WafEnum;
 import org.apache.shenyu.common.enums.WafModelEnum;

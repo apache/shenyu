@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert;
+package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.utils.CollectionUtils;
@@ -28,6 +28,7 @@ import java.util.Set;
  * this is RequestHandle plugin handle.
  */
 public class RequestHandle {
+    
     private ShenyuRequestHeader header;
 
     private ShenyuRequestParameter parameter;

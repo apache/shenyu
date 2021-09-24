@@ -39,7 +39,7 @@ import org.assertj.core.internal.bytebuddy.dynamic.DynamicType;
 import org.assertj.core.internal.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

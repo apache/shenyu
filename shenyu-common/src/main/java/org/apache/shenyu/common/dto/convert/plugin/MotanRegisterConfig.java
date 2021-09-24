@@ -15,35 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert;
+package org.apache.shenyu.common.dto.convert.plugin;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * This is redirect plugin handle.
+ * Motan register config.
  */
-public class RedirectHandle {
-    /**
-     * redirect url.
-     */
-    private String redirectURI;
+public class MotanRegisterConfig implements Serializable {
+
+    private String register;
 
     /**
-     * get redirectURI.
+     * get register.
      *
-     * @return redirectURI
+     * @return register
      */
-    public String getRedirectURI() {
-        return redirectURI;
+    public String getRegister() {
+        return register;
     }
 
     /**
-     * set redirectURI.
+     * set register.
      *
-     * @param redirectURI redirectURI
+     * @param register register
      */
-    public void setRedirectURI(final String redirectURI) {
-        this.redirectURI = redirectURI;
+    public void setRegister(final String register) {
+        this.register = register;
     }
 
     @Override
@@ -54,20 +53,20 @@ public class RedirectHandle {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RedirectHandle that = (RedirectHandle) o;
-        return Objects.equals(redirectURI, that.redirectURI);
+        MotanRegisterConfig that = (MotanRegisterConfig) o;
+        return Objects.equals(register, that.register);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(redirectURI);
+        return Objects.hash(register);
     }
 
     @Override
     public String toString() {
-        return "RedirectHandle{"
-                + "redirectURI='"
-                + redirectURI
+        return "MotanRegisterConfig{"
+                + "register='"
+                + register
                 + '\''
                 + '}';
     }

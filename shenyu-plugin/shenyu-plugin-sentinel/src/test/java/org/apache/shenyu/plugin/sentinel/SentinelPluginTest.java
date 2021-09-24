@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.sentinel;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.SentinelHandle;
+import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;

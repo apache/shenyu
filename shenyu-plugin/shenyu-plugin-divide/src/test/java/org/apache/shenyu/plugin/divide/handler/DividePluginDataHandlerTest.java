@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.divide.handler;
 
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;

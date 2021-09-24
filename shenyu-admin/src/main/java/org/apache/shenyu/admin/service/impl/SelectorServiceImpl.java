@@ -51,7 +51,7 @@ import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;

@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.rewrite;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.RewriteHandle;
+import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;

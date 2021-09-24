@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.Optional;

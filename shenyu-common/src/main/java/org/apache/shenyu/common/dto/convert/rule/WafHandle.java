@@ -15,34 +15,59 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.config;
+package org.apache.shenyu.common.dto.convert.rule;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Motan register config.
+ * this is waf plugin handle.
  */
-public class MotanRegisterConfig implements Serializable {
-
-    private String register;
+public class WafHandle {
 
     /**
-     * get register.
-     *
-     * @return register
+     * permission.
      */
-    public String getRegister() {
-        return register;
+    private String permission;
+
+    /**
+     * statusCode.
+     */
+    private String statusCode;
+
+    /**
+     * get permission.
+     *
+     * @return permission
+     */
+    public String getPermission() {
+        return permission;
     }
 
     /**
-     * set register.
+     * set permission.
      *
-     * @param register register
+     * @param permission permission
      */
-    public void setRegister(final String register) {
-        this.register = register;
+    public void setPermission(final String permission) {
+        this.permission = permission;
+    }
+
+    /**
+     * get statusCode.
+     *
+     * @return statusCode
+     */
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    /**
+     * set statusCode.
+     *
+     * @param statusCode statusCode
+     */
+    public void setStatusCode(final String statusCode) {
+        this.statusCode = statusCode;
     }
 
     @Override
@@ -53,20 +78,23 @@ public class MotanRegisterConfig implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        MotanRegisterConfig that = (MotanRegisterConfig) o;
-        return Objects.equals(register, that.register);
+        WafHandle wafHandle = (WafHandle) o;
+        return Objects.equals(permission, wafHandle.permission) && Objects.equals(statusCode, wafHandle.statusCode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(register);
+        return Objects.hash(permission, statusCode);
     }
 
     @Override
     public String toString() {
-        return "MotanRegisterConfig{"
-                + "register='"
-                + register
+        return "WafHandle{"
+                + "permission='"
+                + permission
+                + '\''
+                + ", statusCode='"
+                + statusCode
                 + '\''
                 + '}';
     }

@@ -15,59 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert;
+package org.apache.shenyu.common.dto.convert.rule;
 
 import java.util.Objects;
 
 /**
- * this is waf plugin handle.
+ * This is redirect plugin handle.
  */
-public class WafHandle {
-
+public class RedirectHandle {
     /**
-     * permission.
+     * redirect url.
      */
-    private String permission;
+    private String redirectURI;
 
     /**
-     * statusCode.
-     */
-    private String statusCode;
-
-    /**
-     * get permission.
+     * get redirectURI.
      *
-     * @return permission
+     * @return redirectURI
      */
-    public String getPermission() {
-        return permission;
+    public String getRedirectURI() {
+        return redirectURI;
     }
 
     /**
-     * set permission.
+     * set redirectURI.
      *
-     * @param permission permission
+     * @param redirectURI redirectURI
      */
-    public void setPermission(final String permission) {
-        this.permission = permission;
-    }
-
-    /**
-     * get statusCode.
-     *
-     * @return statusCode
-     */
-    public String getStatusCode() {
-        return statusCode;
-    }
-
-    /**
-     * set statusCode.
-     *
-     * @param statusCode statusCode
-     */
-    public void setStatusCode(final String statusCode) {
-        this.statusCode = statusCode;
+    public void setRedirectURI(final String redirectURI) {
+        this.redirectURI = redirectURI;
     }
 
     @Override
@@ -78,23 +54,20 @@ public class WafHandle {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        WafHandle wafHandle = (WafHandle) o;
-        return Objects.equals(permission, wafHandle.permission) && Objects.equals(statusCode, wafHandle.statusCode);
+        RedirectHandle that = (RedirectHandle) o;
+        return Objects.equals(redirectURI, that.redirectURI);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(permission, statusCode);
+        return Objects.hash(redirectURI);
     }
 
     @Override
     public String toString() {
-        return "WafHandle{"
-                + "permission='"
-                + permission
-                + '\''
-                + ", statusCode='"
-                + statusCode
+        return "RedirectHandle{"
+                + "redirectURI='"
+                + redirectURI
                 + '\''
                 + '}';
     }

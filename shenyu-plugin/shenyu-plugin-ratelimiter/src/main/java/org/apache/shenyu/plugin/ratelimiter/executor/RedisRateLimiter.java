@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.ratelimiter.executor;
 
-import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
+import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;

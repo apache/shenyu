@@ -18,7 +18,7 @@
 package org.apache.shenyu.web.controller;
 
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;

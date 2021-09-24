@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.alibaba.dubbo.cache;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.Assert;
