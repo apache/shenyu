@@ -22,6 +22,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 
 import java.util.List;
 import java.util.Map;
@@ -61,10 +62,11 @@ public class JsonUtil {
 
     /**
      * check param.
-     * @param json json
+     * @param ruleHandle ruleHandle
      * @return is null
      */
-    public static boolean checkParam(final String json) {
+    public static boolean checkParam(final CryptorRuleHandle ruleHandle) {
+        String json = GsonUtils.getGson().toJson(ruleHandle);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(json, String.class);
         for (Map.Entry<String, String> entry : map.entrySet()) {
             if (StringUtils.isEmpty(map.get(entry.getKey()))) {

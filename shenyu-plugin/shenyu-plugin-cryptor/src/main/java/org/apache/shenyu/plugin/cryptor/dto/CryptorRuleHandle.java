@@ -15,26 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl;
-
-import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+package org.apache.shenyu.plugin.cryptor.dto;
 
 /**
- * Cryptor request rule handle.
+ * Cryptor response rule handle.
  */
-public class CryptorRequestRuleHandle implements RuleHandle {
+public class CryptorRuleHandle {
 
     private String strategyName;
 
+    private String decryptKey;
+
+    private String encryptKey;
+
     private String fieldNames;
 
-    private String key;
-
-    /**
-     * no constructor.
-     */
-    public CryptorRequestRuleHandle() {
-    }
+    private String way;
 
     /**
      * get strategyName.
@@ -50,6 +46,38 @@ public class CryptorRequestRuleHandle implements RuleHandle {
      */
     public void setStrategyName(final String strategyName) {
         this.strategyName = strategyName;
+    }
+
+    /**
+     * get decryptKey.
+     * @return decryptKey
+     */
+    public String getDecryptKey() {
+        return decryptKey;
+    }
+
+    /**
+     * set decryptKey.
+     * @param decryptKey decryptKey
+     */
+    public void setDecryptKey(final String decryptKey) {
+        this.decryptKey = decryptKey;
+    }
+
+    /**
+     * get encryptKey.
+     * @return encryptKey
+     */
+    public String getEncryptKey() {
+        return encryptKey;
+    }
+
+    /**
+     * set encryptKey.
+     * @param encryptKey encryptKey
+     */
+    public void setEncryptKey(final String encryptKey) {
+        this.encryptKey = encryptKey;
     }
 
     /**
@@ -69,33 +97,30 @@ public class CryptorRequestRuleHandle implements RuleHandle {
     }
 
     /**
-     * get key.
-     * @return key
+     * set way.
+     * @return way
      */
-    public String getKey() {
-        return key;
+    public String getWay() {
+        return way;
     }
 
     /**
-     * set key.
-     * @param key key
+     * set way.
+     * @param way way
      */
-    public void setKey(final String key) {
-        this.key = key;
+    public void setWay(final String way) {
+        this.way = way;
     }
 
     @Override
     public String toString() {
-        return "CryptorRequestRuleHandle{"
-                + ", strategyName='" + strategyName + '\''
+        return "CryptorResponseRuleHandle{"
+                + "strategyName='" + strategyName + '\''
+                + ", decryptKey='" + decryptKey + '\''
+                + ", encryptKey='" + encryptKey + '\''
                 + ", fieldNames='" + fieldNames + '\''
-                + ", key='" + key + '\''
+                + ", way='" + way + '\''
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        return this;
     }
 
 }
