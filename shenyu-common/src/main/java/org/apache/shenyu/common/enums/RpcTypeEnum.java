@@ -118,7 +118,7 @@ public enum RpcTypeEnum {
      * @return operator support.
      */
     public static List<RpcTypeEnum> acquireSupportURIs() {
-        return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS, RpcTypeEnum.SPRING_CLOUD);
+        return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.DUBBO);
     }
 
     /**
@@ -127,7 +127,7 @@ public enum RpcTypeEnum {
      * @return operator support.
      */
     public static List<RpcTypeEnum> acquireSupportMetadatas() {
-        return Arrays.asList(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
+        return Arrays.asList(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS, RpcTypeEnum.MOTAN);
     }
 
     /**
