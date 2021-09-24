@@ -31,14 +31,11 @@ import java.util.Optional;
  * The type Shenyu plugin path builder.
  */
 public final class ShenyuPluginPathBuilder {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuPluginPathBuilder.class);
-    
+
     private static final String PLUGIN_PATH = "plugin-ext";
     
     private static final String DEFAULT_EXT_PLUGIN_PATH = "/ext-lib/";
-    
-    private static final String FILE_PRE = "file:";
+
     
     /**
      * Gets plugin path.
@@ -61,21 +58,5 @@ public final class ShenyuPluginPathBuilder {
         URL url = ShenyuPluginPathBuilder.class.getResource(DEFAULT_EXT_PLUGIN_PATH);
         return Optional.ofNullable(url).map(u -> new File(u.getFile())).orElse(new File(DEFAULT_EXT_PLUGIN_PATH));
     }
-    
-    private static File getFileInResource(final String url, final String classResourcePath) {
-        int prefixLength = FILE_PRE.length();
-        String classLocation = url.substring(prefixLength, url.length() - classResourcePath.length());
-        return new File(classLocation);
-    }
-    
-    private static File getFileInJar(final String url, final int fileInJarIndex) {
-        String realUrl = url.substring(url.indexOf(FILE_PRE), fileInJarIndex);
-        try {
-            File jarFile = new File(new URL(realUrl).toURI());
-            return jarFile.exists() ? jarFile.getParentFile() : null;
-        } catch (final MalformedURLException | URISyntaxException ex) {
-            LOG.error(String.format("Can not locate shenyu plugin jar file by url %s", url), ex);
-            return null;
-        }
-    }
+
 }
