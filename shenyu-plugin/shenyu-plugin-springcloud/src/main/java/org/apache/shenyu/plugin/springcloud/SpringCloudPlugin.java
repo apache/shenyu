@@ -32,14 +32,12 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
+import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKey;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKeyHolder;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.web.server.ServerWebExchange;
-
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -69,8 +67,8 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         }
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(selector.getId());
-        final SpringCloudRuleHandle ruleHandle = SpringCloudRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(selector.getId());
+        final SpringCloudRuleHandle ruleHandle = SpringCloudPluginDataHandler.RULE_CACHED.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         String serviceId = springCloudSelectorHandle.getServiceId();
         if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(),
@@ -79,7 +77,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         }
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         LoadBalanceKey loadBalanceKey = new LoadBalanceKey(ip, selector.getId(), ruleHandle.getLoadBalance());
-        ServiceInstance serviceInstance = null;
+        ServiceInstance serviceInstance;
         try {
             LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
             serviceInstance = loadBalancer.choose(serviceId);

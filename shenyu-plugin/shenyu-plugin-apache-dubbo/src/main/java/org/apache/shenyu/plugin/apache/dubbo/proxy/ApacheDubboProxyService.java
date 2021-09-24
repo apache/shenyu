@@ -90,14 +90,12 @@ public class ApacheDubboProxyService {
             return ret;
         })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));
     }
-
+    
+    @SuppressWarnings("unchecked")
     private CompletableFuture<Object> invokeAsync(final GenericService genericService, final String method, final String[] parameterTypes, final Object[] args) throws GenericException {
         //Compatible with asynchronous calls of lower Dubbo versions
         genericService.$invoke(method, parameterTypes, args);
         Object resultFromFuture = RpcContext.getContext().getFuture();
-        if (resultFromFuture instanceof CompletableFuture) {
-            return (CompletableFuture<Object>) resultFromFuture;
-        }
-        return CompletableFuture.completedFuture(resultFromFuture);
+        return resultFromFuture instanceof CompletableFuture ? (CompletableFuture<Object>) resultFromFuture : CompletableFuture.completedFuture(resultFromFuture);
     }
 }

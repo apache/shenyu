@@ -23,9 +23,7 @@ import java.util.Objects;
 /**
  * The type Dubbo selector handle.
  */
-public class DubboSelectorHandle implements Serializable {
-
-    private static final long serialVersionUID = 8965968591478216223L;
+public class DubboSelectorHandle {
 
     /**
      * zookeeper url is required.
