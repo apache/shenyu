@@ -29,7 +29,7 @@ public final class ShenyuPluginPathBuilderTest {
 
 
     /**
-     * test for  Custom path
+     * test for  Custom path.
      */
     @Test
     public void getPluginPath1() {
@@ -39,7 +39,7 @@ public final class ShenyuPluginPathBuilderTest {
 
 
     /**
-     * test  for plugin-ext
+     * test  for plugin-ext.
      * -Dplugin-ext=D:\testUrl
      */
     @Test
@@ -49,7 +49,7 @@ public final class ShenyuPluginPathBuilderTest {
     }
 
     /**
-     * test for default path
+     * test for default path.
      */
     @Test
     public void getPluginPath3() {
