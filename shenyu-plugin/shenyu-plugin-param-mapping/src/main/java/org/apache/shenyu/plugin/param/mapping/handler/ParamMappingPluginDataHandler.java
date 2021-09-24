@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class ParamMappingPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, ParamMappingHandle>> CACHED_HANDLE = new BeanHolder(() -> new CommonHandleCache());
+    public static final Supplier<CommonHandleCache<String, ParamMappingHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
