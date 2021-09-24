@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.cryptor.response;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -46,7 +46,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -64,7 +63,7 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
             LOG.error("Cryptor response rule configuration is null :{}", rule.getId());
             return chain.execute(exchange);
         }
-        if (JsonUtil.checkParam(ruleHandle.toJson())) {
+        if (JsonUtil.checkParam(ruleHandle)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getMsg() + "[" + JsonUtil.getErrorCollector() + "]", null);
             return WebFluxResultUtils.result(exchange, error);

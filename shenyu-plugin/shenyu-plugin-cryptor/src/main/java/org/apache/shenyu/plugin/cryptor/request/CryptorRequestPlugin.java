@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.cryptor.request;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -68,7 +68,7 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         CachedBodyOutputMessage outputMessage = HttpUtil.newCachedBodyOutputMessage(exchange);
-        if (JsonUtil.checkParam(ruleHandle.toJson())) {
+        if (JsonUtil.checkParam(ruleHandle)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg()
                     + "[" + JsonUtil.getErrorCollector() + "]", null);

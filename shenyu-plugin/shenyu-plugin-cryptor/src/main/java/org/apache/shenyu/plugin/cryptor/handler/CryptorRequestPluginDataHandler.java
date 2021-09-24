@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.cryptor.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;

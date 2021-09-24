@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl;
-
-import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+package org.apache.shenyu.plugin.cryptor.dto;
 
 /**
  * Cryptor response rule handle.
  */
-public class CryptorRuleHandle implements RuleHandle {
+public class CryptorRuleHandle {
 
     private String strategyName;
 
@@ -123,11 +121,6 @@ public class CryptorRuleHandle implements RuleHandle {
                 + ", fieldNames='" + fieldNames + '\''
                 + ", way='" + way + '\''
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        return this;
     }
 
 }

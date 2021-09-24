@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.cryptor.strategy;
 
-import org.apache.shenyu.common.dto.convert.rule.impl.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
