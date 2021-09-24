@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
