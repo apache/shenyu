@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.hystrix.handler;
 
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.HystrixHandle;
+import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;

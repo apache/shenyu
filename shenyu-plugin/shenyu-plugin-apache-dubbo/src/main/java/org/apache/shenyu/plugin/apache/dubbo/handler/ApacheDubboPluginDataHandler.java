@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.apache.dubbo.handler;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;

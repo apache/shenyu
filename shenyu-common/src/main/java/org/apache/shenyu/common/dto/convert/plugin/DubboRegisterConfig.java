@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.config;
+package org.apache.shenyu.common.dto.convert.plugin;
 
 import java.io.Serializable;
 import java.util.Objects;
