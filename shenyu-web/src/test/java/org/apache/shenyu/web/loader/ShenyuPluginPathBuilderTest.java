@@ -33,7 +33,7 @@ public final class ShenyuPluginPathBuilderTest {
      */
     @Test
     public void testGetPluginPathByCustomPath() {
-        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("D:/testpath");
+        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("/testpath");
         Assert.assertNotNull(pluginPath);
     }
 
@@ -43,7 +43,7 @@ public final class ShenyuPluginPathBuilderTest {
      */
     @Test
     public void testGetPluginPathByPluginExt() {
-        System.setProperty("plugin-ext", "D:/testUrl");
+        System.setProperty("plugin-ext", "/testUrl");
         File pluginPath = ShenyuPluginPathBuilder.getPluginPath("");
         Assert.assertNotNull(pluginPath);
     }
