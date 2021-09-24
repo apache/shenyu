@@ -72,7 +72,3 @@ jobs:
       - name: Run test
         if: env.SKIP_CI != 'true'
         run: ./mvnw test -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-        continue-on-error: true
-      - name: Debug log
-        if: env.SKIP_CI != 'true'
-        run: cd ./shenyu-integrated-test/${{ matrix.case }}; docker-compose logs -t --tail="all" && cd ../../; cd ../../
