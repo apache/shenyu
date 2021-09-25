@@ -80,9 +80,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
             }
         }
         String selectorId = handlerSelector(dto);
-        if (Objects.isNull(ruleService.findByName(dto.getRuleName()))) {
-            handlerRule(selectorId, dto, null);
-        }
+        handlerRule(selectorId, dto, null);
         String contextPath = dto.getContextPath();
         if (StringUtils.isNotEmpty(contextPath)) {
             //register context path plugin
@@ -119,7 +117,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
         ruleService.register(registerRule(selectorId, dto, PluginEnum.DIVIDE.getName()),
                 dto.getRuleName(),
-                false);
+                true);
     }
 
     private void registerContextPathPlugin(final String contextPath) {
