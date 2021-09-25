@@ -91,7 +91,9 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
             saveOrUpdateMetaData(metaDataDO, dto);
         }
         String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, metaDataDO);
+        if (Objects.isNull(ruleService.findByName(dto.getRuleName()))) {
+            handlerRule(selectorId, dto, metaDataDO);
+        }
         String contextPath = dto.getContextPath();
         if (StringUtils.isNotEmpty(contextPath)) {
             //register context path plugin
