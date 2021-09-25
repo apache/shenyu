@@ -80,7 +80,9 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
             }
         }
         String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, null);
+        if (Objects.isNull(ruleService.findByName(dto.getRuleName()))) {
+            handlerRule(selectorId, dto, null);
+        }
         String contextPath = dto.getContextPath();
         if (StringUtils.isNotEmpty(contextPath)) {
             //register context path plugin

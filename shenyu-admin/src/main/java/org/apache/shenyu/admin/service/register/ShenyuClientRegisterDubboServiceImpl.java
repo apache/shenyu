@@ -28,6 +28,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 /**
  * dubbo service register.
  */
@@ -75,6 +77,6 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
         ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.DUBBO.getName()),
-                metaDataDTO.getPath(), false);
+                metaDataDTO.getPath(), Objects.nonNull(exist));
     }
 }
