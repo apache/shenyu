@@ -73,6 +73,6 @@ public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRe
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
         ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.MOTAN.getName()),
                 metaDataDTO.getPath(),
-                Objects.isNull(exist));
+                Objects.nonNull(exist));
     }
 }
