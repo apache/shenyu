@@ -1117,6 +1117,15 @@ insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, 
 values ('103', '24', 'fieldNames', 'fieldNames', 2, 2, 3, null, to_date('06-08-2021 14:37:13', 'dd-mm-yyyy hh24:mi:ss'), to_date('06-08-2021 14:37:46', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('104', '24', 'key', 'key', 2, 2, 3, null, to_date('06-08-2021 14:37:22', 'dd-mm-yyyy hh24:mi:ss'), to_date('06-08-2021 14:37:48', 'dd-mm-yyyy hh24:mi:ss'));
+
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('105', '24', 'encryptKey', 'encryptKey', 2, 2, 3, null, to_date('06-08-2021 14:37:22', 'dd-mm-yyyy hh24:mi:ss'), to_date('06-08-2021 14:37:48', 'dd-mm-yyyy hh24:mi:ss'));
+
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('106', '24', 'way', 'way', 3, 2, 3, null, to_date('06-08-2021 14:37:22', 'dd-mm-yyyy hh24:mi:ss'), to_date('06-08-2021 14:37:48', 'dd-mm-yyyy hh24:mi:ss'));
+
+
+
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('108', '25', 'strategyName', 'strategyName', 3, 2, 2, null, to_date('13-08-2021 15:10:53', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:11:11', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -1125,6 +1134,33 @@ insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, 
 values ('11', '4', 'replenishRate', 'replenishRate', 2, 2, 2, '{"required":"1","defaultValue":"10","rule":""}', to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('110', '25', 'fieldNames', 'fieldNames', 2, 2, 4, null, to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('111', '25', 'way', 'way', 3, 2, 3, null, to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('112', '6', 'upstreamHost', 'host', 2, 1, 0, null, to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('113', '6', 'status', 'status', 3, 1, 8, '{"defaultValue":"true","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('114', '6', 'timestamp', 'startupTime', 1, 1, 7, '{"defaultValue":"0","placeholder":"startup timestamp","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('115', '6', 'protocol', 'protocol', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"http://","rule":""}}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('116', '6', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('117', '6', 'warmup', 'warmupTime', 1, 1, 6, '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('118', '6', 'weight', 'weight', 1, 1, 5, '{"defaultValue":"50","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('119', '6', 'gray', 'gray', 3, 1, 9, '{"required":"0","defaultValue":"false","placeholder":"gray","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('120', '6', 'group', 'group', 2, 1, 3, '{"required":"0","placeholder":"group","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('121', '6', 'version', 'version', 2, 1, 4, '{"required":"0","placeholder":"version","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+values ('122', '6', 'version', 'version', 2, 2, 0, '{"required":"0","placeholder":"loadbalance","rule":""}', to_date('13-08-2021 15:16:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('13-08-2021 15:16:45', 'dd-mm-yyyy hh24:mi:ss'));
+
+
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 values ('12', '4', 'burstCapacity', 'burstCapacity', 2, 2, 3, '{"required":"1","defaultValue":"100","rule":""}', to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'), to_date('24-11-2020 00:17:10', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.PLUGIN_HANDLE (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
@@ -2030,6 +2066,14 @@ insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "des
 values ('52', 'paramType', 'PARAM_TYPE', 'domain', 'domain', 'domain', 8, 1, to_date('30-05-2021 19:40:41', 'dd-mm-yyyy hh24:mi:ss'), to_date('30-05-2021 20:15:23', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
 values ('53', 'strategyName', 'STRATEGY_NAME', 'rsa', 'rsa', 'rsa strategy', 1, 1, to_date('25-08-2021 11:47:29', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-08-2021 11:48:03', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+values ('54', 'way', 'WAY', 'encrypt', 'encrypt', 'encrypt', 1, 1, to_date('25-08-2021 11:47:29', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-08-2021 11:48:03', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+values ('55', 'way', 'WAY', 'decrypt', 'decrypt', 'decrypt', 1, 1, to_date('25-08-2021 11:47:29', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-08-2021 11:48:03', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+values ('56', 'gray', 'GRAY_STATUS', 'close', 'false', 'close', 1, 1, to_date('25-08-2021 11:47:29', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-08-2021 11:48:03', 'dd-mm-yyyy hh24:mi:ss'));
+insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+values ('57', 'gray', 'GRAY_STATUS', 'open', 'true', 'open', 0, 1, to_date('25-08-2021 11:47:29', 'dd-mm-yyyy hh24:mi:ss'), to_date('25-08-2021 11:48:03', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
 values ('6', 'flowRuleControlBehavior', 'CONTROL_BEHAVIOR_DEFAULT', 'direct rejection by default', '0', 'control behavior-direct rejection by default', 0, 1, to_date('20-11-2020 15:46:22', 'dd-mm-yyyy hh24:mi:ss'), to_date('20-11-2020 15:48:36', 'dd-mm-yyyy hh24:mi:ss'));
 insert into shenyu.SHENYU_DICT (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
