@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.rewrite.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.RewriteHandle;
+import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.RuleHandleCache;

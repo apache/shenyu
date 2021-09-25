@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.apache.dubbo;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.rpc.RpcContext;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -74,6 +75,9 @@ public class ApacheDubboPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        RpcContext.getContext().setAttachment(Constants.DUBBO_SELECTOR_ID, selector.getId());
+        RpcContext.getContext().setAttachment(Constants.DUBBO_RULE_ID, rule.getId());
+        RpcContext.getContext().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
         final Mono<Object> result = dubboProxyService.genericInvoker(param, metaData, exchange);
         return result.then(chain.execute(exchange));
     }

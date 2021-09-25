@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.Optional;
@@ -29,17 +29,17 @@ public class DivideUpstreamUtils {
 
 
     /**
-     * buildDivideUpstream.
+     * build divide upstream.
      *
      * @param metaDataRegisterDTO metaDataRegisterDTO
      * @return divideUpstream divideUpstream
      */
     public static DivideUpstream buildDivideUpstream(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(metaDataRegisterDTO)).weight(50).build();
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(metaDataRegisterDTO)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
 
     /**
-     * buildUrl.
+     * build url.
      *
      * @param metaDataRegisterDTO metaDataRegisterDTO
      * @return String String

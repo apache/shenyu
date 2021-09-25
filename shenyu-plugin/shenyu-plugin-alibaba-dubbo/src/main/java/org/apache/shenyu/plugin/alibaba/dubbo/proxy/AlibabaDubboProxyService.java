@@ -30,7 +30,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
+import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,15 +43,15 @@ public class AlibabaDubboProxyService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AlibabaDubboProxyService.class);
 
-    private final BodyParamResolveService bodyParamResolveService;
+    private final DubboParamResolveService dubboParamResolveService;
 
     /**
      * Instantiates a new Dubbo proxy service.
      *
-     * @param bodyParamResolveService the generic param resolve service
+     * @param dubboParamResolveService the generic param resolve service
      */
-    public AlibabaDubboProxyService(final BodyParamResolveService bodyParamResolveService) {
-        this.bodyParamResolveService = bodyParamResolveService;
+    public AlibabaDubboProxyService(final DubboParamResolveService dubboParamResolveService) {
+        this.dubboParamResolveService = dubboParamResolveService;
     }
 
     /**
@@ -74,7 +74,7 @@ public class AlibabaDubboProxyService {
             if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.dubboBodyIsEmpty(body)) {
                 pair = new ImmutablePair<>(new String[]{}, new Object[]{});
             } else {
-                pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
+                pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
             }
             genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         } catch (GenericException e) {

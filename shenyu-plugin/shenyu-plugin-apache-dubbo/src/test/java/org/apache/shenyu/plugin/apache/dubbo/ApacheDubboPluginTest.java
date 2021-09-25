@@ -34,7 +34,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.junit.Assert.assertEquals;
@@ -77,7 +76,6 @@ public final class ApacheDubboPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         exchange.getAttributes().put(Constants.META_DATA, metaData);
-        when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
         StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();

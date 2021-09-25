@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
@@ -28,8 +27,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 /**
  * dubbo service register.
@@ -72,16 +69,12 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
 
     @Override
     public String handlerSelector(final MetaDataRegisterDTO metaDataDTO) {
-        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
-        if (Objects.nonNull(selectorDO)) {
-            return selectorDO.getId();
-        }
-        return selectorService.register(registerSelector(metaDataDTO.getContextPath(), pluginService.selectIdByName(metaDataDTO.getRpcType())));
+        return selectorService.handlerSelectorNeedUpstreamCheck(metaDataDTO, PluginEnum.DUBBO.getName());
     }
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.DUBBO.getName(), metaDataDTO.getRuleName()),
+        ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.DUBBO.getName()),
                 metaDataDTO.getPath(), false);
     }
 }

@@ -25,7 +25,7 @@ import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
+import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,7 +92,7 @@ public final class ApacheDubboProxyServiceTest {
         future.complete("success");
     }
 
-    static class BodyParamResolveServiceImpl implements BodyParamResolveService {
+    static class BodyParamResolveServiceImpl implements DubboParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {

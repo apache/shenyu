@@ -54,7 +54,7 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-dubbo/pom.xml
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-dubbo/pom.xml -Pdocker
       - name: Build integrated tests
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml

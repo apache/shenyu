@@ -28,10 +28,11 @@ public interface RuleHandle extends Serializable {
 
     /**
      * It will be call when RuleHandleFactory to generate a RuleHandle object.
-     * @param path  path.
+     * @param path   path.
+     * @param rpcExt rpc ext.
      * @return      it's self.
      */
-    RuleHandle createDefault(String path);
+    RuleHandle createDefault(String path, String rpcExt);
 
     /**
      * Format this object to json string.

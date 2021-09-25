@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.divide;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -157,7 +157,7 @@ public final class DividePluginTest {
     private void initMockInfo() { 
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
+        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "", "");
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));

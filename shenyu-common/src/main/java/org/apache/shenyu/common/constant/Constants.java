@@ -419,6 +419,21 @@ public interface Constants {
     String CONTEXT_PATH_NAME_PREFIX = "/context-path";
 
     /**
+     * dubbo gray release selector id.
+     */
+    String DUBBO_SELECTOR_ID = "dubboSelectorId";
+
+    /**
+     * dubbo gray release rule id.
+     */
+    String DUBBO_RULE_ID = "dubboRuleId";
+
+    /**
+     * dubbo remote address.
+     */
+    String DUBBO_REMOTE_ADDRESS = "dubboRemoteAddress";
+
+    /**
      * String q.
      */
     default void findConstants() {

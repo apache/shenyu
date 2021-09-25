@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.handler;
 
-import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;

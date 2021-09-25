@@ -25,7 +25,7 @@ import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
-import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -155,6 +155,7 @@ public final class ApplicationConfigCache {
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
+        reference.setLoadbalance("gray");
         String rpcExt = metaData.getRpcExt();
         DubboParamExtInfo dubboParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, DubboParamExtInfo.class);
         if (Objects.nonNull(dubboParamExtInfo)) {
@@ -163,9 +164,6 @@ public final class ApplicationConfigCache {
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getGroup())) {
                 reference.setGroup(dubboParamExtInfo.getGroup());
-            }
-            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
-                reference.setLoadbalance(dubboParamExtInfo.getLoadbalance());
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
                 reference.setUrl(dubboParamExtInfo.getUrl());

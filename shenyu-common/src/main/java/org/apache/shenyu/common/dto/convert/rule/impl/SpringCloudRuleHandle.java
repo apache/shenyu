@@ -129,7 +129,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
     }
 
     @Override
-    public RuleHandle createDefault(final String path) {
+    public RuleHandle createDefault(final String path, final String rpcExt) {
         this.path = path;
         return this;
     }

@@ -37,7 +37,7 @@ public class ParamMappingHandleTest {
     @Test
     public void testCreateDefault() {
         ParamMappingHandle paramMappingHandle = new ParamMappingHandle();
-        RuleHandle aDefault = paramMappingHandle.createDefault(PATH);
+        RuleHandle aDefault = paramMappingHandle.createDefault(PATH, "");
         assertNotNull(aDefault);
         assertEquals(aDefault, paramMappingHandle);
     }

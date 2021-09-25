@@ -18,7 +18,7 @@
 
 PRGDIR=`dirname "$0"`
 # Waiting for service registration
-sleep 30s
+sleep 60s
 for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
 do
     for loop in `seq 1 30`
@@ -32,5 +32,7 @@ do
         sleep 2
     done
 done
-sleep 3s
+curl -s -XGET http://localhost:8761/eureka/apps > eureka.log
+cat eureka.log
+date
 echo -e "\n-------------------"

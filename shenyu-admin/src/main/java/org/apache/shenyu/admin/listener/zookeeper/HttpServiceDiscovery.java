@@ -26,7 +26,7 @@ import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;

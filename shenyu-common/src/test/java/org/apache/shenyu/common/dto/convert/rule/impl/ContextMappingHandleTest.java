@@ -35,7 +35,7 @@ public class ContextMappingHandleTest {
     @Test
     public void testCreateDefault() {
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
-        RuleHandle aDefault = contextMappingHandle.createDefault(PATH);
+        RuleHandle aDefault = contextMappingHandle.createDefault(PATH, "");
         assertNotNull(aDefault);
         assertEquals(aDefault, contextMappingHandle);
         assertEquals(contextMappingHandle.getContextPath(), PATH);

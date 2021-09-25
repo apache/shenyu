@@ -98,7 +98,7 @@ public class ContextMappingHandle implements RuleHandle {
     }
 
     @Override
-    public RuleHandle createDefault(final String path) {
+    public RuleHandle createDefault(final String path, final String rpcExt) {
         this.contextPath = path;
         return this;
     }
