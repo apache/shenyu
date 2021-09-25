@@ -30,7 +30,6 @@ services:
       - shenyu
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
@@ -42,8 +41,8 @@ services:
         source: ./src/main/resources/admin-config/
         target: /opt/sql/
     depends_on:
-      shenyu-redis:
-        condition: service_healthy
+      - shenyu-redis
+      - shenyu-zk
     ports:
       - 9095:9095
     environment:
