@@ -36,10 +36,10 @@ public interface RuleService {
      *
      * @param ruleDTO        the rule dto
      * @param name           the rule's name
-     * @param metaDataIsNotNull if meta data is not null
+     * @param metaDataIsExist if meta data is exist
      * @return the string
      */
-    String register(RuleDTO ruleDTO, String name, boolean metaDataIsNotNull);
+    String register(RuleDTO ruleDTO, String name, boolean metaDataIsExist);
 
     /**
      * create or update rule.

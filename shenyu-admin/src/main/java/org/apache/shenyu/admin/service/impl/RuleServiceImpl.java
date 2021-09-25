@@ -90,8 +90,8 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public String register(final RuleDTO ruleDTO, final String name, final boolean metaDataIsNotNull) {
-        if (Objects.nonNull(ruleMapper.findByName(name)) && metaDataIsNotNull) {
+    public String register(final RuleDTO ruleDTO, final String name, final boolean metaDataIsExist) {
+        if (Objects.nonNull(ruleMapper.findByName(name)) && metaDataIsExist) {
             return "";
         }
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
