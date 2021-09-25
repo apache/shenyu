@@ -77,7 +77,7 @@ public class MotanProxyService {
         try {
             responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(), params, Object.class);
         } catch (Throwable e) {
-            LOG.error("Exception caught in MotanProxyService#genericInvoker.");
+            LOG.error("Exception caught in MotanProxyService#genericInvoker.", e);
             return null;
         }
         //CHECKSTYLE:ON IllegalCatch
