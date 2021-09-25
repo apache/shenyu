@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * spring mvc service register.
@@ -80,7 +81,9 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
             }
         }
         String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, null);
+        if (Objects.isNull(ruleService.findByName(dto.getRuleName()))) {
+            handlerRule(selectorId, dto, null);
+        }
         String contextPath = dto.getContextPath();
         if (StringUtils.isNotEmpty(contextPath)) {
             //register context path plugin
