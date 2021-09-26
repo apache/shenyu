@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.controller;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -39,13 +40,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/shenyu")
 public class LocalMetadataController {
-
-    /**
-     * logger.
-     */
+    
     private static final Logger LOG = LoggerFactory.getLogger(LocalMetadataController.class);
-
-    private static final String SUCCESS = "success";
 
     private final List<MetaDataSubscriber> subscribers;
     
@@ -67,11 +63,11 @@ public class LocalMetadataController {
     @GetMapping("/meta/delete")
     public Mono<String> clean(final MetaData metaData) {
         if (CollectionUtils.isEmpty(subscribers)) {
-            return Mono.just(SUCCESS);
+            return Mono.just(Constants.SUCCESS);
         }
         LOG.info("delete apache shenyu local meta data");
         subscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData));
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -83,10 +79,10 @@ public class LocalMetadataController {
     @PostMapping("/meta/saveOrUpdate")
     public Mono<String> saveOrUpdate(@RequestBody final MetaData metaData) {
         if (CollectionUtils.isEmpty(subscribers)) {
-            return Mono.just(SUCCESS);
+            return Mono.just(Constants.SUCCESS);
         }
         LOG.info("saveOrUpdate apache shenyu local meta data");
         subscribers.forEach(metaDataSubscriber -> metaDataSubscriber.onSubscribe(metaData));
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
 }

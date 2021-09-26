@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.controller;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -39,14 +40,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/shenyu")
 public class LocalAppAuthController {
-
-    /**
-     * logger.
-     */
+    
     private static final Logger LOG = LoggerFactory.getLogger(LocalAppAuthController.class);
-
-    private static final String SUCCESS = "success";
-
+    
     private final List<AuthDataSubscriber> subscribers;
     
     /**
@@ -67,13 +63,13 @@ public class LocalAppAuthController {
     @GetMapping("/auth/delete")
     public Mono<String> clean(final String appKey) {
         if (CollectionUtils.isEmpty(subscribers)) {
-            return Mono.just(SUCCESS);
+            return Mono.just(Constants.SUCCESS);
         }
         LOG.info("delete apache shenyu local AppAuth data");
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(appKey);
         subscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData));
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -85,10 +81,10 @@ public class LocalAppAuthController {
     @PostMapping("/auth/saveOrUpdate")
     public Mono<String> saveOrUpdate(@RequestBody final AppAuthData appAuthData) {
         if (CollectionUtils.isEmpty(subscribers)) {
-            return Mono.just(SUCCESS);
+            return Mono.just(Constants.SUCCESS);
         }
         LOG.info("saveOrUpdate apache shenyu local app auth");
         subscribers.forEach(authDataSubscriber -> authDataSubscriber.onSubscribe(appAuthData));
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
 }
