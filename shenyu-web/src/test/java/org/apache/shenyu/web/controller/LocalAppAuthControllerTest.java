@@ -83,7 +83,7 @@ public final class LocalAppAuthControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(appKey);
-        subscribers.forEach(subscriber -> verify(subscriber).onSubscribe(appAuthData));
+        subscribers.forEach(subscriber -> verify(subscriber).unSubscribe(appAuthData));
     }
 
     private AppAuthData initAppAuthDataList() {
