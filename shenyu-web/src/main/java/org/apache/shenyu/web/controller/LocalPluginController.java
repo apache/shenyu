@@ -19,6 +19,7 @@ package org.apache.shenyu.web.controller;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -49,14 +50,9 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/shenyu")
-public class PluginController {
+public class LocalPluginController {
     
-    /**
-     * logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(PluginController.class);
-    
-    private static final String SUCCESS = "success";
+    private static final Logger LOG = LoggerFactory.getLogger(LocalPluginController.class);
     
     private final PluginDataSubscriber subscriber;
     
@@ -65,7 +61,7 @@ public class PluginController {
      *
      * @param subscriber the subscriber
      */
-    public PluginController(final PluginDataSubscriber subscriber) {
+    public LocalPluginController(final PluginDataSubscriber subscriber) {
         this.subscriber = subscriber;
     }
     
@@ -79,7 +75,7 @@ public class PluginController {
         subscriber.refreshPluginDataAll();
         subscriber.refreshSelectorDataAll();
         subscriber.refreshRuleDataAll();
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -97,7 +93,7 @@ public class PluginController {
         for (String selectorId : selectorIds) {
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
         }
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -110,7 +106,7 @@ public class PluginController {
     public Mono<String> saveOrUpdate(@RequestBody final PluginData pluginData) {
         LOG.info("saveOrUpdate apache shenyu local plugin");
         subscriber.onSubscribe(pluginData);
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -124,7 +120,7 @@ public class PluginController {
         LOG.info("delete apache shenyu local plugin");
         PluginData pluginData = PluginData.builder().name(name).build();
         subscriber.unSubscribe(pluginData);
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -135,7 +131,7 @@ public class PluginController {
     @GetMapping("/plugin/deleteAll")
     public Mono<String> deleteAll() {
         subscriber.refreshPluginDataAll();
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -191,7 +187,7 @@ public class PluginController {
                 .conditionDataList(selectorRuleData.getConditionDataList())
                 .build();
         subscriber.onRuleSubscribe(buildDefaultRuleData(ruleData));
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -223,7 +219,7 @@ public class PluginController {
                     .build();
             subscriber.onRuleSubscribe(buildDefaultRuleData(ruleData));
         }
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -238,7 +234,7 @@ public class PluginController {
                                        @RequestParam("id") final String id) {
         SelectorData selectorData = SelectorData.builder().pluginName(pluginName).id(id).build();
         subscriber.unSelectorSubscribe(selectorData);
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**
@@ -289,7 +285,7 @@ public class PluginController {
                                        @RequestParam("id") final String id) {
         RuleData ruleData = RuleData.builder().selectorId(selectorId).id(id).build();
         subscriber.unRuleSubscribe(ruleData);
-        return Mono.just(SUCCESS);
+        return Mono.just(Constants.SUCCESS);
     }
     
     /**

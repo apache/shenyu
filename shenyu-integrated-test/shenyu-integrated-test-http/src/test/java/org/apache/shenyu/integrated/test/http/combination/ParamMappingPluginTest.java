@@ -27,7 +27,7 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.PluginController;
+import org.apache.shenyu.web.controller.LocalPluginController;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -79,8 +79,8 @@ public class ParamMappingPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<PluginController.RuleLocalData> buildRuleLocalDataList() {
-        final List<PluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
+    private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList() {
+        final List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
 
         // prepare for addParameterKeys and removeParameterKeys
         final ParamMappingHandle addAndRemoveHandle = new ParamMappingHandle();
@@ -105,8 +105,8 @@ public class ParamMappingPluginTest extends AbstractPluginDataInit {
         return ruleLocalDataList;
     }
 
-    private static PluginController.RuleLocalData buildRuleLocalData(final ParamMappingHandle handle, final String paramValue) {
-        PluginController.RuleLocalData ruleLocalData = new PluginController.RuleLocalData();
+    private static LocalPluginController.RuleLocalData buildRuleLocalData(final ParamMappingHandle handle, final String paramValue) {
+        LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleHandler(JsonUtils.toJson(handle));
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());

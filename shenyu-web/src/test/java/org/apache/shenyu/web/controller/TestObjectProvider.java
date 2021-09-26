@@ -15,24 +15,46 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.global.subsciber;
+package org.apache.shenyu.web.controller;
 
-import org.apache.shenyu.plugin.global.cache.MetaDataCache;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectProvider;
 
 /**
- * The type Meta data all subscriber.
+ * The type Test object provider.
+ *
+ * @param <R> the type parameter
  */
-public class MetaDataAllSubscriber implements MetaDataSubscriber {
+public class TestObjectProvider<R> implements ObjectProvider<R> {
     
-    @Override
-    public void onSubscribe(final MetaData metaData) {
-        MetaDataCache.getInstance().cache(metaData);
+    private R r;
+    
+    /**
+     * Instantiates a new Test object provider.
+     *
+     * @param r the r
+     */
+    public TestObjectProvider(final R r) { 
+        this.r = r;
     }
     
     @Override
-    public void unSubscribe(final MetaData metaData) {
-        MetaDataCache.getInstance().remove(metaData);
+    public R getObject() throws BeansException {
+        return r;
+    }
+    
+    @Override
+    public R getObject(final Object... args) throws BeansException {
+        return r;
+    }
+    
+    @Override
+    public R getIfAvailable() throws BeansException {
+        return r;
+    }
+    
+    @Override
+    public R getIfUnique() throws BeansException {
+        return r;
     }
 }

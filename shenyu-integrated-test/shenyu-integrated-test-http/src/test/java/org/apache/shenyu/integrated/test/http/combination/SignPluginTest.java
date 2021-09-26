@@ -30,7 +30,7 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
+import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

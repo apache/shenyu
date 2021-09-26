@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.web.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
@@ -27,8 +25,6 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,40 +32,45 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 /**
- * Test cases for AppAuthController.
+ * Test cases for LocalAppAuthController.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class AppAuthControllerTest {
+public final class LocalAppAuthControllerTest {
 
     private MockMvc mockMvc;
-
-    @InjectMocks
-    private AppAuthController appAuthController;
-
+    
     private AppAuthData appAuthData;
-
-    @Mock
-    private AuthDataSubscriber authDataSubscriber;
+    
+    private List<AuthDataSubscriber> subscribers;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        subscribers = new LinkedList<>();
+        subscribers.add(mock(AuthDataSubscriber.class));
+        subscribers.add(mock(AuthDataSubscriber.class));
+        LocalAppAuthController appAuthController = new LocalAppAuthController(new TestObjectProvider<>(subscribers));
         this.mockMvc = MockMvcBuilders.standaloneSetup(appAuthController).build();
         appAuthData = initAppAuthDataList();
     }
 
     @Test
     public void testSaveOrUpdate() throws Exception {
-
         final MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu/auth/saveOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(appAuthData)))
                 .andReturn().getResponse();
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        verify(authDataSubscriber).onSubscribe(appAuthData);
+        subscribers.forEach(subscriber -> verify(subscriber).onSubscribe(appAuthData));
     }
 
     @Test
@@ -82,7 +83,7 @@ public final class AppAuthControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(appKey);
-        verify(authDataSubscriber).unSubscribe(appAuthData);
+        subscribers.forEach(subscriber -> verify(subscriber).unSubscribe(appAuthData));
     }
 
     private AppAuthData initAppAuthDataList() {
@@ -99,7 +100,6 @@ public final class AppAuthControllerTest {
         AuthParamData authParamData = new AuthParamData();
         authParamData.setAppName(appName);
         authParamData.setAppParam(appParam);
-
         List<AuthParamData> authParamDataList = new ArrayList<>();
         authParamDataList.add(authParamData);
         return authParamDataList;
@@ -110,7 +110,6 @@ public final class AppAuthControllerTest {
         authPathData.setAppName(appName);
         authPathData.setEnabled(true);
         authPathData.setPath(path);
-
         List<AuthPathData> authPathDataList = new ArrayList<>();
         authPathDataList.add(authPathData);
         return authPathDataList;

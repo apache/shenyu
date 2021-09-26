@@ -24,8 +24,8 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.PluginController;
-import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
+import org.apache.shenyu.web.controller.LocalPluginController;
+import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -72,7 +72,7 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
     }
 
     private static List<RuleLocalData> buildRuleLocalDataList(final String ruleHandleString) {
-        RuleLocalData ruleLocalData = new PluginController.RuleLocalData();
+        RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleHandler(ruleHandleString);
         ruleLocalData.setConditionDataList(Collections.singletonList(buildConditionData()));
         return Collections.singletonList(ruleLocalData);

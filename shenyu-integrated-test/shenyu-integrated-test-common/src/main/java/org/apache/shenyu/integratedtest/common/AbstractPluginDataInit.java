@@ -23,9 +23,9 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
-import org.apache.shenyu.web.controller.PluginController.SelectorRuleData;
-import org.apache.shenyu.web.controller.PluginController.SelectorRulesData;
+import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
+import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
+import org.apache.shenyu.web.controller.LocalPluginController.SelectorRulesData;
 
 import java.io.IOException;
 import java.util.List;

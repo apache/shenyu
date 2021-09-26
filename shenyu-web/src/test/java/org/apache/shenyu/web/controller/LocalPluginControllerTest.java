@@ -25,7 +25,7 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.web.controller.PluginController.SelectorRuleData;
+import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
 import org.junit.Test;
 
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 /**
  * The type Plugin controller Test.
  */
-public class PluginControllerTest {
+public class LocalPluginControllerTest {
     
     @Test
     public void testSelectorRuleData() {

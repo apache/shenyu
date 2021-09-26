@@ -26,11 +26,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
- * The Test Case For MetaDataAllSubscriber.
+ * The Test Case For MetaDataCacheSubscriber.
  */
-public final class MetaDataAllSubscriberTest {
+public final class MetaDataCacheSubscriberTest {
     
-    private MetaDataAllSubscriber metaDataAllSubscriber;
+    private MetaDataCacheSubscriber metaDataCacheSubscriber;
 
     private MetaDataCache metaDataCache;
 
@@ -38,7 +38,7 @@ public final class MetaDataAllSubscriberTest {
 
     @Before
     public void setUp() {
-        metaDataAllSubscriber = new MetaDataAllSubscriber();
+        metaDataCacheSubscriber = new MetaDataCacheSubscriber();
         metaDataCache = MetaDataCache.getInstance();
         metaData = MetaData.builder()
                 .path("/home")
@@ -48,9 +48,9 @@ public final class MetaDataAllSubscriberTest {
     @Test
     public void testMetaDataAllSubscriber() {
         assertNull(this.metaDataCache.obtain("/home"));
-        metaDataAllSubscriber.onSubscribe(this.metaData);
+        metaDataCacheSubscriber.onSubscribe(this.metaData);
         assertNotNull(this.metaDataCache.obtain("/home"));
-        metaDataAllSubscriber.unSubscribe(this.metaData);
+        metaDataCacheSubscriber.unSubscribe(this.metaData);
         assertNull(this.metaDataCache.obtain("/home"));
     }
 }
