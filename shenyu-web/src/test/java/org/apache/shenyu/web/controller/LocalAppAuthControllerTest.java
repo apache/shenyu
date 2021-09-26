@@ -26,8 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -60,27 +58,7 @@ public final class LocalAppAuthControllerTest {
         subscribers = new LinkedList<>();
         subscribers.add(mock(AuthDataSubscriber.class));
         subscribers.add(mock(AuthDataSubscriber.class));
-        LocalAppAuthController appAuthController = new LocalAppAuthController(new ObjectProvider<List<AuthDataSubscriber>>() {
-            @Override
-            public List<AuthDataSubscriber> getObject(final Object... args) throws BeansException {
-                return subscribers;
-            }
-        
-            @Override
-            public List<AuthDataSubscriber> getIfAvailable() throws BeansException {
-                return subscribers;
-            }
-        
-            @Override
-            public List<AuthDataSubscriber> getIfUnique() throws BeansException {
-                return subscribers;
-            }
-        
-            @Override
-            public List<AuthDataSubscriber> getObject() throws BeansException {
-                return subscribers;
-            }
-        });
+        LocalAppAuthController appAuthController = new LocalAppAuthController(new TestObjectProvider<>(subscribers));
         this.mockMvc = MockMvcBuilders.standaloneSetup(appAuthController).build();
         appAuthData = initAppAuthDataList();
     }
