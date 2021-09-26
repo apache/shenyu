@@ -49,10 +49,15 @@ public class LocalAppAuthController {
 
     private final List<AuthDataSubscriber> subscribers;
     
-    public LocalAppAuthController(final ObjectProvider<List<AuthDataSubscriber>> subscribers ) {
+    /**
+     * Instantiates a new Local app auth controller.
+     *
+     * @param subscribers the subscribers
+     */
+    public LocalAppAuthController(final ObjectProvider<List<AuthDataSubscriber>> subscribers) {
         this.subscribers = subscribers.getIfAvailable(ArrayList::new);
     }
-
+    
     /**
      * Clean AppAuth data by appKey.
      *
@@ -70,7 +75,7 @@ public class LocalAppAuthController {
         subscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData));
         return Mono.just(SUCCESS);
     }
-
+    
     /**
      * Save or update app auth data.
      *

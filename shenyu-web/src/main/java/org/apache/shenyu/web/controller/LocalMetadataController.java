@@ -49,10 +49,21 @@ public class LocalMetadataController {
 
     private final List<MetaDataSubscriber> subscribers;
     
+    /**
+     * Instantiates a new Local metadata controller.
+     *
+     * @param subscribers the subscribers
+     */
     public LocalMetadataController(final ObjectProvider<List<MetaDataSubscriber>> subscribers) {
         this.subscribers = subscribers.getIfAvailable(ArrayList::new);
     }
     
+    /**
+     * Clean mono.
+     *
+     * @param metaData the meta data
+     * @return the mono
+     */
     @GetMapping("/meta/delete")
     public Mono<String> clean(final MetaData metaData) {
         if (CollectionUtils.isEmpty(subscribers)) {
@@ -63,6 +74,12 @@ public class LocalMetadataController {
         return Mono.just(SUCCESS);
     }
     
+    /**
+     * Save or update mono.
+     *
+     * @param metaData the meta data
+     * @return the mono
+     */
     @PostMapping("/meta/saveOrUpdate")
     public Mono<String> saveOrUpdate(@RequestBody final MetaData metaData) {
         if (CollectionUtils.isEmpty(subscribers)) {
