@@ -25,7 +25,7 @@ public interface Constants {
     /**
      * The constant SUCCESS.
      */
-    String SUCCESS = "SUCCESS";
+    String SUCCESS = "success";
     
     /**
      * The constant APP_PARAM.
