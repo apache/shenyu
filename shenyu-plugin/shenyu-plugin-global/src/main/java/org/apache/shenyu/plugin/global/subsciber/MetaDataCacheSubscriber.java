@@ -22,9 +22,9 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 /**
- * The type Meta data all subscriber.
+ * The type Meta data cache subscriber.
  */
-public class MetaDataAllSubscriber implements MetaDataSubscriber {
+public class MetaDataCacheSubscriber implements MetaDataSubscriber {
     
     @Override
     public void onSubscribe(final MetaData metaData) {

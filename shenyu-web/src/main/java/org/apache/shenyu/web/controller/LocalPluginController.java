@@ -49,12 +49,12 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/shenyu")
-public class PluginController {
+public class LocalPluginController {
     
     /**
      * logger.
      */
-    private static final Logger LOG = LoggerFactory.getLogger(PluginController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LocalPluginController.class);
     
     private static final String SUCCESS = "success";
     
@@ -65,7 +65,7 @@ public class PluginController {
      *
      * @param subscriber the subscriber
      */
-    public PluginController(final PluginDataSubscriber subscriber) {
+    public LocalPluginController(final PluginDataSubscriber subscriber) {
         this.subscriber = subscriber;
     }
     

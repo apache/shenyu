@@ -43,12 +43,12 @@ import static org.mockito.Mockito.verify;
  * Test cases for AppAuthController.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class AppAuthControllerTest {
+public final class LocalAppAuthControllerTest {
 
     private MockMvc mockMvc;
 
     @InjectMocks
-    private AppAuthController appAuthController;
+    private LocalAppAuthController appAuthController;
 
     private AppAuthData appAuthData;
 

@@ -18,39 +18,39 @@
 package org.apache.shenyu.web.controller;
 
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestBody;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The type AppAuth controller.
  */
 @RestController
 @RequestMapping("/shenyu")
-public class AppAuthController {
+public class LocalAppAuthController {
 
     /**
      * logger.
      */
-    private static final Logger LOG = LoggerFactory.getLogger(PluginController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LocalAppAuthController.class);
 
     private static final String SUCCESS = "success";
 
-    private final AuthDataSubscriber subscriber;
-
-    /**
-     * Instantiates a new AppAuth controller.
-     *
-     * @param subscriber the subscriber
-     */
-    public AppAuthController(final AuthDataSubscriber subscriber) {
-        this.subscriber = subscriber;
+    private final List<AuthDataSubscriber> subscribers;
+    
+    public LocalAppAuthController(final ObjectProvider<List<AuthDataSubscriber>> subscribers ) {
+        this.subscribers = subscribers.getIfAvailable(ArrayList::new);
     }
 
     /**
@@ -61,10 +61,13 @@ public class AppAuthController {
      */
     @GetMapping("/auth/delete")
     public Mono<String> clean(final String appKey) {
+        if (CollectionUtils.isEmpty(subscribers)) {
+            return Mono.just(SUCCESS);
+        }
         LOG.info("delete apache shenyu local AppAuth data");
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(appKey);
-        subscriber.unSubscribe(appAuthData);
+        subscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData));
         return Mono.just(SUCCESS);
     }
 
@@ -76,8 +79,11 @@ public class AppAuthController {
      */
     @PostMapping("/auth/saveOrUpdate")
     public Mono<String> saveOrUpdate(@RequestBody final AppAuthData appAuthData) {
+        if (CollectionUtils.isEmpty(subscribers)) {
+            return Mono.just(SUCCESS);
+        }
         LOG.info("saveOrUpdate apache shenyu local app auth");
-        subscriber.onSubscribe(appAuthData);
+        subscribers.forEach(authDataSubscriber -> authDataSubscriber.onSubscribe(appAuthData));
         return Mono.just(SUCCESS);
     }
 }
