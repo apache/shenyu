@@ -15,24 +15,25 @@
 -- limitations under the License.
 
 
-/* DROP TABLESPACE */
-DROP TABLESPACE shenyu_data INCLUDING CONTENTS AND DATAFILES CASCADE CONSTRAINTS;
-/* DROP USER  */
-DROP USER shenyu cascade;
+/*  if user exist drop user  */
+create or replace procedure create_user(ObjName varchar2)
+is
+ v_counter number := 0;
+begin
+select count(*) into v_counter from all_users where username = upper(ObjName);
+if v_counter > 0 then
+      execute immediate 'drop user ' || ObjName || ' cascade';
+end if;
+end;
+/
 
+begin
+  create_user('shenyu');
+end;
+/
 
-/* create tablespace   */
-create tablespace shenyu_data
-logging
-datafile 'D:\oracle\shenyu_data.dbf'
-size 50m
-autoextend on
-next 50m maxsize 20480m
-extent management local;
-
-/* create user xxx by xx  */
-create user shenyu identified by shenyu
-default tablespace shenyu_data;
+/* create user */
+create user shenyu identified by shenyu;
 
 /* grant */
 grant connect,resource,dba to shenyu;
