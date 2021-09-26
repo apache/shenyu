@@ -67,8 +67,8 @@ public class MotanProxyService {
         } else {
             int num = motanParamInfo.getParamTypes().length;
             params = new Object[num];
+            Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
             for (int i = 0; i < num; i++) {
-                Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
                 params[i] = bodyMap.get(motanParamInfo.getParamNames()[i]).toString();
             }
         }
@@ -77,7 +77,7 @@ public class MotanProxyService {
         try {
             responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(), params, Object.class);
         } catch (Throwable e) {
-            LOG.error("Exception caught in MotanProxyService#genericInvoker.");
+            LOG.error("Exception caught in MotanProxyService#genericInvoker.", e);
             return null;
         }
         //CHECKSTYLE:ON IllegalCatch
