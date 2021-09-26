@@ -169,7 +169,7 @@ public class NacosServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, RpcTypeEnum.class);
         method.setAccessible(true);
         method.invoke(repository, RpcTypeEnum.DUBBO);
-        verify(publisher, times(1)).publish(any());
+        verify(publisher, times(2)).publish(any());
 
         List<String> list = new ArrayList<>();
         list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
