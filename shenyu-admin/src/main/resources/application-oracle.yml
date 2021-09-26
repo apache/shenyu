@@ -25,7 +25,7 @@ spring:
     url: jdbc:oracle:thin:@192.168.116.136:1521:helowin
     username: shenyu
     password: shenyu
-    driver-class-name: oracle.jdbc.driver.OracleDriver
+    driver-class-name: oracle.jdbc.OracleDriver
 
 
 

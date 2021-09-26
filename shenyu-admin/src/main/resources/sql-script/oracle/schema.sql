@@ -37,6 +37,37 @@ default tablespace shenyu_data;
 /* grant */
 grant connect,resource,dba to shenyu;
 
+/* drop table if exists */
+create or replace procedure dropObject(ObjName varchar2,ObjType varchar2)
+is
+ v_counter number := 0;
+begin
+  if upper(ObjType) = 'TABLE' then
+select count(*) into v_counter from user_tables where table_name = upper(ObjName);
+if v_counter > 0 then
+      execute immediate 'drop table ' || ObjName || ' cascade constraints';
+end if;
+end if;
+end;
+/
+/* drop "RESOURCE" table if exists */
+create or replace procedure dropResouceObject(ObjName varchar2,ObjType varchar2)
+is
+ v_counter number := 0;
+begin
+  if upper(ObjType) = 'TABLE' then
+select count(*) into v_counter from user_tables where table_name = upper(ObjName);
+if v_counter > 0 then
+      execute immediate 'drop table "' || ObjName || '" cascade constraints';
+end if;
+end if;
+end;
+/
+
+begin
+  dropObject('APP_AUTH','table');
+end;
+/
 create table SHENYU.APP_AUTH
 (
     id           VARCHAR2(128) not null,
@@ -82,7 +113,10 @@ alter table SHENYU.APP_AUTH
     initrans 2
     maxtrans 255;
 
-
+begin
+  dropObject('AUTH_PARAM','table');
+end;
+/
 create table SHENYU.AUTH_PARAM
 (
     id           VARCHAR2(128) not null,
@@ -116,7 +150,10 @@ alter table SHENYU.AUTH_PARAM
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('AUTH_PATH','table');
+end;
+/
 create table SHENYU.AUTH_PATH
 (
     id           VARCHAR2(128) not null,
@@ -153,7 +190,10 @@ alter table SHENYU.AUTH_PATH
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('DASHBOARD_USER','table');
+end;
+/
 create table SHENYU.DASHBOARD_USER
 (
     id           VARCHAR2(128) not null,
@@ -197,7 +237,10 @@ alter table SHENYU.DASHBOARD_USER
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('DATA_PERMISSION','table');
+end;
+/
 create table SHENYU.DATA_PERMISSION
 (
     id           VARCHAR2(128) not null,
@@ -231,7 +274,10 @@ alter table SHENYU.DATA_PERMISSION
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('META_DATA','table');
+end;
+/
 create table SHENYU.META_DATA
 (
     id              VARCHAR2(128) not null,
@@ -283,7 +329,10 @@ alter table SHENYU.META_DATA
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('PERMISSION','table');
+end;
+/
 create table SHENYU.PERMISSION
 (
     id           VARCHAR2(128) not null,
@@ -314,6 +363,10 @@ alter table SHENYU.PERMISSION
   initrans 2
   maxtrans 255;
 
+begin
+  dropObject('PLUGIN','table');
+end;
+/
 create table SHENYU.PLUGIN
 (
     id           VARCHAR2(128) not null,
@@ -353,7 +406,10 @@ alter table SHENYU.PLUGIN
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('PLUGIN_HANDLE','table');
+end;
+/
 create table SHENYU.PLUGIN_HANDLE
 (
     id           VARCHAR2(128) not null,
@@ -405,6 +461,11 @@ alter table SHENYU.PLUGIN_HANDLE
   maxtrans 255;
 
 
+
+begin
+  dropResouceObject('RESOURCE','table');
+end;
+/
 create table SHENYU."RESOURCE"
 (
     id            VARCHAR2(128) not null,
@@ -465,7 +526,10 @@ alter table SHENYU."RESOURCE"
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('ROLE','table');
+end;
+/
 create table SHENYU.ROLE
 (
     id           VARCHAR2(128) not null,
@@ -496,7 +560,10 @@ alter table SHENYU.ROLE
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('RULE','table');
+end;
+/
 create table SHENYU.RULE
 (
     id           VARCHAR2(128) not null,
@@ -549,7 +616,10 @@ alter table SHENYU.RULE
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('RULE_CONDITION','table');
+end;
+/
 create table SHENYU.RULE_CONDITION
 (
     id           VARCHAR2(128) not null,
@@ -589,7 +659,10 @@ alter table SHENYU.RULE_CONDITION
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('SELECTOR','table');
+end;
+/
 create table SHENYU.SELECTOR
 (
     id           VARCHAR2(128) not null,
@@ -648,7 +721,10 @@ alter table SHENYU.SELECTOR
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('SELECTOR_CONDITION','table');
+end;
+/
 create table SHENYU.SELECTOR_CONDITION
 (
     id           VARCHAR2(128) not null,
@@ -688,7 +764,10 @@ alter table SHENYU.SELECTOR_CONDITION
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('SHENYU_DICT','table');
+end;
+/
 create table SHENYU.SHENYU_DICT
 (
     id           VARCHAR2(128) not null,
@@ -734,7 +813,10 @@ alter table SHENYU.SHENYU_DICT
   initrans 2
   maxtrans 255;
 
-
+begin
+  dropObject('USER_ROLE','table');
+end;
+/
 create table SHENYU.USER_ROLE
 (
     id           VARCHAR2(128) not null,
@@ -765,6 +847,8 @@ alter table SHENYU.USER_ROLE
   initrans 2
   maxtrans 255;
 
+
+begin
 
 insert into shenyu.DASHBOARD_USER (id, user_name, password, role, enabled, date_created, date_updated)
 values ('1', 'admin', 'bbiB8zbUo3z3oA0VqEB/IA==', 1, 1, to_date('30-12-2021 01:00:00', 'dd-mm-yyyy hh24:mi:ss'), to_date('27-08-2021', 'dd-mm-yyyy'));
@@ -2168,3 +2252,9 @@ insert into shenyu.PLUGIN (ID, NAME, CONFIG, ROLE, SORT, ENABLED, DATE_CREATED, 
 values ('26', 'websocket', EMPTY_CLOB(), 'proxy', 200, 1, to_date('27-08-2021 13:55:30', 'dd-mm-yyyy hh24:mi:ss'), to_date('27-08-2021 13:55:30', 'dd-mm-yyyy hh24:mi:ss'));
 
 commit;
+
+exception when dup_val_on_index then
+      null;
+
+end;
+/
