@@ -77,7 +77,7 @@ ELSE
 									  BEFORE UPDATE ON app_auth
 									  FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
-END IF;	
+END IF;
 
 
 -- ----------------------------------------------------
@@ -104,7 +104,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER auth_param_tigger
 	          BEFORE UPDATE ON auth_param
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
-			  
+
 	-- ----------------------------
 	-- Primary Key structure for table auth_param
 	-- ----------------------------
@@ -185,7 +185,7 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table meta_data
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "meta_data" ADD CONSTRAINT "meta_data_pkey" PRIMARY KEY ("id");');			  
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "meta_data" ADD CONSTRAINT "meta_data_pkey" PRIMARY KEY ("id");');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -217,7 +217,7 @@ ELSE
 	          BEFORE UPDATE ON dashboard_user
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "dashboard_user" VALUES (''' || '1' || ''', ''' || 'admin' || ''', ''' || 'bbiB8zbUo3z3oA0VqEB/IA==' || ''', 1, 1, ''' || '2018-06-23 15:12:22' || ''', ''' || '2018-06-23 15:12:23' || ''');');
-	
+
 	-- ----------------------------
 	-- Indexes structure for table dashboard_user
 	-- ----------------------------
@@ -262,7 +262,7 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table data_permission
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "data_permission" ADD CONSTRAINT "data_permission_pkey" PRIMARY KEY ("id");');			  
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "data_permission" ADD CONSTRAINT "data_permission_pkey" PRIMARY KEY ("id");');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -293,7 +293,7 @@ ELSE
 	-- Primary Key structure for table permission
 	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "permission" ADD CONSTRAINT "permission_pkey" PRIMARY KEY ("id");');
-	
+
 	----------------------------
 	-- Records of permission
 	-- ---------------------------
@@ -612,7 +612,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367752097793' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367752097792' || ''', ''' || '2021-08-27 19:49:38' || ''', ''' || '2021-08-27 19:49:37' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367764680704' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367760486400' || ''', ''' || '2021-08-27 19:49:38' || ''', ''' || '2021-08-27 19:49:37' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875009' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875008' || ''', ''' || '2021-08-27 19:49:38' || ''', ''' || '2021-08-27 19:49:37' || ''');');
-	
+
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -647,11 +647,11 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table plugin
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "plugin" ADD CONSTRAINT "plugin_pkey" PRIMARY KEY ("id");');			
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "plugin" ADD CONSTRAINT "plugin_pkey" PRIMARY KEY ("id");');
 
 	-- ----------------------------
 	-- Records of plugin
-	-- ----------------------------  
+	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '1' || ''', ''' || 'sign' || ''', NULL, ''' || 'authentication' || ''', 20, 0, ''' || '2018-06-14 10:17:35' || ''', ''' || '2018-06-14 10:17:35' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '10' || ''', ''' || 'sentinel' || ''', NULL, ''' || 'fault tolerance' || ''', 140, 0, ''' || '2020-11-09 01:19:10' || ''', ''' || '2020-11-09 01:19:10' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '11' || ''', ''' || 'sofa' || ''', ''' || '{"protocol":"zookeeper","register":"127.0.0.1:2181"}' || ''', ''' || 'proxy' || ''', 310, 0, ''' || '2020-11-09 01:19:10' || ''', ''' || '2020-11-09 01:19:10' || ''');');
@@ -678,7 +678,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '7' || ''', ''' || 'monitor' || ''', ''' || '{"metricsName":"prometheus","host":"localhost","port":"9190","async":"true"}' || ''', ''' || 'monitor' || ''', 170, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '8' || ''', ''' || 'springCloud' || ''', NULL, ''' || 'proxy' || ''', 200, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '9' || ''', ''' || 'hystrix' || ''', NULL, ''' || 'fault tolerance' || ''', 130, 0, ''' || '2020-01-15 10:19:10' || ''', ''' || '2020-01-15 10:19:10' || ''');');
-	
+
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -713,7 +713,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_tigger
 	          BEFORE UPDATE ON plugin_handle
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
-			  
+
 	-- ----------------------------
 	-- Indexes structure for table plugin_handle
 	-- ----------------------------
@@ -725,7 +725,7 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table plugin_handle
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "plugin_handle" ADD CONSTRAINT "plugin_handle_pkey" PRIMARY KEY ("id");');		
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "plugin_handle" ADD CONSTRAINT "plugin_handle_pkey" PRIMARY KEY ("id");');
 -- ----------------------------
 	-- Records of plugin_handle
 	-- ----------------------------
@@ -842,7 +842,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '117' || ''', ''' || '6' || ''', ''' || 'warmup' || ''', ''' || 'warmupTime' || ''', 1, 1, 6, ''' || '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}' || ''', ''' || '2021-07-18 22:52:20' || ''', ''' || '2021-07-18 22:59:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '118' || ''', ''' || '6' || ''', ''' || 'weight' || ''', ''' || 'weight' || ''', 1, 1, 5, ''' || '{"defaultValue":"50","rule":""}' || ''', ''' || '2021-07-18 22:52:20' || ''', ''' || '2021-07-18 22:59:57' || ''');');
 
-	
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '150' || ''', ''' || '17' || ''', ''' || 'register' || ''', ''' || 'register' || ''', 2, 3, 0, NULL, ''' || '2021-09-25 13:19:10' || ''', ''' || '2021-09-25 13:19:10' || ''');');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -871,7 +871,7 @@ ELSE
 	  "date_created" timestamp(6) NOT NULL,
 	  "date_updated" timestamp(6) NOT NULL
 	)');
-	
+
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "resource"."id" IS ''' || 'primary key id' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "resource"."parent_id" IS ''' || 'resource parent primary key id' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "resource"."title" IS ''' || 'title' || '''');
@@ -894,7 +894,7 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table resource
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "resource" ADD CONSTRAINT "resource_pkey" PRIMARY KEY ("id");');		
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "resource" ADD CONSTRAINT "resource_pkey" PRIMARY KEY ("id");');
 
 	-- ----------------------------
 	-- Records of resource
@@ -1246,13 +1246,13 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table role
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "role" ADD CONSTRAINT "role_pkey" PRIMARY KEY ("id", "role_name");');		
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "role" ADD CONSTRAINT "role_pkey" PRIMARY KEY ("id", "role_name");');
 	-- ----------------------------
 	-- Records of role
 	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "role" VALUES (''' || '1346358560427216896' || ''', ''' || 'super' || ''', ''' || '超级管理员' || ''', ''' || '2021-01-05 01:31:10' || ''', ''' || '2021-01-08 17:00:07' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "role" VALUES (''' || '1385482862971723776' || ''', ''' || 'default' || ''', ''' || '普通用户' || ''', ''' || '2021-04-23 14:37:10' || ''', ''' || '2021-04-23 14:38:39' || ''');');
-		
+
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -1293,7 +1293,7 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table rule
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "rule" ADD CONSTRAINT "rule_pkey" PRIMARY KEY ("id");');		
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "rule" ADD CONSTRAINT "rule_pkey" PRIMARY KEY ("id");');
 	-- ----------------------------
 	-- Indexes structure for table rule
 	-- ----------------------------
@@ -1334,7 +1334,7 @@ ELSE
 	-- ----------------------------
 	-- Primary Key structure for table rule_condition
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "rule_condition" ADD CONSTRAINT "rule_condition_pkey" PRIMARY KEY ("id");');			  
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "rule_condition" ADD CONSTRAINT "rule_condition_pkey" PRIMARY KEY ("id");');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -1433,7 +1433,7 @@ ELSE
 	  "date_updated" timestamp(6) NOT NULL
 	)');
 
-	
+
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "shenyu_dict"."id" IS ''' || 'primary key id' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "shenyu_dict"."type" IS ''' || 'type' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "shenyu_dict"."dict_code" IS ''' || 'dictionary encoding' || '''');
@@ -1552,7 +1552,7 @@ ELSE
 	-- Records of user_role
 	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "user_role" VALUES (''' || '1351007709096976384' || ''', ''' || '1' || ''', ''' || '1346358560427216896' || ''', ''' || '2021-01-18 11:25:13' || ''', ''' || '2021-01-18 11:25:13' || ''');');
-	
+
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 	PERFORM public.dblink_disconnect('init_conn');
