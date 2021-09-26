@@ -111,7 +111,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private void subscribeRpcTypeService(final RpcTypeEnum rpcType) {
         final String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType.getName());
-
         try {
             Map<String, List<URIRegisterDTO>> services = new HashMap<>();
             List<Instance> healthyInstances = namingService.selectInstances(serviceName, true);
@@ -125,11 +124,9 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
                 services.computeIfAbsent(contextPath, k -> new ArrayList<>()).add(uriRegisterDTO);
                 uriServiceCache.computeIfAbsent(serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
             });
-
             if (RPC_URI_TYPE_SET.contains(rpcType)) {
                 services.values().forEach(this::publishRegisterURI);
             }
-
             LOGGER.info("subscribe uri : {}", serviceName);
             namingService.subscribe(serviceName, event -> {
                 if (event instanceof NamingEvent) {
@@ -148,7 +145,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private void subscribeMetadata(final String serviceConfigName) {
         registerMetadata(readData(serviceConfigName));
-
         LOGGER.info("subscribe metadata: {}", serviceConfigName);
         try {
             configService.addListener(serviceConfigName, defaultGroup, new Listener() {
@@ -186,7 +182,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
     private void registerURI(final String contextPath, final String serviceName, final RpcTypeEnum rpcType) {
         try {
             List<Instance> healthyInstances = namingService.selectInstances(serviceName, true);
-
             List<URIRegisterDTO> registerDTOList = new ArrayList<>();
             healthyInstances.forEach(healthyInstance -> {
                 if (contextPath.equals(healthyInstance.getMetadata().get("contextPath"))) {
@@ -201,7 +196,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
                     }
                 }
             });
-
             if (!RPC_URI_TYPE_SET.contains(rpcType)) {
                 return;
             }
