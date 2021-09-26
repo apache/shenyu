@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: integrated-test-apache-dubbo
+name: it
 
 on:
   pull_request:
@@ -25,13 +25,15 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        os: [ ubuntu-latest ]
-    runs-on: ${{ matrix.os }}
+        case:
+          - shenyu-integration-test-alibaba-dubbo
+          - shenyu-integration-test-apache-dubbo
+          - shenyu-integrated-test-grpc
+          - shenyu-integrated-test-http
+          - shenyu-integrated-test-motan
+          - shenyu-integrated-test-spring-cloud
+    runs-on: ubuntu-latest
     steps:
-      - name: Support longpaths
-        if: ${{ matrix.os == 'windows-latest'}}
-        run: git config --system core.longpaths true
       - uses: actions/checkout@v2
         with:
           submodules: true
@@ -54,19 +56,19 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-dubbo/pom.xml -Pdocker
+        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/pom.xml -Pdocker
       - name: Build integrated tests
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
-        run: docker-compose -f ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/docker-compose.yml up -d
+        run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
         if: env.SKIP_CI != 'true'
-        run: bash ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/script/healthcheck.sh
+        run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Debug log
         if: env.SKIP_CI != 'true'
-        run: cd ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo; docker-compose logs -t --tail="all" && cd ../../; cd ../../
+        run: cd ./shenyu-integrated-test/${{ matrix.case }}; docker-compose logs -t --tail="all" && cd ../../; cd ../../
       - name: Run test
         if: env.SKIP_CI != 'true'
-        run: ./mvnw test -f ./shenyu-integrated-test/shenyu-integration-test-apache-dubbo/pom.xml
+        run: ./mvnw test -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
