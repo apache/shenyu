@@ -50,6 +50,7 @@ end if;
 end if;
 end;
 /
+
 /* drop "RESOURCE" table if exists */
 create or replace procedure dropResouceObject(ObjName varchar2,ObjType varchar2)
 is
