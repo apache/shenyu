@@ -34,8 +34,13 @@ public class TestObjectProvider<R> implements ObjectProvider<R> {
      *
      * @param r the r
      */
-    public TestObjectProvider(R r) { 
+    public TestObjectProvider(final R r) { 
         this.r = r;
+    }
+    
+    @Override
+    public R getObject() throws BeansException {
+        return r;
     }
     
     @Override
@@ -50,11 +55,6 @@ public class TestObjectProvider<R> implements ObjectProvider<R> {
     
     @Override
     public R getIfUnique() throws BeansException {
-        return r;
-    }
-    
-    @Override
-    public R getObject() throws BeansException {
         return r;
     }
 }
