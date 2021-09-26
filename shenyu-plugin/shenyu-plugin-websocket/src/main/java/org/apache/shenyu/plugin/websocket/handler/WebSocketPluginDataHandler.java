@@ -26,7 +26,7 @@ import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public class WebSocketPluginDataHandler implements PluginDataHandler {
     
-    public static final Supplier<RuleHandleCache<String, WebSocketRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, WebSocketRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {

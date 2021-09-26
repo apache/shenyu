@@ -15,37 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.plugin.modify.response.cache;
 
-import org.apache.shenyu.plugin.api.HandleCache;
-
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * The selector or rule handle base cache.
+ * The Test Case For ModifyResponseCommonHandleCache.
  */
-public class RuleHandleCache<K, V> implements HandleCache<K, V> {
+public final class ModifyResponseCommonHandleCacheTest {
 
-    /**
-     * selectorId.ruleName -> handle.
-     */
-    private final ConcurrentHashMap<K, V> cached = new ConcurrentHashMap<>();
-
-    @Override
-    public V obtainHandle(final K key) {
-        return cached.get(key);
+    @Test
+    public void testGetOrder() {
+        Assert.assertNotNull(ModifyResponseCommonHandleCache.getInstance());
     }
 
-    @Override
-    public void cachedHandle(final K key, final V value) {
-        Optional.ofNullable(key).ifPresent(data -> cached.put(key, value));
-    }
-
-    @Override
-    public void removeHandle(final K key) {
-        Optional.ofNullable(key).ifPresent(cached::remove);
-    }
 }
-
-

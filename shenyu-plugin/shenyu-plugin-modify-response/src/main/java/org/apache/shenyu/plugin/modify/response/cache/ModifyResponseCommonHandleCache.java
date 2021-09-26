@@ -18,15 +18,15 @@
 package org.apache.shenyu.plugin.modify.response.cache;
 
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 
 /**
  * The rule handle cache.
  */
 @SuppressWarnings("all")
-public final class ModifyResponseRuleHandleCache extends RuleHandleCache<String, ModifyResponseRuleHandle> {
+public final class ModifyResponseCommonHandleCache extends CommonHandleCache<String, ModifyResponseRuleHandle> {
 
-    private ModifyResponseRuleHandleCache() {
+    private ModifyResponseCommonHandleCache() {
     }
 
     /**
@@ -34,7 +34,7 @@ public final class ModifyResponseRuleHandleCache extends RuleHandleCache<String,
      *
      * @return the instance
      */
-    public static ModifyResponseRuleHandleCache getInstance() {
+    public static ModifyResponseCommonHandleCache getInstance() {
         return ModifyResponseRuleHandleCacheInstance.INSTANCE;
     }
 
@@ -45,6 +45,6 @@ public final class ModifyResponseRuleHandleCache extends RuleHandleCache<String,
         /**
          * The Instance.
          */
-        static final ModifyResponseRuleHandleCache INSTANCE = new ModifyResponseRuleHandleCache();
+        static final ModifyResponseCommonHandleCache INSTANCE = new ModifyResponseCommonHandleCache();
     }
 }

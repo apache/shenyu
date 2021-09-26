@@ -117,7 +117,7 @@ public class ShenyuClientRegisterSpringMVCServiceImpl extends AbstractShenyuClie
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
         ruleService.register(registerRule(selectorId, dto, PluginEnum.DIVIDE.getName()),
                 dto.getRuleName(),
-                false);
+                true);
     }
 
     private void registerContextPathPlugin(final String contextPath) {

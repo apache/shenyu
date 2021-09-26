@@ -21,6 +21,6 @@ package org.apache.shenyu.plugin.base.cache;
  * BaseHandleCache empty mock subclass.
  */
 
-class EmptyMockRuleHandleCache<K, V> extends RuleHandleCache<K, V> {
+class EmptyMockCommonHandleCache<K, V> extends CommonHandleCache<K, V> {
 
 }

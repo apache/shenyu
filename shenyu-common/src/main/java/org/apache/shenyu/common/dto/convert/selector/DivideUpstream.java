@@ -17,16 +17,13 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * this is divide upstream.
  */
-public class DivideUpstream implements Serializable {
-
-    private static final long serialVersionUID = 6252280511262542360L;
-
+public class DivideUpstream {
+    
     /**
      * this is http protocol.
      */
