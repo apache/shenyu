@@ -95,7 +95,8 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
     public String named() {
         return PluginEnum.CRYPTOR_RESPONSE.getName();
     }
-
+    
+    @SuppressWarnings("rawtypes")
     private Mono strategyMatch(final String originalBody, final CryptorRuleHandle ruleHandle, final ServerWebExchange exchange) {
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         if (parseBody == null) {

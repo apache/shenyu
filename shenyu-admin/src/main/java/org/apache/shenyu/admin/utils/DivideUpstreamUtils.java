@@ -45,6 +45,6 @@ public class DivideUpstreamUtils {
      * @return String String
      */
     public static String buildUrl(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        return Optional.ofNullable(String.join(":", metaDataRegisterDTO.getHost(), String.valueOf(metaDataRegisterDTO.getPort()))).orElse(null);
+        return Optional.of(String.join(":", metaDataRegisterDTO.getHost(), String.valueOf(metaDataRegisterDTO.getPort()))).orElse(null);
     }
 }

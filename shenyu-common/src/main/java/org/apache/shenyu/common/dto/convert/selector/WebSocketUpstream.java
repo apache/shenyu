@@ -17,15 +17,12 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * this is WebSocket upstream.
  */
-public final class WebSocketUpstream implements Serializable {
-
-    private static final long serialVersionUID = 6252280511262542360L;
+public final class WebSocketUpstream {
 
     /**
      * host.
