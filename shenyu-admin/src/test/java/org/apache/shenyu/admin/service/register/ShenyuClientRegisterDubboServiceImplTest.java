@@ -40,11 +40,16 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.anyBoolean;
 
 /**
  * Test cases for ShenyuClientRegisterDubboServiceImpl.
@@ -55,14 +60,19 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
 
     @Mock
     private MetaDataMapper metaDataMapper;
+
     @InjectMocks
     private MetaDataServiceImpl metaDataService;
+
     @Mock
     private SelectorService selectorService;
+
     @Mock
     private PluginService pluginService;
+
     @Mock
     private RuleService ruleService;
+
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
@@ -127,8 +137,7 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
         Assert.assertEquals(ShenyuResultMessage.SUCCESS, shenyuClientRegisterDubboService.register(dubboMetaDataRegisterDTO));
         verify(eventPublisher, times(1)).publishEvent(any());
         verify(selectorService, times(1)).handlerSelectorNeedUpstreamCheck(any(), eq(PluginEnum.DUBBO.getName()));
-        verify(ruleService, times(1)).register(any(),anyString(), anyBoolean());
-
+        verify(ruleService, times(1)).register(any(), anyString(), anyBoolean());
     }
 
     private MetaDataRegisterDTO buildDubboMetaDataRegisterDTO(final RpcTypeEnum rpcTypeEnum) {
@@ -150,7 +159,6 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
         return springMvcRegisterDTO;
     }
 
-
     private MetaDataDO buildMetaDataDO() {
         return MetaDataDO.builder()
                 .appName("appNameMetaData")
@@ -164,7 +172,4 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
                 .enabled(true)
                 .build();
     }
-
-
 }
-
