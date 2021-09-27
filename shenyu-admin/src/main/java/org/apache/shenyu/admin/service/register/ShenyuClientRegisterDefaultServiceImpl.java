@@ -32,7 +32,6 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
