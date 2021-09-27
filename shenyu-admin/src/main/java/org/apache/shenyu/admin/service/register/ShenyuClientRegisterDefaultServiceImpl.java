@@ -66,7 +66,7 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
     }
 
     @Override
-    public String registerURI(final String contextPath, final List<String> uriList) {
+    public String registerUri(final String contextPath, final List<String> uriList) {
         SelectorDO selector = selectorService.findByName(contextPath);
         SelectorData selectorData = selectorService.buildByName(contextPath);
         PluginDO pluginDO = pluginMapper.selectById(selector.getPluginId());
