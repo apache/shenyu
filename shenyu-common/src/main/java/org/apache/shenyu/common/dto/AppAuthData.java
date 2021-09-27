@@ -27,8 +27,6 @@ import java.util.Objects;
  */
 public class AppAuthData {
 
-    private static final long serialVersionUID = -7060944416765128601L;
-
     private String appKey;
 
     private String appSecret;
