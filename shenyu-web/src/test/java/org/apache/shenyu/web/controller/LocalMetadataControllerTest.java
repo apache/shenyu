@@ -30,6 +30,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -57,7 +59,7 @@ public class LocalMetadataControllerTest {
         subscribers.add(mock(MetaDataSubscriber.class));
         LocalMetadataController metadataController = new LocalMetadataController(new TestObjectProvider<>(subscribers));
         this.mockMvc = MockMvcBuilders.standaloneSetup(metadataController).build();
-        metaData = initMetaDataList();
+        metaData = initMetaData();
     }
 
     @Test
@@ -74,13 +76,13 @@ public class LocalMetadataControllerTest {
     public void testClean() throws Exception {
         final MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu/meta/delete")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(GsonUtils.getInstance().toJson(metaData)))
+                        .queryParams(buildParams()))
                 .andReturn().getResponse();
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         subscribers.forEach(subscriber -> verify(subscriber).unSubscribe(metaData));
     }
 
-    private MetaData initMetaDataList() {
+    private MetaData initMetaData() {
         MetaData metaData = new MetaData();
         metaData.setId("id");
         metaData.setAppName("appName");
@@ -93,6 +95,21 @@ public class LocalMetadataControllerTest {
         metaData.setRpcExt("rpcExt");
         metaData.setEnabled(Boolean.TRUE);
         return metaData;
+    }
+
+    private MultiValueMap<String, String> buildParams() {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.set("id", "id");
+        params.set("appName", "appName");
+        params.set("contextPath", "contextPath");
+        params.set("path", "path");
+        params.set("rpcType", "rpcType");
+        params.set("serviceName", "serviceName");
+        params.set("methodName", "methodName");
+        params.set("parameterTypes", "parameterTypes");
+        params.set("rpcExt", "rpcExt");
+        params.set("enabled", "true");
+        return params;
     }
 
 }
