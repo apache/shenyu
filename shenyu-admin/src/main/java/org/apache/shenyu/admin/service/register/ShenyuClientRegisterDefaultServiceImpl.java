@@ -70,31 +70,17 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
     public String registerURI(final String contextPath, final List<String> uriList) {
         SelectorDO selector = selectorService.findByName(contextPath);
         SelectorData selectorData = selectorService.buildByName(contextPath);
-        String handler = GsonUtils.getInstance().toJson(buildDivideUpstreamList(uriList));
-        selector.setHandle(handler);
-        selectorData.setHandle(handler);
-        selectorService.updateSelective(selector);
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(selectorData)));
-        return ShenyuResultMessage.SUCCESS;
-    }
-
-    @Override
-    public String registerURIDefault(final String contextPath, final List<URIRegisterDTO> registerDTOList) {
-        SelectorDO selector = selectorService.findByName(contextPath);
-        SelectorData selectorData = selectorService.buildByName(contextPath);
         PluginDO pluginDO = pluginMapper.selectById(selector.getPluginId());
         String handler = null;
         if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
             if (Objects.nonNull(selector.getHandle())) {
                 SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance()
                         .fromJson(selector.getHandle(), SpringCloudSelectorHandle.class);
-                springCloudSelectorHandle.setDivideUpstreams(buildDivideUpstreams(registerDTOList));
+                springCloudSelectorHandle.setDivideUpstreams(buildDivideUpstreamList(uriList));
                 handler = GsonUtils.getInstance().toJson(springCloudSelectorHandle);
             }
         } else {
-            handler = GsonUtils.getInstance().toJson(buildDivideUpstreams(registerDTOList));
+            handler = GsonUtils.getInstance().toJson(buildDivideUpstreamList(uriList));
         }
         selector.setHandle(handler);
         selectorData.setHandle(handler);
@@ -122,10 +108,5 @@ public class ShenyuClientRegisterDefaultServiceImpl extends AbstractShenyuClient
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<String> uriList) {
         return uriList.stream().map(this::buildDivideUpstream).collect(Collectors.toList());
-    }
-
-    private List<DivideUpstream> buildDivideUpstreams(final List<URIRegisterDTO> registerDTOList) {
-        return registerDTOList.stream()
-                .map(s -> buildDivideUpstream(String.join(":", s.getHost(), s.getPort().toString()))).collect(Collectors.toList());
     }
 }
