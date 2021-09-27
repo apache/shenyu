@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.ratelimiter;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
+import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;

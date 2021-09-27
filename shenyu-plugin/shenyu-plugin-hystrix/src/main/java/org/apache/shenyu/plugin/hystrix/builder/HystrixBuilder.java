@@ -24,8 +24,8 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.HystrixThreadPoolProperties;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.HystrixHandle;
-import org.apache.shenyu.common.dto.convert.HystrixThreadPoolConfig;
+import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
+import org.apache.shenyu.common.dto.convert.rule.HystrixHandle.HystrixThreadPoolConfig;
 
 import java.util.Objects;
 

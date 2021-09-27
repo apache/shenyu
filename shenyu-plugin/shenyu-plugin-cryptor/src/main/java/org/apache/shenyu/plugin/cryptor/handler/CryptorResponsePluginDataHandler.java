@@ -18,10 +18,10 @@
 package org.apache.shenyu.plugin.cryptor.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.CryptorResponseRuleHandle;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
+import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -34,13 +34,13 @@ import java.util.function.Supplier;
  */
 public class CryptorResponsePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, CryptorResponseRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, CryptorRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            CryptorResponseRuleHandle cryptorResponseRuleHandle = GsonUtils.getInstance().fromJson(s, CryptorResponseRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), cryptorResponseRuleHandle);
+            CryptorRuleHandle cryptorRuleHandle = GsonUtils.getInstance().fromJson(s, CryptorRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), cryptorRuleHandle);
         });
     }
 

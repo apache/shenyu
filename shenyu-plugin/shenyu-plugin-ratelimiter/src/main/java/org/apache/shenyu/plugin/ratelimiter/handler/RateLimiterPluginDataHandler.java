@@ -22,11 +22,11 @@ import com.google.common.collect.Lists;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
+import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -58,7 +58,7 @@ import java.util.function.Supplier;
  */
 public class RateLimiterPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, RateLimiterHandle>> CACHED_HANDLE = new BeanHolder(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, RateLimiterHandle>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {

@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -33,8 +33,7 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
+import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -108,7 +107,7 @@ public class SpringCloudPluginTest {
         final SelectorData selectorData = SelectorData.builder()
                 .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
                 .build();
-        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, null)).expectSubscription().verifyComplete();
         final SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
         springCloudRuleHandle.setPath("/springcloud");
@@ -116,7 +115,7 @@ public class SpringCloudPluginTest {
         final RuleData rule = RuleData.builder()
                 .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
                 .build();
-        SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setRealUrl("http://localhost/test");
         shenyuContext.setHttpMethod(HttpMethod.GET.name());
@@ -161,9 +160,9 @@ public class SpringCloudPluginTest {
                 .build();
 
         SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
-        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-        SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
@@ -187,9 +186,9 @@ public class SpringCloudPluginTest {
                 .selectorId("springcloud")
                 .handle("{\"path\":\"service/\"}")
                 .build();
-        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-        SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
@@ -209,8 +208,8 @@ public class SpringCloudPluginTest {
                 .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
         SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
                 .fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-        SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();

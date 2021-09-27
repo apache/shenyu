@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.apache.dubbo.handler;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -31,7 +31,7 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 
@@ -46,9 +46,9 @@ import java.util.stream.Collectors;
  */
 public class ApacheDubboPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, DubboRuleHandle>> RULE_CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, DubboRuleHandle>> RULE_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
-    public static final Supplier<RuleHandleCache<String, List<DubboSelectorHandle>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, List<DubboSelectorHandle>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {

@@ -18,7 +18,7 @@
 package org.apache.shenyu.integrated.test.http.combination;
 
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.convert.RequestHandle;
+import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -26,7 +26,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.PluginController.RuleLocalData;
+import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

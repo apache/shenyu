@@ -24,11 +24,10 @@ import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
+import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The spring cloud loadbalancer rule.
@@ -42,7 +41,7 @@ public class LoadBalanceRule extends ZoneAvoidanceRule {
         if (CollectionUtils.isEmpty(available)) {
             return null;
         }
-        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(loadBalanceKey.getSelectorId());
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(loadBalanceKey.getSelectorId());
         if (!springCloudSelectorHandle.getGray()) {
             return super.choose(key);
         }
@@ -53,13 +52,10 @@ public class LoadBalanceRule extends ZoneAvoidanceRule {
         //select server from available to choose
         final List<Upstream> choose = new ArrayList<>(available.size());
         for (Server server : available) {
-            Optional<Upstream> divideUpstream = Optional.ofNullable(divideUpstreams.stream()
+            divideUpstreams.stream()
                     .filter(Upstream::isStatus)
                     .filter(upstream -> upstream.getUrl().equals(server.getHostPort()))
-                    .findFirst()).orElse(Optional.empty());
-            if (divideUpstream.isPresent()) {
-                choose.add(divideUpstream.get());
-            }
+                    .findFirst().ifPresent(choose::add);
         }
         if (CollectionUtils.isEmpty(choose)) {
             return super.choose(key);

@@ -19,10 +19,10 @@ package org.apache.shenyu.plugin.waf.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.WafHandle;
+import org.apache.shenyu.common.dto.convert.rule.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  */
 public class WafPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, WafHandle>> CACHED_HANDLE = new BeanHolder(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, WafHandle>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {

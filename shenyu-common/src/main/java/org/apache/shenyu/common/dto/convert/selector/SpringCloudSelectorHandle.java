@@ -17,18 +17,13 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-
-import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * The type Spring cloud selector handle.
  */
-public class SpringCloudSelectorHandle implements Serializable {
-
-    private static final long serialVersionUID = -5325946855733519631L;
+public class SpringCloudSelectorHandle {
 
     /**
      * this is register eureka serviceId.

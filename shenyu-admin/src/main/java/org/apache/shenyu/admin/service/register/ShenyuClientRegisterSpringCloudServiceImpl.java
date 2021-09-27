@@ -33,7 +33,7 @@ import org.apache.shenyu.admin.utils.DivideUpstreamUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -177,7 +177,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
         ruleService.register(registerRule(selectorId, dto, PluginEnum.SPRING_CLOUD.getName()),
                 dto.getRuleName(),
-                false);
+                true);
     }
 
     private void registerContextPathPlugin(final String contextPath) {

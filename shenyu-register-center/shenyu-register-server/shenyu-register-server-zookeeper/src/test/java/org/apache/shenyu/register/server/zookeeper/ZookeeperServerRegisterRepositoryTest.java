@@ -23,7 +23,6 @@ import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
-import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,19 +32,19 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for Zookeeper register center.
  */
-public class ZookeeperServerRegisterRepositoryTest implements ShenyuServerRegisterRepository {
+public class ZookeeperServerRegisterRepositoryTest {
 
     private ZookeeperServerRegisterRepository repository;
 

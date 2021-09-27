@@ -19,14 +19,14 @@ package org.apache.shenyu.plugin.divide.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public class DividePluginDataHandler implements PluginDataHandler {
     
-    public static final Supplier<RuleHandleCache<String, DivideRuleHandle>> CACHED_HANDLE = new BeanHolder<>(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, DivideRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {

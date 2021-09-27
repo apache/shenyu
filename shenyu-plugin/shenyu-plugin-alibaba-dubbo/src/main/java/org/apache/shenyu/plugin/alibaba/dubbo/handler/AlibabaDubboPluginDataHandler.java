@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.plugin.alibaba.dubbo.handler;
 
-import java.util.Objects;
-import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.common.utils.Singleton;
+
+import java.util.Objects;
 
 /**
  * The type Alibaba dubbo plugin data subscriber.

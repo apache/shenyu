@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.alibaba.dubbo.handler;
 
-import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;

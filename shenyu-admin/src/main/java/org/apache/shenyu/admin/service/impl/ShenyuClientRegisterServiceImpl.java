@@ -37,7 +37,7 @@ import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
 import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;

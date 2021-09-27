@@ -32,7 +32,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.PluginController;
+import org.apache.shenyu.web.controller.LocalPluginController;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -95,13 +95,13 @@ public class ModifyResponsePluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<PluginController.RuleLocalData> buildRuleLocalDataList() {
-        List<PluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
+    private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList() {
+        List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
         ruleLocalDataList.add(buildRuleLocalData());
         return ruleLocalDataList;
     }
 
-    private static PluginController.RuleLocalData buildRuleLocalData() {
+    private static LocalPluginController.RuleLocalData buildRuleLocalData() {
         final ModifyResponseRuleHandle modifyResponseRuleHandle = new ModifyResponseRuleHandle();
         modifyResponseRuleHandle.setAddHeaders(ImmutableMap.<String, String>builder().put(ADD_HEADER, "true").build());
         modifyResponseRuleHandle.setSetHeaders(ImmutableMap.<String, String>builder().put(SET_HEADERS_EXIST, "false").put(SET_HEADER_NOT_EXIST, "true").build());
@@ -126,7 +126,7 @@ public class ModifyResponsePluginTest extends AbstractPluginDataInit {
         removeBodyKeysHandler.add("$.removeBodyKeys");
         modifyResponseRuleHandle.setRemoveBodyKeys(removeBodyKeysHandler);
 
-        PluginController.RuleLocalData ruleLocalData = new PluginController.RuleLocalData();
+        LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleHandler(JsonUtils.toJson(modifyResponseRuleHandle));
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());

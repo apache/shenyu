@@ -83,7 +83,6 @@ public class RpcTypeEnumTest {
         List<RpcTypeEnum> rpcTypeEnumList = RpcTypeEnum.acquireSupportMetadatas();
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.DUBBO));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.GRPC));
-        assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.HTTP));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.SPRING_CLOUD));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.SOFA));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.TARS));
