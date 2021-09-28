@@ -109,7 +109,6 @@ public final class ShenyuClientRegisterServiceTest {
         dataChangedEventDispatcher.afterPropertiesSet();
     }
 
-
     @Test
     public void testRegisterSpringMvc() {
         MetaDataDO metaDataDO = buildMetaDataDO();
