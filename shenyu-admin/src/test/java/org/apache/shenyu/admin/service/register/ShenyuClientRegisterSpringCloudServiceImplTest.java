@@ -1,30 +1,18 @@
 package org.apache.shenyu.admin.service.register;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.UUID;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
-import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
-import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.Assert;
@@ -37,16 +25,18 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * ShenyuClientRegisterSpringCloudServiceImplTest
+ * ShenyuClientRegisterSpringCloudServiceImplTest.
  */
 @PrepareForTest(MetaDataServiceImpl.class)
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -77,13 +67,9 @@ public class ShenyuClientRegisterSpringCloudServiceImplTest {
     
     @Before
     public void setUp() {
-        shenyuClientRegisterSpringCloudService = new ShenyuClientRegisterSpringCloudServiceImpl(
-                metaDataService, eventPublisher,selectorService, ruleService, pluginService,upstreamCheckService);
+        shenyuClientRegisterSpringCloudService = new ShenyuClientRegisterSpringCloudServiceImpl(metaDataService, eventPublisher, selectorService, ruleService, pluginService, upstreamCheckService);
     }
 
-    /**
-     * saveOrUpdateMetaData
-     */
     @Test
     public void testSaveOrUpdateMetaData() {
         MetaDataDO metaDataDO = buildMetaDataDO();
@@ -92,9 +78,6 @@ public class ShenyuClientRegisterSpringCloudServiceImplTest {
         verify(eventPublisher, times(1)).publishEvent(any());
     }
 
-    /**
-     * handlerSelector
-     */
     @Test
     public void testHandlerSelector() {
         String selectorId = UUID.randomUUID().toString();
@@ -115,7 +98,7 @@ public class ShenyuClientRegisterSpringCloudServiceImplTest {
     @Test
     public void testRegisterRule() {
         String selectorId = UUID.randomUUID().toString();
-        MetaDataRegisterDTO metaDataRegisterDTO = buildScMetaDataRegisterDTO();
+        final MetaDataRegisterDTO metaDataRegisterDTO = buildScMetaDataRegisterDTO();
         metaDataRegisterDTO.setPath("path*");
         RuleDTO result = shenyuClientRegisterSpringCloudService.registerRule(selectorId, metaDataRegisterDTO, PluginEnum.SPRING_CLOUD.getName());
         Assert.assertNotNull(result);
@@ -134,7 +117,7 @@ public class ShenyuClientRegisterSpringCloudServiceImplTest {
     public void testRegister() {
         String selectorId = UUID.randomUUID().toString();
 
-        MetaDataRegisterDTO metaDataRegisterDTO = buildScMetaDataRegisterDTO();
+        final MetaDataRegisterDTO metaDataRegisterDTO = buildScMetaDataRegisterDTO();
         MetaDataDO metaDataDO = buildMetaDataDO();
         given(metaDataService.findByPath(any())).willReturn(metaDataDO);
         given(selectorService.register(SelectorDTO.builder().build())).willReturn(selectorId);
@@ -171,25 +154,4 @@ public class ShenyuClientRegisterSpringCloudServiceImplTest {
                 .build();
     }
 
-
-    private SelectorDO buildSelectorDO() {
-        SelectorDTO selectorDTO = new SelectorDTO();
-        selectorDTO.setId("456");
-        selectorDTO.setPluginId("789");
-        selectorDTO.setName("kuan");
-        selectorDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
-        selectorDTO.setHandle("[{\"upstreamHost\": \"127.0.0.1\", \"protocol\": \"http://\", \"upstreamUrl\": \"anotherUrl\"}]");
-        SelectorConditionDTO selectorConditionDTO1 = new SelectorConditionDTO();
-        selectorConditionDTO1.setId("111");
-        selectorConditionDTO1.setSelectorId("456");
-        SelectorConditionDTO selectorConditionDTO2 = new SelectorConditionDTO();
-        selectorConditionDTO2.setId("222");
-        selectorConditionDTO2.setSelectorId("456");
-        selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2));
-        SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        selectorDO.setDateCreated(now);
-        selectorDO.setDateUpdated(now);
-        return selectorDO;
-    }
 }
