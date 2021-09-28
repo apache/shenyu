@@ -37,9 +37,9 @@ public interface ShenyuClientRegisterServiceFactory {
     /**
      * mvc uri upstream update.
      *
-     * @param contextPath context paht
+     * @param contextPath context path
      * @param uriList     uri list
      * @return the string
      */
-    String registerURI(String contextPath, List<String> uriList);
+    String registerUri(String contextPath, List<String> uriList);
 }
