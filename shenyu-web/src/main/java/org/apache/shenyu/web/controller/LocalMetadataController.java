@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
@@ -57,15 +58,18 @@ public class LocalMetadataController {
     /**
      * Clean mono.
      *
-     * @param metaData the meta data
+     * @param rpcType the rpc type
+     * @param path the path
      * @return the mono
      */
     @GetMapping("/meta/delete")
-    public Mono<String> clean(final MetaData metaData) {
+    public Mono<String> clean(@RequestParam("rpcType") final String rpcType,
+                              @RequestParam("path") final String path) {
         if (CollectionUtils.isEmpty(subscribers)) {
             return Mono.just(Constants.SUCCESS);
         }
         LOG.info("delete apache shenyu local meta data");
+        MetaData metaData = MetaData.builder().rpcType(rpcType).path(path).build();
         subscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData));
         return Mono.just(Constants.SUCCESS);
     }

@@ -15,31 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.register;
+package org.apache.shenyu.integrated.test.sofa.dto;
 
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+public class SofaTestData {
 
-import java.util.List;
+    private String id;
 
-/**
- * shenyu client register service factory.
- */
-public interface ShenyuClientRegisterServiceFactory {
+    private String name;
 
     /**
-     * Register meta data.
+     * get id.
      *
-     * @param metaDataRegisterDTO meta data register dto.
-     * @return the string
+     * @return id
      */
-    String register(MetaDataRegisterDTO metaDataRegisterDTO);
+    public String getId() {
+        return id;
+    }
 
     /**
-     * mvc uri upstream update.
+     * get name.
      *
-     * @param contextPath context path
-     * @param uriList     uri list
-     * @return the string
+     * @return name
      */
-    String registerUri(String contextPath, List<String> uriList);
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "SofaTest{"
+                + "id='" + id + '\''
+                + ", name='" + name + '\''
+                + '}';
+    }
 }

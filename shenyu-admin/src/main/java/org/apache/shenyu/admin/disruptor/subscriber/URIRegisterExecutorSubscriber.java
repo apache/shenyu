@@ -52,6 +52,8 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
     @Override
     public void executor(final Collection<URIRegisterDTO> dataList) {
         Map<String, List<URIRegisterDTO>> listMap = dataList.stream().collect(Collectors.groupingBy(URIRegisterDTO::getContextPath));
-        listMap.forEach((contextPath, dtoList) -> shenyuClientRegisterService.get(Constants.DEFAULT.toLowerCase()).registerURIDefault(contextPath, dtoList));
+        listMap.forEach((contextPath, dtoList) -> shenyuClientRegisterService.get(Constants.DEFAULT.toLowerCase())
+                .registerUri(contextPath, dtoList.stream()
+                .map(s -> String.join(":", s.getHost(), s.getPort().toString())).collect(Collectors.toList())));
     }
 }

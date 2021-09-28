@@ -75,7 +75,7 @@ public class UpstreamCheckTaskTest {
         healthCheckTask.schedule();
         // Wait for the upstream-health-check thread to start.
         Awaitility.await().pollDelay(3, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
-        assertTrue(healthCheckTask.getHealthyUpstream().containsKey(selectorId1));
+        assertTrue(healthCheckTask.getUnhealthyUpstream().get(selectorId1).size() > 0);
         // Let it coverage line 151~163
         when(upstream.isHealthy()).thenReturn(false).thenReturn(true);
         // Even if the address could not connect, it will return false, that mean it will not coverage 151~163.
@@ -83,7 +83,7 @@ public class UpstreamCheckTaskTest {
         // Manually run one time
         healthCheckTask.run();
         Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
-        assertTrue(healthCheckTask.getUnhealthyUpstream().containsKey(selectorId1));
+        assertTrue(healthCheckTask.getHealthyUpstream().get(selectorId1).size() > 0);
     }
     
     /**

@@ -15,31 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.register;
+package org.apache.shenyu.integrated.test.sofa;
 
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.List;
-
-/**
- * shenyu client register service factory.
- */
-public interface ShenyuClientRegisterServiceFactory {
+@SpringBootApplication
+public class SofaIntegratedBootstrap {
 
     /**
-     * Register meta data.
+     * main mathod of app.
      *
-     * @param metaDataRegisterDTO meta data register dto.
-     * @return the string
+     * @param args args
      */
-    String register(MetaDataRegisterDTO metaDataRegisterDTO);
-
-    /**
-     * mvc uri upstream update.
-     *
-     * @param contextPath context path
-     * @param uriList     uri list
-     * @return the string
-     */
-    String registerUri(String contextPath, List<String> uriList);
+    public static void main(final String[] args) {
+        SpringApplication.run(SofaIntegratedBootstrap.class);
+    }
 }
