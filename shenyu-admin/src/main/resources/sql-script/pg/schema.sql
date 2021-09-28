@@ -1295,11 +1295,6 @@ ELSE
 	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "rule" ADD CONSTRAINT "rule_pkey" PRIMARY KEY ("id");');
 	-- ----------------------------
-	-- Indexes structure for table rule
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'CREATE INDEX "unique_name" ON "rule" USING btree (
-	  "name" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
-	);');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -1376,6 +1371,10 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER selector_tigger
 	          BEFORE UPDATE ON selector
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
+	-- Primary Key structure for table selector
+	-- ----------------------------
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "selector" ADD CONSTRAINT "selector_pkey" PRIMARY KEY ("id");');
+	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
