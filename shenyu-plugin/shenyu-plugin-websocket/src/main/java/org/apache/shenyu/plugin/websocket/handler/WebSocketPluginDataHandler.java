@@ -72,7 +72,7 @@ public class WebSocketPluginDataHandler implements PluginDataHandler {
 
     @Override
     public String pluginNamed() {
-        return PluginEnum.DIVIDE.getName();
+        return PluginEnum.WEB_SOCKET.getName();
     }
     
     private List<Upstream> convertUpstreamList(final List<WebSocketUpstream> upstreamList) {
