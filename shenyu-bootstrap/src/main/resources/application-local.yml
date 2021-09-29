@@ -22,10 +22,11 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
-#  cloud:
-#    nacos:
-#      discovery:
-#        server-addr: 127.0.0.1:8848
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
+
 #  security:
 #    oauth2:
 #      client:
