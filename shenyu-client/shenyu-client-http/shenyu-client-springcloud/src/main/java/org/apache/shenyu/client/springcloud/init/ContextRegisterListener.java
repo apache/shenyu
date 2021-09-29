@@ -31,6 +31,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -69,8 +70,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             String serverLists = config.getServerLists();
             String contextPath = props.getProperty("contextPath");
             String appName = env.getProperty("spring.application.name");
-            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                    || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
+            if (StringUtils.isAnyBlank(contextPath, registerType, serverLists, appName)) {
                 String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
                 LOG.error(errorMsg);
                 throw new RuntimeException(errorMsg);
@@ -96,7 +96,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         String appName = env.getProperty("spring.application.name");
         Integer port = env.getProperty("server.port", Integer.class, 8080);
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        String path = contextPath + "/**";
+        String path = Paths.get("/", contextPath, "/**").toString();
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
