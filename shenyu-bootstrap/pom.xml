@@ -307,7 +307,7 @@
             <artifactId>curator-recipes</artifactId>
             <version>${curator.version}</version>
         </dependency>
-        <!-- shenyu  alibaba dubbo plugin end-->
+        <!--shenyu alibaba dubbo plugin end-->
 
         <!--shenyu websocket plugin start-->
         <dependency>
