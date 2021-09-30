@@ -47,7 +47,7 @@ public final class HystrixPluginTest extends AbstractPluginDataInit {
 
     @BeforeClass
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.HYSTRIX.getName(), null);
+        String pluginResult = initPlugin(PluginEnum.HYSTRIX.getName(), "");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(
                 PluginEnum.HYSTRIX.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
