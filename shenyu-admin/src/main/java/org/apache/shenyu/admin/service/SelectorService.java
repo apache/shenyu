@@ -31,16 +31,16 @@ import java.util.List;
  * this is selector service.
  */
 public interface SelectorService {
-
-
+    
+    
     /**
      * Register string.
      *
      * @param selectorDTO the selector dto
      * @return the string
      */
-    String register(SelectorDTO selectorDTO);
-
+    String registerDefault(SelectorDTO selectorDTO);
+    
     /**
      * create or update selector.
      *
@@ -48,7 +48,7 @@ public interface SelectorService {
      * @return rows int
      */
     int createOrUpdate(SelectorDTO selectorDTO);
-
+    
     /**
      * update selective selector.
      *
@@ -56,7 +56,7 @@ public interface SelectorService {
      * @return rows int
      */
     int updateSelective(SelectorDO selectorDO);
-
+    
     /**
      * delete selectors.
      *
@@ -64,7 +64,7 @@ public interface SelectorService {
      * @return rows int
      */
     int delete(List<String> ids);
-
+    
     /**
      * find selector by id.
      *
@@ -72,7 +72,7 @@ public interface SelectorService {
      * @return {@linkplain SelectorVO}
      */
     SelectorVO findById(String id);
-
+    
     /**
      * find selector by name.
      *
@@ -80,7 +80,16 @@ public interface SelectorService {
      * @return selector do
      */
     SelectorDO findByName(String name);
-
+    
+    /**
+     * Find by name and plugin id selector do.
+     *
+     * @param name the name
+     * @param pluginName the plugin name
+     * @return the selector do
+     */
+    SelectorDO findByNameAndPluginName(String name, String pluginName);
+    
     /**
      * Build by name selector data.
      *
@@ -88,7 +97,16 @@ public interface SelectorService {
      * @return the selector data
      */
     SelectorData buildByName(String name);
-
+    
+    /**
+     * Build by name selector data.
+     *
+     * @param name the name
+     * @param pluginName the plugin name
+     * @return the selector data
+     */
+    SelectorData buildByName(String name, String pluginName);
+    
     /**
      * find page of selector by query.
      *
@@ -96,7 +114,7 @@ public interface SelectorService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
-
+    
     /**
      * Find by plugin id list.
      *
@@ -104,20 +122,21 @@ public interface SelectorService {
      * @return the list
      */
     List<SelectorData> findByPluginId(String pluginId);
-
+    
     /**
      * List all list.
      *
      * @return the list
      */
     List<SelectorData> listAll();
-
+    
     /**
      * handler selector need upstream check.
      *
-     * @param dto      {@link MetaDataRegisterDTO}
-     * @param rpcType  rpc type
+     * @param dto {@link MetaDataRegisterDTO}
+     * @param pluginName rpc type
+     * @param selectorHandler the selector handler
      * @return the id of selector.
      */
-    String handlerSelectorNeedUpstreamCheck(MetaDataRegisterDTO dto, String rpcType);
+    String registerDefault(MetaDataRegisterDTO dto, String pluginName, String selectorHandler);
 }

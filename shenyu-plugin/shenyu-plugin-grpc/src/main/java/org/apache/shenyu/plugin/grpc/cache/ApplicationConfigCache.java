@@ -21,7 +21,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
@@ -78,7 +78,7 @@ public final class ApplicationConfigCache {
      */
     public void initPrx(final SelectorData selectorData) {
         try {
-            final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
+            final List<GrpcUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), GrpcUpstream.class);
             if (null == upstreamList || upstreamList.size() == 0) {
                 invalidate(selectorData.getName());
                 return;
@@ -126,11 +126,11 @@ public final class ApplicationConfigCache {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
 
-    private ShenyuServiceInstance build(final DivideUpstream divideUpstream) {
-        String[] ipAndPort = divideUpstream.getUpstreamUrl().split(":");
+    private ShenyuServiceInstance build(final GrpcUpstream grpcUpstream) {
+        String[] ipAndPort = grpcUpstream.getUpstreamUrl().split(":");
         ShenyuServiceInstance instance = new ShenyuServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
-        instance.setWeight(divideUpstream.getWeight());
-        instance.setStatus(divideUpstream.isStatus());
+        instance.setWeight(grpcUpstream.getWeight());
+        instance.setStatus(grpcUpstream.isStatus());
         return instance;
     }
 

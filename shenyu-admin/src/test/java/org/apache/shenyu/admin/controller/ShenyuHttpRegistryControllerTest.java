@@ -19,10 +19,10 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.disruptor.RegisterServerDisruptorPublisher;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterDubboServiceImpl;
-import org.apache.shenyu.admin.service.register.ShenyuClientRegisterServiceFactory;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterSofaServiceImpl;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterSpringCloudServiceImpl;
-import org.apache.shenyu.admin.service.register.ShenyuClientRegisterSpringMVCServiceImpl;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterDivideServiceImpl;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.Before;
@@ -59,13 +59,13 @@ public final class ShenyuHttpRegistryControllerTest {
     private ShenyuClientRegisterSofaServiceImpl shenyuClientRegisterSofaService;
 
     @Mock
-    private ShenyuClientRegisterSpringMVCServiceImpl shenyuClientRegisterSpringMVCService;
+    private ShenyuClientRegisterDivideServiceImpl shenyuClientRegisterSpringMVCService;
 
     @Mock
     private ShenyuClientRegisterSpringCloudServiceImpl shenyuClientRegisterSpringCloudService;
 
     @Mock
-    private Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService;
+    private Map<String, ShenyuClientRegisterService> shenyuClientRegisterService;
 
     @Before
     public void setUp() {

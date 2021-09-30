@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.disruptor.RegisterServerDisruptorPublisher;
-import org.apache.shenyu.admin.service.register.ShenyuClientRegisterServiceFactory;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.ExtensionLoader;
@@ -54,7 +54,7 @@ public class RegisterCenterConfiguration {
      */
     @Bean
     public ShenyuServerRegisterRepository shenyuServerRegisterRepository(final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig,
-                                                                         final Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService) {
+                                                                         final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService) {
         String registerType = shenyuRegisterCenterConfig.getRegisterType();
         ShenyuServerRegisterRepository registerRepository = ExtensionLoader.getExtensionLoader(ShenyuServerRegisterRepository.class).getJoin(registerType);
         RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();

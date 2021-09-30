@@ -24,9 +24,7 @@ import java.util.Objects;
 /**
  * Context mapping thread handle.
  */
-public class ContextMappingHandle implements RuleHandle {
-
-    private static final long serialVersionUID = 4891655505357494670L;
+public class ContextMappingRuleHandle implements RuleHandle {
 
     private String contextPath;
 
@@ -67,13 +65,13 @@ public class ContextMappingHandle implements RuleHandle {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ContextMappingHandle that = (ContextMappingHandle) o;
+        ContextMappingRuleHandle that = (ContextMappingRuleHandle) o;
         return Objects.equals(contextPath, that.contextPath) && Objects.equals(addPrefix, that.addPrefix);
     }
 
     @Override
     public String toString() {
-        return "ContextMappingHandle{"
+        return "ContextMappingRuleHandle{"
                 + "contextPath='"
                 + contextPath
                 + '\''
@@ -95,11 +93,5 @@ public class ContextMappingHandle implements RuleHandle {
      */
     public void setAddPrefix(final String addPrefix) {
         this.addPrefix = addPrefix;
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        this.contextPath = path;
-        return this;
     }
 }

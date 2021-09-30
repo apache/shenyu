@@ -18,61 +18,71 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
  * motan service register.
  */
 @Service("motan")
 public class ShenyuClientRegisterMotanServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-
-    private final MetaDataService metaDataService;
-
-    private final SelectorService selectorService;
-
-    private final RuleService ruleService;
-
-    public ShenyuClientRegisterMotanServiceImpl(final MetaDataService metaDataService,
-                                                final SelectorService selectorService,
-                                                final RuleService ruleService) {
-        this.metaDataService = metaDataService;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
-    }
-
+    
+    /**
+     * Plugin name string.
+     *
+     * @return the string
+     */
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String register(final MetaDataRegisterDTO dto) {
-        MetaDataDO exist = metaDataService.findByPath(dto.getPath());
-        saveOrUpdateMetaData(exist, dto);
-        String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, exist);
-        return ShenyuResultMessage.SUCCESS;
+    protected String pluginName() {
+        return PluginEnum.MOTAN.getName();
     }
-
+    
+    /**
+     * Selector handler string.
+     *
+     * @param metaDataDTO
+     * @return the string
+     */
     @Override
-    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
+    protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
+        return "";
+    }
+    
+    /**
+     * Rule handler string.
+     *
+     * @return the string
+     */
+    @Override
+    protected String ruleHandler() {
+        return "";
+    }
+    
+    /**
+     * Register metadata.
+     *
+     * @param metaDataDTO the meta data dto
+     */
+    @Override
+    protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
-
+    
+    /**
+     * Build handle string.
+     *
+     * @param uriList the uri list
+     * @param selectorDO the selector do
+     * @return the string
+     */
     @Override
-    public String handlerSelector(final MetaDataRegisterDTO dto) {
-        return selectorService.handlerSelectorNeedUpstreamCheck(dto, PluginEnum.MOTAN.getName());
-    }
-
-    @Override
-    public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.MOTAN.getName()),
-                metaDataDTO.getPath(),
-                Objects.nonNull(exist));
+    protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
+        return "";
     }
 }

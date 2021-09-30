@@ -220,11 +220,11 @@ public final class SelectorServiceTest {
 
         // Test the situation where the selector cannot be found based on the contextPath.
         given(pluginMapper.selectByName("test")).willReturn(buildPluginDO());
-        assertNotNull(selectorService.handlerSelectorNeedUpstreamCheck(buildMetaDataRegisterDTO(), "test"));
+        assertNotNull(selectorService.registerDefault(buildMetaDataRegisterDTO(), "test", ""));
 
         // Test the situation where the selector can be found based on the contextPath.
         given(selectorMapper.selectByName("/test")).willReturn(buildSelectorDO());
-        assertThat(selectorService.handlerSelectorNeedUpstreamCheck(buildMetaDataRegisterDTO(), "test"), is("456"));
+        assertThat(selectorService.registerDefault(buildMetaDataRegisterDTO(), "test", ""), is("456"));
     }
 
     private void testUpdate() {
@@ -248,14 +248,14 @@ public final class SelectorServiceTest {
     private void testRegisterCreate() {
         SelectorDTO selectorDTO = buildSelectorDTO("");
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        String selectorId = this.selectorService.register(selectorDTO);
+        String selectorId = this.selectorService.registerDefault(selectorDTO);
         assertNotNull(selectorId);
         assertEquals(selectorId.length(), selectorDO.getId().length());
     }
 
     private void testRegisterUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
-        String selectorId = this.selectorService.register(selectorDTO);
+        String selectorId = this.selectorService.registerDefault(selectorDTO);
         assertNotNull(selectorId);
         assertEquals(selectorId, selectorDTO.getId());
     }

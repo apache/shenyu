@@ -23,13 +23,13 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The type Metadata executor subscriber.
@@ -59,7 +59,7 @@ public class ShenyuClientMetadataExecutorSubscriber implements ExecutorTypeSubsc
         for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
             Stopwatch stopwatch = Stopwatch.createStarted();
             while (true) {
-                try (Socket socket = new Socket(metaDataRegisterDTO.getHost(), metaDataRegisterDTO.getPort())) {
+                try (Socket ignored = new Socket(metaDataRegisterDTO.getHost(), metaDataRegisterDTO.getPort())) {
                     break;
                 } catch (IOException e) {
                     long sleepTime = 1000;

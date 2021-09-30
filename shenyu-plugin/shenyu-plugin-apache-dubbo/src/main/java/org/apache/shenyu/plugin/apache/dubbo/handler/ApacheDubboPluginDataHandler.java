@@ -23,7 +23,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.DubboSelectorHandle;
+import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -48,7 +48,7 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, DubboRuleHandle>> RULE_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
-    public static final Supplier<CommonHandleCache<String, List<DubboSelectorHandle>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, List<DubboUpstream>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -69,12 +69,12 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        List<DubboSelectorHandle> dubboSelectorHandles = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboSelectorHandle.class);
-        if (CollectionUtils.isEmpty(dubboSelectorHandles)) {
+        List<DubboUpstream> dubboUpstreams = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
+        if (CollectionUtils.isEmpty(dubboUpstreams)) {
             return;
         }
-        List<DubboSelectorHandle> graySelectorHandle = new ArrayList<>();
-        for (DubboSelectorHandle each : dubboSelectorHandles) {
+        List<DubboUpstream> graySelectorHandle = new ArrayList<>();
+        for (DubboUpstream each : dubboUpstreams) {
             if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && each.isGray()) {
                 graySelectorHandle.add(each);
             }
@@ -106,7 +106,7 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
         return PluginEnum.DUBBO.getName();
     }
 
-    private List<Upstream> convertUpstreamList(final List<DubboSelectorHandle> handleList) {
+    private List<Upstream> convertUpstreamList(final List<DubboUpstream> handleList) {
         return handleList.stream().map(u -> Upstream.builder()
                 .protocol(u.getProtocol())
                 .url(u.getUpstreamUrl())

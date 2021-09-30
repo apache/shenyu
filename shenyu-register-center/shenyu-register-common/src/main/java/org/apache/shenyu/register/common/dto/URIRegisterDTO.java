@@ -231,7 +231,14 @@ public class URIRegisterDTO implements DataTypeParent, Serializable {
     public int hashCode() {
         return Objects.hash(getAppName(), getContextPath(), getRpcType(), getHost(), getPort(), getEventType());
     }
-
+    
+    @Override
+    public String toString() {
+        return "URIRegisterDTO{" + "appName='" + appName + '\'' + ", contextPath='" + contextPath + '\'' + 
+                ", rpcType='" + rpcType + '\'' + ", host='" + host + '\'' + 
+                ", port=" + port + ", eventType=" + eventType + '}';
+    }
+    
     public static final class Builder {
 
         private String appName;

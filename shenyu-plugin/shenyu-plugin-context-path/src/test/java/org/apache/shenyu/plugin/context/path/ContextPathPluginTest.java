@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.context.path;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -82,10 +82,10 @@ public final class ContextPathPluginTest {
     @Test
     public void executeTest() {
         shenyuContext.setPath("/http/context/order/findById");
-        ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
-        contextMappingHandle.setContextPath("/http/context");
-        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
-        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
+        ContextMappingRuleHandle contextMappingRuleHandle = new ContextMappingRuleHandle();
+        contextMappingRuleHandle.setContextPath("/http/context");
+        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingRuleHandle);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingRuleHandle));
         contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
         Assert.assertEquals(shenyuContext.getRealUrl(), "/order/findById");
     }

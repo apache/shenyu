@@ -225,7 +225,18 @@ public class PluginServiceImpl implements PluginService {
         Objects.requireNonNull(pluginDO);
         return pluginDO.getId();
     }
-
+    
+    /**
+     * Find by name plugin do.
+     *
+     * @param name the name
+     * @return the plugin do
+     */
+    @Override
+    public PluginDO findByName(final String name) {
+        return pluginMapper.selectByName(name);
+    }
+    
     /**
      * check plugin Data integrity.
      *

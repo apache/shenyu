@@ -22,6 +22,7 @@ import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.subsriber.AbstractQueueConsumerFactory;
 import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;

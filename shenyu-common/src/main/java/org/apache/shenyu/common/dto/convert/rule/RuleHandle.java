@@ -19,20 +19,10 @@ package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.shenyu.common.utils.GsonUtils;
 
-import java.io.Serializable;
-
 /**
  * The RuleHandle interface.
  */
-public interface RuleHandle extends Serializable {
-
-    /**
-     * It will be call when RuleHandleFactory to generate a RuleHandle object.
-     * @param path   path.
-     * @param rpcExt rpc ext.
-     * @return      it's self.
-     */
-    RuleHandle createDefault(String path, String rpcExt);
+public interface RuleHandle {
 
     /**
      * Format this object to json string.

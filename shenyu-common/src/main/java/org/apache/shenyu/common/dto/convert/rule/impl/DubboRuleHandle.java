@@ -31,8 +31,6 @@ import java.util.Objects;
  */
 public class DubboRuleHandle implements RuleHandle {
 
-    private static final long serialVersionUID = 2687375375638048966L;
-
     /**
      * version.
      */
@@ -46,13 +44,13 @@ public class DubboRuleHandle implements RuleHandle {
     /**
      * retries.
      */
-    private Integer retries;
+    private Integer retries = 0;
 
     /**
      * the loadbalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadbalance;
+    private String loadbalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * timeout is required.
@@ -179,15 +177,5 @@ public class DubboRuleHandle implements RuleHandle {
                 + ", loadbalance='" + loadbalance + '\''
                 + ", timeout=" + timeout
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        if (StringUtils.isBlank(rpcExt)) {
-            this.loadbalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
-            this.retries = RuleHandleConstants.DEFAULT_RETRIES;
-            return this;
-        }
-        return GsonUtils.getInstance().fromJson(rpcExt, DubboRuleHandle.class);
     }
 }

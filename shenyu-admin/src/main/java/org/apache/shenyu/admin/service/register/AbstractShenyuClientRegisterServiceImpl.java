@@ -18,20 +18,32 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
-import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
-import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.springframework.context.ApplicationEventPublisher;
 
+import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -39,105 +51,153 @@ import java.util.Objects;
 /**
  * Abstract strategy.
  */
-public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServiceFactory {
-
+public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuClientRegisterService {
+    
     /**
-     * save or update meta data.
-     *
-     * @param exist       has been exist meta data {@link MetaDataDO}
-     * @param metaDataDTO meta data dto {@link MetaDataRegisterDTO}
+     * The Event publisher.
      */
-    protected abstract void saveOrUpdateMetaData(MetaDataDO exist, MetaDataRegisterDTO metaDataDTO);
-
+    @Resource
+    public ApplicationEventPublisher eventPublisher;
+    
     /**
-     * handler selector.
-     *
-     * @param metaDataDTO meta data register dto {@link MetaDataRegisterDTO}
-     * @return primary key of selector
+     * The Meta data service.
      */
-    protected abstract String handlerSelector(MetaDataRegisterDTO metaDataDTO);
-
+    @Resource
+    public MetaDataService metaDataService;
+    
     /**
-     * handler rule.
-     *
-     * @param selectorId  the primary key of selector
-     * @param metaDataDTO meta data dto {@link MetaDataRegisterDTO}
-     * @param exist       has been exist meta data {@link MetaDataDO}
+     * The Selector service.
      */
-    protected abstract void handlerRule(String selectorId, MetaDataRegisterDTO metaDataDTO, MetaDataDO exist);
-
+    @Resource
+    public SelectorService selectorService;
+    
+    /**
+     * The Plugin service.
+     */
+    @Resource
+    public PluginService pluginService;
+    
+    /**
+     * The Rule service.
+     */
+    @Resource
+    public RuleService ruleService;
+    
+    @Resource
+    public UpstreamCheckService upstreamCheckService;
+    
+    /**
+     * Plugin name string.
+     *
+     * @return the string
+     */
+    protected abstract String pluginName();
+    
+    /**
+     * Selector handler string.
+     *
+     * @return the string
+     */
+    protected abstract String selectorHandler(MetaDataRegisterDTO metaDataDTO);
+    
+    /**
+     * Rule handler string.
+     *
+     * @return the string
+     */
+    protected abstract String ruleHandler();
+    
+    /**
+     * Register metadata.
+     *
+     * @param metaDataDTO the meta data dto
+     */
+    protected abstract void registerMetadata(MetaDataRegisterDTO metaDataDTO);
+    
+    /**
+     * Build handle string.
+     *
+     * @param uriList the uri list
+     * @param selectorDO the selector do
+     * @return the string
+     */
+    protected abstract String buildHandle(List<URIRegisterDTO> uriList, SelectorDO selectorDO);
+    
+    /**
+     * Register meta data.
+     *
+     * @param dto meta data register dto.
+     * @return the string
+     */
     @Override
-    public String registerUri(final String contextPath, final List<String> uriList) {
-        return null;
-    }
-
-    protected SelectorDTO registerSelector(final String contextPath, final String pluginId) {
-        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
-        selectorDTO.setPluginId(pluginId);
-        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
-        return selectorDTO;
-    }
-
-    protected RuleDTO registerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String pluginName) {
-        String path = metaDataDTO.getPath();
-        RuleHandle ruleHandle = RuleHandleFactory.ruleHandle(pluginName, path, metaDataDTO.getRpcExt());
-        return getRuleDTO(selectorId, path, ruleHandle, metaDataDTO.getRuleName());
-    }
-
-    protected RuleDTO registerContextPathRule(final String selectorId, final String path, final String pluginName, final String ruleName) {
-        RuleHandle ruleHandle = RuleHandleFactory.ruleHandle(pluginName, buildContextPath(path), "");
-        return getRuleDTO(selectorId, path, ruleHandle, ruleName);
-    }
-
-    protected List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
-        SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
-        selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
-        selectorConditionDTO.setParamName("/");
-        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        selectorConditionDTO.setParamValue(contextPath + "/**");
-        return Collections.singletonList(selectorConditionDTO);
-    }
-
-    protected String buildContextPath(final String path) {
-        String split = "/";
-        String[] splitList = StringUtils.split(path, split);
-        if (splitList.length != 0) {
-            return split.concat(splitList[0]);
+    public String register(final MetaDataRegisterDTO dto) {
+        //handler plugin selector
+        String selectorHandler = selectorHandler(dto);
+        String selectorId = selectorService.registerDefault(dto, pluginName(), selectorHandler);
+        //handler selector rule
+        String ruleHandler = ruleHandler();
+        RuleDTO ruleDTO = buildDefaultRuleDTO(selectorId, dto, ruleHandler);
+        ruleService.registerDefault(ruleDTO);
+        //handler register metadata
+        if (dto.isRegisterMetaData()) {
+            registerMetadata(dto);
         }
-        return split;
+        //handler context path
+        String contextPath = dto.getContextPath();
+        if (StringUtils.isNotEmpty(contextPath)) {
+            String contextPathSelectorId = selectorService.registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
+            ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+            handle.setContextPath(contextPath);
+            ruleService.registerDefault(buildDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
+        }
+        return ShenyuResultMessage.SUCCESS;
     }
-
-    protected SelectorDTO buildDefaultSelectorDTO(final String name) {
-        return SelectorDTO.builder()
-                .name(name)
-                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
-                .matchMode(MatchModeEnum.AND.getCode())
-                .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
-                .continued(Boolean.TRUE)
-                .sort(1)
-                .build();
+    
+    /**
+     * Register uri string.
+     *
+     * @param selectorName the selector name
+     * @param uriList the uri list
+     * @return the string
+     */
+    @Override
+    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+        if (CollectionUtils.isEmpty(uriList)) {
+            return "";
+        }
+        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName());
+        if (Objects.isNull(selectorDO)) {
+            return "";
+        }
+        // fetch UPSTREAM_MAP data from db
+        //upstreamCheckService.fetchUpstreamData();
+        //update upstream
+        String handler = buildHandle(uriList, selectorDO);
+        selectorDO.setHandle(handler);
+        SelectorData selectorData = selectorService.buildByName(selectorName, pluginName());
+        selectorData.setHandle(handler);
+        // update db
+        selectorService.updateSelective(selectorDO);
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
+        return ShenyuResultMessage.SUCCESS;
     }
-
-    protected DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
+    
+    protected void doSubmit(String selectorId, final List<? extends CommonUpstream > upstreamList) {
+        List<CommonUpstream> commonUpstreamList = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
+        commonUpstreamList.forEach(upstream ->  upstreamCheckService.submit(selectorId, upstream));
     }
-
-    protected boolean checkPathExist(final MetaDataDO existMetaDataDO, final MetaDataRegisterDTO dto) {
-        return Objects.nonNull(existMetaDataDO)
-                && (!existMetaDataDO.getMethodName().equals(dto.getMethodName())
-                || !existMetaDataDO.getServiceName().equals(dto.getServiceName()));
-    }
-
-    private RuleDTO getRuleDTO(final String selectorId, final String path, final RuleHandle ruleHandle, final String ruleName) {
+    
+    private RuleDTO buildDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
+        String path = metaDataDTO.getPath();
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
-                .name(ruleName)
+                .name(metaDataDTO.getRuleName())
                 .matchMode(MatchModeEnum.AND.getCode())
                 .enabled(Boolean.TRUE)
                 .loged(Boolean.TRUE)
                 .sort(1)
-                .handle(ruleHandle.toJson())
+                .handle(ruleHandler)
                 .build();
         RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
                 .paramType(ParamTypeEnum.URI.getName())

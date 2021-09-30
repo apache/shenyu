@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * Param mapping handle.
  */
-public class ParamMappingHandle implements RuleHandle {
+public class ParamMappingRuleHandle implements RuleHandle {
 
     private Set<String> removeParameterKeys;
 
@@ -96,7 +96,7 @@ public class ParamMappingHandle implements RuleHandle {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ParamMappingHandle that = (ParamMappingHandle) o;
+        ParamMappingRuleHandle that = (ParamMappingRuleHandle) o;
         return Objects.equals(removeParameterKeys, that.removeParameterKeys) && Objects.equals(replaceParameterKeys, that.replaceParameterKeys)
                 && Objects.equals(addParameterKeys, that.addParameterKeys);
     }
@@ -108,7 +108,7 @@ public class ParamMappingHandle implements RuleHandle {
 
     @Override
     public String toString() {
-        return "ParamMappingHandle{"
+        return "ParamMappingRuleHandle{"
                 + "removeParameterKeys="
                 + removeParameterKeys
                 + ", replaceParameterKeys="
@@ -116,11 +116,6 @@ public class ParamMappingHandle implements RuleHandle {
                 + ", addParameterKeys="
                 + addParameterKeys
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        return this;
     }
 
     public static class ParamMapInfo {

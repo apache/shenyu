@@ -17,41 +17,50 @@
 
 package org.apache.shenyu.client.core.disruptor.executor;
 
-import com.google.common.collect.Lists;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
-import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
+import org.apache.shenyu.register.common.subsriber.AbstractQueueConsumerFactory;
 import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
+import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
+import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The type Consumer executor.
  */
 @SuppressWarnings("all")
-public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTypeParent> {
+public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<List<DataTypeParent>> {
     
-    private ExecutorSubscriber executorSubscriber;
+    private Map<DataType, ExecutorSubscriber> subscribers = new HashMap<>();
     
-    public RegisterClientConsumerExecutor(final ExecutorSubscriber executorSubscriber) {
-        this.executorSubscriber = executorSubscriber;
+    private RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber> executorSubscriberMap) {
+        this.subscribers.putAll(executorSubscriberMap);
     }
 
     @Override
     public void run() {
-        DataTypeParent result = getData();
-        executorSubscriber.executor(Lists.newArrayList(result));
+        List<DataTypeParent> results = getData();
+        getType(results).executor(results);
     }
     
-    public static class RegisterClientExecutorFactory implements QueueConsumerFactory {
+    private ExecutorSubscriber getType(final List<DataTypeParent> list) {
+        DataTypeParent result = list.get(0);
+        return subscribers.get(result.getType());
+    }
+    
+    /**
+     * The type Register client executor factory.
+     */
+    public static class RegisterClientExecutorFactory extends AbstractQueueConsumerFactory {
         
-        private ExecutorSubscriber executorSubscriber;
-        
-        public RegisterClientExecutorFactory(final ExecutorSubscriber executorSubscriber) {
-            this.executorSubscriber = executorSubscriber;
-        }
-
         @Override
         public QueueConsumerExecutor create() {
-            return new RegisterClientConsumerExecutor(executorSubscriber);
+            Map<DataType, ExecutorTypeSubscriber> maps = getSubscribers().stream().map(e -> (ExecutorTypeSubscriber) e).collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
+            return new RegisterClientConsumerExecutor(maps);
         }
 
         @Override

@@ -17,64 +17,73 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * tars service register.
  */
 @Service("tars")
 public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-
-    private final MetaDataService metaDataService;
-
-    private final SelectorService selectorService;
-
-    private final RuleService ruleService;
-
-    public ShenyuClientRegisterTarsServiceImpl(final MetaDataService metaDataService,
-                                               final SelectorService selectorService,
-                                               final RuleService ruleService) {
-        this.metaDataService = metaDataService;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
-    }
-
+    
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String register(final MetaDataRegisterDTO dto) {
-        MetaDataDO byPath = metaDataService.findByPath(dto.getPath());
-        if (checkPathExist(byPath, dto)) {
-            return "you path already exist!";
-        }
-        final MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(dto.getServiceName(), dto.getMethodName());
-        saveOrUpdateMetaData(exist, dto);
-        String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, exist);
-        return ShenyuResultMessage.SUCCESS;
+    protected String pluginName() {
+        return PluginEnum.TARS.getName();
     }
-
+    
     @Override
-    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
+    protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
+        return "";
+    }
+    
+    @Override
+    protected String ruleHandler() {
+        return "";
+    }
+    
+    @Override
+    protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
-
+    
     @Override
-    public String handlerSelector(final MetaDataRegisterDTO dto) {
-        return selectorService.handlerSelectorNeedUpstreamCheck(dto, PluginEnum.TARS.getName());
+    protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
+        String handleAdd;
+        List<TarsUpstream> addList = buildTarsUpstreamList(uriList);
+        List<TarsUpstream> canAddList = new ArrayList<>();
+        if (StringUtils.isBlank(selectorDO.getHandle())) {
+            handleAdd = GsonUtils.getInstance().toJson(addList);
+            canAddList = addList;
+        } else {
+            List<TarsUpstream> existList = GsonUtils.getInstance().fromList(selectorDO.getHandle(), TarsUpstream.class);
+            for (TarsUpstream exist : existList) {
+                for (TarsUpstream add : addList ) {
+                    if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
+                        existList.add(add);
+                        canAddList.add(add);
+                    }
+                }
+            }
+            handleAdd = GsonUtils.getInstance().toJson(existList);
+        }
+        doSubmit(selectorDO.getId(), canAddList);
+        return handleAdd;
     }
-
-    @Override
-    public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.TARS.getName()), metaDataDTO.getPath(), Objects.nonNull(exist));
+    
+    private List<TarsUpstream> buildTarsUpstreamList(final List<URIRegisterDTO> uriList) {
+        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultTarsUpstream(dto.getHost(), dto.getPort())).collect(Collectors.toList());
     }
 }

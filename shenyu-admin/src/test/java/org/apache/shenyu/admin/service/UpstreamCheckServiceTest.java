@@ -259,14 +259,14 @@ public final class UpstreamCheckServiceTest {
                 .upstreamHost("ErrorUrl")
                 .build();
         ZombieUpstream zombieUpstream1 = ZombieUpstream.builder()
-                .divideUpstream(divideUpstream1)
+                .commonUpstream(divideUpstream1)
                 .zombieCheckTimes(5)
-                .selectorName("UrlReachable")
+                .selectorId("UrlReachable")
                 .build();
         ZombieUpstream zombieUpstream2 = ZombieUpstream.builder()
-                .divideUpstream(divideUpstream2)
+                .commonUpstream(divideUpstream2)
                 .zombieCheckTimes(5)
-                .selectorName("UrlError")
+                .selectorId("UrlError")
                 .build();
 
         zombieSet.add(zombieUpstream1);

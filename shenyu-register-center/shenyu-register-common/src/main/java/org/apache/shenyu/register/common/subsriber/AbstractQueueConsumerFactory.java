@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.disruptor.executor;
+package org.apache.shenyu.register.common.subsriber;
 
-import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
+
 import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
 
 import java.util.HashSet;

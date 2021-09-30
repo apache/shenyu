@@ -17,15 +17,17 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 
 import java.util.List;
 
 /**
  * shenyu client register service factory.
  */
-public interface ShenyuClientRegisterServiceFactory {
-
+public interface ShenyuClientRegisterService {
+    
     /**
      * Register meta data.
      *
@@ -33,13 +35,15 @@ public interface ShenyuClientRegisterServiceFactory {
      * @return the string
      */
     String register(MetaDataRegisterDTO metaDataRegisterDTO);
-
+    
     /**
-     * mvc uri upstream update.
+     * Register uri string.
      *
-     * @param contextPath context path
-     * @param uriList     uri list
+     * @param selectorName the selector name
+     * @param uriList the uri list
      * @return the string
      */
-    String registerUri(String contextPath, List<String> uriList);
+    default String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+        return Constants.SUCCESS;
+    }
 }

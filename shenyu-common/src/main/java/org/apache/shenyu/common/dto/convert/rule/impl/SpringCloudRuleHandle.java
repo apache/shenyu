@@ -28,8 +28,6 @@ import java.util.Objects;
  */
 public class SpringCloudRuleHandle implements RuleHandle {
 
-    private static final long serialVersionUID = 269429745060607954L;
-
     /**
      * this remote uri path.
      */
@@ -126,11 +124,5 @@ public class SpringCloudRuleHandle implements RuleHandle {
                 + ", timeout="
                 + timeout
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        this.path = path;
-        return this;
     }
 }
