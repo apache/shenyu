@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.BindableService;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
@@ -37,10 +38,10 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -81,8 +82,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
         String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("grpc client must config the contextPath, ipAndPort");
+        if (StringUtils.isAnyBlank(contextPath, ipAndPort, port) || contextPath.charAt(0) != '/') {
+            throw new RuntimeException("grpc client must config the contextPath, ipAndPort, and contextPath must begin with '/'");
         }
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;
@@ -135,7 +136,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final ShenyuGrpcClient shenyuGrpcClient, final Method method) {
-        String path = this.contextPath + shenyuGrpcClient.path();
+        String path = Paths.get(contextPath, shenyuGrpcClient.path()).toString();
         String desc = shenyuGrpcClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuGrpcClient.ruleName();

@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Method;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -77,7 +78,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         String appName = env.getProperty("spring.application.name");
-        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
+        if (StringUtils.isAnyBlank(registerType, serverLists, appName)) {
             String errorMsg = "spring cloud param must config the registerType , serverLists  and appName";
             LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
@@ -128,7 +129,12 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient, final String prePath) {
         String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
-        String path = contextPath + prePath + shenyuSpringCloudClient.path();
+        String path;
+        if (StringUtils.isEmpty(contextPath)) {
+            path = Paths.get("/", prePath, shenyuSpringCloudClient.path()).toString();
+        } else {
+            path = Paths.get("/", contextPath, prePath, shenyuSpringCloudClient.path()).toString();
+        }
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = shenyuSpringCloudClient.desc();

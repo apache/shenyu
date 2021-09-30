@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
 
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -68,8 +69,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             String serverLists = config.getServerLists();
             String contextPath = props.getProperty("contextPath");
             int port = Integer.parseInt(props.getProperty("port"));
-            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                    || StringUtils.isBlank(serverLists) || port <= 0) {
+            if (StringUtils.isAnyBlank(contextPath, registerType, serverLists) || port <= 0) {
                 String errorMsg = "http register param must config the contextPath, registerType , serverLists and port must > 0";
                 LOG.error(errorMsg);
                 throw new RuntimeException(errorMsg);
@@ -97,7 +97,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         String contextPath = this.contextPath;
         String appName = this.appName;
         Integer port = this.port;
-        String path = contextPath + "/**";
+        String path = Paths.get("/", contextPath, "/**").toString();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)

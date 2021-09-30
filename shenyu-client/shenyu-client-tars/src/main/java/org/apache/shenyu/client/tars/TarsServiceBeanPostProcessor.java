@@ -36,6 +36,7 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,8 +70,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         String contextPath = props.getProperty("contextPath");
         String ip = props.getProperty("host");
         String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
+        if (StringUtils.isAnyBlank(contextPath, ip, port) || contextPath.charAt(0) != '/') {
+            throw new RuntimeException("tars client must config the contextPath, ipAndPort, and contextPath must begin with '/'");
         }
         this.contextPath = contextPath;
         this.ipAndPort = ip + ":" + port;
@@ -105,7 +106,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final ShenyuTarsClient shenyuTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = this.ipAndPort;
-        String path = this.contextPath + shenyuTarsClient.path();
+        String path = Paths.get(this.contextPath, shenyuTarsClient.path()).toString();
         String desc = shenyuTarsClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuTarsClient.ruleName();
