@@ -18,9 +18,9 @@
 package org.apache.shenyu.client.alibaba.dubbo;
 
 import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
@@ -35,7 +35,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -69,8 +68,8 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
-        if (StringUtils.isEmpty(contextPath) || contextPath.charAt(0) != '/') {
-            throw new RuntimeException("apache dubbo client must config the contextPath and must begin with '/'");
+        if (StringUtils.isEmpty(contextPath)) {
+            throw new RuntimeException("apache dubbo client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;
@@ -100,7 +99,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
         }
-        String path = Paths.get(contextPath, shenyuDubboClient.path()).toString();
+        String path = contextPath + shenyuDubboClient.path();
         String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
