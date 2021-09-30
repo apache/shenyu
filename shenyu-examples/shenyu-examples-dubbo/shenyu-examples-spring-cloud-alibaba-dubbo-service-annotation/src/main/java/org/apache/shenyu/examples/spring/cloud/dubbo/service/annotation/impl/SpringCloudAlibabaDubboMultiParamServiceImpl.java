@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.cloud.dubbo.service.annotation.impl;
+package org.apache.shenyu.examples.spring.cloud.dubbo.service.annotation.impl;
 
+import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.config.annotation.Service;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
@@ -30,8 +31,8 @@ import java.util.stream.Collectors;
 /**
  * The type Dubbo multi param service.
  */
-@Service
-public class DubboMultiParamServiceImpl implements DubboMultiParamService {
+@DubboService
+public class SpringCloudAlibabaDubboMultiParamServiceImpl implements DubboMultiParamService {
 
     @Override
     @ShenyuDubboClient(path = "/findByIdsAndName", desc = "findByIdsAndName")

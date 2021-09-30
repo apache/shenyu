@@ -16,7 +16,7 @@
 #
 
 ### shengyu getway proxy orderSave
-POST http://localhost:9195/cloud-alibaba-dubbo/findById
+POST http://localhost:9195/spring-cloud-alibaba-dubbo/findById
 Accept: application/json
 Content-Type: application/json
 
@@ -25,12 +25,12 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy findAll
-GET http://localhost:9195/cloud-alibaba-dubbo/findAll
+GET http://localhost:9195/spring-cloud-alibaba-dubbo/findAll
 Accept: application/json
 
 
 ### shengyu getway proxy insert
-POST http://localhost:9195/cloud-alibaba-dubbo/insert
+POST http://localhost:9195/spring-cloud-alibaba-dubbo/insert
 Accept: application/json
 Content-Type: application/json
 
@@ -40,7 +40,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy findByIdsAndName
-GET http://localhost:9195/cloud-alibaba-dubbo/findByIdsAndName
+GET http://localhost:9195/spring-cloud-alibaba-dubbo/findByIdsAndName
 Accept: application/json
 Content-Type: application/json
 
@@ -54,7 +54,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy findByArrayIdsAndName
-GET http://localhost:9195/cloud-alibaba-dubbo/findByArrayIdsAndName
+GET http://localhost:9195/spring-cloud-alibaba-dubbo/findByArrayIdsAndName
 Accept: application/json
 Content-Type: application/json
 
@@ -68,7 +68,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy findByStringArray
-GET http://localhost:9195/cloud-alibaba-dubbo/findByStringArray
+GET http://localhost:9195/spring-cloud-alibaba-dubbo/findByStringArray
 Accept: application/json
 Content-Type: application/json
 
@@ -81,7 +81,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy findByListId
-GET http://localhost:9195/cloud-alibaba-dubbo/findByListId
+GET http://localhost:9195/spring-cloud-alibaba-dubbo/findByListId
 Accept: application/json
 Content-Type: application/json
 
@@ -94,7 +94,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy batchSave
-PUT http://localhost:9195/cloud-alibaba-dubbo/batchSave
+PUT http://localhost:9195/spring-cloud-alibaba-dubbo/batchSave
 Accept: application/json
 Content-Type: application/json
 
@@ -116,7 +116,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy batchSaveAndNameAndId
-PUT http://localhost:9195/cloud-alibaba-dubbo/batchSaveAndNameAndId
+PUT http://localhost:9195/spring-cloud-alibaba-dubbo/batchSaveAndNameAndId
 Accept: application/json
 Content-Type: application/json
 
@@ -140,7 +140,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy saveComplexBeanTest
-PUT http://localhost:9195/cloud-alibaba-dubbo/saveComplexBeanTest
+PUT http://localhost:9195/spring-cloud-alibaba-dubbo/saveComplexBeanTest
 Accept: application/json
 Content-Type: application/json
 
@@ -160,7 +160,7 @@ Content-Type: application/json
 }
 
 ### shengyu getway proxy saveComplexBeanTestAndName
-PUT http://localhost:9195/cloud-alibaba-dubbo/saveComplexBeanTestAndName
+PUT http://localhost:9195/spring-cloud-alibaba-dubbo/saveComplexBeanTestAndName
 Accept: application/json
 Content-Type: application/json
 

@@ -14,8 +14,9 @@
  *
  */
 
-package org.apache.shenyu.examples.cloud.dubbo.service.annotation.impl;
+package org.apache.shenyu.examples.spring.cloud.dubbo.service.annotation.impl;
 
+import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.config.annotation.Service;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
@@ -30,10 +31,10 @@ import java.util.Random;
 /**
  * The type Dubbo service.
  */
-@Service
-public class DubboTestServiceImpl implements DubboTestService {
+@DubboService
+public class SpringCloudAlibabaDubboTestServiceImpl implements DubboTestService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DubboTestServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpringCloudAlibabaDubboTestServiceImpl.class);
 
     @Override
     @ShenyuDubboClient(path = "/findById", desc = "Query by Id")

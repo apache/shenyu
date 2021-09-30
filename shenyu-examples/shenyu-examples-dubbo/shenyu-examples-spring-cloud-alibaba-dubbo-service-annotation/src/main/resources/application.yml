@@ -22,15 +22,15 @@ spring:
   main:
     allow-bean-definition-overriding: true
   application:
-    name: test-cloud-alibaba-dubbo-service
+    name: test-spring-cloud-alibaba-dubbo-service
 
 shenyu:
   client:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      contextPath: /cloud-alibaba-dubbo
-      appName: cloud-alibaba-dubbo
+      contextPath: /spring-cloud-alibaba-dubbo
+      appName: spring-cloud-alibaba-dubbo
       nacosNameSpace: ShenyuRegisterCenter
       port: 20888
 

@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.cloud.dubbo.service.annotation;
+package org.apache.shenyu.examples.spring.cloud.dubbo.service.annotation;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * TestDubboApplication.
+ * TestSpringCloudDubboAnnotationApplication.
  */
 @SpringBootApplication
-public class TestCloudDubboAnnotationApplication {
+public class TestSpringCloudDubboAnnotationApplication {
 
     /**
      * Main Entrance.
@@ -32,6 +32,6 @@ public class TestCloudDubboAnnotationApplication {
      * @param args startup arguments
      */
     public static void main(final String[] args) {
-        SpringApplication.run(TestCloudDubboAnnotationApplication.class, args);
+        SpringApplication.run(TestSpringCloudDubboAnnotationApplication.class, args);
     }
 }
