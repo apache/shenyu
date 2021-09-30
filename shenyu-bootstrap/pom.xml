@@ -276,7 +276,6 @@
         <!-- shenyu  apache dubbo plugin end-->
 
         <!--shenyu alibaba dubbo plugin start-->
-
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-alibaba-dubbo</artifactId>
@@ -308,7 +307,6 @@
             <artifactId>curator-recipes</artifactId>
             <version>${curator.version}</version>
         </dependency>
-
         <!--shenyu alibaba dubbo plugin end-->
 
         <!--shenyu websocket plugin start-->
