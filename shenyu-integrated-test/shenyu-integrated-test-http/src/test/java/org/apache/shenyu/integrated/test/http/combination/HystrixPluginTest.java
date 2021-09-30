@@ -18,6 +18,7 @@
 package org.apache.shenyu.integrated.test.http.combination;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -56,7 +57,9 @@ public final class HystrixPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void test() throws IOException, InterruptedException {
-
+        PluginData pluginData =
+                HttpHelper.INSTANCE.getFromGateway("/shenyu/plugin/findByName?name=hystrix", PluginData.class);
+        assertEquals(true, pluginData.getEnabled());
         Map<String, Object> resultPass =
                 HttpHelper.INSTANCE.postGateway("/http/test/fault-tolerance/timeout", "", Map.class);
         assertNotNull(resultPass);
