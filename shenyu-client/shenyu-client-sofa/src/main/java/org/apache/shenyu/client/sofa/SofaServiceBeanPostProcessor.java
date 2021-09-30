@@ -39,6 +39,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
@@ -69,8 +70,8 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
-        if (StringUtils.isEmpty(contextPath)) {
-            throw new RuntimeException("sofa client must config the contextPath");
+        if (StringUtils.isEmpty(contextPath) || contextPath.charAt(0) != '/') {
+            throw new RuntimeException("sofa client must config the contextPath and contextPath must begin with '/'");
         }
         this.contextPath = contextPath;
         this.appName = appName;
@@ -112,7 +113,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final ShenyuSofaClient shenyuSofaClient, final Method method) {
         String appName = this.appName;
-        String path = contextPath + shenyuSofaClient.path();
+        String path = Paths.get(this.contextPath, shenyuSofaClient.path()).toString();
         String desc = shenyuSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);

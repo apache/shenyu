@@ -39,6 +39,7 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -121,7 +122,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
     private MetaDataRegisterDTO buildMetaDataDTO(final Class<?> clazz, final MotanService service,
                                                  final ShenyuMotanClient shenyuMotanClient, final Method method, final String rpcExt) {
         String appName = this.appName;
-        String path = this.contextPath + shenyuMotanClient.path();
+        String path = Paths.get("/", this.contextPath, shenyuMotanClient.path()).toString();
         String desc = shenyuMotanClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
