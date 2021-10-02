@@ -33,6 +33,7 @@ jobs:
           - shenyu-integrated-test-motan
           - shenyu-integrated-test-spring-cloud
           - shenyu-integrated-test-sofa
+          - shenyu-integrated-test-websocket
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

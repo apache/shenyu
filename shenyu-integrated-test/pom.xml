@@ -37,6 +37,7 @@
         <module>shenyu-integrated-test-grpc</module>
         <module>shenyu-integrated-test-motan</module>
         <module>shenyu-integrated-test-sofa</module>
+        <module>shenyu-integrated-test-websocket</module>
     </modules>
 
     <properties>
