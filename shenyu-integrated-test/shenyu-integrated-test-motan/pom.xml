@@ -46,76 +46,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- shenyu ratelimiter plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-ratelimiter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu ratelimiter plugin end-->
-
-        <!-- shenyu hystrix plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu hystrix plugin end-->
-
-        <!-- shenyu waf plugin starter-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-waf</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu waf plugin end-->
-
-        <!-- shenyu monitor plugin starter-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-monitor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu monitor plugin end-->
-
-        <!-- shenyu sign plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-sign</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu sign plugin end-->
-
-        <!-- shenyu redirect plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-redirect</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu redirect plugin end-->
-
-        <!-- shenyu redirect plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-rewrite</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu redirect plugin end-->
-
-        <!--shenyu debug plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu debug plugin end-->
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!--shenyu data sync start use websocket-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -123,32 +53,10 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!--shenyu data sync start use http-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-http</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-
-        <!--shenyu param mapping plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu param mapping end-->
-
         <!-- apache shenyu motan plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-motan</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -176,6 +84,7 @@
             <version>1.1.9</version>
         </dependency>
         <!-- apache shenyu motan plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
