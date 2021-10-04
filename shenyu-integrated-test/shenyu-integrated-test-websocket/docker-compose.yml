@@ -21,8 +21,6 @@ services:
     restart: always
     networks:
       - shenyu
-    depends_on:
-      - shenyu-redis
     ports:
       - 9095:9095
     environment:
