@@ -36,10 +36,6 @@ services:
     restart: always
     networks:
       - shenyu
-    volumes:
-      - type: bind
-        source: ./src/main/resources/admin-config/
-        target: /opt/sql/
     depends_on:
       - shenyu-redis
       - shenyu-zk
@@ -47,7 +43,7 @@ services:
       - 9095:9095
     environment:
       - SPRING_PROFILES_ACTIVE=h2
-      - "shenyu.database.init_script=sql-script/h2/schema.sql;file:/opt/sql/schema.sql"
+      - "shenyu.database.init_script=sql-script/h2/schema.sql"
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
