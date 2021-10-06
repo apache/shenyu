@@ -97,6 +97,8 @@ public class OracleSqlLoader implements InstantiationAwareBeanPostProcessor {
             runner.setDelimiter("/");
             // doesn't print logger
             runner.setLogWriter(null);
+            // doesn't print error
+            runner.setErrorLogWriter(null);
             runner.setAutoCommit(true);
             //runner.setRemoveCRs(true);
             Resources.setCharset(StandardCharsets.UTF_8);
