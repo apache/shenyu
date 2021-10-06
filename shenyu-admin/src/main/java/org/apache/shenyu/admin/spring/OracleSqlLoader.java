@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.admin.spring;
 
-import com.google.common.base.Splitter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
-import org.apache.ibatis.jdbc.SqlRunner;
 import org.apache.shenyu.admin.config.properties.DataBaseProperties;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -34,7 +32,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,10 +41,6 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * for execute schema sql file. initialize the database.
