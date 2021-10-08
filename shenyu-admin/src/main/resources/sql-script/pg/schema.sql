@@ -21,13 +21,13 @@ DECLARE
   _db TEXT := 'shenyu';
   _user TEXT := 'userName';
   _password TEXT := 'password';
-	_tablelock INTEGER :=0;
+  _tablelock INTEGER :=0;
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_database WHERE datname = _db) THEN
     RAISE NOTICE 'Database already exists';
   ELSE
     PERFORM public.dblink_connect('host=localhost user=' || _user || ' password=' || _password || ' dbname=' ||current_database());
-    PERFORM public.dblink_exec('CREATE DATABASE ' || _db );
+    PERFORM public.dblink_exec('CREATE DATABASE ' || _db || ' template template0;');
   END IF;
 
 	PERFORM public.dblink_connect('init_conn','host=localhost user=' || _user || ' password=' || _password || ' dbname=' ||_db);
@@ -101,7 +101,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "auth_param"."app_param" IS ''' || 'service module parameters (parameters that need to be passed by the gateway) json type' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "auth_param"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "auth_param"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER auth_param_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER auth_param_trigger
 	          BEFORE UPDATE ON auth_param
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 
@@ -136,7 +136,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "auth_path"."enabled" IS ''' || 'whether pass 1 is' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "auth_path"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "auth_path"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER auth_path_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER auth_path_trigger
 	          BEFORE UPDATE ON auth_path
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -179,7 +179,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "meta_data"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "meta_data"."date_updated" IS ''' || 'update time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "meta_data"."enabled" IS ''' || 'enabled state' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER meta_data_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER meta_data_trigger
 	          BEFORE UPDATE ON meta_data
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -213,7 +213,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "dashboard_user"."enabled" IS ''' || 'delete or not' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "dashboard_user"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "dashboard_user"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER dashboard_user_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER dashboard_user_trigger
 	          BEFORE UPDATE ON dashboard_user
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "dashboard_user" VALUES (''' || '1' || ''', ''' || 'admin' || ''', ''' || 'bbiB8zbUo3z3oA0VqEB/IA==' || ''', 1, 1, ''' || '2018-06-23 15:12:22' || ''', ''' || '2018-06-23 15:12:23' || ''');');
@@ -256,7 +256,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "data_permission"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "data_permission"."date_updated" IS ''' || 'update time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON TABLE "data_permission" IS ''' || 'data permission table' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER data_permission_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER data_permission_trigger
 	          BEFORE UPDATE ON data_permission
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -286,7 +286,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "permission"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "permission"."date_updated" IS ''' || 'update time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON TABLE "permission" IS ''' || 'permission table' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER permission_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER permission_trigger
 	          BEFORE UPDATE ON permission
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -641,7 +641,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "plugin"."enabled" IS ''' || 'whether to open (0, not open, 1 open)' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "plugin"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "plugin"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_trigger
 	          BEFORE UPDATE ON plugin
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -670,7 +670,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '23' || ''', ''' || 'modifyResponse' || ''', ''' || '{"ruleHandlePageType":"custom"}' || ''', ''' || 'http process' || ''', 220, 0, ''' || '2021-05-30 21:26:37' || ''', ''' || '2021-05-30 23:26:11' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '24' || ''', ''' || 'cryptor_request' || ''', NULL, ''' || 'cryptor' || ''', 100, 1, ''' || '2021-08-06 13:55:21' || ''', ''' || '2021-08-17 16:35:41' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '25' || ''', ''' || 'cryptor_response' || ''', NULL, ''' || 'cryptor' || ''', 410, 1, ''' || '2021-08-06 13:55:30' || ''', ''' || '2021-08-13 16:03:40' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '26' || ''', ''' || 'websocket' || ''', NULL, ''' || 'proxy' || ''', 200, 1, ''' || '2021-08-27 13:55:30' || ''', ''' || '2021-08-27 16:03:40' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '26' || ''', ''' || 'websocket' || ''', ''' || '{"multiSelectorHandle":"1"}' || ''', ''' || 'proxy' || ''', 200, 1, ''' || '2021-08-27 13:55:30' || ''', ''' || '2021-08-27 16:03:40' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '3' || ''', ''' || 'rewrite' || ''', NULL, ''' || 'http process' || ''', 90, 0, ''' || '2018-06-23 10:26:34' || ''', ''' || '2018-06-25 13:59:31' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '4' || ''', ''' || 'rate_limiter' || ''', ''' || '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}' || ''', ''' || 'fault tolerance' || ''', 60, 0, ''' || '2018-06-23 10:26:37' || ''', ''' || '2018-06-13 15:34:48' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '5' || ''', ''' || 'divide' || ''', ''' || '{"multiSelectorHandle":"1","multiRuleHandle":"0"}' || ''', ''' || 'proxy' || ''', 200, 1, ''' || '2018-06-25 10:19:10' || ''', ''' || '2018-06-13 13:56:04' || ''');');
@@ -710,7 +710,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "plugin_handle"."ext_obj" IS ''' || 'extra configuration (json format data)' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "plugin_handle"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "plugin_handle"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_trigger
 	          BEFORE UPDATE ON plugin_handle
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 
@@ -731,16 +731,17 @@ ELSE
 	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1' || ''', ''' || '10' || ''', ''' || 'flowRuleGrade' || ''', ''' || 'flowRuleGrade' || ''', 3, 2, 8, ''' || '{"required":"1","defaultValue":"1","rule":""}' || ''', ''' || '2020-11-09 01:19:10' || ''', ''' || '2020-11-09 01:19:10' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '10' || ''', ''' || '2' || ''', ''' || 'statusCode' || ''', ''' || 'statusCode' || ''', 2, 2, 2, NULL, ''' || '2020-11-22 12:04:10' || ''', ''' || '2020-11-22 12:04:10' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1000' || ''', ''' || '26' || ''', ''' || 'host' || ''', ''' || 'host' || ''', 2, 1, 0, NULL, ''' || '2021-08-27 21:23:41' || ''', ''' || '2021-08-27 10:32:51' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1001' || ''', ''' || '14' || ''', ''' || 'contextPath' || ''', ''' || 'contextPath' || ''', 2, 2, 0, NULL, ''' || '2020-12-25 16:13:09' || ''', ''' || '2020-12-25 16:13:09' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1002' || ''', ''' || '14' || ''', ''' || 'addPrefix' || ''', ''' || 'addPrefix' || ''', 2, 2, 0, NULL, ''' || '2020-12-25 16:13:09' || ''', ''' || '2020-12-25 16:13:09' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1003' || ''', ''' || '26' || ''', ''' || 'weight' || ''', ''' || 'weight' || ''', 1, 1, 3, ''' || '{"defaultValue":"50","rule":""}' || ''', ''' || '2021-08-27 21:26:35' || ''', ''' || '2021-08-27 10:32:51' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1004' || ''', ''' || '26' || ''', ''' || 'timestamp' || ''', ''' || 'startupTime' || ''', 1, 1, 3, ''' || '{"defaultValue":"0","placeholder":"startup timestamp","rule":""}' || ''', ''' || '2021-08-27 21:27:11' || ''', ''' || '2021-08-27 10:32:51' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1005' || ''', ''' || '26' || ''', ''' || 'warmup' || ''', ''' || 'warmupTime' || ''', 1, 1, 5, ''' || '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}' || ''', ''' || '2021-08-27 21:27:34' || ''', ''' || '2021-08-27 10:32:51' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1006' || ''', ''' || '26' || ''', ''' || 'status' || ''', ''' || 'status' || ''', 3, 1, 6, ''' || '{"defaultValue":"true","rule":""}' || ''', ''' || '2021-08-27 21:29:16' || ''', ''' || '2021-08-27 10:32:51' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1007' || ''', ''' || '26' || ''', ''' || 'loadBalance' || ''', ''' || 'loadStrategy' || ''', 3, 2, 0, NULL, ''' || '2021-08-27 21:30:32' || ''', ''' || '2021-08-27 10:32:51' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1008' || ''', ''' || '26' || ''', ''' || 'retry' || ''', ''' || 'retryCount' || ''', 1, 2, 1, NULL, ''' || '2021-08-27 21:31:00' || ''', ''' || '2021-08-27 10:32:51' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '1009' || ''', ''' || '26' || ''', ''' || 'timeout' || ''', ''' || 'timeout' || ''', 1, 2, 2, ''' || '{"defaultValue":"3000","rule":""}' || ''', ''' || '2021-08-27 21:13:50' || ''', ''' || '2021-08-27 10:32:51' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2000' || ''', ''' || '26' || ''', ''' || 'host' || ''', ''' || 'host' || ''', 2, 1, 0, null, ''' || '2021-08-27 21:23:41' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2001' || ''', ''' || '26' || ''', ''' || 'protocol' || ''', ''' || 'protocol' || ''', 2, 1, 2, ''' || '{"required":"0","defaultValue":"","placeholder":"ws://","rule":""}' || ''', ''' || '2021-08-27 21:25:37' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2002' || ''', ''' || '26' || ''', ''' || 'url' || ''', ''' || 'ip:port' || ''', 2, 1, 1, ''' || '{"required":"1","placeholder":"","rule":""}' || ''', ''' || '2021-08-27 21:25:55' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2003' || ''', ''' || '26' || ''', ''' || 'weight' || ''', ''' || 'weight' || ''', 1, 1, 3, ''' || '{"defaultValue":"50","rule":""}' || ''', ''' || '2021-08-27 21:26:35' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2004' || ''', ''' || '26' || ''', ''' || 'timestamp' || ''', ''' || 'startupTime' || ''', 1, 1, 3, ''' || '{"defaultValue":"0","placeholder":"startup timestamp","rule":""}' || ''', ''' || '2021-08-27 21:27:11' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2005' || ''', ''' || '26' || ''', ''' || 'warmup' || ''', ''' || 'warmupTime' || ''', 1, 1, 5, ''' || '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}' || ''', ''' || '2021-08-27 21:27:34' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2006' || ''', ''' || '26' || ''', ''' || 'status' || ''', ''' || 'status' || ''', 3, 1, 6, ''' || '{"defaultValue":"true","rule":""}' || ''', ''' || '2021-08-27 21:29:16' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2007' || ''', ''' || '26' || ''', ''' || 'loadBalance' || ''', ''' || 'loadStrategy' || ''', 3, 2, 0, null, ''' || '2021-08-27 21:30:32' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2008' || ''', ''' || '26' || ''', ''' || 'retry' || ''', ''' || 'retryCount' || ''', 1, 2, 1, null, ''' || '2021-08-27 21:31:00' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2009' || ''', ''' || '26' || ''', ''' || 'timeout' || ''', ''' || 'timeout' || ''', 1, 2, 2, ''' || '{"defaultValue":"3000","rule":""}' || ''', ''' || '2021-08-27 21:13:50' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '2010' || ''', ''' || '26' || ''', ''' || 'multiSelectorHandle' || ''', ''' || 'multiSelectorHandle' || ''', 3, 3, 0, null, ''' || '2021-08-27 21:30:32' || ''', ''' || '2021-08-27 10:32:51'|| ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '101' || ''', ''' || '24' || ''', ''' || 'strategyName' || ''', ''' || 'strategyName' || ''', 3, 2, 1, NULL, ''' || '2021-08-06 14:35:50' || ''', ''' || '2021-08-06 14:35:50' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '103' || ''', ''' || '24' || ''', ''' || 'fieldNames' || ''', ''' || 'fieldNames' || ''', 2, 2, 3, NULL, ''' || '2021-08-06 14:37:13' || ''', ''' || '2021-08-06 14:37:46' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin_handle" VALUES (''' || '104' || ''', ''' || '24' || ''', ''' || 'key' || ''', ''' || 'key' || ''', 2, 2, 3, NULL, ''' || '2021-08-06 14:37:22' || ''', ''' || '2021-08-06 14:37:48' || ''');');
@@ -888,7 +889,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "resource"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "resource"."date_updated" IS ''' || 'update time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON TABLE "resource" IS ''' || 'resource table' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER resource_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER resource_trigger
 	          BEFORE UPDATE ON resource
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -1240,7 +1241,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "role"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "role"."date_updated" IS ''' || 'update time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON TABLE "role" IS ''' || 'role table' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER role_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER role_trigger
 	          BEFORE UPDATE ON role
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -1287,7 +1288,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "rule"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "rule"."date_updated" IS ''' || 'update time' || '''');
 
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER rule_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER rule_trigger
 	          BEFORE UPDATE ON rule
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -1295,11 +1296,6 @@ ELSE
 	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "rule" ADD CONSTRAINT "rule_pkey" PRIMARY KEY ("id");');
 	-- ----------------------------
-	-- Indexes structure for table rule
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'CREATE INDEX "unique_name" ON "rule" USING btree (
-	  "name" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
-	);');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -1328,7 +1324,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "rule_condition"."param_value" IS ''' || 'parameter value' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "rule_condition"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "rule_condition"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER rule_condition_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER rule_condition_trigger
 	          BEFORE UPDATE ON rule_condition
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -1373,9 +1369,13 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "selector"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "selector"."date_updated" IS ''' || 'update time' || '''');
 
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER selector_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER selector_trigger
 	          BEFORE UPDATE ON selector
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
+	-- Primary Key structure for table selector
+	-- ----------------------------
+	PERFORM public.dblink_exec('init_conn',  'ALTER TABLE "selector" ADD CONSTRAINT "selector_pkey" PRIMARY KEY ("id");');
+	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -1406,7 +1406,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "selector_condition"."param_value" IS ''' || 'parameter value' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "selector_condition"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "selector_condition"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER selector_condition_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER selector_condition_trigger
 	          BEFORE UPDATE ON selector_condition
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
@@ -1444,7 +1444,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "shenyu_dict"."enabled" IS ''' || 'whether it is enabled' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "shenyu_dict"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "shenyu_dict"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER shenyu_dict_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER shenyu_dict_trigger
 	          BEFORE UPDATE ON shenyu_dict
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	-- ----------------------------
@@ -1528,7 +1528,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "user_role"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "user_role"."date_updated" IS ''' || 'update time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON TABLE "user_role" IS ''' || 'user and role bind table' || '''');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER user_role_tigger
+	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER user_role_trigger
 	          BEFORE UPDATE ON user_role
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 	/*

@@ -17,15 +17,20 @@
 
 package org.apache.shenyu.admin.disruptor.executor;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.utils.CollectionUtils;
+import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
-import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -43,13 +48,32 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
     @Override
     public void run() {
         List<DataTypeParent> results = getData();
+        results = results.stream().filter(data -> isValidData(data)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(results)) {
+            return;
+        }
         getType(results).executor(results);
+    }
+
+    private boolean isValidData(final Object data) {
+        if (data instanceof URIRegisterDTO) {
+            URIRegisterDTO uriRegisterDTO = (URIRegisterDTO) data;
+            return Objects.nonNull(uriRegisterDTO.getPort())
+                    && StringUtils.isNoneBlank(uriRegisterDTO.getAppName(), uriRegisterDTO.getHost());
+        }
+        if (data instanceof MetaDataRegisterDTO) {
+            MetaDataRegisterDTO metaDataRegisterDTO = (MetaDataRegisterDTO) data;
+            return Objects.nonNull(metaDataRegisterDTO.getPort())
+                    && StringUtils.isNoneBlank(metaDataRegisterDTO.getAppName(),
+                    metaDataRegisterDTO.getHost(),
+                    metaDataRegisterDTO.getPath(),
+                    metaDataRegisterDTO.getRuleName(),
+                    metaDataRegisterDTO.getRpcType());
+        }
+        return true;
     }
     
     private ExecutorSubscriber getType(final List<DataTypeParent> list) {
-        if (list == null || list.isEmpty()) {
-            return null;
-        }
         DataTypeParent result = list.get(0);
         return subscribers.get(result.getType());
     }

@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 
 import java.util.List;
 
@@ -27,18 +25,6 @@ import java.util.List;
  * shenyu client register service factory.
  */
 public interface ShenyuClientRegisterServiceFactory {
-
-
-    /**
-     * uri upstream update.
-     *
-     * @param contextPath     context paht
-     * @param registerDTOList registerDTOList
-     * @return the string
-     */
-    default String registerURIDefault(String contextPath, List<URIRegisterDTO> registerDTOList) {
-        return ShenyuResultMessage.SUCCESS;
-    }
 
     /**
      * Register meta data.
@@ -51,9 +37,9 @@ public interface ShenyuClientRegisterServiceFactory {
     /**
      * mvc uri upstream update.
      *
-     * @param contextPath context paht
+     * @param contextPath context path
      * @param uriList     uri list
      * @return the string
      */
-    String registerURI(String contextPath, List<String> uriList);
+    String registerUri(String contextPath, List<String> uriList);
 }

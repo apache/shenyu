@@ -307,7 +307,15 @@
             <artifactId>curator-recipes</artifactId>
             <version>${curator.version}</version>
         </dependency>
-        <!-- shenyu  alibaba dubbo plugin end-->
+        <!--shenyu alibaba dubbo plugin end-->
+
+        <!--shenyu websocket plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-websocket</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu websocket plugin end-->
 
         <!--shenyu data sync start use zookeeper-->
         <dependency>

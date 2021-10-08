@@ -67,7 +67,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     protected abstract void handlerRule(String selectorId, MetaDataRegisterDTO metaDataDTO, MetaDataDO exist);
 
     @Override
-    public String registerURI(final String contextPath, final List<String> uriList) {
+    public String registerUri(final String contextPath, final List<String> uriList) {
         return null;
     }
 

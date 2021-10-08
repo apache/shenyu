@@ -136,7 +136,7 @@ public class WebsocketCollector {
         }
     }
 
-    private static void sendMessageBySession(final Session session, final String message) {
+    private static synchronized void sendMessageBySession(final Session session, final String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {

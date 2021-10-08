@@ -11,7 +11,7 @@
 1. Support Grayscale Release for SpringCloud
 1. Support Grayscale Release for Apache Dubbo
 1. Implement the async dubbo invoking for alibaba-dubbo
-1. Support external cros filter config
+1. Support external cross filter config
 1. Support sign plugin custom dynamic sign provider
 
 ### API Changes

@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
@@ -55,19 +56,18 @@ public class LocalAppAuthController {
     }
     
     /**
-     * Clean AppAuth data by appKey.
+     * Clean mono.
      *
-     * @param appKey the appKey
+     * @param appKey the app key
      * @return the mono
      */
     @GetMapping("/auth/delete")
-    public Mono<String> clean(final String appKey) {
+    public Mono<String> clean(@RequestParam("appKey") final String appKey) {
         if (CollectionUtils.isEmpty(subscribers)) {
             return Mono.just(Constants.SUCCESS);
         }
         LOG.info("delete apache shenyu local AppAuth data");
-        AppAuthData appAuthData = new AppAuthData();
-        appAuthData.setAppKey(appKey);
+        AppAuthData appAuthData = AppAuthData.builder().appKey(appKey).build();
         subscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData));
         return Mono.just(Constants.SUCCESS);
     }
