@@ -36,7 +36,6 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
-import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -71,7 +70,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
         int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isAnyBlank(registerType, serverLists) || port <= 0) {
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || port <= 0) {
             String errorMsg = "http register param must config the registerType , serverLists and port must > 0";
             LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
@@ -122,9 +121,9 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         Integer port = this.port;
         String path;
         if (StringUtils.isEmpty(contextPath)) {
-            path = Paths.get("/", prePath, shenyuSpringMvcClient.path()).toString();
+            path = prePath + shenyuSpringMvcClient.path();
         } else {
-            path = Paths.get("/", contextPath, prePath, shenyuSpringMvcClient.path()).toString();
+            path = contextPath + prePath + shenyuSpringMvcClient.path();
         }
         String desc = shenyuSpringMvcClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
