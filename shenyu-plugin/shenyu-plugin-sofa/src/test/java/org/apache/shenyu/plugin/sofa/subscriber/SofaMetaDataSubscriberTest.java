@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.sofa.subscriber;
 
-import com.alipay.sofa.rpc.core.exception.SofaRpcRuntimeException;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 
