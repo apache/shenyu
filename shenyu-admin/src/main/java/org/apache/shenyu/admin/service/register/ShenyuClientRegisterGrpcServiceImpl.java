@@ -71,8 +71,8 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
 
     @Override
     public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.GRPC.getName(), metaDataDTO.getRuleName()),
+        ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.GRPC.getName()),
                 metaDataDTO.getPath(),
-                Objects.isNull(exist));
+                Objects.nonNull(exist));
     }
 }

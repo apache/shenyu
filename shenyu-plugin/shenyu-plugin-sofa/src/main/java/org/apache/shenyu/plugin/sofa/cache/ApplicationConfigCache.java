@@ -26,7 +26,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.SofaRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -134,6 +134,9 @@ public final class ApplicationConfigCache {
      * @return the reference config
      */
     public ConsumerConfig<GenericService> build(final MetaData metaData) {
+        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
+            return new ConsumerConfig<>();
+        }
         ConsumerConfig<GenericService> reference = new ConsumerConfig<>();
         reference.setGeneric(true);
         reference.setApplication(applicationConfig);

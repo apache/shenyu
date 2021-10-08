@@ -45,9 +45,6 @@
         <if test="roleName != null">
             and role_name = #{roleName,jdbcType=VARCHAR}
         </if>
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <select id="findByRoleName" parameterType="java.lang.String" resultMap="BaseResultMap">

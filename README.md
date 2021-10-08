@@ -47,44 +47,7 @@
  ![](https://shenyu.apache.org/img/architecture/shenyu-framework.png)  
  
 -------------------------------------------------------------------------------- 
-  
-# Mind maps
- 
- ![](https://shenyu.apache.org/img/shenyu/activite/shenyu-xmind.png)
- 
---------------------------------------------------------------------------------  
-  
-# Modules
-
- * shenyu-admin : plugins and other configuration information management background
- 
- * shenyu-bootstrap : with the startup project, users can refer to
- 
- * shenyu-client : user fast access with Spring MVC, Dubbo, Spring Cloud.
-  
- * shenyu-common : framework common class
- 
- * shenyu-disruptor : based on disruptor Enclosure
- 
- * shenyu-register-center : rpc type register for shenyu-client
- 
- * shenyu-dist : build project
-
- * shenyu-metrics : metrics impl by prometheus.
- 
- * shenyu-plugin : ShenYu provider plugin collection.
- 
- * shenyu-spi : ShenYu spi define.
- 
- * shenyu-spring-boot-starter : support for the spring boot starter
- 
- * shenyu-sync-data-center : provider ZooKeeper, HTTP, WebSocket, Nacos to sync data
- 
- * shenyu-examples : the RPC examples project
- 
- * shenyu-web : core processing packages including plugins, request routing and forwarding, and so on
- 
---------------------------------------------------------------------------------   
+    
  
 # Features
 
@@ -112,7 +75,7 @@
  
  Of course, users can also customize plugins to meet their own needs.
  
- If you want to customize, see [custom-plugin](https://shenyu.apache.org/projects/shenyu/custom-plugin/)
+ If you want to customize, see [custom-plugin](https://shenyu.apache.org/docs/developer/custom-plugin/)
  
 --------------------------------------------------------------------------------  
  
@@ -144,20 +107,12 @@
  
    * JDK 1.8+
    
---------------------------------------------------------------------------------     
-   
-# About
-  
-   ShenYu has been used widely in more and more systems in many companies, and it's simple and convenient to integrate Services/APIs with the high performance and flexibility.
-   
-   In double eleven online shopping carnival of China, ShenYu clusters successfully supported a large volume of internet business.
-   
---------------------------------------------------------------------------------  
+--------------------------------------------------------------------------------    
     
 # Document & Website
 
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/projects/shenyu/overview)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/projects/shenyu/overview)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/docs/index)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/docs/index/)
   
 --------------------------------------------------------------------------------  
         
@@ -171,4 +126,4 @@
 
 In order of registration, More access companies are welcome to register at [https://github.com/apache/incubator-shenyu/issues/68](https://github.com/apache/incubator-shenyu/issues/68) (For open source users only)
 
-All Users : [Known Users](https://shenyu.apache.org/awesome/)
+All Users : [Known Users](https://shenyu.apache.org/community/user-registration)

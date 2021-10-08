@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -50,9 +51,9 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         Properties props = config.getProps();
-        int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
-        int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
-        this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
+        int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));
+        int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
+        this.zkClient = new ZkClient(config.getServerLists(), sessionTimeout, connectionTimeout);
         this.zkClient.subscribeStateChanges(new ZkStateListener());
     }
 
@@ -61,9 +62,10 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         String rpcType = metadata.getRpcType();
         String contextPath = metadata.getContextPath().substring(1);
         registerMetadata(rpcType, contextPath, metadata);
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
-            registerURI(rpcType, contextPath, metadata);
-        }
+        Optional.of(RpcTypeEnum.acquireSupportURIs().stream().filter(rpcTypeEnum -> rpcType.equals(rpcTypeEnum.getName())).findFirst())
+                .ifPresent(rpcTypeEnum -> {
+                    registerURI(rpcType, contextPath, metadata);
+                });
         LOGGER.info("{} zookeeper client register success: {}", rpcType, metadata);
     }
 

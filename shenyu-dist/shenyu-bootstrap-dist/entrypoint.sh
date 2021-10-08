@@ -18,4 +18,8 @@
 
 [[ -d ./conf-ext ]] && cp -f ./conf-ext/* ./conf
 
-/bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/shenyu-bootstrap.out
+mkdir -p ${LOCAL_PATH}/logs
+touch ${LOCAL_PATH}/logs/shenyu-bootstrap.log
+
+/bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/shenyu-bootstrap.log
+

@@ -413,6 +413,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jboss-annotations-api_1.3_spec 1.0.1.Final: http://www.jboss.org/jboss-annotations-api_1.3_spec, CDDL 1.1 and GPLv2
     jboss-jaxb-api_2.3_spec 1.0.1.Final: http://www.jboss.org/jboss-jaxb-api_2.3_spec, CDDL 1.1 and GPLv2
     jboss-jaxrs-api_2.1_spec 1.0.2.Final: http://www.jboss.org/jboss-jaxrs-api_2.1_spec, CDDL 1.1 and GPLv2
+    jaxb-api 2.3.0: https://javaee.github.io/jaxb-v2, CDDL 1.1 and GPLv2
 
 ========================================================================
 EPL licenses

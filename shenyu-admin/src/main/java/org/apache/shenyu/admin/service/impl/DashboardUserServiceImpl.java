@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -223,7 +224,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), userName, ldapProperties.getBaseDn());
+        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
         try {
             DashboardUserVO dashboardUserVO = null;
@@ -255,18 +256,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        DashboardUserVO dashboardUserVO = findByQuery(userName, password);
-        if (!ObjectUtils.isEmpty(dashboardUserVO)) {
-            DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
-                    .id(dashboardUserVO.getId())
-                    .userName(dashboardUserVO.getUserName())
-                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), key, iv))
-                    .role(dashboardUserVO.getRole())
-                    .enabled(dashboardUserVO.getEnabled()).build();
-            createOrUpdate(dashboardUserDTO);
-        } else {
-            dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
-        }
+        DashboardUserVO dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
         return dashboardUserVO;
     }
 

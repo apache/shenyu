@@ -69,7 +69,7 @@ public class GrpcPluginTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
 
         when(selector.getName()).thenReturn("/grpc");
@@ -127,7 +127,7 @@ public class GrpcPluginTest {
 
     @Test
     public void testSkip() {
-        final Boolean result = grpcPlugin.skip(getServerWebExchange());
+        final boolean result = grpcPlugin.skip(getServerWebExchange());
         assertFalse(result);
     }
 

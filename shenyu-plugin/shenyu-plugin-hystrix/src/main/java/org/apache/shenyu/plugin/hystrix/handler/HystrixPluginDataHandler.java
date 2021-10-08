@@ -19,10 +19,10 @@ package org.apache.shenyu.plugin.hystrix.handler;
 
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.HystrixHandle;
+import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -35,20 +35,20 @@ import java.util.function.Supplier;
  */
 public class HystrixPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, HystrixHandle>> CACHED_HANDLE = new BeanHolder(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, HystrixHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         HystrixPropertiesFactory.reset();
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            final HystrixHandle hystrixHandle = GsonUtils.getInstance().fromJson(s, HystrixHandle.class);
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(rule -> {
+            HystrixHandle hystrixHandle = GsonUtils.getInstance().fromJson(rule, HystrixHandle.class);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), hystrixHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(rule -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

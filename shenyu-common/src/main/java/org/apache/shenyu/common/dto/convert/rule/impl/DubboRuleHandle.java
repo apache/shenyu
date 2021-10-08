@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Objects;
 
@@ -47,10 +49,10 @@ public class DubboRuleHandle implements RuleHandle {
     private Integer retries;
 
     /**
-     * the loadBalance.
+     * the loadbalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadBalance;
+    private String loadbalance;
 
     /**
      * timeout is required.
@@ -112,21 +114,21 @@ public class DubboRuleHandle implements RuleHandle {
     }
 
     /**
-     * get loadBalance.
+     * Gets the value of loadbalance.
      *
-     * @return loadBalance
+     * @return the value of loadbalance
      */
-    public String getLoadBalance() {
-        return loadBalance;
+    public String getLoadbalance() {
+        return loadbalance;
     }
 
     /**
-     * set loadBalance.
+     * Sets the loadbalance.
      *
-     * @param loadBalance loadBalance
+     * @param loadbalance loadbalance
      */
-    public void setLoadBalance(final String loadBalance) {
-        this.loadBalance = loadBalance;
+    public void setLoadbalance(final String loadbalance) {
+        this.loadbalance = loadbalance;
     }
 
     /**
@@ -152,42 +154,40 @@ public class DubboRuleHandle implements RuleHandle {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof DubboRuleHandle)) {
             return false;
         }
         DubboRuleHandle that = (DubboRuleHandle) o;
-        return timeout == that.timeout && Objects.equals(version, that.version) && Objects.equals(group, that.group)
-                && Objects.equals(retries, that.retries) && Objects.equals(loadBalance, that.loadBalance);
+        return timeout == that.timeout
+                && Objects.equals(version, that.version)
+                && Objects.equals(group, that.group)
+                && Objects.equals(retries, that.retries)
+                && Objects.equals(loadbalance, that.loadbalance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(version, group, retries, loadBalance, timeout);
+        return Objects.hash(version, group, retries, loadbalance, timeout);
     }
 
     @Override
     public String toString() {
         return "DubboRuleHandle{"
-                + "version='"
-                + version
-                + '\''
-                + ", group='"
-                + group
-                + '\''
-                + ", retries="
-                + retries
-                + ", loadBalance='"
-                + loadBalance
-                + '\''
-                + ", timeout="
-                + timeout
+                + "version='" + version + '\''
+                + ", group='" + group + '\''
+                + ", retries=" + retries
+                + ", loadbalance='" + loadbalance + '\''
+                + ", timeout=" + timeout
                 + '}';
     }
 
     @Override
-    public RuleHandle createDefault(final String path) {
-        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
-        this.retries = RuleHandleConstants.DEFAULT_RETRIES;
-        return this;
+    public RuleHandle createDefault(final String path, final String rpcExt) {
+        if (StringUtils.isBlank(rpcExt)) {
+            this.loadbalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
+            this.retries = RuleHandleConstants.DEFAULT_RETRIES;
+            return this;
+        }
+        return GsonUtils.getInstance().fromJson(rpcExt, DubboRuleHandle.class);
     }
 }

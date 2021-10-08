@@ -41,6 +41,6 @@ public final class ShenyuApplicationContextAwareTest {
     public void testSetApplicationContext() throws NoSuchFieldException {
         final ApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         shenyuApplicationContextAwareUnderTest.setApplicationContext(applicationContext);
-        Assert.assertNotNull(SpringBeanUtils.getInstance().getClass().getDeclaredField("cfgContext"));
+        Assert.assertNotNull(SpringBeanUtils.getInstance().getClass().getDeclaredField("applicationContext"));
     }
 }

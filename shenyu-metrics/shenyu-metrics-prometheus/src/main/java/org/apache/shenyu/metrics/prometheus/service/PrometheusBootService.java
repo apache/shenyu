@@ -60,6 +60,7 @@ public final class PrometheusBootService implements MetricsBootService {
             server.stop();
             registered.set(false);
             CollectorRegistry.defaultRegistry.clear();
+            MetricsReporter.clean();
         }
     }
 

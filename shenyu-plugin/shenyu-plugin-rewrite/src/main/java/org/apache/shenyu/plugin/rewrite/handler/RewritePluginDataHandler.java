@@ -18,10 +18,10 @@
 package org.apache.shenyu.plugin.rewrite.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.RewriteHandle;
+import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class RewritePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, RewriteHandle>> CACHED_HANDLE = new BeanHolder(RuleHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, RewriteHandle>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {

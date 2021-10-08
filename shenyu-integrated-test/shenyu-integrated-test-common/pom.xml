@@ -19,10 +19,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>shenyu-integrated-test</artifactId>
         <groupId>org.apache.shenyu</groupId>
+        <artifactId>shenyu-integrated-test</artifactId>
         <version>2.4.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>shenyu-integrated-test-common</artifactId>
     <name>shenyu-integrated-test-common</name>

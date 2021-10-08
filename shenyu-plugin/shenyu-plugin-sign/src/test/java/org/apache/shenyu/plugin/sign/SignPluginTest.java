@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.sign;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.api.SignService;
+import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 
 import org.junit.Before;

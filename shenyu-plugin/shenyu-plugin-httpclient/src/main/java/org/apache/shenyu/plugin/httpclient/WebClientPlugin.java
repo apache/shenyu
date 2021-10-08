@@ -82,16 +82,16 @@ public class WebClientPlugin implements ShenyuPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.DIVIDE.getCode() + 1;
+        return PluginEnum.WEB_CLIENT.getCode();
     }
 
     @Override
     public String named() {
-        return "webClient";
+        return PluginEnum.WEB_CLIENT.getName();
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
@@ -112,8 +112,8 @@ public class WebClientPlugin implements ShenyuPlugin {
                 .doOnError(e -> LOG.error(e.getMessage(), e))
                 .timeout(Duration.ofMillis(timeout))
                 .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
-                    .retryMax(retryTimes)
-                    .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
+                        .retryMax(retryTimes)
+                        .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
 
     }

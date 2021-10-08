@@ -67,7 +67,7 @@ public final class WebClientPluginTest {
     @Before
     public void setup() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
         WebClient webClient = mockWebClientOK();
@@ -135,7 +135,7 @@ public final class WebClientPluginTest {
      */
     @Test
     public void testGetOrder() {
-        assertEquals(PluginEnum.DIVIDE.getCode() + 1, webClientPlugin.getOrder());
+        assertEquals(PluginEnum.WEB_CLIENT.getCode(), webClientPlugin.getOrder());
     }
 
     /**
@@ -143,14 +143,13 @@ public final class WebClientPluginTest {
      */
     @Test
     public void testNamed() {
-        assertEquals("webClient", webClientPlugin.named());
+        assertEquals(PluginEnum.WEB_CLIENT.getName(), webClientPlugin.named());
     }
 
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
-
         return exchange;
     }
 

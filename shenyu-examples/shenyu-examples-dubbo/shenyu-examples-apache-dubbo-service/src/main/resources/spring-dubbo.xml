@@ -25,9 +25,7 @@
        https://code.alibabatech.com/schema/dubbo/dubbo.xsd">
 
     <dubbo:application name="test-dubbo-service"/>
-
-    <dubbo:registry address="zookeeper://localhost:2181"/>
-
+    <dubbo:registry address="${dubbo.registry.address}"/>
     <dubbo:protocol name="dubbo" port="20888"/>
 
     <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboTestService" ref="dubboTestService"/>

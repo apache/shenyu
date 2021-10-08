@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
@@ -52,9 +53,9 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     @Override
+    @Pageable
     public CommonPager<PluginHandleVO> listByPage(final PluginHandleQuery pluginHandleQuery) {
         return PageResultUtils.result(pluginHandleQuery.getPageParameter(),
-            () -> pluginHandleMapper.countByQuery(pluginHandleQuery),
             () -> pluginHandleMapper.selectByQuery(pluginHandleQuery)
                         .stream()
                         .map(this::buildPluginHandleVO)

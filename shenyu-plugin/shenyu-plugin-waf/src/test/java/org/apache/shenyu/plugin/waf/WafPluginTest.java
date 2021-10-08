@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.waf;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.WafHandle;
+import org.apache.shenyu.common.dto.convert.rule.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -62,7 +62,7 @@ public final class WafPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(context);
+        springBeanUtils.setApplicationContext(context);
 
         final PluginData pluginData =
                 new PluginData("pluginId", "pluginName", "{\"model\":\"mix\"}", "0", false);

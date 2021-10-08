@@ -24,142 +24,161 @@ import java.util.List;
  * PluginEnum.
  */
 public enum PluginEnum {
-
+    
     /**
      * Global plugin enum.
      */
-    GLOBAL(1, 0, "global"),
-
+    GLOBAL(10, 0, "global"),
+    
     /**
      * Sign plugin enum.
      */
-    SIGN(2, 0, "sign"),
-
+    SIGN(20, 0, "sign"),
+    
     /**
      * Jwt plugin enum.
      */
-    JWT(9, 0, "jwt"),
-
+    JWT(30, 0, "jwt"),
+    
     /**
      * OAuth2 plugin enum.
      */
-    OAUTH2(3, 0, "oauth2"),
-
+    OAUTH2(40, 0, "oauth2"),
+    
     /**
      * Waf plugin enum.
      */
-    WAF(10, 0, "waf"),
-
+    WAF(50, 0, "waf"),
+    
     /**
      * Rate limiter plugin enum.
      */
-    RATE_LIMITER(20, 0, "rate_limiter"),
-
+    RATE_LIMITER(60, 0, "rate_limiter"),
+    
     /**
      * Param mapping plugin enum.
      */
-    PARAM_MAPPING(22, 0, "param_mapping"),
-
+    PARAM_MAPPING(70, 0, "param_mapping"),
+    
     /**
      * Context path plugin enum.
      */
-    CONTEXT_PATH(25, 0, "context_path"),
-
+    CONTEXT_PATH(80, 0, "context_path"),
+    
     /**
      * Rewrite plugin enum.
      */
-    REWRITE(30, 0, "rewrite"),
-
+    REWRITE(90, 0, "rewrite"),
+    
+    /**
+     * Cryptor request plugin enum.
+     */
+    CRYPTOR_REQUEST(100, 0, "cryptor_request"),
+    
     /**
      * Redirect plugin enum.
      */
-    REDIRECT(40, 0, "redirect"),
-
+    REDIRECT(110, 0, "redirect"),
+    
     /**
      * Request plugin enum.
      */
-    REQUEST(42, 0, "request"),
+    REQUEST(120, 0, "request"),
+    
+    /**
+     * Hystrix plugin enum.
+     */
+    HYSTRIX(130, 0, "hystrix"),
+    
+    /**
+     * Sentinel plugin enum.
+     */
+    SENTINEL(140, 0, "sentinel"),
+    
+    /**
+     * Resilence4J plugin enum.
+     */
+    RESILIENCE4J(150, 0, "resilience4j"),
+    
+    /**
+     * Logging plugin enum.
+     */
+    LOGGING(160, 0, "logging"),
+    
+    /**
+     * Monitor plugin enum.
+     */
+    MONITOR(170, 0, "monitor"),
+    
+    /**
+     * Divide plugin enum.
+     */
+    DIVIDE(200, 0, "divide"),
+    
+    /**
+     * springCloud plugin enum.
+     */
+    SPRING_CLOUD(200, 0, "springCloud"),
+    
+    /**
+     * webSocket plugin enum.
+     */
+    WEB_SOCKET(200, 0, "websocket"),
+    
+    /**
+     * Web client plugin enum.
+     */
+    WEB_CLIENT(210, 0, "webClient"),
+    
+    /**
+     * Netty http client plugin enum.
+     */
+    NETTY_HTTP_CLIENT(210, 0, "nettyHttpClient"),
 
     /**
      * ModifyResponse plugin enum.
      */
-    MODIFY_RESPONSE(44, 0, "modifyResponse"),
-
-    /**
-     * Hystrix plugin enum.
-     */
-    HYSTRIX(45, 0, "hystrix"),
-
-    /**
-     * Sentinel plugin enum.
-     */
-    SENTINEL(45, 0, "sentinel"),
-
-    /**
-     * Resilence4J plugin enum.
-     */
-    RESILIENCE4J(45, 0, "resilience4j"),
-
-    /**
-     * Logging plugin enum.
-     */
-    LOGGING(45, 0, "logging"),
-
-    /**
-     * Divide plugin enum.
-     */
-    DIVIDE(50, 0, "divide"),
-
-    /**
-     * springCloud plugin enum.
-     */
-    SPRING_CLOUD(50, 0, "springCloud"),
-
-    /**
-     * webSocket plugin enum.
-     */
-    WEB_SOCKET(55, 0, "webSocket"),
-
+    MODIFY_RESPONSE(220, 0, "modifyResponse"),
+    
     /**
      * Param transform plugin enum.
      */
-    PARAM_TRANSFORM(58, 0, "paramTransform"),
-
+    RPC_PARAM_TRANSFORM(300, 0, "paramTransform"),
+    
     /**
      * Dubbo plugin enum.
      */
-    DUBBO(60, 0, "dubbo"),
-
+    DUBBO(310, 0, "dubbo"),
+    
     /**
      * Sofa plugin enum.
      */
-    SOFA(60, 0, "sofa"),
-
+    SOFA(310, 0, "sofa"),
+    
     /**
      * Tars plugin enum.
      */
-    TARS(60, 0, "tars"),
-
+    TARS(310, 0, "tars"),
+    
     /**
      * GPRC plugin enum.
      */
-    GRPC(60, 0, "grpc"),
-
+    GRPC(310, 0, "grpc"),
+    
     /**
      * Motan plugin enum.
      */
-    MOTAN(60, 0, "motan"),
-
+    MOTAN(310, 0, "motan"),
+    
     /**
-     * Monitor plugin enum.
+     * Cryptor response plugin enum.
      */
-    MONITOR(80, 0, "monitor"),
-
+    CRYPTOR_RESPONSE(410, 0, "cryptor_response"),
+    
     /**
      * Response plugin enum.
      */
-    RESPONSE(100, 0, "response");
-
+    RESPONSE(420, 0, "response");
 
     private final int code;
 
@@ -179,34 +198,34 @@ public enum PluginEnum {
         this.role = role;
         this.name = name;
     }
-
+    
     /**
      * get code.
      *
-     * @return code
+     * @return code code
      */
     public int getCode() {
         return code;
     }
-
+    
     /**
      * get role.
      *
-     * @return role
+     * @return role role
      */
     public int getRole() {
         return role;
     }
-
+    
     /**
      * get name.
      *
-     * @return name
+     * @return name name
      */
     public String getName() {
         return name;
     }
-
+    
     /**
      * get plugin enum by name.
      *
@@ -218,13 +237,13 @@ public enum PluginEnum {
                 .filter(pluginEnum -> pluginEnum.getName().equals(name))
                 .findFirst().orElse(PluginEnum.GLOBAL);
     }
-
+    
     /**
      * get upstream plugin names.
      *
      * @return List string
      */
     public static List<String> getUpstreamNames() {
-        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name);
+        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name, SPRING_CLOUD.name);
     }
 }

@@ -21,7 +21,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.utils.ThreadLocalUtil;
+import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,10 +84,10 @@ public class WebsocketCollector {
     public void onMessage(final String message, final Session session) {
         if (message.equals(DataEventTypeEnum.MYSELF.name())) {
             try {
-                ThreadLocalUtil.put(SESSION_KEY, session);
+                ThreadLocalUtils.put(SESSION_KEY, session);
                 SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
             } finally {
-                ThreadLocalUtil.clear();
+                ThreadLocalUtils.clear();
             }
         }
     }
@@ -100,7 +100,7 @@ public class WebsocketCollector {
     @OnClose
     public void onClose(final Session session) {
         SESSION_SET.remove(session);
-        ThreadLocalUtil.clear();
+        ThreadLocalUtils.clear();
         LOG.warn("websocket close on client[{}]", getClientIp(session));
     }
 
@@ -113,7 +113,7 @@ public class WebsocketCollector {
     @OnError
     public void onError(final Session session, final Throwable error) {
         SESSION_SET.remove(session);
-        ThreadLocalUtil.clear();
+        ThreadLocalUtils.clear();
         LOG.error("websocket collection on client[{}] error: ", getClientIp(session), error);
     }
 
@@ -126,7 +126,7 @@ public class WebsocketCollector {
     public static void send(final String message, final DataEventTypeEnum type) {
         if (StringUtils.isNotBlank(message)) {
             if (DataEventTypeEnum.MYSELF == type) {
-                Session session = (Session) ThreadLocalUtil.get(SESSION_KEY);
+                Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
                 if (session != null) {
                     sendMessageBySession(session, message);
                 }
@@ -136,7 +136,7 @@ public class WebsocketCollector {
         }
     }
 
-    private static void sendMessageBySession(final Session session, final String message) {
+    private static synchronized void sendMessageBySession(final Session session, final String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {

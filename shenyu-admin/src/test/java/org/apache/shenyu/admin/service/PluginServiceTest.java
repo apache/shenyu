@@ -168,7 +168,6 @@ public final class PluginServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         PluginQuery pluginQuery = new PluginQuery("sofa", 1, pageParameter);
-        given(this.pluginMapper.countByQuery(pluginQuery)).willReturn(10);
         List<PluginDO> pluginDOList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             PluginDO pluginDO = buildPluginDO(String.valueOf(i));

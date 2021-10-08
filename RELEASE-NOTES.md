@@ -1,3 +1,65 @@
+## 2.4.1
+
+### New Features
+
+1. Support PostgreSQL for admin
+1. Support dynamic loading plugin
+1. Support local modification data mode
+1. Add Websocket plugin
+1. Add CryptorRequest plugin
+1. Add CryptorResponsePlugin plugin
+1. Support Grayscale Release for SpringCloud
+1. Support Grayscale Release for Apache Dubbo
+1. Implement the async dubbo invoking for alibaba-dubbo
+1. Support external cross filter config
+1. Support sign plugin custom dynamic sign provider
+
+### API Changes
+
+1. Refactor shenyu config in yaml
+
+### Enhancement
+
+1. Optimze code about dubbo async call
+1. Add loadbalancer common module
+1. Optimize sql init
+1. Refactor Admin PageHelper to query list
+1. Optimize GlobalErrorHandler
+1. Optimize the return value of the'skip' method interface of'ShenyuPlugin' to boolean
+1. Optimize register rules
+1. Modify dubbo and sofa param resolve service 
+1. Refactor sign plugin api
+1. Remove websocket filter 
+
+### Refactor
+
+1. Remove lombok dependency
+1. Remove mapstruct dependency
+1. Support JDK8 ~ JDK15
+1. Add missing plugin_handle sql for plugin motan
+
+### Bug Fix
+
+1. Fix JsonSyntaxException in jwt plugin
+1. Fix sql miss for resilience4j plugin handler
+1. Fix disruptor problem of hold event data in consume event
+1. Fix deadlock bug of HealthCheckTask
+1. Fix client retry the connection add log and increase sleep time
+1. Fix the default_group of nacos
+1. Fix maven ignore and docker entrypoint
+1. Fix admin Return password question
+1. Fix LDAP query built from user-controlled source
+1. Fix the IP address retrieval error
+1. Fix Gson toJson is null 
+1. Fix the index out of range bug for context path.
+1. Fix monitor init metrics label bug
+1. Fix GlobalErrorHandler error object to map bug by JacksonUtils.toMap
+1. Fix modify response plugin order bug 
+1. Fix the bug of register 
+1. Fix sofa plugin register metadata and parameters resolve
+1. Fix motan ,dubbo, sofa plugin metadata init bug
+
+
 ## 2.4.0
 
 ### New Features

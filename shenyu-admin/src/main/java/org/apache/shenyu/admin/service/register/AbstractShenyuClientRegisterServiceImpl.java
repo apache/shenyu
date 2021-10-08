@@ -23,13 +23,12 @@ import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
@@ -68,7 +67,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     protected abstract void handlerRule(String selectorId, MetaDataRegisterDTO metaDataDTO, MetaDataDO exist);
 
     @Override
-    public String registerURI(final String contextPath, final List<String> uriList) {
+    public String registerUri(final String contextPath, final List<String> uriList) {
         return null;
     }
 
@@ -79,30 +78,15 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
         return selectorDTO;
     }
 
-    protected RuleDTO registerRule(final String selectorId, final String path, final String pluginName, final String ruleName) {
-        RuleHandle ruleHandle = pluginName.equals(PluginEnum.CONTEXT_PATH.getName())
-                ? RuleHandleFactory.ruleHandle(pluginName, buildContextPath(path)) : RuleHandleFactory.ruleHandle(pluginName, path);
-        RuleDTO ruleDTO = RuleDTO.builder()
-                .selectorId(selectorId)
-                .name(ruleName)
-                .matchMode(MatchModeEnum.AND.getCode())
-                .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
-                .sort(1)
-                .handle(ruleHandle.toJson())
-                .build();
-        RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
-                .paramType(ParamTypeEnum.URI.getName())
-                .paramName("/")
-                .paramValue(path)
-                .build();
-        if (path.indexOf("*") > 1) {
-            ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        } else {
-            ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
-        }
-        ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
-        return ruleDTO;
+    protected RuleDTO registerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String pluginName) {
+        String path = metaDataDTO.getPath();
+        RuleHandle ruleHandle = RuleHandleFactory.ruleHandle(pluginName, path, metaDataDTO.getRpcExt());
+        return getRuleDTO(selectorId, path, ruleHandle, metaDataDTO.getRuleName());
+    }
+
+    protected RuleDTO registerContextPathRule(final String selectorId, final String path, final String pluginName, final String ruleName) {
+        RuleHandle ruleHandle = RuleHandleFactory.ruleHandle(pluginName, buildContextPath(path), "");
+        return getRuleDTO(selectorId, path, ruleHandle, ruleName);
     }
 
     protected List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
@@ -143,5 +127,29 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
         return Objects.nonNull(existMetaDataDO)
                 && (!existMetaDataDO.getMethodName().equals(dto.getMethodName())
                 || !existMetaDataDO.getServiceName().equals(dto.getServiceName()));
+    }
+
+    private RuleDTO getRuleDTO(final String selectorId, final String path, final RuleHandle ruleHandle, final String ruleName) {
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .selectorId(selectorId)
+                .name(ruleName)
+                .matchMode(MatchModeEnum.AND.getCode())
+                .enabled(Boolean.TRUE)
+                .loged(Boolean.TRUE)
+                .sort(1)
+                .handle(ruleHandle.toJson())
+                .build();
+        RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
+                .paramType(ParamTypeEnum.URI.getName())
+                .paramName("/")
+                .paramValue(path)
+                .build();
+        if (path.indexOf("*") > 1) {
+            ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
+        } else {
+            ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
+        }
+        ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
+        return ruleDTO;
     }
 }

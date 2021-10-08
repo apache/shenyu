@@ -481,3 +481,12 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
    stylelint 9.2.1: https://stylelint.io, MIT
    stylelint-config-prettier 3.0.4: https://github.com/prettier/stylelint-config-prettier, MIT
    stylelint-config-standard 18.0.0: https://github.com/stylelint/stylelint-config-standard, MIT
+
+========================================================================
+CDDL licenses
+========================================================================
+
+The following components are provided under the CDDL License. See project link for details.
+The text of each license is also included at licenses/LICENSE-[project].txt.
+
+    jaxb-api 2.3.0: https://javaee.github.io/jaxb-v2, CDDL 1.1 and GPLv2

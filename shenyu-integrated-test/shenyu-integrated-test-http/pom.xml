@@ -79,10 +79,33 @@
         </dependency>
         <!-- shenyu jwt plugin end-->
 
+        <!-- apache shenyu param_mapping plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- apache shenyu param_mapping plugin end-->
+
+        <!-- apache shenyu param_mapping plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-modify-response</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- apache shenyu param_mapping plugin end-->
+
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
+        </dependency>
+
+        <!-- shenyu sentinel plugin starter-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-sentinel</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -90,7 +113,6 @@
             <artifactId>shenyu-integrated-test-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>

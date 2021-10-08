@@ -53,18 +53,19 @@ public final class RuleHandleFactory {
 
     /**
      * Get a RuleHandle object with given rpc type and path.
-     * @param name   name.
-     * @param path      path.
-     * @return          RuleHandle object.
+     * @param pluginName plugin's name.
+     * @param path       path.
+     * @param rpcExt     rpc ext.
+     * @return           RuleHandle object.
      */
-    public static RuleHandle ruleHandle(final String name, final String path) {
-        Class<? extends RuleHandle> clazz = RPC_TYPE_TO_RULE_HANDLE_CLASS.getOrDefault(name, DEFAULT_RULE_HANDLE);
+    public static RuleHandle ruleHandle(final String pluginName, final String path, final String rpcExt) {
+        Class<? extends RuleHandle> clazz = RPC_TYPE_TO_RULE_HANDLE_CLASS.getOrDefault(pluginName, DEFAULT_RULE_HANDLE);
         try {
-            return clazz.newInstance().createDefault(path);
+            return clazz.newInstance().createDefault(path, rpcExt);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new ShenyuException(
                     String.format("Init RuleHandle failed with plugin name: %s, rule class: %s, exception: %s",
-                            name,
+                            pluginName,
                             clazz.getSimpleName(),
                             e.getMessage()));
         }

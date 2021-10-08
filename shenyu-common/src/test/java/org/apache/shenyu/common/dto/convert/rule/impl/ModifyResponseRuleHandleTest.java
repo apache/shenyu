@@ -36,7 +36,7 @@ public class ModifyResponseRuleHandleTest {
     @Test
     public void testCreateDefault() {
         ModifyResponseRuleHandle modifyResponseRuleHandle = new ModifyResponseRuleHandle();
-        RuleHandle aDefault = modifyResponseRuleHandle.createDefault(PATH);
+        RuleHandle aDefault = modifyResponseRuleHandle.createDefault(PATH, "");
         assertNotNull(aDefault);
         assertEquals(aDefault, modifyResponseRuleHandle);
         assertEquals(HttpStatus.OK.value(), modifyResponseRuleHandle.getStatusCode());

@@ -24,9 +24,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static junit.framework.Assert.assertNull;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test case for {@link ParamMappingPluginDataHandler}.
@@ -64,7 +64,7 @@ public class ParamMappingPluginDataTest {
         this.paramMappingPluginDataHandler.removeRule(this.ruleData);
         assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
         this.paramMappingPluginDataHandler.removeRule(ruleData);
-        assertNull(paramMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Test

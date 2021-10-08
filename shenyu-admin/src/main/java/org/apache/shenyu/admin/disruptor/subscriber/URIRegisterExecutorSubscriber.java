@@ -18,11 +18,11 @@
 package org.apache.shenyu.admin.disruptor.subscriber;
 
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterServiceFactory;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -52,14 +52,8 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
     @Override
     public void executor(final Collection<URIRegisterDTO> dataList) {
         Map<String, List<URIRegisterDTO>> listMap = dataList.stream().collect(Collectors.groupingBy(URIRegisterDTO::getContextPath));
-        listMap.forEach((contextPath, dtoList) -> {
-            List<String> uriList = new ArrayList<>();
-            dataList.forEach(uriRegisterDTO -> {
-                if (uriRegisterDTO.getHost() != null && uriRegisterDTO.getPort() != null) {
-                    uriList.add(String.join(":", uriRegisterDTO.getHost(), uriRegisterDTO.getPort().toString()));
-                }
-            });
-            shenyuClientRegisterService.get("default").registerURI(contextPath, uriList);
-        });
+        listMap.forEach((contextPath, dtoList) -> shenyuClientRegisterService.get(Constants.DEFAULT.toLowerCase())
+                .registerUri(contextPath, dtoList.stream()
+                .map(s -> String.join(":", s.getHost(), s.getPort().toString())).collect(Collectors.toList())));
     }
 }

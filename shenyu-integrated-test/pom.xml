@@ -32,6 +32,12 @@
         <module>shenyu-integrated-test-http</module>
         <module>shenyu-integrated-test-spring-cloud</module>
         <module>shenyu-integrated-test-common</module>
+        <module>shenyu-integration-test-alibaba-dubbo</module>
+        <module>shenyu-integration-test-apache-dubbo</module>
+        <module>shenyu-integrated-test-grpc</module>
+        <module>shenyu-integrated-test-motan</module>
+        <module>shenyu-integrated-test-sofa</module>
+        <module>shenyu-integrated-test-websocket</module>
     </modules>
 
     <properties>
@@ -48,6 +54,8 @@
         <tars-client.version>1.7.2</tars-client.version>
         <sofa-rpc-all.version>5.7.6</sofa-rpc-all.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
+        <curator.version>4.0.1</curator.version>
+        <apache.dubbo.version>2.7.5</apache.dubbo.version>
     </properties>
 
     <dependencies>
@@ -95,13 +103,6 @@
             <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- shenyu jwt plugin starter-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu jwt plugin end-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -109,8 +110,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <dependencyManagement>
-    </dependencyManagement>
     <build>
         <plugins>
             <plugin>

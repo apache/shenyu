@@ -18,14 +18,12 @@
 
 package org.apache.shenyu.springboot.starter.plugin.motan;
 
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.motan.MotanPlugin;
 import org.apache.shenyu.plugin.motan.context.MotanShenyuContextDecorator;
 import org.apache.shenyu.plugin.motan.handler.MotanPluginDataHandler;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
-import org.apache.shenyu.plugin.motan.response.MotanResponsePlugin;
 import org.apache.shenyu.plugin.motan.subscriber.MotanMetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -47,16 +45,6 @@ public class MotanPluginConfiguration {
     @Bean
     public MotanPlugin motanPlugin() {
         return new MotanPlugin(new MotanProxyService());
-    }
-
-    /**
-     * Motan response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin motanResponsePlugin() {
-        return new MotanResponsePlugin();
     }
 
     /**

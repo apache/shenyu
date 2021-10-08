@@ -45,6 +45,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -68,6 +69,7 @@ public class GsonUtils {
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(String.class, new StringTypeAdapter())
             .registerTypeHierarchyAdapter(Pair.class, new PairTypeAdapter())
+            .registerTypeHierarchyAdapter(Duration.class, new DurationTypeAdapter())
             .create();
 
     private static final Gson GSON_MAP = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(new TypeToken<Map<String, Object>>() {
@@ -454,6 +456,34 @@ public class GsonUtils {
             in.endObject();
 
             return Pair.of(left, right);
+        }
+    }
+
+    private static class DurationTypeAdapter extends TypeAdapter<Duration> {
+        @Override
+        public void write(final JsonWriter out, final Duration value) {
+            try {
+                if (value == null) {
+                    out.nullValue();
+                    return;
+                }
+                out.value(value.toString());
+            } catch (IOException e) {
+                LOG.error("failed to write", e);
+            }
+        }
+
+        @Override
+        public Duration read(final JsonReader reader) {
+            try {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.nextNull();
+                    return null;
+                }
+                return Duration.parse(reader.nextString());
+            } catch (IOException e) {
+                throw new ShenyuException(e);
+            }
         }
     }
 }

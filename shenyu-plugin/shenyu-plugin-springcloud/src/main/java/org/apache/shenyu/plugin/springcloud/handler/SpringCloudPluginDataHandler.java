@@ -20,49 +20,75 @@ package org.apache.shenyu.plugin.springcloud.handler;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
-import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The type spring cloud plugin data handler.
  */
 public class SpringCloudPluginDataHandler implements PluginDataHandler {
-
+    
+    public static final Supplier<CommonHandleCache<String, SpringCloudSelectorHandle>> SELECTOR_CACHED = new BeanHolder<>(CommonHandleCache::new);
+    
+    public static final Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> RULE_CACHED = new BeanHolder<>(CommonHandleCache::new);
+    
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> {
-            SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(s, SpringCloudSelectorHandle.class);
-            SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-        });
+        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
+        SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        if (CollectionUtils.isEmpty(springCloudSelectorHandle.getDivideUpstreams())) {
+            UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+            return;
+        }
+        UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(springCloudSelectorHandle.getDivideUpstreams()));
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> SpringCloudSelectorHandleCache.getInstance().removeHandle(selectorData.getId()));
+        SELECTOR_CACHED.get().removeHandle(selectorData.getId());
+        UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
     }
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getInstance().fromJson(s, SpringCloudRuleHandle.class);
-            SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), springCloudRuleHandle);
+            RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), springCloudRuleHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> SpringCloudRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> RULE_CACHED.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override
     public String pluginNamed() {
         return PluginEnum.SPRING_CLOUD.getName();
+    }
+
+    private List<Upstream> convertUpstreamList(final List<DivideUpstream> upstreamList) {
+        return upstreamList.stream().map(u -> Upstream.builder()
+                .protocol(u.getProtocol())
+                .url(u.getUpstreamUrl())
+                .weight(u.getWeight())
+                .status(u.isStatus())
+                .timestamp(u.getTimestamp())
+                .warmup(u.getWarmup())
+                .build()).collect(Collectors.toList());
     }
 }

@@ -119,11 +119,11 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.DIVIDE.getCode() + 1;
+        return PluginEnum.NETTY_HTTP_CLIENT.getCode();
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
@@ -132,6 +132,6 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
 
     @Override
     public String named() {
-        return "NettyHttpClient";
+        return PluginEnum.NETTY_HTTP_CLIENT.getName();
     }
 }
