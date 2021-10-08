@@ -95,7 +95,7 @@
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.1.2</pagehelper.version>
         <alibaba.dubbo.version>2.6.5</alibaba.dubbo.version>
-        <apache.dubbo.version>2.7.5</apache.dubbo.version>
+        <apache.dubbo.version>2.7.8</apache.dubbo.version>
         <gson.version>2.8.0</gson.version>
         <okhttp.version>3.7.0</okhttp.version>
         <prometheus-java-client.version>0.10.0</prometheus-java-client.version>
@@ -141,6 +141,8 @@
         <bytebuddy.version>1.10.16</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.0</jaxb.api.version>
+        <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
+        <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
     </properties>
 
     <dependencyManagement>
@@ -150,6 +152,14 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -389,6 +399,12 @@
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy</artifactId>
                 <version>${groovy.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+                <version>${netflix-ribbon.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

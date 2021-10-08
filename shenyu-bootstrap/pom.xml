@@ -309,6 +309,29 @@
         </dependency>
         <!--shenyu alibaba dubbo plugin end-->
 
+        <!--shenyu spring cloud alibaba dubbo plugin start-->
+        <!--
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+            <version>${netflix-ribbon.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-dubbo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        -->
+        <!-- shenyu spring cloud alibaba dubbo end-->
+        
         <!--shenyu websocket plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
