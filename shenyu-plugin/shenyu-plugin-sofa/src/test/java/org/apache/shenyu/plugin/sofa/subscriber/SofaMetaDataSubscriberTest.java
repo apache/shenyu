@@ -47,7 +47,7 @@ public final class SofaMetaDataSubscriberTest {
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
     }
 
-    @Test(expected = SofaRpcRuntimeException.class)
+    @Test
     public void testOnSubscribe() {
         sofaPluginDataHandler.onSubscribe(metaData);
     }
