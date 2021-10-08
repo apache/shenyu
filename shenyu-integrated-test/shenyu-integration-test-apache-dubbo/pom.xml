@@ -34,93 +34,8 @@
             <artifactId>shenyu-integrated-test-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- shenyu ratelimiter plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-ratelimiter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu ratelimiter plugin end-->
-
-        <!-- shenyu hystrix plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu hystrix plugin end-->
-
-        <!-- shenyu waf plugin starter-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-waf</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu waf plugin end-->
-
-        <!-- shenyu monitor plugin starter-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-monitor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu monitor plugin end-->
-
-        <!-- shenyu sign plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-sign</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu sign plugin end-->
-
-        <!-- shenyu resilience4j plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-resilience4j</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu resilience4j plugin end-->
-
-        <!-- shenyu sentinel plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-sentinel</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu sentinel plugin end-->
-
-        <!-- shenyu redirect plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-redirect</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu redirect plugin end-->
-
-        <!-- shenyu redirect plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-rewrite</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu redirect plugin end-->
-
-        <!--shenyu debug plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu debug plugin end-->
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         
-        <!--shenyu  apache dubbo plugin start-->
+        <!--shenyu apache dubbo plugin start-->
          <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
@@ -131,18 +46,6 @@
             <artifactId>dubbo</artifactId>
             <version>${apache.dubbo.version}</version>
         </dependency>
-        <!-- Dubbo Nacos registry dependency -->
-        <!--<dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-registry-nacos</artifactId>
-            <version>2.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-            <version>1.1.4</version>
-        </dependency>-->
-        <!-- Dubbo zookeeper registry dependency start -->
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
@@ -154,6 +57,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
@@ -164,32 +68,7 @@
             <artifactId>curator-recipes</artifactId>
             <version>${curator.version}</version>
         </dependency>
-        <!-- Dubbo zookeeper registry dependency end -->
-        <!-- shenyu  apache dubbo plugin end-->
-
-        <!-- shenyu modify response plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-modify-response</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu modify response plugin end-->
-
-        <!-- shenyu response plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-response</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu response plugin end-->
-
-        <!--shenyu param mapping plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu param mapping end-->
+        <!--shenyu apache dubbo plugin end-->
     </dependencies>
 
     <build>
@@ -235,5 +114,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

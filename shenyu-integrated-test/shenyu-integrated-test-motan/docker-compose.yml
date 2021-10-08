@@ -21,15 +21,6 @@ services:
     restart: always
     networks:
       - shenyu
-  shenyu-redis:
-    image: redis:6.0-alpine
-    container_name: shenyu-redis
-    restart: always
-    command: redis-server --requirepass abc
-    networks:
-      - shenyu
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
     container_name: shenyu-admin
@@ -37,7 +28,6 @@ services:
     networks:
       - shenyu
     depends_on:
-      - shenyu-redis
       - shenyu-zk
     ports:
       - 9095:9095
