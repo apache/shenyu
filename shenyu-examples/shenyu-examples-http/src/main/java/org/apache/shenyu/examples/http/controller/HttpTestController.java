@@ -206,6 +206,14 @@ public class HttpTestController {
         return response;
     }
 
+    @GetMapping("/divide/raw")
+    public ResultBean divideRawQuery(String name, String address) {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg(String.format("name:%s, address:%s", name, address));
+        return response;
+    }
+
     /**
      * modify response.
      * @param exchange exchange

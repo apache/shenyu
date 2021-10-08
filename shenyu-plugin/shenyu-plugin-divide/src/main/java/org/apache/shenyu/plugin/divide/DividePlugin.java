@@ -141,7 +141,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
                 path = path + realUrl;
             }
         }
-        String query = exchange.getRequest().getURI().getQuery();
+        String query = exchange.getRequest().getURI().getRawQuery();
         if (StringUtils.isNoneBlank(query)) {
             return path + "?" + query;
         }

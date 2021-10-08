@@ -15,6 +15,15 @@
 # limitations under the License.
 #
 
+### shenyu gateway divide raw query
+GET http://localhost:9195/http/test/divide/raw?name=divide&address=address
+Accept: application/json
+Content-Type: application/json
+
+### shenyu gateway divide raw query
+GET http://localhost:9195/http/test/divide/raw?name=divide
+Accept: application/json
+Content-Type: application/json
 
 ### shengyu getway proxy orderSave
 POST http://localhost:9195/http/order/save
