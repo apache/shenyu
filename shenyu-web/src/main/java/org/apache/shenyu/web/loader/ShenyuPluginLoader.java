@@ -30,7 +30,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
@@ -89,7 +93,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      * @throws IllegalAccessException the illegal access exception
      */
     public List<ShenyuLoaderResult> loadExtendPlugins(final String path) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        File file= getPluginPath(path);
+        File file = getPluginPath(path);
         File[] jarFiles = listFiles(file);
         if (null == jarFiles) {
             return Collections.emptyList();
@@ -230,12 +234,22 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
 
 
-    public File[]  listFiles(File pluginFile){
+    /**
+     * list jar files.
+     * @param pluginFile the plugin file
+     * @return the jar file list
+     */
+    public File[] listFiles(final File pluginFile) {
         return pluginFile.listFiles(file -> file.getName().endsWith(".jar"));
     }
 
 
-    public File getPluginPath(String path){
+    /**
+     * get plugin path file.
+     * @param path the plugin path
+     * @return the plugin  path  file
+     */
+    public File getPluginPath(final String path) {
         return ShenyuPluginPathBuilder.getPluginPath(path);
     }
 
