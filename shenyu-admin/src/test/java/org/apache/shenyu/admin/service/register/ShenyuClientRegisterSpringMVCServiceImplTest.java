@@ -34,7 +34,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.anyBoolean;
 
 /**
- * Test cases for ShenyuClientRegisterSpringMVCServiceImpl.
+ * ShenyuClientRegisterSpringMVCServiceImplTest.
  */
 @PrepareForTest(MetaDataServiceImpl.class)
 @RunWith(MockitoJUnitRunner.Silent.class)
