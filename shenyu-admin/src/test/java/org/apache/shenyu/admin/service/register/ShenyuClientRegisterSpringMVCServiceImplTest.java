@@ -25,13 +25,16 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.anyBoolean;
 
 /**
- * ShenyuClientRegisterSpringMVCServiceImplTest
+ * Test cases for ShenyuClientRegisterSpringMVCServiceImpl.
  */
 @PrepareForTest(MetaDataServiceImpl.class)
 @RunWith(MockitoJUnitRunner.Silent.class)
