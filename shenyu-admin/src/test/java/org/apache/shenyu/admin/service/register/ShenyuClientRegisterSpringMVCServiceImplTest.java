@@ -55,7 +55,6 @@ public class ShenyuClientRegisterSpringMVCServiceImplTest {
     @Mock
     private PluginService pluginService;
 
-
     private ShenyuClientRegisterSpringMVCServiceImpl shenyuClientRegisterSpringMVCService;
 
     @Before
@@ -88,7 +87,6 @@ public class ShenyuClientRegisterSpringMVCServiceImplTest {
         shenyuClientRegisterSpringMVCService.handlerRule(selectorId, metaDataRegisterDTO, metaDataDO);
     }
 
-
     @Test
     public void testRegisterRule() {
         String selectorId = UUID.randomUUID().toString();
@@ -117,7 +115,6 @@ public class ShenyuClientRegisterSpringMVCServiceImplTest {
         given(selectorService.handlerSelectorNeedUpstreamCheck(any(), eq(PluginEnum.SPRING_CLOUD.getName()))).willReturn(selectorId);
         Assert.assertEquals(ShenyuResultMessage.SUCCESS, shenyuClientRegisterSpringMVCService.register(metaDataRegisterDTO));
     }
-
 
     private MetaDataRegisterDTO buildScMetaDataRegisterDTO() {
         MetaDataRegisterDTO springMvcRegisterDTO = new MetaDataRegisterDTO();
