@@ -19,6 +19,7 @@ package org.apache.shenyu.client.grpc;
 
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationListener;
@@ -73,6 +74,7 @@ public class GrpcContextRefreshedEventListener implements ApplicationListener<Co
     }
     
     private URIRegisterDTO buildURIRegisterDTO() {
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(this.ipAndPort)
