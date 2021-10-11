@@ -18,6 +18,7 @@
 
 package org.apache.shenyu.springboot.starter.client.tars;
 
+import org.apache.shenyu.client.tars.TarsContextRefreshedEventListener;
 import org.apache.shenyu.client.tars.TarsServiceBeanPostProcessor;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuTarsClientConfiguration {
+    
     /**
      * Tars service bean post processor sofa service bean post processor.
      *
@@ -44,4 +46,14 @@ public class ShenyuTarsClientConfiguration {
         return new TarsServiceBeanPostProcessor(tarsConfig, shenyuClientRegisterRepository);
     }
     
+    /**
+     * Tars context refreshed event listener tars context refreshed event listener.
+     *
+     * @param tarsConfig the tars config
+     * @return the tars context refreshed event listener
+     */
+    @Bean
+    public TarsContextRefreshedEventListener tarsContextRefreshedEventListener(final ShenyuRegisterCenterConfig tarsConfig) {
+        return new TarsContextRefreshedEventListener(tarsConfig);
+    }
 }

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
@@ -41,102 +42,37 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
 
     @Override
     public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
-        this.init(config);
         this.publisher = publisher;
     }
-
+    
     /**
-     * Register spring mvc string.
+     * Register metadata string.
      *
      * @param metaDataRegisterDTO the meta data register dto
      * @return the string
      */
-    @PostMapping("/springmvc-register")
+    @PostMapping("/register-metadata")
     @ResponseBody
-    public String registerSpringMvc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
+    public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-
+    
+    
     /**
-     * Register spring cloud string.
+     * Register uri string.
      *
-     * @param metaDataRegisterDTO the meta data register dto
+     * @param uriRegisterDTO the uri register dto
      * @return the string
      */
-    @PostMapping("/springcloud-register")
+    @PostMapping("/register-uri")
     @ResponseBody
-    public String registerSpringCloud(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publish(metaDataRegisterDTO);
+    public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
+        publish(uriRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
 
-    /**
-     * Register rpc string.
-     *
-     * @param metaDataRegisterDTO the meta data register dto
-     * @return the string
-     */
-    @PostMapping("/dubbo-register")
-    @ResponseBody
-    public String registerRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publish(metaDataRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
-    }
-
-    /**
-     * Register sofa rpc string.
-     *
-     * @param metaDataRegisterDTO the meta data register dto
-     * @return the string
-     */
-    @PostMapping("/sofa-register")
-    @ResponseBody
-    public String registerSofaRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publish(metaDataRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
-    }
-
-    /**
-     * Register tars rpc string.
-     *
-     * @param metaDataRegisterDTO the meta data register dto
-     * @return the string
-     */
-    @PostMapping("/tars-register")
-    @ResponseBody
-    public String registerTarsRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publish(metaDataRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
-    }
-
-    /**
-     * Register grpc string.
-     *
-     * @param metaDataRegisterDTO the meta data register dto
-     * @return the string
-     */
-    @PostMapping("/grpc-register")
-    @ResponseBody
-    public String registerGrpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publish(metaDataRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
-    }
-
-    /**
-     * Register motan string.
-     *
-     * @param metaDataRegisterDTO the meta data register dto
-     * @return the string
-     */
-    @PostMapping("/motan-register")
-    @ResponseBody
-    public String registerMotan(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publish(metaDataRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
-    }
-
-    private void publish(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publisher.publish(Collections.singletonList(metaDataRegisterDTO));
+    private <T> void publish(final T t) {
+        publisher.publish(Collections.singletonList(t));
     }
 }

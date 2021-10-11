@@ -27,7 +27,11 @@ import com.qq.tars.protocol.annotation.Servant;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
 import org.apache.shenyu.plugin.tars.util.PrxInfoUtil;
@@ -37,10 +41,6 @@ import org.assertj.core.internal.bytebuddy.description.annotation.AnnotationDesc
 import org.assertj.core.internal.bytebuddy.description.modifier.Visibility;
 import org.assertj.core.internal.bytebuddy.dynamic.DynamicType;
 import org.assertj.core.internal.bytebuddy.dynamic.loading.ClassLoadingStrategy;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +80,7 @@ public final class ApplicationConfigCache {
 
     private final ConcurrentHashMap<String, TarsParamInfo> prxParamCache = new ConcurrentHashMap<>();
 
-    private final ConcurrentHashMap<String, List<DivideUpstream>> refreshUpstreamCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<TarsUpstream>> refreshUpstreamCache = new ConcurrentHashMap<>();
 
     private final Communicator communicator;
 
@@ -197,7 +197,7 @@ public final class ApplicationConfigCache {
      */
     public void initPrxClass(final SelectorData selectorData) {
         try {
-            final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
+            final List<TarsUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), TarsUpstream.class);
             if (null == upstreamList || upstreamList.size() == 0) {
                 invalidate(selectorData.getName());
                 return;
@@ -218,7 +218,7 @@ public final class ApplicationConfigCache {
      * @param metaData     metaData
      * @param upstreamList upstream list
      */
-    private void refreshTarsInvokePrxList(final MetaData metaData, final List<DivideUpstream> upstreamList) throws NoSuchMethodException, ExecutionException {
+    private void refreshTarsInvokePrxList(final MetaData metaData, final List<TarsUpstream> upstreamList) throws NoSuchMethodException, ExecutionException {
         Class<?> prxClass = prxClassCache.get(metaData.getPath());
         if (Objects.isNull(prxClass)) {
             return;

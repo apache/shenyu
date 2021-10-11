@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.client.tars;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -41,8 +41,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -53,8 +51,6 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -76,14 +72,13 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         this.ipAndPort = ip + ":" + port;
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-tars-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean.getClass().getAnnotation(ShenyuTarsService.class) != null) {
-            executorService.execute(() -> handler(bean));
+            handler(bean);
         }
         return bean;
     }
@@ -125,7 +120,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcType("tars")
+                .rpcType(RpcTypeEnum.TARS.getName())
                 .rpcExt(rpcExt)
                 .enabled(shenyuTarsClient.enabled())
                 .build();

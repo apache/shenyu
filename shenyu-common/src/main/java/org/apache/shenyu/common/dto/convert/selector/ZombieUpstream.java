@@ -26,9 +26,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class ZombieUpstream {
 
     /**
-     * divide upstream.
+     * common upstream.
      */
-    private DivideUpstream divideUpstream;
+    private CommonUpstream commonUpstream;
 
     /**
      * total check times.
@@ -38,7 +38,7 @@ public class ZombieUpstream {
     /**
      * origin selector name.
      */
-    private String selectorName;
+    private String selectorId;
 
     /**
      * no args constructor.
@@ -52,9 +52,9 @@ public class ZombieUpstream {
      * @param builder builder
      */
     private ZombieUpstream(final Builder builder) {
-        this.divideUpstream = builder.divideUpstream;
+        this.commonUpstream = builder.commonUpstream;
         this.zombieCheckTimes = builder.zombieCheckTimes;
-        this.selectorName = builder.selectorName;
+        this.selectorId = builder.selectorId;
     }
 
     /**
@@ -67,21 +67,21 @@ public class ZombieUpstream {
     }
 
     /**
-     * get divideUpstream.
+     * get commonUpstream.
      *
-     * @return divideUpstream
+     * @return commonUpstream
      */
-    public DivideUpstream getDivideUpstream() {
-        return divideUpstream;
+    public CommonUpstream getCommonUpstream() {
+        return commonUpstream;
     }
 
     /**
-     * set divideUpstream.
+     * set commonUpstream.
      *
-     * @param divideUpstream divideUpstream
+     * @param commonUpstream commonUpstream
      */
-    public void setDivideUpstream(final DivideUpstream divideUpstream) {
-        this.divideUpstream = divideUpstream;
+    public void setCommonUpstream(final CommonUpstream commonUpstream) {
+        this.commonUpstream = commonUpstream;
     }
 
     /**
@@ -103,21 +103,21 @@ public class ZombieUpstream {
     }
 
     /**
-     * get selectorName.
+     * get selectorId.
      *
-     * @return selectorName
+     * @return selectorId
      */
-    public String getSelectorName() {
-        return selectorName;
+    public String getSelectorId() {
+        return selectorId;
     }
 
     /**
-     * set selectorName.
+     * set selectorId.
      *
-     * @param selectorName selectorName
+     * @param selectorId selectorId
      */
-    public void setSelectorName(final String selectorName) {
-        this.selectorName = selectorName;
+    public void setSelectorName(final String selectorId) {
+        this.selectorId = selectorId;
     }
 
     @Override
@@ -131,43 +131,43 @@ public class ZombieUpstream {
         ZombieUpstream that = (ZombieUpstream) o;
         return new EqualsBuilder()
                 .append(zombieCheckTimes, that.zombieCheckTimes)
-                .append(divideUpstream, that.divideUpstream)
-                .append(selectorName, that.selectorName)
+                .append(commonUpstream, that.commonUpstream)
+                .append(selectorId, that.selectorId)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(divideUpstream)
+                .append(commonUpstream)
                 .append(zombieCheckTimes)
-                .append(selectorName)
+                .append(selectorId)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return "ZombieUpstream{"
-                + "divideUpstream="
-                + divideUpstream
+                + "commonUpstream="
+                + commonUpstream
                 + ", zombieCheckTimes="
                 + zombieCheckTimes
-                + ", selectorName='"
-                + selectorName
+                + ", selectorId='"
+                + selectorId
                 + '\''
                 + '}';
     }
 
     /**
-     * create zombie upstream with divide upstream.
+     * create zombie upstream with Common upstream.
      *
-     * @param divideUpstream   {@linkplain DivideUpstream} origin divide upstream.
+     * @param commonUpstream   {@linkplain CommonUpstream} origin divide upstream.
      * @param zombieCheckTimes total check times.
-     * @param selectorName     origin selector name.
+     * @param selectorId     origin selector id.
      * @return new zombie upstream.
      */
-    public static ZombieUpstream transform(final DivideUpstream divideUpstream, final int zombieCheckTimes, final String selectorName) {
-        return ZombieUpstream.builder().divideUpstream(divideUpstream).zombieCheckTimes(zombieCheckTimes).selectorName(selectorName).build();
+    public static ZombieUpstream transform(final CommonUpstream commonUpstream, final int zombieCheckTimes, final String selectorId) {
+        return ZombieUpstream.builder().commonUpstream(commonUpstream).zombieCheckTimes(zombieCheckTimes).selectorId(selectorId).build();
     }
 
     /**
@@ -176,9 +176,9 @@ public class ZombieUpstream {
     public static final class Builder {
 
         /**
-         * divideUpstream.
+         * commonUpstream.
          */
-        private DivideUpstream divideUpstream;
+        private CommonUpstream commonUpstream;
 
         /**
          * zombieCheckTimes.
@@ -186,9 +186,9 @@ public class ZombieUpstream {
         private int zombieCheckTimes;
 
         /**
-         * selectorName.
+         * selectorId.
          */
-        private String selectorName;
+        private String selectorId;
 
         /**
          * no args constructor.
@@ -206,13 +206,13 @@ public class ZombieUpstream {
         }
 
         /**
-         * build divideUpstream.
+         * build commonUpstream.
          *
-         * @param divideUpstream divideUpstream
+         * @param commonUpstream commonUpstream
          * @return this
          */
-        public Builder divideUpstream(final DivideUpstream divideUpstream) {
-            this.divideUpstream = divideUpstream;
+        public Builder commonUpstream(final CommonUpstream commonUpstream) {
+            this.commonUpstream = commonUpstream;
             return this;
         }
 
@@ -228,13 +228,13 @@ public class ZombieUpstream {
         }
 
         /**
-         * build selectorName.
+         * build selectorId.
          *
-         * @param selectorName selectorName
+         * @param selectorId selectorId
          * @return this
          */
-        public Builder selectorName(final String selectorName) {
-            this.selectorName = selectorName;
+        public Builder selectorId(final String selectorId) {
+            this.selectorId = selectorId;
             return this;
         }
     }

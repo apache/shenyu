@@ -20,9 +20,9 @@ package org.apache.shenyu.common.dto.convert.selector;
 import java.util.Objects;
 
 /**
- * The type Dubbo selector handle.
+ * The type Dubbo selector upstream.
  */
-public class DubboSelectorHandle {
+public final class DubboUpstream extends CommonUpstream {
 
     /**
      * zookeeper url is required.
@@ -33,21 +33,11 @@ public class DubboSelectorHandle {
      * dubbo application name is required.
      */
     private String appName;
-
-    /**
-     * dubbo protocol.
-     */
-    private String protocol;
-
+    
     /**
      * port.
      */
     private int port;
-
-    /**
-     * upstreamUrl.
-     */
-    private String upstreamUrl;
 
     /**
      * gray status.
@@ -70,19 +60,37 @@ public class DubboSelectorHandle {
     private int weight;
 
     /**
-     * false close/ true open.
-     */
-    private boolean status = true;
-
-    /**
-     * startup time.
-     */
-    private long timestamp;
-
-    /**
      * warmup.
      */
     private int warmup;
+    
+    /**
+     * builder constructor.
+     *
+     * @param builder builder
+     */
+    private DubboUpstream(final Builder builder) {
+        boolean statusValue = builder.statusValue;
+        if (!builder.statusSet) {
+            statusValue = defaultStatus();
+        }
+        setUpstreamHost(builder.upstreamHost);
+        setProtocol(builder.protocol);
+        setUpstreamUrl(builder.upstreamUrl);
+        this.weight = builder.weight;
+        setStatus(statusValue);
+        setTimestamp(builder.timestamp);
+        this.warmup = builder.warmup;
+    }
+    
+    /**
+     * class builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
 
     /**
      * get registry.
@@ -118,24 +126,6 @@ public class DubboSelectorHandle {
      */
     public void setAppName(final String appName) {
         this.appName = appName;
-    }
-
-    /**
-     * get protocol.
-     *
-     * @return protocol
-     */
-    public String getProtocol() {
-        return protocol;
-    }
-
-    /**
-     * set protocol.
-     *
-     * @param protocol protocol
-     */
-    public void setProtocol(final String protocol) {
-        this.protocol = protocol;
     }
 
     /**
@@ -175,24 +165,6 @@ public class DubboSelectorHandle {
     }
 
     /**
-     * Gets the value of upstreamUrl.
-     *
-     * @return the value of upstreamUrl
-     */
-    public String getUpstreamUrl() {
-        return upstreamUrl;
-    }
-
-    /**
-     * Sets the upstreamUrl.
-     *
-     * @param upstreamUrl upstreamUrl
-     */
-    public void setUpstreamUrl(final String upstreamUrl) {
-        this.upstreamUrl = upstreamUrl;
-    }
-
-    /**
      * Gets the value of weight.
      *
      * @return the value of weight
@@ -208,42 +180,6 @@ public class DubboSelectorHandle {
      */
     public void setWeight(final int weight) {
         this.weight = weight;
-    }
-
-    /**
-     * Gets the value of status.
-     *
-     * @return the value of status
-     */
-    public boolean isStatus() {
-        return status;
-    }
-
-    /**
-     * Sets the status.
-     *
-     * @param status status
-     */
-    public void setStatus(final boolean status) {
-        this.status = status;
-    }
-
-    /**
-     * Gets the value of timestamp.
-     *
-     * @return the value of timestamp
-     */
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    /**
-     * Sets the timestamp.
-     *
-     * @param timestamp timestamp
-     */
-    public void setTimestamp(final long timestamp) {
-        this.timestamp = timestamp;
     }
 
     /**
@@ -305,19 +241,17 @@ public class DubboSelectorHandle {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DubboSelectorHandle)) {
+        if (!(o instanceof DubboUpstream)) {
             return false;
         }
-        DubboSelectorHandle that = (DubboSelectorHandle) o;
+        DubboUpstream that = (DubboUpstream) o;
         return port == that.port
                 && weight == that.weight
-                && status == that.status
-                && timestamp == that.timestamp
                 && warmup == that.warmup
                 && Objects.equals(registry, that.registry)
                 && Objects.equals(appName, that.appName)
-                && Objects.equals(protocol, that.protocol)
-                && Objects.equals(upstreamUrl, that.upstreamUrl)
+                && Objects.equals(this.getProtocol(), that.getProtocol())
+                && Objects.equals(this.getUpstreamUrl(), that.getUpstreamUrl())
                 && Objects.equals(gray, that.gray)
                 && Objects.equals(group, that.group)
                 && Objects.equals(version, that.version);
@@ -325,24 +259,161 @@ public class DubboSelectorHandle {
 
     @Override
     public int hashCode() {
-        return Objects.hash(registry, appName, protocol, port, upstreamUrl, gray, weight, status, timestamp, warmup, group, version);
+        return Objects.hash(registry, appName, port, gray, weight, warmup, group, version);
     }
 
     @Override
     public String toString() {
-        return "DubboSelectorHandle{"
+        return "DubboUpstream{"
                 + "registry='" + registry
                 + ", appName='" + appName
-                + ", protocol='" + protocol
+                + ", protocol='" + this.getProtocol()
                 + ", port=" + port
-                + ", upstreamUrl='" + upstreamUrl
+                + ", upstreamUrl='" + this.getUpstreamUrl()
                 + ", gray=" + gray
                 + ", weight=" + weight
-                + ", status=" + status
-                + ", timestamp=" + timestamp
                 + ", warmup=" + warmup
                 + ", group='" + group
                 + ", version='" + version
                 + '}';
+    }
+    
+    /**
+     * class builder.
+     */
+    public static final class Builder {
+        
+        /**
+         * upstreamHost.
+         */
+        private String upstreamHost;
+        
+        /**
+         * protocol.
+         */
+        private String protocol;
+        
+        /**
+         * upstreamUrl.
+         */
+        private String upstreamUrl;
+        
+        /**
+         * weight.
+         */
+        private int weight;
+        
+        /**
+         * status.
+         */
+        private boolean statusSet;
+        
+        /**
+         * status.
+         */
+        private boolean statusValue;
+        
+        /**
+         * timestamp.
+         */
+        private long timestamp;
+        
+        /**
+         * warmup.
+         */
+        private int warmup;
+        
+        /**
+         * no args constructor.
+         */
+        private Builder() {
+        }
+        
+        /**
+         * build new Object.
+         *
+         * @return DivideUpstream
+         */
+        public DubboUpstream build() {
+            return new DubboUpstream(this);
+        }
+        
+        /**
+         * build upstreamHost.
+         *
+         * @param upstreamHost upstreamHost
+         * @return this
+         */
+        public DubboUpstream.Builder upstreamHost(final String upstreamHost) {
+            this.upstreamHost = upstreamHost;
+            return this;
+        }
+        
+        /**
+         * build protocol.
+         *
+         * @param protocol protocol
+         * @return this
+         */
+        public DubboUpstream.Builder protocol(final String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+        
+        /**
+         * build upstreamUrl.
+         *
+         * @param upstreamUrl upstreamUrl
+         * @return this
+         */
+        public DubboUpstream.Builder upstreamUrl(final String upstreamUrl) {
+            this.upstreamUrl = upstreamUrl;
+            return this;
+        }
+        
+        /**
+         * build weight.
+         *
+         * @param weight weight
+         * @return this
+         */
+        public DubboUpstream.Builder weight(final int weight) {
+            this.weight = weight;
+            return this;
+        }
+        
+        /**
+         * build status.
+         *
+         * @param status status
+         * @return this
+         */
+        public DubboUpstream.Builder status(final boolean status) {
+            this.statusValue = status;
+            this.statusSet = true;
+            return this;
+        }
+        
+        /**
+         * build timestamp.
+         *
+         * @param timestamp timestamp
+         * @return this
+         */
+        public DubboUpstream.Builder timestamp(final long timestamp) {
+            this.timestamp = timestamp;
+            return this;
+        }
+        
+        /**
+         * build warmup.
+         *
+         * @param warmup warmup
+         * @return this
+         */
+        public DubboUpstream.Builder warmup(final int warmup) {
+            this.warmup = warmup;
+            return this;
+        }
     }
 }

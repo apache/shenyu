@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 55290
+  port: 55222
   servlet:
     context-path: /
   address: 0.0.0.0

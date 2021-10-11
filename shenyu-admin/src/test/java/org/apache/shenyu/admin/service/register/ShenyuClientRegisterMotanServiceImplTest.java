@@ -17,29 +17,9 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-
-import java.util.List;
 
 /**
- * shenyu client register service factory.
+ * Test cases for ShenyuClientRegisterMotanServiceImpl.
  */
-public interface ShenyuClientRegisterServiceFactory {
-
-    /**
-     * Register meta data.
-     *
-     * @param metaDataRegisterDTO meta data register dto.
-     * @return the string
-     */
-    String register(MetaDataRegisterDTO metaDataRegisterDTO);
-
-    /**
-     * mvc uri upstream update.
-     *
-     * @param contextPath context path
-     * @param uriList     uri list
-     * @return the string
-     */
-    String registerUri(String contextPath, List<String> uriList);
+public final class ShenyuClientRegisterMotanServiceImplTest {
 }

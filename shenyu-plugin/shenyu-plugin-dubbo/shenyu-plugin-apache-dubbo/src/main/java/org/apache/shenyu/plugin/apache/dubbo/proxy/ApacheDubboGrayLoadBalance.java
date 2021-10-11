@@ -27,7 +27,7 @@ import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.DubboSelectorHandle;
+import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -47,16 +47,16 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         String shenyuSelectorId = invocation.getAttachment(Constants.DUBBO_SELECTOR_ID);
         String shenyuRuleId = invocation.getAttachment(Constants.DUBBO_RULE_ID);
         String remoteAddressIp = invocation.getAttachment(Constants.DUBBO_REMOTE_ADDRESS);
-        List<DubboSelectorHandle> dubboSelectorHandles = ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(shenyuSelectorId);
+        List<DubboUpstream> dubboUpstreams = ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(shenyuSelectorId);
         DubboRuleHandle dubboRuleHandle = ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(shenyuRuleId);
         // if gray list is not empty,just use load balance to choose one.
-        if (CollectionUtils.isNotEmpty(dubboSelectorHandles)) {
+        if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
             Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadbalance(), remoteAddressIp);
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
                 return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokers, url, invocation);
             }
             // url is the first level, then is group, the version is the lowest.
-            final List<Invoker<T>> invokerListAfterShenyuGrayFilter = invokers.stream().filter(each -> {
+            final List<Invoker<T>> invokerGrays = invokers.stream().filter(each -> {
                 if (StringUtils.isNotBlank(upstream.getUrl())) {
                     URL eachUrl = each.getUrl();
                     return eachUrl.getAddress().equals(upstream.getUrl());
@@ -75,11 +75,15 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
                 }
                 return true;
             }).collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(invokerListAfterShenyuGrayFilter)) {
-                return null;
+            if (CollectionUtils.isEmpty(invokerGrays)) {
+                return select(invokers, url, invocation, dubboRuleHandle.getLoadbalance());
             }
-            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokerListAfterShenyuGrayFilter, url, invocation);
+            return select(invokerGrays, url, invocation, dubboRuleHandle.getLoadbalance());
         }
-        return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(dubboRuleHandle.getLoadbalance()).select(invokers, url, invocation);
+        return select(invokers, url, invocation, dubboRuleHandle.getLoadbalance());
+    }
+    
+    private <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation, final String loadbalance) {
+        return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadbalance).select(invokers, url, invocation);
     }
 }

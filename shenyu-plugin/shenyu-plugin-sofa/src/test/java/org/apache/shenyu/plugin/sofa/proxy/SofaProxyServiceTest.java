@@ -77,7 +77,7 @@ public final class SofaProxyServiceTest {
     }
 
     @Test
-    public void test() throws NoSuchFieldException, IllegalAccessException {
+    public void testGenericInvoker() throws NoSuchFieldException, IllegalAccessException {
         ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(consumerConfig.refer()).thenReturn(genericService);
