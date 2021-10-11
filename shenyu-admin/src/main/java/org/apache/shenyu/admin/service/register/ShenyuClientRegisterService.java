@@ -29,6 +29,13 @@ import java.util.List;
 public interface ShenyuClientRegisterService {
     
     /**
+     * Rpc type string.
+     *
+     * @return the string
+     */
+    String rpcType();
+    
+    /**
      * Register meta data.
      *
      * @param metaDataRegisterDTO meta data register dto.
@@ -45,5 +52,13 @@ public interface ShenyuClientRegisterService {
      */
     default String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
         return Constants.SUCCESS;
+    }
+    
+    /**
+     * Register context path.
+     *
+     * @param metaDataRegisterDTO the meta data register dto
+     */
+    default void registerContextPath(final MetaDataRegisterDTO metaDataRegisterDTO) {
     }
 }

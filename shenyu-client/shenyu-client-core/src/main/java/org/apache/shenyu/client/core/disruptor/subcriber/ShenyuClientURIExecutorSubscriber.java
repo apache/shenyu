@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
+import com.google.common.base.Stopwatch;
+import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
@@ -24,7 +26,10 @@ import org.apache.shenyu.register.common.type.DataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Shenyu client uri executor subscriber.
@@ -52,7 +57,29 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     @Override
     public void executor(final Collection<URIRegisterDTO> dataList) {
         for (URIRegisterDTO uriRegisterDTO : dataList) {
-            LOG.error("register rui is host:{}, port:{} ", uriRegisterDTO.getHost(), uriRegisterDTO.getPort());
+            Stopwatch stopwatch = Stopwatch.createStarted();
+            while (true) {
+                try (Socket ignored = new Socket(uriRegisterDTO.getHost(), uriRegisterDTO.getPort())) {
+                    break;
+                } catch (IOException e) {
+                    long sleepTime = 1000;
+                    // maybe the port is delay exposed
+                    if (stopwatch.elapsed(TimeUnit.SECONDS) > 5) {
+                        LOG.error("host:{}, port:{} connection failed, will retry",
+                                uriRegisterDTO.getHost(), uriRegisterDTO.getPort());
+                        // If the connection fails for a long time, Increase sleep time
+                        if (stopwatch.elapsed(TimeUnit.SECONDS) > 180) {
+                            sleepTime = 10000;
+                        }
+                    }
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(sleepTime);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            ShenyuClientShutdownHook.delayOtherHooks();
             shenyuClientRegisterRepository.persistURI(uriRegisterDTO);
         }
     }

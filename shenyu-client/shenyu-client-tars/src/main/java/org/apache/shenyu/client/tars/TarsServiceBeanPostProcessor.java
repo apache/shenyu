@@ -24,6 +24,7 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -125,7 +126,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcType("tars")
+                .rpcType(RpcTypeEnum.TARS.getName())
                 .rpcExt(rpcExt)
                 .enabled(shenyuTarsClient.enabled())
                 .build();

@@ -15,102 +15,70 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.init;
+package org.apache.shenyu.client.tars;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.lang.NonNull;
 
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * The type Context register listener.
+ * The type Tars context refreshed event listener.
  */
-public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
+public class TarsContextRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
-
+    
     private String contextPath;
+    
+    private final String ipAndPort;
 
-    private String appName;
+    private final String host;
 
-    private String host;
-
-    private Integer port;
-
-    private final Boolean isFull;
-
+    private final int port;
+    
     /**
-     * Instantiates a new Context register listener.
+     * Instantiates a new Tars context refreshed event listener.
      *
      * @param config the config
      */
-    public ContextRegisterListener(final ShenyuRegisterCenterConfig config) {
+    public TarsContextRefreshedEventListener(final ShenyuRegisterCenterConfig config) {
         Properties props = config.getProps();
-        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         String contextPath = props.getProperty("contextPath");
-        this.contextPath = contextPath;
-        if (isFull) {
-            if (StringUtils.isBlank(contextPath)) {
-                String errorMsg = "http register param must config the contextPath";
-                LOG.error(errorMsg);
-                throw new RuntimeException(errorMsg);
-            }
-            this.contextPath = contextPath + "/**";
+        String ip = props.getProperty("host");
+        String port = props.getProperty("port");
+        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
+            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
         }
-        int port = Integer.parseInt(props.getProperty("port"));
-        this.appName = props.getProperty("appName");
+        this.contextPath = contextPath;
+        this.ipAndPort = ip + ":" + port;
         this.host = props.getProperty("host");
-        this.port = port;
+        this.port = Integer.parseInt(port);
     }
-
+    
     @Override
-    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
         if (!registered.compareAndSet(false, true)) {
             return;
-        }
-        if (isFull) {
-            publisher.publishEvent(buildMetaDataDTO());
         }
         publisher.publishEvent(buildURIRegisterDTO());
     }
     
     private URIRegisterDTO buildURIRegisterDTO() {
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
-                .appName(appName)
+                .appName(this.ipAndPort)
+                .rpcType(RpcTypeEnum.TARS.getName())
                 .host(host)
                 .port(port)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .build();
-                
-    }
-
-    private MetaDataRegisterDTO buildMetaDataDTO() {
-        String contextPath = this.contextPath;
-        String appName = this.appName;
-        return MetaDataRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
-                .path(contextPath)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .enabled(true)
-                .ruleName(contextPath)
                 .build();
     }
 }

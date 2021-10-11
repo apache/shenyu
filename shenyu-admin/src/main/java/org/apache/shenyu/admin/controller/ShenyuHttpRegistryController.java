@@ -42,7 +42,6 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
 
     @Override
     public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
-        this.init(config);
         this.publisher = publisher;
     }
     

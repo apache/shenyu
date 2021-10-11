@@ -20,29 +20,30 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
  * spring cloud service register.
  */
 @Service("springCloud")
-public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
+public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextPathRegisterService {
     
     @Override
-    protected String pluginName() {
-        return PluginEnum.SPRING_CLOUD.getName();
+    public String rpcType() {
+        return RpcTypeEnum.SPRING_CLOUD.getName();
     }
     
     @Override
@@ -57,6 +58,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
     
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataService metaDataService = getMetaDataService();
         metaDataDTO.setPath(metaDataDTO.getContextPath() + "/**");
         MetaDataDO metaDataDO = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(metaDataDO, metaDataDTO);
@@ -67,12 +69,13 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
         SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
         List<DivideUpstream> existList = springCloudSelectorHandle.getDivideUpstreams();
-        List<DivideUpstream> canAddList = new ArrayList<>();
         if (CollectionUtils.isEmpty(existList)) {
             return doHandler(springCloudSelectorHandle, addList, addList, selectorDO);
         }
+        List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
+        existList = new CopyOnWriteArrayList<>(springCloudSelectorHandle.getDivideUpstreams());
         for (DivideUpstream exist : existList) {
-            for (DivideUpstream add : addList ) {
+            for (DivideUpstream add : addList) {
                 if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
                     existList.add(add);
                     canAddList.add(add);
@@ -92,7 +95,9 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuCl
     }
     
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
-        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort())).collect(Collectors.toList());
+        return uriList.stream()
+                .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort()))
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
     
 }

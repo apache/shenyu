@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.core.disruptor.executor;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
 import org.apache.shenyu.register.common.subsriber.AbstractQueueConsumerFactory;
 import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
@@ -25,7 +26,6 @@ import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * The type Consumer executor.
  */
 @SuppressWarnings("all")
-public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<List<DataTypeParent>> {
+public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTypeParent> {
     
     private Map<DataType, ExecutorSubscriber> subscribers = new HashMap<>();
     
@@ -43,13 +43,8 @@ public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<List<D
 
     @Override
     public void run() {
-        List<DataTypeParent> results = getData();
-        getType(results).executor(results);
-    }
-    
-    private ExecutorSubscriber getType(final List<DataTypeParent> list) {
-        DataTypeParent result = list.get(0);
-        return subscribers.get(result.getType());
+        DataTypeParent dataTypeParent = getData();
+        subscribers.get(dataTypeParent.getType()).executor(Lists.newArrayList(dataTypeParent));
     }
     
     /**

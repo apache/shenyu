@@ -36,7 +36,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
      * @param aliveList the alive list
      * @return the object
      */
-    protected abstract Object doHandle(final String handle, final List<CommonUpstream> aliveList);
+    protected abstract Object doHandle(String handle, List<CommonUpstream> aliveList);
     
     /**
      * Handler string.
@@ -50,6 +50,6 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
         if (StringUtils.isEmpty(handle) || CollectionUtils.isEmpty(aliveList)) {
             return "";
         }
-        return GsonUtils.getInstance().toJson(doHandle(handle,aliveList));
+        return GsonUtils.getInstance().toJson(doHandle(handle, aliveList));
     }
 }

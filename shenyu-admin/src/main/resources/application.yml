@@ -38,7 +38,7 @@ mybatis:
 
 shenyu:
   register:
-    registerType: zookeeper #http #zookeeper #etcd #nacos #consul
+    registerType: http #http #zookeeper #etcd #nacos #consul
     serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       sessionTimeout: 5000

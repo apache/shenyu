@@ -15,26 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.net.URI;
-
 /**
- * uri util.
+ * The type Context path utils.
  */
-public class UriUtils {
-
+public class ContextPathUtils {
+    
     /**
-     * create URI {@link URI}.
-     * @param uri uri string eg:/fallback
-     * @return created {@link URI} from uri
+     * Build context path string.
+     *
+     * @param contextPath the context path
+     * @param appName the app name
+     * @return the string
      */
-    public static URI createUri(final String uri) {
-        if (StringUtils.isNotBlank(uri)) {
-            return URI.create(uri);
-        }
-        return null;
+    public static String buildContextPath(final String contextPath, final String appName) {
+        return UriUtils.repairData(StringUtils.isEmpty(contextPath) ? appName : contextPath);
     }
 }

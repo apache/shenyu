@@ -50,7 +50,7 @@ public class CommonUpstreamUtils {
      * @param port the port
      * @return the dubbo upstream
      */
-    public static DubboUpstream buildDefaultDubboUpstream(final String host, final Integer port){
+    public static DubboUpstream buildDefaultDubboUpstream(final String host, final Integer port) {
         return DubboUpstream.builder().upstreamHost("localhost").protocol("dubbo://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
     
@@ -61,7 +61,7 @@ public class CommonUpstreamUtils {
      * @param port the port
      * @return the grpc upstream
      */
-    public static GrpcUpstream buildDefaultGrpcUpstream(final String host, final Integer port){
+    public static GrpcUpstream buildDefaultGrpcUpstream(final String host, final Integer port) {
         return GrpcUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).timestamp(System.currentTimeMillis()).build();
     }
     
@@ -72,7 +72,7 @@ public class CommonUpstreamUtils {
      * @param port the port
      * @return the tars upstream
      */
-    public static TarsUpstream buildDefaultTarsUpstream(final String host, final Integer port){
+    public static TarsUpstream buildDefaultTarsUpstream(final String host, final Integer port) {
         return TarsUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
     
@@ -82,7 +82,7 @@ public class CommonUpstreamUtils {
      * @param upstreamList the upstream list
      * @return the list
      */
-    public static List<CommonUpstream> convertCommonUpstreamList(final List<? extends CommonUpstream > upstreamList) {
+    public static List<CommonUpstream> convertCommonUpstreamList(final List<? extends CommonUpstream> upstreamList) {
         return upstreamList.stream().map(upstream -> new CommonUpstream(upstream.getProtocol(), upstream.getUpstreamHost(), upstream.getUpstreamUrl())).collect(Collectors.toList());
     }
     

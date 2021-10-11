@@ -22,7 +22,7 @@ import java.util.Objects;
 /**
  * this is tars upstream.
  */
-public class TarsUpstream extends CommonUpstream {
+public final class TarsUpstream extends CommonUpstream {
 
     /**
      * weight.
@@ -42,7 +42,7 @@ public class TarsUpstream extends CommonUpstream {
     private TarsUpstream(final Builder builder) {
         boolean statusValue = builder.statusValue;
         if (!builder.statusSet) {
-            statusValue = TarsUpstream.defaultStatus();
+            statusValue = defaultStatus();
         }
         setUpstreamHost(builder.upstreamHost);
         setProtocol(builder.protocol);

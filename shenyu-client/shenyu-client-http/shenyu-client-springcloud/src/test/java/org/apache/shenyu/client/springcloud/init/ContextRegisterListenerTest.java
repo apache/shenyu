@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
-import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -49,7 +48,7 @@ public final class ContextRegisterListenerTest {
         mockRegisterCenter.setServerLists("http://127.0.0.1:58080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(mockRegisterCenter, env, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(mockRegisterCenter, env);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
     }

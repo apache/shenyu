@@ -48,7 +48,7 @@ public class DivideUpstream extends CommonUpstream {
     private DivideUpstream(final Builder builder) {
         boolean statusValue = builder.statusValue;
         if (!builder.statusSet) {
-            statusValue = DivideUpstream.defaultStatus();
+            statusValue = defaultStatus();
         }
         setUpstreamHost(builder.upstreamHost);
         setProtocol(builder.protocol);
@@ -142,15 +142,6 @@ public class DivideUpstream extends CommonUpstream {
                 + ", warmup="
                 + warmup
                 + '}';
-    }
-
-    /**
-     * default value for builder.
-     *
-     * @return status default value
-     */
-    private static boolean defaultStatus() {
-        return true;
     }
 
     /**

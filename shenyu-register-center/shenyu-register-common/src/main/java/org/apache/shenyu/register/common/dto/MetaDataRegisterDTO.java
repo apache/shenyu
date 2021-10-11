@@ -21,16 +21,13 @@ package org.apache.shenyu.register.common.dto;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * The type Meta data dto.
  */
-public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
-
-    private static final long serialVersionUID = -9179185443399391316L;
+public class MetaDataRegisterDTO implements DataTypeParent {
 
     private String appName;
 
@@ -416,11 +413,38 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     
     @Override
     public String toString() {
-        return "MetaDataRegisterDTO{" + "appName='" + appName + '\'' + ", contextPath='" + contextPath + '\'' + ", path='" + path + '\'' + 
-                ", pathDesc='" + pathDesc + '\'' + ", rpcType='" + rpcType + '\'' + ", serviceName='" + serviceName + '\'' + 
-                ", methodName='" + methodName + '\'' + ", ruleName='" + ruleName + '\'' + ", parameterTypes='" + parameterTypes + '\'' + 
-                ", rpcExt='" + rpcExt + '\'' + ", enabled=" + enabled + ", host='" + host + '\'' + ", port=" + port + ", pluginNames=" + pluginNames + 
-                ", registerMetaData=" + registerMetaData + '}';
+        return "MetaDataRegisterDTO{" 
+                + "appName='" 
+                + appName
+                + ", contextPath='" 
+                + contextPath
+                + ", path='"
+                + path
+                + ", pathDesc='" 
+                + pathDesc
+                + ", rpcType='" 
+                + rpcType
+                + ", serviceName='" 
+                + serviceName
+                + ", methodName='" 
+                + methodName
+                + ", ruleName='"
+                + ruleName
+                + ", parameterTypes='" 
+                + parameterTypes
+                + ", rpcExt='" 
+                + rpcExt
+                + ", enabled=" 
+                + enabled 
+                + ", host='" 
+                + host
+                + ", port=" 
+                + port 
+                + ", pluginNames=" 
+                + pluginNames
+                + ", registerMetaData=" 
+                + registerMetaData
+                + '}';
     }
     
     /**

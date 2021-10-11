@@ -91,7 +91,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public String registerDefault(final RuleDTO ruleDTO) {
-        RuleDO exist = ruleMapper.findByName(ruleDTO.getName());
+        RuleDO exist = ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName());
         if (Objects.nonNull(exist)) {
             return "";
         }

@@ -15,26 +15,39 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.utils.UriUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 
 /**
- * The Uri Util test.
+ * uri util.
  */
-@RunWith(MockitoJUnitRunner.class)
-public final class UriUtilsTest {
-
-    @Test
-    public void createUriTest() {
-        URI uri = UriUtils.createUri("/SHENYU/TEST");
-        Assert.assertEquals(uri.getPath(), "/SHENYU/TEST");
-        Assert.assertNull(UriUtils.createUri(""));
+public class UriUtils {
+    
+    private static final String PRE_FIX = "/";
+    
+    /**
+     * create URI {@link URI}.
+     *
+     * @param uri uri string eg:/fallback
+     * @return created {@link URI} from uri
+     */
+    public static URI createUri(final String uri) {
+        if (StringUtils.isNotBlank(uri)) {
+            return URI.create(uri);
+        }
+        return null;
+    }
+    
+    /**
+     * Repair data string.
+     *
+     * @param name the name
+     * @return the string
+     */
+    public static String repairData(final String name) {
+        return name.startsWith(PRE_FIX) ? name : PRE_FIX + name;
     }
 }

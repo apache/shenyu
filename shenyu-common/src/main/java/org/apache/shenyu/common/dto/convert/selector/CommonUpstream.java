@@ -50,15 +50,6 @@ public class CommonUpstream {
     private long timestamp;
     
     /**
-     * get upstreamHost.
-     *
-     * @return upstreamHost upstream host
-     */
-    public String getUpstreamHost() {
-        return upstreamHost;
-    }
-    
-    /**
      * Instantiates a new Common upstream.
      */
     public CommonUpstream() {
@@ -76,6 +67,15 @@ public class CommonUpstream {
         this.protocol = protocol;
         this.upstreamHost = upstreamHost;
         this.upstreamUrl = upstreamUrl;
+    }
+    
+    /**
+     * get upstreamHost.
+     *
+     * @return upstreamHost upstream host
+     */
+    public String getUpstreamHost() {
+        return upstreamHost;
     }
     
     /**

@@ -22,7 +22,7 @@ import java.util.Objects;
 /**
  * this is grpc upstream.
  */
-public class GrpcUpstream extends CommonUpstream {
+public final class GrpcUpstream extends CommonUpstream {
 
     /**
      * weight.
@@ -37,7 +37,7 @@ public class GrpcUpstream extends CommonUpstream {
     private GrpcUpstream(final Builder builder) {
         boolean statusValue = builder.statusValue;
         if (!builder.statusSet) {
-            statusValue = GrpcUpstream.defaultStatus();
+            statusValue = defaultStatus();
         }
         setUpstreamHost(builder.upstreamHost);
         setProtocol(builder.protocol);

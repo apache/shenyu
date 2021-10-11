@@ -26,6 +26,7 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
 import org.apache.shenyu.client.grpc.json.JsonServerServiceInterceptor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -145,7 +146,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
         MethodDescriptor.MethodType methodType = JsonServerServiceInterceptor.getMethodTypeMap().get(packageName + "/" + methodName);
-
         return MetaDataRegisterDTO.builder()
                 .appName(ipAndPort)
                 .serviceName(packageName)
@@ -157,7 +157,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcType("grpc")
+                .rpcType(RpcTypeEnum.GRPC.getName())
                 .rpcExt(buildRpcExt(shenyuGrpcClient, methodType))
                 .enabled(shenyuGrpcClient.enabled())
                 .build();

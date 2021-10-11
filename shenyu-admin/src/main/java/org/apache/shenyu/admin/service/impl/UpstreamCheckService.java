@@ -94,15 +94,16 @@ public class UpstreamCheckService {
     private ScheduledThreadPoolExecutor executor;
 
     private ScheduledFuture<?> scheduledFuture;
-
+    
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorMapper             the selector mapper
-     * @param eventPublisher             the event publisher
-     * @param pluginMapper               the plugin mapper
-     * @param selectorConditionMapper    the selectorCondition mapper
+     * @param selectorMapper the selector mapper
+     * @param eventPublisher the event publisher
+     * @param pluginMapper the plugin mapper
+     * @param selectorConditionMapper the selectorCondition mapper
      * @param shenyuRegisterCenterConfig the shenyu register center config
+     * @param converterFactor the converter factor
      */
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
                                 final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper,
@@ -122,7 +123,7 @@ public class UpstreamCheckService {
             setup();
         }
     }
-
+    
     /**
      * Set up.
      */
@@ -133,7 +134,7 @@ public class UpstreamCheckService {
             scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
-
+    
     /**
      * Close relative resource on container destroy.
      */
@@ -150,7 +151,7 @@ public class UpstreamCheckService {
             }
         }
     }
-
+    
     /**
      * Remove by key.
      *
@@ -160,6 +161,12 @@ public class UpstreamCheckService {
         UPSTREAM_MAP.remove(selectorName);
     }
     
+    /**
+     * Submit.
+     *
+     * @param selectorId the selector id
+     * @param commonUpstream the common upstream
+     */
     public void submit(final String selectorId, final CommonUpstream commonUpstream) {
         if (!Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
             return;
@@ -177,11 +184,11 @@ public class UpstreamCheckService {
             UPSTREAM_MAP.put(selectorId, Lists.newArrayList(commonUpstream));
         }
     }
-
+    
     /**
      * Replace.
      *
-     * @param selectorId    the selector name
+     * @param selectorId the selector name
      * @param commonUpstreams the common upstream list
      */
     public void replace(final String selectorId, final List<CommonUpstream> commonUpstreams) {
@@ -263,7 +270,7 @@ public class UpstreamCheckService {
         SelectorDO selectorDO = selectorMapper.selectById(selectorId);
         if (Objects.nonNull(selectorDO)) {
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-            String handler = converterFactor.newInstance(pluginDO.getName()).handler(selectorDO.getHandle(), aliveList );
+            String handler = converterFactor.newInstance(pluginDO.getName()).handler(selectorDO.getHandle(), aliveList);
             selectorDO.setHandle(handler);
             selectorMapper.updateSelective(selectorDO);
             List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
@@ -274,7 +281,7 @@ public class UpstreamCheckService {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
         }
     }
-
+    
     /**
      * fetch upstream data from db.
      */
@@ -285,13 +292,13 @@ public class UpstreamCheckService {
         }
         pluginDOList.stream().filter(Objects::nonNull).forEach(pluginDO -> {
             final List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
-            for (SelectorDO selectorDO : selectorDOList) {
-                if (Objects.isNull(selectorDO)) {
+            for (SelectorDO selectorDO : selectorDOList) { 
+                if (Objects.isNull(selectorDO) || StringUtils.isBlank(selectorDO.getHandle())) {
                     continue;
                 }
                 List<CommonUpstream> commonUpstreams = converterFactor.newInstance(pluginDO.getName()).convertUpstream(selectorDO.getHandle());
                 if (CollectionUtils.isNotEmpty(commonUpstreams)) {
-                     UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
+                    UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
                 }
             }
         });

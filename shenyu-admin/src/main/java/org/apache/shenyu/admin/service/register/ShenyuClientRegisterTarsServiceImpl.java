@@ -20,9 +20,10 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -35,12 +36,12 @@ import java.util.stream.Collectors;
 /**
  * tars service register.
  */
-@Service("tars")
+@Service
 public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
     
     @Override
-    protected String pluginName() {
-        return PluginEnum.TARS.getName();
+    public String rpcType() {
+        return RpcTypeEnum.TARS.getName();
     }
     
     @Override
@@ -55,6 +56,7 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
     
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataService metaDataService = getMetaDataService();
         MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
@@ -70,7 +72,7 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
         } else {
             List<TarsUpstream> existList = GsonUtils.getInstance().fromList(selectorDO.getHandle(), TarsUpstream.class);
             for (TarsUpstream exist : existList) {
-                for (TarsUpstream add : addList ) {
+                for (TarsUpstream add : addList) {
                     if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
                         existList.add(add);
                         canAddList.add(add);

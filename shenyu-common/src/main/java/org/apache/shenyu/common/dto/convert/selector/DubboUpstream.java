@@ -17,13 +17,12 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
-
 import java.util.Objects;
 
 /**
  * The type Dubbo selector upstream.
  */
-public class DubboUpstream extends CommonUpstream {
+public final class DubboUpstream extends CommonUpstream {
 
     /**
      * zookeeper url is required.

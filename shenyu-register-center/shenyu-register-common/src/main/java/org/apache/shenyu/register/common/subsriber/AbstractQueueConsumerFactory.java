@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.common.subsriber;
 
-
 import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
 
 import java.util.HashSet;

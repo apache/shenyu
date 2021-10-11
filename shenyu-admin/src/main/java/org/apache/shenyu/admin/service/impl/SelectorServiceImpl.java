@@ -60,6 +60,7 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -123,6 +124,16 @@ public class SelectorServiceImpl implements SelectorService {
             });
         }
         publishEvent(selectorDO, selectorConditionDTOs);
+        return selectorDO.getId();
+    }
+    
+    @Override
+    public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
+        String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
+        SelectorDO selectorDO = findByNameAndPluginName(contextPath, pluginName);
+        if (Objects.isNull(selectorDO)) {
+            return registerSelector(contextPath, pluginName, selectorHandler);
+        }
         return selectorDO.getId();
     }
 
@@ -300,19 +311,6 @@ public class SelectorServiceImpl implements SelectorService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
-        String selectorName = dto.getContextPath();
-        if (StringUtils.isEmpty(selectorName)) {
-            selectorName = buildSelectorName(dto.getPath(), pluginName);
-        }
-        SelectorDO selectorDO = findByNameAndPluginName(selectorName, pluginName);
-        if (Objects.isNull(selectorDO)) {
-            return registerSelector(selectorName, pluginName, selectorHandler);
-        }
-        return selectorDO.getId();
-    }
-
     private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditionDTOs) {
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<ConditionData> conditionDataList =
@@ -350,7 +348,7 @@ public class SelectorServiceImpl implements SelectorService {
             }
         }
         if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
-            upstreamCheckService.replace(selectorName, CommonUpstreamUtils.convertToDivideUpstreamList(existDivideUpstreams));
+            upstreamCheckService.replace(selectorName, CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
         }
     }
 
@@ -386,18 +384,5 @@ public class SelectorServiceImpl implements SelectorService {
         selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
         selectorConditionDTO.setParamValue(contextPath + "/**");
         return Collections.singletonList(selectorConditionDTO);
-    }
-
-    private String buildSelectorName(final String path, final String pluginName) {
-        String split = pluginName + "/";
-        String[] splitList = StringUtils.split(path, split);
-        if (splitList.length != 0) {
-            return split.concat(splitList[0]);
-        }
-        return split;
-    }
-
-    private DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }
 }

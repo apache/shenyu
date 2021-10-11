@@ -23,22 +23,20 @@ import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
+import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,45 +55,30 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
      * The Event publisher.
      */
     @Resource
-    public ApplicationEventPublisher eventPublisher;
-    
-    /**
-     * The Meta data service.
-     */
-    @Resource
-    public MetaDataService metaDataService;
+    private ApplicationEventPublisher eventPublisher;
     
     /**
      * The Selector service.
      */
     @Resource
-    public SelectorService selectorService;
+    private SelectorService selectorService;
     
-    /**
-     * The Plugin service.
-     */
     @Resource
-    public PluginService pluginService;
+    private MetaDataService metaDataService;
     
     /**
      * The Rule service.
      */
     @Resource
-    public RuleService ruleService;
+    private RuleService ruleService;
     
     @Resource
-    public UpstreamCheckService upstreamCheckService;
-    
-    /**
-     * Plugin name string.
-     *
-     * @return the string
-     */
-    protected abstract String pluginName();
+    private UpstreamCheckService upstreamCheckService;
     
     /**
      * Selector handler string.
      *
+     * @param metaDataDTO the meta data dto
      * @return the string
      */
     protected abstract String selectorHandler(MetaDataRegisterDTO metaDataDTO);
@@ -133,22 +116,17 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     public String register(final MetaDataRegisterDTO dto) {
         //handler plugin selector
         String selectorHandler = selectorHandler(dto);
-        String selectorId = selectorService.registerDefault(dto, pluginName(), selectorHandler);
+        String selectorId = selectorService.registerDefault(dto, PluginNameAdapter.rpcTypeAdapter(rpcType()), selectorHandler);
         //handler selector rule
         String ruleHandler = ruleHandler();
-        RuleDTO ruleDTO = buildDefaultRuleDTO(selectorId, dto, ruleHandler);
+        RuleDTO ruleDTO = buildRpcDefaultRuleDTO(selectorId, dto, ruleHandler);
         ruleService.registerDefault(ruleDTO);
         //handler register metadata
-        if (dto.isRegisterMetaData()) {
-            registerMetadata(dto);
-        }
+        registerMetadata(dto);
         //handler context path
         String contextPath = dto.getContextPath();
         if (StringUtils.isNotEmpty(contextPath)) {
-            String contextPathSelectorId = selectorService.registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
-            ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
-            handle.setContextPath(contextPath);
-            ruleService.registerDefault(buildDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
+            registerContextPath(dto);
         }
         return ShenyuResultMessage.SUCCESS;
     }
@@ -165,7 +143,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
-        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, pluginName());
+        SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
         if (Objects.isNull(selectorDO)) {
             return "";
         }
@@ -174,7 +152,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
         //update upstream
         String handler = buildHandle(uriList, selectorDO);
         selectorDO.setHandle(handler);
-        SelectorData selectorData = selectorService.buildByName(selectorName, pluginName());
+        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
         selectorData.setHandle(handler);
         // update db
         selectorService.updateSelective(selectorDO);
@@ -183,16 +161,65 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
         return ShenyuResultMessage.SUCCESS;
     }
     
-    protected void doSubmit(String selectorId, final List<? extends CommonUpstream > upstreamList) {
-        List<CommonUpstream> commonUpstreamList = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
-        commonUpstreamList.forEach(upstream ->  upstreamCheckService.submit(selectorId, upstream));
+    /**
+     * Gets meta data service.
+     *
+     * @return the meta data service
+     */
+    public MetaDataService getMetaDataService() {
+        return metaDataService;
     }
     
-    private RuleDTO buildDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
-        String path = metaDataDTO.getPath();
+    /**
+     * Gets selector service.
+     *
+     * @return the selector service
+     */
+    public SelectorService getSelectorService() {
+        return selectorService;
+    }
+    
+    /**
+     * Gets rule service.
+     *
+     * @return the rule service
+     */
+    public RuleService getRuleService() {
+        return ruleService;
+    }
+    
+    /**
+     * Do submit.
+     *
+     * @param selectorId the selector id
+     * @param upstreamList the upstream list
+     */
+    protected void doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
+        List<CommonUpstream> commonUpstreamList = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
+        commonUpstreamList.forEach(upstream -> upstreamCheckService.submit(selectorId, upstream));
+    }
+    
+    /**
+     * Build context path default rule dto rule dto.
+     *
+     * @param selectorId the selector id
+     * @param metaDataDTO the meta data dto
+     * @param ruleHandler the rule handler
+     * @return the rule dto
+     */
+    protected RuleDTO buildContextPathDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
+        String contextPath = metaDataDTO.getContextPath();
+        return buildRuleDTO(selectorId, ruleHandler, contextPath, contextPath + "/**");
+    }
+    
+    private RuleDTO buildRpcDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
+        return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath());
+    }
+    
+    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path) {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
-                .name(metaDataDTO.getRuleName())
+                .name(ruleName)
                 .matchMode(MatchModeEnum.AND.getCode())
                 .enabled(Boolean.TRUE)
                 .loged(Boolean.TRUE)

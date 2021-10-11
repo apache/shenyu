@@ -64,9 +64,7 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
         }
         if (data instanceof MetaDataRegisterDTO) {
             MetaDataRegisterDTO metaDataRegisterDTO = (MetaDataRegisterDTO) data;
-            return Objects.nonNull(metaDataRegisterDTO.getPort())
-                    && StringUtils.isNoneBlank(metaDataRegisterDTO.getAppName(),
-                    metaDataRegisterDTO.getHost(),
+            return StringUtils.isNoneBlank(metaDataRegisterDTO.getAppName(),
                     metaDataRegisterDTO.getPath(),
                     metaDataRegisterDTO.getRuleName(),
                     metaDataRegisterDTO.getRpcType());

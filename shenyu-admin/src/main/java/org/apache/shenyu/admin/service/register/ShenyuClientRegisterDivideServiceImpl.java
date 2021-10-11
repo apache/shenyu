@@ -20,28 +20,29 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
  * spring mvc service register.
  */
-@Service("http")
-public class ShenyuClientRegisterDivideServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
+@Service
+public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRegisterService {
     
     @Override
-    protected String pluginName() {
-        return PluginEnum.DIVIDE.getName();
+    public String rpcType() {
+        return RpcTypeEnum.HTTP.getName();
     }
     
     @Override
@@ -56,22 +57,25 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractShenyuClientR
     
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO dto) {
-        MetaDataDO exist = metaDataService.findByPath(dto.getPath());
-        metaDataService.saveOrUpdateMetaData(exist, dto);
+        if (dto.isRegisterMetaData()) {
+            MetaDataService metaDataService = getMetaDataService();
+            MetaDataDO exist = metaDataService.findByPath(dto.getPath());
+            metaDataService.saveOrUpdateMetaData(exist, dto);
+        }
     }
     
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         String handleAdd;
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
-        List<DivideUpstream> canAddList = new ArrayList<>();
+        List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
         if (StringUtils.isBlank(selectorDO.getHandle())) {
             handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
-            List<DivideUpstream> existList = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+            List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
             for (DivideUpstream exist : existList) {
-                for (DivideUpstream add : addList ) {
+                for (DivideUpstream add : addList) {
                     if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
                         existList.add(add);
                         canAddList.add(add);
@@ -85,6 +89,8 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractShenyuClientR
     }
     
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
-        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort())).collect(Collectors.toList());
+        return uriList.stream()
+                .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort()))
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }

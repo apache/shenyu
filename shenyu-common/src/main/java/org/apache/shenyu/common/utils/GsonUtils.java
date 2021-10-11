@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * GSONUtils.
@@ -92,7 +93,7 @@ public class GsonUtils {
     private static final String EQUAL_SIGN = "=";
 
     private static final String AND = "&";
-
+    
     /**
      * Gets gson instance.
      *
@@ -101,7 +102,7 @@ public class GsonUtils {
     public static Gson getGson() {
         return GsonUtils.GSON;
     }
-
+    
     /**
      * Gets instance.
      *
@@ -110,7 +111,7 @@ public class GsonUtils {
     public static GsonUtils getInstance() {
         return INSTANCE;
     }
-
+    
     /**
      * To json string.
      *
@@ -120,43 +121,55 @@ public class GsonUtils {
     public String toJson(final Object object) {
         return GSON.toJson(object);
     }
-
+    
     /**
      * From json t.
      *
-     * @param <T>    the type parameter
-     * @param json   the json
+     * @param <T> the type parameter
+     * @param json the json
      * @param tClass the t class
      * @return the t
      */
     public <T> T fromJson(final String json, final Class<T> tClass) {
         return GSON.fromJson(json, tClass);
     }
-
+    
     /**
      * From json t.
      *
-     * @param <T>         the type parameter
+     * @param <T> the type parameter
      * @param jsonElement the json element
-     * @param tClass      the t class
+     * @param tClass the t class
      * @return the t
      */
     public <T> T fromJson(final JsonElement jsonElement, final Class<T> tClass) {
         return GSON.fromJson(jsonElement, tClass);
     }
-
+    
     /**
      * From list list.
      *
-     * @param <T>   the type parameter
-     * @param json  the json
+     * @param <T> the type parameter
+     * @param json the json
      * @param clazz the clazz
      * @return the list
      */
     public <T> List<T> fromList(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(List.class, clazz).getType());
     }
-
+    
+    /**
+     * From current list list.
+     *
+     * @param <T> the type parameter
+     * @param json the json
+     * @param clazz the clazz
+     * @return the list
+     */
+    public <T> List<T> fromCurrentList(final String json, final Class<T> clazz) {
+        return GSON.fromJson(json, TypeToken.getParameterized(CopyOnWriteArrayList.class, clazz).getType());
+    }
+    
     /**
      * toGetParam.
      *
@@ -194,7 +207,7 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<Map<String, String>>() {
         }.getType());
     }
-
+    
     /**
      * toList Map.
      *
@@ -205,7 +218,7 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<List<Map<String, Object>>>() {
         }.getType());
     }
-
+    
     /**
      * To object map map.
      *
@@ -216,31 +229,31 @@ public class GsonUtils {
         return GSON_MAP.fromJson(json, new TypeToken<LinkedHashMap<String, Object>>() {
         }.getType());
     }
-
+    
     /**
      * To object map map.
      *
-     * @param json  the json
+     * @param <T> the class
+     * @param json the json
      * @param clazz the class
-     * @param <T>   the class
      * @return the map
      */
     public <T> Map<String, T> toObjectMap(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, clazz).getType());
     }
-
+    
     /**
      * To object map list.
      *
-     * @param json  the json
+     * @param <T> the class
+     * @param json the json
      * @param clazz the class
-     * @param <T>   the class
      * @return the map
      */
     public <T> Map<String, List<T>> toObjectMapList(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, TypeToken.getParameterized(List.class, clazz).getType()).getType());
     }
-
+    
     /**
      * To tree map tree map.
      *
@@ -251,7 +264,7 @@ public class GsonUtils {
         return GSON_MAP.fromJson(json, new TypeToken<ConcurrentSkipListMap<String, Object>>() {
         }.getType());
     }
-
+    
     /**
      * To linked multiValue map.
      *
@@ -262,7 +275,7 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
         }.getType());
     }
-
+    
     /**
      * Convert to map map.
      *
@@ -364,7 +377,7 @@ public class GsonUtils {
 
             return resultMap;
         }
-
+    
         /**
          * Get JsonElement class type.
          *

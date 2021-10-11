@@ -39,15 +39,14 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
     
-    private static final String META_PATH = "shenyu-client/register-metadata";
+    private static final String META_PATH = "/shenyu-client/register-metadata";
     
-    private static final String URI_PATH = "shenyu-client/register-uri";
+    private static final String URI_PATH = "/shenyu-client/register-uri";
 
     private List<String> serverList;
 
     private Gson gson = new Gson();
     
-
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));

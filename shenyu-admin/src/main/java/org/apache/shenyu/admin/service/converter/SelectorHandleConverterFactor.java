@@ -41,7 +41,7 @@ public class SelectorHandleConverterFactor {
      * @param pluginName the plugin name
      * @return the selector handle converter
      */
-    public SelectorHandleConverter newInstance(String pluginName) {
+    public SelectorHandleConverter newInstance(final String pluginName) {
         return maps.get(pluginName);
     }
 }

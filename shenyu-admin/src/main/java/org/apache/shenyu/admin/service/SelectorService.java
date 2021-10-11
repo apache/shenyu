@@ -32,7 +32,6 @@ import java.util.List;
  */
 public interface SelectorService {
     
-    
     /**
      * Register string.
      *
@@ -40,6 +39,16 @@ public interface SelectorService {
      * @return the string
      */
     String registerDefault(SelectorDTO selectorDTO);
+    
+    /**
+     * handler selector need upstream check.
+     *
+     * @param dto {@link MetaDataRegisterDTO}
+     * @param pluginName rpc type
+     * @param selectorHandler the selector handler
+     * @return the id of selector.
+     */
+    String registerDefault(MetaDataRegisterDTO dto, String pluginName, String selectorHandler);
     
     /**
      * create or update selector.
@@ -129,14 +138,4 @@ public interface SelectorService {
      * @return the list
      */
     List<SelectorData> listAll();
-    
-    /**
-     * handler selector need upstream check.
-     *
-     * @param dto {@link MetaDataRegisterDTO}
-     * @param pluginName rpc type
-     * @param selectorHandler the selector handler
-     * @return the id of selector.
-     */
-    String registerDefault(MetaDataRegisterDTO dto, String pluginName, String selectorHandler);
 }

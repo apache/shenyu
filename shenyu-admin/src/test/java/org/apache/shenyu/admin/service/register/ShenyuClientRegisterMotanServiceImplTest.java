@@ -15,26 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.common.utils.UriUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.net.URI;
 
 /**
- * The Uri Util test.
+ * Test cases for ShenyuClientRegisterMotanServiceImpl.
  */
-@RunWith(MockitoJUnitRunner.class)
-public final class UriUtilsTest {
-
-    @Test
-    public void createUriTest() {
-        URI uri = UriUtils.createUri("/SHENYU/TEST");
-        Assert.assertEquals(uri.getPath(), "/SHENYU/TEST");
-        Assert.assertNull(UriUtils.createUri(""));
-    }
+public class ShenyuClientRegisterMotanServiceImplTest {
 }

@@ -37,7 +37,7 @@ public class WebSocketRuleHandle implements RuleHandle {
     /**
      * http retry.
      */
-    private int retry = 0;
+    private int retry;
 
     /**
      * timeout is required.

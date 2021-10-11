@@ -20,9 +20,10 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -35,12 +36,12 @@ import java.util.stream.Collectors;
 /**
  * grpc service register.
  */
-@Service("grpc")
+@Service
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
     
     @Override
-    protected String pluginName() {
-        return PluginEnum.GRPC.getName();
+    public String rpcType() {
+        return RpcTypeEnum.GRPC.getName();
     }
     
     @Override
@@ -55,6 +56,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataService metaDataService = getMetaDataService();
         MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
@@ -77,7 +79,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
         } else {
             List<GrpcUpstream> existList = GsonUtils.getInstance().fromList(selectorDO.getHandle(), GrpcUpstream.class);
             for (GrpcUpstream exist : existList) {
-                for (GrpcUpstream add : addList ) {
+                for (GrpcUpstream add : addList) {
                     if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
                         existList.add(add);
                         canAddList.add(add);
@@ -91,6 +93,8 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     }
     
     private List<GrpcUpstream> buildGrpcUpstreamList(final List<URIRegisterDTO> uriList) {
-        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort())).collect(Collectors.toList());
+        return uriList.stream()
+                .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort()))
+                .collect(Collectors.toList());
     }
 }

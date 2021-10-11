@@ -17,9 +17,20 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+
 /**
- * ShenyuClientRegisterSpringCloudServiceImplTest.
+ * The type Abstract context path register service.
  */
-public class ShenyuClientRegisterSpringCloudServiceImplTest {
+public abstract class AbstractContextPathRegisterService extends AbstractShenyuClientRegisterServiceImpl {
     
+    @Override
+    public void registerContextPath(final MetaDataRegisterDTO dto) {
+        String contextPathSelectorId = getSelectorService().registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
+        ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+        handle.setContextPath(dto.getContextPath());
+        getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
+    }
 }

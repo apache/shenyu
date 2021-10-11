@@ -19,8 +19,9 @@ package org.apache.shenyu.admin.service.register;
 
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.common.dto.convert.rule.impl.SofaRuleHandle;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
@@ -30,58 +31,31 @@ import java.util.List;
 /**
  * sofa service register.
  */
-@Service("sofa")
+@Service
 public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
     
-    /**
-     * Plugin name string.
-     *
-     * @return the string
-     */
     @Override
-    protected String pluginName() {
-        return PluginEnum.SOFA.getName();
+    public String rpcType() {
+        return RpcTypeEnum.SOFA.getName();
     }
     
-    /**
-     * Selector handler string.
-     *
-     * @param metaDataDTO
-     * @return the string
-     */
     @Override
     protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
         return "";
     }
     
-    /**
-     * Rule handler string.
-     *
-     * @return the string
-     */
     @Override
     protected String ruleHandler() {
         return new SofaRuleHandle().toJson();
     }
     
-    /**
-     * Register metadata.
-     *
-     * @param metaDataDTO the meta data dto
-     */
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataService metaDataService = getMetaDataService();
         MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
     
-    /**
-     * Build handle string.
-     *
-     * @param uriList the uri list
-     * @param selectorDO the selector do
-     * @return the string
-     */
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         return "";
