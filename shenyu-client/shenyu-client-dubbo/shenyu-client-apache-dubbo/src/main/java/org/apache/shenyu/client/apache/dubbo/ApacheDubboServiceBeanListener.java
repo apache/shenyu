@@ -169,6 +169,6 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
     }
     
     private int buildPort(final ServiceBean serviceBean) {
-       return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
+        return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
 }

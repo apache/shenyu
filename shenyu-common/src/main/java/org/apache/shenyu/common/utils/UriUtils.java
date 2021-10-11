@@ -50,4 +50,14 @@ public class UriUtils {
     public static String repairData(final String name) {
         return name.startsWith(PRE_FIX) ? name : PRE_FIX + name;
     }
+    
+    /**
+     * Remove prefix string.
+     *
+     * @param name the name
+     * @return the string
+     */
+    public static String removePrefix(final String name) {
+        return name.startsWith(PRE_FIX) ? name.substring(1) : name;
+    }
 }

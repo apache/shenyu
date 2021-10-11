@@ -57,7 +57,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
 
     private final Boolean isFull;
 
-    private final Environment env;;
+    private final Environment env;
 
     private final String servletContextPath;
 

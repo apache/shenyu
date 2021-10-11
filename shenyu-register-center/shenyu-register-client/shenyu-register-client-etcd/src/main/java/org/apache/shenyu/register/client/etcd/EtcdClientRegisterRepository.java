@@ -58,7 +58,7 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
-        String contextPath = ContextPathUtils.buildContextPath(metadata.getContextPath(), metadata.getAppName());
+        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         registerMetadata(rpcType, contextPath, metadata);
         LogUtils.info(LOGGER, "{} etcd client register metadata success: {}", rpcType, metadata);
     }
@@ -71,7 +71,7 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
         String rpcType = registerDTO.getRpcType();
-        String contextPath = ContextPathUtils.buildContextPath(registerDTO.getContextPath(), registerDTO.getAppName());
+        String contextPath = ContextPathUtils.buildRealNode(registerDTO.getContextPath(), registerDTO.getAppName());
         registerURI(rpcType, contextPath, registerDTO);
         LogUtils.info(LOGGER, "{} etcd client register uri success: {}", rpcType, registerDTO);
     }

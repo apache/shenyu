@@ -46,7 +46,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
-        String contextPath = ContextPathUtils.buildContextPath(metadata.getContextPath(), metadata.getAppName());
+        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         registerMetadata(rpcType, contextPath, metadata);
         LogUtils.info(LOGGER, "{} Consul client register success: {}", rpcType, metadata);
     }

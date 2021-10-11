@@ -96,7 +96,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
-        String contextPath = ContextPathUtils.buildContextPath(metadata.getContextPath(), metadata.getAppName());
+        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         registerConfig(rpcType, contextPath, metadata);
     }
     
@@ -108,7 +108,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
         String rpcType = registerDTO.getRpcType();
-        String contextPath = ContextPathUtils.buildContextPath(registerDTO.getContextPath(), registerDTO.getAppName());
+        String contextPath = ContextPathUtils.buildRealNode(registerDTO.getContextPath(), registerDTO.getAppName());
         String host = registerDTO.getHost();
         int port = registerDTO.getPort();
         registerService(rpcType, contextPath, host, port, registerDTO);

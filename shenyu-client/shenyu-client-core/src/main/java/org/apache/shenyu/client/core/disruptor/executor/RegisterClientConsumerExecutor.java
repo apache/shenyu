@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * The type Consumer executor.
  */
 @SuppressWarnings("all")
-public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTypeParent> {
+public final class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTypeParent> {
     
     private Map<DataType, ExecutorSubscriber> subscribers = new HashMap<>();
     

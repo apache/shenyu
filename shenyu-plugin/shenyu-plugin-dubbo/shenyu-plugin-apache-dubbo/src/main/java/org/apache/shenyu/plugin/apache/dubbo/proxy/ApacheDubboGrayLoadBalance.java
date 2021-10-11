@@ -83,7 +83,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         return select(invokers, url, invocation, dubboRuleHandle.getLoadbalance());
     }
     
-    private <T> Invoker<T> select(final List<Invoker<T>> invokers,final URL url, final Invocation invocation, String loadbalance) {
+    private <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation, final String loadbalance) {
         return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadbalance).select(invokers, url, invocation);
     }
 }

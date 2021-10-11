@@ -34,4 +34,15 @@ public class ContextPathUtils {
     public static String buildContextPath(final String contextPath, final String appName) {
         return UriUtils.repairData(StringUtils.isEmpty(contextPath) ? appName : contextPath);
     }
+    
+    /**
+     * Build real node string.
+     *
+     * @param contextPath the context path
+     * @param appName the app name
+     * @return the string
+     */
+    public static String buildRealNode(final String contextPath, final String appName) {
+        return UriUtils.removePrefix(StringUtils.isEmpty(contextPath) ? appName : contextPath);
+    }
 }

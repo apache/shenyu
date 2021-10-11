@@ -59,12 +59,12 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
      */
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
-        doRegister(registerDTO, URI_PATH,"uri");
+        doRegister(registerDTO, URI_PATH, "uri");
     }
     
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
-        doRegister(metadata, META_PATH,"metadata");
+        doRegister(metadata, META_PATH, "metadata");
     }
     
     private <T> void doRegister(final T t, final String path, final String type) {
