@@ -21,5 +21,5 @@ package org.apache.shenyu.admin.service.register;
 /**
  * Test cases for ShenyuClientRegisterMotanServiceImpl.
  */
-public class ShenyuClientRegisterMotanServiceImplTest {
+public final class ShenyuClientRegisterMotanServiceImplTest {
 }

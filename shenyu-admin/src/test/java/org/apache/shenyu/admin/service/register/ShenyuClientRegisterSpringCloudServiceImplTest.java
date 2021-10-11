@@ -20,6 +20,6 @@ package org.apache.shenyu.admin.service.register;
 /**
  * ShenyuClientRegisterSpringCloudServiceImplTest.
  */
-public class ShenyuClientRegisterSpringCloudServiceImplTest {
+public final class ShenyuClientRegisterSpringCloudServiceImplTest {
     
 }
