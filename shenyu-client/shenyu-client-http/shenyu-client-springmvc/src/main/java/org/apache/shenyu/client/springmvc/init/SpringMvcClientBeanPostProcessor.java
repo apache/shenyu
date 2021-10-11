@@ -96,8 +96,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 return bean;
             }
             if (clazzAnnotation.path().indexOf("*") > 1) {
-                String finalPrePath = prePath;
-                executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, finalPrePath)));
+                publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, prePath));
                 return bean;
             }
             prePath = clazzAnnotation.path();
@@ -105,8 +104,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             for (Method method : methods) {
                 ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
                 if (Objects.nonNull(shenyuSpringMvcClient)) {
-                    String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(shenyuSpringMvcClient, finalPrePath)));
+                    publisher.publishEvent(buildMetaDataDTO(shenyuSpringMvcClient, prePath));
                 }
             }
         }

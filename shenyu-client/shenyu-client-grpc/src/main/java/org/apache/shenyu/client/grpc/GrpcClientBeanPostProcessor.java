@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.grpc;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.BindableService;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
@@ -46,8 +45,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -58,8 +55,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(GrpcClientBeanPostProcessor.class);
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -89,7 +84,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         this.contextPath = contextPath;
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-grpc-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -97,7 +91,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
         if (bean instanceof BindableService) {
             exportJsonGenericService(bean);
-            executorService.execute(() -> handler(bean));
+            handler(bean);
         }
         return bean;
     }

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
@@ -39,8 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The type Shenyu client bean post processor.
@@ -50,8 +47,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientBeanPostProcessor.class);
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -79,7 +74,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-spring-cloud-client-thread-pool-%d").build());
         this.env = env;
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
@@ -101,8 +95,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 return bean;
             }
             if (clazzAnnotation.path().indexOf("*") > 1) {
-                String finalPrePath = prePath;
-                executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, finalPrePath)));
+                publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, prePath));
                 return bean;
             }
             prePath = clazzAnnotation.path();
@@ -110,8 +103,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             for (Method method : methods) {
                 ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
                 if (Objects.nonNull(shenyuSpringCloudClient)) {
-                    String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(shenyuSpringCloudClient, finalPrePath)));
+                    publisher.publishEvent(buildMetaDataDTO(shenyuSpringCloudClient, prePath));
                 }
             }
         }

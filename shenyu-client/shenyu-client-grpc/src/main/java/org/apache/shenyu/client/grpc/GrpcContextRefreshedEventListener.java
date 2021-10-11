@@ -37,13 +37,13 @@ public class GrpcContextRefreshedEventListener implements ApplicationListener<Co
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
-    private String contextPath;
-    
     private final String ipAndPort;
 
     private final String host;
 
     private final int port;
+    
+    private final String contextPath;
     
     /**
      * Instantiates a new Grpc context refreshed event listener.

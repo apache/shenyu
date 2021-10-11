@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private ShenyuClientRegisterEventPublisher shenyuClientRegisterEventPublisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
@@ -78,7 +78,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-apache-dubbo-client-thread-pool-%d").build());
-        shenyuClientRegisterEventPublisher.start(shenyuClientRegisterRepository);
+        publisher.start(shenyuClientRegisterRepository);
     }
     
     @Override
@@ -89,10 +89,10 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
         Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
-            executorService.execute(() -> handler(entry.getValue()));
+            handler(entry.getValue());
         }
         serviceBean.values().stream().findFirst().ifPresent(bean -> {
-            executorService.execute(() -> shenyuClientRegisterEventPublisher.publishEvent(buildURIRegisterDTO(bean)));
+            publisher.publishEvent(buildURIRegisterDTO(bean));
         });
     }
 
@@ -106,7 +106,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         for (Method method : methods) {
             ShenyuDubboClient shenyuDubboClient = method.getAnnotation(ShenyuDubboClient.class);
             if (Objects.nonNull(shenyuDubboClient)) {
-                shenyuClientRegisterEventPublisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuDubboClient, method));
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuDubboClient, method));
             }
         }
     }

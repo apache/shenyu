@@ -20,7 +20,6 @@ package org.apache.shenyu.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
@@ -41,8 +40,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -55,8 +52,6 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private AtomicBoolean registered = new AtomicBoolean(false);
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -77,7 +72,6 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-alibaba-dubbo-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
     
@@ -89,10 +83,10 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
         Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
-            executorService.execute(() -> handler(entry.getValue()));
+            handler(entry.getValue());
         }
         serviceBean.values().stream().findFirst().ifPresent(bean -> {
-            executorService.execute(() -> publisher.publishEvent(buildURIRegisterDTO(bean)));
+            publisher.publishEvent(buildURIRegisterDTO(bean));
         });
     }
 
