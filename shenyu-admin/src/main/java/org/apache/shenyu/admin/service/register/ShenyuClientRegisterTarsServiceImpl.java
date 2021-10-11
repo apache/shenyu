@@ -29,8 +29,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -65,12 +65,12 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         String handleAdd;
         List<TarsUpstream> addList = buildTarsUpstreamList(uriList);
-        List<TarsUpstream> canAddList = new ArrayList<>();
+        List<TarsUpstream> canAddList = new CopyOnWriteArrayList<>();
         if (StringUtils.isBlank(selectorDO.getHandle())) {
             handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
-            List<TarsUpstream> existList = GsonUtils.getInstance().fromList(selectorDO.getHandle(), TarsUpstream.class);
+            List<TarsUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), TarsUpstream.class);
             for (TarsUpstream exist : existList) {
                 for (TarsUpstream add : addList) {
                     if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
@@ -86,6 +86,7 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
     }
     
     private List<TarsUpstream> buildTarsUpstreamList(final List<URIRegisterDTO> uriList) {
-        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultTarsUpstream(dto.getHost(), dto.getPort())).collect(Collectors.toList());
+        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultTarsUpstream(dto.getHost(), dto.getPort()))
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }

@@ -29,8 +29,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -72,12 +72,12 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         String handleAdd;
         List<GrpcUpstream> addList = buildGrpcUpstreamList(uriList);
-        List<GrpcUpstream> canAddList = new ArrayList<>();
+        List<GrpcUpstream> canAddList = new CopyOnWriteArrayList<>();
         if (StringUtils.isBlank(selectorDO.getHandle())) {
             handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
-            List<GrpcUpstream> existList = GsonUtils.getInstance().fromList(selectorDO.getHandle(), GrpcUpstream.class);
+            List<GrpcUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), GrpcUpstream.class);
             for (GrpcUpstream exist : existList) {
                 for (GrpcUpstream add : addList) {
                     if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
@@ -95,6 +95,6 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     private List<GrpcUpstream> buildGrpcUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
                 .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }
