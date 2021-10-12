@@ -31,21 +31,21 @@ public final class RegisterUtils {
 
     private RegisterUtils() {
     }
-
+    
     /**
-     * call register api.
+     * Do register.
      *
-     * @param json        request body
-     * @param url         url
-     * @param rpcType rcp type
-     * @throws IOException exception
+     * @param json the json
+     * @param url the url
+     * @param type the type
+     * @throws IOException the io exception
      */
-    public static void doRegister(final String json, final String url, final String rpcType) throws IOException {
+    public static void doRegister(final String json, final String url, final String type) throws IOException {
         String result = OkHttpTools.getInstance().post(url, json);
         if ("success".equals(result)) {
-            LOGGER.info("{} client register success: {} ", rpcType, json);
+            LOGGER.info("{} client register success: {} ", type, json);
         } else {
-            LOGGER.error("{} client register error: {} ", rpcType, json);
+            LOGGER.error("{} client register error: {} ", type, json);
         }
     }
 }

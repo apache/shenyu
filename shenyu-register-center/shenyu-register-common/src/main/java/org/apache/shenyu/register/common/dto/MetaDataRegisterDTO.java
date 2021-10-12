@@ -21,16 +21,13 @@ package org.apache.shenyu.register.common.dto;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * The type Meta data dto.
  */
-public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
-
-    private static final long serialVersionUID = -9179185443399391316L;
+public class MetaDataRegisterDTO implements DataTypeParent {
 
     private String appName;
 
@@ -61,7 +58,26 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     private List<String> pluginNames;
 
     private boolean registerMetaData;
-
+    
+    /**
+     * Instantiates a new Meta data register dto.
+     *
+     * @param appName the app name
+     * @param contextPath the context path
+     * @param path the path
+     * @param pathDesc the path desc
+     * @param rpcType the rpc type
+     * @param serviceName the service name
+     * @param methodName the method name
+     * @param ruleName the rule name
+     * @param parameterTypes the parameter types
+     * @param rpcExt the rpc ext
+     * @param enabled the enabled
+     * @param host the host
+     * @param port the port
+     * @param pluginNames the plugin names
+     * @param registerMetaData the register meta data
+     */
     public MetaDataRegisterDTO(final String appName, final String contextPath,
                                final String path, final String pathDesc,
                                final String rpcType, final String serviceName,
@@ -86,7 +102,10 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
         this.pluginNames = pluginNames;
         this.registerMetaData = registerMetaData;
     }
-
+    
+    /**
+     * Instantiates a new Meta data register dto.
+     */
     public MetaDataRegisterDTO() {
     }
 
@@ -107,11 +126,11 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
         pluginNames = builder.pluginNames;
         registerMetaData = builder.registerMetaData;
     }
-
+    
     /**
      * builder.
      *
-     * @return Builder
+     * @return Builder builder
      */
     public static Builder builder() {
         return new Builder();
@@ -121,7 +140,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public DataType getType() {
         return DataType.META_DATA;
     }
-
+    
     /**
      * getAppName.
      *
@@ -130,7 +149,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getAppName() {
         return appName;
     }
-
+    
     /**
      * setAppName.
      *
@@ -139,7 +158,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setAppName(final String appName) {
         this.appName = appName;
     }
-
+    
     /**
      * getContextPath.
      *
@@ -148,7 +167,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getContextPath() {
         return contextPath;
     }
-
+    
     /**
      * setContextPath.
      *
@@ -157,7 +176,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-
+    
     /**
      * getPath.
      *
@@ -166,7 +185,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getPath() {
         return path;
     }
-
+    
     /**
      * setPath.
      *
@@ -175,7 +194,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setPath(final String path) {
         this.path = path;
     }
-
+    
     /**
      * getPathDesc.
      *
@@ -184,7 +203,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getPathDesc() {
         return pathDesc;
     }
-
+    
     /**
      * setPath.
      *
@@ -193,7 +212,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setPathDesc(final String pathDesc) {
         this.pathDesc = pathDesc;
     }
-
+    
     /**
      * getRpcType.
      *
@@ -202,7 +221,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getRpcType() {
         return rpcType;
     }
-
+    
     /**
      * setPath.
      *
@@ -211,7 +230,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setRpcType(final String rpcType) {
         this.rpcType = rpcType;
     }
-
+    
     /**
      * getServiceName.
      *
@@ -220,7 +239,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getServiceName() {
         return serviceName;
     }
-
+    
     /**
      * setPath.
      *
@@ -229,7 +248,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setServiceName(final String serviceName) {
         this.serviceName = serviceName;
     }
-
+    
     /**
      * getMethodName.
      *
@@ -238,7 +257,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getMethodName() {
         return methodName;
     }
-
+    
     /**
      * setPath.
      *
@@ -247,7 +266,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setMethodName(final String methodName) {
         this.methodName = methodName;
     }
-
+    
     /**
      * getRuleName.
      *
@@ -256,7 +275,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getRuleName() {
         return ruleName;
     }
-
+    
     /**
      * setPath.
      *
@@ -265,7 +284,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setRuleName(final String ruleName) {
         this.ruleName = ruleName;
     }
-
+    
     /**
      * getParameterTypes.
      *
@@ -274,7 +293,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getParameterTypes() {
         return parameterTypes;
     }
-
+    
     /**
      * setPath.
      *
@@ -283,7 +302,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setParameterTypes(final String parameterTypes) {
         this.parameterTypes = parameterTypes;
     }
-
+    
     /**
      * getRpcExt.
      *
@@ -292,7 +311,7 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public String getRpcExt() {
         return rpcExt;
     }
-
+    
     /**
      * setPath.
      *
@@ -301,16 +320,16 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setRpcExt(final String rpcExt) {
         this.rpcExt = rpcExt;
     }
-
+    
     /**
      * isEnabled.
      *
-     * @return boolean
+     * @return boolean boolean
      */
     public boolean isEnabled() {
         return enabled;
     }
-
+    
     /**
      * setPath.
      *
@@ -319,16 +338,16 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
-
+    
     /**
      * getHost.
      *
-     * @return String
+     * @return String host
      */
     public String getHost() {
         return host;
     }
-
+    
     /**
      * setPath.
      *
@@ -337,16 +356,16 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setHost(final String host) {
         this.host = host;
     }
-
+    
     /**
      * getPort.
      *
-     * @return Integer
+     * @return Integer port
      */
     public Integer getPort() {
         return port;
     }
-
+    
     /**
      * setPort.
      *
@@ -355,16 +374,16 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setPort(final Integer port) {
         this.port = port;
     }
-
+    
     /**
      * getPluginNames.
      *
-     * @return List
+     * @return List plugin names
      */
     public List<String> getPluginNames() {
         return pluginNames;
     }
-
+    
     /**
      * setPluginNames.
      *
@@ -373,16 +392,16 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setPluginNames(final List<String> pluginNames) {
         this.pluginNames = pluginNames;
     }
-
+    
     /**
      * isRegisterMetaData.
      *
-     * @return boolean
+     * @return boolean boolean
      */
     public boolean isRegisterMetaData() {
         return registerMetaData;
     }
-
+    
     /**
      * setRegisterMetaData.
      *
@@ -391,7 +410,46 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     public void setRegisterMetaData(final boolean registerMetaData) {
         this.registerMetaData = registerMetaData;
     }
-
+    
+    @Override
+    public String toString() {
+        return "MetaDataRegisterDTO{" 
+                + "appName='" 
+                + appName
+                + ", contextPath='" 
+                + contextPath
+                + ", path='"
+                + path
+                + ", pathDesc='" 
+                + pathDesc
+                + ", rpcType='" 
+                + rpcType
+                + ", serviceName='" 
+                + serviceName
+                + ", methodName='" 
+                + methodName
+                + ", ruleName='"
+                + ruleName
+                + ", parameterTypes='" 
+                + parameterTypes
+                + ", rpcExt='" 
+                + rpcExt
+                + ", enabled=" 
+                + enabled 
+                + ", host='" 
+                + host
+                + ", port=" 
+                + port 
+                + ", pluginNames=" 
+                + pluginNames
+                + ", registerMetaData=" 
+                + registerMetaData
+                + '}';
+    }
+    
+    /**
+     * The type Builder.
+     */
     public static final class Builder {
 
         private String appName;
@@ -426,191 +484,176 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
 
         private Builder() {
         }
-
+    
         /**
          * appName.
          *
          * @param appName appName
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder appName(final String appName) {
             this.appName = appName;
             return this;
         }
-
+    
         /**
          * contextPath.
          *
          * @param contextPath contextPath
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder contextPath(final String contextPath) {
             this.contextPath = contextPath;
             return this;
         }
-
+    
         /**
          * path.
          *
          * @param path path
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder path(final String path) {
             this.path = path;
             return this;
         }
-
+    
         /**
          * pathDesc.
          *
          * @param pathDesc pathDesc
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder pathDesc(final String pathDesc) {
             this.pathDesc = pathDesc;
             return this;
         }
-
+    
         /**
          * rpcType.
          *
          * @param rpcType rpcType
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder rpcType(final String rpcType) {
             this.rpcType = rpcType;
             return this;
         }
-
+    
         /**
          * serviceName.
          *
          * @param serviceName serviceName
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder serviceName(final String serviceName) {
             this.serviceName = serviceName;
             return this;
         }
-
+    
         /**
          * methodName.
          *
          * @param methodName methodName
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder methodName(final String methodName) {
             this.methodName = methodName;
             return this;
         }
-
+    
         /**
          * ruleName.
          *
          * @param ruleName ruleName
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder ruleName(final String ruleName) {
             this.ruleName = ruleName;
             return this;
         }
-
+    
         /**
          * parameterTypes.
          *
          * @param parameterTypes parameterTypes
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder parameterTypes(final String parameterTypes) {
             this.parameterTypes = parameterTypes;
             return this;
         }
-
+    
         /**
          * rpcExt.
          *
          * @param rpcExt rpcExt
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder rpcExt(final String rpcExt) {
             this.rpcExt = rpcExt;
             return this;
         }
-
+    
         /**
          * enabled.
          *
          * @param enabled enabled
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder enabled(final boolean enabled) {
             this.enabled = enabled;
             return this;
         }
-
+    
         /**
          * appName.
          *
          * @param host host
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder host(final String host) {
             this.host = host;
             return this;
         }
-
+    
         /**
          * port.
          *
          * @param port port
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder port(final Integer port) {
             this.port = port;
             return this;
         }
-
+    
         /**
          * pluginNames.
          *
          * @param pluginNames pluginNames
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder pluginNames(final List<String> pluginNames) {
             this.pluginNames = pluginNames;
             return this;
         }
-
+    
         /**
          * registerMetaData.
          *
          * @param registerMetaData registerMetaData
-         *
-         * @return Builder
+         * @return Builder builder
          */
         public Builder registerMetaData(final boolean registerMetaData) {
             this.registerMetaData = registerMetaData;
             return this;
         }
-
+    
         /**
          * build.
          *
-         * @return MetaDataRegisterDTO
+         * @return MetaDataRegisterDTO meta data register dto
          */
         public MetaDataRegisterDTO build() {
             return new MetaDataRegisterDTO(this);

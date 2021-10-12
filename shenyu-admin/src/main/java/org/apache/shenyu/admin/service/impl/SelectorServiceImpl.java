@@ -46,7 +46,7 @@ import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
-import org.apache.shenyu.admin.utils.DivideUpstreamUtils;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -60,6 +60,7 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -112,7 +113,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public String register(final SelectorDTO selectorDTO) {
+    public String registerDefault(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         List<SelectorConditionDTO> selectorConditionDTOs = selectorDTO.getSelectorConditions();
         if (StringUtils.isEmpty(selectorDTO.getId())) {
@@ -123,6 +124,16 @@ public class SelectorServiceImpl implements SelectorService {
             });
         }
         publishEvent(selectorDO, selectorConditionDTOs);
+        return selectorDO.getId();
+    }
+    
+    @Override
+    public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
+        String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
+        SelectorDO selectorDO = findByNameAndPluginName(contextPath, pluginName);
+        if (Objects.isNull(selectorDO)) {
+            return registerSelector(contextPath, pluginName, selectorHandler);
+        }
         return selectorDO.getId();
     }
 
@@ -236,12 +247,37 @@ public class SelectorServiceImpl implements SelectorService {
     public SelectorDO findByName(final String name) {
         return selectorMapper.selectByName(name);
     }
-
+    
+    /**
+     * Find by name and plugin id selector do.
+     *
+     * @param name the name
+     * @param pluginName the plugin name
+     * @return the selector do
+     */
+    @Override
+    public SelectorDO findByNameAndPluginName(final String name, final String pluginName) {
+        PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        return selectorMapper.findByNameAndPluginId(name, pluginDO.getId());
+    }
+    
     @Override
     public SelectorData buildByName(final String name) {
         return buildSelectorData(selectorMapper.selectByName(name));
     }
-
+    
+    /**
+     * Build by name selector data.
+     *
+     * @param name the name
+     * @param pluginName the plugin name
+     * @return the selector data
+     */
+    @Override
+    public SelectorData buildByName(final String name, final String pluginName) {
+        return buildSelectorData(findByNameAndPluginName(name, pluginName));
+    }
+    
     /**
      * find page of selector by query.
      *
@@ -273,50 +309,6 @@ public class SelectorServiceImpl implements SelectorService {
                 .filter(Objects::nonNull)
                 .map(this::buildSelectorData)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public String handlerSelectorNeedUpstreamCheck(final MetaDataRegisterDTO dto, final String rpcType) {
-        String contextPath = dto.getContextPath();
-        if (StringUtils.isEmpty(contextPath)) {
-            contextPath = buildContextPath(dto.getPath());
-        }
-        SelectorDO selectorDO = selectorMapper.selectByName(contextPath);
-        String selectorId;
-        if (Objects.isNull(selectorDO)) {
-            selectorId = registerPluginSelector(contextPath, dto, rpcType);
-        } else {
-            selectorId = selectorDO.getId();
-            //update upstream
-            String handle = selectorDO.getHandle();
-            String handleAdd;
-            DivideUpstream addDivideUpstream = DivideUpstreamUtils.buildDivideUpstream(dto);
-            final SelectorData selectorData = buildByName(contextPath);
-            // fetch UPSTREAM_MAP data from db
-            upstreamCheckService.fetchUpstreamData();
-            if (StringUtils.isBlank(handle)) {
-                handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
-            } else {
-                List<DivideUpstream> exist = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                for (DivideUpstream each : exist) {
-                    if (each.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
-                        return selectorId;
-                    }
-                }
-                exist.add(addDivideUpstream);
-                handleAdd = GsonUtils.getInstance().toJson(exist);
-            }
-            selectorDO.setHandle(handleAdd);
-            selectorData.setHandle(handleAdd);
-            // update db
-            selectorMapper.updateSelective(selectorDO);
-            // submit upstreamCheck
-            upstreamCheckService.submit(contextPath, addDivideUpstream);
-            // publish change event.
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                    Collections.singletonList(selectorData)));
-        }
-        return selectorId;
     }
 
     private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditionDTOs) {
@@ -356,21 +348,17 @@ public class SelectorServiceImpl implements SelectorService {
             }
         }
         if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
-            upstreamCheckService.replace(selectorName, existDivideUpstreams);
+            upstreamCheckService.replace(selectorName, CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
         }
     }
 
-    private String registerPluginSelector(final String contextPath, final MetaDataRegisterDTO metaDataRegisterDTO, final String rpcType) {
-        SelectorDTO selectorDTO = registerSelector(contextPath, pluginMapper.selectByName(rpcType).getId());
-        //is divide
-        DivideUpstream divideUpstream = DivideUpstreamUtils.buildDivideUpstream(metaDataRegisterDTO);
-        String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
-        selectorDTO.setHandle(handler);
-        upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
-        return register(selectorDTO);
+    private String registerSelector(final String contextPath, final String pluginName, final String selectorHandler) {
+        SelectorDTO selectorDTO = buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
+        selectorDTO.setHandle(selectorHandler);
+        return registerDefault(selectorDTO);
     }
 
-    private SelectorDTO registerSelector(final String contextPath, final String pluginId) {
+    private SelectorDTO buildSelectorDTO(final String contextPath, final String pluginId) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
         selectorDTO.setPluginId(pluginId);
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
@@ -396,18 +384,5 @@ public class SelectorServiceImpl implements SelectorService {
         selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
         selectorConditionDTO.setParamValue(contextPath + "/**");
         return Collections.singletonList(selectorConditionDTO);
-    }
-
-    private String buildContextPath(final String path) {
-        String split = "/";
-        String[] splitList = StringUtils.split(path, split);
-        if (splitList.length != 0) {
-            return split.concat(splitList[0]);
-        }
-        return split;
-    }
-
-    private DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }
 }

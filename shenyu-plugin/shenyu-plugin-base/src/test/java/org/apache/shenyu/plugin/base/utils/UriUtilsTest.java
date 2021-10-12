@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import org.apache.shenyu.common.utils.UriUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

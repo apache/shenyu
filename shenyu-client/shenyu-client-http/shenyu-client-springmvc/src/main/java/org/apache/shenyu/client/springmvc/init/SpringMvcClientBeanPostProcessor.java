@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -36,7 +35,6 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
-import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -57,10 +55,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final String appName;
 
-    private final String host;
-
-    private final Integer port;
-
     private final Boolean isFull;
 
     /**
@@ -71,15 +65,18 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
         int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isAnyBlank(registerType, serverLists) || port <= 0) {
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || port <= 0) {
             String errorMsg = "http register param must config the registerType , serverLists and port must > 0";
             LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
         this.appName = props.getProperty("appName");
-        this.host = props.getProperty("host");
-        this.port = port;
         this.contextPath = props.getProperty("contextPath");
+        if (StringUtils.isBlank(appName) && StringUtils.isBlank(contextPath)) {
+            String errorMsg = "http register param must config the appName or contextPath";
+            LOG.error(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-spring-mvc-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
@@ -99,8 +96,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 return bean;
             }
             if (clazzAnnotation.path().indexOf("*") > 1) {
-                String finalPrePath = prePath;
-                executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, finalPrePath)));
+                publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, prePath));
                 return bean;
             }
             prePath = clazzAnnotation.path();
@@ -108,8 +104,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             for (Method method : methods) {
                 ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
                 if (Objects.nonNull(shenyuSpringMvcClient)) {
-                    String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(shenyuSpringMvcClient, finalPrePath)));
+                    publisher.publishEvent(buildMetaDataDTO(shenyuSpringMvcClient, prePath));
                 }
             }
         }
@@ -119,21 +114,17 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringMvcClient shenyuSpringMvcClient, final String prePath) {
         String contextPath = this.contextPath;
         String appName = this.appName;
-        Integer port = this.port;
         String path;
         if (StringUtils.isEmpty(contextPath)) {
-            path = Paths.get("/", prePath, shenyuSpringMvcClient.path()).toString();
+            path = prePath + shenyuSpringMvcClient.path();
         } else {
-            path = Paths.get("/", contextPath, prePath, shenyuSpringMvcClient.path()).toString();
+            path = contextPath + prePath + shenyuSpringMvcClient.path();
         }
         String desc = shenyuSpringMvcClient.desc();
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuSpringMvcClient.ruleName();
         String ruleName = StringUtils.isBlank(configRuleName) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
-                .host(host)
-                .port(port)
                 .appName(appName)
                 .path(path)
                 .pathDesc(desc)

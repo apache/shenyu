@@ -101,9 +101,7 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
             String context = dataPath.split("/")[4];
             contextList.add(context);
         });
-
         contextList.forEach(context -> registerUriChildrenList(rpcPath, context));
-
         LOGGER.info("subscribe uri change: {}", rpcPath);
         client.subscribeChildChanges(rpcPath, new EtcdListenHandler() {
 

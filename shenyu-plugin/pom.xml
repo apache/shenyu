@@ -30,8 +30,6 @@
         <module>shenyu-plugin-api</module>
         <module>shenyu-plugin-base</module>
         <module>shenyu-plugin-divide</module>
-        <module>shenyu-plugin-alibaba-dubbo</module>
-        <module>shenyu-plugin-apache-dubbo</module>
         <module>shenyu-plugin-ratelimiter</module>
         <module>shenyu-plugin-monitor</module>
         <module>shenyu-plugin-sign</module>
@@ -48,7 +46,6 @@
         <module>shenyu-plugin-context-path</module>
         <module>shenyu-plugin-grpc</module>
         <module>shenyu-plugin-redirect</module>
-        <module>shenyu-plugin-dubbo-common</module>
         <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-modify-response</module>
@@ -59,5 +56,6 @@
         <module>shenyu-plugin-param-mapping</module>
         <module>shenyu-plugin-cryptor</module>
         <module>shenyu-plugin-websocket</module>
+        <module>shenyu-plugin-dubbo</module>
     </modules>
 </project>

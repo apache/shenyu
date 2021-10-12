@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +58,6 @@ public class DefaultOperatorTest {
     @Test
     public void testApply() {
         when(this.chain.execute(any())).thenReturn(Mono.empty());
-        StepVerifier.create(defaultOperator.apply(this.exchange, this.chain, new ParamMappingHandle())).expectSubscription().verifyComplete();
+        StepVerifier.create(defaultOperator.apply(this.exchange, this.chain, new ParamMappingRuleHandle())).expectSubscription().verifyComplete();
     }
 }

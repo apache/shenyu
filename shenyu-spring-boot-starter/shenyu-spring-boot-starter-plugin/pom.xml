@@ -29,9 +29,6 @@
     <modules>
         <module>shenyu-spring-boot-starter-plugin-global</module>
         <module>shenyu-spring-boot-starter-plugin-divide</module>
-        <module>shenyu-spring-boot-starter-plugin-alibaba-dubbo</module>
-        <module>shenyu-spring-boot-starter-plugin-apache-dubbo</module>
-        <module>shenyu-spring-boot-starter-plugin-dubbo-common</module>
         <module>shenyu-spring-boot-starter-plugin-httpclient</module>
         <module>shenyu-spring-boot-starter-plugin-springcloud</module>
         <module>shenyu-spring-boot-starter-plugin-hystrix</module>
@@ -57,5 +54,6 @@
         <module>shenyu-spring-boot-starter-plugin-param-mapping</module>
         <module>shenyu-spring-boot-starter-plugin-cryptor</module>
         <module>shenyu-spring-boot-starter-plugin-websocket</module>
+        <module>shenyu-spring-boot-starter-plugin-dubbo</module>
     </modules>
 </project>

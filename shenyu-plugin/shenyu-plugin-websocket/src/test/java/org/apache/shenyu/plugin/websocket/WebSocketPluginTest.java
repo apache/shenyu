@@ -20,9 +20,8 @@ package org.apache.shenyu.plugin.websocket;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -148,8 +147,8 @@ public class WebSocketPluginTest {
      */
     private void initMockInfo() {
         ShenyuContext context = mock(ShenyuContext.class);
-        context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "", "");
+        context.setRpcType(RpcTypeEnum.WEB_SOCKET.getName());
+        WebSocketRuleHandle handle = new WebSocketRuleHandle();
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));

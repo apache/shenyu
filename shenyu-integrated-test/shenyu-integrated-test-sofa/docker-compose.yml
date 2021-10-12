@@ -23,15 +23,6 @@ services:
     - 2181:2181
     networks:
       - shenyu
-  shenyu-redis:
-    image: redis:6.0-alpine
-    container_name: shenyu-redis
-    restart: always
-    command: redis-server --requirepass abc
-    networks:
-      - shenyu
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
 
   shenyu-admin:
     image: apache/shenyu-admin:2.4.1-SNAPSHOT
@@ -39,18 +30,13 @@ services:
     restart: always
     networks:
       - shenyu
-    volumes:
-      - type: bind
-        source: ./src/main/resources/admin-config/
-        target: /opt/sql/
     depends_on:
-      - shenyu-redis
       - shenyu-zk
     ports:
       - 9095:9095
     environment:
       - SPRING_PROFILES_ACTIVE=h2
-      - "shenyu.database.init_script=sql-script/h2/schema.sql;file:/opt/sql/schema.sql"
+      - "shenyu.database.init_script=sql-script/h2/schema.sql"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s

@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
@@ -30,18 +29,16 @@ import java.util.Objects;
 
 public class SofaRuleHandle implements RuleHandle {
 
-    private static final long serialVersionUID = 1534867207078368915L;
-
     /**
      * retries.
      */
-    private Integer retries;
+    private Integer retries = 0;
 
     /**
      * the loadBalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadBalance;
+    private String loadBalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * timeout is required.
@@ -130,12 +127,5 @@ public class SofaRuleHandle implements RuleHandle {
                 + ", timeout="
                 + timeout
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        this.retries = RuleHandleConstants.DEFAULT_RETRIES;
-        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
-        return this;
     }
 }
