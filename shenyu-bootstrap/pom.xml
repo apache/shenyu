@@ -140,13 +140,13 @@
         </dependency>
         <!--shenyu tars plugin end-->
 
-        <!--shenyu grpc plugin start-->
+        <!--shenyu oauth2 plugin start-->
 <!--        <dependency>-->
 <!--            <groupId>org.apache.shenyu</groupId>-->
 <!--            <artifactId>shenyu-spring-boot-starter-plugin-oauth2</artifactId>-->
 <!--            <version>${project.version}</version>-->
 <!--        </dependency>-->
-        <!--shenyu grpc plugin end-->
+        <!--shenyu oauth2 plugin end-->
 
         <!--shenyu grpc plugin start-->
         <dependency>
