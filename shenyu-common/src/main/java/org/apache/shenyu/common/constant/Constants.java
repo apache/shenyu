@@ -437,6 +437,11 @@ public interface Constants {
      * dubbo remote address.
      */
     String DUBBO_REMOTE_ADDRESS = "dubboRemoteAddress";
+
+    /**
+     * dubbo group.
+     */
+    String GROUP = "group";
     
     /**
      * String q.
