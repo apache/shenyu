@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.apache.dubbo.proxy;
+package org.apache.shenyu.plugin.alibaba.dubbo.proxy;
 
+import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.common.extension.ExtensionLoader;
+import com.alibaba.dubbo.rpc.Invocation;
+import com.alibaba.dubbo.rpc.Invoker;
+import com.alibaba.dubbo.rpc.RpcException;
+import com.alibaba.dubbo.rpc.cluster.LoadBalance;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.constants.CommonConstants;
-import org.apache.dubbo.common.extension.ExtensionLoader;
-import org.apache.dubbo.rpc.Invocation;
-import org.apache.dubbo.rpc.Invoker;
-import org.apache.dubbo.rpc.RpcException;
-import org.apache.dubbo.rpc.cluster.LoadBalance;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
@@ -32,23 +31,24 @@ import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
-import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
+import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * ApacheDubboGrayLoadBalance.
+ * AlibabaDubboGrayLoadBalance.
  */
-public class ApacheDubboGrayLoadBalance implements LoadBalance {
+public class AlibabaDubboGrayLoadBalance implements LoadBalance {
 
     @Override
     public <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation) throws RpcException {
+
         String shenyuSelectorId = invocation.getAttachment(Constants.DUBBO_SELECTOR_ID);
         String shenyuRuleId = invocation.getAttachment(Constants.DUBBO_RULE_ID);
         String remoteAddressIp = invocation.getAttachment(Constants.DUBBO_REMOTE_ADDRESS);
-        List<DubboUpstream> dubboUpstreams = ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(shenyuSelectorId);
-        DubboRuleHandle dubboRuleHandle = ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(shenyuRuleId);
+        List<DubboUpstream> dubboUpstreams = AlibabaDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(shenyuSelectorId);
+        DubboRuleHandle dubboRuleHandle = AlibabaDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(shenyuRuleId);
         // if gray list is not empty,just use load balance to choose one.
         if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
             Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadbalance(), remoteAddressIp);
@@ -82,7 +82,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         }
         return select(invokers, url, invocation, dubboRuleHandle.getLoadbalance());
     }
-    
+
     private <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation, final String loadbalance) {
         return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadbalance).select(invokers, url, invocation);
     }
