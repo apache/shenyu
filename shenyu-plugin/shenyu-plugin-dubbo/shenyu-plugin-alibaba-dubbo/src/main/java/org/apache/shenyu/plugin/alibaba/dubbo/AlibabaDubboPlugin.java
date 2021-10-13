@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.alibaba.dubbo;
 import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
 import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
 import com.alibaba.dubbo.rpc.Result;
+import com.alibaba.dubbo.rpc.RpcContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -77,6 +78,9 @@ public class AlibabaDubboPlugin extends AbstractDubboPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        RpcContext.getContext().setAttachment(Constants.DUBBO_SELECTOR_ID, selector.getId());
+        RpcContext.getContext().setAttachment(Constants.DUBBO_RULE_ID, rule.getId());
+        RpcContext.getContext().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
 
         return Mono.create(monoSink -> {
             ResponseFuture future = alibabaDubboProxyService.genericInvoker(param, metaData);
