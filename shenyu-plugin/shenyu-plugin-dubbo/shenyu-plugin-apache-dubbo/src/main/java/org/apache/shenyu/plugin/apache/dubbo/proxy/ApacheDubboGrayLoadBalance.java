@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
