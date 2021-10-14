@@ -157,7 +157,7 @@ ELSE
 	  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
 	  "app_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
 	  "path" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-	  "path_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+	  "path_desc" varchar(255) COLLATE "pg_catalog"."default",
 	  "rpc_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
 	  "service_name" varchar(255) COLLATE "pg_catalog"."default",
 	  "method_name" varchar(255) COLLATE "pg_catalog"."default",
