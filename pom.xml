@@ -42,7 +42,7 @@
         <module>shenyu-disruptor</module>
         <module>shenyu-protocol</module>
         <module>shenyu-dist</module>
-        <module>shenyu-agent</module>
+<!--        <module>shenyu-agent</module>-->
         <module>shenyu-loadbalancer</module>
     </modules>
 
