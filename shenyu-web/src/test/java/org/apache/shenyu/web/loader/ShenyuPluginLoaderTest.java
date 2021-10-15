@@ -26,11 +26,15 @@ import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -44,6 +48,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ShenyuPluginLoader.class)
 public class ShenyuPluginLoaderTest {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuPluginLoaderTest.class);
 
     private ShenyuPluginLoader shenyuPluginLoader;
 
@@ -60,16 +69,25 @@ public class ShenyuPluginLoaderTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         shenyuPluginLoader = ShenyuPluginLoader.getInstance();
-        path = Files.createTempFile("plugin", ".zip");
-        String pluginClas = "public class ApacheDubboPlugin {}";
-        try (OutputStream os = Files.newOutputStream(path);
-            ZipOutputStream zos = new ZipOutputStream(os)) {
-            ZipEntry e = new ZipEntry("org.apache.shenyu.plugin.ApacheDubboPlugin.class");
-            zos.putNextEntry(e);
-            zos.write(pluginClas.getBytes());
-        }
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                try {
+                    path = Files.createTempFile("plugin", ".zip");
+                    String pluginClas = "public class ApacheDubboPlugin {}";
+                    try (OutputStream os = Files.newOutputStream(path);
+                        ZipOutputStream zos = new ZipOutputStream(os)) {
+                        ZipEntry e = new ZipEntry("org.apache.shenyu.plugin.ApacheDubboPlugin.class");
+                        zos.putNextEntry(e);
+                        zos.write(pluginClas.getBytes());
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+                return null;
+            }
+        });
     }
 
     /**
