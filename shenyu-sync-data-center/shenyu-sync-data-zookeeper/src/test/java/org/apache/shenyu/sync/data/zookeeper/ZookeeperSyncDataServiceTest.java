@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.constant.InstanceConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -54,33 +55,33 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public final class ZookeeperSyncDataServiceTest {
 
-    private static final String MOCK_PLUGIN_PARENT_PATH = "/shenyu/plugin";
+    private static final String MOCK_PLUGIN_PARENT_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/plugin";
 
-    private static final String MOCK_PLUGIN_PATH = "/shenyu/plugin/divide";
+    private static final String MOCK_PLUGIN_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/plugin/divide";
 
     private static final String MOCK_PLUGIN_NAME = "divide";
 
-    private static final String MOCK_SELECTOR_PARENT_PATH = "/shenyu/selector/divide";
+    private static final String MOCK_SELECTOR_PARENT_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/selector/divide";
 
-    private static final String MOCK_SELECTOR_PATH = "/shenyu/selector/divide/test";
+    private static final String MOCK_SELECTOR_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/selector/divide/test";
 
     private static final String MOCK_SELECTOR_NAME = "test";
 
-    private static final String MOCK_RULE_PARENT_PATH = "/shenyu/rule/divide";
+    private static final String MOCK_RULE_PARENT_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/rule/divide";
 
-    private static final String MOCK_RULE_PATH = "/shenyu/rule/divide/test-test";
+    private static final String MOCK_RULE_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/rule/divide/test-test";
 
     private static final String MOCK_RULE_NAME = "test-test";
 
-    private static final String MOCK_APP_AUTH_PARENT_PATH = "/shenyu/auth";
+    private static final String MOCK_APP_AUTH_PARENT_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/auth";
 
-    private static final String MOCK_APP_AUTH_PATH = "/shenyu/auth/test";
+    private static final String MOCK_APP_AUTH_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/auth/test";
 
     private static final String MOCK_APP_AUTH_KEY = "test";
 
-    private static final String MOCK_META_DATA_PARENT_PATH = "/shenyu/metaData";
+    private static final String MOCK_META_DATA_PARENT_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/metaData";
 
-    private static final String MOCK_META_DATA_PATH = "/shenyu/metaData/test";
+    private static final String MOCK_META_DATA_PATH = "/shenyu/" + InstanceConstants.DEFAULT_INSTANCE_NAME + "/metaData/test";
 
     private static final String MOCK_META_DATA_ID = "test";
 

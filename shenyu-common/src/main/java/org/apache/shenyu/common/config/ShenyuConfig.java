@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.shenyu.common.constant.InstanceConstants;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ import java.util.stream.Stream;
  */
 public class ShenyuConfig {
 
+    private String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
+
     private SwitchConfig switchConfig = new SwitchConfig();
     
     private FileConfig file = new FileConfig();
@@ -44,7 +47,26 @@ public class ShenyuConfig {
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
     private CrossFilterConfig cross = new CrossFilterConfig();
-    
+
+    /**
+     * Gets instance name.
+     *
+     * @return the instance name
+     */
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    /**
+     * Sets instance name.
+     *
+     * @param instanceName the instance name
+     */
+    public void setInstanceName(final String instanceName) {
+        this.instanceName = instanceName;
+        InstanceConfig.setInstanceName(instanceName);
+    }
+
     /**
      * Gets switch config.
      *

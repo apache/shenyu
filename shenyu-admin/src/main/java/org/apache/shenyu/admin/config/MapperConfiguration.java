@@ -25,10 +25,10 @@ import org.springframework.context.annotation.Configuration;
 
 
 /**
- *  for MyBatis Configure management.
+ *  for MyBatis Configuration management.
  */
 @Configuration
-public class MapperConfig {
+public class MapperConfiguration {
 
     /**
      * Add the plugin to the MyBatis plugin interceptor chain.

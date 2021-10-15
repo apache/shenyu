@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.common.constant;
 
+import org.apache.shenyu.common.config.InstanceConfig;
+
 /**
  * Consul constants.
  */
 public final class ConsulConstants {
 
-    public static final String SYNC_PRE_FIX = "shenyu/sync";
+    public static final String SYNC_PRE_FIX = "shenyu/" + InstanceConfig.getInstanceName() + "/sync";
 
     /**
      * plugin data path.

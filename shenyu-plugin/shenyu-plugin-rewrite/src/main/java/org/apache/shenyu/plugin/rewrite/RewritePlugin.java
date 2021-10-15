@@ -53,6 +53,7 @@ public class RewritePlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         String rewriteUri = exchange.getRequest().getURI().getPath();
         if (StringUtils.isNotBlank(shenyuContext.getRealUrl())) {
             rewriteUri = shenyuContext.getRealUrl();

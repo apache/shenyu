@@ -47,6 +47,7 @@ management:
       enabled: false
 
 shenyu:
+  instanceName: local
   cross:
     enabled: true
     allowedHeaders:

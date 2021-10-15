@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.constant;
 
+import org.apache.shenyu.common.config.InstanceConfig;
+
 /**
  * ZkPathConstants.
  */
@@ -27,7 +29,7 @@ public final class DefaultPathConstants implements Constants {
      */
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PRE_FIX = "/shenyu";
+    private static final String PRE_FIX = "/shenyu/" + InstanceConfig.getInstanceName();
 
     /**
      * The constant PLUGIN_PARENT.

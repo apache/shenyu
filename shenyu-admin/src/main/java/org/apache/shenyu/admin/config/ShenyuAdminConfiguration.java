@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.config.properties.ShenyuAdminProperties;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
  * The type Shenyu admin configuration.
  */
 @Configuration
+@EnableConfigurationProperties(ShenyuAdminProperties.class)
 public class ShenyuAdminConfiguration {
     
     /**

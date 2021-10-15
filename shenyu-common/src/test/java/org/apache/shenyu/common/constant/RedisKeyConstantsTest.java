@@ -28,16 +28,20 @@ import static org.junit.Assert.assertThat;
  */
 public final class RedisKeyConstantsTest {
 
-    public static final String PLUGIN_INFO = ":info";
+    private static final String PRE_FIX = "shenyu:" + InstanceConstants.DEFAULT_INSTANCE_NAME;
 
-    public static final String PLUGIN_SELECTOR = ":selector";
+    private static final String PLUGIN = PRE_FIX + ":plugin";
+
+    private static final String PLUGIN_INFO = "info";
+
+    private static final String PLUGIN_SELECTOR = "selector";
 
     @Test
     public void testPlugInfoKey() {
         String mockPlugin = "MockPlugin";
         String mokPluginInfoKey = RedisKeyConstants.pluginInfoKey(mockPlugin);
         assertThat(mockPlugin, notNullValue());
-        assertThat(String.join("", mockPlugin, PLUGIN_INFO), equalTo(mokPluginInfoKey));
+        assertThat(String.join(":", PLUGIN, mockPlugin, PLUGIN_INFO), equalTo(mokPluginInfoKey));
     }
 
     @Test
@@ -45,7 +49,7 @@ public final class RedisKeyConstantsTest {
         String mockPlugin = "MockPlugin";
         String mockPluginSelectorKey = RedisKeyConstants.pluginSelectorKey(mockPlugin);
         assertThat(mockPlugin, notNullValue());
-        assertThat(String.join("", mockPlugin, PLUGIN_SELECTOR), equalTo(mockPluginSelectorKey));
+        assertThat(String.join(":", PLUGIN, mockPlugin, PLUGIN_SELECTOR), equalTo(mockPluginSelectorKey));
     }
 
 }

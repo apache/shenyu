@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.constant;
 
+import org.apache.shenyu.common.config.InstanceConfig;
+
 /**
  * Nacos path constants.
  */
@@ -30,27 +32,27 @@ public final class NacosPathConstants {
     /**
      * plugin data id.
      */
-    public static final String PLUGIN_DATA_ID = "shenyu.plugin.json";
+    public static final String PLUGIN_DATA_ID = getPrefix() + ".plugin.json";
 
     /**
      * selector data id.
      */
-    public static final String SELECTOR_DATA_ID = "shenyu.selector.json";
+    public static final String SELECTOR_DATA_ID = getPrefix() + ".selector.json";
 
     /**
      * rule data id.
      */
-    public static final String RULE_DATA_ID = "shenyu.rule.json";
+    public static final String RULE_DATA_ID = getPrefix() + ".rule.json";
 
     /**
      * auth data id.
      */
-    public static final String AUTH_DATA_ID = "shenyu.auth.json";
+    public static final String AUTH_DATA_ID = getPrefix() + ".auth.json";
 
     /**
      * meta data id.
      */
-    public static final String META_DATA_ID = "shenyu.meta.json";
+    public static final String META_DATA_ID = getPrefix() + ".meta.json";
 
     /**
      * default value of get config.
@@ -61,4 +63,8 @@ public final class NacosPathConstants {
      * default time out of get config.
      */
     public static final long DEFAULT_TIME_OUT = 6000;
+
+    private static String getPrefix() {
+        return "shenyu." + InstanceConfig.getInstanceName();
+    }
 }
