@@ -40,10 +40,11 @@ shenyu:
   client:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
-    props:
-      contextPath: /springcloud
-      port: 8884
-      nacosNameSpace: ShenyuRegisterCenter
+    http:
+      props:
+        contextPath: /springcloud
+        port: 8884
+        nacosNameSpace: ShenyuRegisterCenter
 
 logging:
   level:

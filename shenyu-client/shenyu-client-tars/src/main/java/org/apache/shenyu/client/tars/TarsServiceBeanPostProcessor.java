@@ -61,7 +61,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private final int port;
 
     public TarsServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
+        Properties props = config.getTars().getProps();
         String contextPath = props.getProperty("contextPath");
         String ip = props.getProperty("host");
         String port = props.getProperty("port");

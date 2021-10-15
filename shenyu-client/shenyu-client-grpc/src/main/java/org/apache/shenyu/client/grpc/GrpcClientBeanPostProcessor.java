@@ -73,7 +73,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
     public GrpcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
+        Properties props = config.getGrpc().getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
         String port = props.getProperty("port");

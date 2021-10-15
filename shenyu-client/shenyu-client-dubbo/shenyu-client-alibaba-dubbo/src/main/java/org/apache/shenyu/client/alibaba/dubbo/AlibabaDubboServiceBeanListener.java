@@ -62,7 +62,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     private final String port;
 
     public AlibabaDubboServiceBeanListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
+        Properties props = config.getDubbo().getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
         if (StringUtils.isEmpty(contextPath)) {

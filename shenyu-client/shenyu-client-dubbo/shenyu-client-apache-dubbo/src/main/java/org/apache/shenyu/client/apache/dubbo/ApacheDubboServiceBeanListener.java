@@ -67,7 +67,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
     private final String port;
 
     public ApacheDubboServiceBeanListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
+        Properties props = config.getDubbo().getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
         if (StringUtils.isBlank(contextPath)) {
