@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.client.core.shutdown;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,8 +33,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Shenyu client shutdown hook.
  */
-@Slf4j
 public class ShenyuClientShutdownHook {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientShutdownHook.class);
 
     private static String hookNamePrefix = "ShenyuClientShutdownHook";
 
@@ -55,10 +57,8 @@ public class ShenyuClientShutdownHook {
      */
     public static void set(final ShenyuClientRegisterRepository result, final Properties props) {
         String name = hookNamePrefix + "-" + hookId.incrementAndGet();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            result.close();
-        }, name));
-        log.info("Add hook {}", name);
+        Runtime.getRuntime().addShutdownHook(new Thread(result::close, name));
+        LOG.info("Add hook {}", name);
         ShenyuClientShutdownHook.props = props;
     }
 
@@ -77,18 +77,22 @@ public class ShenyuClientShutdownHook {
      * Delay other shutdown hooks thread.
      */
     private static class TakeoverOtherHooksThread extends Thread {
-        @SneakyThrows
         @Override
         public void run() {
             int shutdownWaitTime = Integer.parseInt(props.getProperty("shutdownWaitTime", "3000"));
             int delayOtherHooksExecTime = Integer.parseInt(props.getProperty("delayOtherHooksExecTime", "2000"));
-            Class<?> clazz = Class.forName(props.getProperty("applicationShutdownHooksClassName", "java.lang.ApplicationShutdownHooks"));
-            Field field = clazz.getDeclaredField(props.getProperty("applicationShutdownHooksFieldName", "hooks"));
-            field.setAccessible(true);
-            IdentityHashMap<Thread, Thread> hooks = (IdentityHashMap<Thread, Thread>) field.get(clazz);
+            IdentityHashMap<Thread, Thread> hooks = null;
+            try {
+                Class<?> clazz = Class.forName(props.getProperty("applicationShutdownHooksClassName", "java.lang.ApplicationShutdownHooks"));
+                Field field = clazz.getDeclaredField(props.getProperty("applicationShutdownHooksFieldName", "hooks"));
+                field.setAccessible(true);
+                hooks = (IdentityHashMap<Thread, Thread>) field.get(clazz);
+            } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException ex) {
+                LOG.error(ex.getMessage(), ex);
+            }
             long s = System.currentTimeMillis();
             while (System.currentTimeMillis() - s < delayOtherHooksExecTime) {
-                for (Iterator<Thread> iterator = hooks.keySet().iterator(); iterator.hasNext();) {
+                for (Iterator<Thread> iterator = Objects.requireNonNull(hooks).keySet().iterator(); iterator.hasNext();) {
                     Thread hook = iterator.next();
                     if (hook.getName().startsWith(hookNamePrefix)) {
                         continue;
@@ -97,7 +101,7 @@ public class ShenyuClientShutdownHook {
                         continue;
                     }
                     Thread delayHook = new Thread(() -> {
-                        log.info("sleep {}ms", shutdownWaitTime);
+                        LOG.info("sleep {}ms", shutdownWaitTime);
                         try {
                             TimeUnit.MILLISECONDS.sleep(shutdownWaitTime);
                         } catch (InterruptedException ignore) { }
@@ -112,9 +116,13 @@ public class ShenyuClientShutdownHook {
                     Runtime.getRuntime().addShutdownHook(delayHook);
                     delayedHooks.put(delayHook, delayHook);
                     iterator.remove();
-                    log.info("hook {} will sleep {}ms when it start", delayHook.getName(), shutdownWaitTime);
+                    LOG.info("hook {} will sleep {}ms when it start", delayHook.getName(), shutdownWaitTime);
                 }
-                TimeUnit.MILLISECONDS.sleep(100);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(100);
+                } catch (InterruptedException ex) {
+                    LOG.error(ex.getMessage(), ex);
+                }
             }
 
             hookNamePrefix = null;

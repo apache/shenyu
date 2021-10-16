@@ -53,15 +53,15 @@ public final class AbstractMatchStrategyTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(RemoteAddressResolver.class)).thenReturn(new RemoteAddressResolver() { });
         conditionData = new ConditionData();
-        conditionData.setParamName("soul");
+        conditionData.setParamName("shenyu");
         conditionData.setParamType("uri");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
-                .header("soul", "soulHeader")
-                .queryParam("soul", "soulQueryParam")
+                .header("shenyu", "shenyuHeader")
+                .queryParam("shenyu", "shenyuQueryParam")
                 .build());
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setMethod("testMethod");
@@ -72,7 +72,7 @@ public final class AbstractMatchStrategyTest {
     @Test
     public void testBuildRealDataHeaderBranch() {
         conditionData.setParamType(ParamTypeEnum.HEADER.getName());
-        Assert.assertEquals("soulHeader", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        Assert.assertEquals("shenyuHeader", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     @Test
@@ -84,7 +84,7 @@ public final class AbstractMatchStrategyTest {
     @Test
     public void testBuildRealDataQueryBranch() {
         conditionData.setParamType(ParamTypeEnum.QUERY.getName());
-        Assert.assertEquals("soulQueryParam", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        Assert.assertEquals("shenyuQueryParam", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     @Test

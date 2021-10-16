@@ -17,25 +17,16 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
+
+import java.util.Objects;
 
 /**
  * The type Dubbo rule handle.
  */
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
 public class DubboRuleHandle implements RuleHandle {
-
-    private static final long serialVersionUID = 2687375375638048966L;
 
     /**
      * version.
@@ -50,23 +41,138 @@ public class DubboRuleHandle implements RuleHandle {
     /**
      * retries.
      */
-    private Integer retries;
+    private Integer retries = 0;
 
     /**
-     * the loadBalance.
+     * the loadbalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadBalance;
+    private String loadbalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
 
+    /**
+     * get version.
+     *
+     * @return version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * set version.
+     *
+     * @param version version
+     */
+    public void setVersion(final String version) {
+        this.version = version;
+    }
+
+    /**
+     * get group.
+     *
+     * @return group
+     */
+    public String getGroup() {
+        return group;
+    }
+
+    /**
+     * set group.
+     *
+     * @param group group
+     */
+    public void setGroup(final String group) {
+        this.group = group;
+    }
+
+    /**
+     * get retries.
+     *
+     * @return retries
+     */
+    public Integer getRetries() {
+        return retries;
+    }
+
+    /**
+     * set retries.
+     *
+     * @param retries retries
+     */
+    public void setRetries(final Integer retries) {
+        this.retries = retries;
+    }
+
+    /**
+     * Gets the value of loadbalance.
+     *
+     * @return the value of loadbalance
+     */
+    public String getLoadbalance() {
+        return loadbalance;
+    }
+
+    /**
+     * Sets the loadbalance.
+     *
+     * @param loadbalance loadbalance
+     */
+    public void setLoadbalance(final String loadbalance) {
+        this.loadbalance = loadbalance;
+    }
+
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public long getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     *
+     * @param timeout timeout
+     */
+    public void setTimeout(final long timeout) {
+        this.timeout = timeout;
+    }
+
     @Override
-    public RuleHandle createDefault(final String path) {
-        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
-        this.retries = RuleHandleConstants.DEFAULT_RETRIES;
-        return this;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DubboRuleHandle)) {
+            return false;
+        }
+        DubboRuleHandle that = (DubboRuleHandle) o;
+        return timeout == that.timeout
+                && Objects.equals(version, that.version)
+                && Objects.equals(group, that.group)
+                && Objects.equals(retries, that.retries)
+                && Objects.equals(loadbalance, that.loadbalance);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(version, group, retries, loadbalance, timeout);
+    }
+
+    @Override
+    public String toString() {
+        return "DubboRuleHandle{"
+                + "version='" + version + '\''
+                + ", group='" + group + '\''
+                + ", retries=" + retries
+                + ", loadbalance='" + loadbalance + '\''
+                + ", timeout=" + timeout
+                + '}';
     }
 }

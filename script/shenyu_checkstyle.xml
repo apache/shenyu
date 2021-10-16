@@ -153,7 +153,7 @@
         <module name="FallThrough"/>
         <module name="IllegalInstantiation"/>
         <module name="IllegalCatch">
-            <property name="illegalClassNames" value="Error,Throwable,java.lang.Error,java.lang.Throwable" />
+            <property name="illegalClassNames" value="Error,java.lang.Error" />
         </module>
         <module name="IllegalThrows"/>
         <module name="IllegalType">
@@ -197,7 +197,6 @@
 
         <!-- Class Design -->
         <module name="FinalClass"/>
-        <!-- cannot recognize for lombok @NoArgsConstructor(access = AccessLevel.PRIVATE), just ignore -->
         <!--<module name="HideUtilityClassConstructor"/>-->
         <module name="OneTopLevelClass"/>
         <module name="InterfaceIsType"/>

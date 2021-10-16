@@ -19,6 +19,7 @@
 package org.apache.dromara.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
+import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -34,11 +35,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuGrpcClientConfiguration {
-
+    
     /**
      * Grpc service bean post processor grpc client bean post processor.
      *
-     * @param registerCenterConfig           the register center config
+     * @param registerCenterConfig the register center config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the grpc client bean post processor
      */
@@ -47,11 +48,23 @@ public class ShenyuGrpcClientConfiguration {
                                                                     final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new GrpcClientBeanPostProcessor(registerCenterConfig, shenyuClientRegisterRepository);
     }
-
+    
+    /**
+     * Grpc context refreshed event listener grpc context refreshed event listener.
+     *
+     * @param registerCenterConfig the register center config
+     * @return the grpc context refreshed event listener
+     */
+    @Bean
+    public GrpcContextRefreshedEventListener grpcContextRefreshedEventListener(final ShenyuRegisterCenterConfig registerCenterConfig) {
+        return new GrpcContextRefreshedEventListener(registerCenterConfig);
+    }
+    
+    
     /**
      * Grpc Server.
      *
-     * @param grpcServerBuilder            grpcServerBuilder
+     * @param grpcServerBuilder grpcServerBuilder
      * @param grpcServiceBeanPostProcessor grpcServiceBeanPostProcessor
      * @return the grpc server
      */

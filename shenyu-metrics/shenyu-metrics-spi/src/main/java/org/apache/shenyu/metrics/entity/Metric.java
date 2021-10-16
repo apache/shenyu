@@ -18,15 +18,11 @@
 package org.apache.shenyu.metrics.entity;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.metrics.enums.MetricType;
 
 /**
  * Metric.
  */
-@Getter
-@RequiredArgsConstructor
 public final class Metric {
     
     private final MetricType type;
@@ -36,4 +32,55 @@ public final class Metric {
     private final String document;
     
     private final List<String> labels;
+
+    /**
+     * Instantiates a new Metric.
+     *
+     * @param type     the type
+     * @param name     the name
+     * @param document the document
+     * @param labels   the labels
+     */
+    public Metric(final MetricType type, final String name, final String document, final List<String> labels) {
+        this.type = type;
+        this.name = name;
+        this.document = document;
+        this.labels = labels;
+    }
+
+    /**
+     * Gets type.
+     *
+     * @return the type
+     */
+    public MetricType getType() {
+        return type;
+    }
+
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Gets document.
+     *
+     * @return the document
+     */
+    public String getDocument() {
+        return document;
+    }
+
+    /**
+     * Gets labels.
+     *
+     * @return the labels
+     */
+    public List<String> getLabels() {
+        return labels;
+    }
 }

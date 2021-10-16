@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.config;
 
-import lombok.Data;
+import java.util.Objects;
 
-@Data
 public class WebsocketConfig {
     
     /**
@@ -27,4 +26,48 @@ public class WebsocketConfig {
      * 127.0.0.1:8888,127.0.0.1:8889
      */
     private String urls;
+
+    /**
+     * get urls.
+     *
+     * @return urls
+     */
+    public String getUrls() {
+        return urls;
+    }
+
+    /**
+     * set urls.
+     *
+     * @param urls urls
+     */
+    public void setUrls(final String urls) {
+        this.urls = urls;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        WebsocketConfig that = (WebsocketConfig) o;
+        return Objects.equals(urls, that.urls);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(urls);
+    }
+
+    @Override
+    public String toString() {
+        return "WebsocketConfig{"
+                + "urls='"
+                + urls
+                + '\''
+                + '}';
+    }
 }

@@ -22,8 +22,9 @@ import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.GetOption;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -31,8 +32,9 @@ import java.util.List;
 /**
  * Etcd client of Admin.
  */
-@Slf4j
 public class EtcdClient {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdClient.class);
 
     private final Client client;
 
@@ -52,13 +54,17 @@ public class EtcdClient {
      * @param key node name
      * @return bool
      */
-    @SneakyThrows
     public Boolean exists(final String key) {
-        GetOption option = GetOption.newBuilder()
-                .withPrefix(ByteSequence.from(key, StandardCharsets.UTF_8))
-                .build();
-        List<KeyValue> keyValues = client.getKVClient().get(ByteSequence.from(key, StandardCharsets.UTF_8), option).get().getKvs();
-        return !keyValues.isEmpty();
+        try {
+            GetOption option = GetOption.newBuilder()
+                    .withPrefix(ByteSequence.from(key, StandardCharsets.UTF_8))
+                    .build();
+            List<KeyValue> keyValues = client.getKVClient().get(ByteSequence.from(key, StandardCharsets.UTF_8), option).get().getKvs();
+            return !keyValues.isEmpty();
+        } catch (Exception e) {
+            LOG.error("check node exists error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
     }
 
     /**
@@ -66,9 +72,13 @@ public class EtcdClient {
      * @param key node name
      * @param value node value
      */
-    @SneakyThrows
     public void put(final String key, final String value) {
-        client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8)).get();
+        try {
+            client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8)).get();
+        } catch (Exception e) {
+            LOG.error("update value of node error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
     }
 
     /**

@@ -18,8 +18,6 @@
 package org.apache.shenyu.register.server.zookeeper;
 
 import com.google.common.collect.Lists;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +40,6 @@ import java.util.stream.Collectors;
 /**
  * Zookeeper register center.
  */
-@Slf4j
 @Join
 public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRepository {
     
@@ -55,9 +52,9 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
         this.init(config);
         this.publisher = publisher;
         Properties props = config.getProps();
-        int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "30000"));
-        int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
-        this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
+        int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "30000"));
+        int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
+        this.zkClient = new ZkClient(config.getServerLists(), sessionTimeout, connectionTimeout);
         initSubscribe();
     }
 
@@ -159,8 +156,7 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
             public void handleDataChange(final String dataPath, final Object data) {
                 publishMetadata(data.toString());
             }
-        
-            @SneakyThrows
+
             @Override
             public void handleDataDeleted(final String dataPath) {
               

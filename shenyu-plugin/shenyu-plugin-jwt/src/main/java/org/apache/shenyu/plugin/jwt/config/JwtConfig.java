@@ -17,15 +17,12 @@
 
 package org.apache.shenyu.plugin.jwt.config;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * The type Jwt config.
  */
-@Data
 public class JwtConfig implements Serializable {
 
     /**
@@ -37,4 +34,40 @@ public class JwtConfig implements Serializable {
      * No need to carry the authorization.
      */
     private List<String> filterPath;
+
+    /**
+     * Gets secret key.
+     *
+     * @return the secret key
+     */
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    /**
+     * Sets secret key.
+     *
+     * @param secretKey the secret key
+     */
+    public void setSecretKey(final String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    /**
+     * Gets filter path.
+     *
+     * @return the filter path
+     */
+    public List<String> getFilterPath() {
+        return filterPath;
+    }
+
+    /**
+     * Sets filter path.
+     *
+     * @param filterPath the filter path
+     */
+    public void setFilterPath(final List<String> filterPath) {
+        this.filterPath = filterPath;
+    }
 }

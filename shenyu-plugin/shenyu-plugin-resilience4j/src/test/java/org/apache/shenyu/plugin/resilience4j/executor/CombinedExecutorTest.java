@@ -62,7 +62,7 @@ public final class CombinedExecutorTest {
     @Test
     public void errorTest() {
         Resilience4JConf conf = mock(Resilience4JConf.class);
-        when(conf.getId()).thenReturn("SOUL");
+        when(conf.getId()).thenReturn("SHENYU");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
         when(conf.getTimeLimiterConfig()).thenReturn(TimeLimiterConfig.ofDefaults());
         when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());

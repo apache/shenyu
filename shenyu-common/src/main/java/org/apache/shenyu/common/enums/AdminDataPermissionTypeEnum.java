@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-
 /**
  * The admin data permission type enum.
  *

@@ -20,10 +20,15 @@ package org.apache.shenyu.web.handler;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.web.reactive.context.AnnotationConfigReactiveWebApplicationContext;
@@ -48,7 +53,11 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -58,12 +67,29 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class GlobalErrorHandlerTest {
 
+    private static Logger loggerSpy;
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
     private GlobalErrorHandler globalErrorHandler;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerSpy = spy(LoggerFactory.getLogger(GlobalErrorHandler.class));
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(GlobalErrorHandler.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() { });
 
         ErrorAttributes errorAttributes = new DefaultErrorAttributes();
@@ -78,6 +104,7 @@ public class GlobalErrorHandlerTest {
 
     @Test
     public void getErrorAttributes() {
+        doNothing().when(loggerSpy).error(anyString());
         ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/favicon.ico"));
         NullPointerException nullPointerException = new NullPointerException("nullPointerException");
         MockServerRequest serverRequest = MockServerRequest.builder()
@@ -86,7 +113,7 @@ public class GlobalErrorHandlerTest {
                 .build();
         Map<String, Object> response = globalErrorHandler.getErrorAttributes(serverRequest, false);
         assertNotNull(response);
-        assertThat(response, hasEntry("code", 500L));
+        assertThat(response, hasEntry("code", 500));
         assertThat(response, hasEntry("message", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()));
         assertThat(response, hasEntry("data", nullPointerException.getMessage()));
     }

@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.grpc.loadbalance;
 
 import io.grpc.LoadBalancer;
 import io.grpc.LoadBalancerProvider;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.RoundRobinPicker;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.AbstractReadyPicker;
 
@@ -28,7 +27,6 @@ import java.util.List;
 /**
  * RoundRobinLoadBalancerProvider.
  */
-@Slf4j
 public class RoundRobinLoadBalancerProvider extends LoadBalancerProvider {
 
     @Override
@@ -43,7 +41,7 @@ public class RoundRobinLoadBalancerProvider extends LoadBalancerProvider {
 
     @Override
     public String getPolicyName() {
-        return LoadBalancerStrategy.RoundRobin.getStrategy();
+        return LoadBalancerStrategy.ROUND_ROBIN.getStrategy();
     }
 
     @Override

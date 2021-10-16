@@ -266,8 +266,6 @@ The text of each license is the standard Apache 2.0 license.
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.12.1: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j-to-slf4j 2.12.1: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
-    mapstruct 1.3.1.Final: https://github.com/mapstruct/mapstruct, Apache 2.0
-    mapstruct-processor 1.3.1.Final: https://github.com/mapstruct/mapstruct, Apache 2.0
     micrometer-core 1.3.1: https://github.com/micrometer-metrics/micrometer, Apache 2.0
     mybatis 3.4.0: http://www.mybatis.org/mybatis-3, Apache 2.0
     mybatis-spring 1.3.0: http://www.mybatis.org/spring, Apache 2.0
@@ -370,7 +368,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     java-jwt 3.12.0: https://mvnrepository.com/artifact/com.auth0/java-jwt, MIT
     jcl-over-slf4j 1.7.29: https://www.slf4j.org, MIT
     jul-to-slf4j 1.7.29: http://www.slf4j.org, MIT
-    lombok 1.18.12: https://projectlombok.org, MIT
     pagehelper 5.1.2: https://github.com/pagehelper/Mybatis-PageHelper, MIT
     slf4j-api 1.7.29: https://www.slf4j.org, MIT
 
@@ -484,3 +481,12 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
    stylelint 9.2.1: https://stylelint.io, MIT
    stylelint-config-prettier 3.0.4: https://github.com/prettier/stylelint-config-prettier, MIT
    stylelint-config-standard 18.0.0: https://github.com/stylelint/stylelint-config-standard, MIT
+
+========================================================================
+CDDL licenses
+========================================================================
+
+The following components are provided under the CDDL License. See project link for details.
+The text of each license is also included at licenses/LICENSE-[project].txt.
+
+    jaxb-api 2.3.0: https://javaee.github.io/jaxb-v2, CDDL 1.1 and GPLv2

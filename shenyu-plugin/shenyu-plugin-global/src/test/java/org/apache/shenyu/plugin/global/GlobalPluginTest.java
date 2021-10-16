@@ -17,25 +17,22 @@
 
 package org.apache.shenyu.plugin.global;
 
-import lombok.SneakyThrows;
-import org.apache.shenyu.plugin.global.fixture.FixtureShenyuContextDecorator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.global.fixture.FixtureHttpShenyuContextDecorator;
+import org.apache.shenyu.plugin.global.fixture.FixtureWebSocketShenyuContextDecorator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,7 +61,8 @@ public final class GlobalPluginTest {
                 .header(UPGRADE, "Upgrade")
                 .build());
         Map<String, ShenyuContextDecorator> decoratorMap = new HashMap<>();
-        decoratorMap.put("http", new FixtureShenyuContextDecorator());
+        decoratorMap.put(RpcTypeEnum.HTTP.getName(), new FixtureHttpShenyuContextDecorator());
+        decoratorMap.put(RpcTypeEnum.WEB_SOCKET.getName(), new FixtureWebSocketShenyuContextDecorator());
         ShenyuContextBuilder builder = new DefaultShenyuContextBuilder(decoratorMap);
         this.globalPlugin = new GlobalPlugin(builder);
         this.chain = mock(ShenyuPluginChain.class);
@@ -82,25 +80,9 @@ public final class GlobalPluginTest {
         assertNotNull(this.exchange.getAttributes().get(Constants.CONTEXT));
     }
 
-    @SneakyThrows
-    @Test
-    public void testTransformMap() {
-        Class<GlobalPlugin> clazz = GlobalPlugin.class;
-        Method method = clazz.getDeclaredMethod("transformMap", MultiValueMap.class);
-        method.setAccessible(true);
-        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(1);
-        queryParams.add(Constants.MODULE, "module");
-        queryParams.add(Constants.METHOD, "method");
-        queryParams.add(Constants.RPC_TYPE, "RPC_TYPE");
-        ShenyuContext shenyuContext = (ShenyuContext) method.invoke(this.globalPlugin, queryParams);
-        assertEquals(shenyuContext.getModule(), "module");
-        assertEquals(shenyuContext.getMethod(), "method");
-        assertEquals(shenyuContext.getRpcType(), "RPC_TYPE");
-    }
-
     @Test
     public void testGetOrder() {
-        assertEquals(globalPlugin.getOrder(), 1);
+        assertEquals(globalPlugin.getOrder(), 10);
     }
 
     @Test

@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.examples.http.result;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -34,6 +37,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class PaymentTypeService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentTypeService.class);
+
     private static final String THREAD_NAME = "remote_type";
 
     private static final int MAX_THREADS = Runtime.getRuntime().availableProcessors() << 1;
@@ -48,7 +53,6 @@ public class PaymentTypeService {
      * Inject RemoteService.
      */
     private PaymentRemoteService paymentRemoteService;
-
 
     /**
      * Acquire remote payment types list.
@@ -66,9 +70,8 @@ public class PaymentTypeService {
         for (Future<ConsultResult> future : futureList) {
             try {
                 resultList.add(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                //打印日志。。。。
-                e.printStackTrace();
+            } catch (InterruptedException | ExecutionException ex) {
+                LOG.error(ex.getMessage(), ex);
             }
         }
         return resultList;

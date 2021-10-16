@@ -16,13 +16,11 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.4.0-SNAPSHOT</version>
+        <version>2.4.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,8 +30,6 @@
         <module>shenyu-plugin-api</module>
         <module>shenyu-plugin-base</module>
         <module>shenyu-plugin-divide</module>
-        <module>shenyu-plugin-alibaba-dubbo</module>
-        <module>shenyu-plugin-apache-dubbo</module>
         <module>shenyu-plugin-ratelimiter</module>
         <module>shenyu-plugin-monitor</module>
         <module>shenyu-plugin-sign</module>
@@ -50,7 +46,6 @@
         <module>shenyu-plugin-context-path</module>
         <module>shenyu-plugin-grpc</module>
         <module>shenyu-plugin-redirect</module>
-        <module>shenyu-plugin-dubbo-common</module>
         <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-modify-response</module>
@@ -59,5 +54,8 @@
         <module>shenyu-plugin-jwt</module>
         <module>shenyu-plugin-response</module>
         <module>shenyu-plugin-param-mapping</module>
+        <module>shenyu-plugin-cryptor</module>
+        <module>shenyu-plugin-websocket</module>
+        <module>shenyu-plugin-dubbo</module>
     </modules>
 </project>

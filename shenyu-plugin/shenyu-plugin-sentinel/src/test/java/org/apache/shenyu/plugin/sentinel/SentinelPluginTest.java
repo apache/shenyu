@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.sentinel;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.SentinelHandle;
+import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -82,7 +82,7 @@ public final class SentinelPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(applicationContext);
+        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
 
         sentinelPlugin = new SentinelPlugin(sentinelFallbackHandler);

@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -134,7 +133,7 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private AppAuthDO buildAppAuthDO() {
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         return AppAuthDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .appKey(SignUtils.getInstance().generateKey())

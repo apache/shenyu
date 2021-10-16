@@ -18,14 +18,14 @@
 package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.ImmutableList;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,8 +69,7 @@ public class NacosDataChangedListenerTest {
     private NacosDataChangedListener nacosDataChangedListener;
 
     @Test
-    @SneakyThrows
-    public void testOnAppAuthChanged() {
+    public void testOnAppAuthChanged() throws NacosException {
         String config = "{\"divide\":{\"appKey\":\"appKey\",\"appSecret\":\"appSecret\",\"open\":true}}";
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
 
@@ -92,8 +91,7 @@ public class NacosDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testOnPluginChanged() {
+    public void testOnPluginChanged() throws NacosException {
         String config = "{\"divide\":{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}}";
         PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
 
@@ -115,8 +113,7 @@ public class NacosDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testOnSelectorChanged() {
+    public void testOnSelectorChanged() throws NacosException {
         String config = "{\"divide\":[{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}]}";
         SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
 
@@ -138,8 +135,7 @@ public class NacosDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testOnMetaDataChanged() {
+    public void testOnMetaDataChanged() throws NacosException {
         String config = "{\"divide\":{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}}";
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
 
@@ -161,8 +157,7 @@ public class NacosDataChangedListenerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testOnRuleChanged() {
+    public void testOnRuleChanged() throws NacosException {
         String config = "{\"divide\":[{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}]}";
         RuleData ruleData = RuleData.builder()
                 .id(MOCK_ID)

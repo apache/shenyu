@@ -47,7 +47,7 @@ public final class HostAddressUtilsTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         this.remoteAddressResolver = new RemoteAddressResolver() {
         };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")

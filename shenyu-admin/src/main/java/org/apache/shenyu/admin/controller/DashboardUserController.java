@@ -17,12 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
-import org.apache.shenyu.admin.service.DashboardUserService;
-import org.apache.shenyu.admin.utils.AesUtils;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -30,6 +26,9 @@ import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
+import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.utils.AesUtils;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +49,6 @@ import java.util.Optional;
  * this is dashboard user controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/dashboardUser")
 public class DashboardUserController {
@@ -58,6 +56,11 @@ public class DashboardUserController {
     private final SecretProperties secretProperties;
 
     private final DashboardUserService dashboardUserService;
+
+    public DashboardUserController(final SecretProperties secretProperties, final DashboardUserService dashboardUserService) {
+        this.secretProperties = secretProperties;
+        this.dashboardUserService = dashboardUserService;
+    }
 
     /**
      * query dashboard users.
@@ -89,13 +92,11 @@ public class DashboardUserController {
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detailDashboardUser(@PathVariable("id") final String id) {
-        String key = secretProperties.getKey();
-        String iv = secretProperties.getIv();
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserEditVO).map(item -> {
-            item.setPassword(AesUtils.aesDecryption(item.getPassword(), key, iv));
+            item.setPassword("");
             return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item);
-        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
+        }).orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
     }
 
     /**
@@ -107,12 +108,12 @@ public class DashboardUserController {
     @PostMapping("")
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         String key = secretProperties.getKey();
-        String iv = secretProperties.getKey();
+        String iv = secretProperties.getIv();
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), key, iv));
             Integer createCount = dashboardUserService.createOrUpdate(item);
             return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
-        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
+        }).orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
 
     /**

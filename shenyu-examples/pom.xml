@@ -33,7 +33,7 @@
     </parent>
 
     <properties>
-        <shenyu.version>2.4.0-SNAPSHOT</shenyu.version>
+        <shenyu.version>2.4.1-SNAPSHOT</shenyu.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
     </properties>
@@ -47,6 +47,8 @@
         <module>shenyu-examples-tars</module>
         <module>shenyu-examples-grpc</module>
         <module>shenyu-examples-motan</module>
+        <module>shenyu-examples-plugin</module>
+        <module>shenyu-examples-websocket</module>
     </modules>
 
     <build>

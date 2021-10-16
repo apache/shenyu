@@ -17,16 +17,15 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
-import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
-import org.apache.shenyu.admin.service.ShenyuDictService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,12 +46,15 @@ import java.util.Objects;
  * this is a shenyu dict controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/shenyu-dict")
 public class ShenyuDictController {
 
     private final ShenyuDictService shenyuDictService;
+
+    public ShenyuDictController(final ShenyuDictService shenyuDictService) {
+        this.shenyuDictService = shenyuDictService;
+    }
 
     /**
      * query shenyu dicts.

@@ -1,0 +1,104 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+version: "3.9"
+services:
+  shenyu-admin:
+    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    container_name: shenyu-admin
+    restart: always
+    networks:
+      - shenyu
+    ports:
+      - 9095:9095
+    environment:
+      - SPRING_PROFILES_ACTIVE=h2
+      - "shenyu.database.init_script=sql-script/h2/schema.sql"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+  shenyu-examples-eureka:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-eureka
+    image: shenyu-examples-eureka:latest
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8761/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - 8761:8761
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+  shenyu-examples-springcloud:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-springcloud
+    image: shenyu-examples-springcloud:latest
+    restart: always
+    environment:
+      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8884/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - 8884:8884
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-integrated-test-spring-cloud:
+        condition: service_healthy
+  #  from http plugin dockerfile
+  shenyu-integrated-test-spring-cloud:
+    container_name: shenyu-integrated-test-spring-cloud
+    image: apache/shenyu-integrated-test-spring-cloud:latest
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    environment:
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/
+    depends_on:
+      - shenyu-examples-eureka
+      - shenyu-admin
+    ports:
+      - 9195:9195
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-spring-cloud:9195/actuator/health" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    networks:
+      - shenyu
+
+networks:
+  shenyu:
+    name: shenyu

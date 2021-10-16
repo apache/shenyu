@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.spring;
 
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationContext;
 
 /**
  * SpringBeanUtils.
@@ -26,7 +26,7 @@ public final class SpringBeanUtils {
 
     private static final SpringBeanUtils INSTANCE = new SpringBeanUtils();
 
-    private ConfigurableApplicationContext cfgContext;
+    private ApplicationContext applicationContext;
 
     private SpringBeanUtils() {
     }
@@ -48,15 +48,15 @@ public final class SpringBeanUtils {
      * @return bean bean
      */
     public <T> T getBean(final Class<T> type) {
-        return cfgContext.getBean(type);
+        return applicationContext.getBean(type);
     }
 
     /**
      * set application context.
      *
-     * @param cfgContext application context
+     * @param applicationContext application context
      */
-    public void setCfgContext(final ConfigurableApplicationContext cfgContext) {
-        this.cfgContext = cfgContext;
+    public void setApplicationContext(final ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 }

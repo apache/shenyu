@@ -17,13 +17,12 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
-import org.apache.shenyu.admin.service.RoleService;
 import org.apache.shenyu.admin.model.dto.PermissionDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
@@ -38,6 +37,7 @@ import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleEditVO.PermissionInfo;
 import org.apache.shenyu.admin.model.vo.RoleEditVO.ResourceInfo;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.apache.shenyu.admin.service.RoleService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.RoleService}.
  */
-@RequiredArgsConstructor
 @Service
 public class RoleServiceImpl implements RoleService {
 
@@ -60,6 +59,12 @@ public class RoleServiceImpl implements RoleService {
     private final PermissionMapper permissionMapper;
 
     private final ResourceMapper resourceMapper;
+
+    public RoleServiceImpl(final RoleMapper roleMapper, final PermissionMapper permissionMapper, final ResourceMapper resourceMapper) {
+        this.roleMapper = roleMapper;
+        this.permissionMapper = permissionMapper;
+        this.resourceMapper = resourceMapper;
+    }
 
     /**
      * create or update role info.
@@ -122,9 +127,9 @@ public class RoleServiceImpl implements RoleService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<RoleVO> listByPage(final RoleQuery roleQuery) {
         return PageResultUtils.result(roleQuery.getPageParameter(),
-            () -> roleMapper.countByQuery(roleQuery),
             () -> roleMapper.selectByQuery(roleQuery).stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
     }
 

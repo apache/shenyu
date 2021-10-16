@@ -29,7 +29,8 @@ import com.coreos.jetcd.options.GetOption;
 import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.watch.WatchResponse;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,8 +46,9 @@ import java.util.stream.Collectors;
 /**
  * etcd client.
  */
-@Slf4j
 public class EtcdClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClient.class);
 
     private static final int EPHEMERAL_LEASE = 60;
 
@@ -73,7 +75,7 @@ public class EtcdClient {
         try {
             initLease();
         } catch (ExecutionException | InterruptedException e) {
-            log.error("initLease error.", e);
+            LOGGER.error("initLease error.", e);
         }
     }
 
@@ -96,12 +98,12 @@ public class EtcdClient {
         try {
             response = kv.get(storeKey).get();
         } catch (InterruptedException | ExecutionException e) {
-            log.error("read(key:{}) error.", key, e);
+            LOGGER.error("read(key:{}) error.", key, e);
         }
         if (response == null) {
             return null;
         }
-        log.debug(String.valueOf(response.getHeader()));
+        LOGGER.debug(String.valueOf(response.getHeader()));
         Node info = response.getKvs().stream().map(EtcdClient::kv2NodeInfo).findFirst().orElse(null);
         assert info != null;
         return info.getValue();
@@ -116,7 +118,7 @@ public class EtcdClient {
         try {
             return listKeys(path);
         } catch (ExecutionException | InterruptedException e) {
-            log.error("getChildren(path:{}) error.", path, e);
+            LOGGER.error("getChildren(path:{}) error.", path, e);
         }
         return null;
     }
@@ -144,7 +146,7 @@ public class EtcdClient {
                 watchChildren(key, stoppable, handler);
             } catch (Exception e) {
                 stoppable.stop();
-                log.warn(String.format("Watch exception of %s", "/s"), e);
+                LOGGER.warn(String.format("Watch exception of %s", "/s"), e);
             }
         });
     }

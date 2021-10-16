@@ -4,8 +4,6 @@ There are two key points:
 1. Using docker compose to build a test environment. We start MySQL, database, redis and other dependencies in docker;
 2. Writing integrated tests under `shenyu-integrated-tests/src/test`.
 
-To support the integrated tests, we must prepare some data. So we update `shenyu-admin` `schema.sql` file.
-
 ## Quick start
 **You must install Docker**!
 
@@ -44,13 +42,10 @@ docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-http/docker-co
 That's the easy case!
 
 You just need to do those steps:
-1. Prepare data. It means that you must insert some data into `shenyu-admin` database. 
-   So, you need to update `shenyu-integated-test-{plugin}/admin-config/schema.sql`
-   
-2. (Optional) Update gateway configure. The configure file is under 
+1. (Optional) Update gateway configure. The configure file is under 
    `shenyu-integated-test-{plugin}/src/main/resources/application-local.yml`
    
-3. Writing new test cases under  `shenyu-integated-test-{plugin}/src/test`
+2. Writing new test cases under  `shenyu-integated-test-{plugin}/src/test`.
 
 ### Writing integrated tests for new plugin
 In this case, we didn't write tests for this plugin, so you need to setup the environment by yourself.
@@ -74,7 +69,10 @@ You could copy other plugins' `docker-compose` file. Update the image of example
 
 #### Prepare data for integrated tests
 
-Update `admin-config/schema.sql` to prepare data
+Now, we can request related path in `PluginController` in `shenyu-web` to modify the configuration of shenyu gateway.
+You could extends `AbstractPluginDataInit` and call method in `AbstractPluginDataInit` to change the configuration in shenyu.
+
+However, pls remember to clean after class.
 
 #### Writing tests
 

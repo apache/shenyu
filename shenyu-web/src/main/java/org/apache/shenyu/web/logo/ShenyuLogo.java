@@ -17,22 +17,26 @@
 
 package org.apache.shenyu.web.logo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.VersionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.context.logging.LoggingApplicationListener;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * the shenyu logo.
  */
 @Order(LoggingApplicationListener.DEFAULT_ORDER + 1)
-@Slf4j
 public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+    
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuLogo.class);
 
     private static final String SHENYU_LOGO = "\n"
         + "   _____ _                            \n"
@@ -51,7 +55,7 @@ public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPre
         if (!alreadyLog.compareAndSet(false, true)) {
             return;
         }
-        log.info(buildBannerText());
+        LOG.info(buildBannerText());
     }
 
     private String buildBannerText() {

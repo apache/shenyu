@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
@@ -36,16 +36,19 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ShenyuDictService}.
  */
-@RequiredArgsConstructor
 @Service
 public class ShenyuDictServiceImpl implements ShenyuDictService {
 
     private final ShenyuDictMapper shenyuDictMapper;
 
+    public ShenyuDictServiceImpl(final ShenyuDictMapper shenyuDictMapper) {
+        this.shenyuDictMapper = shenyuDictMapper;
+    }
+
     @Override
+    @Pageable
     public CommonPager<ShenyuDictVO> listByPage(final ShenyuDictQuery shenyuDictQuery) {
         return PageResultUtils.result(shenyuDictQuery.getPageParameter(),
-            () -> shenyuDictMapper.countByQuery(shenyuDictQuery),
             () -> shenyuDictMapper.selectByQuery(shenyuDictQuery)
                         .stream()
                         .map(ShenyuDictVO::buildShenyuDictVO)

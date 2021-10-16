@@ -43,6 +43,10 @@ runs:
         fi
 
         echo "Base sha is $BASE_SHA, head sha is $GITHUB_SHA"
+        
+        if [[ "$BASE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+          BASE_SHA="master"
+        fi
 
         git fetch --no-tags --progress --recurse-submodules --depth=1 origin ${BASE_SHA}:origin/${BASE_SHA}
         BASE_SHA=origin/${BASE_SHA}

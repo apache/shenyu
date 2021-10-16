@@ -20,22 +20,29 @@ package org.apache.shenyu.sync.data.http.refresh;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The type Plugin data refresh.
  */
-@Slf4j
-@RequiredArgsConstructor
 public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
 
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(PluginDataRefresh.class);
+
     private final PluginDataSubscriber pluginDataSubscriber;
+
+    public PluginDataRefresh(final PluginDataSubscriber pluginDataSubscriber) {
+        this.pluginDataSubscriber = pluginDataSubscriber;
+    }
 
     @Override
     protected JsonObject convert(final JsonObject data) {
@@ -62,7 +69,7 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
     protected void refresh(final List<PluginData> data) {
         pluginDataSubscriber.refreshPluginDataAll();
         if (CollectionUtils.isEmpty(data)) {
-            log.info("clear all plugin data cache");
+            LOG.info("clear all plugin data cache");
             return;
         }
         data.forEach(pluginDataSubscriber::onSubscribe);

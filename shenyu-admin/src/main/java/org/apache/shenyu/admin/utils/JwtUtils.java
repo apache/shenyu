@@ -23,27 +23,23 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import lombok.Data;
-import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.model.custom.UserInfo;
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
 
 /**
  * JWT tools.
  */
-@UtilityClass
-@Slf4j
-@Data
 public final class JwtUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JwtUtils.class);
+
+    private static final long TOKEN_EXPIRE_SECONDS = 24 * 60 * 60 * 1000L;
 
     /**
      * according to token to get isUserInfo.
@@ -62,54 +58,48 @@ public final class JwtUtils {
      */
     public static String getIssuer(final String token) {
         DecodedJWT jwt = JWT.decode(token);
-        return Optional.ofNullable(jwt).map(item -> item.getClaim("userName").asString()).orElse("");
-    }
-
-    /**
-     * according to token to get issuer date.
-     *
-     * @param token token
-     * @return issuer date {@link LocalDate}
-     */
-    public static LocalDate getIssuerDate(final String token) {
-        DecodedJWT jwt = verifierToken(token);
-        if (jwt == null) {
-            return null;
-        }
-        Date date = jwt.getIssuedAt();
-        return Optional.ofNullable(date)
-                .map(it -> it.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-                .orElse(null);
+        return Optional.of(jwt).map(item -> item.getClaim("userName").asString()).orElse("");
     }
 
     /**
      * generate jwt token.
      *
      * @param userName login's userName
+     * @param key secretKey
      * @return token
      */
-    public static String generateToken(final String userName) {
+    public static String generateToken(final String userName, final String key) {
+        return generateToken(userName, key, null);
+    }
+
+    /**
+     * generate jwt token.
+     *
+     * @param userName login's userName
+     * @param key secretKey
+     * @param expireSeconds expireSeconds
+     * @return token
+     */
+    public static String generateToken(final String userName, final String key, final Long expireSeconds) {
         try {
-            return JWT.create().withClaim("userName", userName).withExpiresAt(new Date()).sign(generateAlgorithm());
+            return JWT.create()
+                    .withClaim("userName", userName)
+                    .withExpiresAt(new Date(System.currentTimeMillis() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)))
+                    .sign(Algorithm.HMAC256(key));
         } catch (IllegalArgumentException | JWTCreationException e) {
-            log.error("JWTToken generate fail ", e);
+            LOG.error("JWTToken generate fail ", e);
         }
         return StringUtils.EMPTY_STRING;
     }
 
-    private static DecodedJWT verifierToken(final String token) {
-        DecodedJWT jwt = null;
+    public static boolean verifyToken(final String token, final String key) {
         try {
-            JWTVerifier verifier = JWT.require(generateAlgorithm()).build();
-            jwt = verifier.verify(token);
+            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(key)).build();
+            verifier.verify(token);
+            return true;
         } catch (JWTVerificationException e) {
-            log.info("jwt decode fail, token: {} ", token, e);
+            LOG.info("jwt decode fail, token: {} ", token, e);
         }
-        return jwt;
-    }
-
-    private static Algorithm generateAlgorithm() {
-        JwtProperties properties = SpringBeanUtils.getInstance().getBean(JwtProperties.class);
-        return Algorithm.HMAC256(properties.getKey());
+        return false;
     }
 }

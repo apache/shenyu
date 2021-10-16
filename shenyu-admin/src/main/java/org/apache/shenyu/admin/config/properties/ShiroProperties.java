@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +25,6 @@ import java.util.List;
 /**
  * Shiro properties.
  */
-@Data
 @Component("shiroProperties")
 @ConfigurationProperties(prefix = "shenyu.shiro")
 public class ShiroProperties {
@@ -35,4 +33,22 @@ public class ShiroProperties {
      * shiro's white list.
      */
     private List<String> whiteList;
+
+    /**
+     * Gets the value of whiteList.
+     *
+     * @return the value of whiteList
+     */
+    public List<String> getWhiteList() {
+        return whiteList;
+    }
+
+    /**
+     * Sets the whiteList.
+     *
+     * @param whiteList whiteList
+     */
+    public void setWhiteList(final List<String> whiteList) {
+        this.whiteList = whiteList;
+    }
 }

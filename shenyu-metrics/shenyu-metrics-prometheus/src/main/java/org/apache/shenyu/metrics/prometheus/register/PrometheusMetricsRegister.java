@@ -20,20 +20,18 @@ package org.apache.shenyu.metrics.prometheus.register;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.metrics.spi.MetricsRegister;
 import org.apache.shenyu.spi.Join;
-
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Prometheus metrics register.
  */
-@Slf4j
 @Join
 public final class PrometheusMetricsRegister implements MetricsRegister {
-    
+
     private static final Map<String, Counter> COUNTER_MAP = new ConcurrentHashMap<>();
     
     private static final Map<String, Gauge> GAUGE_MAP = new ConcurrentHashMap<>();
@@ -47,7 +45,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
             if (null != labelNames) {
                 builder.labelNames(labelNames);
             }
-            COUNTER_MAP.put(name, builder.register());
+            COUNTER_MAP.putIfAbsent(name, builder.register());
         }
     }
     
@@ -58,7 +56,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
             if (null != labelNames) {
                 builder.labelNames(labelNames);
             }
-            GAUGE_MAP.put(name, builder.register());
+            GAUGE_MAP.putIfAbsent(name, builder.register());
         }
     }
     
@@ -69,13 +67,16 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
             if (null != labelNames) {
                 builder.labelNames(labelNames);
             }
-            HISTOGRAM_MAP.put(name, builder.register());
+            HISTOGRAM_MAP.putIfAbsent(name, builder.register());
         }
     }
     
     @Override
     public void counterIncrement(final String name, final String[] labelValues, final long count) {
         Counter counter = COUNTER_MAP.get(name);
+        if (Objects.isNull(counter)) {
+            return;
+        }
         if (null != labelValues) {
             counter.labels(labelValues).inc(count);
         } else {
@@ -86,6 +87,9 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     @Override
     public void gaugeIncrement(final String name, final String[] labelValues) {
         Gauge gauge = GAUGE_MAP.get(name);
+        if (Objects.isNull(gauge)) {
+            return;
+        }
         if (null != labelValues) {
             gauge.labels(labelValues).inc();
         } else {
@@ -96,6 +100,9 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     @Override
     public void gaugeDecrement(final String name, final String[] labelValues) {
         Gauge gauge = GAUGE_MAP.get(name);
+        if (Objects.isNull(gauge)) {
+            return;
+        }
         if (null != labelValues) {
             gauge.labels(labelValues).dec();
         } else {
@@ -106,10 +113,23 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     @Override
     public void recordTime(final String name, final String[] labelValues, final long duration) {
         Histogram histogram = HISTOGRAM_MAP.get(name);
+        if (Objects.isNull(histogram)) {
+            return;
+        }
         if (null != labelValues) {
             histogram.labels(labelValues).observe(duration);
         } else {
             histogram.observe(duration);
         }
+    }
+    
+    /**
+     * Clean.
+     */
+    @Override
+    public void clean() {
+        COUNTER_MAP.clear();
+        GAUGE_MAP.clear();
+        HISTOGRAM_MAP.clear();
     }
 }

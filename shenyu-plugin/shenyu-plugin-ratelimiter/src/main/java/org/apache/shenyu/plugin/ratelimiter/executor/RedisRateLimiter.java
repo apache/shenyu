@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.plugin.ratelimiter.executor;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
 import org.apache.shenyu.plugin.ratelimiter.response.RateLimiterResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import reactor.core.publisher.Flux;
@@ -36,8 +37,9 @@ import java.util.List;
 /**
  * RedisRateLimiter.
  */
-@Slf4j
 public class RedisRateLimiter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RedisRateLimiter.class);
     
     /**
      * Verify using different current limiting algorithm scripts. 
@@ -65,7 +67,7 @@ public class RedisRateLimiter {
                     Long tokensLeft = results.get(1);
                     return new RateLimiterResponse(allowed, tokensLeft);
                 })
-                .doOnError(throwable -> log.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage()))
+                .doOnError(throwable -> LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage()))
                 .doFinally(signalType -> rateLimiterAlgorithm.callback(script, keys, scriptArgs));
     }
     

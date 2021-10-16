@@ -20,20 +20,21 @@ package org.apache.shenyu.plugin.divide;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
+import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -46,7 +47,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -69,6 +73,8 @@ public final class DividePluginTest {
 
     private List<DivideUpstream> divideUpstreamList;
 
+    private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
+    
     @Before
     public void setup() {
         this.ruleData = mock(RuleData.class);
@@ -86,6 +92,15 @@ public final class DividePluginTest {
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
         this.dividePlugin = new DividePlugin();
+
+        // mock static
+        mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
+        mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+    }
+
+    @After
+    public void tearDown() {
+        mockCheckUtils.close();
     }
 
     /**
@@ -138,16 +153,16 @@ public final class DividePluginTest {
     /**
      * Init mock info.
      */
-    private void initMockInfo() {
-
+    private void initMockInfo() { 
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
+        DivideRuleHandle handle = new DivideRuleHandle();
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
-        DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(GsonUtils.getGson().toJson(handle), DivideRuleHandle.class);
-        UpstreamCacheManager.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
-        UpstreamCacheManager.getInstance().submit(selectorData);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        dividePluginDataHandler.handlerRule(ruleData);
+        dividePluginDataHandler.handlerSelector(selectorData);
         when(context.getRealUrl()).thenReturn("mock-real");
         exchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(exchange)).thenReturn(Mono.empty());

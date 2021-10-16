@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
@@ -29,17 +30,21 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shiro.SecurityUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -47,12 +52,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * add test case for {@link PermissionServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PermissionServiceTest {
+public final class PermissionServiceTest {
 
     @Mock
     private DashboardUserMapper mockDashboardUserMapper;
@@ -66,8 +72,6 @@ public class PermissionServiceTest {
     @Mock
     private ResourceMapper mockResourceMapper;
 
-    private ResourceService resourceService;
-
     private PermissionServiceImpl permissionServiceImplUnderTest;
 
     @Mock
@@ -77,7 +81,7 @@ public class PermissionServiceTest {
     public void setUp() throws Exception {
         SecurityUtils.setSecurityManager(securityManager);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         final DashboardUserDO dashboardUserDO = DashboardUserDO.builder().id("1").userName("admin").role(1).enabled(true).build();
         final UserRoleDO userRoleDO = UserRoleDO.builder().userId("1").roleId("1346358560427216896")
                 .id("1351007709096976384").dateCreated(new Timestamp(1610940313000L)).dateUpdated(new Timestamp(1610940313000L)).build();
@@ -107,32 +111,37 @@ public class PermissionServiceTest {
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1347053375029653504").build();
         when(mockDashboardUserMapper.selectByUserName("admin")).thenReturn(dashboardUserDO);
-        when(mockUserRoleMapper.findByUserId("1")).thenReturn(Arrays.asList(userRoleDO));
+        when(mockUserRoleMapper.findByUserId("1")).thenReturn(Collections.singletonList(userRoleDO));
         when(mockPermissionMapper.findByObjectId("1346358560427216896")).thenReturn(permissionDOS);
         when(mockResourceMapper.selectById("1346775491550474240")).thenReturn(resourceDO1);
         when(mockResourceMapper.selectById("1346776175553376256")).thenReturn(resourceDO2);
         when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);
         when(mockResourceMapper.selectById("1347053375029653504")).thenReturn(resourceDO4);
-        resourceService = new ResourceServiceImpl(mockResourceMapper, mockPermissionMapper);
+        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
+        ResourceService resourceService = new ResourceServiceImpl(mockResourceMapper, mockPermissionMapper);
         permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper, resourceService);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testGetPermissionMenu() {
-        final PermissionMenuVO expectedResult = new PermissionMenuVO(Arrays.asList(
-                new PermissionMenuVO.MenuInfo("1346776175553376256", "system", "/system", "system",
-                        new PermissionMenuVO.Meta("setting", "SHENYU.MENU.SYSTEM.MANAGMENT"), Arrays.asList(
-                        new PermissionMenuVO.MenuInfo("1346777157943259136", "manage", "/system/manage", "manage",
-                                new PermissionMenuVO.Meta("", "SHENYU.MENU.SYSTEM.MANAGMENT.USER"), Arrays.asList(), 1)
-                ), 1),
-                new PermissionMenuVO.MenuInfo("1346775491550474240", "plug", "/plug", "PluginList",
-                        new PermissionMenuVO.Meta("dashboard", "SHENYU.MENU.PLUGIN.LIST"), Arrays.asList(), 0)
-        ),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)));
-        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImlhdCI6MTYxMTc5MjEzOX0.eFORUk5kZawKLTsfRYojy-uaaDySo9kWtcfgxISS_3g";
-        final PermissionMenuVO result = permissionServiceImplUnderTest.getPermissionMenu(token);
-        assertThat(result, is(expectedResult));
+        try (MockedStatic<JwtUtils> mocked = mockStatic(JwtUtils.class)) {
+            mocked.when(JwtUtils::getUserInfo)
+                    .thenAnswer((Answer<UserInfo>) invocation -> UserInfo.builder().userId("1").userName("admin").build());
+            final PermissionMenuVO expectedResult = new PermissionMenuVO(Arrays.asList(
+                    new PermissionMenuVO.MenuInfo("1346776175553376256", "system", "/system", "system",
+                            new PermissionMenuVO.Meta("setting", "SHENYU.MENU.SYSTEM.MANAGMENT"), Collections.singletonList(
+                            new PermissionMenuVO.MenuInfo("1346777157943259136", "manage", "/system/manage", "manage",
+                                    new PermissionMenuVO.Meta("", "SHENYU.MENU.SYSTEM.MANAGMENT.USER"), Collections.emptyList(), 1)
+                    ), 1),
+                    new PermissionMenuVO.MenuInfo("1346775491550474240", "plug", "/plug", "PluginList",
+                            new PermissionMenuVO.Meta("dashboard", "SHENYU.MENU.PLUGIN.LIST"), Collections.emptyList(), 0)
+            ),
+                    Collections.singletonList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)),
+                    Collections.singletonList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)));
+            String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImlhdCI6MTYxMTc5MjEzOX0.eFORUk5kZawKLTsfRYojy-uaaDySo9kWtcfgxISS_3g";
+            final PermissionMenuVO result = permissionServiceImplUnderTest.getPermissionMenu(token);
+            assertThat(result, is(expectedResult));
+        }
     }
 
     @Test

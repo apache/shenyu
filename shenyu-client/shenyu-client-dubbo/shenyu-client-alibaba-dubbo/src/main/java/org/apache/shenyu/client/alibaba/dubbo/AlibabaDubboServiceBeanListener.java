@@ -20,16 +20,16 @@ package org.apache.shenyu.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -40,23 +40,18 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
  * The Alibaba Dubbo ServiceBean Listener.
  */
-@Slf4j
 @SuppressWarnings("all")
 public class AlibabaDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private AtomicBoolean registered = new AtomicBoolean(false);
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -77,8 +72,22 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-alibaba-dubbo-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
+    }
+    
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        if (!registered.compareAndSet(false, true)) {
+            return;
+        }
+        // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
+        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
+        for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
+            handler(entry.getValue());
+        }
+        serviceBean.values().stream().findFirst().ifPresent(bean -> {
+            publisher.publishEvent(buildURIRegisterDTO(bean));
+        });
     }
 
     private void handler(final ServiceBean<?> serviceBean) {
@@ -97,35 +106,39 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
-        String appName = this.appName;
-        if (StringUtils.isEmpty(appName)) {
-            appName = serviceBean.getApplication().getName();
-        }
+        String appName = buildAppName(serviceBean);
         String path = contextPath + shenyuDubboClient.path();
         String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = shenyuDubboClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-                .collect(Collectors.joining(","));
+        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(contextPath)
-                .host(host)
-                .port(port)
+                .host(buildHost())
+                .port(buildPort(serviceBean))
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcExt(buildRpcExt(serviceBean))
-                .rpcType("dubbo")
+                .rpcType(RpcTypeEnum.DUBBO.getName())
                 .enabled(shenyuDubboClient.enabled())
+                .build();
+    }
+    
+    private URIRegisterDTO buildURIRegisterDTO(final ServiceBean serviceBean) {
+        return URIRegisterDTO.builder()
+                .contextPath(this.contextPath)
+                .appName(buildAppName(serviceBean))
+                .rpcType(RpcTypeEnum.DUBBO.getName())
+                .host(buildHost())
+                .port(buildPort(serviceBean))
                 .build();
     }
 
@@ -139,18 +152,17 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
                 .url("")
                 .build();
         return GsonUtils.getInstance().toJson(builder);
-
     }
-
-    @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        if (!registered.compareAndSet(false, true)) {
-            return;
-        }
-        // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
-        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
-        for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
-            executorService.execute(() -> handler(entry.getValue()));
-        }
+    
+    private String buildAppName(final ServiceBean serviceBean) {
+        return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
+    }
+    
+    private String buildHost() {
+        return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+    }
+    
+    private int buildPort(final ServiceBean serviceBean) {
+        return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
 }

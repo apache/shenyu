@@ -21,22 +21,22 @@ import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The interface Meta data transfer.
  */
-@Mapper
-public interface MetaDataTransfer {
+public enum MetaDataTransfer {
 
     /**
      * The constant INSTANCE.
      */
-    MetaDataTransfer INSTANCE = Mappers.getMapper(MetaDataTransfer.class);
+    INSTANCE;
 
     /**
      * Map to entity meta data do.
@@ -44,7 +44,22 @@ public interface MetaDataTransfer {
      * @param metaDataDTO the meta data dto
      * @return the meta data do
      */
-    MetaDataDO mapToEntity(MetaDataDTO metaDataDTO);
+    public MetaDataDO mapToEntity(final MetaDataDTO metaDataDTO) {
+        return Optional.ofNullable(metaDataDTO)
+                .map(dto -> MetaDataDO.builder()
+                        .id(dto.getId())
+                        .appName(dto.getAppName())
+                        .path(dto.getPath())
+                        .pathDesc(dto.getPathDesc())
+                        .rpcType(dto.getRpcType())
+                        .serviceName(dto.getServiceName())
+                        .methodName(dto.getMethodName())
+                        .parameterTypes(dto.getParameterTypes())
+                        .rpcExt(dto.getRpcExt())
+                        .enabled(dto.getEnabled())
+                        .build())
+                .orElse(null);
+    }
 
     /**
      * Map to entity meta data do.
@@ -52,7 +67,21 @@ public interface MetaDataTransfer {
      * @param metaDataDTO the meta data dto
      * @return the meta data do
      */
-    MetaDataDO mapRegisterDTOToEntity(MetaDataRegisterDTO metaDataDTO);
+    public MetaDataDO mapRegisterDTOToEntity(final MetaDataRegisterDTO metaDataDTO) {
+        return Optional.ofNullable(metaDataDTO)
+                .map(dto -> MetaDataDO.builder()
+                        .appName(dto.getAppName())
+                        .path(dto.getPath())
+                        .pathDesc(dto.getPathDesc())
+                        .rpcType(dto.getRpcType())
+                        .serviceName(dto.getServiceName())
+                        .methodName(dto.getMethodName())
+                        .parameterTypes(dto.getParameterTypes())
+                        .rpcExt(dto.getRpcExt())
+                        .enabled(dto.isEnabled())
+                        .build())
+                .orElse(null);
+    }
 
     /**
      * Map to data meta data.
@@ -60,7 +89,22 @@ public interface MetaDataTransfer {
      * @param metaDataDTO the meta data dto
      * @return the meta data
      */
-    MetaData mapToData(MetaDataDTO metaDataDTO);
+    public MetaData mapToData(final MetaDataDTO metaDataDTO) {
+        return Optional.ofNullable(metaDataDTO)
+                .map(v -> MetaData.builder()
+                        .id(v.getId())
+                        .appName(v.getAppName())
+                        .contextPath(v.getContextPath())
+                        .path(v.getPath())
+                        .rpcType(v.getRpcType())
+                        .serviceName(v.getServiceName())
+                        .methodName(v.getMethodName())
+                        .parameterTypes(v.getParameterTypes())
+                        .rpcExt(v.getRpcExt())
+                        .enabled(v.getEnabled())
+                        .build())
+                .orElse(null);
+    }
 
     /**
      * Map to data meta data.
@@ -68,7 +112,21 @@ public interface MetaDataTransfer {
      * @param metaDataDO the meta data dto
      * @return the meta data
      */
-    MetaData mapToData(MetaDataDO metaDataDO);
+    public MetaData mapToData(final MetaDataDO metaDataDO) {
+        return Optional.ofNullable(metaDataDO)
+                .map(v -> MetaData.builder()
+                        .id(v.getId())
+                        .appName(v.getAppName())
+                        .path(v.getPath())
+                        .rpcType(v.getRpcType())
+                        .serviceName(v.getServiceName())
+                        .methodName(v.getMethodName())
+                        .parameterTypes(v.getParameterTypes())
+                        .rpcExt(v.getRpcExt())
+                        .enabled(v.getEnabled())
+                        .build())
+                .orElse(null);
+    }
 
     /**
      * Map to data all list.
@@ -76,7 +134,11 @@ public interface MetaDataTransfer {
      * @param metaDataDOList the meta data do list
      * @return the list
      */
-    List<MetaData> mapToDataAll(List<MetaDataDO> metaDataDOList);
+    public List<MetaData> mapToDataAll(final List<MetaDataDO> metaDataDOList) {
+        return Optional.ofNullable(metaDataDOList)
+                .map(v -> v.stream().map(this::mapToData).collect(Collectors.toList()))
+                .orElse(null);
+    }
 
     /**
      * Map to vo meta data vo.
@@ -84,7 +146,27 @@ public interface MetaDataTransfer {
      * @param metaDataDO the meta data do
      * @return the meta data vo
      */
-    MetaDataVO mapToVO(MetaDataDO metaDataDO);
+    public MetaDataVO mapToVO(final MetaDataDO metaDataDO) {
+        return Optional.ofNullable(metaDataDO)
+                .map(v -> {
+                    MetaDataVO metaDataVO = new MetaDataVO();
+                    metaDataVO.setAppName(metaDataDO.getAppName());
+                    metaDataVO.setPath(metaDataDO.getPath());
+                    metaDataVO.setPathDesc(metaDataDO.getPathDesc());
+                    metaDataVO.setRpcType(metaDataDO.getRpcType());
+                    metaDataVO.setServiceName(metaDataDO.getServiceName());
+                    metaDataVO.setMethodName(metaDataDO.getMethodName());
+                    metaDataVO.setParameterTypes(metaDataDO.getParameterTypes());
+                    metaDataVO.setRpcExt(metaDataDO.getRpcExt());
+                    metaDataVO.setId(metaDataDO.getId());
+                    metaDataVO.setEnabled(metaDataDO.getEnabled());
+                    metaDataVO.setDateCreated(Optional.ofNullable(metaDataDO.getDateCreated())
+                            .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime())).orElse(null));
+                    metaDataVO.setDateUpdated(Optional.ofNullable(metaDataDO.getDateUpdated())
+                            .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime())).orElse(null));
+                    return metaDataVO;
+                }).orElse(null);
+    }
 
     /**
      * Map to vo list list.
@@ -92,6 +174,9 @@ public interface MetaDataTransfer {
      * @param metaDataDOList the meta data do list
      * @return the list
      */
-    List<MetaDataVO> mapToVOList(List<MetaDataDO> metaDataDOList);
-
+    public List<MetaDataVO> mapToVOList(final List<MetaDataDO> metaDataDOList) {
+        return Optional.ofNullable(metaDataDOList)
+                .map(v -> v.stream().map(this::mapToVO).collect(Collectors.toList()))
+                .orElse(null);
+    }
 }

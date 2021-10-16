@@ -25,14 +25,14 @@ import com.alipay.sofa.rpc.config.RegistryConfig;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.SofaRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -42,8 +42,9 @@ import java.util.concurrent.ExecutionException;
 /**
  * The type Application config cache.
  */
-@Slf4j
 public final class ApplicationConfigCache {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
     private ApplicationConfig applicationConfig;
 
@@ -64,7 +65,7 @@ public final class ApplicationConfigCache {
                         // After the configuration change, sofa destroys the instance, but does not empty it. If it is not handled,
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
                     } catch (NoSuchFieldException | IllegalAccessException e) {
-                        log.error("modify ref have exception", e);
+                        LOG.error("modify ref have exception", e);
                     }
                 }
             })
@@ -101,7 +102,7 @@ public final class ApplicationConfigCache {
         if (registryConfig == null) {
             registryConfig = new RegistryConfig();
             registryConfig.setProtocol(sofaRegisterConfig.getProtocol());
-            registryConfig.setId("soul_proxy");
+            registryConfig.setId("shenyu_proxy");
             registryConfig.setRegister(false);
             registryConfig.setAddress(sofaRegisterConfig.getRegister());
         }
@@ -120,7 +121,7 @@ public final class ApplicationConfigCache {
                 return referenceConfig;
             }
         } catch (ExecutionException e) {
-            log.error("init sofa ref ex:{}", e.getMessage());
+            LOG.error("init sofa ref ex:{}", e.getMessage());
         }
         return build(metaData);
 
@@ -133,6 +134,9 @@ public final class ApplicationConfigCache {
      * @return the reference config
      */
     public ConsumerConfig<GenericService> build(final MetaData metaData) {
+        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
+            return new ConsumerConfig<>();
+        }
         ConsumerConfig<GenericService> reference = new ConsumerConfig<>();
         reference.setGeneric(true);
         reference.setApplication(applicationConfig);
@@ -151,10 +155,14 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(sofaParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(sofaParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
-        Object obj = reference.refer();
-        if (obj != null) {
-            log.info("init sofa reference success there meteData is :{}", metaData);
-            cache.put(metaData.getPath(), reference);
+        try {
+            Object obj = reference.refer();
+            if (obj != null) {
+                LOG.info("init sofa reference success there meteData is :{}", metaData);
+                cache.put(metaData.getPath(), reference);
+            }
+        } catch (Exception e) {
+            LOG.error("init sofa reference exception", e);
         }
         return reference;
     }
@@ -213,7 +221,6 @@ public final class ApplicationConfigCache {
     /**
      * The type Sofa param ext info.
      */
-    @Data
     static class SofaParamExtInfo {
 
         private String loadbalance;
@@ -221,5 +228,29 @@ public final class ApplicationConfigCache {
         private Integer retries;
 
         private Integer timeout;
+
+        public String getLoadbalance() {
+            return loadbalance;
+        }
+
+        public void setLoadbalance(final String loadbalance) {
+            this.loadbalance = loadbalance;
+        }
+
+        public Integer getRetries() {
+            return retries;
+        }
+
+        public void setRetries(final Integer retries) {
+            this.retries = retries;
+        }
+
+        public Integer getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(final Integer timeout) {
+            this.timeout = timeout;
+        }
     }
 }

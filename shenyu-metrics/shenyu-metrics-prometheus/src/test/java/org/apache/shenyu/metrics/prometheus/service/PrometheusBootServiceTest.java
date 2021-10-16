@@ -19,7 +19,6 @@ package org.apache.shenyu.metrics.prometheus.service;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.metrics.config.MetricsConfig;
@@ -48,9 +47,8 @@ public final class PrometheusBootServiceTest {
         CollectorRegistry.defaultRegistry.clear();
     }
     
-    @SneakyThrows
     @Test
-    public void testRegistered() {
+    public void testRegistered() throws NoSuchFieldException, IllegalAccessException {
         AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusBootService, "registered");
         registered.set(true);
         String jmxConfig = GsonUtils.getInstance().toJson("whitelistObjectNames:org.apache.cassandra.metrics:type=ColumnFamily");

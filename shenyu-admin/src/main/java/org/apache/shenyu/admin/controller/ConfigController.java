@@ -18,10 +18,9 @@
 package org.apache.shenyu.admin.controller;
 
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -42,7 +41,6 @@ import java.util.Map;
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 @RestController
 @RequestMapping("/configs")
-@Slf4j
 public class ConfigController {
 
     @Resource

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -29,20 +30,27 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * JsonUtils.
  */
-@Slf4j
 public final class JsonUtils {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(JsonUtils.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -75,8 +83,25 @@ public final class JsonUtils {
         try {
             return MAPPER.writeValueAsString(object);
         } catch (IOException e) {
-            log.warn("write to json string error: " + object, e);
+            LOG.warn("write to json string error: " + object, e);
             return "{}";
+        }
+    }
+
+    /**
+     * Object to Map.
+     *
+     * @param object the object
+     * @return the converted map
+     */
+    public static Map<String, Object> toMap(final Object object) {
+        try {
+            String json = MAPPER.writeValueAsString(object);
+            final MapType mapType = MAPPER.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
+            return MAPPER.readValue(json, mapType);
+        } catch (IOException e) {
+            LOG.warn("write to map error: " + object, e);
+            return new LinkedHashMap<>();
         }
     }
 

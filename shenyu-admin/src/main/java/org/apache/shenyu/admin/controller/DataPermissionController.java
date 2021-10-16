@@ -103,7 +103,7 @@ public class DataPermissionController {
     public ShenyuAdminResult saveSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO)))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
 
     }
 
@@ -116,7 +116,7 @@ public class DataPermissionController {
     public ShenyuAdminResult deleteSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO)))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
 
     }
 
@@ -129,7 +129,7 @@ public class DataPermissionController {
     public ShenyuAdminResult saveRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO)))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
     }
 
     /**
@@ -141,7 +141,7 @@ public class DataPermissionController {
     public ShenyuAdminResult deleteRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO)))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
 
     }
 }

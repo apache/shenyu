@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.handler;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -41,16 +42,14 @@ import static org.mockito.Mockito.mock;
 public class ShenyuWebHandlerTest {
 
     private ShenyuWebHandler shenyuWebHandler;
-
-    private ShenyuPlugin plugins;
-
+    
     private List<ShenyuPlugin> listPlugins = new ArrayList<>();
 
     @Before
     public void setUp() {
-        plugins = mock(ShenyuPlugin.class);
+        final ShenyuPlugin plugins = mock(ShenyuPlugin.class);
         listPlugins.add(plugins);
-        shenyuWebHandler = new ShenyuWebHandler(listPlugins);
+        shenyuWebHandler = new ShenyuWebHandler(listPlugins, new ShenyuConfig());
     }
 
     @Test

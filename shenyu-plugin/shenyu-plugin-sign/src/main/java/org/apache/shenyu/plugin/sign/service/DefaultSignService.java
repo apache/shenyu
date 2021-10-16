@@ -18,11 +18,6 @@
 package org.apache.shenyu.plugin.sign.service;
 
 import com.google.common.collect.Maps;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,44 +25,45 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.PathMatchUtils;
-import org.apache.shenyu.common.utils.SignUtils;
-import org.apache.shenyu.plugin.api.SignService;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
+import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Default sign service.
  */
-@Slf4j
 public class DefaultSignService implements SignService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultSignService.class);
 
     @Value("${shenyu.sign.delay:5}")
     private int delay;
 
     @Override
     public Pair<Boolean, String> signVerify(final ServerWebExchange exchange) {
-        PluginData signData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.SIGN.getName());
-        if (signData != null && signData.getEnabled()) {
-            final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-            assert shenyuContext != null;
-            return verify(shenyuContext, exchange);
-        }
-        return Pair.of(Boolean.TRUE, "");
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return verify(shenyuContext, exchange);
     }
 
     private Pair<Boolean, String> verify(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
         if (StringUtils.isBlank(shenyuContext.getAppKey())
                 || StringUtils.isBlank(shenyuContext.getSign())
                 || StringUtils.isBlank(shenyuContext.getTimestamp())) {
-            log.error("sign parameters are incomplete,{}", shenyuContext);
+            LOG.error("sign parameters are incomplete,{}", shenyuContext);
             return Pair.of(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
         }
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(shenyuContext.getTimestamp()));
@@ -88,27 +84,27 @@ public class DefaultSignService implements SignService {
     private Pair<Boolean, String> sign(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
         final AppAuthData appAuthData = SignAuthDataCache.getInstance().obtainAuthData(shenyuContext.getAppKey());
         if (Objects.isNull(appAuthData) || !appAuthData.getEnabled()) {
-            log.error("sign APP_kEY does not exist or has been disabled,{}", shenyuContext.getAppKey());
+            LOG.error("sign APP_kEY does not exist or has been disabled,{}", shenyuContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
         if (appAuthData.getOpen()) {
             List<AuthPathData> pathDataList = appAuthData.getPathDataList();
             if (CollectionUtils.isEmpty(pathDataList)) {
-                log.error("You have not configured the sign path:{}", shenyuContext.getAppKey());
+                LOG.error("You have not configured the sign path:{}", shenyuContext.getAppKey());
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
 
             boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
                     .anyMatch(e -> PathMatchUtils.match(e.getPath(), shenyuContext.getPath()));
             if (!match) {
-                log.error("You have not configured the sign path:{},{}", shenyuContext.getAppKey(), shenyuContext.getRealUrl());
+                LOG.error("You have not configured the sign path:{},{}", shenyuContext.getAppKey(), shenyuContext.getRealUrl());
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
         }
-        String sigKey = SignUtils.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext));
+        String sigKey = ShenyuSignProviderWrap.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext));
         boolean result = Objects.equals(sigKey, shenyuContext.getSign());
         if (!result) {
-            log.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
+            LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
             return Pair.of(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
         } else {
             List<AuthParamData> paramDataList = appAuthData.getParamDataList();
@@ -125,10 +121,10 @@ public class DefaultSignService implements SignService {
         return Pair.of(Boolean.TRUE, "");
     }
 
-    private Map<String, String> buildParamsMap(final ShenyuContext dto) {
+    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
-        map.put(Constants.TIMESTAMP, dto.getTimestamp());
-        map.put(Constants.PATH, dto.getPath());
+        map.put(Constants.TIMESTAMP, shenyuContext.getTimestamp());
+        map.put(Constants.PATH, shenyuContext.getPath());
         map.put(Constants.VERSION, "1.0.0");
         return map;
     }

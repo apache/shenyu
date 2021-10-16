@@ -17,16 +17,21 @@
 
 package org.apache.shenyu.common.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.CodeSource;
 
 /**
  * VersionUtils.
  */
-@Slf4j
 public final class VersionUtils {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(VersionUtils.class);
 
     private static final String VERSION = getVersion(VersionUtils.class, "1.0.0");
 
@@ -64,7 +69,7 @@ public final class VersionUtils {
         CodeSource codeSource = cls.getProtectionDomain().getCodeSource();
 
         if (codeSource == null) {
-            log.info("No codeSource for class {} when getVersion, use default version {}", cls.getName(), defaultVersion);
+            LOG.info("No codeSource for class {} when getVersion, use default version {}", cls.getName(), defaultVersion);
             return defaultVersion;
         }
         String file = codeSource.getLocation().getFile();

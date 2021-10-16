@@ -25,7 +25,19 @@ jobs:
   build:
     strategy:
       matrix:
+        java: [ 8, 11 ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
+        include:
+          - java: 12
+            os: ubuntu-latest
+          - java: 13
+            os: ubuntu-latest
+          - java: 14
+            os: ubuntu-latest
+          - java: 15
+            os: ubuntu-latest
+          - java: 16
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Support longpaths
@@ -47,9 +59,22 @@ jobs:
       - uses: actions/setup-java@v1
         if: env.SKIP_CI != 'true'
         with:
-          java-version: 8
+          java-version: ${{ matrix.java }}
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install
       - uses: codecov/codecov-action@v1
         if: env.SKIP_CI != 'true'
+
+  check-license-header:
+    name: Check License Header
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Check License Header
+        uses: apache/skywalking-eyes@9bd5feb86b5817aa6072b008f9866a2c3bbc8587
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -21,12 +21,13 @@ import io.grpc.ConnectivityState;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.Status;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.AbstractPicker;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.AbstractReadyPicker;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.EmptyPicker;
 import io.grpc.Attributes;
 import io.grpc.ConnectivityStateInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -50,8 +51,9 @@ import static io.grpc.ConnectivityState.READY;
 /**
  * LoadBalancer.
  */
-@Slf4j
 public abstract class AbstractLoadBalancer extends LoadBalancer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractLoadBalancer.class);
 
     private static final Status EMPTY_OK = Status.OK.withDescription("no subchannels ready");
 
@@ -114,7 +116,7 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
         }
         if (stateInfo.getState() == IDLE) {
             subchannel.requestConnection();
-            log.info("AbstractLoadBalancer.handleSubchannelState, current state:IDLE, subchannel.requestConnection().");
+            LOG.info("AbstractLoadBalancer.handleSubchannelState, current state:IDLE, subchannel.requestConnection().");
         }
         final ConnectivityStateInfo originStateInfo = SubChannels.getStateInfo(subchannel);
         if (originStateInfo.getState().equals(TRANSIENT_FAILURE)) {
@@ -196,7 +198,7 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
         helper.updateBalancingState(state, picker);
         currentState = state;
         currentPicker = picker;
-        log.info("AbstractPicker update, serviceName:{}, all subchannels:{}, state:{}", serviceName, picker.getSubchannelsInfo(), state);
+        LOG.info("AbstractPicker update, serviceName:{}, all subchannels:{}, state:{}", serviceName, picker.getSubchannelsInfo(), state);
     }
 
     private Collection<Subchannel> getSubchannels() {

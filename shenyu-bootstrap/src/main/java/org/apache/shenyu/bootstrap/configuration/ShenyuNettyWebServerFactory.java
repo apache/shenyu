@@ -44,7 +44,7 @@ public class ShenyuNettyWebServerFactory {
         webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfig));
         return webServerFactory;
     }
-    
+
     /**
      * Netty tcp config.
      *
@@ -77,6 +77,6 @@ public class ShenyuNettyWebServerFactory {
                             .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
                             .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
                             .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay()));
-        } 
+        }
     }
 }

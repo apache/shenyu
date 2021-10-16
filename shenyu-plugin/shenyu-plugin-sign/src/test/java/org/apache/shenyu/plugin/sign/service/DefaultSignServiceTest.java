@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.sign.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -27,9 +26,12 @@ import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.SignUtils;
-import org.apache.shenyu.plugin.api.SignService;
+import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
+import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.sign.api.SignProvider;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 
@@ -39,6 +41,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -46,11 +49,13 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.Collections;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * DefaultSignService Test.
  */
 @RunWith(MockitoJUnitRunner.class)
-@Slf4j
 public final class DefaultSignServiceTest {
 
     private SignService signService;
@@ -63,7 +68,7 @@ public final class DefaultSignServiceTest {
 
     private ShenyuContext passed;
 
-    @Value("${soul.sign.delay:5}")
+    @Value("${shenyu.sign.delay:5}")
     private int delay;
 
     @Before
@@ -103,6 +108,10 @@ public final class DefaultSignServiceTest {
         this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
+
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 
     @Test

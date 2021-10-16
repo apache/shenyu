@@ -25,10 +25,11 @@ import io.grpc.Status;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.SynchronizationContext;
 import io.grpc.internal.SharedResourceHolder;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.grpc.loadbalance.GrpcAttributeUtils;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -41,8 +42,9 @@ import java.util.stream.Collectors;
 /**
  * ShenyuNameResolver.
  */
-@Slf4j
 public class ShenyuNameResolver extends NameResolver implements Consumer<Object> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuNameResolver.class);
 
     private boolean resolving;
 
@@ -95,7 +97,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
     }
 
     private void resolve() {
-        log.info("Scheduled resolve for {}", this.appName);
+        LOG.info("Scheduled resolve for {}", this.appName);
         if (this.resolving) {
             return;
         }
@@ -152,27 +154,27 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
             final String name = ShenyuNameResolver.this.appName;
             ShenyuServiceInstanceLists shenyuServiceInstanceLists = ApplicationConfigCache.getInstance().get(name);
             List<ShenyuServiceInstance> newInstanceList = shenyuServiceInstanceLists.getCopyInstances();
-            log.info("Got {} candidate servers for {}", newInstanceList.size(), name);
+            LOG.info("Got {} candidate servers for {}", newInstanceList.size(), name);
             if (CollectionUtils.isEmpty(newInstanceList)) {
-                log.info("No servers found for {}", name);
+                LOG.info("No servers found for {}", name);
                 this.savedListener.onError(Status.UNAVAILABLE.withDescription("No servers found for " + name));
                 return Lists.newArrayList();
             }
             if (!needsToUpdateConnections(newInstanceList)) {
-                log.info("Nothing has changed... skipping update for {}", name);
+                LOG.info("Nothing has changed... skipping update for {}", name);
                 return null;
             }
-            log.info("Ready to update server list for {}", name);
+            LOG.info("Ready to update server list for {}", name);
             final List<EquivalentAddressGroup> targets = newInstanceList.stream()
                     .map(instance -> {
-                        log.info("Found gRPC server {}:{} for {}", instance.getHost(), instance.getPort(), name);
+                        LOG.info("Found gRPC server {}:{} for {}", instance.getHost(), instance.getPort(), name);
                         return ShenyuResolverHelper.convertToEquivalentAddressGroup(instance);
                     }).collect(Collectors.toList());
             this.savedListener.onResult(ResolutionResult.newBuilder()
                     .setAddresses(targets)
                     .setAttributes(attributes)
                     .build());
-            log.info("Done updating server list for {}", name);
+            LOG.info("Done updating server list for {}", name);
             return newInstanceList;
         }
 

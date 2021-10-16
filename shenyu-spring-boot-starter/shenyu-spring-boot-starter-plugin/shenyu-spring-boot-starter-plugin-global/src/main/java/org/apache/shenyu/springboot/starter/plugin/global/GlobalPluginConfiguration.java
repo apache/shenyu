@@ -22,7 +22,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.DefaultShenyuContextBuilder;
 import org.apache.shenyu.plugin.global.GlobalPlugin;
-import org.apache.shenyu.plugin.global.subsciber.MetaDataAllSubscriber;
+import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -69,12 +69,12 @@ public class GlobalPluginConfiguration {
     }
     
     /**
-     * Data subscriber meta data subscriber.
+     * Cache meta data subscriber.
      *
      * @return the meta data subscriber
      */
     @Bean
-    public MetaDataSubscriber metaDataAllSubscriber() {
-        return new MetaDataAllSubscriber();
+    public MetaDataSubscriber metaDataCacheSubscriber() {
+        return new MetaDataCacheSubscriber();
     }
 }

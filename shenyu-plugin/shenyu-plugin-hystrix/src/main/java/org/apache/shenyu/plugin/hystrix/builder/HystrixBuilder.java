@@ -23,17 +23,15 @@ import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.HystrixThreadPoolProperties;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.HystrixHandle;
-import org.apache.shenyu.common.dto.convert.HystrixThreadPoolConfig;
+import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
+import org.apache.shenyu.common.dto.convert.rule.HystrixHandle.HystrixThreadPoolConfig;
 
 import java.util.Objects;
 
 /**
  * the hystrix builder.
  */
-@Slf4j
 public class HystrixBuilder {
 
     /**

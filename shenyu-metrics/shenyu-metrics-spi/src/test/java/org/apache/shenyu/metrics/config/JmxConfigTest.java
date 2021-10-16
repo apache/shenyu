@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.metrics.config;
 
-import lombok.SneakyThrows;
 import org.apache.shenyu.metrics.config.JmxConfig.Rule;
 import org.apache.shenyu.metrics.config.JmxConfig.Type;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.util.Collections;
 import java.util.regex.Pattern;
@@ -39,9 +39,8 @@ public final class JmxConfigTest {
 
     private JmxConfig jmxConfig;
 
-    @SneakyThrows
     @Before
-    public void setUp() {
+    public void setUp() throws MalformedObjectNameException {
         jmxConfig = new JmxConfig();
         jmxConfig.setStartDelaySeconds(10);
         jmxConfig.setJmxUrl("http://");

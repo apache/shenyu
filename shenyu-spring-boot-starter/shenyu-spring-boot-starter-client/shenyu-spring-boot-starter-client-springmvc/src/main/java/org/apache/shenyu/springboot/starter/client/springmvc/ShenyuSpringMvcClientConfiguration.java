@@ -49,12 +49,11 @@ public class ShenyuSpringMvcClientConfiguration {
      * Context register listener context register listener.
      *
      * @param config the config
-     * @param shenyuClientRegisterRepository the client register repository
      * @return the context register listener
      */
     @Bean
-    public ContextRegisterListener contextRegisterListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new ContextRegisterListener(config, shenyuClientRegisterRepository);
+    public ContextRegisterListener contextRegisterListener(final ShenyuRegisterCenterConfig config) {
+        return new ContextRegisterListener(config);
     }
     
 }

@@ -22,3 +22,4 @@ ip=org.apache.shenyu.plugin.base.condition.data.IpParameterData
 req_method=org.apache.shenyu.plugin.base.condition.data.RequestMethodParameterData
 post=org.apache.shenyu.plugin.base.condition.data.PostParameterData
 cookie=org.apache.shenyu.plugin.base.condition.data.CookieParameterData
+domain=org.apache.shenyu.plugin.base.condition.data.DomainParameterData

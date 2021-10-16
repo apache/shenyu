@@ -25,14 +25,14 @@ import java.util.function.Supplier;
  * The type Page result utils.
  */
 public class PageResultUtils {
-
+    
     /**
      * Result common pager.
      *
-     * @param <T>              the type parameter
-     * @param pageParameter    the page parameter
-     * @param countSupplier    the count supplier
-     * @param listSupplier     the list supplier
+     * @param <T> the type parameter
+     * @param pageParameter the page parameter
+     * @param countSupplier the count supplier
+     * @param listSupplier the list supplier
      * @return the common pager
      */
     public static <T> CommonPager<T> result(final PageParameter pageParameter, final Supplier<Integer> countSupplier, final Supplier<List<T>> listSupplier) {
@@ -41,5 +41,17 @@ public class PageResultUtils {
             return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count), listSupplier.get());
         }
         return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
+    }
+    
+    /**
+     * Result common pager.
+     *
+     * @param <T> the type parameter
+     * @param pageParameter the page parameter
+     * @param listSupplier the list supplier
+     * @return the common pager
+     */
+    public static <T> CommonPager<T> result(final PageParameter pageParameter, final Supplier<List<T>> listSupplier) {
+        return new CommonPager<>(pageParameter, listSupplier.get());
     }
 }

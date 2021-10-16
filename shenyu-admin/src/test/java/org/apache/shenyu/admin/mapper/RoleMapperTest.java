@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
+import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.query.RoleQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -26,8 +27,7 @@ import org.junit.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -138,7 +138,7 @@ public final class RoleMapperTest extends AbstractSpringIntegrationTest {
         int insert = mapper.insertSelective(roleDO);
         assertThat(insert, equalTo(1));
 
-        int delete = mapper.delete(Arrays.asList(roleDO.getId()));
+        int delete = mapper.delete(Collections.singletonList(roleDO.getId()));
         assertThat(delete, equalTo(1));
 
         RoleDO result = mapper.selectById(roleDO.getId());
@@ -157,14 +157,14 @@ public final class RoleMapperTest extends AbstractSpringIntegrationTest {
 
     @After
     public void resetDB() {
-        List<String> ids = mapper.selectAll().stream().map(roleDO -> roleDO.getId()).collect(Collectors.toList());
+        List<String> ids = mapper.selectAll().stream().map(BaseDO::getId).collect(Collectors.toList());
         if (!ids.isEmpty()) {
             mapper.delete(ids);
         }
     }
 
     private RoleDO buildRoleDO() {
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         return RoleDO.builder()
             .id(UUIDUtils.getInstance().generateShortUuid())
             .roleName("test-role")

@@ -23,8 +23,11 @@ import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
+import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
@@ -35,14 +38,16 @@ import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shiro.SecurityUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
@@ -58,6 +63,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for RuleService.
@@ -91,7 +98,7 @@ public final class RuleServiceTest {
 
     @Before
     public void setUp() {
-        SecurityUtils.setSecurityManager(securityManager);
+        when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
         ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, dataPermissionMapper, eventPublisher);
     }
 
@@ -102,11 +109,11 @@ public final class RuleServiceTest {
         testRegisterUpdate();
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testCreateOrUpdate() {
         publishEvent();
-        testCreate();
         testUpdate();
+        testCreate();
     }
 
     @Test
@@ -138,7 +145,6 @@ public final class RuleServiceTest {
         parameter.setTotalCount(10);
         parameter.setTotalPage(parameter.getTotalCount() / parameter.getPageSize());
         RuleQuery ruleQuery = new RuleQuery("456", null, parameter);
-        given(this.ruleMapper.countByQuery(ruleQuery)).willReturn(10);
         List<RuleDO> ruleDOList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             RuleDO ruleDO = buildRuleDO(String.valueOf(i));
@@ -213,22 +219,26 @@ public final class RuleServiceTest {
     private void testRegisterCreate() {
         RuleDTO ruleDTO = buildRuleDTO("");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
-        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
+        String ruleId = this.ruleService.registerDefault(ruleDTO);
         assertNotNull(ruleId);
         assertEquals(ruleId.length(), ruleDO.getId().length());
     }
 
     private void testRegisterUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
+        String ruleId = this.ruleService.registerDefault(ruleDTO);
         assertNotNull(ruleId);
         assertEquals(ruleId, ruleDTO.getId());
     }
 
     private void testCreate() {
-        RuleDTO ruleDTO = buildRuleDTO("");
-        given(this.ruleMapper.insertSelective(any())).willReturn(1);
-        assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
+        try (MockedStatic<JwtUtils> mocked = mockStatic(JwtUtils.class)) {
+            mocked.when(JwtUtils::getUserInfo)
+                    .thenAnswer((Answer<UserInfo>) invocation -> UserInfo.builder().userId("1").userName("admin").build());
+            RuleDTO ruleDTO = buildRuleDTO("");
+            given(this.ruleMapper.insertSelective(any())).willReturn(1);
+            assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
+        }
     }
 
     private void testUpdate() {

@@ -52,10 +52,10 @@ public final class FallbackHandlerTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         DispatcherHandler handler = mock(DispatcherHandler.class);
         when(context.getBean(DispatcherHandler.class)).thenReturn(handler);
-        SpringBeanUtils.getInstance().setCfgContext(context);
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SOUL/SOUL")
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SHENYU/SHENYU")
                 .remoteAddress(new InetSocketAddress(8090))
-                .contextPath("/SOUL")
+                .contextPath("/SHENYU")
                 .build());
         when(handler.handle(any())).thenReturn(Mono.empty());
         this.testFallbackHandler = new TestFallbackHandler();
@@ -75,7 +75,7 @@ public final class FallbackHandlerTest {
     @Test
     public void fallbackTest() {
         StepVerifier.create(testFallbackHandler.fallback(exchange, null, mock(RuntimeException.class))).expectSubscription().verifyComplete();
-        StepVerifier.create(testFallbackHandler.fallback(exchange, URI.create("http://wwww.baidu.com"), mock(RuntimeException.class))).expectSubscription().verifyComplete();
+        StepVerifier.create(testFallbackHandler.fallback(exchange, URI.create("http://127.0.0.1:8090/SHENYU"), mock(RuntimeException.class))).expectSubscription().verifyComplete();
     }
 
     static class TestFallbackHandler implements FallbackHandler {

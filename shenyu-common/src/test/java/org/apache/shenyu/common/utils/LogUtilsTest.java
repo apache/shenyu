@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -45,12 +44,6 @@ public final class LogUtilsTest {
         logger = spy(Logger.class);
         supplier = mock(Supplier.class);
         when(supplier.get()).thenReturn("Test case for LogUtils");
-    }
-
-    @Test
-    public void testGetInstance() {
-        final LogUtils result = LogUtils.getInstance();
-        Assert.assertNotNull(result);
     }
 
     @Test

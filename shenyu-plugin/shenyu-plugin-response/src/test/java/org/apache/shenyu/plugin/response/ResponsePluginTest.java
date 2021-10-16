@@ -58,7 +58,7 @@ public class ResponsePluginTest {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(applicationContext);
+        springBeanUtils.setApplicationContext(applicationContext);
         Map<String, MessageWriter> writerMap = new HashMap<>();
         MessageWriter messageWriter = mock(MessageWriter.class);
         when(messageWriter.writeWith(any(), any())).thenReturn(Mono.empty());

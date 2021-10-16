@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin;
 
-import lombok.SneakyThrows;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
@@ -125,14 +124,13 @@ public abstract class AbstractReflectGetterSetterTest {
                         assertEquals(setValue, getValue,
                                 property.getDisplayName() + " getter / setter do not produce the same result."
                         );
-                    } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
+                    } catch (IntrospectionException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
                         throw new RuntimeException("", e);
                     }
                 });
     }
 
-    @SneakyThrows
-    private Object defaultValue(final Class<?> clazz) {
+    private Object defaultValue(final Class<?> clazz) throws IllegalAccessException, InstantiationException {
         final Object obj = DEFAULT_MAPPERS.get(clazz);
         if (obj != null) {
             return obj;

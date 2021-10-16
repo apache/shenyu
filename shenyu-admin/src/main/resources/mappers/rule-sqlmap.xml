@@ -50,6 +50,15 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
+    <select id="findBySelectorIdAndName" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule
+        where 1=1 
+        and name = #{name,jdbcType=VARCHAR}
+        and selector_id = #{selectorId,jdbcType=VARCHAR}
+    </select>
+
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -68,9 +77,6 @@
                 </foreach>
             </if>
         </where>
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <select id="findBySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">

@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.admin.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.disruptor.RegisterServerDisruptorPublisher;
-import org.apache.shenyu.admin.service.register.ShenyuClientRegisterServiceFactory;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.ExtensionLoader;
@@ -27,15 +26,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The type Register center configuration.
  */
-@Slf4j
 @Configuration
 public class RegisterCenterConfiguration {
-    
+
     /**
      * Shenyu register center config shenyu register center config.
      *
@@ -56,11 +56,12 @@ public class RegisterCenterConfiguration {
      */
     @Bean
     public ShenyuServerRegisterRepository shenyuServerRegisterRepository(final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig,
-                                                                         final Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService) {
+                                                                         final List<ShenyuClientRegisterService> shenyuClientRegisterService) {
         String registerType = shenyuRegisterCenterConfig.getRegisterType();
         ShenyuServerRegisterRepository registerRepository = ExtensionLoader.getExtensionLoader(ShenyuServerRegisterRepository.class).getJoin(registerType);
         RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();
-        publisher.start(shenyuClientRegisterService);
+        Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType, e -> e));
+        publisher.start(registerServiceMap);
         registerRepository.init(publisher, shenyuRegisterCenterConfig);
         return registerRepository;
     }

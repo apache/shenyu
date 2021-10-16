@@ -24,7 +24,6 @@ import com.alipay.sofa.rpc.context.RpcInvokeContext;
 import com.alipay.sofa.rpc.core.exception.SofaRpcException;
 import com.alipay.sofa.rpc.core.invoke.SofaResponseCallback;
 import com.alipay.sofa.rpc.core.request.RequestBase;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -32,8 +31,8 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -43,18 +42,17 @@ import java.util.concurrent.CompletableFuture;
 /**
  * sofa proxy service is use GenericService.
  */
-@Slf4j
 public class SofaProxyService {
 
-    private final BodyParamResolveService bodyParamResolveService;
+    private final SofaParamResolveService sofaParamResolveService;
     
     /**
      * Instantiates a new Sofa proxy service.
      *
-     * @param bodyParamResolveService the body param resolve service
+     * @param sofaParamResolveService the sofa param resolve service
      */
-    public SofaProxyService(final BodyParamResolveService bodyParamResolveService) {
-        this.bodyParamResolveService = bodyParamResolveService;
+    public SofaProxyService(final SofaParamResolveService sofaParamResolveService) {
+        this.sofaParamResolveService = sofaParamResolveService;
     }
     
     /**
@@ -77,7 +75,7 @@ public class SofaProxyService {
         if (StringUtils.isBlank(metaData.getParameterTypes()) || null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
-            pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
+            pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future = new CompletableFuture<>();
         RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<Object>() {

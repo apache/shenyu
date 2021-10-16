@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -29,15 +25,12 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * RuleDO.
  */
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public final class RuleDO extends BaseDO {
 
     private static final long serialVersionUID = 8050178277098166539L;
@@ -76,6 +69,160 @@ public final class RuleDO extends BaseDO {
      * process logic.
      */
     private String handle;
+
+    public RuleDO() {
+    }
+
+    public RuleDO(final String selectorId,
+                  final Integer matchMode,
+                  final String name,
+                  final Boolean enabled,
+                  final Boolean loged,
+                  final Integer sort,
+                  final String handle) {
+        this.selectorId = selectorId;
+        this.matchMode = matchMode;
+        this.name = name;
+        this.enabled = enabled;
+        this.loged = loged;
+        this.sort = sort;
+        this.handle = handle;
+    }
+
+    /**
+     * Gets the value of selectorId.
+     *
+     * @return the value of selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * Sets the selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * Gets the value of matchMode.
+     *
+     * @return the value of matchMode
+     */
+    public Integer getMatchMode() {
+        return matchMode;
+    }
+
+    /**
+     * Sets the matchMode.
+     *
+     * @param matchMode matchMode
+     */
+    public void setMatchMode(final Integer matchMode) {
+        this.matchMode = matchMode;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of loged.
+     *
+     * @return the value of loged
+     */
+    public Boolean getLoged() {
+        return loged;
+    }
+
+    /**
+     * Sets the loged.
+     *
+     * @param loged loged
+     */
+    public void setLoged(final Boolean loged) {
+        this.loged = loged;
+    }
+
+    /**
+     * Gets the value of sort.
+     *
+     * @return the value of sort
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+    /**
+     * Sets the sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * Gets the value of handle.
+     *
+     * @return the value of handle
+     */
+    public String getHandle() {
+        return handle;
+    }
+
+    /**
+     * Sets the handle.
+     *
+     * @param handle handle
+     */
+    public void setHandle(final String handle) {
+        this.handle = handle;
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static RuleDO.RuleDOBuilder builder() {
+        return new RuleDO.RuleDOBuilder();
+    }
 
     /**
      * build ruleDO.
@@ -127,5 +274,187 @@ public final class RuleDO extends BaseDO {
                 .handle(ruleDO.getHandle())
                 .conditionDataList(conditionDataList)
                 .build();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RuleDO ruleDO = (RuleDO) o;
+        return Objects.equals(selectorId, ruleDO.selectorId)
+                && Objects.equals(matchMode, ruleDO.matchMode)
+                && Objects.equals(name, ruleDO.name)
+                && Objects.equals(enabled, ruleDO.enabled)
+                && Objects.equals(loged, ruleDO.loged)
+                && Objects.equals(sort, ruleDO.sort)
+                && Objects.equals(handle, ruleDO.handle);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle);
+    }
+
+    public static final class RuleDOBuilder {
+
+        private String id;
+
+        private Timestamp dateCreated;
+
+        private Timestamp dateUpdated;
+
+        private String selectorId;
+
+        private Integer matchMode;
+
+        private String name;
+
+        private Boolean enabled;
+
+        private Boolean loged;
+
+        private Integer sort;
+
+        private String handle;
+
+        private RuleDOBuilder() {
+        }
+
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * dateCreated.
+         *
+         * @param dateCreated the dateCreated.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder dateCreated(final Timestamp dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /**
+         * dateUpdated.
+         *
+         * @param dateUpdated the dateUpdated.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder dateUpdated(final Timestamp dateUpdated) {
+            this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * selectorId.
+         *
+         * @param selectorId the selectorId.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder selectorId(final String selectorId) {
+            this.selectorId = selectorId;
+            return this;
+        }
+
+        /**
+         * matchMode.
+         *
+         * @param matchMode the matchMode.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder matchMode(final Integer matchMode) {
+            this.matchMode = matchMode;
+            return this;
+        }
+
+        /**
+         * name.
+         *
+         * @param name the name.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * enabled.
+         *
+         * @param enabled the enabled.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder enabled(final Boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * loged.
+         *
+         * @param loged the loged.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder loged(final Boolean loged) {
+            this.loged = loged;
+            return this;
+        }
+
+        /**
+         * sort.
+         *
+         * @param sort the sort.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder sort(final Integer sort) {
+            this.sort = sort;
+            return this;
+        }
+
+        /**
+         * handle.
+         *
+         * @param handle the handle.
+         * @return RuleDOBuilder.
+         */
+        public RuleDOBuilder handle(final String handle) {
+            this.handle = handle;
+            return this;
+        }
+
+        /**
+         * build method.
+         *
+         * @return build object.
+         */
+        public RuleDO build() {
+            RuleDO ruleDO = new RuleDO();
+            ruleDO.setId(id);
+            ruleDO.setDateCreated(dateCreated);
+            ruleDO.setDateUpdated(dateUpdated);
+            ruleDO.setSelectorId(selectorId);
+            ruleDO.setMatchMode(matchMode);
+            ruleDO.setName(name);
+            ruleDO.setEnabled(enabled);
+            ruleDO.setLoged(loged);
+            ruleDO.setSort(sort);
+            ruleDO.setHandle(handle);
+            return ruleDO;
+        }
     }
 }

@@ -41,7 +41,7 @@ public final class ShenyuResultWrapTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
     }
 
@@ -51,9 +51,9 @@ public final class ShenyuResultWrapTest {
     @Test
     public void successTest() {
         Integer result = 0;
-        DefaultShenyuEntity soulResult = (DefaultShenyuEntity) ShenyuResultWrap.success(0, "success", new Object());
-        Assert.assertEquals(soulResult.getCode(), result);
-        Assert.assertEquals(soulResult.getMessage(), "success");
+        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.success(result, "success", new Object());
+        Assert.assertEquals(shenyuResult.getCode(), result);
+        Assert.assertEquals(shenyuResult.getMessage(), "success");
     }
 
     /**
@@ -62,8 +62,8 @@ public final class ShenyuResultWrapTest {
     @Test
     public void errorTest() {
         Integer result = 1;
-        DefaultShenyuEntity soulResult = (DefaultShenyuEntity) ShenyuResultWrap.error(1, "error", new Object());
-        Assert.assertEquals(soulResult.getCode(), result);
-        Assert.assertEquals(soulResult.getMessage(), "error");
+        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.error(result, "error", new Object());
+        Assert.assertEquals(shenyuResult.getCode(), result);
+        Assert.assertEquals(shenyuResult.getMessage(), "error");
     }
 }

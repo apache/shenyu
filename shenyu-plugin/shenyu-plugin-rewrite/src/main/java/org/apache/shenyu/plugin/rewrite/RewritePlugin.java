@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.plugin.rewrite;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.RewriteHandle;
+import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -30,6 +29,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -38,8 +39,9 @@ import java.util.Objects;
 /**
  * Rewrite Plugin.
  */
-@Slf4j
 public class RewritePlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RewritePlugin.class);
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -47,7 +49,7 @@ public class RewritePlugin extends AbstractShenyuPlugin {
         final RewriteHandle rewriteHandle = RewritePluginDataHandler.CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(rewriteHandle)) {
-            log.error("uri rewrite rule can not configuration：{}", handle);
+            LOG.error("uri rewrite rule can not configuration：{}", handle);
             return chain.execute(exchange);
         }
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -63,7 +65,7 @@ public class RewritePlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
         return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }

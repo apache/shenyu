@@ -18,10 +18,9 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
@@ -42,10 +41,14 @@ import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.utils.AesUtils;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -58,10 +61,10 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.DashboardUserService}.
  */
-@Slf4j
-@RequiredArgsConstructor
 @Service
 public class DashboardUserServiceImpl implements DashboardUserService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DashboardUserServiceImpl.class);
 
     private final SecretProperties secretProperties;
 
@@ -78,6 +81,26 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     @Nullable
     private final LdapTemplate ldapTemplate;
+
+    private final JwtProperties jwtProperties;
+
+    public DashboardUserServiceImpl(final SecretProperties secretProperties,
+                                    final DashboardUserMapper dashboardUserMapper,
+                                    final UserRoleMapper userRoleMapper,
+                                    final RoleMapper roleMapper,
+                                    final DataPermissionMapper dataPermissionMapper,
+                                    @Nullable final LdapProperties ldapProperties,
+                                    @Nullable final LdapTemplate ldapTemplate,
+                                    final JwtProperties jwtProperties) {
+        this.secretProperties = secretProperties;
+        this.dashboardUserMapper = dashboardUserMapper;
+        this.userRoleMapper = userRoleMapper;
+        this.roleMapper = roleMapper;
+        this.dataPermissionMapper = dataPermissionMapper;
+        this.ldapProperties = ldapProperties;
+        this.ldapTemplate = ldapTemplate;
+        this.jwtProperties = jwtProperties;
+    }
 
     /**
      * create or update dashboard user.
@@ -193,13 +216,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (Objects.isNull(dashboardUserVO)) {
             dashboardUserVO = loginByDatabase(userName, password);
         }
-        return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
+        return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO)
+                .setToken(JwtUtils.generateToken(dashboardUserVO.getUserName(), dashboardUserVO.getPassword(),
+                        jwtProperties.getExpiredSeconds()));
     }
 
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), userName, ldapProperties.getBaseDn());
+        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
         try {
             DashboardUserVO dashboardUserVO = null;
@@ -223,7 +248,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         } catch (NameNotFoundException e) {
             return null;
         } catch (Exception e) {
-            log.error("ldap verify error.", e);
+            LOG.error("ldap verify error.", e);
             return null;
         }
     }
@@ -231,18 +256,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        DashboardUserVO dashboardUserVO = findByQuery(userName, password);
-        if (!ObjectUtils.isEmpty(dashboardUserVO)) {
-            DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
-                    .id(dashboardUserVO.getId())
-                    .userName(dashboardUserVO.getUserName())
-                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), key, iv))
-                    .role(dashboardUserVO.getRole())
-                    .enabled(dashboardUserVO.getEnabled()).build();
-            createOrUpdate(dashboardUserDTO);
-        } else {
-            dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
-        }
+        DashboardUserVO dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
         return dashboardUserVO;
     }
 

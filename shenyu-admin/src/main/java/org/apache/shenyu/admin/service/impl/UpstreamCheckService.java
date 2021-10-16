@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,22 +31,25 @@ import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
+import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.ZombieUpstream;
+import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,27 +57,29 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * This is the upstream check service.
  */
-@Slf4j
 @Component
 public class UpstreamCheckService {
 
-    private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckService.class);
+
+    private static final Map<String, List<CommonUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
     private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
 
-    private int zombieCheckTimes;
+    private final int zombieCheckTimes;
 
-    private int scheduledTime;
+    private final int scheduledTime;
 
-    private String registerType;
+    private final String registerType;
 
-    private boolean checked;
+    private final boolean checked;
 
     private final SelectorMapper selectorMapper;
 
@@ -84,23 +88,32 @@ public class UpstreamCheckService {
     private final PluginMapper pluginMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
+    
+    private final SelectorHandleConverterFactor converterFactor;
 
+    private ScheduledThreadPoolExecutor executor;
+
+    private ScheduledFuture<?> scheduledFuture;
+    
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorMapper             the selector mapper
-     * @param eventPublisher             the event publisher
-     * @param pluginMapper               the plugin mapper
-     * @param selectorConditionMapper    the selectorCondition mapper
+     * @param selectorMapper the selector mapper
+     * @param eventPublisher the event publisher
+     * @param pluginMapper the plugin mapper
+     * @param selectorConditionMapper the selectorCondition mapper
      * @param shenyuRegisterCenterConfig the shenyu register center config
+     * @param converterFactor the converter factor
      */
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
                                 final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper,
-                                final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig) {
+                                final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig,
+                                final SelectorHandleConverterFactor converterFactor) {
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
         this.pluginMapper = pluginMapper;
         this.selectorConditionMapper = selectorConditionMapper;
+        this.converterFactor = converterFactor;
         Properties props = shenyuRegisterCenterConfig.getProps();
         this.checked = Boolean.parseBoolean(props.getProperty(Constants.IS_CHECKED, Constants.DEFAULT_CHECK_VALUE));
         this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
@@ -110,18 +123,35 @@ public class UpstreamCheckService {
             setup();
         }
     }
-
+    
     /**
      * Set up.
      */
     public void setup() {
         if (checked) {
             this.fetchUpstreamData();
-            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), ShenyuThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+            executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+            scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
-
+    
+    /**
+     * Close relative resource on container destroy.
+     */
+    @PreDestroy
+    public void close() {
+        if (Objects.nonNull(scheduledFuture)) {
+            scheduledFuture.cancel(false);
+            executor.shutdownNow();
+            try {
+                executor.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                LOG.error("shutdown executor error", ex);
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+    
     /**
      * Remove by key.
      *
@@ -130,42 +160,42 @@ public class UpstreamCheckService {
     public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
-
+    
     /**
      * Submit.
      *
-     * @param selectorName   the selector name
-     * @param divideUpstream the divide upstream
+     * @param selectorId the selector id
+     * @param commonUpstream the common upstream
      */
-    public void submit(final String selectorName, final DivideUpstream divideUpstream) {
+    public void submit(final String selectorId, final CommonUpstream commonUpstream) {
         if (!Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
             return;
         }
-        if (UPSTREAM_MAP.containsKey(selectorName)) {
-            List<DivideUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList());
-            Optional<DivideUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
-                    && item.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())).findFirst();
+        if (UPSTREAM_MAP.containsKey(selectorId)) {
+            List<CommonUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList());
+            Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
+                    && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
             if (!exists.isPresent()) {
-                upstreams.add(divideUpstream);
+                upstreams.add(commonUpstream);
             } else {
-                log.info("upstream host {} is exists.", divideUpstream.getUpstreamHost());
+                LOG.info("upstream host {} is exists.", commonUpstream.getUpstreamHost());
             }
         } else {
-            UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
+            UPSTREAM_MAP.put(selectorId, Lists.newArrayList(commonUpstream));
         }
     }
-
+    
     /**
      * Replace.
      *
-     * @param selectorName    the selector name
-     * @param divideUpstreams the divide upstream list
+     * @param selectorId the selector name
+     * @param commonUpstreams the common upstream list
      */
-    public void replace(final String selectorName, final List<DivideUpstream> divideUpstreams) {
+    public void replace(final String selectorId, final List<CommonUpstream> commonUpstreams) {
         if (!"http".equalsIgnoreCase(registerType)) {
             return;
         }
-        UPSTREAM_MAP.put(selectorName, divideUpstreams);
+        UPSTREAM_MAP.put(selectorId, commonUpstreams);
     }
 
     private void scheduled() {
@@ -177,24 +207,24 @@ public class UpstreamCheckService {
                 UPSTREAM_MAP.forEach(this::check);
             }
         } catch (Exception e) {
-            log.error("upstream scheduled check error -------- ", e);
+            LOG.error("upstream scheduled check error -------- ", e);
         }
     }
 
     private void checkZombie(final ZombieUpstream zombieUpstream) {
         ZOMBIE_SET.remove(zombieUpstream);
-        String selectorName = zombieUpstream.getSelectorName();
-        DivideUpstream divideUpstream = zombieUpstream.getDivideUpstream();
-        final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
+        String selectorId = zombieUpstream.getSelectorId();
+        CommonUpstream commonUpstream = zombieUpstream.getCommonUpstream();
+        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
         if (pass) {
-            divideUpstream.setTimestamp(System.currentTimeMillis());
-            divideUpstream.setStatus(true);
-            log.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
-            List<DivideUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList()));
-            this.submit(selectorName, divideUpstream);
-            updateHandler(selectorName, old, UPSTREAM_MAP.get(selectorName));
+            commonUpstream.setTimestamp(System.currentTimeMillis());
+            commonUpstream.setStatus(true);
+            LOG.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
+            List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
+            this.submit(selectorId, commonUpstream);
+            updateHandler(selectorId, old, UPSTREAM_MAP.get(selectorId));
         } else {
-            log.error("check zombie upstream the url={} is fail", divideUpstream.getUpstreamUrl());
+            LOG.error("check zombie upstream the url={} is fail", commonUpstream.getUpstreamUrl());
             if (zombieUpstream.getZombieCheckTimes() > NumberUtils.INTEGER_ZERO) {
                 zombieUpstream.setZombieCheckTimes(zombieUpstream.getZombieCheckTimes() - NumberUtils.INTEGER_ONE);
                 ZOMBIE_SET.add(zombieUpstream);
@@ -202,58 +232,56 @@ public class UpstreamCheckService {
         }
     }
 
-    private void check(final String selectorName, final List<DivideUpstream> upstreamList) {
-        List<DivideUpstream> successList = Lists.newArrayListWithCapacity(upstreamList.size());
-        for (DivideUpstream divideUpstream : upstreamList) {
-            final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
+    private void check(final String selectorId, final List<CommonUpstream> upstreamList) {
+        List<CommonUpstream> successList = Lists.newArrayListWithCapacity(upstreamList.size());
+        for (CommonUpstream commonUpstream : upstreamList) {
+            final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
             if (pass) {
-                if (!divideUpstream.isStatus()) {
-                    divideUpstream.setTimestamp(System.currentTimeMillis());
-                    divideUpstream.setStatus(true);
-                    log.info("UpstreamCacheManager check success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+                if (!commonUpstream.isStatus()) {
+                    commonUpstream.setTimestamp(System.currentTimeMillis());
+                    commonUpstream.setStatus(true);
+                    LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
                 }
-                successList.add(divideUpstream);
+                successList.add(commonUpstream);
             } else {
-                divideUpstream.setStatus(false);
-                ZOMBIE_SET.add(ZombieUpstream.transform(divideUpstream, zombieCheckTimes, selectorName));
-                log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
+                commonUpstream.setStatus(false);
+                ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+                LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
             }
         }
-        updateHandler(selectorName, upstreamList, successList);
+        updateHandler(selectorId, upstreamList, successList);
     }
 
-    private void updateHandler(final String selectorName, final List<DivideUpstream> upstreamList, final List<DivideUpstream> successList) {
+    private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList, final List<CommonUpstream> successList) {
         //No node changes, including zombie node resurrection and live node death
         if (successList.size() == upstreamList.size()) {
             return;
         }
         if (successList.size() > 0) {
-            UPSTREAM_MAP.put(selectorName, successList);
-            updateSelectorHandler(selectorName, successList);
+            UPSTREAM_MAP.put(selectorId, successList);
+            updateSelectorHandler(selectorId, successList);
         } else {
-            UPSTREAM_MAP.remove(selectorName);
-            updateSelectorHandler(selectorName, null);
+            UPSTREAM_MAP.remove(selectorId);
+            updateSelectorHandler(selectorId, null);
         }
     }
 
-    private void updateSelectorHandler(final String selectorName, final List<DivideUpstream> upstreams) {
-        SelectorDO selectorDO = selectorMapper.selectByName(selectorName);
+    private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {
+        SelectorDO selectorDO = selectorMapper.selectById(selectorId);
         if (Objects.nonNull(selectorDO)) {
-            List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
-                    selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-            String handler = CollectionUtils.isEmpty(upstreams) ? "" : GsonUtils.getInstance().toJson(upstreams);
+            String handler = converterFactor.newInstance(pluginDO.getName()).handler(selectorDO.getHandle(), aliveList);
             selectorDO.setHandle(handler);
             selectorMapper.updateSelective(selectorDO);
-            if (Objects.nonNull(pluginDO)) {
-                SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
-                selectorData.setHandle(handler);
-                // publish change event.
-                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
-            }
+            List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
+                    selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
+            SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
+            selectorData.setHandle(handler);
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
         }
     }
-
+    
     /**
      * fetch upstream data from db.
      */
@@ -264,13 +292,13 @@ public class UpstreamCheckService {
         }
         pluginDOList.stream().filter(Objects::nonNull).forEach(pluginDO -> {
             final List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
-            for (SelectorDO selectorDO : selectorDOList) {
-                if (Objects.isNull(selectorDO)) {
+            for (SelectorDO selectorDO : selectorDOList) { 
+                if (Objects.isNull(selectorDO) || StringUtils.isBlank(selectorDO.getHandle())) {
                     continue;
                 }
-                final List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
-                if (CollectionUtils.isNotEmpty(divideUpstreams)) {
-                    UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+                List<CommonUpstream> commonUpstreams = converterFactor.newInstance(pluginDO.getName()).convertUpstream(selectorDO.getHandle());
+                if (CollectionUtils.isNotEmpty(commonUpstreams)) {
+                    UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
                 }
             }
         });

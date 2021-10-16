@@ -31,17 +31,21 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,17 +53,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * GSONUtils.
  */
 public class GsonUtils {
 
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(GsonUtils.class);
+
     private static final GsonUtils INSTANCE = new GsonUtils();
 
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(String.class, new StringTypeAdapter())
             .registerTypeHierarchyAdapter(Pair.class, new PairTypeAdapter())
+            .registerTypeHierarchyAdapter(Duration.class, new DurationTypeAdapter())
             .create();
 
     private static final Gson GSON_MAP = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(new TypeToken<Map<String, Object>>() {
@@ -82,7 +93,7 @@ public class GsonUtils {
     private static final String EQUAL_SIGN = "=";
 
     private static final String AND = "&";
-
+    
     /**
      * Gets gson instance.
      *
@@ -91,7 +102,7 @@ public class GsonUtils {
     public static Gson getGson() {
         return GsonUtils.GSON;
     }
-
+    
     /**
      * Gets instance.
      *
@@ -100,7 +111,7 @@ public class GsonUtils {
     public static GsonUtils getInstance() {
         return INSTANCE;
     }
-
+    
     /**
      * To json string.
      *
@@ -110,43 +121,55 @@ public class GsonUtils {
     public String toJson(final Object object) {
         return GSON.toJson(object);
     }
-
+    
     /**
      * From json t.
      *
-     * @param <T>    the type parameter
-     * @param json   the json
+     * @param <T> the type parameter
+     * @param json the json
      * @param tClass the t class
      * @return the t
      */
     public <T> T fromJson(final String json, final Class<T> tClass) {
         return GSON.fromJson(json, tClass);
     }
-
+    
     /**
      * From json t.
      *
-     * @param <T>         the type parameter
+     * @param <T> the type parameter
      * @param jsonElement the json element
-     * @param tClass      the t class
+     * @param tClass the t class
      * @return the t
      */
     public <T> T fromJson(final JsonElement jsonElement, final Class<T> tClass) {
         return GSON.fromJson(jsonElement, tClass);
     }
-
+    
     /**
      * From list list.
      *
-     * @param <T>   the type parameter
-     * @param json  the json
+     * @param <T> the type parameter
+     * @param json the json
      * @param clazz the clazz
      * @return the list
      */
     public <T> List<T> fromList(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(List.class, clazz).getType());
     }
-
+    
+    /**
+     * From current list list.
+     *
+     * @param <T> the type parameter
+     * @param json the json
+     * @param clazz the clazz
+     * @return the list
+     */
+    public <T> List<T> fromCurrentList(final String json, final Class<T> clazz) {
+        return GSON.fromJson(json, TypeToken.getParameterized(CopyOnWriteArrayList.class, clazz).getType());
+    }
+    
     /**
      * toGetParam.
      *
@@ -184,7 +207,7 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<Map<String, String>>() {
         }.getType());
     }
-
+    
     /**
      * toList Map.
      *
@@ -195,7 +218,7 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<List<Map<String, Object>>>() {
         }.getType());
     }
-
+    
     /**
      * To object map map.
      *
@@ -206,31 +229,31 @@ public class GsonUtils {
         return GSON_MAP.fromJson(json, new TypeToken<LinkedHashMap<String, Object>>() {
         }.getType());
     }
-
+    
     /**
      * To object map map.
      *
-     * @param json  the json
+     * @param <T> the class
+     * @param json the json
      * @param clazz the class
-     * @param <T>   the class
      * @return the map
      */
     public <T> Map<String, T> toObjectMap(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, clazz).getType());
     }
-
+    
     /**
      * To object map list.
      *
-     * @param json  the json
+     * @param <T> the class
+     * @param json the json
      * @param clazz the class
-     * @param <T>   the class
      * @return the map
      */
     public <T> Map<String, List<T>> toObjectMapList(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, TypeToken.getParameterized(List.class, clazz).getType()).getType());
     }
-
+    
     /**
      * To tree map tree map.
      *
@@ -241,7 +264,7 @@ public class GsonUtils {
         return GSON_MAP.fromJson(json, new TypeToken<ConcurrentSkipListMap<String, Object>>() {
         }.getType());
     }
-
+    
     /**
      * To linked multiValue map.
      *
@@ -252,7 +275,7 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
         }.getType());
     }
-
+    
     /**
      * Convert to map map.
      *
@@ -315,7 +338,6 @@ public class GsonUtils {
 
     private static class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
         @SuppressWarnings("unchecked")
-        @SneakyThrows
         @Override
         public Map<T, U> deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
             if (!json.isJsonObject()) {
@@ -326,13 +348,22 @@ public class GsonUtils {
             Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
 
             String className = ((ParameterizedType) type).getRawType().getTypeName();
-            Class<Map<?, ?>> mapClass = (Class<Map<?, ?>>) Class.forName(className);
+            Class<Map<?, ?>> mapClass = null;
+            try {
+                mapClass = (Class<Map<?, ?>>) Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                LOG.error("failed to get class", e);
+            }
 
-            Map<T, U> resultMap;
+            Map<T, U> resultMap = null;
             if (mapClass.isInterface()) {
                 resultMap = new LinkedHashMap<>();
             } else {
-                resultMap = (Map<T, U>) mapClass.getConstructor().newInstance();
+                try {
+                    resultMap = (Map<T, U>) mapClass.getConstructor().newInstance();
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    LOG.error("failed to get constructor", e);
+                }
             }
 
             for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
@@ -346,7 +377,7 @@ public class GsonUtils {
 
             return resultMap;
         }
-
+    
         /**
          * Get JsonElement class type.
          *
@@ -378,24 +409,30 @@ public class GsonUtils {
     }
 
     private static class StringTypeAdapter extends TypeAdapter<String> {
-        @SneakyThrows
         @Override
         public void write(final JsonWriter out, final String value) {
-            if (StringUtils.isBlank(value)) {
-                out.nullValue();
-                return;
+            try {
+                if (StringUtils.isBlank(value)) {
+                    out.nullValue();
+                    return;
+                }
+                out.value(value);
+            } catch (IOException e) {
+                LOG.error("failed to write", e);
             }
-            out.value(value);
         }
 
-        @SneakyThrows
         @Override
         public String read(final JsonReader reader) {
-            if (reader.peek() == JsonToken.NULL) {
-                reader.nextNull();
-                return EMPTY;
+            try {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.nextNull();
+                    return EMPTY;
+                }
+                return reader.nextString();
+            } catch (IOException e) {
+                throw new ShenyuException(e);
             }
-            return reader.nextString();
         }
     }
 
@@ -432,6 +469,34 @@ public class GsonUtils {
             in.endObject();
 
             return Pair.of(left, right);
+        }
+    }
+
+    private static class DurationTypeAdapter extends TypeAdapter<Duration> {
+        @Override
+        public void write(final JsonWriter out, final Duration value) {
+            try {
+                if (value == null) {
+                    out.nullValue();
+                    return;
+                }
+                out.value(value.toString());
+            } catch (IOException e) {
+                LOG.error("failed to write", e);
+            }
+        }
+
+        @Override
+        public Duration read(final JsonReader reader) {
+            try {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.nextNull();
+                    return null;
+                }
+                return Duration.parse(reader.nextString());
+            } catch (IOException e) {
+                throw new ShenyuException(e);
+            }
         }
     }
 }

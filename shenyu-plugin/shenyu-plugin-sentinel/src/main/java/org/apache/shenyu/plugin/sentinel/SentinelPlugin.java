@@ -18,11 +18,10 @@
 package org.apache.shenyu.plugin.sentinel;
 
 import com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorTransformer;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.SentinelHandle;
+import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -30,7 +29,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.UriUtils;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
@@ -39,7 +38,6 @@ import reactor.core.publisher.Mono;
 /**
  * Sentinel Plugin.
  */
-@Slf4j
 public class SentinelPlugin extends AbstractShenyuPlugin {
 
     private final FallbackHandler fallbackHandler;

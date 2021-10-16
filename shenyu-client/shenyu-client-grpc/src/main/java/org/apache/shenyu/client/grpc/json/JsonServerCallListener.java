@@ -24,10 +24,11 @@ import io.grpc.ForwardingServerCallListener;
 import io.grpc.ServerCall;
 import io.grpc.ServerCall.Listener;
 import io.grpc.Status;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -37,8 +38,9 @@ import java.util.Objects;
  * @param <R> generic request
  * @param <P> generic response
  */
-@Slf4j
 public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JsonServerCallListener.class);
 
     private final Listener<R> delegate;
 
@@ -70,7 +72,7 @@ public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R
 
             delegate.onMessage((R) builder.build());
         } catch (Exception e) {
-            log.error("handle json generic request is error", e);
+            LOG.error("handle json generic request is error", e);
             throw Status.INTERNAL.withDescription(e.getMessage()).asRuntimeException();
         }
     }

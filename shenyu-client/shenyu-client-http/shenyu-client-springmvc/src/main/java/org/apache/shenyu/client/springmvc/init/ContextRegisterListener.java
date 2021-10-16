@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
@@ -35,8 +36,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * The type Context register listener.
  */
-@Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -56,29 +58,24 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * Instantiates a new Context register listener.
      *
      * @param config the config
-     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public ContextRegisterListener(final ShenyuRegisterCenterConfig config) {
         Properties props = config.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
+        String contextPath = props.getProperty("contextPath");
+        this.contextPath = contextPath;
         if (isFull) {
-            String registerType = config.getRegisterType();
-            String serverLists = config.getServerLists();
-            String contextPath = props.getProperty("contextPath");
-            int port = Integer.parseInt(props.getProperty("port"));
-            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                    || StringUtils.isBlank(serverLists) || port <= 0) {
-                String errorMsg = "http register param must config the contextPath, registerType , serverLists and port must > 0";
-                log.error(errorMsg);
+            if (StringUtils.isBlank(contextPath)) {
+                String errorMsg = "http register param must config the contextPath";
+                LOG.error(errorMsg);
                 throw new RuntimeException(errorMsg);
             }
-            this.appName = props.getProperty("appName");
-            this.host = props.getProperty("host");
-            this.port = port;
-            this.contextPath = contextPath;
-            publisher.start(shenyuClientRegisterRepository);
+            this.contextPath = contextPath + "/**";
         }
-
+        int port = Integer.parseInt(props.getProperty("port"));
+        this.appName = props.getProperty("appName");
+        this.host = props.getProperty("host");
+        this.port = port;
     }
 
     @Override
@@ -89,23 +86,31 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (isFull) {
             publisher.publishEvent(buildMetaDataDTO());
         }
+        publisher.publishEvent(buildURIRegisterDTO());
+    }
+    
+    private URIRegisterDTO buildURIRegisterDTO() {
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+        return URIRegisterDTO.builder()
+                .contextPath(this.contextPath)
+                .appName(appName)
+                .host(host)
+                .port(port)
+                .rpcType(RpcTypeEnum.HTTP.getName())
+                .build();
+                
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
         String contextPath = this.contextPath;
         String appName = this.appName;
-        Integer port = this.port;
-        String path = contextPath + "/**";
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
-                .host(host)
-                .port(port)
                 .appName(appName)
-                .path(path)
+                .path(contextPath)
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .enabled(true)
-                .ruleName(path)
+                .ruleName(contextPath)
                 .build();
     }
 }

@@ -22,7 +22,7 @@ import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.Resilience4JHandle;
+import org.apache.shenyu.common.dto.convert.rule.Resilience4JHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;

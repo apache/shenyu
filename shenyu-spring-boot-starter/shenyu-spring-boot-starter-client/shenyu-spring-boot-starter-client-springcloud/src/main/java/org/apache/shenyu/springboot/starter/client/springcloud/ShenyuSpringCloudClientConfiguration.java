@@ -53,12 +53,10 @@ public class ShenyuSpringCloudClientConfiguration {
      *
      * @param config the config
      * @param env    the env
-     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the context register listener
      */
     @Bean
-    public ContextRegisterListener contextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env,
-                                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new ContextRegisterListener(config, env, shenyuClientRegisterRepository);
+    public ContextRegisterListener contextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env) {
+        return new ContextRegisterListener(config, env);
     }
 }

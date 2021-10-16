@@ -17,14 +17,18 @@
 
 package org.apache.shenyu.register.client.etcd;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
@@ -32,8 +36,9 @@ import java.util.Properties;
  * etcd register repository.
  */
 @Join
-@Slf4j
 public class EtcdClientRegisterRepository implements ShenyuClientRegisterRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClientRegisterRepository.class);
 
     private EtcdClient client;
 
@@ -53,32 +58,43 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
-        String contextPath = metadata.getContextPath().substring(1);
+        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         registerMetadata(rpcType, contextPath, metadata);
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
-            registerURI(rpcType, contextPath, metadata);
-        }
+        LogUtils.info(LOGGER, "{} etcd client register metadata success: {}", rpcType, metadata);
     }
-
+    
+    /**
+     * Persist uri.
+     *
+     * @param registerDTO the register dto
+     */
+    @Override
+    public void persistURI(final URIRegisterDTO registerDTO) {
+        String rpcType = registerDTO.getRpcType();
+        String contextPath = ContextPathUtils.buildRealNode(registerDTO.getContextPath(), registerDTO.getAppName());
+        registerURI(rpcType, contextPath, registerDTO);
+        LogUtils.info(LOGGER, "{} etcd client register uri success: {}", rpcType, registerDTO);
+    }
+    
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
-        log.info("register metadata success: {}", realNode);
+        LOGGER.info("register metadata success: {}", realNode);
     }
 
-    private void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
-        String uriNodeName = buildURINodeName(metadata);
+    private void registerURI(final String rpcType, final String contextPath, final URIRegisterDTO registerDTO) {
+        String uriNodeName = buildURINodeName(registerDTO);
         String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
-        client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
-        log.info("register uri data success: {}", realNode);
+        client.putEphemeral(realNode, GsonUtils.getInstance().toJson(registerDTO));
+        LOGGER.info("register uri data success: {}", realNode);
     }
 
-    private String buildURINodeName(final MetaDataRegisterDTO metadata) {
-        String host = metadata.getHost();
-        int port = metadata.getPort();
+    private String buildURINodeName(final URIRegisterDTO registerDTO) {
+        String host = registerDTO.getHost();
+        int port = registerDTO.getPort();
         return String.join(":", host, Integer.toString(port));
     }
 

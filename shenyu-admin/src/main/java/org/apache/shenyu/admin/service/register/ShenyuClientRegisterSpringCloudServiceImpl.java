@@ -17,142 +17,87 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.transfer.MetaDataTransfer;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.springframework.context.ApplicationEventPublisher;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * spring cloud service register.
  */
 @Service("springCloud")
-public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-
-    private final ApplicationEventPublisher eventPublisher;
-
-    private final SelectorService selectorService;
-
-    private final RuleService ruleService;
-
-    private final MetaDataService metaDataService;
-
-    private final PluginService pluginService;
-
-    public ShenyuClientRegisterSpringCloudServiceImpl(final MetaDataService metaDataService,
-                                                      final ApplicationEventPublisher eventPublisher,
-                                                      final SelectorService selectorService,
-                                                      final RuleService ruleService,
-                                                      final RuleMapper ruleMapper,
-                                                      final PluginService pluginService) {
-        this.metaDataService = metaDataService;
-        this.eventPublisher = eventPublisher;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
-        this.pluginService = pluginService;
-    }
-
+public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextPathRegisterService {
+    
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public synchronized String register(final MetaDataRegisterDTO dto) {
-        MetaDataDO metaDataDO = metaDataService.findByPath(dto.getContextPath() + "/**");
-        if (Objects.isNull(metaDataDO)) {
-            saveOrUpdateMetaData(metaDataDO, dto);
-        }
-        String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, metaDataDO);
-        String contextPath = dto.getContextPath();
-        if (StringUtils.isNotEmpty(contextPath)) {
-            //register context path plugin
-            registerContextPathPlugin(contextPath);
-        }
-        return ShenyuResultMessage.SUCCESS;
+    public String rpcType() {
+        return RpcTypeEnum.SPRING_CLOUD.getName();
     }
-
+    
     @Override
-    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO dto) {
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        MetaDataDO metaDataDO = MetaDataDO.builder()
-                .appName(dto.getAppName())
-                .path(dto.getContextPath() + "/**")
-                .pathDesc(dto.getAppName() + "spring cloud meta data info")
-                .serviceName(dto.getAppName())
-                .methodName(dto.getContextPath())
-                .rpcType(dto.getRpcType())
-                .enabled(dto.isEnabled())
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build();
-        metaDataService.insert(metaDataDO);
-        // publish AppAuthData's event
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
+    protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
+        return GsonUtils.getInstance().toJson(SpringCloudSelectorHandle.builder().serviceId(metaDataDTO.getAppName()).build());
     }
-
+    
     @Override
-    public String handlerSelector(final MetaDataRegisterDTO dto) {
-        String contextPath = dto.getContextPath();
-        if (StringUtils.isEmpty(contextPath)) {
-            contextPath = buildContextPath(dto.getPath());
-        }
-        SelectorDO selectorDO = selectorService.findByName(contextPath);
-        if (Objects.nonNull(selectorDO)) {
-            return selectorDO.getId();
-        }
-        SelectorDTO selectorDTO = registerSelector(contextPath, pluginService.selectIdByName(PluginEnum.SPRING_CLOUD.getName()));
-        selectorDTO.setHandle(GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(dto.getAppName())));
-        return selectorService.register(selectorDTO);
+    protected String ruleHandler() {
+        return new SpringCloudRuleHandle().toJson();
     }
-
+    
     @Override
-    public void handlerRule(final String selectorId, final MetaDataRegisterDTO dto, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, dto.getPath(), PluginEnum.SPRING_CLOUD.getName(), dto.getRuleName()),
-                dto.getRuleName(),
-                false);
+    protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataService metaDataService = getMetaDataService();
+        metaDataDTO.setPath(metaDataDTO.getContextPath() + "/**");
+        MetaDataDO metaDataDO = metaDataService.findByPath(metaDataDTO.getPath());
+        metaDataService.saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
-
-    private void registerContextPathPlugin(final String contextPath) {
-        String name = Constants.CONTEXT_PATH_NAME_PREFIX + contextPath;
-        SelectorDO selectorDO = selectorService.findByName(name);
-        if (Objects.isNull(selectorDO)) {
-            String contextPathSelectorId = registerContextPathSelector(contextPath, name);
-            ruleService.register(registerRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name),
-                    name,
-                    false);
+    
+    @Override
+    protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
+        List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
+        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
+        List<DivideUpstream> existList = springCloudSelectorHandle.getDivideUpstreams();
+        if (CollectionUtils.isEmpty(existList)) {
+            return doHandler(springCloudSelectorHandle, addList, addList, selectorDO);
         }
+        List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
+        existList = new CopyOnWriteArrayList<>(springCloudSelectorHandle.getDivideUpstreams());
+        for (DivideUpstream exist : existList) {
+            for (DivideUpstream add : addList) {
+                if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
+                    existList.add(add);
+                    canAddList.add(add);
+                }
+            }
+        }
+        return doHandler(springCloudSelectorHandle, existList, canAddList, selectorDO);
     }
-
-    private String registerContextPathSelector(final String contextPath, final String name) {
-        SelectorDTO selectorDTO = buildDefaultSelectorDTO(name);
-        selectorDTO.setPluginId(pluginService.selectIdByName(PluginEnum.CONTEXT_PATH.getName()));
-        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
-        return selectorService.register(selectorDTO);
+    
+    private String doHandler(final SpringCloudSelectorHandle springCloudSelectorHandle, 
+                              final List<DivideUpstream> existList,
+                              final List<DivideUpstream> canAddList,
+                              final SelectorDO selectorDO) {
+        springCloudSelectorHandle.setDivideUpstreams(existList);
+        doSubmit(selectorDO.getId(), canAddList);
+        return GsonUtils.getInstance().toJson(springCloudSelectorHandle);
     }
-
-    private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId) {
-        return SpringCloudSelectorHandle.builder().serviceId(serviceId).build();
+    
+    private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
+        return uriList.stream()
+                .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort()))
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
+    
 }

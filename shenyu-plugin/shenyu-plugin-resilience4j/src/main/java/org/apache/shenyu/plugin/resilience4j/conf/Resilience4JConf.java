@@ -20,12 +20,10 @@ package org.apache.shenyu.plugin.resilience4j.conf;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
-import lombok.Data;
 
 /**
  * Resilience4J conf.
  */
-@Data
 public class Resilience4JConf {
 
     /**
@@ -53,6 +51,15 @@ public class Resilience4JConf {
      */
     private RateLimiterConfig rateLimiterConfig;
 
+    /**
+     * Instantiates a new Resilience4jConf.
+     *
+     * @param id                   the id
+     * @param fallBackUri          the fall back uri
+     * @param rateLimiterConfig    the rate limiter config
+     * @param timeLimiterConfig    the time limiter config
+     * @param circuitBreakerConfig the circuit breaker config
+     */
     public Resilience4JConf(final String id,
                             final String fallBackUri,
                             final RateLimiterConfig rateLimiterConfig,
@@ -63,5 +70,95 @@ public class Resilience4JConf {
         this.rateLimiterConfig = rateLimiterConfig;
         this.timeLimiterConfig = timeLimiterConfig;
         this.circuitBreakerConfig = circuitBreakerConfig;
+    }
+
+    /**
+     * Gets id.
+     *
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets id.
+     *
+     * @param id the id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets fall back uri.
+     *
+     * @return the fall back uri
+     */
+    public String getFallBackUri() {
+        return fallBackUri;
+    }
+
+    /**
+     * Sets fall back uri.
+     *
+     * @param fallBackUri the fall back uri
+     */
+    public void setFallBackUri(final String fallBackUri) {
+        this.fallBackUri = fallBackUri;
+    }
+
+    /**
+     * Gets time limiter config.
+     *
+     * @return the time limiter config
+     */
+    public TimeLimiterConfig getTimeLimiterConfig() {
+        return timeLimiterConfig;
+    }
+
+    /**
+     * Sets time limiter config.
+     *
+     * @param timeLimiterConfig the time limiter config
+     */
+    public void setTimeLimiterConfig(final TimeLimiterConfig timeLimiterConfig) {
+        this.timeLimiterConfig = timeLimiterConfig;
+    }
+
+    /**
+     * Gets circuit breaker config.
+     *
+     * @return the circuit breaker config
+     */
+    public CircuitBreakerConfig getCircuitBreakerConfig() {
+        return circuitBreakerConfig;
+    }
+
+    /**
+     * Sets circuit breaker config.
+     *
+     * @param circuitBreakerConfig the circuit breaker config
+     */
+    public void setCircuitBreakerConfig(final CircuitBreakerConfig circuitBreakerConfig) {
+        this.circuitBreakerConfig = circuitBreakerConfig;
+    }
+
+    /**
+     * Gets rate limiter config.
+     *
+     * @return the rate limiter config
+     */
+    public RateLimiterConfig getRateLimiterConfig() {
+        return rateLimiterConfig;
+    }
+
+    /**
+     * Sets rate limiter config.
+     *
+     * @param rateLimiterConfig the rate limiter config
+     */
+    public void setRateLimiterConfig(final RateLimiterConfig rateLimiterConfig) {
+        this.rateLimiterConfig = rateLimiterConfig;
     }
 }

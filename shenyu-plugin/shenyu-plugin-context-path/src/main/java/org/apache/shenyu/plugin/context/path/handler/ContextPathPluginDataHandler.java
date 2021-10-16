@@ -18,10 +18,10 @@
 package org.apache.shenyu.plugin.context.path.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -34,13 +34,13 @@ import java.util.function.Supplier;
  */
 public class ContextPathPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, ContextMappingHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+    public static final Supplier<CommonHandleCache<String, ContextMappingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(s, ContextMappingHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
+            ContextMappingRuleHandle contextMappingRuleHandle = GsonUtils.getInstance().fromJson(s, ContextMappingRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingRuleHandle);
         });
     }
 

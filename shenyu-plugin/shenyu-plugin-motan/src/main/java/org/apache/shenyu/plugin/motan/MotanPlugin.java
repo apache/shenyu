@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.motan;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -32,6 +31,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -41,8 +42,9 @@ import java.util.Objects;
 /**
  * Motan plugin.
  */
-@Slf4j
 public class MotanPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MotanPlugin.class);
 
     private final MotanProxyService motanProxyService;
 
@@ -64,7 +66,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
             assert metaData != null;
-            log.error("path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
+            LOG.error("path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
@@ -95,7 +97,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
      * @return default false.
      */
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.MOTAN.getName());

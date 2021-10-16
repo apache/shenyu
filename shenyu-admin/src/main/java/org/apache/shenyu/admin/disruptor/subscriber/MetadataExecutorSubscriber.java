@@ -17,22 +17,23 @@
 
 package org.apache.shenyu.admin.disruptor.subscriber;
 
-import org.apache.shenyu.admin.service.register.ShenyuClientRegisterServiceFactory;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Metadata executor subscriber.
  */
 public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDataRegisterDTO> {
 
-    private final Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService;
+    private final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService;
 
-    public MetadataExecutorSubscriber(final Map<String, ShenyuClientRegisterServiceFactory> shenyuClientRegisterService) {
+    public MetadataExecutorSubscriber(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService) {
         this.shenyuClientRegisterService = shenyuClientRegisterService;
     }
 
@@ -40,11 +41,15 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
     public DataType getType() {
         return DataType.META_DATA;
     }
-    
+
     @Override
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
         for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
-            shenyuClientRegisterService.get(metaDataRegisterDTO.getRpcType()).register(metaDataRegisterDTO);
+            ShenyuClientRegisterService shenyuClientRegisterService = this.shenyuClientRegisterService.get(metaDataRegisterDTO.getRpcType());
+            Objects.requireNonNull(shenyuClientRegisterService);
+            synchronized (ShenyuClientRegisterService.class) {
+                shenyuClientRegisterService.register(metaDataRegisterDTO);
+            }
         }
     }
 }

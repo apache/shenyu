@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -60,7 +60,6 @@ import java.util.stream.Collectors;
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.RuleService}.
  */
-@RequiredArgsConstructor
 @Service
 public class RuleServiceImpl implements RuleService {
 
@@ -76,9 +75,24 @@ public class RuleServiceImpl implements RuleService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    public RuleServiceImpl(final RuleMapper ruleMapper,
+                           final RuleConditionMapper ruleConditionMapper,
+                           final SelectorMapper selectorMapper,
+                           final PluginMapper pluginMapper,
+                           final DataPermissionMapper dataPermissionMapper,
+                           final ApplicationEventPublisher eventPublisher) {
+        this.ruleMapper = ruleMapper;
+        this.ruleConditionMapper = ruleConditionMapper;
+        this.selectorMapper = selectorMapper;
+        this.pluginMapper = pluginMapper;
+        this.dataPermissionMapper = dataPermissionMapper;
+        this.eventPublisher = eventPublisher;
+    }
+
     @Override
-    public String register(final RuleDTO ruleDTO, final String name, final boolean metaDataIsNull) {
-        if (Objects.nonNull(ruleMapper.findByName(name)) || metaDataIsNull) {
+    public String registerDefault(final RuleDTO ruleDTO) {
+        RuleDO exist = ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName());
+        if (Objects.nonNull(exist)) {
             return "";
         }
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
@@ -181,9 +195,9 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_RULE)
+    @Pageable
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
         return PageResultUtils.result(ruleQuery.getPageParameter(),
-            () -> ruleMapper.countByQuery(ruleQuery),
             () -> ruleMapper.selectByQuery(ruleQuery).stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
     }
 

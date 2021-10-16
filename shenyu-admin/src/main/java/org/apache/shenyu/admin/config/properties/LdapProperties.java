@@ -17,13 +17,11 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Ldap properties.
  */
-@Data
 @ConfigurationProperties(prefix = "shenyu.ldap")
 public class LdapProperties {
 
@@ -47,4 +45,166 @@ public class LdapProperties {
     private Integer connectTimeout = 3000;
 
     private Integer readTimeout = 3000;
+
+    /**
+     * Gets the value of enabled.
+     *
+     * @return the value of enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets the enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of url.
+     *
+     * @return the value of url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets the url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * Gets the value of bindDn.
+     *
+     * @return the value of bindDn
+     */
+    public String getBindDn() {
+        return bindDn;
+    }
+
+    /**
+     * Sets the bindDn.
+     *
+     * @param bindDn bindDn
+     */
+    public void setBindDn(final String bindDn) {
+        this.bindDn = bindDn;
+    }
+
+    /**
+     * Gets the value of password.
+     *
+     * @return the value of password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Sets the password.
+     *
+     * @param password password
+     */
+    public void setPassword(final String password) {
+        this.password = password;
+    }
+
+    /**
+     * Gets the value of baseDn.
+     *
+     * @return the value of baseDn
+     */
+    public String getBaseDn() {
+        return baseDn;
+    }
+
+    /**
+     * Sets the baseDn.
+     *
+     * @param baseDn baseDn
+     */
+    public void setBaseDn(final String baseDn) {
+        this.baseDn = baseDn;
+    }
+
+    /**
+     * Gets the value of objectClass.
+     *
+     * @return the value of objectClass
+     */
+    public String getObjectClass() {
+        return objectClass;
+    }
+
+    /**
+     * Sets the objectClass.
+     *
+     * @param objectClass objectClass
+     */
+    public void setObjectClass(final String objectClass) {
+        this.objectClass = objectClass;
+    }
+
+    /**
+     * Gets the value of loginField.
+     *
+     * @return the value of loginField
+     */
+    public String getLoginField() {
+        return loginField;
+    }
+
+    /**
+     * Sets the loginField.
+     *
+     * @param loginField loginField
+     */
+    public void setLoginField(final String loginField) {
+        this.loginField = loginField;
+    }
+
+    /**
+     * Gets the value of connectTimeout.
+     *
+     * @return the value of connectTimeout
+     */
+    public Integer getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    /**
+     * Sets the connectTimeout.
+     *
+     * @param connectTimeout connectTimeout
+     */
+    public void setConnectTimeout(final Integer connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    /**
+     * Gets the value of readTimeout.
+     *
+     * @return the value of readTimeout
+     */
+    public Integer getReadTimeout() {
+        return readTimeout;
+    }
+
+    /**
+     * Sets the readTimeout.
+     *
+     * @param readTimeout readTimeout
+     */
+    public void setReadTimeout(final Integer readTimeout) {
+        this.readTimeout = readTimeout;
+    }
 }

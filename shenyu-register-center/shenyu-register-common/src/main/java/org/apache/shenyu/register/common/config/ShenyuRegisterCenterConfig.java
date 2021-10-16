@@ -18,16 +18,10 @@
 package org.apache.shenyu.register.common.config;
 
 import java.util.Properties;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 /**
  * Governance center configuration.
  */
-@Getter
-@Setter
-@RequiredArgsConstructor
 public final class ShenyuRegisterCenterConfig {
     
     private String registerType;
@@ -35,4 +29,67 @@ public final class ShenyuRegisterCenterConfig {
     private String serverLists;
     
     private Properties props = new Properties();
+
+    public ShenyuRegisterCenterConfig() {
+    }
+
+    public ShenyuRegisterCenterConfig(final String registerType, final String serverLists, final Properties props) {
+        this.registerType = registerType;
+        this.serverLists = serverLists;
+        this.props = props;
+    }
+
+    /**
+     * getRegisterType.
+     *
+     * @return String
+     */
+    public String getRegisterType() {
+        return registerType;
+    }
+
+    /**
+     * setRegisterType.
+     *
+     * @param registerType registerType
+     */
+    public void setRegisterType(final String registerType) {
+        this.registerType = registerType;
+    }
+
+    /**
+     * getServerLists.
+     *
+     * @return String
+     */
+    public String getServerLists() {
+        return serverLists;
+    }
+
+    /**
+     * setServerLists.
+     *
+     * @param serverLists serverLists
+     */
+    public void setServerLists(final String serverLists) {
+        this.serverLists = serverLists;
+    }
+
+    /**
+     * getProps.
+     *
+     * @return String
+     */
+    public Properties getProps() {
+        return props;
+    }
+
+    /**
+     * setProps.
+     *
+     * @param props props
+     */
+    public void setProps(final Properties props) {
+        this.props = props;
+    }
 }

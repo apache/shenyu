@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.concurrent;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.concurrent.ThreadFactory;
@@ -28,7 +27,6 @@ import static org.junit.Assert.assertThat;
 /**
  * Test cases for ShenyuThreadFactory.
  */
-@Slf4j
 public final class ShenyuThreadFactoryTest {
 
     private static final String NAME_PREFIX = "shenyu##thread##";

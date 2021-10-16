@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.apache.shenyu.admin.utils.JwtUtils;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Optional;
@@ -28,9 +24,6 @@ import java.util.Optional;
 /**
  * login dashboard return user info's vo.
  */
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class LoginDashboardUserVO extends DashboardUserVO {
 
     private static final long serialVersionUID = -411996250594776944L;
@@ -39,6 +32,29 @@ public class LoginDashboardUserVO extends DashboardUserVO {
      * token.
      */
     private String token;
+
+    public LoginDashboardUserVO() {
+    }
+
+    /**
+     * Gets the value of token.
+     *
+     * @return the value of token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Sets the token.
+     *
+     * @param token token
+     * @return {@link LoginDashboardUserVO}
+     */
+    public LoginDashboardUserVO setToken(final String token) {
+        this.token = token;
+        return this;
+    }
 
     /**
      * build loginDashboardUserVO.
@@ -51,7 +67,6 @@ public class LoginDashboardUserVO extends DashboardUserVO {
                 .map(item -> {
                     LoginDashboardUserVO vo = new LoginDashboardUserVO();
                     BeanUtils.copyProperties(item, vo);
-                    vo.setToken(JwtUtils.generateToken(vo.getUserName()));
                     return vo;
                 }).orElse(null);
     }

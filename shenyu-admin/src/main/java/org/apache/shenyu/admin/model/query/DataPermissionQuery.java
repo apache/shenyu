@@ -17,20 +17,16 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * data permission query.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class DataPermissionQuery implements Serializable {
+
     private static final long serialVersionUID = -2830562388349740181L;
 
     /**
@@ -38,9 +34,69 @@ public class DataPermissionQuery implements Serializable {
      */
     private String userId;
 
-
     /**
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public DataPermissionQuery() {
+    }
+
+    public DataPermissionQuery(final String userId, final PageParameter pageParameter) {
+        this.userId = userId;
+        this.pageParameter = pageParameter;
+    }
+
+    /**
+     * Gets the value of userId.
+     *
+     * @return the value of userId
+     */
+    public String getUserId() {
+        return userId;
+    }
+
+    /**
+     * Sets the userId.
+     *
+     * @param userId userId
+     */
+    public void setUserId(final String userId) {
+        this.userId = userId;
+    }
+
+    /**
+     * Gets the value of pageParameter.
+     *
+     * @return the value of pageParameter
+     */
+    public PageParameter getPageParameter() {
+        return pageParameter;
+    }
+
+    /**
+     * Sets the pageParameter.
+     *
+     * @param pageParameter pageParameter
+     */
+    public void setPageParameter(final PageParameter pageParameter) {
+        this.pageParameter = pageParameter;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DataPermissionQuery)) {
+            return false;
+        }
+        DataPermissionQuery that = (DataPermissionQuery) o;
+        return Objects.equals(userId, that.userId) && Objects.equals(pageParameter, that.pageParameter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, pageParameter);
+    }
 }

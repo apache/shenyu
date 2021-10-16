@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -25,6 +24,8 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -52,8 +53,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Shenyu logging plugin. it can print request info(include request headers, request params, request body ...etc) and
  * response info(include response headers and response body).
  */
-@Slf4j
 public class LoggingPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(LoggingPlugin.class);
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -77,7 +79,7 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
     }
     
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         return false;
     }
     
@@ -112,7 +114,7 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
     }
     
     private void print(final String info) {
-        log.info(info);
+        LOG.info(info);
     }
     
     private String getHeaders(final HttpHeaders headers) {
@@ -207,7 +209,7 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
                     channel.write(buffer);
                 } catch (IOException e) {
                     isClosed.compareAndSet(false, true);
-                    log.error("Parse Failed.", e);
+                    LOG.error("Parse Failed.", e);
                 }
             }
         }
@@ -221,18 +223,18 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
                 isClosed.compareAndSet(false, true);
                 return new String(stream.toByteArray(), StandardCharsets.UTF_8);
             } catch (Exception e) {
-                log.error("Write failed: ", e);
+                LOG.error("Write failed: ", e);
                 return "Write failed: " + e.getMessage();
             } finally {
                 try {
                     stream.close();
                 } catch (IOException e) {
-                    log.error("Close stream error: ", e);
+                    LOG.error("Close stream error: ", e);
                 }
                 try {
                     channel.close();
                 } catch (IOException e) {
-                    log.error("Close channel error: ", e);
+                    LOG.error("Close channel error: ", e);
                 }
             }
         }

@@ -19,10 +19,11 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +34,6 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @param <T> the type parameter
  */
-@Slf4j
 public abstract class AbstractDataRefresh<T> implements DataRefresh {
 
     /**
@@ -45,6 +45,11 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
      * The constant GSON.
      */
     protected static final Gson GSON = new Gson();
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractDataRefresh.class);
 
     /**
      * Convert json object.
@@ -107,15 +112,15 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         ResultHolder holder = new ResultHolder(false);
         GROUP_CACHE.merge(groupEnum, newVal, (oldVal, value) -> {
             if (StringUtils.equals(oldVal.getMd5(), newVal.getMd5())) {
-                log.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
+                LOG.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
                 return oldVal;
             }
             // must compare the last update time
             if (oldVal.getLastModifyTime() >= newVal.getLastModifyTime()) {
-                log.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
+                LOG.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
                 return oldVal;
             }
-            log.info("update {} config: {}", groupEnum, newVal);
+            LOG.info("update {} config: {}", groupEnum, newVal);
             holder.result = true;
             return newVal;
         });

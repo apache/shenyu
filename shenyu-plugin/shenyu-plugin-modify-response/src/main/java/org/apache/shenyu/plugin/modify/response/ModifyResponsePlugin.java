@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.modify.response;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -32,18 +31,17 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
-import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -53,6 +51,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -60,24 +59,17 @@ import java.util.Set;
 /**
  * ModifyResponse plugin.
  */
-@Slf4j
 public class ModifyResponsePlugin extends AbstractShenyuPlugin {
-
-    public ModifyResponsePlugin() {
-
-    }
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        if (Objects.isNull(rule)) {
-            return Mono.empty();
-        }
-        final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.nonNull(modifyResponseRuleHandle)) {
-            ServerHttpResponse response = exchange.getResponse();
-            HttpHeaders httpHeaders = response.getHeaders();
+            ClientResponse response = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.addAll(Objects.requireNonNull(response).headers().asHttpHeaders());
             if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getAddHeaders())) {
                 Map<String, String> addHeaderMap = modifyResponseRuleHandle.getAddHeaders();
                 addHeaderMap.forEach(httpHeaders::add);
@@ -90,10 +82,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
             if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getReplaceHeaderKeys())) {
                 Map<String, String> replaceHeaderMap = modifyResponseRuleHandle.getReplaceHeaderKeys();
-                replaceHeaderMap.forEach((key, value) -> {
-                    httpHeaders.addAll(value, httpHeaders.get(key));
-                    httpHeaders.remove(key);
-                });
+                replaceHeaderMap.forEach((key, value) -> httpHeaders.replace(key, Collections.singletonList(value)));
             }
 
             if (Objects.nonNull(modifyResponseRuleHandle.getRemoveHeaderKeys()) && !CollectionUtils.isEmpty(modifyResponseRuleHandle.getRemoveHeaderKeys())) {
@@ -102,8 +91,18 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             }
 
             if (modifyResponseRuleHandle.getStatusCode() > 0) {
-                response.setStatusCode(HttpStatus.valueOf(modifyResponseRuleHandle.getStatusCode()));
+                exchange.getResponse().setStatusCode(HttpStatus.valueOf(modifyResponseRuleHandle.getStatusCode()));
             }
+
+            ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(exchange.getResponse().getStatusCode()),
+                    ServerCodecConfigurer.create().getReaders());
+            Flux<DataBuffer> body = response.body(BodyExtractors.toDataBuffers());
+            ClientResponse modifyResponse = builder
+                    .headers(headers -> headers.putAll(httpHeaders))
+                    .body(body)
+                    .cookies(cookies -> cookies.putAll(response.cookies()))
+                    .build();
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, modifyResponse);
         }
 
         return chain.execute(exchange.mutate()
@@ -118,11 +117,6 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.MODIFY_RESPONSE.getName();
-    }
-
-    @Override
-    public Boolean skip(final ServerWebExchange exchange) {
-        return false;
     }
 
     static class ModifyServerHttpResponse extends ServerHttpResponseDecorator {
@@ -140,10 +134,10 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-            ClientResponse clientResponse = prepareClientResponse(body, httpHeaders);
+            ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+            if (Objects.isNull(clientResponse)) {
+                clientResponse = prepareClientResponse(body, this.getHeaders());
+            }
             Mono<byte[]> modifiedBody = clientResponse.bodyToMono(byte[].class)
                     .flatMap(originalBody -> Mono.just(updateResponse(originalBody)));
 
@@ -174,7 +168,11 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
         private String operation(final String jsonValue, final ModifyResponseRuleHandle handle) {
             DocumentContext context = JsonPath.parse(jsonValue);
-            operation(context, handle);
+            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
+                handle.getAddBodyKeys().forEach(info -> {
+                    context.put(info.getPath(), info.getKey(), info.getValue());
+                });
+            }
             if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
                 handle.getReplaceBodyKeys().forEach(info -> {
                     context.renameKey(info.getPath(), info.getKey(), info.getValue());
@@ -186,17 +184,9 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             return context.jsonString();
         }
 
-        private void operation(final DocumentContext context, final ModifyResponseRuleHandle handle) {
-            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
-                handle.getAddBodyKeys().forEach(info -> {
-                    context.put(info.getPath(), info.getKey(), info.getValue());
-                });
-            }
-        }
-
         private ClientResponse prepareClientResponse(final Publisher<? extends DataBuffer> body, final HttpHeaders httpHeaders) {
             ClientResponse.Builder builder;
-            builder = ClientResponse.create(exchange.getResponse().getStatusCode(), ServerCodecConfigurer.create().getReaders());
+            builder = ClientResponse.create(this.getDelegate().getStatusCode(), ServerCodecConfigurer.create().getReaders());
             return builder.headers(headers -> headers.putAll(httpHeaders)).body(Flux.from(body)).build();
         }
     }

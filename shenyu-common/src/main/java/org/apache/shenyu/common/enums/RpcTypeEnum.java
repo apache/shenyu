@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Arrays;
@@ -28,8 +26,6 @@ import java.util.stream.Collectors;
 /**
  * RpcTypeEnum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum RpcTypeEnum {
 
     /**
@@ -78,6 +74,35 @@ public enum RpcTypeEnum {
     private final Boolean support;
 
     /**
+     * all args constructor.
+     *
+     * @param name    name
+     * @param support support
+     */
+    RpcTypeEnum(final String name, final Boolean support) {
+        this.name = name;
+        this.support = support;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * get support.
+     *
+     * @return support
+     */
+    public Boolean getSupport() {
+        return support;
+    }
+
+    /**
      * acquire operator supports.
      *
      * @return operator support.
@@ -93,7 +118,7 @@ public enum RpcTypeEnum {
      * @return operator support.
      */
     public static List<RpcTypeEnum> acquireSupportURIs() {
-        return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS);
+        return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.DUBBO);
     }
 
     /**
@@ -102,7 +127,7 @@ public enum RpcTypeEnum {
      * @return operator support.
      */
     public static List<RpcTypeEnum> acquireSupportMetadatas() {
-        return Arrays.asList(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
+        return Arrays.asList(RpcTypeEnum.HTTP, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS, RpcTypeEnum.MOTAN);
     }
 
     /**

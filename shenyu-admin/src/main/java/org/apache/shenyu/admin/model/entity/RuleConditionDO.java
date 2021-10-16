@@ -17,24 +17,17 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * RuleConditionDO.
  */
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public final class RuleConditionDO extends BaseDO {
 
     private static final long serialVersionUID = -5652026882314490873L;
@@ -64,6 +57,116 @@ public final class RuleConditionDO extends BaseDO {
      */
     private String paramValue;
 
+    public RuleConditionDO() {
+    }
+
+    public RuleConditionDO(final String ruleId, final String paramType, final String operator, final String paramName, final String paramValue) {
+        this.ruleId = ruleId;
+        this.paramType = paramType;
+        this.operator = operator;
+        this.paramName = paramName;
+        this.paramValue = paramValue;
+    }
+
+    /**
+     * Gets the value of ruleId.
+     *
+     * @return the value of ruleId
+     */
+    public String getRuleId() {
+        return ruleId;
+    }
+
+    /**
+     * Sets the ruleId.
+     *
+     * @param ruleId ruleId
+     */
+    public void setRuleId(final String ruleId) {
+        this.ruleId = ruleId;
+    }
+
+    /**
+     * Gets the value of paramType.
+     *
+     * @return the value of paramType
+     */
+    public String getParamType() {
+        return paramType;
+    }
+
+    /**
+     * Sets the paramType.
+     *
+     * @param paramType paramType
+     */
+    public void setParamType(final String paramType) {
+        this.paramType = paramType;
+    }
+
+    /**
+     * Gets the value of operator.
+     *
+     * @return the value of operator
+     */
+    public String getOperator() {
+        return operator;
+    }
+
+    /**
+     * Sets the operator.
+     *
+     * @param operator operator
+     */
+    public void setOperator(final String operator) {
+        this.operator = operator;
+    }
+
+    /**
+     * Gets the value of paramName.
+     *
+     * @return the value of paramName
+     */
+    public String getParamName() {
+        return paramName;
+    }
+
+    /**
+     * Sets the paramName.
+     *
+     * @param paramName paramName
+     */
+    public void setParamName(final String paramName) {
+        this.paramName = paramName;
+    }
+
+    /**
+     * Gets the value of paramValue.
+     *
+     * @return the value of paramValue
+     */
+    public String getParamValue() {
+        return paramValue;
+    }
+
+    /**
+     * Sets the paramValue.
+     *
+     * @param paramValue paramValue
+     */
+    public void setParamValue(final String paramValue) {
+        this.paramValue = paramValue;
+    }
+
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static RuleConditionDO.RuleConditionDOBuilder builder() {
+        return new RuleConditionDO.RuleConditionDOBuilder();
+    }
+
     /**
      * build ruleConditionDO.
      *
@@ -89,5 +192,152 @@ public final class RuleConditionDO extends BaseDO {
             }
             return ruleConditionDO;
         }).orElse(null);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RuleConditionDO that = (RuleConditionDO) o;
+        return Objects.equals(ruleId, that.ruleId)
+                && Objects.equals(paramType, that.paramType)
+                && Objects.equals(operator, that.operator)
+                && Objects.equals(paramName, that.paramName)
+                && Objects.equals(paramValue, that.paramValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), ruleId, paramType, operator, paramName, paramValue);
+    }
+
+    public static final class RuleConditionDOBuilder {
+
+        private String id;
+
+        private Timestamp dateCreated;
+
+        private Timestamp dateUpdated;
+
+        private String ruleId;
+
+        private String paramType;
+
+        private String operator;
+
+        private String paramName;
+
+        private String paramValue;
+
+        private RuleConditionDOBuilder() {
+        }
+
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * dateCreated.
+         *
+         * @param dateCreated the dateCreated.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder dateCreated(final Timestamp dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /**
+         * dateUpdated.
+         *
+         * @param dateUpdated the dateUpdated.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder dateUpdated(final Timestamp dateUpdated) {
+            this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * ruleId.
+         *
+         * @param ruleId the ruleId.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder ruleId(final String ruleId) {
+            this.ruleId = ruleId;
+            return this;
+        }
+
+        /**
+         * paramType.
+         *
+         * @param paramType the paramType.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder paramType(final String paramType) {
+            this.paramType = paramType;
+            return this;
+        }
+
+        /**
+         * operator.
+         *
+         * @param operator the operator.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder operator(final String operator) {
+            this.operator = operator;
+            return this;
+        }
+
+        /**
+         * paramName.
+         *
+         * @param paramName the paramName.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder paramName(final String paramName) {
+            this.paramName = paramName;
+            return this;
+        }
+
+        /**
+         * paramValue.
+         *
+         * @param paramValue the paramValue.
+         * @return RuleConditionDOBuilder.
+         */
+        public RuleConditionDOBuilder paramValue(final String paramValue) {
+            this.paramValue = paramValue;
+            return this;
+        }
+
+        /**
+         * build method.
+         *
+         * @return build object.
+         */
+        public RuleConditionDO build() {
+            RuleConditionDO ruleConditionDO = new RuleConditionDO(ruleId, paramType, operator, paramName, paramValue);
+            ruleConditionDO.setId(id);
+            ruleConditionDO.setDateCreated(dateCreated);
+            ruleConditionDO.setDateUpdated(dateUpdated);
+            return ruleConditionDO;
+        }
     }
 }

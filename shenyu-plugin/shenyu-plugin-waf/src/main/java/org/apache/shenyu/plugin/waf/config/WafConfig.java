@@ -18,12 +18,10 @@
 package org.apache.shenyu.plugin.waf.config;
 
 import java.io.Serializable;
-import lombok.Data;
 
 /**
  * The type Waf config.
  */
-@Data
 public class WafConfig implements Serializable {
 
     private static final long serialVersionUID = 96834909685183123L;
@@ -33,4 +31,22 @@ public class WafConfig implements Serializable {
      * default is black; mixed .
      */
     private String model;
+
+    /**
+     * Gets model.
+     *
+     * @return the model
+     */
+    public String getModel() {
+        return model;
+    }
+
+    /**
+     * Sets model.
+     *
+     * @param model the model
+     */
+    public void setModel(final String model) {
+        this.model = model;
+    }
 }

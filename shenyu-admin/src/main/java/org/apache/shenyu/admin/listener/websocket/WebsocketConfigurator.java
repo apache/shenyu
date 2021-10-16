@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import lombok.extern.slf4j.Slf4j;
-
 import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
@@ -29,7 +27,6 @@ import javax.websocket.server.ServerEndpointConfig;
  *
  * @since 2.0.0
  */
-@Slf4j
 public class WebsocketConfigurator extends ServerEndpointConfig.Configurator {
 
     @Override

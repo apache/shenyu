@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.admin.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,12 +44,15 @@ import java.util.List;
  * this is selector controller.
  */
 @Validated
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/selector")
 public class SelectorController {
 
     private final SelectorService selectorService;
+
+    public SelectorController(final SelectorService selectorService) {
+        this.selectorService = selectorService;
+    }
 
     /**
      * query Selectors.

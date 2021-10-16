@@ -21,7 +21,6 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -30,6 +29,8 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
 import org.apache.shenyu.sync.data.consul.handler.ConsulCacheHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +43,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Consul sync data service.
  */
-@Slf4j
 public class ConsulSyncDataService extends ConsulCacheHandler implements AutoCloseable, SyncDataService {
+    /**
+     * logger. 
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ConsulSyncDataService.class);
 
     private final Map<String, OnChange> groupMap = new HashMap<>();
 
@@ -99,22 +103,22 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
                     Response<List<GetValue>> response = this.consulClient.getKVValues(context, null,
                             new QueryParams(consulConfig.getWaitTime(), currentIndex));
                     if (response.getValue() == null || response.getValue().isEmpty()) {
-                        if (log.isTraceEnabled()) {
-                            log.trace("No value for context " + context);
+                        if (LOG.isTraceEnabled()) {
+                            LOG.trace("No value for context " + context);
                         }
                         continue;
                     }
                     Long newIndex = response.getConsulIndex();
                     if (newIndex == null || newIndex.equals(currentIndex)) {
-                        if (log.isTraceEnabled()) {
-                            log.trace("Same index for context " + context);
+                        if (LOG.isTraceEnabled()) {
+                            LOG.trace("Same index for context " + context);
                         }
                         continue;
                     }
                     if (!this.consulIndexes.containsValue(newIndex)
                             && !currentIndex.equals(ConsulConstants.INIT_CONFIG_VERSION_INDEX)) {
-                        if (log.isTraceEnabled()) {
-                            log.trace("Context " + context + " has new index " + newIndex);
+                        if (LOG.isTraceEnabled()) {
+                            LOG.trace("Context " + context + " has new index " + newIndex);
                         }
                         final Long lastIndex = currentIndex;
                         response.getValue().forEach(data -> {
@@ -125,12 +129,12 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
                             groupMap.get(data.getKey()).change(data.getDecodedValue());
                         });
 
-                    } else if (log.isTraceEnabled()) {
-                        log.info("Event for index already published for context " + context);
+                    } else if (LOG.isTraceEnabled()) {
+                        LOG.info("Event for index already published for context " + context);
                     }
                     this.consulIndexes.put(context, newIndex);
                 } catch (Exception e) {
-                    log.warn("Error querying consul Key/Values for context '" + context + "'. Message: " + e.getMessage());
+                    LOG.warn("Error querying consul Key/Values for context '" + context + "'. Message: " + e.getMessage());
                 }
             }
         }

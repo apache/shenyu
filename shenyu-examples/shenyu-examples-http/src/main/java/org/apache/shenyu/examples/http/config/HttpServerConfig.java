@@ -18,10 +18,8 @@
 package org.apache.shenyu.examples.http.config;
 
 import org.apache.shenyu.examples.http.router.ShenyuTestHttpRouter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.scheduler.Scheduler;
@@ -38,15 +36,8 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class HttpServerConfig {
 
-    private final Environment environment;
-
-    @Autowired
-    public HttpServerConfig(Environment environment) {
-        this.environment = environment;
-    }
-
     @Bean
-    public RouterFunction<ServerResponse> monoRouterFunction(ShenyuTestHttpRouter shenyuTestHttpRouter) {
+    public RouterFunction<ServerResponse> monoRouterFunction(final ShenyuTestHttpRouter shenyuTestHttpRouter) {
         return shenyuTestHttpRouter.routes();
     }
 
@@ -54,7 +45,8 @@ public class HttpServerConfig {
     public Scheduler scheduler() {
         ExecutorService threadPool = new ThreadPoolExecutor(100, 100,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), runnable -> {
+                new LinkedBlockingQueue<>(),
+                runnable -> {
                     Thread thread = new Thread(runnable, "http-exe");
                     thread.setDaemon(false);
                     if (thread.getPriority() != Thread.NORM_PRIORITY) {

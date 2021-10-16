@@ -19,23 +19,31 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * The type app auth data refresh.
  */
-@Slf4j
-@RequiredArgsConstructor
 public class AppAuthDataRefresh extends AbstractDataRefresh<AppAuthData> {
 
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(AppAuthDataRefresh.class);
+
     private final List<AuthDataSubscriber> authDataSubscribers;
+
+    public AppAuthDataRefresh(final List<AuthDataSubscriber> authDataSubscribers) {
+        this.authDataSubscribers = authDataSubscribers;
+    }
 
     @Override
     protected JsonObject convert(final JsonObject data) {
@@ -61,7 +69,7 @@ public class AppAuthDataRefresh extends AbstractDataRefresh<AppAuthData> {
     @Override
     protected void refresh(final List<AppAuthData> data) {
         if (CollectionUtils.isEmpty(data)) {
-            log.info("clear all appAuth data cache");
+            LOG.info("clear all appAuth data cache");
             authDataSubscribers.forEach(AuthDataSubscriber::refresh);
         } else {
             data.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(authData)));

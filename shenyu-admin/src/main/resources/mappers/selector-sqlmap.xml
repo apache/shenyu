@@ -52,6 +52,15 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByNameAndPluginId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where name = #{name,jdbcType=VARCHAR}
+        and plugin_id = #{pluginId,jdbcType=VARCHAR}
+    </select>
+    
+
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -70,10 +79,6 @@
                 </foreach>
             </if>
         </where>
-
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">

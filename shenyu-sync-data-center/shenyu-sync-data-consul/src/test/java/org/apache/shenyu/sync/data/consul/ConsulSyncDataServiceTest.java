@@ -20,7 +20,6 @@ package org.apache.shenyu.sync.data.consul;
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
-import lombok.SneakyThrows;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
@@ -28,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,8 +68,7 @@ public class ConsulSyncDataServiceTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testWatch() {
+    public void testWatch() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Long index = 1L;
         final List<GetValue> list = new ArrayList<>();
         GetValue getValue = mock(GetValue.class);

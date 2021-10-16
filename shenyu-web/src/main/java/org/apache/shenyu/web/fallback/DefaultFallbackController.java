@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.web.fallback;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.plugin.api.result.DefaultShenyuEntity;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,8 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/fallback")
-@Slf4j
 public class DefaultFallbackController {
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultFallbackController.class);
 
     /**
      * default fallback for hystrix.
@@ -39,8 +43,8 @@ public class DefaultFallbackController {
      */
     @GetMapping("/hystrix")
     public Object hystrixPluginFallback() {
-        log.error("the default fallback for hystrix");
-        return DefaultShenyuEntity.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg(), null);
+        LOG.error("the default fallback for hystrix");
+        return ShenyuResultWrap.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg(), null);
     }
 
     /**
@@ -50,7 +54,7 @@ public class DefaultFallbackController {
      */
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {
-        log.error("the default fallback for resilience4j");
-        return DefaultShenyuEntity.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
+        LOG.error("the default fallback for resilience4j");
+        return ShenyuResultWrap.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
     }
 }

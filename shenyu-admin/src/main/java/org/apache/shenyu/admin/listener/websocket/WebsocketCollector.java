@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.utils.ThreadLocalUtil;
+import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -41,9 +42,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
  *
  * @since 2.0.0
  */
-@Slf4j
 @ServerEndpoint(value = "/websocket", configurator = WebsocketConfigurator.class)
 public class WebsocketCollector {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketCollector.class);
 
     private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
 
@@ -56,7 +58,7 @@ public class WebsocketCollector {
      */
     @OnOpen
     public void onOpen(final Session session) {
-        log.info("websocket on client[{}] open successful....", getClientIp(session));
+        LOG.info("websocket on client[{}] open successful....", getClientIp(session));
         SESSION_SET.add(session);
     }
 
@@ -82,10 +84,10 @@ public class WebsocketCollector {
     public void onMessage(final String message, final Session session) {
         if (message.equals(DataEventTypeEnum.MYSELF.name())) {
             try {
-                ThreadLocalUtil.put(SESSION_KEY, session);
+                ThreadLocalUtils.put(SESSION_KEY, session);
                 SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
             } finally {
-                ThreadLocalUtil.clear();
+                ThreadLocalUtils.clear();
             }
         }
     }
@@ -98,8 +100,8 @@ public class WebsocketCollector {
     @OnClose
     public void onClose(final Session session) {
         SESSION_SET.remove(session);
-        ThreadLocalUtil.clear();
-        log.warn("websocket close on client[{}]", getClientIp(session));
+        ThreadLocalUtils.clear();
+        LOG.warn("websocket close on client[{}]", getClientIp(session));
     }
 
     /**
@@ -111,8 +113,8 @@ public class WebsocketCollector {
     @OnError
     public void onError(final Session session, final Throwable error) {
         SESSION_SET.remove(session);
-        ThreadLocalUtil.clear();
-        log.error("websocket collection on client[{}] error: ", getClientIp(session), error);
+        ThreadLocalUtils.clear();
+        LOG.error("websocket collection on client[{}] error: ", getClientIp(session), error);
     }
 
     /**
@@ -124,7 +126,7 @@ public class WebsocketCollector {
     public static void send(final String message, final DataEventTypeEnum type) {
         if (StringUtils.isNotBlank(message)) {
             if (DataEventTypeEnum.MYSELF == type) {
-                Session session = (Session) ThreadLocalUtil.get(SESSION_KEY);
+                Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
                 if (session != null) {
                     sendMessageBySession(session, message);
                 }
@@ -134,11 +136,11 @@ public class WebsocketCollector {
         }
     }
 
-    private static void sendMessageBySession(final Session session, final String message) {
+    private static synchronized void sendMessageBySession(final Session session, final String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
-            log.error("websocket send result is exception: ", e);
+            LOG.error("websocket send result is exception: ", e);
         }
     }
 }

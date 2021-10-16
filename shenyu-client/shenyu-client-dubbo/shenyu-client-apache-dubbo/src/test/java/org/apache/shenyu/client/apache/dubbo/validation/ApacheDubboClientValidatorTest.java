@@ -22,7 +22,6 @@ import org.apache.dubbo.validation.Validator;
 import org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.validation.ValidationException;
@@ -31,14 +30,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 /**
  * Test case for {@link ApacheDubboClientValidator}.
  */
-@Ignore
 public final class ApacheDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL =
@@ -50,7 +44,7 @@ public final class ApacheDubboClientValidatorTest {
      * test method {@link ApacheDubboClientValidator#validate(java.lang.String, java.lang.Class[], java.lang.Object[])}.
      */
     @Test
-    public void validate() {
+    public void validate() throws Exception {
         URL url = URL.valueOf("dubbo://127.0.0.1:20880/org.apache.shenyu"
                 + ".client.apache.dubbo.validation.service.TestService"
                 + "?accepts=500&anyhost=true&application=shenyu-proxy"
@@ -61,13 +55,10 @@ public final class ApacheDubboClientValidatorTest {
                 + "&side=provider&threadpool=fixed&threads=500&timeout=20000"
                 + "&timestamp=1608119259859&validation=shenyuValidation");
         Validator apacheDubboClientValidator = new ApacheDubboClientValidation().getValidator(url);
-        try {
-            apacheDubboClientValidator.validate("test",
-                    new Class[]{TestService.TestObject.class},
-                    new Object[]{TestService.TestObject.builder().age(1).build()});
-        } catch (Exception e) {
-            assertThat("age cannot be null.", is(e.getMessage()));
-        }
+
+        apacheDubboClientValidator.validate("test",
+                new Class[]{TestService.TestObject.class},
+                new Object[]{new TestService.TestObject(1)});
     }
 
     @Before
@@ -92,17 +83,13 @@ public final class ApacheDubboClientValidatorTest {
                 .validate("methodOne", new Class<?>[]{String.class}, new Object[]{"anything"});
     }
 
-    @Test
-    public void testValidateWhenMeetsConstraintThenValidationFailed() {
-        try {
-            apacheDubboClientValidatorUnderTest
-                    .validate(
-                            "methodTwo",
-                            new Class<?>[]{MockValidationParameter.class},
-                            new Object[]{new MockValidationParameter("NotBeNull")});
-        } catch (Exception e) {
-            assertThat(e, instanceOf(ValidationException.class));
-        }
+    @Test(expected = ValidationException.class)
+    public void testValidateWhenMeetsConstraintThenValidationFailed() throws Exception {
+        apacheDubboClientValidatorUnderTest
+                .validate(
+                        "methodTwo",
+                        new Class<?>[]{MockValidationParameter.class},
+                        new Object[]{new MockValidationParameter("NotBeNull")});
     }
 
     @Test
@@ -117,8 +104,8 @@ public final class ApacheDubboClientValidatorTest {
     public void testItWithCollectionArg() throws Exception {
         apacheDubboClientValidatorUnderTest
                 .validate(
-                        "methodFour", 
-                        new Class<?>[]{List.class}, 
+                        "methodFour",
+                        new Class<?>[]{List.class},
                         new Object[]{Collections.singletonList("parameter")});
     }
 
