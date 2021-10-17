@@ -58,14 +58,14 @@
         date_created,
         date_updated)
         values
-         (
-         #{id,jdbcType=VARCHAR},
-         #{authId,jdbcType=VARCHAR},
-         #{appName,jdbcType=VARCHAR},
-         #{path,jdbcType=VARCHAR},
-         #{enabled,jdbcType=TINYINT},
-         #{dateCreated,jdbcType=TIMESTAMP},
-         #{dateUpdated,jdbcType=TIMESTAMP})
+        (
+        #{id,jdbcType=VARCHAR},
+        #{authId,jdbcType=VARCHAR},
+        #{appName,jdbcType=VARCHAR},
+        #{path,jdbcType=VARCHAR},
+        #{enabled,jdbcType=TINYINT},
+        #{dateCreated,jdbcType=TIMESTAMP},
+        #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
 
 

@@ -28,7 +28,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,  auth_id, app_name,app_param,date_created, date_updated
+        id, auth_id, app_name,app_param,date_created, date_updated
     </sql>
 
     <select id="findByAuthId" parameterType="java.lang.String" resultMap="BaseResultMap">
