@@ -33,7 +33,7 @@
 
     <delete id="deleteByUniqueKey">
         delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
-            and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
     </delete>
 
     <delete id="deleteByDataIdsAndUserId" parameterType="java.util.List">
@@ -57,7 +57,8 @@
     </select>
 
     <select id="selectDataIds" resultType="java.lang.String">
-        select data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        select data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR} and data_type =
+        #{dataType,jdbcType=INTEGER}
         and data_id in
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
@@ -65,8 +66,10 @@
     </select>
 
     <select id="findOneByUniqueKey" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/> from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
-            and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        select
+        <include refid="Base_Column_List"/>
+        from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
+        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
     </select>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DataPermissionDO">

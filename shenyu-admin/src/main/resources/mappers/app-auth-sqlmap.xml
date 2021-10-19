@@ -32,7 +32,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,  app_key, app_secret,user_id, phone,ext_info,open,enabled,date_created, date_updated
+        id, app_key, app_secret,user_id, phone,ext_info,open,enabled,date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -215,14 +215,14 @@
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
         update app_auth
-        set  enabled = #{enabled,jdbcType=TINYINT}
+        set enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
 
     <update id="updateAppSecretByAppKey">
         update app_auth
-        set  app_secret = #{appSecret,jdbcType=VARCHAR}
+        set app_secret = #{appSecret,jdbcType=VARCHAR}
         where app_key = #{appKey,jdbcType=VARCHAR}
     </update>
 
