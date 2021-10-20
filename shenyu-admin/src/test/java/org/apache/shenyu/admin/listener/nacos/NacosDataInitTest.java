@@ -57,26 +57,26 @@ public class NacosDataInitTest {
         long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
         NacosDataInit nacosDataInit = new NacosDataInit(configService, syncDataService);
 
-        String pluginDataId = NacosPathConstants.PLUGIN_DATA_ID;
+        String pluginDataId = NacosPathConstants.buildNacosPluginData();
         when(configService.getConfig(pluginDataId, group, timeout)).thenReturn(null);
         nacosDataInit.run();
         when(configService.getConfig(pluginDataId, group, timeout)).thenReturn(PLUGIN_DATA_ID);
         nacosDataInit.run();
 
         reset(configService);
-        String authDataId = NacosPathConstants.AUTH_DATA_ID;
+        String authDataId = NacosPathConstants.buildNacosRuleData();
         when(configService.getConfig(authDataId, group, timeout)).thenReturn(null);
         nacosDataInit.run();
         when(configService.getConfig(authDataId, group, timeout)).thenReturn(AUTH_DATA_ID);
         nacosDataInit.run();
 
         reset(configService);
-        String metaDataId = NacosPathConstants.META_DATA_ID;
+        String metaDataId = NacosPathConstants.buildNacosAuthData();
         when(configService.getConfig(metaDataId, group, timeout)).thenReturn(null);
         nacosDataInit.run();
         when(configService.getConfig(metaDataId, group, timeout)).thenReturn(META_DATA_ID);
         nacosDataInit.run();
 
-        verify(syncDataService, times(3)).syncAll(any(DataEventTypeEnum.class));
+        verify(syncDataService, times(4)).syncAll(any(DataEventTypeEnum.class));
     }
 }

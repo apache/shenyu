@@ -75,7 +75,7 @@ public class NacosDataChangedListener implements DataChangedListener {
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        updateAuthMap(getConfig(NacosPathConstants.AUTH_DATA_ID));
+        updateAuthMap(getConfig(NacosPathConstants.buildNacosAuthData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(appAuth -> AUTH_MAP.remove(appAuth.getAppKey()));
@@ -93,12 +93,12 @@ public class NacosDataChangedListener implements DataChangedListener {
                 changed.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
                 break;
         }
-        publishConfig(NacosPathConstants.AUTH_DATA_ID, AUTH_MAP);
+        publishConfig(NacosPathConstants.buildNacosAuthData(), AUTH_MAP);
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        updatePluginMap(getConfig(NacosPathConstants.PLUGIN_DATA_ID));
+        updatePluginMap(getConfig(NacosPathConstants.buildNacosPluginData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(plugin -> PLUGIN_MAP.remove(plugin.getName()));
@@ -116,12 +116,12 @@ public class NacosDataChangedListener implements DataChangedListener {
                 changed.forEach(plugin -> PLUGIN_MAP.put(plugin.getName(), plugin));
                 break;
         }
-        publishConfig(NacosPathConstants.PLUGIN_DATA_ID, PLUGIN_MAP);
+        publishConfig(NacosPathConstants.buildNacosPluginData(), PLUGIN_MAP);
     }
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        updateSelectorMap(getConfig(NacosPathConstants.SELECTOR_DATA_ID));
+        updateSelectorMap(getConfig(NacosPathConstants.buildNacosSelectorData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(selector -> {
@@ -160,12 +160,12 @@ public class NacosDataChangedListener implements DataChangedListener {
                 });
                 break;
         }
-        publishConfig(NacosPathConstants.SELECTOR_DATA_ID, SELECTOR_MAP);
+        publishConfig(NacosPathConstants.buildNacosSelectorData(), SELECTOR_MAP);
     }
 
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        updateMetaDataMap(getConfig(NacosPathConstants.META_DATA_ID));
+        updateMetaDataMap(getConfig(NacosPathConstants.buildNacosMetaData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(meta -> META_DATA.remove(meta.getPath()));
@@ -191,12 +191,12 @@ public class NacosDataChangedListener implements DataChangedListener {
                 });
                 break;
         }
-        publishConfig(NacosPathConstants.META_DATA_ID, META_DATA);
+        publishConfig(NacosPathConstants.buildNacosMetaData(), META_DATA);
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        updateRuleMap(getConfig(NacosPathConstants.RULE_DATA_ID));
+        updateRuleMap(getConfig(NacosPathConstants.buildNacosRuleData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(rule -> {
@@ -236,7 +236,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
         }
 
-        publishConfig(NacosPathConstants.RULE_DATA_ID, RULE_MAP);
+        publishConfig(NacosPathConstants.buildNacosRuleData(), RULE_MAP);
     }
 
     private void publishConfig(final String dataId, final Object data) {

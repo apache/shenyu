@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.common.constant;
 
-import org.apache.shenyu.common.config.InstanceConfig;
-
 /**
- * Nacos path constants.
+ * Nacos path constant.
  */
-public final class NacosPathConstants {
+public final class NacosPathConstants implements Constants {
 
     /**
      * Nacos config default group.
@@ -30,41 +28,63 @@ public final class NacosPathConstants {
     public static final String GROUP = "DEFAULT_GROUP";
 
     /**
-     * plugin data id.
-     */
-    public static final String PLUGIN_DATA_ID = getPrefix() + ".plugin.json";
-
-    /**
-     * selector data id.
-     */
-    public static final String SELECTOR_DATA_ID = getPrefix() + ".selector.json";
-
-    /**
-     * rule data id.
-     */
-    public static final String RULE_DATA_ID = getPrefix() + ".rule.json";
-
-    /**
-     * auth data id.
-     */
-    public static final String AUTH_DATA_ID = getPrefix() + ".auth.json";
-
-    /**
-     * meta data id.
-     */
-    public static final String META_DATA_ID = getPrefix() + ".meta.json";
-
-    /**
-     * default value of get config.
-     */
-    public static final String EMPTY_CONFIG_DEFAULT_VALUE = "{}";
-
-    /**
      * default time out of get config.
      */
     public static final long DEFAULT_TIME_OUT = 6000;
 
-    private static String getPrefix() {
-        return "shenyu." + InstanceConfig.getInstanceName();
+    private static final String JSON = "json";
+
+    /**
+     * buildNacosPluginData.
+     *
+     * @return shenyu.instanceName.plugin.json
+     */
+    public static String buildNacosPluginData() {
+        return String.join(DOT_SEPARATOR, buildNacosPrefix(), PLUGIN_DATA, JSON);
+    }
+
+    /**
+     * buildNacosSelectorData.
+     *
+     * @return shenyu.instanceName.selector.json
+     */
+    public static String buildNacosSelectorData() {
+        return String.join(DOT_SEPARATOR, buildNacosPrefix(), SELECTOR_DATA, JSON);
+    }
+
+    /**
+     * buildNacosRuleData.
+     *
+     * @return shenyu.instanceName.rule.json
+     */
+    public static String buildNacosRuleData() {
+        return String.join(DOT_SEPARATOR, buildNacosPrefix(), RULE_DATA, JSON);
+    }
+
+    /**
+     * buildNacosAuthData.
+     *
+     * @return shenyu.instanceName.auth.json
+     */
+    public static String buildNacosAuthData() {
+        return String.join(DOT_SEPARATOR, buildNacosPrefix(), AUTH_DATA, JSON);
+    }
+
+    /**
+     * buildNacosAuthData.
+     *
+     * @return shenyu.instanceName.metaData.json
+     */
+    public static String buildNacosMetaData() {
+        return String.join(DOT_SEPARATOR, buildNacosPrefix(), META_DATA, JSON);
+    }
+
+    /**
+     * buildNacosPrefix.
+     *
+     * @return shenyu.instanceName
+     */
+    private static String buildNacosPrefix() {
+        return String.join(DOT_SEPARATOR, SHENYU, InstanceConstants.getInstanceName());
     }
 }

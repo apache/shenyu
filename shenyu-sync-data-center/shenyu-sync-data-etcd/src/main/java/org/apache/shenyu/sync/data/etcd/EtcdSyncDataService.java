@@ -81,7 +81,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private void watcherData() {
-        final String pluginParent = DefaultPathConstants.PLUGIN_PARENT;
+        final String pluginParent = DefaultPathConstants.buildPluginParentPath();
         List<String> pluginChildren = etcdClientGetChildren(pluginParent);
         for (String pluginName : pluginChildren) {
             watcherAll(pluginName);
@@ -133,7 +133,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private void watchAppAuth() {
-        final String appAuthParent = DefaultPathConstants.APP_AUTH_PARENT;
+        final String appAuthParent = DefaultPathConstants.buildAppAuthParentPath();
         List<String> childrenList = etcdClientGetChildren(appAuthParent);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
@@ -146,7 +146,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private void watchMetaData() {
-        final String metaDataPath = DefaultPathConstants.META_DATA;
+        final String metaDataPath = DefaultPathConstants.buildMetaDataParentPath();
         List<String> childrenList = etcdClientGetChildren(metaDataPath);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
@@ -226,7 +226,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private void deleteMetaData(final String deletePath) {
-        final String path = deletePath.substring(DefaultPathConstants.META_DATA.length() + 1);
+        final String path = deletePath.substring(DefaultPathConstants.buildMetaDataParentPath().length() + 1);
         MetaData metaData = new MetaData();
 
         try {
@@ -253,7 +253,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     private void unCacheSelectorData(final String dataPath) {
         SelectorData selectorData = new SelectorData();
         final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.SELECTOR_PARENT.length());
+        final String str = dataPath.substring(DefaultPathConstants.buildSelectorParentPath().length());
         final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
         selectorData.setPluginName(pluginName);
         selectorData.setId(selectorId);
@@ -269,7 +269,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
 
     private void unCacheRuleData(final String dataPath) {
         String substring = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
+        final String str = dataPath.substring(DefaultPathConstants.buildRuleParentPath().length());
         final String pluginName = str.substring(1, str.length() - substring.length() - 1);
         final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(substring));
         RuleData ruleData = new RuleData();
@@ -286,7 +286,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private void unCacheAuthData(final String dataPath) {
-        final String key = dataPath.substring(DefaultPathConstants.APP_AUTH_PARENT.length() + 1);
+        final String key = dataPath.substring(DefaultPathConstants.buildAppAuthParentPath().length() + 1);
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(key);
         authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));

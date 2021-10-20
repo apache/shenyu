@@ -74,7 +74,7 @@ public class ConsulDataChangedListener implements DataChangedListener {
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        updateAuthMap(getConfig(ConsulConstants.AUTH_DATA));
+        updateAuthMap(getConfig(ConsulConstants.buildConsulAuthData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(appAuth -> AUTH_MAP.remove(appAuth.getAppKey()));
@@ -92,12 +92,12 @@ public class ConsulDataChangedListener implements DataChangedListener {
                 changed.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
                 break;
         }
-        publishConfig(ConsulConstants.AUTH_DATA, AUTH_MAP);
+        publishConfig(ConsulConstants.buildConsulAuthData(), AUTH_MAP);
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        updatePluginMap(getConfig(ConsulConstants.PLUGIN_DATA));
+        updatePluginMap(getConfig(ConsulConstants.buildConsulPluginData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(plugin -> PLUGIN_MAP.remove(plugin.getName()));
@@ -115,12 +115,12 @@ public class ConsulDataChangedListener implements DataChangedListener {
                 changed.forEach(plugin -> PLUGIN_MAP.put(plugin.getName(), plugin));
                 break;
         }
-        publishConfig(ConsulConstants.PLUGIN_DATA, PLUGIN_MAP);
+        publishConfig(ConsulConstants.buildConsulPluginData(), PLUGIN_MAP);
     }
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        updateSelectorMap(getConfig(ConsulConstants.SELECTOR_DATA));
+        updateSelectorMap(getConfig(ConsulConstants.buildConsulSelectorData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(selector -> {
@@ -159,12 +159,12 @@ public class ConsulDataChangedListener implements DataChangedListener {
                 });
                 break;
         }
-        publishConfig(ConsulConstants.SELECTOR_DATA, SELECTOR_MAP);
+        publishConfig(ConsulConstants.buildConsulSelectorData(), SELECTOR_MAP);
     }
 
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        updateMetaDataMap(getConfig(ConsulConstants.META_DATA));
+        updateMetaDataMap(getConfig(ConsulConstants.buildConsulMetaData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(meta -> META_DATA.remove(meta.getPath()));
@@ -190,12 +190,12 @@ public class ConsulDataChangedListener implements DataChangedListener {
                 });
                 break;
         }
-        publishConfig(ConsulConstants.META_DATA, META_DATA);
+        publishConfig(ConsulConstants.buildConsulMetaData(), META_DATA);
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        updateRuleMap(getConfig(ConsulConstants.RULE_DATA));
+        updateRuleMap(getConfig(ConsulConstants.buildConsulRuleData()));
         switch (eventType) {
             case DELETE:
                 changed.forEach(rule -> {
@@ -235,7 +235,7 @@ public class ConsulDataChangedListener implements DataChangedListener {
                 break;
         }
 
-        publishConfig(ConsulConstants.RULE_DATA, RULE_MAP);
+        publishConfig(ConsulConstants.buildConsulRuleData(), RULE_MAP);
     }
 
     private void publishConfig(final String dataKey, final Object data) {

@@ -59,14 +59,14 @@ public class EtcdDataInitTest {
 
         when(etcdClient.exists(Mockito.anyString()))
                 .then(invocation -> pathExist(invocation, Collections.singletonList(
-                        DefaultPathConstants.APP_AUTH_PARENT
+                        DefaultPathConstants.buildAppAuthParentPath()
                 )));
         etcdDataInit.run();
 
         when(etcdClient.exists(Mockito.anyString()))
                 .thenAnswer(invocation -> pathExist(invocation, Arrays.asList(
-                        DefaultPathConstants.PLUGIN_PARENT,
-                        DefaultPathConstants.APP_AUTH_PARENT
+                        DefaultPathConstants.buildPluginParentPath(),
+                        DefaultPathConstants.buildAppAuthParentPath()
                 )));
         etcdDataInit.run();
 

@@ -75,7 +75,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watcherData() {
-        final String pluginParent = DefaultPathConstants.PLUGIN_PARENT;
+        final String pluginParent = DefaultPathConstants.buildPluginParentPath();
         List<String> pluginZKs = zkClientGetChildren(pluginParent);
         for (String pluginName : pluginZKs) {
             watcherAll(pluginName);
@@ -137,7 +137,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watchAppAuth() {
-        final String appAuthParent = DefaultPathConstants.APP_AUTH_PARENT;
+        final String appAuthParent = DefaultPathConstants.buildAppAuthParentPath();
         List<String> childrenList = zkClientGetChildren(appAuthParent);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
@@ -152,7 +152,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watchMetaData() {
-        final String metaDataPath = DefaultPathConstants.META_DATA;
+        final String metaDataPath = DefaultPathConstants.buildMetaDataParentPath();
         List<String> childrenList = zkClientGetChildren(metaDataPath);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
@@ -300,7 +300,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
 
             @Override
             public void handleDataDeleted(final String dataPath) throws UnsupportedEncodingException {
-                final String realPath = dataPath.substring(DefaultPathConstants.META_DATA.length() + 1);
+                final String realPath = dataPath.substring(DefaultPathConstants.buildMetaDataParentPath().length() + 1);
                 MetaData metaData = new MetaData();
                 metaData.setPath(URLDecoder.decode(realPath, StandardCharsets.UTF_8.name()));
                 unCacheMetaData(metaData);
@@ -320,7 +320,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     private void unCacheSelectorData(final String dataPath) {
         SelectorData selectorData = new SelectorData();
         final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.SELECTOR_PARENT.length());
+        final String str = dataPath.substring(DefaultPathConstants.buildSelectorParentPath().length());
         final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
         selectorData.setPluginName(pluginName);
         selectorData.setId(selectorId);
@@ -334,7 +334,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
 
     private void unCacheRuleData(final String dataPath) {
         String substring = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
+        final String str = dataPath.substring(DefaultPathConstants.buildRuleParentPath().length());
         final String pluginName = str.substring(1, str.length() - substring.length() - 1);
         final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(substring));
         RuleData ruleData = new RuleData();
@@ -349,7 +349,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void unCacheAuthData(final String dataPath) {
-        final String key = dataPath.substring(DefaultPathConstants.APP_AUTH_PARENT.length() + 1);
+        final String key = dataPath.substring(DefaultPathConstants.buildAppAuthParentPath().length() + 1);
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(key);
         authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));

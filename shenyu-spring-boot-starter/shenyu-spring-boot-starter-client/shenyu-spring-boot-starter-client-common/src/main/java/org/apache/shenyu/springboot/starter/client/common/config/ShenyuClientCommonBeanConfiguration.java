@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.client.common.config;
 
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +40,17 @@ public class ShenyuClientCommonBeanConfiguration {
     @Bean
     public ShenyuClientRegisterRepository shenyuClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         return ShenyuClientRegisterRepositoryFactory.newInstance(config);
+    }
+
+    /**
+     * Shenyu Config.
+     *
+     * @return the shenyu Config
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu")
+    public ShenyuConfig shenyuConfig() {
+        return new ShenyuConfig();
     }
     
     /**

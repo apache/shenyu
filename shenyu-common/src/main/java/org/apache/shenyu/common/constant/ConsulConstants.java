@@ -17,47 +17,67 @@
 
 package org.apache.shenyu.common.constant;
 
-import org.apache.shenyu.common.config.InstanceConfig;
-
 /**
- * Consul constants.
+ * Consul constant.
  */
-public final class ConsulConstants {
-
-    public static final String SYNC_PRE_FIX = "shenyu/" + InstanceConfig.getInstanceName() + "/sync";
-
-    /**
-     * plugin data path.
-     */
-    public static final String PLUGIN_DATA = SYNC_PRE_FIX + "/plugin";
-
-    /**
-     * selector data path.
-     */
-    public static final String SELECTOR_DATA = SYNC_PRE_FIX + "/selector";
-
-    /**
-     * rule data path.
-     */
-    public static final String RULE_DATA = SYNC_PRE_FIX + "/rule";
-
-    /**
-     * auth data path.
-     */
-    public static final String AUTH_DATA = SYNC_PRE_FIX + "/auth";
-
-    /**
-     * meta data path.
-     */
-    public static final String META_DATA = SYNC_PRE_FIX + "/meta";
-
-    /**
-     * default value of get config.
-     */
-    public static final String EMPTY_CONFIG_DEFAULT_VALUE = "{}";
+public final class ConsulConstants implements Constants {
 
     /**
      * default value of config version index.
      */
     public static final Long INIT_CONFIG_VERSION_INDEX = -1L;
+
+    /**
+     * buildConsulSyncPrefix.
+     *
+     * @return /shenyu/instanceName/sync
+     */
+    public static String buildConsulSyncPrefix() {
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), "sync");
+    }
+
+    /**
+     * buildConsulPluginData.
+     *
+     * @return /shenyu/instanceName/sync/plugin
+     */
+    public static String buildConsulPluginData() {
+        return String.join(SEPARATOR, buildConsulSyncPrefix(), PLUGIN_DATA);
+    }
+
+    /**
+     * buildConsulSelectorData.
+     *
+     * @return /shenyu/instanceName/sync/selector
+     */
+    public static String buildConsulSelectorData() {
+        return String.join(SEPARATOR, buildConsulSyncPrefix(), SELECTOR_DATA);
+    }
+
+    /**
+     * buildConsulRuleData.
+     *
+     * @return /shenyu/instanceName/sync/rule
+     */
+    public static String buildConsulRuleData() {
+        return String.join(SEPARATOR, buildConsulSyncPrefix(), RULE_DATA);
+    }
+
+    /**
+     * buildConsulAuthData.
+     *
+     * @return /shenyu/instanceName/sync/auth
+     */
+    public static String buildConsulAuthData() {
+        return String.join(SEPARATOR, buildConsulSyncPrefix(), AUTH_DATA);
+    }
+
+    /**
+     * buildConsulMetaData.
+     *
+     * @return /shenyu/instanceName/sync/metaData
+     */
+    public static String buildConsulMetaData() {
+        return String.join(SEPARATOR, buildConsulSyncPrefix(), META_DATA);
+    }
 }

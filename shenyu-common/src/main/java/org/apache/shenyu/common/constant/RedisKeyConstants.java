@@ -17,29 +17,10 @@
 
 package org.apache.shenyu.common.constant;
 
-import org.apache.shenyu.common.config.InstanceConfig;
-
 /**
  * RedisKeyConstants.
  */
 public final class RedisKeyConstants implements Constants {
-
-    private static final String PRE_FIX = "shenyu:" + InstanceConfig.getInstanceName();
-
-    /**
-     * The constant PLUGIN.
-     */
-    public static final String PLUGIN = PRE_FIX + ":plugin";
-
-    /**
-     * The constant SELECTOR.
-     */
-    public static final String SELECTOR = PRE_FIX + ":selector";
-
-    /**
-     * The constant RULE.
-     */
-    public static final String RULE = PRE_FIX + ":rule";
 
     private static final String PLUGIN_INFO = "info";
 
@@ -52,8 +33,7 @@ public final class RedisKeyConstants implements Constants {
      * @return java.lang.String string
      */
     public static String pluginInfoKey(final String pluginName) {
-        return String.join(":", PLUGIN, pluginName, PLUGIN_INFO);
-
+        return String.join(COLONS, buildRedisPluginKey(), pluginName, PLUGIN_INFO);
     }
 
     /**
@@ -63,8 +43,15 @@ public final class RedisKeyConstants implements Constants {
      * @return java.lang.String string
      */
     public static String pluginSelectorKey(final String pluginName) {
-        return String.join(":", PLUGIN, pluginName, PLUGIN_SELECTOR);
-
+        return String.join(COLONS, buildRedisPluginKey(), pluginName, PLUGIN_SELECTOR);
     }
 
+    /**
+     * buildRedisPluginKey.
+     *
+     * @return shenyu:instanceName:plugin
+     */
+    public static String buildRedisPluginKey() {
+        return String.join(COLONS, SHENYU, InstanceConstants.getInstanceName(), PLUGIN_DATA);
+    }
 }

@@ -39,9 +39,9 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for Zookeeper client register repository.
@@ -128,7 +128,7 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .ruleName("ruleName")
                 .build();
         repository.persistInterface(data);
-        String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
+        String metadataPath = "/shenyu/local/register/metadata/http/context/context-ruleName";
         Assert.assertTrue(zookeeperBroker.containsKey(metadataPath));
         Assert.assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
         repository.close();
@@ -143,7 +143,7 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .appName("/context")
                 .build();
         repository.persistURI(data);
-        String uriPath = "/shenyu/register/uri/http/context/host:80";
+        String uriPath = "/shenyu/local/register/uri/http/context/host:80";
         Assert.assertTrue(zookeeperBroker.containsKey(uriPath));
         Assert.assertEquals(zookeeperBroker.get(uriPath), GsonUtils.getInstance().toJson(data));
         repository.close();
@@ -163,7 +163,7 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .methodName("testMethod")
                 .build();
         repository.persistInterface(data);
-        String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";
+        String metadataPath = "/shenyu/local/register/metadata/grpc/context/testService.testMethod";
         Assert.assertTrue(zookeeperBroker.containsKey(metadataPath));
         Assert.assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
         repository.close();

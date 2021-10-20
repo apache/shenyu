@@ -43,9 +43,9 @@ public class ConsulDataInit implements CommandLineRunner {
 
     @Override
     public void run(final String... args) {
-        String pluginData = ConsulConstants.PLUGIN_DATA;
-        String authData = ConsulConstants.AUTH_DATA;
-        String metaData = ConsulConstants.META_DATA;
+        String pluginData = ConsulConstants.buildConsulPluginData();
+        String authData = ConsulConstants.buildConsulAuthData();
+        String metaData = ConsulConstants.buildConsulMetaData();
         if (dataKeyNotExist(pluginData) && dataKeyNotExist(authData) && dataKeyNotExist(metaData)) {
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         }

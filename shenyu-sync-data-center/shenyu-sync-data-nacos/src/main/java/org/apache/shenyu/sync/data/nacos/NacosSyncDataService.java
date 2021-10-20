@@ -51,11 +51,11 @@ public class NacosSyncDataService extends NacosCacheHandler implements AutoClose
      * Start.
      */
     public void start() {
-        watcherData(NacosPathConstants.PLUGIN_DATA_ID, this::updatePluginMap);
-        watcherData(NacosPathConstants.SELECTOR_DATA_ID, this::updateSelectorMap);
-        watcherData(NacosPathConstants.RULE_DATA_ID, this::updateRuleMap);
-        watcherData(NacosPathConstants.META_DATA_ID, this::updateMetaDataMap);
-        watcherData(NacosPathConstants.AUTH_DATA_ID, this::updateAuthMap);
+        watcherData(NacosPathConstants.buildNacosPluginData(), this::updatePluginMap);
+        watcherData(NacosPathConstants.buildNacosSelectorData(), this::updateSelectorMap);
+        watcherData(NacosPathConstants.buildNacosRuleData(), this::updateRuleMap);
+        watcherData(NacosPathConstants.buildNacosMetaData(), this::updateMetaDataMap);
+        watcherData(NacosPathConstants.buildNacosAuthData(), this::updateAuthMap);
     }
 
     @Override

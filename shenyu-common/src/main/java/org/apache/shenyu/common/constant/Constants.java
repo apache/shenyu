@@ -21,7 +21,37 @@ package org.apache.shenyu.common.constant;
  * Constants.
  */
 public interface Constants {
-    
+
+    /**
+     * The constant SHENYU.
+     */
+    String SHENYU = "shenyu";
+
+    /**
+     * plugin data path.
+     */
+    String PLUGIN_DATA = "plugin";
+
+    /**
+     * selector data path.
+     */
+    String SELECTOR_DATA = "selector";
+
+    /**
+     * rule data path.
+     */
+    String RULE_DATA = "rule";
+
+    /**
+     * auth data path.
+     */
+    String AUTH_DATA = "auth";
+
+    /**
+     * default value of get config.
+     */
+    String EMPTY_CONFIG_DEFAULT_VALUE = "{}";
+
     /**
      * The constant SUCCESS.
      */
@@ -231,6 +261,16 @@ public interface Constants {
      * The constant COLONS.
      */
     String COLONS = ":";
+
+    /**
+     * The constant SEPARATOR.
+     */
+    String SEPARATOR = "/";
+
+    /**
+     * The constant DOT_SEPARATOR.
+     */
+    String DOT_SEPARATOR = ".";
     
     /**
      * hystrix thead pool core size.
@@ -251,8 +291,7 @@ public interface Constants {
      * hystrix thread pool queue size.
      */
     int HYSTRIX_THREAD_POOL_QUEUE_SIZE = 12;
-    
-    
+
     /**
      * ratelimiter timeoutDurationRate.
      */

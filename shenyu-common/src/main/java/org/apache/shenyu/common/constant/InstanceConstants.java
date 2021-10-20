@@ -20,8 +20,36 @@ package org.apache.shenyu.common.constant;
 /**
  * InstanceConstants.
  */
-public final class InstanceConstants {
+public final class InstanceConstants implements Constants {
 
     public static final String DEFAULT_INSTANCE_NAME = "local";
 
+    private static String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
+
+    /**
+     * Gets instance name.
+     *
+     * @return the instance name
+     */
+    public static String getInstanceName() {
+        return instanceName;
+    }
+
+    /**
+     * Sets instance name.
+     *
+     * @param instanceName the instance name
+     */
+    public static void setInstanceName(final String instanceName) {
+        InstanceConstants.instanceName = instanceName;
+    }
+
+    /**
+     * getShenyuPrefixPath.
+     *
+     * @return /shenyu/instanceName
+     */
+    public static String getShenyuPrefixPath() {
+        return String.join(SEPARATOR, "", SHENYU, InstanceConstants.getInstanceName());
+    }
 }

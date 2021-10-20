@@ -20,7 +20,7 @@ package org.apache.shenyu.common.constant;
 import java.util.concurrent.TimeUnit;
 
 /**
- * constants for http, including http long polling.
+ * constant for http, including http long polling.
  *
  * @since 2.0.0
  */

@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.shenyu.common.constant.InstanceConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -72,15 +71,15 @@ public final class NacosCacheHandlerTest {
 
     private static final String GROUP = "DEFAULT_GROUP";
 
-    private static final String PLUGIN_DATA_ID = "shenyu." + InstanceConstants.DEFAULT_INSTANCE_NAME + ".plugin.json";
+    private static final String PLUGIN_DATA_ID = "shenyu.local.plugin.json";
 
-    private static final String SELECTOR_DATA_ID = "shenyu." + InstanceConstants.DEFAULT_INSTANCE_NAME + ".selector.json";
+    private static final String SELECTOR_DATA_ID = "shenyu.local.selector.json";
 
-    private static final String RULE_DATA_ID = "shenyu." + InstanceConstants.DEFAULT_INSTANCE_NAME + ".rule.json";
+    private static final String RULE_DATA_ID = "shenyu.local.rule.json";
 
-    private static final String AUTH_DATA_ID = "shenyu." + InstanceConstants.DEFAULT_INSTANCE_NAME + ".auth.json";
+    private static final String AUTH_DATA_ID = "shenyu.local.auth.json";
 
-    private static final String META_DATA_ID = "shenyu." + InstanceConstants.DEFAULT_INSTANCE_NAME + ".meta.json";
+    private static final String META_DATA_ID = "shenyu.local.meta.json";
 
     private NacosCacheHandler nacosCacheHandlerService;
 

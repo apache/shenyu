@@ -18,7 +18,7 @@
 package org.apache.shenyu.common.constant;
 
 /**
- * The type Admin constants.
+ * The type Admin constant.
  */
 public final class AdminConstants {
 

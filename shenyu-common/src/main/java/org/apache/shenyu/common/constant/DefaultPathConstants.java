@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.constant;
 
-import org.apache.shenyu.common.config.InstanceConfig;
-
 /**
  * ZkPathConstants.
  */
@@ -29,31 +27,14 @@ public final class DefaultPathConstants implements Constants {
      */
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PRE_FIX = "/shenyu/" + InstanceConfig.getInstanceName();
-
     /**
-     * The constant PLUGIN_PARENT.
+     * acquire app_auth_path.
+     *
+     * @return app_auth_path string
      */
-    public static final String PLUGIN_PARENT = PRE_FIX + "/plugin";
-
-    /**
-     * The constant SELECTOR_PARENT.
-     */
-    public static final String SELECTOR_PARENT = PRE_FIX + "/selector";
-
-    public static final String RULE_PARENT = PRE_FIX + "/rule";
-
-    /**
-     * The constant APP_AUTH_PARENT.
-     */
-    public static final String APP_AUTH_PARENT = PRE_FIX + "/auth";
-
-    /**
-     * The constant META_DATA.
-     */
-    public static final String META_DATA = PRE_FIX + "/metaData";
-
-    private static final String SEPARATOR = "/";
+    public static String buildAppAuthParentPath() {
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), AUTH_DATA);
+    }
 
     /**
      * acquire app_auth_path.
@@ -62,7 +43,16 @@ public final class DefaultPathConstants implements Constants {
      * @return app_auth_path string
      */
     public static String buildAppAuthPath(final String appKey) {
-        return String.join(SEPARATOR, APP_AUTH_PARENT, appKey);
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), AUTH_DATA, appKey);
+    }
+
+    /**
+     * Build meta data path string.
+     *
+     * @return the string
+     */
+    public static String buildMetaDataParentPath() {
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), META_DATA);
     }
 
     /**
@@ -72,7 +62,7 @@ public final class DefaultPathConstants implements Constants {
      * @return the string
      */
     public static String buildMetaDataPath(final String path) {
-        return String.join(SEPARATOR, META_DATA, path);
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), META_DATA, path);
     }
 
     /**
@@ -81,7 +71,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk path for plugin
      */
     public static String buildPluginParentPath() {
-        return String.join(SEPARATOR, PLUGIN_PARENT);
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), PLUGIN_DATA);
     }
 
     /**
@@ -91,7 +81,16 @@ public final class DefaultPathConstants implements Constants {
      * @return zk path for plugin
      */
     public static String buildPluginPath(final String pluginName) {
-        return String.join(SEPARATOR, PLUGIN_PARENT, pluginName);
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), PLUGIN_DATA, pluginName);
+    }
+
+    /**
+     * buildSelectorParentPath.
+     *
+     * @return zk path for selector
+     */
+    public static String buildSelectorParentPath() {
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), SELECTOR_DATA);
     }
 
     /**
@@ -101,7 +100,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk path for selector
      */
     public static String buildSelectorParentPath(final String pluginName) {
-        return String.join(SEPARATOR, SELECTOR_PARENT, pluginName);
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), SELECTOR_DATA, pluginName);
     }
 
     /**
@@ -112,7 +111,16 @@ public final class DefaultPathConstants implements Constants {
      * @return zk full path for selector
      */
     public static String buildSelectorRealPath(final String pluginName, final String selectorId) {
-        return String.join(SEPARATOR, SELECTOR_PARENT, pluginName, selectorId);
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), SELECTOR_DATA, pluginName, selectorId);
+    }
+
+    /**
+     * buildRuleParentPath.
+     *
+     * @return zk rule parent path.
+     */
+    public static String buildRuleParentPath() {
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), RULE_DATA);
     }
 
     /**
@@ -122,7 +130,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk rule parent path.
      */
     public static String buildRuleParentPath(final String pluginName) {
-        return String.join(SEPARATOR, RULE_PARENT, pluginName);
+        return String.join(SEPARATOR, InstanceConstants.getShenyuPrefixPath(), RULE_DATA, pluginName);
     }
 
     /**
@@ -131,10 +139,9 @@ public final class DefaultPathConstants implements Constants {
      * @param pluginName pluginName
      * @param selectorId selectorId
      * @param ruleId     ruleId
-     * @return /shenyu/rule/pluginName/selectorId-ruleId
+     * @return /shenyu/instanceName/rule/pluginName/selectorId-ruleId
      */
     public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
         return String.join(SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));
     }
-
 }

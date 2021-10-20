@@ -18,7 +18,7 @@
 package org.apache.shenyu.protocol.grpc.constant;
 
 /**
- * Grpc constants.
+ * Grpc constant.
  */
 public class GrpcConstants {
 

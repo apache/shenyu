@@ -76,7 +76,7 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
         this.consulClient = consulClient;
         this.consulConfig = consulConfig;
         this.executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("consul-config-watch", true));
-        consulIndexes.put(ConsulConstants.SYNC_PRE_FIX, 0L);
+        consulIndexes.put(ConsulConstants.buildConsulSyncPrefix(), 0L);
         initUpdateMap();
         start();
     }
@@ -85,11 +85,11 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
      * init config key and update method mapping.
      */
     private void initUpdateMap() {
-        groupMap.put(ConsulConstants.PLUGIN_DATA, this::updatePluginData);
-        groupMap.put(ConsulConstants.SELECTOR_DATA, this::updateSelectorMap);
-        groupMap.put(ConsulConstants.RULE_DATA, this::updateRuleMap);
-        groupMap.put(ConsulConstants.META_DATA, this::updateMetaDataMap);
-        groupMap.put(ConsulConstants.AUTH_DATA, this::updateAuthMap);
+        groupMap.put(ConsulConstants.buildConsulPluginData(), this::updatePluginData);
+        groupMap.put(ConsulConstants.buildConsulSelectorData(), this::updateSelectorMap);
+        groupMap.put(ConsulConstants.buildConsulRuleData(), this::updateRuleMap);
+        groupMap.put(ConsulConstants.buildConsulMetaData(), this::updateMetaDataMap);
+        groupMap.put(ConsulConstants.buildConsulAuthData(), this::updateAuthMap);
     }
 
     private void watchConfigKeyValues() {

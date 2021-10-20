@@ -28,7 +28,7 @@ import static org.junit.Assert.assertThat;
  */
 public final class RedisKeyConstantsTest {
 
-    private static final String PRE_FIX = "shenyu:" + InstanceConstants.DEFAULT_INSTANCE_NAME;
+    private static final String PRE_FIX = "shenyu:local";
 
     private static final String PLUGIN = PRE_FIX + ":plugin";
 

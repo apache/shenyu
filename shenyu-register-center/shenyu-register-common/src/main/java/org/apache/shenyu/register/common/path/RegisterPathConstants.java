@@ -17,18 +17,25 @@
 
 package org.apache.shenyu.register.common.path;
 
+import org.apache.shenyu.register.common.constant.InstanceConstants;
+
 /**
  * zookeeper register center.
  */
 public class RegisterPathConstants {
-    
+
     /**
      * root path of zookeeper register center.
      */
-    public static final String ROOT_PATH = "/shenyu/register";
+    public static final String ROOT_PATH = "/shenyu";
 
     /**
-     * constants of separator.
+     * register path of zookeeper.
+     */
+    public static final String REGISTER = "/register";
+
+    /**
+     * constant of separator.
      */
     private static final String SEPARATOR = "/";
 
@@ -36,49 +43,64 @@ public class RegisterPathConstants {
      * Dot separator.
      */
     private static final String DOT_SEPARATOR = ".";
-    
+
     /**
-     * build child path of "/shenyu/register/metadata/{rpcType}/".
+     * the constant of metadata.
+     */
+    private static final String META_DATA = "metadata";
+
+    /**
+     * the constant of uri.
+     */
+    private static final String URI = "uri";
+
+    /**
+     * the constant of service.
+     */
+    private static final String SERVICE = "service";
+
+    /**
+     * build child path of "/shenyu/instanceName/register/metadata/{rpcType}/".
      *
      * @param rpcType rpc type
      * @return path string
      */
     public static String buildMetaDataContextPathParent(final String rpcType) {
-        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType);
+        return String.join(SEPARATOR, buildRootPath(), META_DATA, rpcType);
     }
     
     /**
-     * build child path of "/shenyu/register/metadata/{rpcType}/{contextPath}/".
+     * build child path of "/shenyu/instanceName/register/metadata/{rpcType}/{contextPath}/".
      *
      * @param rpcType rpc type
      * @param contextPath context path
      * @return path string
      */
     public static String buildMetaDataParentPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType, contextPath);
+        return String.join(SEPARATOR, buildRootPath(), META_DATA, rpcType, contextPath);
     }
     
     /**
      * Build uri path string.
-     * build child path of "/shenyu/register/uri/{rpcType}/".
+     * build child path of "/shenyu/instanceName/register/uri/{rpcType}/".
      *
      * @param rpcType the rpc type
      * @return the string
      */
     public static String buildURIContextPathParent(final String rpcType) {
-        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType);
+        return String.join(SEPARATOR, buildRootPath(), URI, rpcType);
     }
     
     /**
      * Build uri path string.
-     * build child path of "/shenyu/register/uri/{rpcType}/{contextPath}/".
+     * build child path of "/shenyu/instanceName/register/uri/{rpcType}/{contextPath}/".
      *
      * @param rpcType the rpc type
      * @param contextPath the context path
      * @return the string
      */
     public static String buildURIParentPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType, contextPath);
+        return String.join(SEPARATOR, buildRootPath(), URI, rpcType, contextPath);
     }
     
     /**
@@ -118,27 +140,27 @@ public class RegisterPathConstants {
 
     /**
      * Build nacos instance service path string.
-     * build child path of "shenyu.register.service.{rpcType}".
+     * build child path of "shenyu.instanceName.register.service.{rpcType}".
      *
      * @param rpcType the rpc type
      * @return the string
      */
     public static String buildServiceInstancePath(final String rpcType) {
-        return String.join(SEPARATOR, ROOT_PATH, "service", rpcType)
-                .replace("/", ".").substring(1);
+        return String.join(SEPARATOR, buildRootPath(), SERVICE, rpcType)
+                .replace(SEPARATOR, DOT_SEPARATOR).substring(1);
     }
 
     /**
      * Build nacos config service path string.
-     * build child path of "shenyu.register.service.{rpcType}.{contextPath}".
+     * build child path of "shenyu.instanceName.register.service.{rpcType}.{contextPath}".
      *
      * @param rpcType the rpc type
      * @param contextPath the context path
      * @return the string
      */
     public static String buildServiceConfigPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, "service", rpcType, contextPath)
-                .replace("/", ".").substring(1);
+        return String.join(SEPARATOR, buildRootPath(), SERVICE, rpcType, contextPath)
+                .replace(SEPARATOR, DOT_SEPARATOR).substring(1);
     }
 
     /**
@@ -150,5 +172,13 @@ public class RegisterPathConstants {
      */
     public static String buildNodeName(final String serviceName, final String methodName) {
         return String.join(DOT_SEPARATOR, serviceName, methodName);
+    }
+
+    /**
+     * Build Root Path.
+     * @return the register root path
+     */
+    private static String buildRootPath() {
+        return String.format("%s/%s%s", ROOT_PATH, InstanceConstants.getInstanceName(), REGISTER);
     }
 }

@@ -50,9 +50,9 @@ public class NacosDataInit implements CommandLineRunner {
 
     @Override
     public void run(final String... args) {
-        String pluginDataId = NacosPathConstants.PLUGIN_DATA_ID;
-        String authDataId = NacosPathConstants.AUTH_DATA_ID;
-        String metaDataId = NacosPathConstants.META_DATA_ID;
+        String pluginDataId = NacosPathConstants.buildNacosPluginData();
+        String authDataId = NacosPathConstants.buildNacosAuthData();
+        String metaDataId = NacosPathConstants.buildNacosMetaData();
         if (dataIdNotExist(pluginDataId) && dataIdNotExist(authDataId) && dataIdNotExist(metaDataId)) {
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         }

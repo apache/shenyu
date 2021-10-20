@@ -73,7 +73,7 @@ public class ConsulSyncDataServiceTest {
         final List<GetValue> list = new ArrayList<>();
         GetValue getValue = mock(GetValue.class);
         when(getValue.getModifyIndex()).thenReturn(index);
-        when(getValue.getKey()).thenReturn(ConsulConstants.PLUGIN_DATA);
+        when(getValue.getKey()).thenReturn(ConsulConstants.buildConsulPluginData());
         when(getValue.getDecodedValue()).thenReturn("{}");
         list.add(getValue);
         Response response = mock(Response.class);
@@ -87,6 +87,6 @@ public class ConsulSyncDataServiceTest {
         watchConfigKeyValues.invoke(consulSyncDataService);
 
         Map<String, Long> consulIndexes = (Map<String, Long>) ReflectUtils.getFieldValue(consulSyncDataService, "consulIndexes");
-        Assert.assertEquals(index, consulIndexes.get(ConsulConstants.SYNC_PRE_FIX));
+        Assert.assertEquals(index, consulIndexes.get(ConsulConstants.buildConsulSyncPrefix()));
     }
 }

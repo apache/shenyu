@@ -64,7 +64,7 @@ public class ShenyuConfig {
      */
     public void setInstanceName(final String instanceName) {
         this.instanceName = instanceName;
-        InstanceConfig.setInstanceName(instanceName);
+        InstanceConstants.setInstanceName(instanceName);
     }
 
     /**

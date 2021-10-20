@@ -73,7 +73,7 @@ public class NacosDataChangedListenerTest {
         String config = "{\"divide\":{\"appKey\":\"appKey\",\"appSecret\":\"appSecret\",\"open\":true}}";
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
 
-        when(configService.getConfig(NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosAuthData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.REFRESH);
@@ -81,7 +81,7 @@ public class NacosDataChangedListenerTest {
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
         verify(configService, times(4)).publishConfig(any(String.class), any(String.class), any(String.class));
 
-        when(configService.getConfig(NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosAuthData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE);
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.REFRESH);
@@ -95,7 +95,7 @@ public class NacosDataChangedListenerTest {
         String config = "{\"divide\":{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}}";
         PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
 
-        when(configService.getConfig(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosPluginData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.REFRESH);
@@ -103,7 +103,7 @@ public class NacosDataChangedListenerTest {
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.CREATE);
         verify(configService, times(4)).publishConfig(any(String.class), any(String.class), any(String.class));
 
-        when(configService.getConfig(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosPluginData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE);
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.REFRESH);
@@ -117,7 +117,7 @@ public class NacosDataChangedListenerTest {
         String config = "{\"divide\":[{\"id\":\"id\",\"name\":\"name\",\"enabled\":true}]}";
         SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
 
-        when(configService.getConfig(NacosPathConstants.SELECTOR_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosSelectorData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
@@ -125,7 +125,7 @@ public class NacosDataChangedListenerTest {
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         verify(configService, times(4)).publishConfig(any(String.class), any(String.class), any(String.class));
 
-        when(configService.getConfig(NacosPathConstants.SELECTOR_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosSelectorData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE);
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
@@ -139,7 +139,7 @@ public class NacosDataChangedListenerTest {
         String config = "{\"divide\":{\"id\":\"id\",\"appName\":\"appName\",\"enabled\":true}}";
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
 
-        when(configService.getConfig(NacosPathConstants.META_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosMetaData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.REFRESH);
@@ -147,7 +147,7 @@ public class NacosDataChangedListenerTest {
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         verify(configService, times(4)).publishConfig(any(String.class), any(String.class), any(String.class));
 
-        when(configService.getConfig(NacosPathConstants.META_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosMetaData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE);
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.REFRESH);
@@ -166,7 +166,7 @@ public class NacosDataChangedListenerTest {
                 .selectorId(MOCK_SELECTOR_ID)
                 .build();
 
-        when(configService.getConfig(NacosPathConstants.RULE_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosRuleData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(config);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);
@@ -174,7 +174,7 @@ public class NacosDataChangedListenerTest {
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         verify(configService, times(4)).publishConfig(any(String.class), any(String.class), any(String.class));
 
-        when(configService.getConfig(NacosPathConstants.RULE_DATA_ID, NacosPathConstants.GROUP,
+        when(configService.getConfig(NacosPathConstants.buildNacosRuleData(), NacosPathConstants.GROUP,
                 NacosPathConstants.DEFAULT_TIME_OUT)).thenReturn(NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);

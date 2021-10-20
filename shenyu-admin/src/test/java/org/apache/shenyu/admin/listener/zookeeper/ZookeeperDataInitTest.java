@@ -55,14 +55,14 @@ public final class ZookeeperDataInitTest {
 
         when(zkClient.exists(Mockito.anyString()))
                 .then(invocation -> pathExist(invocation, Collections.singletonList(
-                        DefaultPathConstants.APP_AUTH_PARENT
+                        DefaultPathConstants.buildAppAuthParentPath()
                 )));
         zookeeperDataInit.run();
 
         when(zkClient.exists(Mockito.anyString()))
                 .thenAnswer(invocation -> pathExist(invocation, Arrays.asList(
-                        DefaultPathConstants.PLUGIN_PARENT,
-                        DefaultPathConstants.APP_AUTH_PARENT
+                        DefaultPathConstants.buildPluginParentPath(),
+                        DefaultPathConstants.buildAppAuthParentPath()
                 )));
         zookeeperDataInit.run();
 

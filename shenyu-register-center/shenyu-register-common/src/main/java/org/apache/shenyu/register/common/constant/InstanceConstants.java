@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.config;
-
-import org.apache.shenyu.common.constant.InstanceConstants;
+package org.apache.shenyu.register.common.constant;
 
 /**
- * InstanceConfig.
+ * InstanceConstants.
  */
-public final class InstanceConfig {
+public final class InstanceConstants {
+
+    public static final String DEFAULT_INSTANCE_NAME = "local";
 
     private static String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
 
@@ -41,6 +41,6 @@ public final class InstanceConfig {
      * @param instanceName the instance name
      */
     public static void setInstanceName(final String instanceName) {
-        InstanceConfig.instanceName = instanceName;
+        InstanceConstants.instanceName = instanceName;
     }
 }

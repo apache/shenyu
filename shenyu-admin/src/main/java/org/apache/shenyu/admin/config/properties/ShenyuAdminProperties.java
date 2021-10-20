@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.shenyu.common.constant.InstanceConstants;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -25,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "shenyu")
 public class ShenyuAdminProperties {
 
-    private String instanceName = "local";
+    private String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
 
     /**
      * Gets instance name.

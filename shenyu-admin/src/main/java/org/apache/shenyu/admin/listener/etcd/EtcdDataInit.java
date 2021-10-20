@@ -42,9 +42,9 @@ public class EtcdDataInit implements CommandLineRunner {
 
     @Override
     public void run(final String... args) throws Exception {
-        final String pluginPath = DefaultPathConstants.PLUGIN_PARENT;
-        final String authPath = DefaultPathConstants.APP_AUTH_PARENT;
-        final String metaDataPath = DefaultPathConstants.META_DATA;
+        final String pluginPath = DefaultPathConstants.buildPluginParentPath();
+        final String authPath = DefaultPathConstants.buildAppAuthParentPath();
+        final String metaDataPath = DefaultPathConstants.buildMetaDataParentPath();
         if (!etcdClient.exists(pluginPath) && !etcdClient.exists(authPath) && !etcdClient.exists(metaDataPath)) {
             LOG.info("Init all data from database");
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
