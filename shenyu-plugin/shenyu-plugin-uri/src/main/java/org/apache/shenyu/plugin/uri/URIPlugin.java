@@ -52,12 +52,12 @@ public class URIPlugin implements ShenyuPlugin {
             }
         }
         URI realURI;
-        if(StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")) {
-            path =  path + "?" + uri.getRawQuery();
+        if (StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")) {
+            path = path + "?" + uri.getRawQuery();
             realURI = UriComponentsBuilder.fromHttpUrl(path).build(true).toUri();
         } else {
             if (StringUtils.isNotEmpty(uri.getQuery())) {
-                path =  path + "?" + uri.getQuery();
+                path = path + "?" + uri.getQuery();
             }
             assert path != null;
             realURI = UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
@@ -87,4 +87,3 @@ public class URIPlugin implements ShenyuPlugin {
         return !Objects.equals(rpcType, RpcTypeEnum.SPRING_CLOUD.getName());
     }
 }
- 
