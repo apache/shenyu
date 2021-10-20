@@ -17,24 +17,20 @@
 
 package org.apache.shenyu.web.loader;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -49,45 +45,31 @@ import static org.mockito.ArgumentMatchers.anyString;
 @PrepareForTest(ShenyuPluginLoader.class)
 public class ShenyuPluginLoaderTest {
 
-    /**
-     * logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuPluginLoaderTest.class);
-
     private ShenyuPluginLoader shenyuPluginLoader;
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private File[] files;
 
-    private Path path;
-
-    @BeforeClass
-    public static void beforeClass() {
-    }
-
-    @AfterClass
-    public static void afterClass() {
-    }
+    private String path;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         shenyuPluginLoader = ShenyuPluginLoader.getInstance();
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                try {
-                    path = Files.createTempFile("plugin", ".zip");
-                    String pluginClas = "public class ApacheDubboPlugin {}";
-                    try (OutputStream os = Files.newOutputStream(path);
-                        ZipOutputStream zos = new ZipOutputStream(os)) {
-                        ZipEntry e = new ZipEntry("org.apache.shenyu.plugin.ApacheDubboPlugin.class");
-                        zos.putNextEntry(e);
-                        zos.write(pluginClas.getBytes());
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-                return null;
-            }
-        });
+        File zip = tempFolder.newFile("plugin.zip");
+        path = zip.getPath();
+        FileOutputStream fos = new FileOutputStream(path);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        ZipOutputStream zos = new ZipOutputStream(bos);
+        try {
+            String pluginClas = "public class ApacheDubboPlugin {}";
+            zos.putNextEntry(new ZipEntry("org.apache.shenyu.plugin.ApacheDubboPlugin.class"));
+            zos.write(pluginClas.getBytes());
+            zos.closeEntry();
+        } finally {
+            zos.close();
+        }
     }
 
     /**
@@ -117,7 +99,7 @@ public class ShenyuPluginLoaderTest {
     public void loadExtendPluginsWithJar() throws Exception {
         shenyuPluginLoader = PowerMockito.spy(shenyuPluginLoader);
         PowerMockito.doReturn(null).when(shenyuPluginLoader).getPluginPath(anyString());
-        files = new File[]{path.toFile()};
+        files = new File[]{new File(path)};
         PowerMockito.doReturn(files).when(shenyuPluginLoader).listFiles(null);
         PowerMockito.doReturn(new Object()).when(shenyuPluginLoader, "getOrCreateInstance", anyString());
         Assert.assertEquals(1, shenyuPluginLoader.loadExtendPlugins("").size());
