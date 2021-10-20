@@ -128,7 +128,7 @@ public enum PluginEnum {
     /**
      * Uri plugin enum.
      */
-    URI(205, 0 , "uri"),
+    URI(205, 0, "uri"),
     
     /**
      * Web client plugin enum.
