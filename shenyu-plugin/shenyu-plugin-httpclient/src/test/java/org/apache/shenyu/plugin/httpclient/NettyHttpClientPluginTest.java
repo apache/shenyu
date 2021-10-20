@@ -78,7 +78,7 @@ public final class NettyHttpClientPluginTest {
                 .header(HttpHeaderNames.CONNECTION.toString(), HttpHeaderValues.KEEP_ALIVE.toString())
                 .body("test"));
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+        exchange.getAttributes().put(Constants.HTTP_URI, "/test");
 
         StepVerifier.create(nettyHttpClientPlugin.execute(exchange, chain)).expectSubscription().verifyError();
     }
@@ -121,7 +121,7 @@ public final class NettyHttpClientPluginTest {
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+        exchange.getAttributes().put(Constants.HTTP_URI, "/test");
         return exchange;
     }
 }

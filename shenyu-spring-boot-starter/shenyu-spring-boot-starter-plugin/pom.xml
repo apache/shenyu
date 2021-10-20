@@ -55,5 +55,6 @@
         <module>shenyu-spring-boot-starter-plugin-cryptor</module>
         <module>shenyu-spring-boot-starter-plugin-websocket</module>
         <module>shenyu-spring-boot-starter-plugin-dubbo</module>
+        <module>henyu-spring-boot-starter-plugin-uri</module>
     </modules>
 </project>
