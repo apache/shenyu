@@ -25,8 +25,8 @@ spring:
     name: test-spring-cloud-alibaba-dubbo-service
 
 shenyu:
+  instanceName: local
   client:
-    instanceName: local
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
