@@ -51,23 +51,23 @@ public final class ShenyuClientRegisterMotanServiceImplTest {
 
     @Test
     public void rpcType() {
-        String s = shenyuClientRegisterMotanService.rpcType();
-        Assert.assertEquals(RpcTypeEnum.MOTAN.getName(),s);
+        String rpcType = shenyuClientRegisterMotanService.rpcType();
+        Assert.assertEquals(RpcTypeEnum.MOTAN.getName(), rpcType);
     }
 
     @Test
     public void selectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
-        Assert.assertEquals(StringUtils.EMPTY,shenyuClientRegisterMotanService.selectorHandler(metaDataRegisterDTO));
+        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.selectorHandler(metaDataRegisterDTO));
     }
 
     @Test
-    public void ruleHandler(){
-        Assert.assertEquals(StringUtils.EMPTY,shenyuClientRegisterMotanService.ruleHandler());
+    public void ruleHandler() {
+        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.ruleHandler());
     }
 
     @Test
-    public void registerMetadata(){
+    public void registerMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         given(metaDataService.findByPath(anyString())).willReturn(metaDataDO);
 
@@ -76,9 +76,10 @@ public final class ShenyuClientRegisterMotanServiceImplTest {
     }
 
     @Test
-    public void buildHandle(){
+    public void buildHandle() {
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().build());
-        Assert.assertEquals(StringUtils.EMPTY,shenyuClientRegisterMotanService.buildHandle(list, SelectorDO.builder().build()));
+        Assert.assertEquals(StringUtils.EMPTY,
+            shenyuClientRegisterMotanService.buildHandle(list, SelectorDO.builder().build()));
     }
 }
