@@ -143,9 +143,14 @@ public interface Constants {
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
     
     /**
-     * The constant HTTP_URL.
+     * The constant HTTP_URI.
      */
-    String HTTP_URL = "httpUrl";
+    String HTTP_URI = "httpUri";
+    
+    /**
+     * The constant HTTP_DOMAIN.
+     */
+    String HTTP_DOMAIN = "httpDomain";
     
     /**
      * The constant RPC_PARAM_TRANSFORM.
@@ -476,7 +481,7 @@ public interface Constants {
      * dubbo remote address.
      */
     String DUBBO_REMOTE_ADDRESS = "dubboRemoteAddress";
-
+    
     /**
      * dubbo group.
      */

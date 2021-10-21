@@ -65,8 +65,8 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
-        if (StringUtils.isEmpty(contextPath)) {
-            throw new RuntimeException("apache dubbo client must config the contextPath");
+        if (StringUtils.isBlank(contextPath)) {
+            throw new RuntimeException("alibaba dubbo client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;

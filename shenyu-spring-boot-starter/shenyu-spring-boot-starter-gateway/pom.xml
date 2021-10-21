@@ -69,5 +69,13 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu response plugin end-->
+        
+        <!--shenyu param uri plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-uri</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu param uri end-->
     </dependencies>
 </project>

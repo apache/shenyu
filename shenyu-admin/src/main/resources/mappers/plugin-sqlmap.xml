@@ -53,11 +53,12 @@
         from plugin
         where name in
         <foreach item="name" collection="list" open="(" separator="," close=")">
-        #{name,jdbcType=VARCHAR}
-    </foreach>
+            #{name,jdbcType=VARCHAR}
+        </foreach>
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
+            resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from plugin
@@ -73,7 +74,8 @@
         order by sort asc
     </select>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from plugin
         <where>
@@ -95,7 +97,8 @@
         insert into plugin (id, date_created, date_updated,
         name,config,role, sort, enabled)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{name,jdbcType=VARCHAR},#{config,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT})
+        #{name,jdbcType=VARCHAR},#{config,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER},
+        #{enabled,jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -152,7 +155,7 @@
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         update plugin
-        set  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        set date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         name = #{name,jdbcType=VARCHAR},
         config = #{config,jdbcType=VARCHAR},
         role = #{role,jdbcType=VARCHAR},
@@ -163,7 +166,7 @@
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         update plugin
-        SET  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        SET date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>

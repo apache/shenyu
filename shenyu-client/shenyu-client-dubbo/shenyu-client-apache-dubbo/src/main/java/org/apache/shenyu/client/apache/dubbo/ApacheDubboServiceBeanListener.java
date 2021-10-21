@@ -96,7 +96,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         });
     }
 
-    private void handler(final ServiceBean serviceBean) {
+    private void handler(final ServiceBean<?> serviceBean) {
         Object refProxy = serviceBean.getRef();
         Class<?> clazz = refProxy.getClass();
         if (AopUtils.isAopProxy(refProxy)) {
@@ -111,7 +111,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
         String appName = buildAppName(serviceBean);
         String path = contextPath + shenyuDubboClient.path();
         String desc = shenyuDubboClient.desc();
