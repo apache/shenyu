@@ -88,8 +88,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         // set the http url
         String domain = buildDomain(upstream);
-        String realURL = buildRealURL(domain, shenyuContext, exchange);
-        exchange.getAttributes().put(Constants.HTTP_URL, realURL);
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
@@ -128,23 +127,5 @@ public class DividePlugin extends AbstractShenyuPlugin {
             protocol = "http://";
         }
         return protocol + upstream.getUrl().trim();
-    }
-
-    private String buildRealURL(final String domain, final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
-        String path = domain;
-        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        if (StringUtils.isNoneBlank(rewriteURI)) {
-            path = path + rewriteURI;
-        } else {
-            final String realUrl = shenyuContext.getRealUrl();
-            if (StringUtils.isNoneBlank(realUrl)) {
-                path = path + realUrl;
-            }
-        }
-        String query = exchange.getRequest().getURI().getQuery();
-        if (StringUtils.isNoneBlank(query)) {
-            return path + "?" + query;
-        }
-        return path;
     }
 }

@@ -44,6 +44,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,14 +77,14 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
         HttpHeaders filtered = request.getHeaders();
         final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
         filtered.forEach(httpHeaders::set);
-        String url = exchange.getAttribute(Constants.HTTP_URL);
-        if (StringUtils.isEmpty(url)) {
+        URI uri = exchange.getAttribute(Constants.HTTP_URI);
+        if (Objects.isNull(uri)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        LOG.info("you request, The resulting urlPath is: {}", url);
+        LOG.info("you request, The resulting urlPath is: {}", uri.toASCIIString());
         Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> headers.add(httpHeaders))
-                .request(method).uri(url).send((req, nettyOutbound) ->
+                .request(method).uri(uri.toASCIIString()).send((req, nettyOutbound) ->
                         nettyOutbound.send(request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer) .getNativeBuffer())))
                 .responseConnection((res, connection) -> {
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);

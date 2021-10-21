@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
@@ -41,6 +40,7 @@ import reactor.core.publisher.Mono;
 import reactor.retry.Backoff;
 import reactor.retry.Retry;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,16 +67,16 @@ public class WebClientPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        String urlPath = exchange.getAttribute(Constants.HTTP_URL);
-        if (StringUtils.isEmpty(urlPath)) {
+        URI uri = exchange.getAttribute(Constants.HTTP_URI);
+        if (Objects.isNull(uri)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
-        LOG.info("The request urlPath is {}, retryTimes is {}", urlPath, retryTimes);
+        LOG.info("The request urlPath is {}, retryTimes is {}", uri.toASCIIString(), retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
-        WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
+        WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(uri);
         return handleRequestBody(requestBodySpec, exchange, timeout, retryTimes, chain);
     }
 

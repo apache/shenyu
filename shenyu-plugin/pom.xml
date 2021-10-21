@@ -57,5 +57,6 @@
         <module>shenyu-plugin-cryptor</module>
         <module>shenyu-plugin-websocket</module>
         <module>shenyu-plugin-dubbo</module>
+        <module>shenyu-plugin-uri</module>
     </modules>
 </project>
