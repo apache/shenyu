@@ -52,11 +52,21 @@ public class CryptorPluginConfiguration {
         return new CryptorResponsePlugin();
     }
 
+    /**
+     * Cryptor request plugin data handler plugin data handler.
+     *
+     * @return the plugin data handler
+     */
     @Bean
     public PluginDataHandler cryptorRequestPluginDataHandler() {
         return new CryptorRequestPluginDataHandler();
     }
 
+    /**
+     * Cryptor response plugin data handler plugin data handler.
+     *
+     * @return the plugin data handler
+     */
     @Bean
     public PluginDataHandler cryptorResponsePluginDataHandler() {
         return new CryptorResponsePluginDataHandler();
