@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.filter;
 
 import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,11 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Cross filter.
@@ -47,17 +53,45 @@ public class CrossFilter implements WebFilter {
         if (CorsUtils.isCorsRequest(request)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
-            headers.add("Access-Control-Allow-Origin", this.filterConfig.getAllowedOrigin());
-            headers.add("Access-Control-Allow-Methods", this.filterConfig.getAllowedMethods());
-            headers.add("Access-Control-Max-Age", this.filterConfig.getMaxAge());
-            headers.add("Access-Control-Allow-Headers", this.filterConfig.getAllowedHeaders());
-            headers.add("Access-Control-Expose-Headers", this.filterConfig.getAllowedExpose());
-            headers.add("Access-Control-Allow-Credentials", String.valueOf(this.filterConfig.isAllowCredentials()));
+            // "Access-Control-Allow-Origin"
+            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                    this.filterConfig.getAllowedOrigin());
+            // "Access-Control-Allow-Methods"
+            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                    this.filterConfig.getAllowedMethods());
+            // "Access-Control-Max-Age"
+            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_MAX_AGE,
+                    this.filterConfig.getMaxAge());
+            // "Access-Control-Allow-Headers"
+            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                    this.filterConfig.getAllowedHeaders());
+            // "Access-Control-Expose-Headers"
+            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
+                    this.filterConfig.getAllowedExpose());
+            // "Access-Control-Allow-Credentials"
+            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                    String.valueOf(this.filterConfig.isAllowCredentials()));
             if (request.getMethod() == HttpMethod.OPTIONS) {
                 response.setStatusCode(HttpStatus.OK);
                 return Mono.empty();
             }
         }
         return chain.filter(exchange);
+    }
+
+    /**
+     * Filter the same headers.
+     *
+     * @param headers the response headers
+     * @param header header name
+     * @param newHeaderValue the new value for header
+     */
+    private void filterSameHeader(final HttpHeaders headers, final String header, final String newHeaderValue) {
+        final Set<String> newHeaders = Stream.of(newHeaderValue.split(",")).collect(Collectors.toSet());
+        final List<String> originHeaders = headers.get(header);
+        if (CollectionUtils.isNotEmpty(originHeaders)) {
+            newHeaders.addAll(originHeaders);
+        }
+        headers.add(header, String.join(",", newHeaders));
     }
 }
