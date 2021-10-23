@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
  */
 @Mapper
 public interface SelectorMapper {
-
+    
     /**
      * select selector by id.
      *
@@ -35,7 +36,7 @@ public interface SelectorMapper {
      * @return {@linkplain SelectorDO}
      */
     SelectorDO selectById(String id);
-
+    
     /**
      * select selector by query.
      *
@@ -43,8 +44,8 @@ public interface SelectorMapper {
      * @return {@linkplain List}
      */
     List<SelectorDO> selectByQuery(SelectorQuery selectorQuery);
-
-
+    
+    
     /**
      * Find by plugin id list.
      *
@@ -52,8 +53,8 @@ public interface SelectorMapper {
      * @return the list
      */
     List<SelectorDO> findByPluginId(String pluginId);
-
-
+    
+    
     /**
      * select select by name.
      *
@@ -61,7 +62,16 @@ public interface SelectorMapper {
      * @return selector do
      */
     SelectorDO selectByName(String name);
-
+    
+    /**
+     * Find by name and plugin id selector do.
+     *
+     * @param name the name
+     * @param pluginId the plugin id
+     * @return the selector do
+     */
+    SelectorDO findByNameAndPluginId(@Param("name") String name, @Param("pluginId") String pluginId);
+    
     /**
      * count selector by query.
      *
@@ -69,7 +79,7 @@ public interface SelectorMapper {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(SelectorQuery selectorQuery);
-
+    
     /**
      * insert selector.
      *
@@ -77,7 +87,7 @@ public interface SelectorMapper {
      * @return rows int
      */
     int insert(SelectorDO selectorDO);
-
+    
     /**
      * insert selective selector.
      *
@@ -85,7 +95,7 @@ public interface SelectorMapper {
      * @return rows int
      */
     int insertSelective(SelectorDO selectorDO);
-
+    
     /**
      * update selector.
      *
@@ -93,7 +103,7 @@ public interface SelectorMapper {
      * @return rows int
      */
     int update(SelectorDO selectorDO);
-
+    
     /**
      * update selective selector.
      *
@@ -101,7 +111,7 @@ public interface SelectorMapper {
      * @return rows int
      */
     int updateSelective(SelectorDO selectorDO);
-
+    
     /**
      * delete selector.
      *
@@ -109,7 +119,7 @@ public interface SelectorMapper {
      * @return rows int
      */
     int delete(String id);
-
+    
     /**
      * Delete by plugin id int.
      *
@@ -117,7 +127,7 @@ public interface SelectorMapper {
      * @return the int
      */
     int deleteByPluginId(String pluginId);
-
+    
     /**
      * list all.
      *

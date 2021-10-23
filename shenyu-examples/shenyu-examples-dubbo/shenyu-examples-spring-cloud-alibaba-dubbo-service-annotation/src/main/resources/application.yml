@@ -43,4 +43,4 @@ dubbo:
     name: dubbo
     port: 20888
   scan:
-    base-packages: org.apache.shenyu.examples.cloud.dubbo.service.annotation.impl
+    base-packages: org.apache.shenyu.examples.spring.cloud.dubbo.service.annotation.impl

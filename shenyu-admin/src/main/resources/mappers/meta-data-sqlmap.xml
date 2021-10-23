@@ -108,7 +108,7 @@
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.MetaDataDO">
         update meta_data
-        set  app_name = #{appName,jdbcType=VARCHAR},
+        set app_name = #{appName,jdbcType=VARCHAR},
         path = #{path,jdbcType=VARCHAR},
         path_desc = #{pathDesc,jdbcType=VARCHAR},
         rpc_type = #{rpcType,jdbcType=VARCHAR},
@@ -121,7 +121,7 @@
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         update meta_data
-        set  enabled = #{enabled,jdbcType=TINYINT}
+        set enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

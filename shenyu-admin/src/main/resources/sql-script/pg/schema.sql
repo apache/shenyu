@@ -157,7 +157,7 @@ ELSE
 	  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
 	  "app_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
 	  "path" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-	  "path_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+	  "path_desc" varchar(255) COLLATE "pg_catalog"."default",
 	  "rpc_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
 	  "service_name" varchar(255) COLLATE "pg_catalog"."default",
 	  "method_name" varchar(255) COLLATE "pg_catalog"."default",
@@ -1251,8 +1251,8 @@ ELSE
 	-- ----------------------------
 	-- Records of role
 	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "role" VALUES (''' || '1346358560427216896' || ''', ''' || 'super' || ''', ''' || '超级管理员' || ''', ''' || '2021-01-05 01:31:10' || ''', ''' || '2021-01-08 17:00:07' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "role" VALUES (''' || '1385482862971723776' || ''', ''' || 'default' || ''', ''' || '普通用户' || ''', ''' || '2021-04-23 14:37:10' || ''', ''' || '2021-04-23 14:38:39' || ''');');
+	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "role" VALUES (''' || '1346358560427216896' || ''', ''' || 'super' || ''', ''' || 'Administrator' || ''', ''' || '2021-01-05 01:31:10' || ''', ''' || '2021-01-08 17:00:07' || ''');');
+	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "role" VALUES (''' || '1385482862971723776' || ''', ''' || 'default' || ''', ''' || 'Standard' || ''', ''' || '2021-04-23 14:37:10' || ''', ''' || '2021-04-23 14:38:39' || ''');');
 
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;

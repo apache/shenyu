@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -40,8 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The type Shenyu client bean post processor.
@@ -52,17 +48,11 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
-    private final ExecutorService executorService;
-
     private final String contextPath;
 
     private final Boolean isFull;
 
     private final Environment env;
-
-    private final String host;
-
-    private final String port;
 
     private final String servletContextPath;
 
@@ -77,18 +67,15 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         String appName = env.getProperty("spring.application.name");
+        Properties props = config.getProps();
+        this.contextPath = props.getProperty("contextPath");
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
-            String errorMsg = "spring cloud param must config the registerType , serverLists  and appName";
+            String errorMsg = "spring cloud param must config the registerType , serverLists and appName";
             LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-spring-cloud-client-thread-pool-%d").build());
         this.env = env;
-        Properties props = config.getProps();
-        this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        this.host = config.getProps().getProperty("host");
-        this.port = config.getProps().getProperty("port");
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
         publisher.start(shenyuClientRegisterRepository);
     }
@@ -108,8 +95,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 return bean;
             }
             if (clazzAnnotation.path().indexOf("*") > 1) {
-                String finalPrePath = prePath;
-                executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, finalPrePath)));
+                publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, prePath));
                 return bean;
             }
             prePath = clazzAnnotation.path();
@@ -117,8 +103,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             for (Method method : methods) {
                 ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
                 if (Objects.nonNull(shenyuSpringCloudClient)) {
-                    String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(shenyuSpringCloudClient, finalPrePath)));
+                    publisher.publishEvent(buildMetaDataDTO(shenyuSpringCloudClient, prePath));
                 }
             }
         }
@@ -129,16 +114,12 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + prePath + shenyuSpringCloudClient.path();
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = shenyuSpringCloudClient.desc();
         String configRuleName = shenyuSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
-                .host(host)
-                .port(port)
                 .path(path)
                 .pathDesc(desc)
                 .rpcType(shenyuSpringCloudClient.rpcType())

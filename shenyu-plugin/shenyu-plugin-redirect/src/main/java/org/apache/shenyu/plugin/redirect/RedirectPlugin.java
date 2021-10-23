@@ -25,7 +25,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.UriUtils;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

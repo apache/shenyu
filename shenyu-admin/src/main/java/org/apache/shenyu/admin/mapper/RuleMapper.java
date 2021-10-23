@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 
@@ -28,7 +29,7 @@ import java.util.List;
  */
 @Mapper
 public interface RuleMapper {
-
+    
     /**
      * select rule by id.
      *
@@ -36,7 +37,7 @@ public interface RuleMapper {
      * @return {@linkplain RuleDO}
      */
     RuleDO selectById(String id);
-
+    
     /**
      * select rule by query.
      *
@@ -44,7 +45,7 @@ public interface RuleMapper {
      * @return {@linkplain List}
      */
     List<RuleDO> selectByQuery(RuleQuery ruleQuery);
-
+    
     /**
      * Find by selector id list.
      *
@@ -52,7 +53,7 @@ public interface RuleMapper {
      * @return the list
      */
     List<RuleDO> findBySelectorId(String selectorId);
-
+    
     /**
      * select rule by name.
      *
@@ -60,7 +61,16 @@ public interface RuleMapper {
      * @return rule do
      */
     RuleDO findByName(String name);
-
+    
+    /**
+     * Find by selector id and name rule do.
+     *
+     * @param selectorId the selector id
+     * @param name the name
+     * @return the rule do
+     */
+    RuleDO findBySelectorIdAndName(@Param("selectorId") String selectorId, @Param("name") String name);
+    
     /**
      * count rule by query.
      *
@@ -68,7 +78,7 @@ public interface RuleMapper {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(RuleQuery ruleQuery);
-
+    
     /**
      * insert rule.
      *
@@ -76,7 +86,7 @@ public interface RuleMapper {
      * @return rows int
      */
     int insert(RuleDO ruleDO);
-
+    
     /**
      * insert selective rule.
      *
@@ -84,7 +94,7 @@ public interface RuleMapper {
      * @return rows int
      */
     int insertSelective(RuleDO ruleDO);
-
+    
     /**
      * update rule.
      *
@@ -92,7 +102,7 @@ public interface RuleMapper {
      * @return rows int
      */
     int update(RuleDO ruleDO);
-
+    
     /**
      * update selective rule.
      *
@@ -100,7 +110,7 @@ public interface RuleMapper {
      * @return rows int
      */
     int updateSelective(RuleDO ruleDO);
-
+    
     /**
      * delete rule.
      *
@@ -108,7 +118,7 @@ public interface RuleMapper {
      * @return rows int
      */
     int delete(String id);
-
+    
     /**
      * list all.
      *

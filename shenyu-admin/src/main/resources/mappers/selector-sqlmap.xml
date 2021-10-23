@@ -52,7 +52,16 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery" resultMap="BaseResultMap">
+    <select id="findByNameAndPluginId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where name = #{name,jdbcType=VARCHAR}
+        and plugin_id = #{pluginId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
+            resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from selector
@@ -81,7 +90,8 @@
     </select>
 
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from selector
         <where>
@@ -114,7 +124,7 @@
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
         #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT},
-        #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
+        #{loged,jdbcType=TINYINT}, #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">

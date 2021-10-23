@@ -45,7 +45,7 @@ import java.util.Map;
 @RequestMapping("/test")
 @ShenyuSpringMvcClient(path = "/test/**")
 public class HttpTestController {
-
+    
     /**
      * Post user dto.
      *
@@ -56,7 +56,7 @@ public class HttpTestController {
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
-
+    
     /**
      * Find by user id string.
      *
@@ -70,11 +70,26 @@ public class HttpTestController {
         userDTO.setUserName("hello world");
         return userDTO;
     }
-
+    
+    /**
+     * Find by page user dto.
+     *
+     * @param keyword the keyword
+     * @param page the page
+     * @param pageSize the page size
+     * @return the user dto
+     */
+    @GetMapping("/findByPage")
+    public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserName("hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
+        return userDTO;
+    }
+    
     /**
      * Gets path variable.
      *
-     * @param id   the id
+     * @param id the id
      * @param name the name
      * @return the path variable
      */
@@ -85,8 +100,8 @@ public class HttpTestController {
         userDTO.setUserName("hello world");
         return userDTO;
     }
-
-
+    
+    
     /**
      * Test rest ful string.
      *
@@ -100,12 +115,12 @@ public class HttpTestController {
         userDTO.setUserName("hello world");
         return userDTO;
     }
-
-
+    
+    
     /**
      * Put path variable and body string.
      *
-     * @param id      the id
+     * @param id the id
      * @param userDTO the user dto
      * @return the string
      */
@@ -115,12 +130,11 @@ public class HttpTestController {
         userDTO.setUserName("hello world");
         return userDTO;
     }
-
+    
     /**
      * the waf pass.
      *
-     * @return response.
-     * @return the string
+     * @return response. result bean
      */
     @PostMapping("/waf/pass")
     public ResultBean pass() {
@@ -129,11 +143,11 @@ public class HttpTestController {
         response.setMsg("pass");
         return response;
     }
-
+    
     /**
      * the waf deny.
      *
-     * @return response.
+     * @return response. result bean
      */
     @PostMapping("/waf/deny")
     public ResultBean deny() {
@@ -142,11 +156,12 @@ public class HttpTestController {
         response.setMsg("deny");
         return response;
     }
-
+    
     /**
      * request Pass.
+     *
      * @param requestParameter the requestParameter.
-     * @return ResultBean
+     * @return ResultBean result bean
      */
     @GetMapping("/request/parameter/pass")
     public ResultBean requestParameter(@RequestParam("requestParameter") final String requestParameter) {
@@ -159,11 +174,12 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
-
+    
     /**
      * request Pass.
-     * @param requestHeader    the requestHeader.
-     * @return ResultBean
+     *
+     * @param requestHeader the requestHeader.
+     * @return ResultBean result bean
      */
     @GetMapping("/request/header/pass")
     public ResultBean requestHeader(@RequestHeader("requestHeader") final String requestHeader) {
@@ -176,11 +192,12 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
-
+    
     /**
      * request Pass.
-     * @param cookie           the cookie.
-     * @return ResultBean
+     *
+     * @param cookie the cookie.
+     * @return ResultBean result bean
      */
     @GetMapping("/request/cookie/pass")
     public ResultBean requestCookie(@CookieValue("cookie") final String cookie) {
@@ -193,10 +210,11 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
-
+    
     /**
      * post sentinel.
-     * @return response.
+     *
+     * @return response. result bean
      */
     @PostMapping("/sentinel/pass")
     public ResultBean sentinelPass() {
@@ -205,11 +223,12 @@ public class HttpTestController {
         response.setMsg("pass");
         return response;
     }
-
+    
     /**
      * modify response.
+     *
      * @param exchange exchange
-     * @return response
+     * @return response mono
      */
     @GetMapping(path = "/modifyResponse")
     public Mono<String> modifyResponse(final ServerWebExchange exchange) {

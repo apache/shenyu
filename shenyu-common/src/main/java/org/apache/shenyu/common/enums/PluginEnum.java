@@ -126,6 +126,11 @@ public enum PluginEnum {
     WEB_SOCKET(200, 0, "websocket"),
     
     /**
+     * Uri plugin enum.
+     */
+    URI(205, 0, "uri"),
+    
+    /**
      * Web client plugin enum.
      */
     WEB_CLIENT(210, 0, "webClient"),
@@ -134,7 +139,7 @@ public enum PluginEnum {
      * Netty http client plugin enum.
      */
     NETTY_HTTP_CLIENT(210, 0, "nettyHttpClient"),
-
+    
     /**
      * ModifyResponse plugin enum.
      */
@@ -244,6 +249,6 @@ public enum PluginEnum {
      * @return List string
      */
     public static List<String> getUpstreamNames() {
-        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name, SPRING_CLOUD.name);
+        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name, SPRING_CLOUD.name, DUBBO.name);
     }
 }

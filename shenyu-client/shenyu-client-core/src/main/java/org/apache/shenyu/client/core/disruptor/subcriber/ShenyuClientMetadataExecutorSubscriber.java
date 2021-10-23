@@ -17,27 +17,18 @@
 
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
-import com.google.common.base.Stopwatch;
-import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The type Metadata executor subscriber.
  */
 public class ShenyuClientMetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDataRegisterDTO> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientMetadataExecutorSubscriber.class);
-
+    
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
     /**
@@ -57,29 +48,6 @@ public class ShenyuClientMetadataExecutorSubscriber implements ExecutorTypeSubsc
     @Override
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
         for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
-            Stopwatch stopwatch = Stopwatch.createStarted();
-            while (true) {
-                try (Socket socket = new Socket(metaDataRegisterDTO.getHost(), metaDataRegisterDTO.getPort())) {
-                    break;
-                } catch (IOException e) {
-                    long sleepTime = 1000;
-                    // maybe the port is delay exposed
-                    if (stopwatch.elapsed(TimeUnit.SECONDS) > 5) {
-                        LOG.error("host:{}, port:{} connection failed, will retry",
-                            metaDataRegisterDTO.getHost(), metaDataRegisterDTO.getPort());
-                        // If the connection fails for a long time, Increase sleep time
-                        if (stopwatch.elapsed(TimeUnit.SECONDS) > 180) {
-                            sleepTime = 10000;
-                        }
-                    }
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(sleepTime);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-            ShenyuClientShutdownHook.delayOtherHooks();
             shenyuClientRegisterRepository.persistInterface(metaDataRegisterDTO);
         }
     }

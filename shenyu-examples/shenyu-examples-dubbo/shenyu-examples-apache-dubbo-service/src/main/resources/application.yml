@@ -32,4 +32,3 @@ shenyu:
       contextPath: /dubbo
       appName: dubbo
       nacosNameSpace: ShenyuRegisterCenter
-      port: 20888
