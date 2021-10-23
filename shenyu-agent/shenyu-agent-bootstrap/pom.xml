@@ -48,7 +48,7 @@
     </dependencies>
 
     <build>
-        <finalName>shenyu-agent</finalName>
+        <finalName>shenyu-agent-bootstrap</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
