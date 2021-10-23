@@ -18,6 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.cryptor;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.request.CryptorRequestPlugin;
 import org.apache.shenyu.plugin.cryptor.response.CryptorResponsePlugin;
 import org.springframework.context.annotation.Bean;
@@ -49,4 +52,13 @@ public class CryptorPluginConfiguration {
         return new CryptorResponsePlugin();
     }
 
+    @Bean
+    public PluginDataHandler cryptorRequestPluginDataHandler() {
+        return new CryptorRequestPluginDataHandler();
+    }
+
+    @Bean
+    public PluginDataHandler cryptorResponsePluginDataHandler() {
+        return new CryptorResponsePluginDataHandler();
+    }
 }
