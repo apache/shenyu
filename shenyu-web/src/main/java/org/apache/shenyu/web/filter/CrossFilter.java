@@ -88,8 +88,9 @@ public class CrossFilter implements WebFilter {
      */
     private void filterSameHeader(final HttpHeaders headers, final String header, final String newHeaderValue) {
         final Set<String> newHeaders = Stream.of(newHeaderValue.split(",")).collect(Collectors.toSet());
-        final List<String> originHeaders = headers.get(header);
+        List<String> originHeaders = headers.get(header);
         if (CollectionUtils.isNotEmpty(originHeaders)) {
+            originHeaders = Stream.of(String.join(",", originHeaders).split(",")).collect(Collectors.toList());
             newHeaders.addAll(originHeaders);
         }
         headers.add(header, String.join(",", newHeaders));
