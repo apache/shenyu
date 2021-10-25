@@ -41,9 +41,9 @@ import java.util.stream.Stream;
  */
 public class CrossFilter implements WebFilter {
 
-    private final CrossFilterConfig filterConfig;
-
     private static final String ALL = "*";
+
+    private final CrossFilterConfig filterConfig;
 
     public CrossFilter(final CrossFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
