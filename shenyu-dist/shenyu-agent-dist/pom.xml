@@ -61,6 +61,7 @@
                                 <descriptor>${project.basedir}/src/main/assembly/binary.xml</descriptor>
                             </descriptors>
                             <tarLongFileMode>posix</tarLongFileMode>
+                            <outputDirectory>${project.basedir}/../../shenyu-bootstrap/target/shenyu-agent</outputDirectory>
                         </configuration>
                     </plugin>
                 </plugins>
