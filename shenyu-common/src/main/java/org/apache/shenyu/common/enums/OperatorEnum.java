@@ -74,6 +74,11 @@ public enum OperatorEnum {
     TIME_BEFORE("TimeBefore", true),
 
     /**
+     * Exclude operator enum.
+     */
+    EXCLUDE("exclude", true),
+
+    /**
      * Time after operator enum.
      */
     TIME_AFTER("TimeAfter", true);

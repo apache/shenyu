@@ -136,4 +136,12 @@ public final class PredicateJudgeFactoryTest {
         Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, FIRST_TIME));
     }
 
+    @Test
+    public void testExcludeJudge() {
+        conditionData.setOperator(OperatorEnum.EXCLUDE.getAlias());
+        conditionData.setParamValue("/http/test");
+        Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, "/http/test"));
+        Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
+    }
+
 }
