@@ -97,13 +97,15 @@ public class CrossFilter implements WebFilter {
             headers.set(header, ALL);
             return;
         }
-        final Set<String> newHeaders = Stream.of(newHeaderValue.split(",")).map(String::trim).collect(Collectors.toSet());
+        final Set<String> newHeaders = Stream.of(newHeaderValue.split(","))
+                .map(String::trim).collect(Collectors.toSet());
         List<String> originHeaders = headers.get(header);
         if (CollectionUtils.isNotEmpty(originHeaders)) {
             if (originHeaders.contains(ALL)) {
                 return;
             }
-            originHeaders = Stream.of(String.join(",", originHeaders).split(",")).map(String::trim).collect(Collectors.toList());
+            originHeaders = Stream.of(String.join(",", originHeaders).split(","))
+                    .map(String::trim).collect(Collectors.toList());
             newHeaders.addAll(originHeaders);
         }
         headers.set(header, String.join(",", newHeaders));
