@@ -34,8 +34,6 @@ shenyu:
         appName: grpc
         ipAndPort: 127.0.0.1:8080
         port: 8080
-    props:
-      nacosNameSpace: ShenyuRegisterCenter
 
 logging:
   level:

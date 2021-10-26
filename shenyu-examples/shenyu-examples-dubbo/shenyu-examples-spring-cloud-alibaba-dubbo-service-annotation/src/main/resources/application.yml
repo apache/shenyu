@@ -33,8 +33,6 @@ shenyu:
         contextPath: /spring-cloud-alibaba-dubbo
         appName: spring-cloud-alibaba-dubbo
         port: 20888
-    props:
-      nacosNameSpace: ShenyuRegisterCenter
 
 dubbo:
   application:
