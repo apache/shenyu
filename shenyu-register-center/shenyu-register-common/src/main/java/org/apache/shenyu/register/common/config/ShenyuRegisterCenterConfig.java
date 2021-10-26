@@ -17,26 +17,29 @@
 
 package org.apache.shenyu.register.common.config;
 
-import java.util.Properties;
-
 /**
  * Governance center configuration.
  */
-public final class ShenyuRegisterCenterConfig {
+public final class ShenyuRegisterCenterConfig extends PropertiesConfig {
     
     private String registerType;
     
     private String serverLists;
-    
-    private Properties props = new Properties();
+
+    private Http http = new Http();
+
+    private Dubbo dubbo = new Dubbo();
+
+    private Grpc grpc = new Grpc();
+
+    private Motan motan = new Motan();
+
+    private Sofa sofa = new Sofa();
+
+    private Tars tars = new Tars();
 
     public ShenyuRegisterCenterConfig() {
-    }
 
-    public ShenyuRegisterCenterConfig(final String registerType, final String serverLists, final Properties props) {
-        this.registerType = registerType;
-        this.serverLists = serverLists;
-        this.props = props;
     }
 
     /**
@@ -76,20 +79,134 @@ public final class ShenyuRegisterCenterConfig {
     }
 
     /**
-     * getProps.
+     * get http.
      *
-     * @return String
+     * @return the http
      */
-    public Properties getProps() {
-        return props;
+    public Http getHttp() {
+        return http;
     }
 
     /**
-     * setProps.
+     * set http.
      *
-     * @param props props
+     * @param http the http
      */
-    public void setProps(final Properties props) {
-        this.props = props;
+    public void setHttp(final Http http) {
+        this.http = http;
+    }
+
+    /**
+     * get dubbo.
+     *
+     * @return the dubbo
+     */
+    public Dubbo getDubbo() {
+        return dubbo;
+    }
+
+    /**
+     * set dubbo.
+     *
+     * @param dubbo the dubbo
+     */
+    public void setDubbo(final Dubbo dubbo) {
+        this.dubbo = dubbo;
+    }
+
+    /**
+     * get grpc.
+     *
+     * @return the grpc
+     */
+    public Grpc getGrpc() {
+        return grpc;
+    }
+
+    /**
+     * set grpc.
+     *
+     * @param grpc the grpc
+     */
+    public void setGrpc(final Grpc grpc) {
+        this.grpc = grpc;
+    }
+
+    /**
+     * get motan.
+     *
+     * @return the motan
+     */
+    public Motan getMotan() {
+        return motan;
+    }
+
+    /**
+     * set motan.
+     *
+     * @param motan the motan
+     */
+    public void setMotan(final Motan motan) {
+        this.motan = motan;
+    }
+
+    /**
+     * get sofa.
+     *
+     * @return the sofa
+     */
+    public Sofa getSofa() {
+        return sofa;
+    }
+
+    /**
+     * set sofa.
+     *
+     * @param sofa the sofa
+     */
+    public void setSofa(final Sofa sofa) {
+        this.sofa = sofa;
+    }
+
+    /**
+     * get tars.
+     *
+     * @return the tars
+     */
+    public Tars getTars() {
+        return tars;
+    }
+
+    /**
+     * set tars.
+     *
+     * @param tars the tars
+     */
+    public void setTars(final Tars tars) {
+        this.tars = tars;
+    }
+
+    public static class Http extends PropertiesConfig {
+
+    }
+
+    public static class Dubbo extends PropertiesConfig {
+
+    }
+
+    public static class Grpc extends PropertiesConfig {
+
+    }
+
+    public static class Motan extends PropertiesConfig {
+
+    }
+
+    public static class Sofa extends PropertiesConfig {
+
+    }
+
+    public static class Tars extends PropertiesConfig {
+
     }
 }

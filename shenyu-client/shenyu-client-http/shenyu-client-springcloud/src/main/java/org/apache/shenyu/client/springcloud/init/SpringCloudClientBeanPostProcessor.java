@@ -67,7 +67,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         String appName = env.getProperty("spring.application.name");
-        Properties props = config.getProps();
+        Properties props = config.getHttp().getProps();
         this.contextPath = props.getProperty("contextPath");
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
             String errorMsg = "spring cloud param must config the registerType , serverLists and appName";

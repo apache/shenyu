@@ -72,7 +72,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
     private String group;
 
     public MotanServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
+        Properties props = config.getMotan().getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
         if (StringUtils.isEmpty(contextPath)) {
