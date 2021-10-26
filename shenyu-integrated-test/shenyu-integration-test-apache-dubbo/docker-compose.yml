@@ -24,7 +24,7 @@ services:
     ports:
       - "2181:2181"
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:2.4.2-SNAPSHOT
     container_name: shenyu-admin
     restart: always
     networks:

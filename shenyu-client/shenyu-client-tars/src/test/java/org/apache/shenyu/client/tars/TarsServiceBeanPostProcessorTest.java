@@ -46,10 +46,13 @@ public final class TarsServiceBeanPostProcessorTest {
         properties.setProperty("port", "8080");
         properties.setProperty("host", "localhost");
 
+        ShenyuRegisterCenterConfig.Tars tars = new ShenyuRegisterCenterConfig.Tars();
+        tars.setProps(properties);
+
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://localhost:58080");
         mockRegisterCenter.setRegisterType("http");
-        mockRegisterCenter.setProps(properties);
+        mockRegisterCenter.setTars(tars);
         tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(mockRegisterCenter, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 

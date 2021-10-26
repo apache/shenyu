@@ -66,7 +66,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     private final String port;
 
     public SofaServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
+        Properties props = config.getSofa().getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
         if (StringUtils.isEmpty(contextPath)) {

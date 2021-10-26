@@ -64,7 +64,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param env    the env
      */
     public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env) {
-        Properties props = config.getProps();
+        Properties props = config.getHttp().getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         String contextPath = props.getProperty("contextPath");
         this.contextPath = contextPath;
