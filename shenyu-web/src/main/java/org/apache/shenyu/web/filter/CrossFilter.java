@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +40,8 @@ import java.util.stream.Stream;
  * The type Cross filter.
  */
 public class CrossFilter implements WebFilter {
+
+    private static final String ALL = "*";
 
     private final CrossFilterConfig filterConfig;
 
@@ -87,12 +90,24 @@ public class CrossFilter implements WebFilter {
      * @param newHeaderValue the new value for header
      */
     private void filterSameHeader(final HttpHeaders headers, final String header, final String newHeaderValue) {
-        final Set<String> newHeaders = Stream.of(newHeaderValue.split(",")).collect(Collectors.toSet());
+        if (StringUtils.isBlank(newHeaderValue)) {
+            return;
+        }
+        if (ALL.equals(newHeaderValue.trim())) {
+            headers.set(header, ALL);
+            return;
+        }
+        final Set<String> newHeaders = Stream.of(newHeaderValue.split(","))
+                .map(String::trim).collect(Collectors.toSet());
         List<String> originHeaders = headers.get(header);
         if (CollectionUtils.isNotEmpty(originHeaders)) {
-            originHeaders = Stream.of(String.join(",", originHeaders).split(",")).collect(Collectors.toList());
+            if (originHeaders.contains(ALL)) {
+                return;
+            }
+            originHeaders = Stream.of(String.join(",", originHeaders).split(","))
+                    .map(String::trim).collect(Collectors.toList());
             newHeaders.addAll(originHeaders);
         }
-        headers.add(header, String.join(",", newHeaders));
+        headers.set(header, String.join(",", newHeaders));
     }
 }
