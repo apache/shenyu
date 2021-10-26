@@ -82,7 +82,7 @@ public class EtcdClientRegisterRepositoryTest {
                 .build();
 
         repository.persistInterface(data);
-        String metadataPath = "/shenyu/local/register/metadata/http/context/context-ruleName";
+        String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
         Assert.assertTrue(etcdBroker.containsKey(metadataPath));
         Assert.assertEquals(etcdBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
         repository.close();
@@ -97,7 +97,7 @@ public class EtcdClientRegisterRepositoryTest {
                 .contextPath("/context")
                 .build();
         repository.persistURI(data);
-        String uriPath = "/shenyu/local/register/uri/http/context/host:80";
+        String uriPath = "/shenyu/register/uri/http/context/host:80";
         Assert.assertTrue(etcdBroker.containsKey(uriPath));
         Assert.assertEquals(etcdBroker.get(uriPath), GsonUtils.getInstance().toJson(data));
     }
@@ -115,7 +115,7 @@ public class EtcdClientRegisterRepositoryTest {
                 .build();
 
         repository.persistInterface(data);
-        String metadataPath = "/shenyu/local/register/metadata/grpc/context/testService.testMethod";
+        String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";
         Assert.assertTrue(etcdBroker.containsKey(metadataPath));
         Assert.assertEquals(etcdBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
         repository.close();

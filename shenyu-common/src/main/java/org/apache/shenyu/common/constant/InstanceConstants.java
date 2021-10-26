@@ -17,14 +17,18 @@
 
 package org.apache.shenyu.common.constant;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * InstanceConstants.
  */
 public final class InstanceConstants implements Constants {
 
-    public static final String DEFAULT_INSTANCE_NAME = "local";
-
-    private static String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
+    private static String instanceName;
 
     /**
      * Gets instance name.
@@ -50,6 +54,32 @@ public final class InstanceConstants implements Constants {
      * @return /shenyu/instanceName
      */
     public static String getShenyuPrefixPath() {
-        return String.join(SEPARATOR, "", SHENYU, InstanceConstants.getInstanceName());
+        return fixShenyuPrefix(SEPARATOR, "", SHENYU);
+    }
+
+    /**
+     * getShenyuNacosPrefix.
+     *
+     * @return shenyu.instanceName
+     */
+    public static String getShenyuNacosPrefix() {
+        return fixShenyuPrefix(DOT_SEPARATOR, SHENYU);
+    }
+
+    /**
+     * fixShenyuPrefix.
+     *
+     * @param delimiter the join delimiter
+     * @param elements the join elements
+     * @return fixed shenyu prefix
+     */
+    private static String fixShenyuPrefix(final String delimiter, final String... elements) {
+        final String instanceName = InstanceConstants.getInstanceName();
+        if (StringUtils.isBlank(instanceName)) {
+            return String.join(delimiter, elements);
+        }
+        List<String> items = Stream.of(elements).collect(Collectors.toList());
+        items.add(instanceName);
+        return String.join(delimiter, items);
     }
 }

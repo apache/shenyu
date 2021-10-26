@@ -22,9 +22,7 @@ package org.apache.shenyu.register.common.constant;
  */
 public final class InstanceConstants {
 
-    public static final String DEFAULT_INSTANCE_NAME = "local";
-
-    private static String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
+    private static String instanceName;
 
     /**
      * Gets instance name.

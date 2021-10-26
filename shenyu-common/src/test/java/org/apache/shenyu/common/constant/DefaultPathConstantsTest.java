@@ -29,15 +29,15 @@ import static org.junit.Assert.assertThat;
  */
 public final class DefaultPathConstantsTest {
 
-    private static final String APP_AUTH_PARENT = "/shenyu/local/auth";
+    private static final String APP_AUTH_PARENT = "/shenyu/auth";
 
-    private static final String META_DATA_PARENT = "/shenyu/local/metaData";
+    private static final String META_DATA_PARENT = "/shenyu/metaData";
 
-    private static final String PLUGIN_PARENT = "/shenyu/local/plugin";
+    private static final String PLUGIN_PARENT = "/shenyu/plugin";
 
-    private static final String SELECTOR_PARENT = "/shenyu/local/selector";
+    private static final String SELECTOR_PARENT = "/shenyu/selector";
 
-    private static final String RULE_PARENT = "/shenyu/local/rule";
+    private static final String RULE_PARENT = "/shenyu/rule";
 
     private static final String SELECTOR_JOIN_RULE = "-";
 

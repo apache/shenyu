@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  */
 public class ShenyuConfig {
 
-    private String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
+    private String instanceName;
 
     private SwitchConfig switchConfig = new SwitchConfig();
     

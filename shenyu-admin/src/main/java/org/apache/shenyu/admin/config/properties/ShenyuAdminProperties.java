@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "shenyu")
 public class ShenyuAdminProperties {
 
-    private String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
+    private String instanceName;
 
     /**
      * Gets instance name.
@@ -44,5 +44,6 @@ public class ShenyuAdminProperties {
      */
     public void setInstanceName(final String instanceName) {
         this.instanceName = instanceName;
+        InstanceConstants.setInstanceName(instanceName);
     }
 }

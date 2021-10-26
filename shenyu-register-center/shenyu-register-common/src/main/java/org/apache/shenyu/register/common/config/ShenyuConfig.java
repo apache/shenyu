@@ -24,7 +24,7 @@ import org.apache.shenyu.register.common.constant.InstanceConstants;
  */
 public class ShenyuConfig {
 
-    private String instanceName = InstanceConstants.DEFAULT_INSTANCE_NAME;
+    private String instanceName;
 
     /**
      * Gets instance name.

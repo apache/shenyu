@@ -116,7 +116,7 @@ public class NacosClientRegisterRepositoryTest {
                 .ruleName("ruleName")
                 .build();
         repository.persistInterface(data);
-        String configPath = "shenyu.local.register.service.http.context";
+        String configPath = "shenyu.register.service.http.context";
         Assert.assertTrue(nacosBroker.containsKey(configPath));
         String dataStr = GsonUtils.getInstance().toJson(data);
         Assert.assertEquals(nacosBroker.get(configPath), GsonUtils.getInstance().toJson(Collections.singletonList(dataStr)));
@@ -131,7 +131,7 @@ public class NacosClientRegisterRepositoryTest {
                 .contextPath("/context")
                 .build();
         repository.persistURI(data);
-        String uriInstancePath = "shenyu.local.register.service.http";
+        String uriInstancePath = "shenyu.register.service.http";
         Assert.assertTrue(nacosBroker.containsKey(uriInstancePath));
         Instance instance = (Instance) nacosBroker.get(uriInstancePath);
         Assert.assertEquals(instance.getIp(), data.getHost());

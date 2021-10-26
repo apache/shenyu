@@ -40,7 +40,7 @@ public final class NacosPathConstants implements Constants {
      * @return shenyu.instanceName.plugin.json
      */
     public static String buildNacosPluginData() {
-        return String.join(DOT_SEPARATOR, buildNacosPrefix(), PLUGIN_DATA, JSON);
+        return String.join(DOT_SEPARATOR, InstanceConstants.getShenyuNacosPrefix(), PLUGIN_DATA, JSON);
     }
 
     /**
@@ -49,7 +49,7 @@ public final class NacosPathConstants implements Constants {
      * @return shenyu.instanceName.selector.json
      */
     public static String buildNacosSelectorData() {
-        return String.join(DOT_SEPARATOR, buildNacosPrefix(), SELECTOR_DATA, JSON);
+        return String.join(DOT_SEPARATOR, InstanceConstants.getShenyuNacosPrefix(), SELECTOR_DATA, JSON);
     }
 
     /**
@@ -58,7 +58,7 @@ public final class NacosPathConstants implements Constants {
      * @return shenyu.instanceName.rule.json
      */
     public static String buildNacosRuleData() {
-        return String.join(DOT_SEPARATOR, buildNacosPrefix(), RULE_DATA, JSON);
+        return String.join(DOT_SEPARATOR, InstanceConstants.getShenyuNacosPrefix(), RULE_DATA, JSON);
     }
 
     /**
@@ -67,7 +67,7 @@ public final class NacosPathConstants implements Constants {
      * @return shenyu.instanceName.auth.json
      */
     public static String buildNacosAuthData() {
-        return String.join(DOT_SEPARATOR, buildNacosPrefix(), AUTH_DATA, JSON);
+        return String.join(DOT_SEPARATOR, InstanceConstants.getShenyuNacosPrefix(), AUTH_DATA, JSON);
     }
 
     /**
@@ -76,15 +76,6 @@ public final class NacosPathConstants implements Constants {
      * @return shenyu.instanceName.metaData.json
      */
     public static String buildNacosMetaData() {
-        return String.join(DOT_SEPARATOR, buildNacosPrefix(), META_DATA, JSON);
-    }
-
-    /**
-     * buildNacosPrefix.
-     *
-     * @return shenyu.instanceName
-     */
-    private static String buildNacosPrefix() {
-        return String.join(DOT_SEPARATOR, SHENYU, InstanceConstants.getInstanceName());
+        return String.join(DOT_SEPARATOR, InstanceConstants.getShenyuNacosPrefix(), META_DATA, JSON);
     }
 }

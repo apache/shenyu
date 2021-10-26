@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.constant;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * RedisKeyConstants.
  */
@@ -52,6 +54,10 @@ public final class RedisKeyConstants implements Constants {
      * @return shenyu:instanceName:plugin
      */
     public static String buildRedisPluginKey() {
-        return String.join(COLONS, SHENYU, InstanceConstants.getInstanceName(), PLUGIN_DATA);
+        final String instanceName = InstanceConstants.getInstanceName();
+        if (StringUtils.isBlank(instanceName)) {
+            return String.join(COLONS, SHENYU, PLUGIN_DATA);
+        }
+        return String.join(COLONS, SHENYU, instanceName, PLUGIN_DATA);
     }
 }

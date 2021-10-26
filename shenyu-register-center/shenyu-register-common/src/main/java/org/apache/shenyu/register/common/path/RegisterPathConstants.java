@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.common.path;
 
 import org.apache.shenyu.register.common.constant.InstanceConstants;
+import org.springframework.util.StringUtils;
 
 /**
  * zookeeper register center.
@@ -179,6 +180,10 @@ public class RegisterPathConstants {
      * @return the register root path
      */
     private static String buildRootPath() {
-        return String.format("%s/%s%s", ROOT_PATH, InstanceConstants.getInstanceName(), REGISTER);
+        final String instanceName = InstanceConstants.getInstanceName();
+        if (!StringUtils.hasText(instanceName)) {
+            return String.format("%s%s", ROOT_PATH, REGISTER);
+        }
+        return String.format("%s/%s%s", ROOT_PATH, instanceName, REGISTER);
     }
 }

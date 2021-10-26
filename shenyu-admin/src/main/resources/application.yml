@@ -37,7 +37,6 @@ mybatis:
   mapper-locations: classpath:/mappers/*.xml
 
 shenyu:
-  instanceName: local
   register:
     registerType: http #http #zookeeper #etcd #nacos #consul
     serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
