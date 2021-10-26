@@ -38,4 +38,5 @@ shenyu:
         appName: tars
         port: 21715
         host: 192.168.41.103
-        nacosNameSpace: ShenyuRegisterCenter
+    props:
+      nacosNameSpace: ShenyuRegisterCenter
