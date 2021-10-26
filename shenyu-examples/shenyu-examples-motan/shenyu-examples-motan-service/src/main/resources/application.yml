@@ -33,7 +33,6 @@ shenyu:
         ipAndPort: motan
         appName: motan
         port: 8081
-        nacosNameSpace: ShenyuRegisterCenter
 
 motan:
   registry:

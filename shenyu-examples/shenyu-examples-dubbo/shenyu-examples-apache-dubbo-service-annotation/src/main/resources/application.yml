@@ -30,7 +30,6 @@ shenyu:
       props:
         contextPath: /dubbo
         appName: dubbo
-        nacosNameSpace: ShenyuRegisterCenter
         port: 20888
 
 dubbo:
