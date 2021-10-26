@@ -63,7 +63,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     public SpringMvcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
-        Properties props = config.getProps();
+        Properties props = config.getHttp().getProps();
         int port = Integer.parseInt(props.getProperty("port"));
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || port <= 0) {
             String errorMsg = "http register param must config the registerType , serverLists and port must > 0";

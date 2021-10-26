@@ -29,12 +29,12 @@ shenyu:
   client:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
-    props:
-      contextPath: /grpc
-      appName: grpc
-      ipAndPort: 127.0.0.1:8080
-      nacosNameSpace: ShenyuRegisterCenter
-      port: 8080
+    grpc:
+      props:
+        contextPath: /grpc
+        appName: grpc
+        ipAndPort: 127.0.0.1:8080
+        port: 8080
 
 logging:
   level:

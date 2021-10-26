@@ -53,17 +53,17 @@ public enum PluginEnum {
     /**
      * Rate limiter plugin enum.
      */
-    RATE_LIMITER(60, 0, "rate_limiter"),
+    RATE_LIMITER(60, 0, "rateLimiter"),
     
     /**
      * Param mapping plugin enum.
      */
-    PARAM_MAPPING(70, 0, "param_mapping"),
+    PARAM_MAPPING(70, 0, "paramMapping"),
     
     /**
      * Context path plugin enum.
      */
-    CONTEXT_PATH(80, 0, "context_path"),
+    CONTEXT_PATH(80, 0, "contextPath"),
     
     /**
      * Rewrite plugin enum.
@@ -73,7 +73,7 @@ public enum PluginEnum {
     /**
      * Cryptor request plugin enum.
      */
-    CRYPTOR_REQUEST(100, 0, "cryptor_request"),
+    CRYPTOR_REQUEST(100, 0, "cryptorRequest"),
     
     /**
      * Redirect plugin enum.
@@ -178,7 +178,7 @@ public enum PluginEnum {
     /**
      * Cryptor response plugin enum.
      */
-    CRYPTOR_RESPONSE(410, 0, "cryptor_response"),
+    CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
     
     /**
      * Response plugin enum.

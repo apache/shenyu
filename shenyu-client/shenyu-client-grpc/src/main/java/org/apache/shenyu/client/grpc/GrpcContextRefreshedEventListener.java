@@ -52,7 +52,7 @@ public class GrpcContextRefreshedEventListener implements ApplicationListener<Co
      * @param config the config
      */
     public GrpcContextRefreshedEventListener(final ShenyuRegisterCenterConfig config) {
-        Properties props = config.getProps();
+        Properties props = config.getGrpc().getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
         String port = props.getProperty("port");

@@ -51,7 +51,7 @@ public class TarsContextRefreshedEventListener implements ApplicationListener<Co
      * @param config the config
      */
     public TarsContextRefreshedEventListener(final ShenyuRegisterCenterConfig config) {
-        Properties props = config.getProps();
+        Properties props = config.getTars().getProps();
         String contextPath = props.getProperty("contextPath");
         String ip = props.getProperty("host");
         String port = props.getProperty("port");
