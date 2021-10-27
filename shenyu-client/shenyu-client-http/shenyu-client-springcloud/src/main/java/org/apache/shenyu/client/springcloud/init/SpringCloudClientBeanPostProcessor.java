@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,22 +55,22 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final Environment env;
 
     private final String servletContextPath;
-
+    
     /**
-     * Instantiates a new Shenyu client bean post processor.
+     * Instantiates a new Spring cloud client bean post processor.
      *
-     * @param config the shenyu spring cloud config
-     * @param env    the env
-     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
+     * @param env the env
+     * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param clientConfig the client config
      */
-    public SpringCloudClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final Environment env, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        String registerType = config.getRegisterType();
-        String serverLists = config.getServerLists();
+    public SpringCloudClientBeanPostProcessor(final Environment env,
+                                               final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                               final PropertiesConfig clientConfig) {
         String appName = env.getProperty("spring.application.name");
-        Properties props = config.getHttp().getProps();
+        Properties props = clientConfig.getProps();
         this.contextPath = props.getProperty("contextPath");
-        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
-            String errorMsg = "spring cloud param must config the registerType , serverLists and appName";
+        if (StringUtils.isBlank(appName)) {
+            String errorMsg = "spring cloud param must config the appName";
             LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }

@@ -20,7 +20,7 @@ package org.apache.shenyu.client.tars;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -50,8 +50,8 @@ public class TarsContextRefreshedEventListener implements ApplicationListener<Co
      *
      * @param config the config
      */
-    public TarsContextRefreshedEventListener(final ShenyuRegisterCenterConfig config) {
-        Properties props = config.getTars().getProps();
+    public TarsContextRefreshedEventListener(final PropertiesConfig config) {
+        Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ip = props.getProperty("host");
         String port = props.getProperty("port");

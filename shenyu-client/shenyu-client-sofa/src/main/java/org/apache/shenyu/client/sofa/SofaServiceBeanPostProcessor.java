@@ -27,7 +27,7 @@ import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +65,8 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final String port;
 
-    public SofaServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getSofa().getProps();
+    public SofaServiceBeanPostProcessor(final PropertiesConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
         if (StringUtils.isEmpty(contextPath)) {

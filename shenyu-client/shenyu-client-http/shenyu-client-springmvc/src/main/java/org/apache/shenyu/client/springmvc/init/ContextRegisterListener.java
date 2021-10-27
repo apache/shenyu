@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -53,14 +53,14 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private Integer port;
 
     private final Boolean isFull;
-
+    
     /**
      * Instantiates a new Context register listener.
      *
-     * @param config the config
+     * @param clientConfig the client config
      */
-    public ContextRegisterListener(final ShenyuRegisterCenterConfig config) {
-        Properties props = config.getHttp().getProps();
+    public ContextRegisterListener(final PropertiesConfig clientConfig) {
+        Properties props = clientConfig.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         String contextPath = props.getProperty("contextPath");
         this.contextPath = contextPath;

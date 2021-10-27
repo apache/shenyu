@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The type Shenyu spring mvc client bean post processor.
@@ -49,24 +46,24 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
-    private final ExecutorService executorService;
-
     private final String contextPath;
 
     private final String appName;
 
     private final Boolean isFull;
-
+    
     /**
-     * Instantiates a new Shenyu client bean post processor.
+     * Instantiates a new Spring mvc client bean post processor.
+     *
+     * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param clientConfig the client config
      */
-    public SpringMvcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        String registerType = config.getRegisterType();
-        String serverLists = config.getServerLists();
-        Properties props = config.getHttp().getProps();
+    public SpringMvcClientBeanPostProcessor(final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                            final PropertiesConfig clientConfig) {
+        Properties props = clientConfig.getProps();
         int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || port <= 0) {
-            String errorMsg = "http register param must config the registerType , serverLists and port must > 0";
+        if (port <= 0) {
+            String errorMsg = "http register param must config the port must > 0";
             LOG.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
@@ -78,7 +75,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             throw new RuntimeException(errorMsg);
         }
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-spring-mvc-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 

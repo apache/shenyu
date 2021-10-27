@@ -27,7 +27,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -60,8 +60,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final int port;
 
-    public TarsServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getTars().getProps();
+    public TarsServiceBeanPostProcessor(final PropertiesConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ip = props.getProperty("host");
         String port = props.getProperty("port");

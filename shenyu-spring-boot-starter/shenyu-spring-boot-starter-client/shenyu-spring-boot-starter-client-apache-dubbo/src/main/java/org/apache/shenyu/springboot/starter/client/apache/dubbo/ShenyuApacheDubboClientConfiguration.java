@@ -18,8 +18,9 @@
 package org.apache.shenyu.springboot.starter.client.apache.dubbo;
 
 import org.apache.shenyu.client.apache.dubbo.ApacheDubboServiceBeanListener;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -33,15 +34,15 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuApacheDubboClientConfiguration {
     
     /**
-     * Apache dubbo service bean listener.
+     * Apache dubbo service bean listener apache dubbo service bean listener.
      *
-     * @param shenyuRegisterCenterConfig shenyuRegisterCenterConfig
-     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
+     * @param clientConfig the client config
+     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @return the apache dubbo service bean listener
      */
     @Bean
-    public ApacheDubboServiceBeanListener apacheDubboServiceBeanListener(final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig,
+    public ApacheDubboServiceBeanListener apacheDubboServiceBeanListener(final ShenyuClientConfig clientConfig,
                                                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new ApacheDubboServiceBeanListener(shenyuRegisterCenterConfig, shenyuClientRegisterRepository);
+        return new ApacheDubboServiceBeanListener(clientConfig.getClient().get(RpcTypeEnum.DUBBO.getName()), shenyuClientRegisterRepository);
     }
 }

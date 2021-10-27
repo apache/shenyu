@@ -28,7 +28,7 @@ import org.apache.shenyu.client.motan.common.dto.MotanRpcExt;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -71,8 +71,8 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
 
     private String group;
 
-    public MotanServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getMotan().getProps();
+    public MotanServiceBeanPostProcessor(final PropertiesConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
         if (StringUtils.isEmpty(contextPath)) {

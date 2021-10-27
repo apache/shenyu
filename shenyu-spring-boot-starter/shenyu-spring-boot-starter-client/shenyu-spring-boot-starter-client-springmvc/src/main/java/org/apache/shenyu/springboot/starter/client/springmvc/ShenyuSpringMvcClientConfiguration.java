@@ -19,8 +19,9 @@ package org.apache.shenyu.springboot.starter.client.springmvc;
 
 import org.apache.shenyu.client.springmvc.init.ContextRegisterListener;
 import org.apache.shenyu.client.springmvc.init.SpringMvcClientBeanPostProcessor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -34,26 +35,26 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuSpringMvcClientConfiguration {
     
     /**
-     * Spring http client bean post processor .
+     * Spring http client bean post processor spring mvc client bean post processor.
      *
-     * @param config the config
-     * @param shenyuClientRegisterRepository the client register repository
-     * @return the spring http client bean post processor
+     * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param clientConfig the client config
+     * @return the spring mvc client bean post processor
      */
     @Bean
-    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new SpringMvcClientBeanPostProcessor(config, shenyuClientRegisterRepository);
+    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                                                              final ShenyuClientConfig clientConfig) {
+        return new SpringMvcClientBeanPostProcessor(shenyuClientRegisterRepository, clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()));
     }
     
     /**
      * Context register listener context register listener.
      *
-     * @param config the config
+     * @param clientConfig the client config
      * @return the context register listener
      */
     @Bean
-    public ContextRegisterListener contextRegisterListener(final ShenyuRegisterCenterConfig config) {
-        return new ContextRegisterListener(config);
+    public ContextRegisterListener contextRegisterListener(final ShenyuClientConfig clientConfig) {
+        return new ContextRegisterListener(clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()));
     }
-    
 }
