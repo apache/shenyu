@@ -155,8 +155,8 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorConditionDTO.setSelectorId(selectorDO.getId());
                 selectorConditionMapper.insertSelective(SelectorConditionDO.buildSelectorConditionDO(selectorConditionDTO));
             });
-            // check selector add
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
+            // if current user is not admin sync to data-permission
+            if (!JwtUtils.isAdmin()) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
                 dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(selectorDO.getId());

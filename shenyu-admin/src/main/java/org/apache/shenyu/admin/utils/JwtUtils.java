@@ -41,6 +41,17 @@ public final class JwtUtils {
 
     private static final long TOKEN_EXPIRE_SECONDS = 24 * 60 * 60 * 1000L;
 
+    private static final String ADMIN_USERNAME = "admin";
+
+    /**
+     * check current user is admin or not.
+     *
+     * @return true is admin
+     */
+    public static boolean isAdmin() {
+        return ADMIN_USERNAME.equals(getUserInfo().getUserName().trim());
+    }
+
     /**
      * according to token to get isUserInfo.
      *
