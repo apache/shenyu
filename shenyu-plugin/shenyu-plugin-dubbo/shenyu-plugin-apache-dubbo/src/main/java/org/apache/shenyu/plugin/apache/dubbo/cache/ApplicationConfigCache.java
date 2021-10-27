@@ -33,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -151,11 +153,18 @@ public final class ApplicationConfigCache {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);
+        reference.setSent(false);
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
+        reference.setCheck(false);
         reference.setLoadbalance("gray");
+
+        Map<String, String> parameters = new HashMap<>(2);
+        parameters.put("dispatcher", "direct");
+        reference.setParameters(parameters);
+
         String rpcExt = metaData.getRpcExt();
         DubboParamExtInfo dubboParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, DubboParamExtInfo.class);
         if (Objects.nonNull(dubboParamExtInfo)) {
