@@ -76,14 +76,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
         List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             LOG.error("divide upstream configuration error： {}", rule);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
