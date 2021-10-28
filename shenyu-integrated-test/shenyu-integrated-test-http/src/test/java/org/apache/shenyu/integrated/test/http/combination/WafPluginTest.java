@@ -44,7 +44,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 public final class WafPluginTest extends AbstractPluginDataInit {
-    
+
     @BeforeClass
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.WAF.getName(), "{\"model\":\"black\"}");
@@ -62,7 +62,7 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         assertNotNull(result);
         assertThat(String.valueOf(result.get("message")), containsString("You are forbidden to visit"));
     }
-    
+
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -70,14 +70,14 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         conditionData.setParamValue("/http/test/waf/**");
         return Collections.singletonList(conditionData);
     }
-    
+
     private static List<RuleLocalData> buildRuleLocalDataList() {
         List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
         ruleLocalDataList.add(buildRuleLocalData(WafEnum.ALLOW.getName(), "200", "/http/test/waf/pass"));
         ruleLocalDataList.add(buildRuleLocalData(WafEnum.REJECT.getName(), "403", "/http/test/waf/deny"));
         return ruleLocalDataList;
     }
-    
+
     private static RuleLocalData buildRuleLocalData(final String permission, final String statusCode, final String paramValue) {
         RuleLocalData ruleLocalData = new RuleLocalData();
         WafHandle wafHandle = new WafHandle();
@@ -91,7 +91,7 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
         return ruleLocalData;
     }
-    
+
     @AfterClass
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.WAF.getName());

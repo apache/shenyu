@@ -69,9 +69,18 @@ jobs:
         if: env.SKIP_CI != 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Run test
+        id: test
+        if: env.SKIP_CI != 'true'
+        run: ./mvnw test -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        continue-on-error: true
+      - name: Check test result
         if: env.SKIP_CI != 'true'
         run: |
-          ./mvnw test -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-          rc=$?
-          cd ./shenyu-integrated-test/${{ matrix.case }}; docker-compose logs -t --tail="all" && cd ../../; cd ../../
-          exit $rc
+          docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
+          if [[ ${{steps.test.outcome}} == "failure" ]]; then
+            echo "Test Failed"
+            exit 1
+          else
+            echo "Test Successful"
+            exit 0
+          fi
