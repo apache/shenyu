@@ -48,7 +48,7 @@ public class ShenyuPluginLoaderTest {
     private ShenyuPluginLoader shenyuPluginLoader;
 
     @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    private TemporaryFolder tempFolder = new TemporaryFolder();
 
     private File[] files;
 
