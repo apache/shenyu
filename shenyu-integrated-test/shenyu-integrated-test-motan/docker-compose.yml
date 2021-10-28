@@ -51,7 +51,7 @@ services:
     environment:
       - motan.registry.protocol=zookeeper
       - motan.registry.address=shenyu-zk:2181
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
       timeout: 2s
