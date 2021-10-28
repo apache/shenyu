@@ -68,9 +68,9 @@ jobs:
       - name: Wait for docker compose start up completely
         if: env.SKIP_CI != 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
-      - name: Debug log
-        if: env.SKIP_CI != 'true'
-        run: cd ./shenyu-integrated-test/${{ matrix.case }}; docker-compose logs -t --tail="all" && cd ../../; cd ../../
       - name: Run test
         if: env.SKIP_CI != 'true'
         run: ./mvnw test -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+      - name: Print logs
+        if: env.SKIP_CI != 'true'
+        run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
