@@ -20,6 +20,7 @@ package org.apache.shenyu.client.springcloud.init;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -91,11 +92,12 @@ public final class SpringCloudClientBeanPostProcessorTest {
         properties.setProperty("isFull", full + "");
         properties.setProperty("ip", "127.0.0.1");
         properties.setProperty("port", "8081");
+        PropertiesConfig config = new PropertiesConfig();
+        config.setProps(properties);
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");
-        mockRegisterCenter.setProps(properties);
-        return new SpringCloudClientBeanPostProcessor(mockRegisterCenter, env, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        return new SpringCloudClientBeanPostProcessor(env, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), config);
     }
 
     @RestController

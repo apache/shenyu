@@ -40,7 +40,7 @@ services:
     image: shenyu-examples-http:latest
     restart: always
     environment:
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
       timeout: 2s

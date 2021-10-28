@@ -29,7 +29,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,8 +72,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
      * @param config the shenyu grpc config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public GrpcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getGrpc().getProps();
+    public GrpcClientBeanPostProcessor(final PropertiesConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
         String port = props.getProperty("port");

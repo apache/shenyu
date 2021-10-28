@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -63,8 +63,8 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param config the config
      * @param env    the env
      */
-    public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env) {
-        Properties props = config.getHttp().getProps();
+    public ContextRegisterListener(final PropertiesConfig config, final Environment env) {
+        Properties props = config.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         String contextPath = props.getProperty("contextPath");
         this.contextPath = contextPath;

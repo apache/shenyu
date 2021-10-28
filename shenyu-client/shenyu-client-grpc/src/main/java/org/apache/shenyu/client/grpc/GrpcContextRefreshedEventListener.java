@@ -20,7 +20,7 @@ package org.apache.shenyu.client.grpc;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -51,8 +51,8 @@ public class GrpcContextRefreshedEventListener implements ApplicationListener<Co
      *
      * @param config the config
      */
-    public GrpcContextRefreshedEventListener(final ShenyuRegisterCenterConfig config) {
-        Properties props = config.getGrpc().getProps();
+    public GrpcContextRefreshedEventListener(final PropertiesConfig config) {
+        Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
         String port = props.getProperty("port");

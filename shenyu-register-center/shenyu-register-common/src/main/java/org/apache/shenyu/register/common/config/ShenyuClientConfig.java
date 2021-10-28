@@ -17,48 +17,31 @@
 
 package org.apache.shenyu.register.common.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * Governance center configuration.
+ * The type Shenyu client config.
  */
-public final class ShenyuRegisterCenterConfig extends PropertiesConfig {
+public final class ShenyuClientConfig {
     
-    private String registerType;
+    private Map<String, PropertiesConfig> client = new HashMap<>();
     
-    private String serverLists;
-
     /**
-     * getRegisterType.
+     * Gets client.
      *
-     * @return String
+     * @return the client
      */
-    public String getRegisterType() {
-        return registerType;
+    public Map<String, PropertiesConfig> getClient() {
+        return client;
     }
-
+    
     /**
-     * setRegisterType.
+     * Sets client.
      *
-     * @param registerType registerType
+     * @param client the client
      */
-    public void setRegisterType(final String registerType) {
-        this.registerType = registerType;
-    }
-
-    /**
-     * getServerLists.
-     *
-     * @return String
-     */
-    public String getServerLists() {
-        return serverLists;
-    }
-
-    /**
-     * setServerLists.
-     *
-     * @param serverLists serverLists
-     */
-    public void setServerLists(final String serverLists) {
-        this.serverLists = serverLists;
+    public void setClient(final Map<String, PropertiesConfig> client) {
+        this.client = client;
     }
 }
