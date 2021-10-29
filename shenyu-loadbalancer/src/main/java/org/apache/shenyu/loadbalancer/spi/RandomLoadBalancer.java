@@ -20,8 +20,8 @@ package org.apache.shenyu.loadbalancer.spi;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
 
 /**
  * random algorithm impl.
@@ -29,7 +29,7 @@ import java.util.Random;
 @Join
 public class RandomLoadBalancer extends AbstractLoadBalancer {
 
-    private static final Random RANDOM = new Random();
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
