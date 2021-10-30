@@ -60,7 +60,7 @@ UPDATE resource SET perms = REPLACE(perms, 'modifyResponse', 'modifyResponse') W
 UPDATE resource SET perms = REPLACE(perms, 'param_mapping', 'paramMapping') WHERE perms LIKE 'plugin:param_mapping%';
 
 -- upgrade plugin_handle
-DELETE FROM plugin_handle
+DELETE FROM plugin_handle;
 
 /*insert plugin_handle data for waf*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('200','2' ,'permission','permission','3', 2, 1, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
