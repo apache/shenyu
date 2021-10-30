@@ -60,18 +60,19 @@ UPDATE resource SET perms = REPLACE(perms, 'modifyResponse', 'modifyResponse') W
 UPDATE resource SET perms = REPLACE(perms, 'param_mapping', 'paramMapping') WHERE perms LIKE 'plugin:param_mapping%';
 
 -- upgrade plugin_handle
-DELETE FROM plugin_handle;
-
-/*insert plugin_handle data for waf*/
+/*update plugin_handle data for waf*/
+DELETE FROM plugin_handle WHERE plugin_id = '2';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('200','2' ,'permission','permission','3', 2, 1, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('201','2' ,'statusCode','statusCode','2', 2, 2, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('202', '2', 'model', 'model', 2, 3, 1, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 
-/*insert plugin_handle data for rewrite*/
+/*update plugin_handle data for rewrite*/
+DELETE FROM plugin_handle WHERE plugin_id = '3';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('300', '3', 'regex', 'regex', 2, 2, 1, '2021-05-24 16:07:10', '2021-05-24 16:07:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('301', '3', 'replace', 'replace', 2, 2, 2, '2021-05-24 16:07:10', '2021-05-24 16:07:10');
 
-/*insert plugin_handle data for rateLimiter*/
+/*update plugin_handle data for rateLimiter*/
+DELETE FROM plugin_handle WHERE plugin_id = '4';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('400', '4', 'replenishRate','replenishRate', 2, 2, 2, '{"required":"1","defaultValue":"10","rule":""}', '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('401', '4', 'burstCapacity','burstCapacity', 2, 2, 3, '{"required":"1","defaultValue":"100","rule":""}', '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('402', '4', 'algorithmName','algorithmName','3', 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
@@ -81,7 +82,8 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('406', '4', 'url', 'url', 2, 3, 3, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('407', '4', 'password', 'password', 2, 3, 4, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 
-/*insert plugin_handle data for divide*/
+/*update plugin_handle data for divide*/
+DELETE FROM plugin_handle WHERE plugin_id = '5';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('500', '5', 'upstreamHost', 'host', 2, 1, 0, null, '2021-03-06 21:23:41', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('501', '5', 'protocol', 'protocol', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"http://","rule":""}', '2021-03-06 21:25:37', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('502', '5', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2021-03-06 21:25:55', '2021-03-09 10:32:51');
@@ -97,7 +99,8 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('512', '5', 'headerMaxSize', 'headerMaxSize', 1, 2, 3, '{"defaultValue":"10240","rule":""}', '2021-04-29 12:28:45', '2021-04-29 12:28:52');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('513', '5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4, '{"defaultValue":"102400","rule":""}', '2021-04-29 14:24:13', '2021-04-29 14:24:16');
 
-/*insert plugin_handle data for dubbo*/
+/*update plugin_handle data for dubbo*/
+DELETE FROM plugin_handle WHERE plugin_id = '6';
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('600', '6', 'gray', 'gray', '3', '1', '9', '{"required":"0","defaultValue":"false","placeholder":"gray","rule":""}', '2021-03-06 21:29:16', '2021-09-23 14:45:16');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('601', '6', 'group', 'group', '2', '1', '3', '{"required":"0","placeholder":"group","rule":""}', '2021-03-06 21:25:55', '2021-09-23 14:43:19');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('602', '6', 'loadbalance', 'loadbalance', '2', '2', '0', '{"required":"0","placeholder":"loadbalance","rule":""}', '2021-09-20 20:36:10', '2021-09-20 21:25:12');
@@ -112,18 +115,21 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_typ
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('611', '6', 'weight', 'weight', '1', '1', '5', '{"defaultValue":"50","rule":""}', '2021-03-06 21:26:35', '2021-09-23 14:45:03');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('612', '6', 'register', 'register', 2, 3, 1, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 
-/*insert plugin_handle data for plugin monitor*/
+/*update plugin_handle data for plugin monitor*/
+DELETE FROM plugin_handle WHERE plugin_id = '7';
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('700', '7', 'metricsName', 'metricsName', 2, 3, 1, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('701', '7', 'host', 'host', 2, 3, 2, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('702', '7', 'port', 'port', 2, 3, 3, '{"rule":"/^[0-9]*$/"}', '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('703', '7', 'async', 'async', 2, 3, 4, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 
-/*insert plugin_handle data for springCloud*/
+/*update plugin_handle data for springCloud*/
+DELETE FROM plugin_handle WHERE plugin_id = '8';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('800', '8' ,'path','path', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('801', '8' ,'timeout','timeout (ms)', 1, 2, 2, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('802', '8' ,'serviceId','serviceId', 2, 1, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 
-/*insert plugin_handle data for sentinel*/
+/*update plugin_handle data for sentinel*/
+DELETE FROM plugin_handle WHERE plugin_id = '10';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1000','10' ,'flowRuleGrade','flowRuleGrade','3', 2, 8, '{"required":"1","defaultValue":"1","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1001','10' ,'flowRuleControlBehavior','flowRuleControlBehavior','3', 2, 5, '{"required":"1","defaultValue":"0","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1002','10' ,'flowRuleEnable','flowRuleEnable (1 or 0)', '1', 2, 7, '{"required":"1","defaultValue":"1","rule":"/^[01]$/"}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
@@ -137,11 +143,13 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1010','10' ,'degradeRuleSlowRatioThreshold','degradeRuleSlowRatioThreshold','1', 2, 3, '{"required":"1","defaultValue":"0.5","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1011', '10', 'fallbackUri', 'fallbackUri', 2, 2, 9, '{"required":"0","rule":""}', '2021-07-07 21:24:18', '2021-07-07 21:35:00');
 
-/*insert plugin_handle data for plugin sofa*/
+/*update plugin_handle data for plugin sofa*/
+DELETE FROM plugin_handle WHERE plugin_id = '11';
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('1100', '11', 'protocol', 'protocol', 2, 3, 1, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('1101', '11', 'register', 'register', 2, 3, 2, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 
-/*insert plugin_handle data for resilience4j*/
+/*update plugin_handle data for resilience4j*/
+DELETE FROM plugin_handle WHERE plugin_id = '12';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1200', '12' ,'timeoutDurationRate','timeoutDurationRate (ms)', 1, 2, 1, '{"required":"1","defaultValue":"5000","rule":""}', '2020-11-28 11:08:14', '2020-11-28 11:19:12');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1201', '12' ,'limitRefreshPeriod','limitRefreshPeriod (ms)', 1, 2, 0, '{"required":"1","defaultValue":"500","rule":""}', '2020-11-28 11:18:54', '2020-11-28 11:22:40');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1202', '12' ,'limitForPeriod','limitForPeriod', 1, 2, 0, '{"required":"1","defaultValue":"50","rule":""}', '2020-11-28 11:20:11', '2020-11-28 11:20:11');
@@ -156,7 +164,8 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1211', '12' ,'failureRateThreshold','failureRateThreshold', 1, 2, 2, '{"required":"1","defaultValue":"50","rule":""}', '2020-11-28 11:30:40', '2020-11-28 11:30:40');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1212', '12', 'automaticTransitionFromOpenToHalfOpenEnabled', 'automaticHalfOpen', 3, 2, 1, '{"required":"1","defaultValue":"true","rule":""}', '2021-07-18 22:52:20', '2021-07-18 22:59:57');
 
-/*insert plugin_handle data for tars*/
+/*update plugin_handle data for tars*/
+DELETE FROM plugin_handle WHERE plugin_id = '13';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1300', '13', 'upstreamHost', 'host', 2, 1, 0, null, '2021-03-06 21:23:41', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1301', '13', 'protocol', 'protocol', 2, 1, 2, '{"defaultValue":"","rule":""}', '2021-03-06 21:25:37', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1302', '13', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2021-03-06 21:25:55', '2021-03-09 10:32:51');
@@ -170,45 +179,54 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1310', '13', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1311', '13', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
 
-/*insert plugin_handle data for context path*/
+/*update plugin_handle data for context path*/
+DELETE FROM plugin_handle WHERE plugin_id = '14';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1400', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1401', '14', 'addPrefix', 'addPrefix', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
 
-/*insert plugin_handle data for grpc*/
+/*update plugin_handle data for grpc*/
+DELETE FROM plugin_handle WHERE plugin_id = '15';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1500', '15', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2021-03-06 21:25:55', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1501', '15', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":""}', '2021-03-06 21:26:35', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1502', '15', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', '2021-03-06 21:29:16', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1503', '15', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1504', '15', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
 
-/*insert plugin_handle data for redirect*/
+/*update plugin_handle data for redirect*/
+DELETE FROM plugin_handle WHERE plugin_id = '16';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1600', '16' ,'redirectURI','redirectURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 
-/*insert plugin_handle data for plugin motan*/
+/*update plugin_handle data for plugin motan*/
+DELETE FROM plugin_handle WHERE plugin_id = '17';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1700', '17', 'register', 'register', 2, 3, 0, null, '2021-09-25 13:19:10', '2021-09-25 13:19:10');
 
-/*insert plugin_handle data for plugin jwt*/
+/*update plugin_handle data for plugin jwt*/
+DELETE FROM plugin_handle WHERE plugin_id = '19';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1900','19' ,'secretKey','secretKey',2, 3, 0, null, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('1901','19' ,'filterPath','filterPath',2, 3, 1, null, '2021-06-12 19:17:10', '2021-06-12 19:17:10');
 
-/*insert plugin_handle data for request*/
+/*update plugin_handle data for request*/
+DELETE FROM plugin_handle WHERE plugin_id = '20';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2000', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2021-05-27 23:43:53', '2021-05-30 19:58:28');
 
-/*insert plugin_handle data for plugin cryptor request*/
+/*update plugin_handle data for plugin cryptor request*/
+DELETE FROM plugin_handle WHERE plugin_id = '24';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2400', '24', 'strategyName', 'strategyName', 3, 2, 1, NULL, '2021-08-06 14:35:50', '2021-08-06 14:35:50');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2401', '24', 'fieldNames', 'fieldNames', 2, 2, 3, NULL, '2021-08-06 14:37:13', '2021-08-06 14:37:46');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2402', '24', 'decryptKey', 'decryptKey', 2, 2, 3, NULL, '2021-08-06 14:37:22', '2021-08-06 14:37:48');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2403', '24', 'encryptKey', 'encryptKey', 2, 2, 3, NULL, '2021-08-06 14:37:22', '2021-08-06 14:37:48');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2404', '24', 'way', 'way', 3, 2, 3, NULL, '2021-08-06 14:37:22', '2021-08-06 14:37:48');
 
-/*insert plugin_handle data for plugin cryptor response*/
+/*update plugin_handle data for plugin cryptor response*/
+DELETE FROM plugin_handle WHERE plugin_id = '25';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2500', '25', 'strategyName', 'strategyName', 3, 2, 2, NULL, '2021-08-13 15:10:53', '2021-08-13 15:11:11');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2501', '25', 'decryptKey', 'decryptKey', 2, 2, 3, NULL, '2021-08-13 15:14:07', '2021-08-13 15:14:36');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2502', '25', 'encryptKey', 'encryptKey', 2, 2, 3, NULL, '2021-08-13 15:14:07', '2021-08-13 15:14:36');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2503', '25', 'fieldNames', 'fieldNames', 2, 2, 4, NULL, '2021-08-13 15:16:30', '2021-08-13 15:16:45');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2504', '25', 'way', 'way', 3, 2, 3, NULL, '2021-08-06 14:37:22', '2021-08-06 14:37:48');
 
-/*insert plugin_handle data for websocket*/
+/*update plugin_handle data for websocket*/
+DELETE FROM plugin_handle WHERE plugin_id = '26';
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2600', '26', 'host', 'host', 2, 1, 0, null, '2021-08-27 21:23:41', '2021-08-27 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2601', '26', 'protocol', 'protocol', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"ws://","rule":""}', '2021-08-27 21:25:37', '2021-08-27 10:32:51');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('2602', '26', 'url', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2021-08-27 21:25:55', '2021-08-27 10:32:51');
