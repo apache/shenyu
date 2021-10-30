@@ -1,6 +1,6 @@
 # About Upgrade
 
-> the file `*-upgrade-*.sql` works for MySQL and PostgreSQL at the same time.so can not use the "`" syntax.
+> the file `*-upgrade-*.sql` works for MySQL and PostgreSQL at the same time. So can not use the "`" syntax.
 
 ## To Shenyu Users
 
