@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.register.common.config;
 
+import java.util.Properties;
+
 /**
  * Governance center configuration.
  */
@@ -25,6 +27,16 @@ public final class ShenyuRegisterCenterConfig extends PropertiesConfig {
     private String registerType;
     
     private String serverLists;
+
+    public ShenyuRegisterCenterConfig() {
+
+    }
+
+    public ShenyuRegisterCenterConfig(final String registerType, final String serverLists, final Properties props) {
+        this.registerType = registerType;
+        this.serverLists = serverLists;
+        this.setProps(props);
+    }
 
     /**
      * getRegisterType.
