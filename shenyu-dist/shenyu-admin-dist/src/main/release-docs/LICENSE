@@ -330,6 +330,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     encoder 1.2.2: https://www.owasp.org/index.php/OWASP_Java_Encoder_Project/encoder, BSD 3-Clause
     kryo-shaded 4.0.0: https://github.com/EsotericSoftware/kryo/kryo-shaded, BSD 2-Clause
     minlog 1.3.0: https://github.com/EsotericSoftware/minlog, BSD 2-Clause
+    postgresql 42.2.8: https://github.com/pgjdbc/pgjdbc, BSD 2-Clause
     protobuf-java 3.11.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.11.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
 
