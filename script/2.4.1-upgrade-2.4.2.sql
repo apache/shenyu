@@ -14,6 +14,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+-- this file works for MySQL and PostgreSQL at the same time, can not use "`" syntax.
+
 -- upgrade plguin
 -- name & role
 UPDATE plugin SET role = 'Authentication' WHERE name = 'sign';
