@@ -25,14 +25,14 @@ import java.util.Map;
  */
 public final class ShenyuClientConfig {
     
-    private Map<String, PropertiesConfig> client = new HashMap<>();
+    private Map<String, ClientPropertiesConfig> client = new HashMap<>();
     
     /**
      * Gets client.
      *
      * @return the client
      */
-    public Map<String, PropertiesConfig> getClient() {
+    public Map<String, ClientPropertiesConfig> getClient() {
         return client;
     }
     
@@ -41,7 +41,14 @@ public final class ShenyuClientConfig {
      *
      * @param client the client
      */
-    public void setClient(final Map<String, PropertiesConfig> client) {
+    public void setClient(final Map<String, ClientPropertiesConfig> client) {
         this.client = client;
+    }
+
+    /**
+     * this client properties config.
+     */
+    public static class ClientPropertiesConfig extends PropertiesConfig {
+
     }
 }
