@@ -22,17 +22,38 @@ package org.apache.shenyu.client.common.constant;
  */
 public interface ShenyuClientConstants {
 
+    /**
+     * the constant of APP_NAME.
+     */
     String APP_NAME = "appName";
 
+    /**
+     * the constant of CONTEXT_PATH.
+     */
     String CONTEXT_PATH = "contextPath";
 
+    /**
+     * the constant of IS_FULL.
+     */
     String IS_FULL = "isFull";
 
+    /**
+     * the constant of HOST.
+     */
     String HOST = "host";
 
+    /**
+     * the constant of PORT.
+     */
     String PORT = "port";
 
+    /**
+     * the constant of IP_PORT.
+     */
     String IP_PORT = "ipAndPort";
 
+    /**
+     * the constant of SERVICE_NAME.
+     */
     String SERVICE_NAME = "SERVICE_NAME";
 }
