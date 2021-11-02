@@ -20,40 +20,40 @@ package org.apache.shenyu.client.common.constant;
 /**
  * ShenyuClientConstants.
  */
-public interface ShenyuClientConstants {
+public final class ShenyuClientConstants {
 
     /**
      * the constant of APP_NAME.
      */
-    String APP_NAME = "appName";
+    public static final String APP_NAME = "appName";
 
     /**
      * the constant of CONTEXT_PATH.
      */
-    String CONTEXT_PATH = "contextPath";
+    public static final String CONTEXT_PATH = "contextPath";
 
     /**
      * the constant of IS_FULL.
      */
-    String IS_FULL = "isFull";
+    public static final String IS_FULL = "isFull";
 
     /**
      * the constant of HOST.
      */
-    String HOST = "host";
+    public static final String HOST = "host";
 
     /**
      * the constant of PORT.
      */
-    String PORT = "port";
+    public static final String PORT = "port";
 
     /**
      * the constant of IP_PORT.
      */
-    String IP_PORT = "ipAndPort";
+    public static final String IP_PORT = "ipAndPort";
 
     /**
      * the constant of SERVICE_NAME.
      */
-    String SERVICE_NAME = "SERVICE_NAME";
+    public static final String SERVICE_NAME = "SERVICE_NAME";
 }
