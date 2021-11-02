@@ -32,7 +32,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -56,16 +55,7 @@ public final class ApplicationConfigCache {
             .removalListener(notification -> {
                 ReferenceConfig config = (ReferenceConfig<GenericService>) notification.getValue();
                 if (config != null) {
-                    try {
-                        Class cz = config.getClass();
-                        Field field = cz.getDeclaredField("ref");
-                        field.setAccessible(true);
-                        // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
-                        // it will get NULL when reinitializing and cause a NULL pointer problem.
-                        field.set(config, null);
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
-                        LOG.error("modify ref have exception", e);
-                    }
+                    config.destroy();
                 }
             })
             .build(new CacheLoader<String, ReferenceConfig<GenericService>>() {
