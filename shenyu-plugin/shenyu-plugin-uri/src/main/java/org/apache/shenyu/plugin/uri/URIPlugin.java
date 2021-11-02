@@ -41,6 +41,9 @@ public class URIPlugin implements ShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         String path = exchange.getAttribute(Constants.HTTP_DOMAIN);
+        if (StringUtils.isBlank(path)) {
+            return chain.execute(exchange);
+        }
         String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
         URI uri = exchange.getRequest().getURI();
         if (StringUtils.isNoneBlank(rewriteURI)) {
@@ -59,7 +62,6 @@ public class URIPlugin implements ShenyuPlugin {
             if (StringUtils.isNotEmpty(uri.getQuery())) {
                 path = path + "?" + uri.getQuery();
             }
-            assert path != null;
             realURI = UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
         }
         exchange.getAttributes().put(Constants.HTTP_URI, realURI);
