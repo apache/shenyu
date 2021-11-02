@@ -55,6 +55,7 @@ public @interface ShenyuSpringCloudClient {
      *
      * @return the string
      */
+    @Deprecated
     String rpcType() default "springCloud";
     
     /**

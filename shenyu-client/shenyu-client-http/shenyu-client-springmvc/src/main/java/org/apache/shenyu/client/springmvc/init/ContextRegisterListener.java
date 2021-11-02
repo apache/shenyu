@@ -18,6 +18,8 @@
 package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.common.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.common.exception.ShenyuClientException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -61,20 +63,20 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      */
     public ContextRegisterListener(final PropertiesConfig clientConfig) {
         Properties props = clientConfig.getProps();
-        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        String contextPath = props.getProperty("contextPath");
+        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.contextPath = contextPath;
         if (isFull) {
             if (StringUtils.isBlank(contextPath)) {
                 String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
-                throw new RuntimeException(errorMsg);
+                throw new ShenyuClientException(errorMsg);
             }
             this.contextPath = contextPath + "/**";
         }
-        int port = Integer.parseInt(props.getProperty("port"));
-        this.appName = props.getProperty("appName");
-        this.host = props.getProperty("host");
+        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
+        this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = port;
     }
 

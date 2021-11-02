@@ -20,6 +20,8 @@ package org.apache.shenyu.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
+import org.apache.shenyu.client.common.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.common.exception.ShenyuClientException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
@@ -61,17 +63,17 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
 
     private final String port;
 
-    public AlibabaDubboServiceBeanListener(final ShenyuClientRegisterRepository shenyuClientRegisterRepository, final PropertiesConfig config) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String appName = props.getProperty("appName");
+    public AlibabaDubboServiceBeanListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isBlank(contextPath)) {
-            throw new RuntimeException("alibaba dubbo client must config the contextPath");
+            throw new ShenyuClientException("alibaba dubbo client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;
-        this.host = props.getProperty("host");
-        this.port = props.getProperty("port");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
     }
     

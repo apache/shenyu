@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.client.grpc;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.common.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.common.exception.ShenyuClientException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -24,7 +27,6 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.util.StringUtils;
 
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,15 +55,15 @@ public class GrpcContextRefreshedEventListener implements ApplicationListener<Co
      */
     public GrpcContextRefreshedEventListener(final PropertiesConfig config) {
         Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String ipAndPort = props.getProperty("ipAndPort");
-        String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("grpc client must config the contextPath, ipAndPort, port");
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        String ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
+        String port = props.getProperty(ShenyuClientConstants.PORT);
+        if (StringUtils.isAnyBlank(contextPath, ipAndPort, port)) {
+            throw new ShenyuClientException("grpc client must config the contextPath, ipAndPort, port");
         }
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;
-        this.host = props.getProperty("host");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = Integer.parseInt(port);
     }
     
