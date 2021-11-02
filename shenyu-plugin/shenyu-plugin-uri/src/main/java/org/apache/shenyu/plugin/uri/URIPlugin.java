@@ -62,7 +62,6 @@ public class URIPlugin implements ShenyuPlugin {
             if (StringUtils.isNotEmpty(uri.getQuery())) {
                 path = path + "?" + uri.getQuery();
             }
-            assert path != null;
             realURI = UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
         }
         exchange.getAttributes().put(Constants.HTTP_URI, realURI);
