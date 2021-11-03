@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.common.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.common.exception.ShenyuClientException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -63,20 +64,20 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     public SpringMvcClientBeanPostProcessor(final PropertiesConfig clientConfig,
                                             final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
-        int port = Integer.parseInt(props.getProperty("port"));
+        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
         if (port <= 0) {
             String errorMsg = "http register param must config the port must > 0";
             LOG.error(errorMsg);
             throw new ShenyuClientException(errorMsg);
         }
-        this.appName = props.getProperty("appName");
-        this.contextPath = props.getProperty("contextPath");
+        this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+        this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         if (StringUtils.isBlank(appName) && StringUtils.isBlank(contextPath)) {
             String errorMsg = "http register param must config the appName or contextPath";
             LOG.error(errorMsg);
             throw new ShenyuClientException(errorMsg);
         }
-        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
+        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         publisher.start(shenyuClientRegisterRepository);
     }
 
