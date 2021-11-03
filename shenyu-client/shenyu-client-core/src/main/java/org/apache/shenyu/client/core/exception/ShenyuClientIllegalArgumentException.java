@@ -26,9 +26,9 @@ public class ShenyuClientIllegalArgumentException extends IllegalArgumentExcepti
      * Constructs an <code>IllegalArgumentException</code> with the
      * specified detail message.
      *
-     * @param s the detail message.
+     * @param message the detail message.
      */
-    public ShenyuClientIllegalArgumentException(final String s) {
-        super(s);
+    public ShenyuClientIllegalArgumentException(final String message) {
+        super(message);
     }
 }
