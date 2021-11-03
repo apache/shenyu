@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.common.constant;
+package org.apache.shenyu.client.core.constant;
 
 /**
  * ShenyuClientConstants.

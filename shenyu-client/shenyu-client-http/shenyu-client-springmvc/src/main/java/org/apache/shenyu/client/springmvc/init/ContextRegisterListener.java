@@ -18,8 +18,8 @@
 package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.client.common.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.common.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
