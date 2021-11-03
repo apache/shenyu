@@ -22,7 +22,7 @@ import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
@@ -73,7 +73,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isEmpty(contextPath)) {
-            throw new ShenyuClientException("sofa client must config the contextPath");
+            throw new ShenyuClientIllegalArgumentException("sofa client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;

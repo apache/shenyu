@@ -19,7 +19,7 @@ package org.apache.shenyu.client.springcloud.init;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -75,7 +75,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         if (StringUtils.isBlank(appName)) {
             String errorMsg = "spring cloud param must config the appName";
             LOG.error(errorMsg);
-            throw new ShenyuClientException(errorMsg);
+            throw new ShenyuClientIllegalArgumentException(errorMsg);
         }
         this.env = env;
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));

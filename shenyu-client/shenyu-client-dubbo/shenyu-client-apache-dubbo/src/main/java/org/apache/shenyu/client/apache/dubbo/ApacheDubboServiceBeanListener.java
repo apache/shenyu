@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
@@ -73,7 +73,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isBlank(contextPath)) {
-            throw new ShenyuClientException("apache dubbo client must config the contextPath or appName");
+            throw new ShenyuClientIllegalArgumentException("apache dubbo client must config the contextPath or appName");
         }
         this.contextPath = contextPath;
         this.appName = appName;

@@ -19,7 +19,7 @@ package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -70,7 +70,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             if (StringUtils.isBlank(contextPath)) {
                 String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
-                throw new ShenyuClientException(errorMsg);
+                throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
             this.contextPath = contextPath + "/**";
         }

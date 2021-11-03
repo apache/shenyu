@@ -21,7 +21,7 @@ import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
@@ -68,7 +68,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isBlank(contextPath)) {
-            throw new ShenyuClientException("alibaba dubbo client must config the contextPath");
+            throw new ShenyuClientIllegalArgumentException("alibaba dubbo client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;

@@ -18,9 +18,9 @@
 package org.apache.shenyu.client.core.exception;
 
 /**
- * ShenyuClientException.
+ * ShenyuClientIllegalArgumentException.
  */
-public class ShenyuClientException extends IllegalArgumentException {
+public class ShenyuClientIllegalArgumentException extends IllegalArgumentException {
 
     /**
      * Constructs an <code>IllegalArgumentException</code> with the
@@ -28,7 +28,7 @@ public class ShenyuClientException extends IllegalArgumentException {
      *
      * @param s the detail message.
      */
-    public ShenyuClientException(final String s) {
+    public ShenyuClientIllegalArgumentException(final String s) {
         super(s);
     }
 }

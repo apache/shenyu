@@ -23,7 +23,7 @@ import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.client.motan.common.dto.MotanRpcExt;
@@ -81,7 +81,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isEmpty(contextPath)) {
-            throw new ShenyuClientException("motan client must config the contextPath");
+            throw new ShenyuClientIllegalArgumentException("motan client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;
@@ -141,7 +141,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
             if (clazz.getInterfaces().length > 0) {
                 serviceName = clazz.getInterfaces()[0].getName();
             } else {
-                throw new ShenyuClientException("Failed to export remote service class " + clazz.getName()
+                throw new ShenyuClientIllegalArgumentException("Failed to export remote service class " + clazz.getName()
                         + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
             }
         } else {

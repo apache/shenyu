@@ -19,7 +19,7 @@ package org.apache.shenyu.client.tars;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -58,7 +58,7 @@ public class TarsContextRefreshedEventListener implements ApplicationListener<Co
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         String port = props.getProperty(ShenyuClientConstants.PORT);
         if (StringUtils.isAnyBlank(contextPath, this.host, port)) {
-            throw new ShenyuClientException("tars client must config the contextPath, ipAndPort");
+            throw new ShenyuClientIllegalArgumentException("tars client must config the contextPath, ipAndPort");
         }
         this.contextPath = contextPath;
         this.ipAndPort = this.host + ":" + port;

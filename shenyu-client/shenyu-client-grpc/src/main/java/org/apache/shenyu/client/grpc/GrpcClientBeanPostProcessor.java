@@ -23,7 +23,7 @@ import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
@@ -80,7 +80,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         String ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
         String port = props.getProperty(ShenyuClientConstants.PORT);
         if (StringUtils.isAnyBlank(contextPath, ipAndPort, port)) {
-            throw new ShenyuClientException("grpc client must config the contextPath, ipAndPort");
+            throw new ShenyuClientIllegalArgumentException("grpc client must config the contextPath, ipAndPort");
         }
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;

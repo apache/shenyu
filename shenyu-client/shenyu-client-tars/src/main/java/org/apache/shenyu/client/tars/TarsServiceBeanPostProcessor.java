@@ -20,7 +20,7 @@ package org.apache.shenyu.client.tars;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientException;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
@@ -68,7 +68,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         String port = props.getProperty(ShenyuClientConstants.PORT);
         if (StringUtils.isAnyBlank(contextPath, this.host, port)) {
-            throw new ShenyuClientException("tars client must config the contextPath, ipAndPort");
+            throw new ShenyuClientIllegalArgumentException("tars client must config the contextPath, ipAndPort");
         }
         this.contextPath = contextPath;
         this.ipAndPort = this.host + ":" + port;
