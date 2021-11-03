@@ -136,7 +136,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         String desc = shenyuGrpcClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuGrpcClient.ruleName();
-        String ruleName = StringUtils.defaultIfBlank (configRuleName, path);
+        String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)

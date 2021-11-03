@@ -53,6 +53,7 @@ public @interface ShenyuSpringCloudClient {
     /**
      * Rpc type string.
      *
+     * @deprecated use the constant: RpcTypeEnum.SPRING_CLOUD
      * @return the string
      */
     @Deprecated

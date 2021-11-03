@@ -52,7 +52,7 @@ public @interface ShenyuSpringMvcClient {
 
     /**
      * Rpc type string.
-     *
+     * @deprecated use the constant: RpcTypeEnum.HTTP
      * @return the string
      */
     @Deprecated
