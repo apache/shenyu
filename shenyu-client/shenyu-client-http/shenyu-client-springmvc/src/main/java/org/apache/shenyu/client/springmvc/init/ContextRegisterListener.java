@@ -55,7 +55,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private Integer port;
 
     private final Boolean isFull;
-    
+
     /**
      * Instantiates a new Context register listener.
      *
@@ -90,7 +90,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         }
         publisher.publishEvent(buildURIRegisterDTO());
     }
-    
+
     private URIRegisterDTO buildURIRegisterDTO() {
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return URIRegisterDTO.builder()
@@ -100,7 +100,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .port(port)
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .build();
-                
+
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {

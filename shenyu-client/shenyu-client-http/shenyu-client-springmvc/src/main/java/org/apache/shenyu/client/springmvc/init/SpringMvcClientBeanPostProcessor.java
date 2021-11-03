@@ -54,7 +54,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     private final String appName;
 
     private final Boolean isFull;
-    
+
     /**
      * Instantiates a new Spring mvc client bean post processor.
      *
