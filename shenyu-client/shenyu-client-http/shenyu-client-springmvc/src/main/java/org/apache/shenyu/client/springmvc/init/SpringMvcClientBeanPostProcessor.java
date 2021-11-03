@@ -134,5 +134,3 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .build();
     }
 }
-
-

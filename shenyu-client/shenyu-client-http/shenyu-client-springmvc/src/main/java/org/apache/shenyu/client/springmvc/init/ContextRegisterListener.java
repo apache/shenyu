@@ -100,7 +100,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .port(port)
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .build();
-
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
