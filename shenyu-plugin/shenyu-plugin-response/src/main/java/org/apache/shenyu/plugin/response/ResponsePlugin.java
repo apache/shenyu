@@ -19,19 +19,14 @@ package org.apache.shenyu.plugin.response;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.response.strategy.MessageWriter;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * this is response plugin.
@@ -53,15 +48,7 @@ public class ResponsePlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        return writerMap.get(shenyuContext.getRpcType()).writeWith(exchange.mutate()
-                .request(request -> request.headers(httpHeaders -> {
-                    List<String> acceptEncoding = httpHeaders.get(HttpHeaders.ACCEPT_ENCODING);
-                    if (CollectionUtils.isNotEmpty(acceptEncoding)) {
-                        acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
-                        acceptEncoding.remove("gzip");
-                        httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
-                    }
-                })).build(), chain);
+        return writerMap.get(shenyuContext.getRpcType()).writeWith(exchange, chain);
     }
     
     @Override

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -36,7 +37,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -46,9 +46,12 @@ import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Netty http client plugin.
@@ -77,6 +80,13 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
         HttpHeaders filtered = request.getHeaders();
         final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
         filtered.forEach(httpHeaders::set);
+        // remove gzip
+        String acceptEncoding = httpHeaders.get(HttpHeaders.ACCEPT_ENCODING);
+        if (StringUtils.isNotBlank(acceptEncoding)) {
+            List<String> acceptEncodings = Stream.of(acceptEncoding.trim().split(",")).collect(Collectors.toList());
+            acceptEncodings.remove("gzip");
+            httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncodings));
+        }
         URI uri = exchange.getAttribute(Constants.HTTP_URI);
         if (Objects.isNull(uri)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
@@ -93,7 +103,7 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
                     HttpHeaders headers = new HttpHeaders();
                     res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
                     String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
-                    if (StringUtils.hasLength(contentTypeValue)) {
+                    if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
                     HttpStatus status = HttpStatus.resolve(res.status().code());
@@ -115,7 +125,6 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
                 Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
                 .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         return responseFlux.then(chain.execute(exchange));
-
     }
 
     @Override
