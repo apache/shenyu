@@ -22,6 +22,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -42,8 +43,11 @@ import reactor.retry.Retry;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Web client plugin.
@@ -105,6 +109,13 @@ public class WebClientPlugin implements ShenyuPlugin {
                                          final ShenyuPluginChain chain) {
         return requestBodySpec.headers(httpHeaders -> {
             httpHeaders.addAll(exchange.getRequest().getHeaders());
+            // remove gzip
+            List<String> acceptEncoding = httpHeaders.get(HttpHeaders.ACCEPT_ENCODING);
+            if (CollectionUtils.isNotEmpty(acceptEncoding)) {
+                acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
+                acceptEncoding.remove("gzip");
+                httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
+            }
             httpHeaders.remove(HttpHeaders.HOST);
         })
                 .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
@@ -115,7 +126,6 @@ public class WebClientPlugin implements ShenyuPlugin {
                         .retryMax(retryTimes)
                         .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
-
     }
 
     private Mono<Void> doNext(final ClientResponse res, final ServerWebExchange exchange, final ShenyuPluginChain chain) {

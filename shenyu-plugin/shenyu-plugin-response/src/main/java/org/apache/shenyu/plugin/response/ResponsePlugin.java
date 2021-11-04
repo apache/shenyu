@@ -53,15 +53,7 @@ public class ResponsePlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        return writerMap.get(shenyuContext.getRpcType()).writeWith(exchange.mutate()
-                .request(request -> request.headers(httpHeaders -> {
-                    List<String> acceptEncoding = httpHeaders.get(HttpHeaders.ACCEPT_ENCODING);
-                    if (CollectionUtils.isNotEmpty(acceptEncoding)) {
-                        acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
-                        acceptEncoding.remove("gzip");
-                        httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
-                    }
-                })).build(), chain);
+        return writerMap.get(shenyuContext.getRpcType()).writeWith(exchange, chain);
     }
     
     @Override
