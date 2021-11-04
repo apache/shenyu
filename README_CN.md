@@ -59,6 +59,76 @@
 
 --------------------------------------------------------------------------------
 
+# 快速体验
+
+### 启动Apache ShenYu Admin
+
+```
+> docker pull apache/shenyu-admin
+> docker network create shenyu
+```
+
+* 使用 `h2` 来存储后台数据：
+
+```
+> docker run -d -p 9095:9095 --net shenyu apache/shenyu-admin
+```
+
+
+### 启动Apache ShenYu Bootstrap
+
+```
+> docker network create shenyu
+> docker pull apache/shenyu-bootstrap
+> docker run -d -p 9195:9195 --net shenyu apache/shenyu-bootstrap
+```                       
+
+### 设置路由规则
+
+* 如果你有一个这样的接口 ：http://127.0.0.1:8080/helloworld,它的直接访问返回如下
+
+```json
+{
+  "name" : "Shenyu",
+  "data" : "hello world"
+}
+```
+
+* 单机模式设置路由规则
+
+```
+curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndRules' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "pluginName": "divide",
+    "selectorHandler": "[{\"upstreamUrl\":\"127.0.0.1:8080\"}]",
+    "conditionDataList": [{
+        "paramType": "uri",
+        "operator": "match",
+        "paramValue": "/**"
+    }],
+    "ruleDataList": [{
+        "ruleHandler": "{\"loadBalance\":\"random\"}",
+        "conditionDataList": [{
+            "paramType": "uri",
+            "operator": "match",
+            "paramValue": "/**"
+        }]
+    }]
+}'
+```
+
+* 通过网关代理请求：http://localhost:9195/helloworld 请求服务，返回如下：
+
+```json
+{
+  "name" : "Shenyu",
+  "data" : "hello world"
+}
+```
+
+--------------------------------------------------------------------------------
+
 # 插件
 
 无论请求何时进入，ShenYu 会通过响应链执行所有已打开的插件。
