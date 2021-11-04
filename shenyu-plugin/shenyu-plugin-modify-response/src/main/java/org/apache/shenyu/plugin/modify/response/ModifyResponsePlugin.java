@@ -28,15 +28,14 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.utils.ClientResponseUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.ClientResponseUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ReactiveHttpOutputMessage;
@@ -134,7 +133,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            ClientResponse clientResponse = ClientResponseUtils.buildClientResponse(this.getDelegate(), body, this.getHeaders());
+            ClientResponse clientResponse = ClientResponseUtils.buildClientResponse(this.getDelegate(), body);
             Mono<byte[]> modifiedBody = clientResponse.bodyToMono(byte[].class)
                     .flatMap(originalBody -> Mono.just(updateResponse(originalBody)));
 
@@ -143,12 +142,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
                     exchange.getResponse().getHeaders());
             return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
-                Mono<DataBuffer> messageBody = DataBufferUtils.join(outputMessage.getBody());
-                HttpHeaders headers = getDelegate().getHeaders();
-                if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-                        || headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-                    messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-                }
+                Mono<DataBuffer> messageBody = ClientResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
                 exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
                 return getDelegate().writeWith(messageBody);
             }));

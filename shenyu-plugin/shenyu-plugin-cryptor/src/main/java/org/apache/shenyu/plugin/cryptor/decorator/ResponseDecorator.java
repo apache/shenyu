@@ -18,17 +18,15 @@
 package org.apache.shenyu.plugin.cryptor.decorator;
 
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.plugin.api.utils.ClientResponseUtils;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.apache.shenyu.plugin.base.utils.ClientResponseUtils;
 import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.apache.shenyu.plugin.cryptor.utils.HttpUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -60,19 +58,14 @@ public class ResponseDecorator extends ServerHttpResponseDecorator {
     @NonNull
     @SuppressWarnings("unchecked")
     public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-        ClientResponse clientResponse = ClientResponseUtils.buildClientResponse(this.getDelegate(), body, this.getHeaders());
+        ClientResponse clientResponse = ClientResponseUtils.buildClientResponse(this.getDelegate(), body);
         Mono<String> mono = clientResponse.bodyToMono(String.class).flatMap(originalBody ->
                         strategyMatch(originalBody, this.ruleHandle, this.exchange));
         BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
         CachedBodyOutputMessage outputMessage = HttpUtil.newCachedBodyOutputMessage(exchange);
         return bodyInserter.insert(outputMessage, new BodyInserterContext())
                 .then(Mono.defer(() -> {
-                    Mono<DataBuffer> messageBody = DataBufferUtils.join(outputMessage.getBody());
-                    HttpHeaders headers = getDelegate().getHeaders();
-                    if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-                            || headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-                        messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-                    }
+                    Mono<DataBuffer> messageBody = ClientResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
                     return getDelegate().writeWith(messageBody);
                 })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> HttpUtil.release(outputMessage, throwable));

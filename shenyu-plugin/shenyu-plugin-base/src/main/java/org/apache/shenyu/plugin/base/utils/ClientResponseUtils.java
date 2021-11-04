@@ -15,15 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.utils;
+package org.apache.shenyu.plugin.base.utils;
 
+import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
@@ -34,16 +37,33 @@ public final class ClientResponseUtils {
 
     /**
      * build client response with current response data.
+     *
      * @param response current response
      * @param body current response body
-     * @param httpHeaders current response header
      * @return the client respone
      */
     public static ClientResponse buildClientResponse(final ServerHttpResponse response,
-                                                     final Publisher<? extends DataBuffer> body,
-                                                     final HttpHeaders httpHeaders) {
+                                                     final Publisher<? extends DataBuffer> body) {
         ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(response.getStatusCode()),
                 ServerCodecConfigurer.create().getReaders());
-        return builder.headers(headers -> headers.putAll(httpHeaders)).body(Flux.from(body)).build();
+        return builder.headers(headers -> headers.putAll(response.getHeaders())).body(Flux.from(body)).build();
+    }
+
+    /**
+     * fix the body message.
+     *
+     * @param response current response
+     * @param outputMessage cache message
+     * @return fixed body message
+     */
+    public static Mono<DataBuffer> fixBodyMessage(final ServerHttpResponse response,
+                                                  final CachedBodyOutputMessage outputMessage) {
+        Mono<DataBuffer> messageBody = DataBufferUtils.join(outputMessage.getBody());
+        HttpHeaders headers = response.getHeaders();
+        if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
+                || headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+            messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+        }
+        return messageBody;
     }
 }
