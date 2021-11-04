@@ -24,5 +24,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-client-dubbo-common</artifactId>
-    
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-client-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

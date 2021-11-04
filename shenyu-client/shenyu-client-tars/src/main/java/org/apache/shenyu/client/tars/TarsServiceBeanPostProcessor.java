@@ -19,6 +19,8 @@ package org.apache.shenyu.client.tars;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
@@ -60,17 +62,16 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final int port;
 
-    public TarsServiceBeanPostProcessor(final PropertiesConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String ip = props.getProperty("host");
-        String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
+    public TarsServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        String port = props.getProperty(ShenyuClientConstants.PORT);
+        if (StringUtils.isAnyBlank(contextPath, this.host, port)) {
+            throw new ShenyuClientIllegalArgumentException("tars client must config the contextPath, ipAndPort");
         }
         this.contextPath = contextPath;
-        this.ipAndPort = ip + ":" + port;
-        this.host = props.getProperty("host");
+        this.ipAndPort = this.host + ":" + port;
         this.port = Integer.parseInt(port);
         publisher.start(shenyuClientRegisterRepository);
     }

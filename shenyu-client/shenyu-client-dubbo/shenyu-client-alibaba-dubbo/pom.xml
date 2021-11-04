@@ -28,11 +28,6 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-client-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-client-dubbo-common</artifactId>
             <version>${project.version}</version>
         </dependency>

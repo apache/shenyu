@@ -37,14 +37,14 @@ public class ShenyuSpringMvcClientConfiguration {
     /**
      * Spring http client bean post processor spring mvc client bean post processor.
      *
-     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @param clientConfig the client config
+     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @return the spring mvc client bean post processor
      */
     @Bean
-    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
-                                                                              final ShenyuClientConfig clientConfig) {
-        return new SpringMvcClientBeanPostProcessor(shenyuClientRegisterRepository, clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()));
+    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final ShenyuClientConfig clientConfig,
+                                                                              final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        return new SpringMvcClientBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()), shenyuClientRegisterRepository);
     }
     
     /**

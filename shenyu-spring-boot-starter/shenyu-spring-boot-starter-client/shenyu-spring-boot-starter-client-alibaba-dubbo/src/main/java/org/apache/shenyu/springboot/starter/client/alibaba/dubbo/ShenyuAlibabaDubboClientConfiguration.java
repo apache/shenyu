@@ -36,12 +36,13 @@ public class ShenyuAlibabaDubboClientConfiguration {
     /**
      * Alibaba dubbo service bean listener alibaba dubbo service bean listener.
      *
-     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @param clientConfig the client config
+     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @return the alibaba dubbo service bean listener
      */
     @Bean
-    public AlibabaDubboServiceBeanListener alibabaDubboServiceBeanListener(final ShenyuClientRegisterRepository shenyuClientRegisterRepository, final ShenyuClientConfig clientConfig) {
-        return new AlibabaDubboServiceBeanListener(shenyuClientRegisterRepository, clientConfig.getClient().get(RpcTypeEnum.DUBBO.getName()));
+    public AlibabaDubboServiceBeanListener alibabaDubboServiceBeanListener(final ShenyuClientConfig clientConfig,
+                                                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        return new AlibabaDubboServiceBeanListener(clientConfig.getClient().get(RpcTypeEnum.DUBBO.getName()), shenyuClientRegisterRepository);
     }
 }

@@ -18,6 +18,8 @@
 package org.apache.shenyu.client.tars;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -48,19 +50,18 @@ public class TarsContextRefreshedEventListener implements ApplicationListener<Co
     /**
      * Instantiates a new Tars context refreshed event listener.
      *
-     * @param config the config
+     * @param clientConfig the client config
      */
-    public TarsContextRefreshedEventListener(final PropertiesConfig config) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String ip = props.getProperty("host");
-        String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
+    public TarsContextRefreshedEventListener(final PropertiesConfig clientConfig) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        String port = props.getProperty(ShenyuClientConstants.PORT);
+        if (StringUtils.isAnyBlank(contextPath, this.host, port)) {
+            throw new ShenyuClientIllegalArgumentException("tars client must config the contextPath, ipAndPort");
         }
         this.contextPath = contextPath;
-        this.ipAndPort = ip + ":" + port;
-        this.host = props.getProperty("host");
+        this.ipAndPort = this.host + ":" + port;
         this.port = Integer.parseInt(port);
     }
     

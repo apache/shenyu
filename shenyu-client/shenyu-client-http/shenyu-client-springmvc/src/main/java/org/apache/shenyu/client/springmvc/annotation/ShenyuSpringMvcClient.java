@@ -49,12 +49,13 @@ public @interface ShenyuSpringMvcClient {
      * @return String string
      */
     String desc() default "";
-    
+
     /**
      * Rpc type string.
-     *
+     * @deprecated use the constant: RpcTypeEnum.HTTP
      * @return the string
      */
+    @Deprecated
     String rpcType() default "http";
     
     /**
