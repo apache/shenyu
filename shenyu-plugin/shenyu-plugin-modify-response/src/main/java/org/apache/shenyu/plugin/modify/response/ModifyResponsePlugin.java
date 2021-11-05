@@ -32,10 +32,10 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.ClientResponseUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ReactiveHttpOutputMessage;
@@ -104,7 +104,6 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                     .build();
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, modifyResponse);
         }
-
         return chain.execute(exchange.mutate()
                 .response(new ModifyServerHttpResponse(exchange, modifyResponseRuleHandle)).build());
     }
@@ -134,10 +133,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            if (Objects.isNull(clientResponse)) {
-                clientResponse = prepareClientResponse(body, this.getHeaders());
-            }
+            ClientResponse clientResponse = ClientResponseUtils.buildClientResponse(this.getDelegate(), body);
             Mono<byte[]> modifiedBody = clientResponse.bodyToMono(byte[].class)
                     .flatMap(originalBody -> Mono.just(updateResponse(originalBody)));
 
@@ -146,12 +142,8 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
                     exchange.getResponse().getHeaders());
             return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
-                Mono<DataBuffer> messageBody = DataBufferUtils.join(outputMessage.getBody());
-                HttpHeaders headers = getDelegate().getHeaders();
-                if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-                        || headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-                    messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-                }
+                Mono<DataBuffer> messageBody = ClientResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
+                exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
                 return getDelegate().writeWith(messageBody);
             }));
 
@@ -182,12 +174,6 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 handle.getRemoveBodyKeys().forEach(context::delete);
             }
             return context.jsonString();
-        }
-
-        private ClientResponse prepareClientResponse(final Publisher<? extends DataBuffer> body, final HttpHeaders httpHeaders) {
-            ClientResponse.Builder builder;
-            builder = ClientResponse.create(this.getDelegate().getStatusCode(), ServerCodecConfigurer.create().getReaders());
-            return builder.headers(headers -> headers.putAll(httpHeaders)).body(Flux.from(body)).build();
         }
     }
 }
