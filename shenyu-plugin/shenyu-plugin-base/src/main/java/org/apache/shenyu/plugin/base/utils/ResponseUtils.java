@@ -74,20 +74,8 @@ public final class ResponseUtils {
      */
     public static Mono<DataBuffer> fixBodyMessage(final ServerHttpResponse response,
                                                   final CachedBodyOutputMessage outputMessage) {
-        chunkedHeader(response.getHeaders());
+        fixHeaders(response.getHeaders());
         return DataBufferUtils.join(outputMessage.getBody());
-    }
-
-    /**
-     * ChunkedHeader.
-     *
-     * @param headers headers.
-     * @return chunked headers
-     */
-    public static HttpHeaders chunkedHeader(final HttpHeaders headers) {
-        headers.remove(HttpHeaders.CONTENT_LENGTH);
-        headers.set(HttpHeaders.TRANSFER_ENCODING, CHUNKED);
-        return new HttpHeaders(headers);
     }
 
     /**
@@ -101,5 +89,27 @@ public final class ResponseUtils {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
         return Mono.error(throwable);
+    }
+
+    /**
+     * ChunkedHeader.
+     *
+     * @param headers headers.
+     * @return chunked headers
+     */
+    public static HttpHeaders chunkedHeader(final HttpHeaders headers) {
+        final HttpHeaders httpHeaders = new HttpHeaders(headers);
+        fixHeaders(httpHeaders);
+        return httpHeaders;
+    }
+
+    /**
+     * fix headers.
+     *
+     * @param httpHeaders the headers
+     */
+    private static void fixHeaders(final HttpHeaders httpHeaders) {
+        httpHeaders.remove(HttpHeaders.CONTENT_LENGTH);
+        httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, CHUNKED);
     }
 }
