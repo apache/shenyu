@@ -139,7 +139,11 @@ public class RegisterPathConstants {
     public static String buildServiceConfigPath(final String rpcType, final String contextPath) {
         final String serviceConfigPathOrigin = String.join(SEPARATOR, ROOT_PATH, "service", rpcType, contextPath)
                 .replace("/", ".").replace("*", "");
-        return serviceConfigPathOrigin.substring(1, serviceConfigPathOrigin.length() - 1);
+        final String serviceConfigPathAfterSubstring = serviceConfigPathOrigin.substring(1);
+        if (serviceConfigPathAfterSubstring.endsWith(".")){
+            return serviceConfigPathAfterSubstring.substring(0, serviceConfigPathAfterSubstring.length() - 1);
+        }
+        return serviceConfigPathAfterSubstring;
     }
 
     /**
