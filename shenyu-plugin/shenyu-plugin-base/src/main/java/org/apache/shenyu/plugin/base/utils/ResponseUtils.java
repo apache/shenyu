@@ -79,7 +79,7 @@ public final class ResponseUtils {
     }
 
     /**
-     * chunkedHeader.
+     * ChunkedHeader.
      *
      * @param headers headers.
      * @return chunked headers
