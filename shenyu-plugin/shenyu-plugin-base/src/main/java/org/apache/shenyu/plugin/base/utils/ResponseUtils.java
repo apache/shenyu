@@ -25,15 +25,31 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
 /**
- * ClientResponseUtils.
+ * ResponseUtils.
  */
-public final class ClientResponseUtils {
+public final class ResponseUtils {
+
+    private static final String CHUNKED = "chunked";
+
+    /**
+     * create CachedBodyOutputMessage.
+     *
+     * @param exchange ServerWebExchange
+     * @return CachedBodyOutputMessage.
+     */
+    public static CachedBodyOutputMessage newCachedBodyOutputMessage(final ServerWebExchange exchange) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.putAll(exchange.getRequest().getHeaders());
+        headers.remove(HttpHeaders.CONTENT_LENGTH);
+        return new CachedBodyOutputMessage(exchange, headers);
+    }
 
     /**
      * build client response with current response data.
@@ -58,12 +74,32 @@ public final class ClientResponseUtils {
      */
     public static Mono<DataBuffer> fixBodyMessage(final ServerHttpResponse response,
                                                   final CachedBodyOutputMessage outputMessage) {
-        Mono<DataBuffer> messageBody = DataBufferUtils.join(outputMessage.getBody());
-        HttpHeaders headers = response.getHeaders();
-        if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-                || headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-            messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+        chunkedHeader(response.getHeaders());
+        return DataBufferUtils.join(outputMessage.getBody());
+    }
+
+    /**
+     * chunkedHeader.
+     *
+     * @param headers headers.
+     * @return chunked headers
+     */
+    public static HttpHeaders chunkedHeader(final HttpHeaders headers) {
+        headers.remove(HttpHeaders.CONTENT_LENGTH);
+        headers.set(HttpHeaders.TRANSFER_ENCODING, CHUNKED);
+        return new HttpHeaders(headers);
+    }
+
+    /**
+     * release source.
+     * @param outputMessage CachedBodyOutputMessage
+     * @param throwable Throwable
+     * @return Mono.
+     */
+    public static Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
+        if (outputMessage.getCache()) {
+            return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
-        return messageBody;
+        return Mono.error(throwable);
     }
 }

@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.cryptor.decorator;
 
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
-import org.apache.shenyu.plugin.cryptor.utils.HttpUtil;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -29,14 +29,14 @@ import reactor.util.annotation.NonNull;
 /**
  * Build and modify the request class.
  */
-public class RequestDecorator extends ServerHttpRequestDecorator {
+public class CryptorRequestDecorator extends ServerHttpRequestDecorator {
 
     private final CachedBodyOutputMessage cachedBodyOutputMessage;
 
     private final ServerWebExchange exchange;
 
-    public RequestDecorator(final ServerWebExchange exchange,
-                            final CachedBodyOutputMessage cachedBodyOutputMessage) {
+    public CryptorRequestDecorator(final ServerWebExchange exchange,
+                                   final CachedBodyOutputMessage cachedBodyOutputMessage) {
         super(exchange.getRequest());
         this.cachedBodyOutputMessage = cachedBodyOutputMessage;
         this.exchange = exchange;
@@ -51,9 +51,6 @@ public class RequestDecorator extends ServerHttpRequestDecorator {
     @Override
     @NonNull
     public HttpHeaders getHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.putAll(exchange.getRequest().getHeaders());
-        headers.remove(HttpHeaders.CONTENT_LENGTH);
-        return HttpUtil.modifiedContentLength(headers);
+        return ResponseUtils.chunkedHeader(this.exchange.getRequest().getHeaders());
     }
 }

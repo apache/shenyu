@@ -32,7 +32,7 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.ClientResponseUtils;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * ModifyResponse plugin.
@@ -133,20 +134,18 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            ClientResponse clientResponse = ClientResponseUtils.buildClientResponse(this.getDelegate(), body);
+            ClientResponse clientResponse = ResponseUtils.buildClientResponse(this.getDelegate(), body);
             Mono<byte[]> modifiedBody = clientResponse.bodyToMono(byte[].class)
                     .flatMap(originalBody -> Mono.just(updateResponse(originalBody)));
 
             BodyInserter<Mono<byte[]>, ReactiveHttpOutputMessage> bodyInserter =
                     BodyInserters.fromPublisher(modifiedBody, byte[].class);
-            CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-                    exchange.getResponse().getHeaders());
+            CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(this.exchange);
             return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
-                Mono<DataBuffer> messageBody = ClientResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
+                Mono<DataBuffer> messageBody = ResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
                 exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
                 return getDelegate().writeWith(messageBody);
-            }));
-
+            })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
         }
 
         private byte[] updateResponse(final byte[] responseBody) {

@@ -26,7 +26,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.cryptor.decorator.ResponseDecorator;
+import org.apache.shenyu.plugin.cryptor.decorator.CryptorResponseDecorator;
 import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
@@ -57,7 +57,7 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange.mutate()
-                .response(new ResponseDecorator(exchange, ruleHandle)).build());
+                .response(new CryptorResponseDecorator(exchange, ruleHandle)).build());
     }
 
     @Override
