@@ -98,7 +98,8 @@ public final class ResponseUtils {
      * @return chunked headers
      */
     public static HttpHeaders chunkedHeader(final HttpHeaders headers) {
-        final HttpHeaders httpHeaders = new HttpHeaders(headers);
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.putAll(headers);
         fixHeaders(httpHeaders);
         return httpHeaders;
     }
