@@ -43,10 +43,8 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
     }
 
     private boolean hasIdleNode() {
-        return this.list.stream().anyMatch(r -> {
-            final ConnectivityState state = r.getState().getState();
-            return state == ConnectivityState.IDLE || state == ConnectivityState.CONNECTING;
-        });
+        return this.list.stream().anyMatch(r -> r.getState().getState() == ConnectivityState.IDLE
+                || r.getState().getState() == ConnectivityState.CONNECTING);
     }
 
     @Override
@@ -55,7 +53,7 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
         if (CollectionUtils.isEmpty(list)) {
             return getErrorPickResult();
         }
-        SubChannelCopy channel = pick(getSubchannels());
+        SubChannelCopy channel = pick(list);
         return channel == null ? getErrorPickResult() : LoadBalancer.PickResult.withSubchannel(channel.getChannel());
     }
 
@@ -69,18 +67,16 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
 
     @Override
     public List<SubChannelCopy> getSubchannels() {
-        return list.stream().filter(r -> {
-            final ConnectivityState state = r.getState().getState();
-            final boolean status = Boolean.valueOf(r.getStatus());
-            return state == ConnectivityState.READY && status;
-        }).collect(Collectors.toList());
+        return list.stream().filter(r -> r.getState().getState() == ConnectivityState.READY
+                && Boolean.parseBoolean(r.getStatus())).collect(Collectors.toList());
     }
 
     private LoadBalancer.PickResult getErrorPickResult() {
         if (hasIdleNode) {
             return LoadBalancer.PickResult.withNoResult();
         } else {
-            return LoadBalancer.PickResult.withError(Status.UNAVAILABLE.withCause(new NoSuchElementException()).withDescription("can not find the subChannel")
+            return LoadBalancer.PickResult.withError(
+                    Status.UNAVAILABLE.withCause(new NoSuchElementException()).withDescription("can not find the subChannel")
             );
         }
     }

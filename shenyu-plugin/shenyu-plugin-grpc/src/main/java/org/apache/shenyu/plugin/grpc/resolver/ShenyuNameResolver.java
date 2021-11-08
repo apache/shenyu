@@ -68,7 +68,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
         this.appName = appName;
         this.executor = args.getOffloadExecutor();
         this.executorResource = executorResource;
-        this.attributes = Attributes.newBuilder().set(GrpcAttributeUtils.appName(), appName).build();
+        this.attributes = Attributes.newBuilder().set(GrpcAttributeUtils.APP_NAME, appName).build();
         this.syncContext = Objects.requireNonNull(args.getSynchronizationContext(), "syncContext");
     }
 
