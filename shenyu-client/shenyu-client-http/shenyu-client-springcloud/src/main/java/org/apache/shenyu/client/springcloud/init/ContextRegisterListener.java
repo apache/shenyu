@@ -51,8 +51,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     
     private final String host;
 
-    private Environment env;
-
     private String contextPath;
     
     private String appName;
@@ -109,7 +107,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
         String contextPath = this.contextPath;
-        String appName = env.getProperty("spring.application.name");
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
