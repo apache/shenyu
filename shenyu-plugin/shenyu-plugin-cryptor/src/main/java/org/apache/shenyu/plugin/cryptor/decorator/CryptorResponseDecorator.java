@@ -20,10 +20,10 @@ package org.apache.shenyu.plugin.cryptor.decorator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
-import org.apache.shenyu.plugin.base.utils.ClientResponseUtils;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
-import org.apache.shenyu.plugin.cryptor.utils.HttpUtil;
+import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -36,19 +36,20 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
  * Build and modify the response class.
  */
-public class ResponseDecorator extends ServerHttpResponseDecorator {
+public class CryptorResponseDecorator extends ServerHttpResponseDecorator {
 
     private final ServerWebExchange exchange;
 
     private final CryptorRuleHandle ruleHandle;
 
-    public ResponseDecorator(final ServerWebExchange exchange,
-                             final CryptorRuleHandle ruleHandle) {
+    public CryptorResponseDecorator(final ServerWebExchange exchange,
+                                    final CryptorRuleHandle ruleHandle) {
         super(exchange.getResponse());
         this.exchange = exchange;
         this.ruleHandle = ruleHandle;
@@ -58,29 +59,29 @@ public class ResponseDecorator extends ServerHttpResponseDecorator {
     @NonNull
     @SuppressWarnings("unchecked")
     public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-        ClientResponse clientResponse = ClientResponseUtils.buildClientResponse(this.getDelegate(), body);
+        ClientResponse clientResponse = ResponseUtils.buildClientResponse(this.getDelegate(), body);
         Mono<String> mono = clientResponse.bodyToMono(String.class).flatMap(originalBody ->
                         strategyMatch(originalBody, this.ruleHandle, this.exchange));
         BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
-        CachedBodyOutputMessage outputMessage = HttpUtil.newCachedBodyOutputMessage(exchange);
+        CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
         return bodyInserter.insert(outputMessage, new BodyInserterContext())
                 .then(Mono.defer(() -> {
-                    Mono<DataBuffer> messageBody = ClientResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
+                    Mono<DataBuffer> messageBody = ResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
                     return getDelegate().writeWith(messageBody);
-                })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> HttpUtil.release(outputMessage, throwable));
+                })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
     }
 
     @SuppressWarnings("rawtypes")
     private Mono strategyMatch(final String originalBody, final CryptorRuleHandle ruleHandle, final ServerWebExchange exchange) {
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
-        if (parseBody == null) {
+        if (Objects.isNull(parseBody)) {
             return Mono.just(originalBody);
         }
         String modifiedBody = CryptorStrategyFactory.match(ruleHandle, parseBody);
-        if (modifiedBody == null) {
-            return HttpUtil.fail(ruleHandle.getWay(), exchange);
+        if (Objects.isNull(modifiedBody)) {
+            return CryptorUtil.fail(ruleHandle.getWay(), exchange);
         }
-        return HttpUtil.success(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames());
+        return CryptorUtil.success(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames());
     }
 }

@@ -22,10 +22,7 @@ import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -33,53 +30,9 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * http util.
+ * cryptor util.
  */
-public class HttpUtil {
-
-    private static final String CHUNKED = "chunked";
-
-    /**
-     * change header.
-     * @param headers headers
-     * @return HttpHeaders.
-     */
-    public static HttpHeaders modifiedContentLength(final HttpHeaders headers) {
-        long contentLength = headers.getContentLength();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.putAll(headers);
-        if (contentLength > 0) {
-            httpHeaders.setContentLength(contentLength);
-        } else {
-            httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, CHUNKED);
-        }
-        return httpHeaders;
-    }
-
-    /**
-     * create CachedBodyOutputMessage.
-     * @param exchange ServerWebExchange
-     * @return CachedBodyOutputMessage.
-     */
-    public static CachedBodyOutputMessage newCachedBodyOutputMessage(final ServerWebExchange exchange) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.putAll(exchange.getRequest().getHeaders());
-        headers.remove(HttpHeaders.CONTENT_LENGTH);
-        return new CachedBodyOutputMessage(exchange, headers);
-    }
-
-    /**
-     * release source.
-     * @param outputMessage CachedBodyOutputMessage
-     * @param throwable Throwable
-     * @return Mono.
-     */
-    public static Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
-        if (outputMessage.getCache()) {
-            return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
-        }
-        return Mono.error(throwable);
-    }
+public class CryptorUtil {
 
     /**
      * error handling.
@@ -120,5 +73,4 @@ public class HttpUtil {
                 Arrays.asList(fieldNames.split("\\.")));
         return Mono.just(resultJe.toString());
     }
-
 }

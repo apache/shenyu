@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.cryptor.request;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -29,10 +28,12 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.cryptor.decorator.RequestDecorator;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
+import org.apache.shenyu.plugin.cryptor.decorator.CryptorRequestDecorator;
+import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
-import org.apache.shenyu.plugin.cryptor.utils.HttpUtil;
+import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,6 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
             LOG.error("Cryptor request rule configuration is null :{}", rule.getId());
             return chain.execute(exchange);
         }
-        CachedBodyOutputMessage outputMessage = HttpUtil.newCachedBodyOutputMessage(exchange);
         if (JsonUtil.checkParam(ruleHandle)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg()
@@ -81,12 +81,12 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
                 .flatMap(originalBody -> strategyMatch(ruleHandle, originalBody, exchange));
 
         BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
+        CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
         return bodyInserter.insert(outputMessage, new BodyInserterContext())
                 .then(Mono.defer(() -> {
-                    ServerHttpRequestDecorator decorator = new RequestDecorator(exchange, outputMessage);
+                    ServerHttpRequestDecorator decorator = new CryptorRequestDecorator(exchange, outputMessage);
                     return chain.execute(exchange.mutate().request(decorator).build());
-                })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> HttpUtil.release(outputMessage, throwable));
-
+                })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
     }
 
     @Override
@@ -102,15 +102,15 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     @SuppressWarnings("rawtypes")
     private Mono strategyMatch(final CryptorRuleHandle ruleHandle, final String originalBody, final ServerWebExchange exchange) {
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
-        if (null == parseBody) {
+        if (Objects.isNull(parseBody)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", null);
             return WebFluxResultUtils.result(exchange, error);
         }
         String modifiedBody = CryptorStrategyFactory.match(ruleHandle, parseBody);
-        if (modifiedBody == null) {
-            return HttpUtil.fail(ruleHandle.getWay(), exchange);
+        if (Objects.isNull(modifiedBody)) {
+            return CryptorUtil.fail(ruleHandle.getWay(), exchange);
         }
-        return HttpUtil.success(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames());
+        return CryptorUtil.success(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames());
     }
 }
