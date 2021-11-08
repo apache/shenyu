@@ -80,6 +80,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                 } else {
                     LOG.error("websocket connection is error.....");
                 }
+
                 executor.scheduleAtFixedRate(() -> {
                     try {
                         if (client.isClosed()) {
@@ -98,7 +99,6 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                     }
                 }, 10, 10, TimeUnit.SECONDS);
             }
-            /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
         } catch (InterruptedException e) {
             LOG.info("websocket connection...exception....", e);
         }
