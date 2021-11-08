@@ -51,14 +51,6 @@ public @interface ShenyuSpringMvcClient {
     String desc() default "";
 
     /**
-     * Rpc type string.
-     * @deprecated use the constant: RpcTypeEnum.HTTP
-     * @return the string
-     */
-    @Deprecated
-    String rpcType() default "http";
-    
-    /**
      * Enabled boolean.
      *
      * @return the boolean
