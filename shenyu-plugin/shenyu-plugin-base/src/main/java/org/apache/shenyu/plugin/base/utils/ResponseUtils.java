@@ -56,13 +56,16 @@ public final class ResponseUtils {
      *
      * @param response current response
      * @param body current response body
-     * @return the client respone
+     * @return the client response
      */
     public static ClientResponse buildClientResponse(final ServerHttpResponse response,
                                                      final Publisher<? extends DataBuffer> body) {
         ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(response.getStatusCode()),
                 ServerCodecConfigurer.create().getReaders());
-        return builder.headers(headers -> headers.putAll(response.getHeaders())).body(Flux.from(body)).build();
+        return builder
+                .headers(headers -> headers.putAll(response.getHeaders()))
+                .cookies(cookies -> response.getCookies())
+                .body(Flux.from(body)).build();
     }
 
     /**
@@ -92,7 +95,7 @@ public final class ResponseUtils {
     }
 
     /**
-     * ChunkedHeader.
+     * Chunked Headers.
      *
      * @param headers headers.
      * @return chunked headers

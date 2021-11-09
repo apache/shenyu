@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
-import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,7 @@ public class ModifyResponseRuleHandle implements RuleHandle {
     /**
      * http response status code.
      */
-    private int statusCode = HttpStatus.OK.value();
+    private int statusCode;
 
     /**
      * add body List.
