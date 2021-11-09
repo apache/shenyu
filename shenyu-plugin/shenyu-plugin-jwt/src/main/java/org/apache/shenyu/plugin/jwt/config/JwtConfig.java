@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.jwt.config;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * The type Jwt config.
@@ -29,11 +28,6 @@ public class JwtConfig implements Serializable {
      * private key.
      */
     private String secretKey;
-
-    /**
-     * No need to carry the authorization.
-     */
-    private List<String> filterPath;
 
     /**
      * Gets secret key.
@@ -53,21 +47,4 @@ public class JwtConfig implements Serializable {
         this.secretKey = secretKey;
     }
 
-    /**
-     * Gets filter path.
-     *
-     * @return the filter path
-     */
-    public List<String> getFilterPath() {
-        return filterPath;
-    }
-
-    /**
-     * Sets filter path.
-     *
-     * @param filterPath the filter path
-     */
-    public void setFilterPath(final List<String> filterPath) {
-        this.filterPath = filterPath;
-    }
 }
