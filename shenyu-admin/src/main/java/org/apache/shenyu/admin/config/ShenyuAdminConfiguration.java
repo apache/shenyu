@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  * The type Shenyu admin configuration.
  */
 @Configuration
+@EnableTransactionManagement
 public class ShenyuAdminConfiguration {
     
     /**

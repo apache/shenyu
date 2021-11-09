@@ -77,4 +77,12 @@ public interface AuthParamMapper {
      * @return the int
      */
     int deleteByAuthId(String authId);
+
+    /**
+     * Delete by auth id int.
+     *
+     * @param authIds the auth ids
+     * @return the int
+     */
+    int deleteByAuthIds(List<String> authIds);
 }

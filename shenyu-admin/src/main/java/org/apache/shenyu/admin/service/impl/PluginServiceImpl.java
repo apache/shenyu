@@ -52,7 +52,6 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -264,7 +263,7 @@ public class PluginServiceImpl implements PluginService {
      */
     private void deletePluginDataFromResourceAndPermission(final String pluginName) {
         ResourceVO resourceVO = resourceService.findByTitle(pluginName);
-        if (!ObjectUtils.isEmpty(resourceVO)) {
+        if (Objects.nonNull(resourceVO)) {
             resourceService.delete(Collections.singletonList(resourceVO.getId()));
         }
     }
