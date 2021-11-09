@@ -14,17 +14,14 @@
 # limitations under the License.
 
 shenyu:
-    database:
-      dialect: postgresql
-      init_script: "sql-script/pg/schema.sql"
-      init_enable: true
-
+  database:
+    dialect: mysql
+    init_script: "sql-script/mysql/schema.sql"
+    init_enable: true
+    
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/shenyu
-    username: postgres
-    password: 123456
-    driver-class-name: org.postgresql.Driver
-
-mybatis:
-  type-handlers-package: org.apache.shenyu.admin.mybatis.pg.handler
+    url: jdbc:mysql://localhost:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password:
+    driver-class-name: com.mysql.jdbc.Driver
