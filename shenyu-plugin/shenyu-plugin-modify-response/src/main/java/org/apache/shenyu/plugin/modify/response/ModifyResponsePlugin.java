@@ -158,6 +158,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             this.getDelegate().getHeaders().putAll(httpHeaders);
 
             return ClientResponse.from(clientResponse)
+                    .headers(headers -> headers.putAll(httpHeaders))
                     .statusCode(statusCode)
                     .body(Flux.from(body)).build();
         }
