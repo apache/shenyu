@@ -195,7 +195,7 @@ public class DubboRpcExt implements Serializable {
      *
      * @param sent sent
      */
-    public void setSent(Boolean sent) {
+    public void setSent(final Boolean sent) {
         this.sent = sent;
     }
 
