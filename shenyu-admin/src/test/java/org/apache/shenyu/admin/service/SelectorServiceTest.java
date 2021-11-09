@@ -333,14 +333,4 @@ public final class SelectorServiceTest {
         metaDataRegisterDTO.setRpcType("test");
         return metaDataRegisterDTO;
     }
-    
-    private MetaDataRegisterDTO buildMetaDataRegisterDTO1() {
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        metaDataRegisterDTO.setAppName("test1");
-        metaDataRegisterDTO.setPath("/test");
-        metaDataRegisterDTO.setHost("127.0.0.1");
-        metaDataRegisterDTO.setPort(13307);
-        metaDataRegisterDTO.setRpcType("test");
-        return metaDataRegisterDTO;
-    }
 }
