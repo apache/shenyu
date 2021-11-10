@@ -67,9 +67,9 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        final ModifyResponseRuleHandle ruleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        ModifyResponseRuleHandle ruleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(ruleHandle)) {
             return chain.execute(exchange);
         }
@@ -177,14 +177,10 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         private String modifyBody(final String jsonValue) {
             DocumentContext context = JsonPath.parse(jsonValue);
             if (CollectionUtils.isNotEmpty(this.ruleHandle.getAddBodyKeys())) {
-                this.ruleHandle.getAddBodyKeys().forEach(info -> {
-                    context.put(info.getPath(), info.getKey(), info.getValue());
-                });
+                this.ruleHandle.getAddBodyKeys().forEach(info -> context.put(info.getPath(), info.getKey(), info.getValue()));
             }
             if (CollectionUtils.isNotEmpty(this.ruleHandle.getReplaceBodyKeys())) {
-                this.ruleHandle.getReplaceBodyKeys().forEach(info -> {
-                    context.renameKey(info.getPath(), info.getKey(), info.getValue());
-                });
+                this.ruleHandle.getReplaceBodyKeys().forEach(info -> context.renameKey(info.getPath(), info.getKey(), info.getValue()));
             }
             if (CollectionUtils.isNotEmpty(this.ruleHandle.getRemoveBodyKeys())) {
                 this.ruleHandle.getRemoveBodyKeys().forEach(context::delete);
