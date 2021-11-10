@@ -50,7 +50,7 @@ public final class AdminConstants {
     /**
      * The constant SYS_PLUGIN_ID_NOT_EXIST.
      */
-    public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin id does not exist！";
+    public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin(s) does not exist！";
 
     /**
      * The constant DATA_PATH_IS_EXIST.

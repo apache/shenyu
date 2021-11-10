@@ -156,6 +156,14 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByRuleIds" parameterType="java.util.List">
+        delete from rule_condition
+        where rule_id in
+        <foreach item="ruleId" collection="list" open="(" separator="," close=")">
+            #{ruleId, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <delete id="deleteByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleConditionQuery">
         delete from rule_condition
         where rule_id = #{ruleId,jdbcType=VARCHAR}

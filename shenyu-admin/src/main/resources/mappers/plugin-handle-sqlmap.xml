@@ -53,6 +53,14 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByPluginIds" parameterType="java.util.List">
+        delete from plugin_handle
+        where plugin_id in
+        <foreach item="pluginId" collection="list" open="(" separator="," close=")">
+            #{pluginId,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
         insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort,ext_obj, date_created, date_updated
         )
