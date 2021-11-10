@@ -19,8 +19,8 @@ package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ZoneAvoidanceRule;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.handler;
 
-import org.apache.shenyu.common.utils.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.common.config.ShenyuConfig;

@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.aspect;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.model.query.FilterQuery;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
