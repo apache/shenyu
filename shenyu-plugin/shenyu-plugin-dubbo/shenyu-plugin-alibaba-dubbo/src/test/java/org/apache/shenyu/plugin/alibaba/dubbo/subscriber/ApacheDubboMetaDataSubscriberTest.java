@@ -21,7 +21,7 @@ import com.alibaba.dubbo.config.ReferenceConfig;
 import com.google.common.cache.LoadingCache;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,10 +62,10 @@ public final class ApacheDubboMetaDataSubscriberTest {
     public void testOnSubscribe() throws NoSuchFieldException, IllegalAccessException {
         ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         when(referenceConfig.getInterface()).thenReturn("/dubbo/findAll");
-        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
-        Field field = ApplicationConfigCache.class.getDeclaredField("cache");
+        AlibabaDubboConfigCache alibabaDubboConfigCache = AlibabaDubboConfigCache.getInstance();
+        Field field = AlibabaDubboConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache) field.get(applicationConfigCache)).put("/dubbo/findAll", referenceConfig);
+        ((LoadingCache) field.get(alibabaDubboConfigCache)).put("/dubbo/findAll", referenceConfig);
         alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")

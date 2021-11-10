@@ -28,7 +28,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.junit.After;
 import org.junit.Assert;
@@ -70,7 +70,7 @@ public final class AlibabaDubboProxyServiceTest {
 
     @After
     public void after() {
-        ApplicationConfigCache.getInstance().invalidateAll();
+        AlibabaDubboConfigCache.getInstance().invalidateAll();
     }
 
     @Test
@@ -84,10 +84,10 @@ public final class AlibabaDubboProxyServiceTest {
                     RpcContext.getContext().setFuture(new FutureAdapter<>(new SimpleFuture(new RpcResult(sample))));
                     return sample;
                 });
-        try (MockedStatic<ApplicationConfigCache> applicationConfigCacheMockedStatic = mockStatic(ApplicationConfigCache.class)) {
-            ApplicationConfigCache applicationConfigCache = mock(ApplicationConfigCache.class);
-            applicationConfigCacheMockedStatic.when(ApplicationConfigCache::getInstance).thenReturn(applicationConfigCache);
-            when(applicationConfigCache.initRef(metaData)).thenReturn(referenceConfig);
+        try (MockedStatic<AlibabaDubboConfigCache> applicationConfigCacheMockedStatic = mockStatic(AlibabaDubboConfigCache.class)) {
+            AlibabaDubboConfigCache alibabaDubboConfigCache = mock(AlibabaDubboConfigCache.class);
+            applicationConfigCacheMockedStatic.when(AlibabaDubboConfigCache::getInstance).thenReturn(alibabaDubboConfigCache);
+            when(alibabaDubboConfigCache.initRef(metaData)).thenReturn(referenceConfig);
 
             AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new BodyParamResolveServiceImpl());
 

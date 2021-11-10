@@ -19,9 +19,10 @@ package org.apache.shenyu.plugin.alibaba.dubbo.cache;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,21 +38,21 @@ import static org.mockito.Mockito.when;
 
 
 /**
- * The Test Case For ApplicationConfigCache.
+ * The Test Case For AlibabaDubboConfigCache.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class ApplicationConfigCacheTest {
+public final class AlibabaDubboConfigCacheTest {
 
-    private ApplicationConfigCache applicationConfigCache;
+    private AlibabaDubboConfigCache alibabaDubboConfigCache;
 
     @Before
     public void setUp() {
-        applicationConfigCache = ApplicationConfigCache.getInstance();
+        alibabaDubboConfigCache = AlibabaDubboConfigCache.getInstance();
     }
 
     @Test
     public void getInstance() {
-        assertNotNull(this.applicationConfigCache);
+        assertNotNull(this.alibabaDubboConfigCache);
     }
 
     @Test
@@ -59,13 +60,13 @@ public final class ApplicationConfigCacheTest {
         DubboRegisterConfig dubboRegisterConfig = new DubboRegisterConfig();
         dubboRegisterConfig.setRegister("zookeeper://127.0.0.1:2181");
         dubboRegisterConfig.setProtocol("dubbo");
-        this.applicationConfigCache.init(dubboRegisterConfig);
+        this.alibabaDubboConfigCache.init(dubboRegisterConfig);
 
         RegistryConfig registryConfig = null;
         try {
-            Field registryConfigField = ApplicationConfigCache.class.getDeclaredField("registryConfig");
+            Field registryConfigField = AlibabaDubboConfigCache.class.getDeclaredField("registryConfig");
             registryConfigField.setAccessible(true);
-            Object config = registryConfigField.get(this.applicationConfigCache);
+            Object config = registryConfigField.get(this.alibabaDubboConfigCache);
             assertNotNull(config);
             registryConfig = (RegistryConfig) config;
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -75,13 +76,13 @@ public final class ApplicationConfigCacheTest {
         DubboRegisterConfig dubboRegisterConfig1 = new DubboRegisterConfig();
         dubboRegisterConfig1.setRegister("zookeeper://127.0.0.2:2181");
         dubboRegisterConfig1.setProtocol("dubbo");
-        this.applicationConfigCache.init(dubboRegisterConfig1);
+        this.alibabaDubboConfigCache.init(dubboRegisterConfig1);
 
         RegistryConfig registryConfig1 = null;
         try {
-            Field registryConfigField = ApplicationConfigCache.class.getDeclaredField("registryConfig");
+            Field registryConfigField = AlibabaDubboConfigCache.class.getDeclaredField("registryConfig");
             registryConfigField.setAccessible(true);
-            Object config = registryConfigField.get(this.applicationConfigCache);
+            Object config = registryConfigField.get(this.alibabaDubboConfigCache);
             assertNotNull(config);
             registryConfig1 = (RegistryConfig) config;
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -94,34 +95,34 @@ public final class ApplicationConfigCacheTest {
     public void testInitRef() {
         MetaData metaData = new MetaData();
         metaData.setPath("/test");
-        ApplicationConfigCache applicationConfigCacheMock = mock(ApplicationConfigCache.class);
-        when(applicationConfigCacheMock.initRef(metaData))
+        AlibabaDubboConfigCache alibabaDubboConfigCacheMock = mock(AlibabaDubboConfigCache.class);
+        when(alibabaDubboConfigCacheMock.initRef(metaData))
                 .thenReturn(new ReferenceConfig());
-        assertNotNull(applicationConfigCacheMock.initRef(metaData));
+        assertNotNull(alibabaDubboConfigCacheMock.initRef(metaData));
     }
 
     @Test
     public void testGet() {
-        assertNotNull(this.applicationConfigCache.get("/test"));
+        assertNotNull(this.alibabaDubboConfigCache.get("/test"));
     }
 
     @Test
     public void testBuild() {
-        ApplicationConfigCache.DubboParamExtInfo dubboParamExtInfo = new ApplicationConfigCache.DubboParamExtInfo();
-        dubboParamExtInfo.setVersion("2.6.5");
-        dubboParamExtInfo.setGroup("Group");
-        dubboParamExtInfo.setUrl("http://192.168.55.113/dubbo");
+        DubboParam dubboParam = new DubboParam();
+        dubboParam.setVersion("2.6.5");
+        dubboParam.setGroup("Group");
+        dubboParam.setUrl("http://192.168.55.113/dubbo");
         MetaData metaData = new MetaData();
-        metaData.setRpcExt(GsonUtils.getInstance().toJson(dubboParamExtInfo));
-        ApplicationConfigCache applicationConfigCacheMock = mock(ApplicationConfigCache.class);
-        when(applicationConfigCacheMock.build(metaData))
+        metaData.setRpcExt(GsonUtils.getInstance().toJson(dubboParam));
+        AlibabaDubboConfigCache alibabaDubboConfigCacheMock = mock(AlibabaDubboConfigCache.class);
+        when(alibabaDubboConfigCacheMock.build(metaData))
                 .thenReturn(new ReferenceConfig());
-        assertNotNull(applicationConfigCacheMock.build(metaData));
+        assertNotNull(alibabaDubboConfigCacheMock.build(metaData));
     }
 
     @Test
     public void testInvalidate() {
-        this.applicationConfigCache.invalidate("/test");
-        this.applicationConfigCache.invalidateAll();
+        this.alibabaDubboConfigCache.invalidate("/test");
+        this.alibabaDubboConfigCache.invalidateAll();
     }
 }

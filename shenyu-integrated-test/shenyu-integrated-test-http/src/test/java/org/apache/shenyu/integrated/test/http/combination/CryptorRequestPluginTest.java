@@ -26,7 +26,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.After;
@@ -112,14 +112,14 @@ public class CryptorRequestPluginTest extends AbstractPluginDataInit {
     private RuleLocalData buildRuleLocalData(final String fieldNames, final String way) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
 
-        CryptorRuleHandle cryptorRuleHandle = new CryptorRuleHandle();
-        cryptorRuleHandle.setDecryptKey(RSA_PRIVATE_KEY);
-        cryptorRuleHandle.setEncryptKey(RSA_PUBLIC_KEY);
-        cryptorRuleHandle.setStrategyName("rsa");
-        cryptorRuleHandle.setFieldNames(fieldNames);
-        cryptorRuleHandle.setWay(way);
+        CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
+        cryptorRuleHandler.setDecryptKey(RSA_PRIVATE_KEY);
+        cryptorRuleHandler.setEncryptKey(RSA_PUBLIC_KEY);
+        cryptorRuleHandler.setStrategyName("rsa");
+        cryptorRuleHandler.setFieldNames(fieldNames);
+        cryptorRuleHandler.setWay(way);
 
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(cryptorRuleHandle));
+        ruleLocalData.setRuleHandler(JsonUtils.toJson(cryptorRuleHandler));
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());

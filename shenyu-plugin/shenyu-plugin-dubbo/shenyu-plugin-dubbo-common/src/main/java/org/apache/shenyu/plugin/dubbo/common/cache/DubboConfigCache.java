@@ -15,20 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.apache.dubbo.handler;
+package org.apache.shenyu.plugin.dubbo.common.cache;
 
-import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
-import org.apache.shenyu.plugin.dubbo.common.handler.DubboPluginDataHandler;
+import org.apache.shenyu.common.utils.GsonUtils;
 
 /**
- * The type Apache dubbo plugin data handler.
+ * DubboConfigCache.
  */
-public class ApacheDubboPluginDataHandler extends DubboPluginDataHandler {
+public class DubboConfigCache<T extends DubboConfigCache<?>> {
 
-    @Override
-    protected void initApplicationConfigCache(final DubboRegisterConfig dubboRegisterConfig) {
-        ApacheDubboConfigCache.getInstance().init(dubboRegisterConfig);
-        ApacheDubboConfigCache.getInstance().invalidateAll();
+    /**
+     * parser the rpc ext to dubbo param.
+     *
+     * @param rpcExt the rpc ext
+     * @return parsed dubbo param
+     */
+    protected DubboParam parserToDubboParam(final String rpcExt) {
+        return GsonUtils.getInstance().fromJson(rpcExt, DubboParam.class);
     }
 }
