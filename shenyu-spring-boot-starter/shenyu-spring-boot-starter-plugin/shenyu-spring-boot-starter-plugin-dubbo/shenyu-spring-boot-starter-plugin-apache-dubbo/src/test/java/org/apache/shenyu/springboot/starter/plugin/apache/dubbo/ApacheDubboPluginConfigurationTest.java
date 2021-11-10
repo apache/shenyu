@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.apache.dubbo;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
-import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
+import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheAbstractDubboPluginDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +50,7 @@ public final class ApacheDubboPluginConfigurationTest {
     private ApacheDubboPlugin apacheDubboPlugin;
     
     @Autowired(required = false)
-    private ApacheDubboPluginDataHandler apacheDubboPluginDataHandler;
+    private ApacheAbstractDubboPluginDataHandler apacheDubboPluginDataHandler;
     
     @Autowired(required = false)
     private ApacheDubboMetaDataSubscriber apacheDubboMetaDataSubscriber;

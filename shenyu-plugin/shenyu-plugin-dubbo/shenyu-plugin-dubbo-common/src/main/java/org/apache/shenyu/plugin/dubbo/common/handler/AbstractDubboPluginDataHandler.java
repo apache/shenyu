@@ -43,13 +43,13 @@ import java.util.stream.Collectors;
 /**
  * The common dubbo plugin data handler.
  */
-public abstract class DubboPluginDataHandler implements PluginDataHandler {
+public abstract class AbstractDubboPluginDataHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, DubboRuleHandle>> RULE_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     public static final Supplier<CommonHandleCache<String, List<DubboUpstream>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
-    protected abstract void initApplicationConfigCache(DubboRegisterConfig dubboRegisterConfig);
+    protected abstract void initConfigCache(DubboRegisterConfig dubboRegisterConfig);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -61,7 +61,7 @@ public abstract class DubboPluginDataHandler implements PluginDataHandler {
             }
             if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
                 // If it is null, initialize it
-                this.initApplicationConfigCache(dubboRegisterConfig);
+                this.initConfigCache(dubboRegisterConfig);
             }
             Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
         }
