@@ -19,6 +19,8 @@ package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -34,6 +36,11 @@ public class UpstreamCheckUtils {
     private static final String HTTPS = "https";
 
     private static final int DEFAULT_TIMEOUT = 3000;
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtils.class);
 
     /**
      * Check url boolean.
@@ -72,6 +79,7 @@ public class UpstreamCheckUtils {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port), timeout);
         } catch (IOException e) {
+            LOG.error("socket connect is error.", e);
             return false;
         }
         return true;

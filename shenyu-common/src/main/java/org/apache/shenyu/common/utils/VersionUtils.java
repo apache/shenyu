@@ -73,7 +73,7 @@ public final class VersionUtils {
             return defaultVersion;
         }
         String file = codeSource.getLocation().getFile();
-        if (file != null && file.length() > 0 && file.endsWith(JAR)) {
+        if (file != null && file.endsWith(JAR)) {
             file = file.substring(0, file.length() - 4);
             int i = file.lastIndexOf('/');
             if (i >= 0) {

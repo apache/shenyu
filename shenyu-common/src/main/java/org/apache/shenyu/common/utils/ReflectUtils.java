@@ -38,7 +38,7 @@ public class ReflectUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ReflectUtils.class);
 
     /**
-     * Gets field.
+     * Get field.
      *
      * @param beanClass the bean class
      * @param name      the name
@@ -166,6 +166,7 @@ public class ReflectUtils {
             } catch (NoSuchFieldException e) {
                 // Field is not defined in the current class and continues to transition up
                 // new add
+                LOG.error("field is not defined in the current class and continues to transition up", e);
             }
         }
         return null;
