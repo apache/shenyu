@@ -27,6 +27,7 @@ import com.weibo.api.motan.proxy.CommonHandler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -57,10 +58,8 @@ public final class ApplicationConfigCache {
 
     private ProtocolConfig protocolConfig;
 
-    private final int maxCount = 1000;
-
     private final LoadingCache<String, RefererConfig<CommonHandler>> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
                 RefererConfig<CommonHandler> config = (RefererConfig<CommonHandler>) notification.getValue();
                 if (config != null) {
