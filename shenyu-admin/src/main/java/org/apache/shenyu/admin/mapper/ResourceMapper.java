@@ -63,6 +63,14 @@ public interface ResourceMapper {
     ResourceDO selectByTitle(@Param("title") String title);
 
     /**
+     * select resource by title.
+     *
+     * @param titles resource titles
+     * @return {@linkplain List}
+     */
+    List<ResourceDO> selectByTitles(List<String> titles);
+
+    /**
      * count resource by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}

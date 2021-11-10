@@ -85,6 +85,15 @@
         from rule where selector_id = #{selectorId,jdbcType=VARCHAR}
     </select>
 
+    <select id="findBySelectorIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule where selector_id in
+        <foreach item="selectId" collection="list" open="(" separator="," close=")">
+            #{selectId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery"
             resultType="java.lang.Integer">
         select count(1)
@@ -237,5 +246,13 @@
     <delete id="delete" parameterType="java.lang.String">
         delete from rule
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        delete from rule
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>

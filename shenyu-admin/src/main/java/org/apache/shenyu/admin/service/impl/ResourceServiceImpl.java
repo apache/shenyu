@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,6 +125,22 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public ResourceVO findByTitle(final String title) {
         return ResourceVO.buildResourceVO(resourceMapper.selectByTitle(title));
+    }
+
+    /**
+     * find by title.
+     *
+     * @param titles resource titles
+     * @return {@linkplain ResourceVO}
+     */
+    @Override
+    public List<ResourceVO> listByTitles(final List<String> titles) {
+        final List<ResourceDO> resources = this.resourceMapper.selectByTitles(titles);
+        if (CollectionUtils.isEmpty(resources)) {
+            return Collections.emptyList();
+        }
+        return resources.stream().map(ResourceVO::buildResourceVO)
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     /**
