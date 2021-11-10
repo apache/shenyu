@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.oauth2.filter;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;

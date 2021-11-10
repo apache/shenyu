@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.service.converter;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.List;

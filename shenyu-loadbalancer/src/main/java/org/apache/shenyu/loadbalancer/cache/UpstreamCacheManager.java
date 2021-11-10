@@ -19,10 +19,10 @@ package org.apache.shenyu.loadbalancer.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.UpstreamCheck;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
