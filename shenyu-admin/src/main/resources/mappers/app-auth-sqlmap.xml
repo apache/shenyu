@@ -42,6 +42,16 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from app_auth
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="findByAppKey" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -210,6 +220,14 @@
     <delete id="delete" parameterType="java.lang.String">
         delete from app_auth
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        delete from app_auth
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </delete>
 
 

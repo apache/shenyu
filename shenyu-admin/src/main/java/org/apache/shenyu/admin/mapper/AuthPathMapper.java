@@ -80,7 +80,6 @@ public interface AuthPathMapper {
      */
     int deleteByAuthIdAndAppName(@Param("authId") String authId, @Param("appName") String appName);
 
-
     /**
      * Delete by auth id int.
      *
@@ -88,4 +87,12 @@ public interface AuthPathMapper {
      * @return the int
      */
     int deleteByAuthId(@Param("authId") String authId);
+
+    /**
+     * Delete by auth id int.
+     *
+     * @param authIds the auth ids
+     * @return the int
+     */
+    int deleteByAuthIds(List<String> authIds);
 }
