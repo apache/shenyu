@@ -18,10 +18,12 @@
 package org.apache.shenyu.agent.tracing.jaeger;
 
 import org.apache.shenyu.agent.spi.PluginAdviceDef;
+import org.apache.shenyu.spi.Join;
 
 /**
  * JaegerPluginAdviceDef.
  */
+@Join
 public class JaegerPluginAdviceDef implements PluginAdviceDef {
 
     @Override

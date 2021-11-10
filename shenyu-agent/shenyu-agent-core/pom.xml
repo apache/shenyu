@@ -56,7 +56,6 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.slf4j:*</exclude>
                                     <exclude>net.bytebuddy:*</exclude>
                                     <exclude>com.google.errorprone:error_prone_annotations:jar:</exclude>
                                     <exclude>com.google.code.findbugs:jsr305:jar:</exclude>
@@ -66,10 +65,6 @@
                                 </excludes>
                             </artifactSet>
                             <relocations>
-                                <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>${shade.package}.com.google</shadedPattern>
-                                </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons</pattern>
                                     <shadedPattern>${shade.package}.org.apache.commons</shadedPattern>
