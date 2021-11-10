@@ -153,7 +153,7 @@ public final class ApplicationConfigCache {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);
-        reference.setSent(false);
+
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
@@ -179,6 +179,7 @@ public final class ApplicationConfigCache {
             }
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
+            Optional.ofNullable(dubboParamExtInfo.getSent()).ifPresent(reference::setSent);
         }
         try {
             Object obj = reference.get();
@@ -250,6 +251,8 @@ public final class ApplicationConfigCache {
 
         private String url;
 
+        private Boolean sent;
+
         public String getGroup() {
             return group;
         }
@@ -296,6 +299,14 @@ public final class ApplicationConfigCache {
 
         public void setUrl(final String url) {
             this.url = url;
+        }
+
+        public Boolean getSent() {
+            return sent;
+        }
+
+        public void setSent(final Boolean sent) {
+            this.sent = sent;
         }
     }
 }
