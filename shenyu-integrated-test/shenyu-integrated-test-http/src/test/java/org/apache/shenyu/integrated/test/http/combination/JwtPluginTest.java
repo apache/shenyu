@@ -45,7 +45,7 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
 
     @BeforeClass
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"key00000\",\"filterPath\":\"/http/test/path/1111/name\"}");
+        String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"key00000\"}");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.JWT.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
@@ -55,13 +55,8 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
     public void testJwt() throws IOException {
         final String key = "key00000";
         final String testPath = "/http/test/findByUserId?userId=1001";
-        final String filterPath = "/http/test/path/1111/name";
         final String token = Jwts.builder().setId("1001").signWith(SignatureAlgorithm.HS256, key.getBytes(StandardCharsets.UTF_8)).compact();
         Map<String, Object> headers = new HashMap<>();
-
-        // send request to filterPath
-        Map<String, Object> filterResponse = HttpHelper.INSTANCE.getFromGateway(filterPath, Map.class);
-        assertThat(filterResponse.get("userId"), is("1111"));
 
         // send request with fake jwt
         headers.put("token", "fake.token.me");
