@@ -27,6 +27,7 @@ import com.qq.tars.protocol.annotation.Servant;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
@@ -63,10 +64,8 @@ public final class ApplicationConfigCache {
 
     private static final ReentrantLock LOCK = new ReentrantLock();
 
-    private final int maxCount = 1000;
-
     private final LoadingCache<String, TarsInvokePrxList> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .build(new CacheLoader<String, TarsInvokePrxList>() {
                 @Override
                 public TarsInvokePrxList load(final String key) {

@@ -447,6 +447,11 @@ public interface Constants {
      * dubbo group.
      */
     String GROUP = "group";
+
+    /**
+     * cache max count.
+     */
+    int CACHE_MAX_COUNT = 1000;
     
     /**
      * String q.
