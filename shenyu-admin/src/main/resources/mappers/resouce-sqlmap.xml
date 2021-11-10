@@ -81,7 +81,7 @@
         <include refid="Base_Column_List"/>
         from resource
         where status = 1
-        <if test="titles != null">
+        <if test="list != null">
             and title in
             <foreach item="title" collection="list" open="(" separator="," close=")">
                 #{title,jdbcType=VARCHAR}
