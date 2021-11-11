@@ -24,7 +24,7 @@ import net.bytebuddy.matcher.ElementMatchers;
 import org.apache.shenyu.agent.matcher.SafeErasureMatcher;
 import org.apache.shenyu.agent.matcher.HasParentTypeMatcher;
 import org.apache.shenyu.agent.spi.PluginAdviceDef;
-import org.apache.shenyu.agent.tracing.jaeger.JaegerPluginAdviceDef;
+import org.apache.shenyu.spi.ExtensionLoader;
 
 import java.lang.instrument.Instrumentation;
 
@@ -46,11 +46,9 @@ public class AgentInstaller {
      * @param inst the instrumentation.
      */
     public static void installBytebuddyAgent(final Instrumentation inst) {
-        // todo load config from file or cmd args
-        // todo choose trace type according to config
         // todo start trace exporter according to traceType
-        // todo start instrument(use spi to get advice class name)
-        PluginAdviceDef pluginAdviceDef = new JaegerPluginAdviceDef();
+        String traceType = System.getProperty("shenyu.agent.trace", "jaeger");
+        PluginAdviceDef pluginAdviceDef = ExtensionLoader.getExtensionLoader(PluginAdviceDef.class).getJoin(traceType);
         AgentBuilder agent = new AgentBuilder.Default()
             .disableClassFormatChanges()
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
