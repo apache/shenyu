@@ -19,8 +19,8 @@ package org.apache.shenyu.plugin.param.mapping.strategy;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.springframework.core.io.buffer.DataBufferUtils;

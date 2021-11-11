@@ -53,6 +53,14 @@ public interface RuleMapper {
      * @return the list
      */
     List<RuleDO> findBySelectorId(String selectorId);
+
+    /**
+     * Find by selector id list.
+     *
+     * @param selectorIds the selector ids
+     * @return the list
+     */
+    List<RuleDO> findBySelectorIds(List<String> selectorIds);
     
     /**
      * select rule by name.
@@ -118,6 +126,14 @@ public interface RuleMapper {
      * @return rows int
      */
     int delete(String id);
+
+    /**
+     * delete rule.
+     *
+     * @param ids primary keys.
+     * @return rows int
+     */
+    int deleteByIds(List<String> ids);
     
     /**
      * list all.

@@ -54,7 +54,7 @@ public class AgentClassLoader extends URLClassLoader {
             if (!javaagentFile.isFile()) {
                 throw new AgentBootstrapFailException("agent jar location doesn't appear to be a file: " + javaagentFile.getAbsolutePath());
             }
-            File pluginFileDirectory = new File(javaagentFile.getParent() + "/plugin");
+            File pluginFileDirectory = new File(javaagentFile.getParent() + "/plugins");
             File[] jars = Arrays.stream(Objects.requireNonNull(pluginFileDirectory.listFiles()))
                     .filter(filePointer -> filePointer.getName().endsWith(".jar")).toArray(File[]::new);
             URL[] urls = new URL[jars.length + 1];

@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
@@ -35,13 +35,11 @@ import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -82,7 +80,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PermissionMenuVO getPermissionMenu(final String token) {
         UserInfo userInfo = JwtUtils.getUserInfo();
-        if (!ObjectUtils.isEmpty(userInfo)) {
+        if (Objects.nonNull(userInfo)) {
             List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
             if (CollectionUtils.isNotEmpty(resourceVOList)) {
                 List<MenuInfo> menuInfoList = new ArrayList<>();
@@ -115,18 +113,18 @@ public class PermissionServiceImpl implements PermissionService {
      * @return {@linkplain List}
      */
     private List<ResourceVO> getResourceListByUserName(final String userName) {
-        Map<String, Integer> resourceMap = new HashMap<>();
         List<UserRoleDO> userRoleDOList = userRoleMapper.findByUserId(dashboardUserMapper.selectByUserName(userName).getId());
-        for (UserRoleDO userRoleDO : userRoleDOList) {
-            permissionMapper.findByObjectId(userRoleDO.getRoleId())
-                    .stream()
-                    .map(PermissionDO::getResourceId)
-                    .collect(Collectors.toList())
-                    .forEach(resource -> resourceMap.put(resource, 1));
-        }
-        if (MapUtils.isNotEmpty(resourceMap)) {
-            return new ArrayList<>(resourceMap.keySet()).stream()
+        List<String> roleIds = userRoleDOList.stream().filter(Objects::nonNull)
+                .map(UserRoleDO::getRoleId)
+                .collect(Collectors.toList());
+        Set<String> resourceIds = permissionMapper.findByObjectIds(roleIds).stream()
+                .map(PermissionDO::getResourceId)
+                .filter(StringUtils::isNoneBlank)
+                .collect(Collectors.toSet());
+        if (CollectionUtils.isNotEmpty(resourceIds)) {
+            return new ArrayList<>(resourceIds).stream()
                     .map(resource -> ResourceVO.buildResourceVO(resourceMapper.selectById(resource)))
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();

@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.grpc.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -41,10 +42,8 @@ import java.util.stream.Collectors;
  */
 public final class ApplicationConfigCache {
 
-    private final int maxCount = 1000;
-
     private final LoadingCache<String, ShenyuServiceInstanceLists> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
                 @Override
                 public ShenyuServiceInstanceLists load(final String key) {

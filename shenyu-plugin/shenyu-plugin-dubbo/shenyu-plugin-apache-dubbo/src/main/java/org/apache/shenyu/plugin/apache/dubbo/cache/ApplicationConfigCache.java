@@ -25,6 +25,7 @@ import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -51,10 +52,8 @@ public final class ApplicationConfigCache {
 
     private RegistryConfig registryConfig;
 
-    private final int maxCount = 1000;
-
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
                 ReferenceConfig<GenericService> config = (ReferenceConfig<GenericService>) notification.getValue();
                 if (config != null) {
@@ -153,7 +152,7 @@ public final class ApplicationConfigCache {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);
-        reference.setSent(false);
+
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
@@ -179,6 +178,7 @@ public final class ApplicationConfigCache {
             }
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
+            Optional.ofNullable(dubboParamExtInfo.getSent()).ifPresent(reference::setSent);
         }
         try {
             Object obj = reference.get();
@@ -250,6 +250,8 @@ public final class ApplicationConfigCache {
 
         private String url;
 
+        private Boolean sent;
+
         public String getGroup() {
             return group;
         }
@@ -296,6 +298,14 @@ public final class ApplicationConfigCache {
 
         public void setUrl(final String url) {
             this.url = url;
+        }
+
+        public Boolean getSent() {
+            return sent;
+        }
+
+        public void setSent(final Boolean sent) {
+            this.sent = sent;
         }
     }
 }
