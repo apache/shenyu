@@ -209,26 +209,22 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private void subscribeSelectorDataChanges(final String path) {
-        etcdClient.watchDataChange(path,
-                (updateNode, updateValue) -> cacheSelectorData(updateValue),
+        etcdClient.watchDataChange(path, (updateNode, updateValue) -> cacheSelectorData(updateValue),
                 this::unCacheSelectorData);
     }
 
     private void subscribeRuleDataChanges(final String path) {
-        etcdClient.watchDataChange(path,
-                (updatePath, updateValue) -> cacheRuleData(updateValue),
+        etcdClient.watchDataChange(path, (updatePath, updateValue) -> cacheRuleData(updateValue),
                 this::unCacheRuleData);
     }
 
     private void subscribeAppAuthDataChanges(final String realPath) {
-        etcdClient.watchDataChange(realPath,
-                (updatePath, updateValue) -> cacheAuthData(updateValue),
+        etcdClient.watchDataChange(realPath, (updatePath, updateValue) -> cacheAuthData(updateValue),
                 this::unCacheAuthData);
     }
 
     private void subscribeMetaDataChanges(final String realPath) {
-        etcdClient.watchDataChange(realPath,
-                (updatePath, updateValue) -> cacheMetaData(updateValue),
+        etcdClient.watchDataChange(realPath, (updatePath, updateValue) -> cacheMetaData(updateValue),
                 this::deleteMetaData);
     }
 

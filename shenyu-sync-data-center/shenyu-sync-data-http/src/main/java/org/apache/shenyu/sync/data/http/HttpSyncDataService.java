@@ -73,12 +73,12 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     private static final Gson GSON = new Gson();
 
     /**
-     * shenyu admin path configs fetch
+     * shenyu admin path configs fetch.
      */
     private static final String SHENYU_ADMIN_PATH_CONFIGS_FETCH = "/configs/fetch";
 
     /**
-     * shenyu admin path configs listener
+     * shenyu admin path configs listener.
      */
     private static final String SHENYU_ADMIN_PATH_CONFIGS_LISTENER = "/configs/listener";
 
