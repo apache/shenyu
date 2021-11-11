@@ -21,7 +21,6 @@ import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
 import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -29,14 +28,9 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.dubbo.common.AbstractDubboPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -60,28 +54,27 @@ public class AlibabaDubboPlugin extends AbstractDubboPlugin {
         this.alibabaDubboProxyService = alibabaDubboProxyService;
     }
 
+    /**
+     * do dubbo invoker.
+     *
+     * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
+     * @param chain    chain the current chain  {@linkplain ServerWebExchange}
+     * @param selector selector    {@linkplain SelectorData}
+     * @param rule     rule    {@linkplain RuleData}
+     * @param metaData the medata
+     * @param param    the param
+     * @return {@code Mono<Void>} to indicate when request handling is complete
+     */
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        MetaData metaData = exchange.getAttribute(Constants.META_DATA);
-        if (!checkMetaData(metaData)) {
-            assert metaData != null;
-            LOG.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
-            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
-            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
-            return WebFluxResultUtils.result(exchange, error);
-        }
+    protected Mono<Void> doDubboInvoker(final ServerWebExchange exchange,
+                                        final ShenyuPluginChain chain,
+                                        final SelectorData selector,
+                                        final RuleData rule,
+                                        final MetaData metaData,
+                                        final String param) {
         RpcContext.getContext().setAttachment(Constants.DUBBO_SELECTOR_ID, selector.getId());
         RpcContext.getContext().setAttachment(Constants.DUBBO_RULE_ID, rule.getId());
         RpcContext.getContext().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
-
         return Mono.create(monoSink -> {
             ResponseFuture future = alibabaDubboProxyService.genericInvoker(param, metaData);
             future.setCallback(new ResponseCallback() {
@@ -108,19 +101,5 @@ public class AlibabaDubboPlugin extends AbstractDubboPlugin {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return chain.execute(exchange);
         });
-    }
-
-    @Override
-    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
-    }
-
-    @Override
-    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return WebFluxResultUtils.noRuleResult(pluginName, exchange);
-    }
-
-    private boolean checkMetaData(final MetaData metaData) {
-        return null != metaData && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
     }
 }

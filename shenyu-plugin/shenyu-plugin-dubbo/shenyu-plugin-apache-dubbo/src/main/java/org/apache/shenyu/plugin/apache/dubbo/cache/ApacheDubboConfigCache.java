@@ -15,21 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.alibaba.dubbo.cache;
+package org.apache.shenyu.plugin.apache.dubbo.cache;
 
-import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.config.ApplicationConfig;
+import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.dubbo.common.cache.DubboConfigCache;
+import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,13 +41,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+
 /**
  * The type Application config cache.
  */
-@SuppressWarnings("all")
-public final class ApplicationConfigCache {
+public final class ApacheDubboConfigCache extends DubboConfigCache {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboConfigCache.class);
 
     private ApplicationConfig applicationConfig;
 
@@ -55,10 +56,10 @@ public final class ApplicationConfigCache {
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
-                ReferenceConfig config = (ReferenceConfig<GenericService>) notification.getValue();
+                ReferenceConfig<GenericService> config = (ReferenceConfig<GenericService>) notification.getValue();
                 if (config != null) {
                     try {
-                        Class cz = config.getClass();
+                        Class<?> cz = config.getClass();
                         Field field = cz.getDeclaredField("ref");
                         field.setAccessible(true);
                         // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
@@ -76,7 +77,7 @@ public final class ApplicationConfigCache {
                 }
             });
 
-    private ApplicationConfigCache() {
+    private ApacheDubboConfigCache() {
     }
 
     /**
@@ -84,7 +85,7 @@ public final class ApplicationConfigCache {
      *
      * @return the instance
      */
-    public static ApplicationConfigCache getInstance() {
+    public static ApacheDubboConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
 
@@ -94,7 +95,7 @@ public final class ApplicationConfigCache {
      * @param dubboRegisterConfig the dubbo register config
      */
     public void init(final DubboRegisterConfig dubboRegisterConfig) {
-        if (applicationConfig == null) {
+        if (Objects.isNull(applicationConfig)) {
             applicationConfig = new ApplicationConfig("shenyu_proxy");
         }
         if (needUpdateRegistryConfig(dubboRegisterConfig)) {
@@ -109,15 +110,12 @@ public final class ApplicationConfigCache {
     }
 
     private boolean needUpdateRegistryConfig(final DubboRegisterConfig dubboRegisterConfig) {
-        if (registryConfig == null) {
+        if (Objects.isNull(registryConfig)) {
             return true;
         }
-        if (!Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())
+        return !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())
                 || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress())
-                || !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())) {
-            return true;
-        }
-        return false;
+                || !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol());
     }
 
     /**
@@ -149,12 +147,13 @@ public final class ApplicationConfigCache {
             return new ReferenceConfig<>();
         }
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
-        reference.setGeneric(true);
+        reference.setGeneric("true");
+        reference.setAsync(true);
+
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
-        reference.setAsync(true);
         reference.setCheck(false);
         reference.setLoadbalance("gray");
 
@@ -163,29 +162,29 @@ public final class ApplicationConfigCache {
         reference.setParameters(parameters);
 
         String rpcExt = metaData.getRpcExt();
-        DubboParamExtInfo dubboParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, DubboParamExtInfo.class);
-        if (Objects.nonNull(dubboParamExtInfo)) {
-            if (StringUtils.isNoneBlank(dubboParamExtInfo.getVersion())) {
-                reference.setVersion(dubboParamExtInfo.getVersion());
+        DubboParam dubboParam = parserToDubboParam(rpcExt);
+        if (Objects.nonNull(dubboParam)) {
+            if (StringUtils.isNoneBlank(dubboParam.getVersion())) {
+                reference.setVersion(dubboParam.getVersion());
             }
-            if (StringUtils.isNoneBlank(dubboParamExtInfo.getGroup())) {
-                reference.setGroup(dubboParamExtInfo.getGroup());
+            if (StringUtils.isNoneBlank(dubboParam.getGroup())) {
+                reference.setGroup(dubboParam.getGroup());
             }
-            if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
-                reference.setUrl(dubboParamExtInfo.getUrl());
+            if (StringUtils.isNoneBlank(dubboParam.getUrl())) {
+                reference.setUrl(dubboParam.getUrl());
             }
-            Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
-            Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
-            Optional.ofNullable(dubboParamExtInfo.getSent()).ifPresent(reference::setSent);
+            Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
+            Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);
+            Optional.ofNullable(dubboParam.getSent()).ifPresent(reference::setSent);
         }
         try {
             Object obj = reference.get();
-            if (obj != null) {
-                LOG.info("init alibaba dubbo reference success there meteData is :{}", metaData);
+            if (Objects.nonNull(obj)) {
+                LOG.info("init apache dubbo reference success there meteData is :{}", metaData);
                 cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
-            LOG.error("init alibaba dubbo refernce exception", e);
+            LOG.error("init apache dubbo reference exception", e);
         }
         return reference;
     }
@@ -228,83 +227,6 @@ public final class ApplicationConfigCache {
         /**
          * The Instance.
          */
-        static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
+        static final ApacheDubboConfigCache INSTANCE = new ApacheDubboConfigCache();
     }
-
-    /**
-     * The type Dubbo param ext info.
-     */
-    static class DubboParamExtInfo {
-
-        private String group;
-
-        private String version;
-
-        private String loadbalance;
-
-        private Integer retries;
-
-        private Integer timeout;
-
-        private String url;
-
-        private Boolean sent;
-
-        public String getGroup() {
-            return group;
-        }
-
-        public void setGroup(final String group) {
-            this.group = group;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public void setVersion(final String version) {
-            this.version = version;
-        }
-
-        public String getLoadbalance() {
-            return loadbalance;
-        }
-
-        public void setLoadbalance(final String loadbalance) {
-            this.loadbalance = loadbalance;
-        }
-
-        public Integer getRetries() {
-            return retries;
-        }
-
-        public void setRetries(final Integer retries) {
-            this.retries = retries;
-        }
-
-        public Integer getTimeout() {
-            return timeout;
-        }
-
-        public void setTimeout(final Integer timeout) {
-            this.timeout = timeout;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(final String url) {
-            this.url = url;
-        }
-
-        public Boolean getSent() {
-            return sent;
-        }
-
-        public void setSent(final Boolean sent) {
-            this.sent = sent;
-        }
-    }
-
 }
