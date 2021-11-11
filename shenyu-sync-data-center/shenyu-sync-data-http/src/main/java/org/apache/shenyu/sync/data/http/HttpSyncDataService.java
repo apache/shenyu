@@ -50,6 +50,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -70,6 +71,16 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
     private static final Gson GSON = new Gson();
+
+    /**
+     * shenyu admin path configs fetch
+     */
+    private static final String SHENYU_ADMIN_PATH_CONFIGS_FETCH = "/configs/fetch";
+
+    /**
+     * shenyu admin path configs listener
+     */
+    private static final String SHENYU_ADMIN_PATH_CONFIGS_LISTENER = "/configs/listener";
 
     /**
      * default: 10s.
@@ -142,7 +153,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKeys").append("=").append(groupKey.name()).append("&");
         }
-        String url = server + "/configs/fetch?" + StringUtils.removeEnd(params.toString(), "&");
+        String url = server + SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
         String json = null;
         try {
@@ -189,8 +200,9 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         HttpEntity httpEntity = new HttpEntity(params, headers);
-        String listenerUrl = server + "/configs/listener";
+        String listenerUrl = server + SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
         LOG.debug("request listener configs: [{}]", listenerUrl);
+
         JsonArray groupJson = null;
         try {
             String json = this.httpClient.postForEntity(listenerUrl, httpEntity, String.class).getBody();
@@ -200,7 +212,8 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
         }
-        if (groupJson != null) {
+
+        if (Objects.nonNull(groupJson)) {
             // fetch group configuration async.
             ConfigGroupEnum[] changedGroups = GSON.fromJson(groupJson, ConfigGroupEnum[].class);
             if (ArrayUtils.isNotEmpty(changedGroups)) {
@@ -213,7 +226,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     @Override
     public void close() throws Exception {
         RUNNING.set(false);
-        if (executor != null) {
+        if (Objects.nonNull(executor)) {
             executor.shutdownNow();
             // help gc
             executor = null;

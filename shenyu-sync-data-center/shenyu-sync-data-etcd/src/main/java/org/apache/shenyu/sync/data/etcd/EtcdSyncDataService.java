@@ -40,6 +40,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -69,8 +70,10 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers
      */
-    public EtcdSyncDataService(final EtcdClient etcdClient, final PluginDataSubscriber pluginDataSubscriber,
-                               final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
+    public EtcdSyncDataService(final EtcdClient etcdClient,
+                               final PluginDataSubscriber pluginDataSubscriber,
+                               final List<MetaDataSubscriber> metaDataSubscribers,
+                               final List<AuthDataSubscriber> authDataSubscribers) {
         this.etcdClient = etcdClient;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
@@ -206,22 +209,26 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private void subscribeSelectorDataChanges(final String path) {
-        etcdClient.watchDataChange(path, (updateNode, updateValue) -> cacheSelectorData(updateValue),
+        etcdClient.watchDataChange(path,
+                (updateNode, updateValue) -> cacheSelectorData(updateValue),
                 this::unCacheSelectorData);
     }
 
     private void subscribeRuleDataChanges(final String path) {
-        etcdClient.watchDataChange(path, (updatePath, updateValue) -> cacheRuleData(updateValue),
+        etcdClient.watchDataChange(path,
+                (updatePath, updateValue) -> cacheRuleData(updateValue),
                 this::unCacheRuleData);
     }
 
     private void subscribeAppAuthDataChanges(final String realPath) {
-        etcdClient.watchDataChange(realPath, (updatePath, updateValue) -> cacheAuthData(updateValue),
+        etcdClient.watchDataChange(realPath,
+                (updatePath, updateValue) -> cacheAuthData(updateValue),
                 this::unCacheAuthData);
     }
 
     private void subscribeMetaDataChanges(final String realPath) {
-        etcdClient.watchDataChange(realPath, (updatePath, updateValue) -> cacheMetaData(updateValue),
+        etcdClient.watchDataChange(realPath,
+                (updatePath, updateValue) -> cacheMetaData(updateValue),
                 this::deleteMetaData);
     }
 
@@ -234,7 +241,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
             unCacheMetaData(metaData);
             etcdClient.watchClose(path);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            LOG.error("delete meta data error.", e);
         }
     }
 
@@ -272,17 +279,20 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
         final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
         final String pluginName = str.substring(1, str.length() - substring.length() - 1);
         final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(substring));
+
         RuleData ruleData = new RuleData();
         ruleData.setPluginName(pluginName);
         ruleData.setSelectorId(list.get(0));
         ruleData.setId(list.get(1));
+
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData));
         etcdClient.watchClose(dataPath);
     }
 
     private void cacheAuthData(final String dataString) {
         final AppAuthData appAuthData = GsonUtils.getInstance().fromJson(dataString, AppAuthData.class);
-        Optional.ofNullable(appAuthData).ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
+        Optional.ofNullable(appAuthData)
+                .ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
 
     private void unCacheAuthData(final String dataPath) {
@@ -295,11 +305,13 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
 
     private void cacheMetaData(final String dataString) {
         final MetaData metaData = GsonUtils.getInstance().fromJson(dataString, MetaData.class);
-        Optional.ofNullable(metaData).ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
+        Optional.ofNullable(metaData)
+                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
     }
 
     private void unCacheMetaData(final MetaData metaData) {
-        Optional.ofNullable(metaData).ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
+        Optional.ofNullable(metaData)
+                .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
     }
 
     private String buildRealPath(final String parent, final String children) {
@@ -317,7 +329,7 @@ public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
 
     @Override
     public void close() {
-        if (null != etcdClient) {
+        if (Objects.nonNull(etcdClient)) {
             etcdClient.close();
         }
     }
