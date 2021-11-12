@@ -95,6 +95,7 @@ public class RuleServiceImpl implements RuleService {
         if (Objects.nonNull(exist)) {
             return "";
         }
+
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
@@ -236,21 +237,23 @@ public class RuleServiceImpl implements RuleService {
     }
 
     private RuleData buildRuleData(final RuleDO ruleDO) {
-        // query for conditions
-        List<ConditionData> conditions = ruleConditionMapper.selectByQuery(
-                new RuleConditionQuery(ruleDO.getId()))
-                .stream()
-                .filter(Objects::nonNull)
-                .map(ConditionTransfer.INSTANCE::mapToRuleDO)
-                .collect(Collectors.toList());
         SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
         if (Objects.isNull(selectorDO)) {
             return null;
         }
+
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         if (Objects.isNull(pluginDO)) {
             return null;
         }
+
+        // query for conditions
+        List<ConditionData> conditions = ruleConditionMapper.selectByQuery(
+                        new RuleConditionQuery(ruleDO.getId()))
+                .stream()
+                .filter(Objects::nonNull)
+                .map(ConditionTransfer.INSTANCE::mapToRuleDO)
+                .collect(Collectors.toList());
         return RuleDO.transFrom(ruleDO, pluginDO.getName(), conditions);
     }
 }

@@ -112,6 +112,7 @@ public class PluginServiceImpl implements PluginService {
         if (StringUtils.isNoneBlank(msg)) {
             return msg;
         }
+
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         DataEventTypeEnum eventType = DataEventTypeEnum.CREATE;
         if (StringUtils.isBlank(pluginDTO.getId())) {
@@ -137,6 +138,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
+        // 1. select plugin id.
         List<PluginDO> plugins = Optional.ofNullable(this.pluginMapper.selectByIds(ids))
                 .orElse(Collections.emptyList());
         final List<String> pluginIds = plugins.stream()
@@ -144,11 +146,13 @@ public class PluginServiceImpl implements PluginService {
         if (CollectionUtils.isEmpty(pluginIds)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
-        // delete plugins
+
+        // 2. delete plugins.
         this.pluginMapper.deleteByIds(pluginIds);
-        // delete plugin handle
+        // 3. delete plugin handle.
         this.pluginHandleMapper.deleteByPluginIds(pluginIds);
-        // all selectors
+
+        // 4. all selectors.
         final List<String> selectorIds = Optional.ofNullable(this.selectorMapper.findByPluginIds(pluginIds))
                 .orElse(Collections.emptyList())
                 .stream().map(SelectorDO::getId).collect(Collectors.toList());
@@ -159,20 +163,25 @@ public class PluginServiceImpl implements PluginService {
             this.selectorConditionMapper.deleteBySelectorIds(selectorIds);
             // delete all rules
             final List<String> ruleIds = Optional.ofNullable(this.ruleMapper.findBySelectorIds(selectorIds))
-                    .orElse(Collections.emptyList()).stream().map(RuleDO::getId).collect(Collectors.toList());
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(RuleDO::getId)
+                    .collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(ruleIds)) {
                 this.ruleMapper.deleteByIds(ruleIds);
                 // delete all rule conditions
                 this.ruleConditionMapper.deleteByRuleIds(ruleIds);
             }
         }
-        // delete resource & permission
+
+        // 5. delete resource & permission.
         final List<ResourceVO> resources = this.resourceService.listByTitles(plugins.stream()
                 .map(PluginDO::getName).collect(Collectors.toList()));
         if (CollectionUtils.isNotEmpty(resources)) {
             this.resourceService.delete(resources.stream().map(ResourceVO::getId).collect(Collectors.toList()));
         }
-        // publish change event.
+
+        // 6. publish change event.
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
                 plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
         return StringUtils.EMPTY;
@@ -198,6 +207,7 @@ public class PluginServiceImpl implements PluginService {
             pluginMapper.updateEnable(pluginDO);
             plugins.add(pluginDO);
         }
+
         // publish change event.
         if (CollectionUtils.isNotEmpty(plugins)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
@@ -248,7 +258,7 @@ public class PluginServiceImpl implements PluginService {
         Objects.requireNonNull(pluginDO);
         return pluginDO.getId();
     }
-    
+
     /**
      * Find by name plugin do.
      *
@@ -259,7 +269,7 @@ public class PluginServiceImpl implements PluginService {
     public PluginDO findByName(final String name) {
         return pluginMapper.selectByName(name);
     }
-    
+
     /**
      * check plugin Data integrity.
      *

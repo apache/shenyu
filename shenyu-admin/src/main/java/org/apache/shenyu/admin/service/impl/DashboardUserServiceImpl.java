@@ -116,12 +116,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         }
+
         if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
             userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
         }
+
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
+
         return dashboardUserMapper.updateSelective(dashboardUserDO);
     }
 
@@ -213,9 +216,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, password);
         }
+
         if (Objects.isNull(dashboardUserVO)) {
             dashboardUserVO = loginByDatabase(userName, password);
         }
+
         return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO)
                 .setToken(JwtUtils.generateToken(dashboardUserVO.getUserName(), dashboardUserVO.getPassword(),
                         jwtProperties.getExpiredSeconds()));
@@ -256,8 +261,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        DashboardUserVO dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
-        return dashboardUserVO;
+        return findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
     }
 
     /**

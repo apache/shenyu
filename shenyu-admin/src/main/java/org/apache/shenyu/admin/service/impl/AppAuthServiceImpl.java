@@ -169,6 +169,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthParamDTO> authParamDTOList = appAuthDTO.getAuthParamDTOList();
         if (CollectionUtils.isNotEmpty(authParamDTOList)) {
             authParamMapper.deleteByAuthId(appAuthDTO.getId());
+
             List<AuthParamDO> authParamDOList = authParamDTOList.stream()
                     .map(dto -> AuthParamDO.create(appAuthDTO.getId(), dto.getAppName(), dto.getAppParam()))
                     .collect(Collectors.toList());
@@ -179,13 +180,16 @@ public class AppAuthServiceImpl implements AppAuthService {
             List<AuthPathDO> oldAuthPathDOList = authPathMapper.findByAuthId(appAuthDTO.getId());
             String appName = oldAuthPathDOList.stream().findFirst()
                     .map(AuthPathDO::getAppName).orElse(StringUtils.EMPTY);
+
             authPathMapper.deleteByAuthId(appAuthDTO.getId());
+
             List<AuthPathDO> authPathDOList = authPathDTOList.stream()
                     .filter(Objects::nonNull)
                     .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), appName))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(authPathDOList);
         }
+
         AppAuthData appAuthData = buildByEntity(appAuthDO);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
                 DataEventTypeEnum.UPDATE,
@@ -202,6 +206,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
             authPathMapper.deleteByAuthId(authPathWarpDTO.getId());
+
             List<AuthPathDO> collect = authPathDTOList.stream()
                     .filter(Objects::nonNull)
                     .map(authPathDTO -> AuthPathDO.create(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName()))
