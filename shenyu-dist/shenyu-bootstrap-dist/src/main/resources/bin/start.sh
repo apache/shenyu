@@ -27,7 +27,7 @@ if [ ! -d ${LOGS_DIR} ]; then
     mkdir ${LOGS_DIR}
 fi
 
-LOG_FILES=${LOGS_DIR}
+LOG_FILES=${LOGS_DIR}/shenyu-bootstrap.log
 EXT_LIB=${DEPLOY_DIR}/ext-lib
 
 PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | grep -v grep | awk '{print $2}'`
@@ -43,6 +43,6 @@ JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss256k -XX:+DisableExplicitGC -XX:+Us
 MAIN_CLASS=org.apache.shenyu.bootstrap.ShenyuBootstrapApplication
 echo "Starting the $SERVER_NAME ..."
 
-nohup java ${JAVA_OPTS} -classpath ${CLASS_PATH} ${MAIN_CLASS} >/dev/null 2>&1 &
+nohup java ${JAVA_OPTS} -classpath ${CLASS_PATH} ${MAIN_CLASS} >> ${LOG_FILES} 2>&1 &
 sleep 1
 echo "Please check the log files: $LOG_FILES"
