@@ -15,36 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.config;
+package org.apache.shenyu.plugin.apache.dubbo.handler;
 
-import java.io.Serializable;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
+import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
+import org.apache.shenyu.plugin.dubbo.common.handler.AbstractDubboPluginDataHandler;
 
 /**
- * The type Jwt config.
+ * The type Apache dubbo plugin data handler.
  */
-public class JwtConfig implements Serializable {
+public class ApacheAbstractDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
 
-    /**
-     * private key.
-     */
-    private String secretKey;
-
-    /**
-     * Gets secret key.
-     *
-     * @return the secret key
-     */
-    public String getSecretKey() {
-        return secretKey;
+    @Override
+    protected void initConfigCache(final DubboRegisterConfig dubboRegisterConfig) {
+        ApacheDubboConfigCache.getInstance().init(dubboRegisterConfig);
+        ApacheDubboConfigCache.getInstance().invalidateAll();
     }
-
-    /**
-     * Sets secret key.
-     *
-     * @param secretKey the secret key
-     */
-    public void setSecretKey(final String secretKey) {
-        this.secretKey = secretKey;
-    }
-
 }

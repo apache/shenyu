@@ -15,36 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.config;
+package org.apache.shenyu.plugin.dubbo.common.cache;
 
-import java.io.Serializable;
+import org.apache.shenyu.common.utils.GsonUtils;
 
 /**
- * The type Jwt config.
+ * DubboConfigCache.
  */
-public class JwtConfig implements Serializable {
+public class DubboConfigCache<T extends DubboConfigCache<?>> {
 
     /**
-     * private key.
-     */
-    private String secretKey;
-
-    /**
-     * Gets secret key.
+     * parser the rpc ext to dubbo param.
      *
-     * @return the secret key
+     * @param rpcExt the rpc ext
+     * @return parsed dubbo param
      */
-    public String getSecretKey() {
-        return secretKey;
+    protected DubboParam parserToDubboParam(final String rpcExt) {
+        return GsonUtils.getInstance().fromJson(rpcExt, DubboParam.class);
     }
-
-    /**
-     * Sets secret key.
-     *
-     * @param secretKey the secret key
-     */
-    public void setSecretKey(final String secretKey) {
-        this.secretKey = secretKey;
-    }
-
 }

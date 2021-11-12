@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.apache.dubbo.handler;
+package org.apache.shenyu.plugin.dubbo.common.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -30,7 +30,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
@@ -42,17 +41,19 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * The type Apache dubbo plugin data handler.
+ * The common dubbo plugin data handler.
  */
-public class ApacheDubboPluginDataHandler implements PluginDataHandler {
+public abstract class AbstractDubboPluginDataHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, DubboRuleHandle>> RULE_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     public static final Supplier<CommonHandleCache<String, List<DubboUpstream>>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
+    protected abstract void initConfigCache(DubboRegisterConfig dubboRegisterConfig);
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (null != pluginData && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
             DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
             if (Objects.isNull(dubboRegisterConfig)) {
@@ -60,8 +61,7 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
             }
             if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
                 // If it is null, initialize it
-                ApplicationConfigCache.getInstance().init(dubboRegisterConfig);
-                ApplicationConfigCache.getInstance().invalidateAll();
+                this.initConfigCache(dubboRegisterConfig);
             }
             Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
         }

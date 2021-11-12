@@ -20,9 +20,10 @@ package org.apache.shenyu.plugin.cryptor.utils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class JsonUtil {
      * @param ruleHandle ruleHandle
      * @return is null
      */
-    public static boolean checkParam(final CryptorRuleHandle ruleHandle) {
+    public static boolean checkParam(final CryptorRuleHandler ruleHandle) {
         String json = GsonUtils.getGson().toJson(ruleHandle);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(json, String.class);
         for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -97,7 +98,7 @@ public class JsonUtil {
                                               final AtomicInteger initDeep,
                                               final String value,
                                               final List<String> deepKey) {
-        if (deepKey.size() == 0) {
+        if (CollectionUtils.isEmpty(deepKey)) {
             return jsonElement;
         }
         if (jsonElement.isJsonPrimitive()) {

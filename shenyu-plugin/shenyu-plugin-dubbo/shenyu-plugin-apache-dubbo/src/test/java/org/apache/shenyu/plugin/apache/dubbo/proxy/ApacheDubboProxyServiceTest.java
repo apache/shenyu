@@ -24,7 +24,7 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.junit.After;
 import org.junit.Before;
@@ -72,7 +72,7 @@ public final class ApacheDubboProxyServiceTest {
 
     @After
     public void after() {
-        ApplicationConfigCache.getInstance().invalidateAll();
+        ApacheDubboConfigCache.getInstance().invalidateAll();
     }
 
     @Test
@@ -83,10 +83,10 @@ public final class ApacheDubboProxyServiceTest {
         when(referenceConfig.getInterface()).thenReturn(PATH);
         CompletableFuture<Object> future = new CompletableFuture<>();
         when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(future);
-        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
-        Field field = ApplicationConfigCache.class.getDeclaredField("cache");
+        ApacheDubboConfigCache apacheDubboConfigCache = ApacheDubboConfigCache.getInstance();
+        Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache) field.get(applicationConfigCache)).put(PATH, referenceConfig);
+        ((LoadingCache) field.get(apacheDubboConfigCache)).put(PATH, referenceConfig);
         ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
         apacheDubboProxyService.genericInvoker("", metaData, exchange);
         future.complete("success");

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.dto;
+package org.apache.shenyu.plugin.cryptor.handler;
 
 /**
  * Cryptor response rule handle.
  */
-public class CryptorRuleHandle {
+public class CryptorRuleHandler {
 
     private String strategyName;
 
@@ -114,7 +114,7 @@ public class CryptorRuleHandle {
 
     @Override
     public String toString() {
-        return "CryptorResponseRuleHandle{"
+        return "CryptorRuleHandler{"
                 + "strategyName='" + strategyName + '\''
                 + ", decryptKey='" + decryptKey + '\''
                 + ", encryptKey='" + encryptKey + '\''
