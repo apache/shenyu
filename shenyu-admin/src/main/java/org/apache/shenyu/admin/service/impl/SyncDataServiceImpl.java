@@ -83,13 +83,18 @@ public class SyncDataServiceImpl implements SyncDataService {
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
+
         List<PluginData> pluginDataList = pluginService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
+
         List<SelectorData> selectorDataList = selectorService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));
+
         List<RuleData> ruleDataList = ruleService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
+
         metaDataService.syncData();
+
         return true;
     }
 
@@ -98,16 +103,22 @@ public class SyncDataServiceImpl implements SyncDataService {
         PluginVO pluginVO = pluginService.findById(pluginId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));
+
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
-        if (CollectionUtils.isNotEmpty(selectorDataList)) {
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
-            List<RuleData> allRuleDataList = new ArrayList<>();
-            for (SelectorData selectData : selectorDataList) {
-                List<RuleData> ruleDataList = ruleService.findBySelectorId(selectData.getId());
-                allRuleDataList.addAll(ruleDataList);
-            }
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
+        if (CollectionUtils.isEmpty(selectorDataList)) {
+            return true;
         }
+
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
+
+        List<RuleData> allRuleDataList = new ArrayList<>();
+        for (SelectorData selectData : selectorDataList) {
+            List<RuleData> ruleDataList = ruleService.findBySelectorId(selectData.getId());
+            allRuleDataList.addAll(ruleDataList);
+        }
+
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
+
         return true;
     }
 }

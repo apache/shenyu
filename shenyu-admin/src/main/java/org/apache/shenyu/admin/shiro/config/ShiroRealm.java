@@ -35,6 +35,7 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -83,7 +84,7 @@ public class ShiroRealm extends AuthorizingRealm {
         }
 
         DashboardUserVO dashboardUserVO = dashboardUserService.findByUserName(userName);
-        if (dashboardUserVO == null) {
+        if (Objects.isNull(dashboardUserVO)) {
             throw new AuthenticationException(String.format("userName(%s) can not be found.", userName));
         }
 

@@ -100,9 +100,11 @@ public class EnumServiceImpl implements EnumService {
         List<EnumVO> redisModeEnums = Arrays.stream(RedisModeEnum.values())
                 .map(redisModeEnum -> new EnumVO(null, redisModeEnum.getName(), true))
                 .collect(Collectors.toList());
+
         List<EnumVO> hystrixIsolationModeEnums = Arrays.stream(HystrixIsolationModeEnum.values())
                 .map(hystrixIsolationModeEnum -> new EnumVO(hystrixIsolationModeEnum.getCode(), hystrixIsolationModeEnum.getName(), true))
                 .collect(Collectors.toList());
+
         Map<String, List<EnumVO>> enums = Maps.newHashMap();
         enums.put("httpMethodEnums", httpMethodEnums);
         enums.put("loadBalanceEnums", loadBalanceEnums);
@@ -117,6 +119,7 @@ public class EnumServiceImpl implements EnumService {
         enums.put("wafEnums", wafEnums);
         enums.put("redisModeEnums", redisModeEnums);
         enums.put("hystrixIsolationModeEnums", hystrixIsolationModeEnums);
+
         return enums;
     }
 }

@@ -26,8 +26,6 @@ public final class ShenyuResultMessage {
 
     public static final String CREATE_SUCCESS = "create success";
 
-    public static final String CREATE_FAILED = "create failed";
-
     public static final String DELETE_SUCCESS = "delete success";
 
     public static final String UPDATE_SUCCESS = "update success";
