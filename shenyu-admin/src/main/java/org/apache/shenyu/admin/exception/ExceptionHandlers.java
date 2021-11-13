@@ -36,6 +36,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -89,7 +90,7 @@ public class ExceptionHandlers {
         sb.append(e.getMethod());
         sb.append(
                 " method is not supported for this request. Supported methods are ");
-        e.getSupportedHttpMethods().forEach(t -> sb.append(t + " "));
+        Objects.requireNonNull(e.getSupportedHttpMethods()).forEach(t -> sb.append(t).append(" "));
         return ShenyuAdminResult.error(sb.toString());
     }
 
@@ -112,7 +113,7 @@ public class ExceptionHandlers {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     protected ShenyuAdminResult handleMethodArgumentTypeMismatchException(final MethodArgumentTypeMismatchException e) {
         LOG.warn("method argument type mismatch", e);
-        return ShenyuAdminResult.error(String.format("%s should be of type %s", e.getName(), e.getRequiredType().getName()));
+        return ShenyuAdminResult.error(String.format("%s should be of type %s", e.getName(), Objects.requireNonNull(e.getRequiredType()).getName()));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
