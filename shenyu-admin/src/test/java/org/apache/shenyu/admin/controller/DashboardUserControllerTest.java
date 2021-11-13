@@ -98,7 +98,7 @@ public final class DashboardUserControllerTest {
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data.dataList[0].password", is("123456")))
+                .andExpect(jsonPath("$.data.dataList[0].password", is("")))
                 .andReturn();
 
         final CommonPager<DashboardUserVO> commonPagerError = new CommonPager<>(new PageParameter(),
