@@ -127,27 +127,11 @@
         </dependency>
         <!--shenyu debug plugin end-->
 
-        <!-- apache shenyu request plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- apache shenyu request plugin end-->
-
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- apache shenyu Cryptor Request plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-cryptor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- apache shenyu Cryptor Request plugin end-->
 
         <dependency>
             <groupId>com.tencent.tars</groupId>
