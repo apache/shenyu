@@ -20,6 +20,8 @@ ARG APP_NAME
 
 ENV LOCAL_PATH /opt/shenyu-admin
 
+RUN apk --no-cache add procps
+
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
