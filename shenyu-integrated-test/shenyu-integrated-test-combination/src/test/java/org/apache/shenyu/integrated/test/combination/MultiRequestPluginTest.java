@@ -76,7 +76,7 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
     }
 
     /**
-     * The combination test of cryptorRequest plugin and request plugin.
+     * The combination test of cryptor request plugin and param mapping plugin.
      */
     @Test
     public void testCryptorRequestAndParamMapping() throws Exception {
