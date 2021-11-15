@@ -34,6 +34,7 @@ jobs:
           - shenyu-integrated-test-spring-cloud
           - shenyu-integrated-test-sofa
           - shenyu-integrated-test-websocket
+          - shenyu-integrated-test-combination
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
