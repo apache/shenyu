@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class SelectorHandleConverterFactor {
     
-    private Map<String, SelectorHandleConverter> maps;
+    private final Map<String, SelectorHandleConverter> maps;
     
     /**
      * Instantiates a new Selector handle converter factor.
