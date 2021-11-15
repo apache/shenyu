@@ -80,8 +80,6 @@ public class DashboardUserController {
                 new PageParameter(currentPage, pageSize)));
 
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            commonPager.getDataList()
-                    .forEach(item -> item.setPassword(""));
             return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
         } else {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR);
@@ -98,10 +96,9 @@ public class DashboardUserController {
     @GetMapping("/{id}")
     public ShenyuAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
-        return Optional.ofNullable(dashboardUserEditVO).map(item -> {
-            item.setPassword("");
-            return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item);
-        }).orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
+        return Optional.ofNullable(dashboardUserEditVO)
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
     }
 
     /**
