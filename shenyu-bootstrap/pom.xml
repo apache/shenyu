@@ -413,6 +413,16 @@
 
     <build>
         <finalName>shenyu-bootstrap</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>*.yml</exclude>
+                    <exclude>logback.xml</exclude>
+                </excludes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
