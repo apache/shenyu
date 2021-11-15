@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.plugin.cryptor.handler;
 
+import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+
 /**
  * Cryptor response rule handle.
  */
-public class CryptorRuleHandler {
+public class CryptorRuleHandler implements RuleHandle {
 
     private String strategyName;
 
