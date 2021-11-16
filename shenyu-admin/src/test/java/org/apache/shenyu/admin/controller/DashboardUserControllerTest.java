@@ -98,7 +98,6 @@ public final class DashboardUserControllerTest {
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data.dataList[0].password", is("123456")))
                 .andReturn();
 
         final CommonPager<DashboardUserVO> commonPagerError = new CommonPager<>(new PageParameter(),
@@ -121,8 +120,7 @@ public final class DashboardUserControllerTest {
         final String url = "/dashboardUser/1";
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andExpect(jsonPath("$.data.password", is("")));
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)));
 
         given(dashboardUserService.findById(any())).willReturn(null);
         mockMvc.perform(get(url))
