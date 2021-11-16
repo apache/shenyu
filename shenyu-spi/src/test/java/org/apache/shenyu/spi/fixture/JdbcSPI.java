@@ -30,5 +30,6 @@ public interface JdbcSPI {
      *
      * @return the class name
      */
+    @SuppressWarnings("unused")
     String getClassName();
 }

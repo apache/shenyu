@@ -41,13 +41,13 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public final class ExtensionLoaderTest {
-    
+
     @Test
     public void testSPI() {
         JdbcSPI jdbcSPI = ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("mysql");
         assertThat(jdbcSPI.getClass().getName(), is(MysqlSPI.class.getName()));
     }
-    
+
     /**
      * test SPI has default value case.
      */
@@ -57,7 +57,7 @@ public final class ExtensionLoaderTest {
         assert spi != null;
         assertThat(spi.getClass().getName(), is(SubHasDefaultSPI.class.getName()));
     }
-    
+
     /**
      * test SPI no default value case.
      */
@@ -66,7 +66,7 @@ public final class ExtensionLoaderTest {
         JdbcSPI jdbcSPI = ExtensionLoader.getExtensionLoader(JdbcSPI.class).getDefaultJoin();
         assertNull(jdbcSPI);
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() blank name param case.
      */
@@ -79,7 +79,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("get join name is null"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getExtensionLoader() null param case.
      */
@@ -92,7 +92,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("extension clazz is null"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getExtensionLoader() param is not interface case.
      */
@@ -106,7 +106,7 @@ public final class ExtensionLoaderTest {
                     containsString("extension clazz (class org.apache.shenyu.spi.ExtensionLoaderTest) is not interface!"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getExtensionLoader() param is not have SPI annotation case.
      */
@@ -120,7 +120,7 @@ public final class ExtensionLoaderTest {
                     containsString("extension clazz (interface org.apache.shenyu.spi.fixture.NopSPI) without @interface org.apache.shenyu.spi.SPI Annotation"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param nonentity SPI name case.
      */
@@ -133,7 +133,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("name is error"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param name not interface subType case.
      */
@@ -147,7 +147,7 @@ public final class ExtensionLoaderTest {
                     containsString("load extension resources error,class org.apache.shenyu.spi.fixture.SubNoJoinSPI subtype is not of interface org.apache.shenyu.spi.fixture.NotMatchSPI"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param name no class match case.
      */
@@ -160,7 +160,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("load extension resources error"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param no join case.
      */
@@ -187,14 +187,14 @@ public final class ExtensionLoaderTest {
                     "Extension instance(name: canNotInstantiated, class: class org.apache.shenyu.spi.fixture.CanNotInstantiatedSPI)"));
         }
     }
-    
+
     /**
      * test loadClass duplicate class case.
      */
     @Test
     public void testLoadClassDuplicateKey() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method loadClassMethod = getLoadClassMethod();
-        ExtensionLoader extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
+        ExtensionLoader<JdbcSPI> extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
         Map<String, Class<?>> classes = new HashMap<>();
         loadClassMethod.invoke(extensionLoader, classes, "mysql", "org.apache.shenyu.spi.fixture.MysqlSPI");
         try {
@@ -206,7 +206,7 @@ public final class ExtensionLoaderTest {
                             + "org.apache.shenyu.spi.fixture.MysqlSPI or org.apache.shenyu.spi.fixture.OracleSPI"));
         }
     }
-    
+
     /**
      * test loadResources url IO Exception case.
      */
@@ -214,7 +214,7 @@ public final class ExtensionLoaderTest {
     public void loadResourcesIOException()
             throws NoSuchMethodException, MalformedURLException, IllegalAccessException {
         Method loadResourcesMethod = getLoadResources();
-        ExtensionLoader extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
+        ExtensionLoader<JdbcSPI> extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
         try {
             loadResourcesMethod.invoke(extensionLoader, new HashMap<>(),
                     new URL("file:/org.apache.shenyu.spi.fixture.NoExistSPI"));
@@ -223,7 +223,7 @@ public final class ExtensionLoaderTest {
             assertThat(expect.getTargetException().getMessage(), containsString("load extension resources error"));
         }
     }
-    
+
     /**
      * get private loadClass method.
      */
@@ -232,7 +232,7 @@ public final class ExtensionLoaderTest {
         method.setAccessible(true);
         return method;
     }
-    
+
     /**
      * get private loadResources method.
      */
