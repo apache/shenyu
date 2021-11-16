@@ -138,7 +138,8 @@ public final class HttpSyncDataServiceTest {
                 .setLastModifyTime(System.currentTimeMillis()).setData(Collections.emptyList())
                 .setMd5("d751713988987e9331980363e24189cf");
         ConfigData<?> pluginData = new ConfigData<>()
-                .setLastModifyTime(System.currentTimeMillis()).setData(Collections.singletonList(PluginData.builder()
+                .setLastModifyTime(System.currentTimeMillis())
+                .setData(Collections.singletonList(PluginData.builder()
                         .id("9")
                         .name("hystrix")
                         .role("0")
