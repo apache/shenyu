@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.disruptor.thread;
 
-import org.springframework.lang.NonNull;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -66,7 +65,7 @@ public final class DisruptorThreadFactory implements ThreadFactory {
     }
 
     @Override
-    public Thread newThread(@NonNull final Runnable runnable) {
+    public Thread newThread(final Runnable runnable) {
         Thread thread = new Thread(THREAD_GROUP, runnable,
                 THREAD_GROUP.getName() + "-" + namePrefix + "-" + THREAD_NUMBER.getAndIncrement());
         thread.setDaemon(daemon);
