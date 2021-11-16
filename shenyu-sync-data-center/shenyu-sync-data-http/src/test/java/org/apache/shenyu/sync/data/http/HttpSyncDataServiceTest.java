@@ -75,7 +75,7 @@ public final class HttpSyncDataServiceTest {
     private HttpSyncDataService httpSyncDataService;
 
     @Before
-    public final void before() {
+    public void before() {
         wireMockRule.stubFor(get(urlPathEqualTo("/configs/fetch"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
