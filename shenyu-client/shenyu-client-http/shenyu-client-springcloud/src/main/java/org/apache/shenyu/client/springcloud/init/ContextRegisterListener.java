@@ -43,7 +43,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
@@ -53,9 +53,9 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private String contextPath;
     
-    private String appName;
+    private final String appName;
     
-    private Integer port;
+    private final Integer port;
 
     /**
      * Instantiates a new Context register listener.

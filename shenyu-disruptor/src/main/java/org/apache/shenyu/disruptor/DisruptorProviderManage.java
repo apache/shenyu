@@ -50,11 +50,11 @@ public class DisruptorProviderManage<T> {
 
     private DisruptorProvider<T> provider;
 
-    private Integer consumerSize;
+    private final Integer consumerSize;
 
-    private QueueConsumerFactory<T> consumerFactory;
+    private final QueueConsumerFactory<T> consumerFactory;
     
-    private ExecutorService executor;
+    private final ExecutorService executor;
 
     /**
      * Instantiates a new Disruptor provider manage.

@@ -32,7 +32,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class AppAuthDataRefreshTest {
+public final class AppAuthDataRefreshTest {
 
     private final AppAuthDataRefresh mockAppAuthDataRefresh = this.buildMockAppAuthDataRefresh();
 

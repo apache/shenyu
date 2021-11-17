@@ -41,7 +41,7 @@ public class EtcdDataInit implements CommandLineRunner {
     }
 
     @Override
-    public void run(final String... args) throws Exception {
+    public void run(final String... args) {
         final String pluginPath = DefaultPathConstants.PLUGIN_PARENT;
         final String authPath = DefaultPathConstants.APP_AUTH_PARENT;
         final String metaDataPath = DefaultPathConstants.META_DATA;

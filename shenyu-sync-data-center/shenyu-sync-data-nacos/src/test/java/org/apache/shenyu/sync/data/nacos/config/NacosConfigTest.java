@@ -23,7 +23,8 @@ import org.junit.Test;
 /**
  * add test case for {@link NacosConfig}.
  */
-public class NacosConfigTest {
+public final class NacosConfigTest {
+
     @Test
     public void testGetterSetter() {
         NacosConfig nacosConfig = new NacosConfig();
