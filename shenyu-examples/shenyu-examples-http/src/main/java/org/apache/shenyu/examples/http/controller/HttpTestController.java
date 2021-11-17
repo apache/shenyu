@@ -65,7 +65,7 @@ public class HttpTestController {
      */
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
-        return buildUser(userId,"I'm findByUserId method");
+        return buildUser(userId,"hello world");
     }
 
     /**
@@ -90,7 +90,7 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
-        return buildUser(id,"hello I'm " + name);
+        return buildUser(id, name);
     }
 
 
@@ -102,7 +102,7 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
-        return buildUser(id,"hello I'm putPathBody");
+        return buildUser(id,"hello world");
     }
 
 
