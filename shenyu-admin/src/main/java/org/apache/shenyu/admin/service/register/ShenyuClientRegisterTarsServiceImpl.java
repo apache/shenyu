@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -38,29 +39,29 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-    
+
     @Override
     public String rpcType() {
         return RpcTypeEnum.TARS.getName();
     }
-    
+
     @Override
     protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
         return "";
     }
-    
+
     @Override
     protected String ruleHandler() {
         return "";
     }
-    
+
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
         MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
-    
+
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         String handleAdd;
@@ -71,20 +72,17 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
             canAddList = addList;
         } else {
             List<TarsUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), TarsUpstream.class);
-            for (TarsUpstream exist : existList) {
-                for (TarsUpstream add : addList) {
-                    if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
-                        existList.add(add);
-                        canAddList.add(add);
-                    }
-                }
+            List<TarsUpstream> diffList = addList.stream().filter(tarsUpstream -> !existList.contains(tarsUpstream)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffList)) {
+                canAddList.addAll(diffList);
+                existList.addAll(diffList);
             }
             handleAdd = GsonUtils.getInstance().toJson(existList);
         }
         doSubmit(selectorDO.getId(), canAddList);
         return handleAdd;
     }
-    
+
     private List<TarsUpstream> buildTarsUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultTarsUpstream(dto.getHost(), dto.getPort()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
