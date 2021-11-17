@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.client.http.utils;
 
-import com.google.gson.Gson;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -37,8 +36,6 @@ public final class OkHttpTools {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private static final OkHttpTools OK_HTTP_TOOLS = new OkHttpTools();
-
-    private static final Gson GSON = new Gson();
 
     private final OkHttpClient client;
 
