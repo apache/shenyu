@@ -81,7 +81,8 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
     }
 
     @Override
-    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher,
+                     final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
         String serverAddr = config.getServerLists();
         Properties properties = config.getProps();
@@ -96,12 +97,14 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
         nacosProperties.put(PropertyKeyConst.ACCESS_KEY, properties.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
         // secret key for namespace
         nacosProperties.put(PropertyKeyConst.SECRET_KEY, properties.getProperty(PropertyKeyConst.SECRET_KEY, ""));
+
         try {
             this.configService = ConfigFactory.createConfigService(nacosProperties);
             this.namingService = NamingFactory.createNamingService(nacosProperties);
         } catch (NacosException e) {
             throw new ShenyuException(e);
         }
+
         subscribe();
     }
 

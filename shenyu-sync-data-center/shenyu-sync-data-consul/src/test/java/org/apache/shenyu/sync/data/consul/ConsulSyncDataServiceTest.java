@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 /**
  * test case for {@link ConsulSyncDataService}.
  */
-public class ConsulSyncDataServiceTest {
+public final class ConsulSyncDataServiceTest {
 
     private ConsulClient consulClient;
 

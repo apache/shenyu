@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Join
 public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepository {
@@ -58,7 +59,8 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
     private final Map<String, Long> indexMap = new HashMap<>();
 
     @Override
-    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher,
+                     final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
     }
 
@@ -114,7 +116,7 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
         List<ServiceInstance> instances = discoveryClient.getAllInstances();
         instances.forEach(serviceInstance -> {
             String data = serviceInstance.getMetadata().get("uri");
-            if (null != data) {
+            if (Objects.nonNull(data)) {
                 URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(data, URIRegisterDTO.class);
                 String contextPath = uriRegisterDTO.getContextPath();
                 map.putIfAbsent(contextPath, new ArrayList<>());
@@ -127,11 +129,11 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
     }
 
     private boolean metadataChanged(final String path, final long index) {
-        boolean result = !indexMap.containsKey(path) || indexMap.get(path) < index;
-        if (result) {
+        boolean hasResult = !indexMap.containsKey(path) || indexMap.get(path) < index;
+        if (hasResult) {
             indexMap.put(path, index);
         }
-        return result;
+        return hasResult;
     }
 
 }

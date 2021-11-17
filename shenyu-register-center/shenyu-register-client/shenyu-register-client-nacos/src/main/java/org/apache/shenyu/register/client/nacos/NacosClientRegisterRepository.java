@@ -114,8 +114,11 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         registerService(rpcType, contextPath, host, port, registerDTO);
     }
 
-    private synchronized void registerService(final String rpcType, final String contextPath, final String host,
-                                              final int port, final URIRegisterDTO registerDTO) {
+    private synchronized void registerService(final String rpcType,
+                                              final String contextPath,
+                                              final String host,
+                                              final int port,
+                                              final URIRegisterDTO registerDTO) {
         if (registerService) {
             return;
         }
@@ -128,6 +131,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         metadataMap.put(Constants.CONTEXT_PATH, contextPath);
         metadataMap.put("uriMetadata", GsonUtils.getInstance().toJson(registerDTO));
         instance.setMetadata(metadataMap);
+
         String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType);
         try {
             namingService.registerInstance(serviceName, instance);
@@ -137,7 +141,8 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         LOGGER.info("register service uri success: {}", serviceName);
     }
 
-    private synchronized void registerConfig(final String rpcType, final String contextPath,
+    private synchronized void registerConfig(final String rpcType,
+                                             final String contextPath,
                                              final MetaDataRegisterDTO metadata) {
         metadataCache.add(GsonUtils.getInstance().toJson(metadata));
         String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);

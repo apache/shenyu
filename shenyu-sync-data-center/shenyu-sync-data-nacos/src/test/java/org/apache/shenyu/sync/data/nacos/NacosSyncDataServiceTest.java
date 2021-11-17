@@ -27,15 +27,13 @@ import java.util.Collections;
 /**
  * add test case for {@link NacosSyncDataService}.
  */
-public class NacosSyncDataServiceTest {
-
-    private ConfigService configService;
+public final class NacosSyncDataServiceTest {
 
     private NacosSyncDataService nacosSyncDataService;
 
     @Before
     public void setup() {
-        configService = new NacosMockConfigService();
+        ConfigService configService = new NacosMockConfigService();
         nacosSyncDataService = new NacosSyncDataService(configService, null,
                 Collections.emptyList(), Collections.emptyList());
     }

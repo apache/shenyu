@@ -31,7 +31,7 @@ import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.cryptor.decorator.CryptorRequestDecorator;
-import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
@@ -64,7 +64,7 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     @Override
     @SuppressWarnings("unchecked")
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        CryptorRuleHandle ruleHandle = CryptorRequestPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        CryptorRuleHandler ruleHandle = CryptorRequestPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(ruleHandle)) {
             LOG.error("Cryptor request rule configuration is null :{}", rule.getId());
             return chain.execute(exchange);
@@ -102,7 +102,7 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     }
     
     @SuppressWarnings("rawtypes")
-    private Mono strategyMatch(final CryptorRuleHandle ruleHandle, final String originalBody, final ServerWebExchange exchange) {
+    private Mono strategyMatch(final CryptorRuleHandler ruleHandle, final String originalBody, final ServerWebExchange exchange) {
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         if (Objects.isNull(parseBody)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),

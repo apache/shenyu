@@ -28,5 +28,6 @@
 
     <modules>
         <module>shenyu-protocol-grpc</module>
+        <module>shenyu-protocol-mqtt</module>
     </modules>
 </project>

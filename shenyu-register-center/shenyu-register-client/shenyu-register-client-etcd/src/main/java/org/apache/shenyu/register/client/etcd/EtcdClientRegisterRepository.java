@@ -76,18 +76,24 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
         LogUtils.info(LOGGER, "{} etcd client register uri success: {}", rpcType, registerDTO);
     }
     
-    private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
+    private void registerMetadata(final String rpcType,
+                                  final String contextPath,
+                                  final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
         LOGGER.info("register metadata success: {}", realNode);
     }
 
-    private void registerURI(final String rpcType, final String contextPath, final URIRegisterDTO registerDTO) {
+    private void registerURI(final String rpcType,
+                             final String contextPath,
+                             final URIRegisterDTO registerDTO) {
         String uriNodeName = buildURINodeName(registerDTO);
         String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
+
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(registerDTO));
         LOGGER.info("register uri data success: {}", realNode);
     }
@@ -101,7 +107,8 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
+        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
+                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
             nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());

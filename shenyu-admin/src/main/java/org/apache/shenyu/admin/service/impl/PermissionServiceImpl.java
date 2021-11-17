@@ -80,21 +80,24 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PermissionMenuVO getPermissionMenu(final String token) {
         UserInfo userInfo = JwtUtils.getUserInfo();
-        if (Objects.nonNull(userInfo)) {
-            List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
-            if (CollectionUtils.isNotEmpty(resourceVOList)) {
-                List<MenuInfo> menuInfoList = new ArrayList<>();
-                resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
-                return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
-            }
+        if (Objects.isNull(userInfo)) {
+            return null;
         }
-        return null;
+
+        List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
+        if (CollectionUtils.isEmpty(resourceVOList)) {
+            return null;
+        }
+
+        List<MenuInfo> menuInfoList = new ArrayList<>();
+        resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
+        return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
     }
 
     /**
-     * get Auth perm by user name for shiro.
+     * get Auth perm by username for shiro.
      *
-     * @param userName user name.
+     * @param userName username.
      * @return {@linkplain Set}
      */
     @Override
@@ -109,7 +112,7 @@ public class PermissionServiceImpl implements PermissionService {
     /**
      * get resource by username.
      *
-     * @param userName user name
+     * @param userName username
      * @return {@linkplain List}
      */
     private List<ResourceVO> getResourceListByUserName(final String userName) {
@@ -117,17 +120,20 @@ public class PermissionServiceImpl implements PermissionService {
         List<String> roleIds = userRoleDOList.stream().filter(Objects::nonNull)
                 .map(UserRoleDO::getRoleId)
                 .collect(Collectors.toList());
+
         Set<String> resourceIds = permissionMapper.findByObjectIds(roleIds).stream()
                 .map(PermissionDO::getResourceId)
                 .filter(StringUtils::isNoneBlank)
                 .collect(Collectors.toSet());
-        if (CollectionUtils.isNotEmpty(resourceIds)) {
-            return new ArrayList<>(resourceIds).stream()
-                    .map(resource -> ResourceVO.buildResourceVO(resourceMapper.selectById(resource)))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(resourceIds)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        return new ArrayList<>(resourceIds).stream()
+                .map(resource -> ResourceVO.buildResourceVO(resourceMapper.selectById(resource)))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -150,7 +156,8 @@ public class PermissionServiceImpl implements PermissionService {
      */
     private List<AuthPerm> getAllAuthPerms() {
         return resourceMapper.selectAll().stream()
-               .filter(item -> item.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2))
-               .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item))).collect(Collectors.toList());
+                .filter(item -> item.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2))
+                .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
+                .collect(Collectors.toList());
     }
 }

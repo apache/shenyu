@@ -44,14 +44,15 @@ public class StatelessAuthFilter extends AccessControlFilter {
     private static final String HEAD_TOKEN = "X-Access-Token";
 
     @Override
-    protected boolean isAccessAllowed(final ServletRequest servletRequest, final ServletResponse servletResponse,
+    protected boolean isAccessAllowed(final ServletRequest servletRequest,
+                                      final ServletResponse servletResponse,
                                       final Object o) {
         return false;
     }
 
     @Override
-    protected boolean onAccessDenied(final ServletRequest servletRequest, final ServletResponse servletResponse)
-            throws Exception {
+    protected boolean onAccessDenied(final ServletRequest servletRequest,
+                                     final ServletResponse servletResponse) throws Exception {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         if (StringUtils.equals(HttpMethod.OPTIONS.name(), httpServletRequest.getMethod())) {
             return true;

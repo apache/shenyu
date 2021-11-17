@@ -32,6 +32,7 @@ import org.springframework.context.SmartLifecycle;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -58,12 +59,15 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
 
     private ScheduledFuture<?> watchFuture;
 
-    public ShenyuConsulConfigWatch(final ShenyuRegisterCenterConfig config, final ApplicationEventPublisher publisher) {
+    public ShenyuConsulConfigWatch(final ShenyuRegisterCenterConfig config,
+                                   final ApplicationEventPublisher publisher) {
         this.watchDelay = Integer.parseInt(config.getProps().getProperty("delay", "1"));
         this.waitTime = Integer.parseInt(config.getProps().getProperty("wait-time", "55"));
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("consul-config-watch", true));
+
         String metadataPath = config.getProps().getProperty("metadata-path", "shenyu/register");
         consulIndexes.put(metadataPath, 0L);
+
         this.publisher = publisher;
     }
 
@@ -79,7 +83,7 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
                     if (response.getValue() != null && !response.getValue().isEmpty()) {
                         Long newIndex = response.getConsulIndex();
 
-                        if (newIndex != null && !newIndex.equals(currentIndex)) {
+                        if (Objects.nonNull(newIndex) && !newIndex.equals(currentIndex)) {
                             if (!this.consulIndexes.containsValue(newIndex)
                                     && !currentIndex.equals(-1L)) {
                                 LOGGER.trace("Context " + context + " has new index " + newIndex);

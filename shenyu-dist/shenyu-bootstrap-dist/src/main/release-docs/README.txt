@@ -15,7 +15,7 @@ Getting Started
 To help you get started, try the following links:
 
 Getting Started
-    https://shenyu.apache.org/projects/shenyu/quick-start-http/
+    https://shenyu.apache.org/docs/quick-start/quick-start-http
 
 We welcome contributions of all kinds, for details of how you can help
     https://shenyu.apache.org/community/contributor/

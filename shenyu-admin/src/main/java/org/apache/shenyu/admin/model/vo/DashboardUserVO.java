@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.common.utils.DateUtils;
 
@@ -44,6 +45,7 @@ public class DashboardUserVO implements Serializable {
     /**
      * user password.
      */
+    @JsonIgnore
     private String password;
 
     /**

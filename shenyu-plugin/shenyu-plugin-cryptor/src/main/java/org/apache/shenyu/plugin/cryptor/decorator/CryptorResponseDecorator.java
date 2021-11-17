@@ -21,7 +21,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
-import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
@@ -46,10 +46,10 @@ public class CryptorResponseDecorator extends ServerHttpResponseDecorator {
 
     private final ServerWebExchange exchange;
 
-    private final CryptorRuleHandle ruleHandle;
+    private final CryptorRuleHandler ruleHandle;
 
     public CryptorResponseDecorator(final ServerWebExchange exchange,
-                                    final CryptorRuleHandle ruleHandle) {
+                                    final CryptorRuleHandler ruleHandle) {
         super(exchange.getResponse());
         this.exchange = exchange;
         this.ruleHandle = ruleHandle;
@@ -73,7 +73,7 @@ public class CryptorResponseDecorator extends ServerHttpResponseDecorator {
     }
 
     @SuppressWarnings("rawtypes")
-    private Mono strategyMatch(final String originalBody, final CryptorRuleHandle ruleHandle, final ServerWebExchange exchange) {
+    private Mono strategyMatch(final String originalBody, final CryptorRuleHandler ruleHandle, final ServerWebExchange exchange) {
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         if (Objects.isNull(parseBody)) {
             return Mono.just(originalBody);

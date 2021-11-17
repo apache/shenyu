@@ -39,6 +39,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -322,7 +323,9 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void cachePluginData(final PluginData pluginData) {
-        Optional.ofNullable(pluginData).flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
+        Optional.ofNullable(pluginData)
+                .flatMap(data -> Optional.ofNullable(pluginDataSubscriber))
+                .ifPresent(e -> e.onSubscribe(pluginData));
     }
 
     private void cacheSelectorData(final SelectorData selectorData) {
@@ -338,6 +341,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
         selectorData.setPluginName(pluginName);
         selectorData.setId(selectorId);
+
         Optional.ofNullable(pluginDataSubscriber)
                 .ifPresent(e -> e.unSelectorSubscribe(selectorData));
     }
@@ -353,10 +357,12 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
         final String pluginName = str.substring(1, str.length() - substring.length() - 1);
         final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(substring));
+
         RuleData ruleData = new RuleData();
         ruleData.setPluginName(pluginName);
         ruleData.setSelectorId(list.get(0));
         ruleData.setId(list.get(1));
+
         Optional.ofNullable(pluginDataSubscriber)
                 .ifPresent(e -> e.unRuleSubscribe(ruleData));
     }
@@ -383,10 +389,12 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
     }
 
-    private List<String> addSubscribePath(final List<String> alreadyChildren, final List<String> currentChildren) {
+    private List<String> addSubscribePath(final List<String> alreadyChildren,
+                                          final List<String> currentChildren) {
         if (CollectionUtils.isEmpty(alreadyChildren)) {
             return currentChildren;
         }
+
         return currentChildren.stream()
                 .filter(current -> alreadyChildren.stream().noneMatch(current::equals))
                 .collect(Collectors.toList());
@@ -405,7 +413,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
 
     @Override
     public void close() {
-        if (null != zkClient) {
+        if (Objects.nonNull(zkClient)) {
             zkClient.close();
         }
     }

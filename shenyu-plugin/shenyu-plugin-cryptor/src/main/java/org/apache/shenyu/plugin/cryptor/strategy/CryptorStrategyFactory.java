@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.cryptor.strategy;
 
-import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class CryptorStrategyFactory {
      * @param data requestBody
      * @return Return the parsed data if the match is successful, otherwise return null.
      */
-    public static String match(final CryptorRuleHandle ruleHandle, final String data) {
+    public static String match(final CryptorRuleHandler ruleHandle, final String data) {
         switch (ruleHandle.getWay()) {
             case DECRYPT:
                 return decrypt(ruleHandle.getStrategyName(), ruleHandle.getDecryptKey(), data);

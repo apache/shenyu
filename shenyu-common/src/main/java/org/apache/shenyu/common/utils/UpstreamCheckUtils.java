@@ -71,8 +71,8 @@ public class UpstreamCheckUtils {
             hostPort = StringUtils.split(url, Constants.COLONS);
         }
         final boolean isHttps = url.startsWith(HTTPS);
-        final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1]) : isHttps ? 443 : 80;
-        return isHostConnector(hostPort[0], port, timeout);
+        final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1].trim()) : isHttps ? 443 : 80;
+        return isHostConnector(hostPort[0].trim(), port, timeout);
     }
 
     private static boolean isHostConnector(final String host, final int port, final int timeout) {
