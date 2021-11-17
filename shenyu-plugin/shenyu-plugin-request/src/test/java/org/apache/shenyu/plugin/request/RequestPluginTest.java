@@ -46,14 +46,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Request plugin test.
@@ -123,24 +118,29 @@ public class RequestPluginTest {
         assertNotNull(request);
         HttpHeaders httpHeaders = request.getHeaders();
         assertNotNull(httpHeaders);
-        assertNotNull(httpHeaders.containsKey("addKey"));
-        assertNotNull(httpHeaders.get("addKey").size() == 1 && "addValue".equals(httpHeaders.get("addKey")));
-        assertNotNull(httpHeaders.containsKey("newKey"));
-        assertNotNull(httpHeaders.get("newKey").size() == 1 && "oldValue".equals(httpHeaders.get("newKey")));
-        assertNotNull(httpHeaders.containsKey("setKey"));
-        assertNotNull(httpHeaders.get("setKey").size() == 1 && "newValue".equals(httpHeaders.get("setKey")));
+        assertTrue(testMapSizeAndEqualVal(httpHeaders,"addKey","addValue"));
+        assertTrue(testMapSizeAndEqualVal(httpHeaders,"newKey","oldValue"));
+        assertTrue(testMapSizeAndEqualVal(httpHeaders,"setKey","newValue"));
         assertFalse(httpHeaders.containsKey("removeKey"));
         assertTrue(httpHeaders.containsKey(HttpHeaders.COOKIE));
 
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         assertNotNull(queryParams);
-        assertNotNull(queryParams.containsKey("addKey"));
-        assertNotNull(queryParams.get("addKey").size() == 1 && "addValue".equals(queryParams.get("addKey")));
-        assertNotNull(queryParams.containsKey("newKey"));
-        assertNotNull(queryParams.get("newKey").size() == 1 && "oldValue".equals(queryParams.get("newKey")));
-        assertNotNull(queryParams.containsKey("setKey"));
-        assertNotNull(queryParams.get("setKey").size() == 1 && "newValue".equals(queryParams.get("setKey")));
+        assertTrue(testMapSizeAndEqualVal(queryParams,"addKey","addValue"));
+        assertTrue(testMapSizeAndEqualVal(queryParams,"newKey","oldValue"));
+        assertTrue(testMapSizeAndEqualVal(queryParams,"setKey","newValue"));
         assertFalse(queryParams.containsKey("removeKey"));
+    }
+
+    public boolean testMapSizeAndEqualVal(MultiValueMap<String,String> map,String key,String value){
+        if(!map.containsKey(key)){
+            return false;
+        }
+        if(map.get(key).size() != 1){
+            return false;
+        }
+
+        return value.equals(map.get(key).get(0));
     }
 
     @Test
