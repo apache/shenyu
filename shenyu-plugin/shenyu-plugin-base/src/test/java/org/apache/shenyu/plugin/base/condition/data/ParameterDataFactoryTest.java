@@ -45,6 +45,7 @@ public final class ParameterDataFactoryTest {
 
     @Test
     public void testNewInstance() {
+
         @SuppressWarnings("rawtypes")
         Map<String, Class> parameterInstance = new HashMap<>();
         parameterInstance.put("header", HeaderParameterData.class);
