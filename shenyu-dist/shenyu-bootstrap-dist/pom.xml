@@ -96,15 +96,26 @@
                         <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>shenyu-bootstrap</id>
+                                <id>tag-latest</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
+                                <configuration>
+                                    <tag>latest</tag>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>tag-version</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <configuration>
+                                    <tag>${project.version}</tag>
+                                </configuration>
                             </execution>
                         </executions>
                         <configuration>
                             <repository>apache/shenyu-bootstrap</repository>
-                            <tag>${project.version}</tag>
                             <buildArgs>
                                 <APP_NAME>apache-shenyu-incubating-${project.version}-bootstrap-bin</APP_NAME>
                             </buildArgs>
