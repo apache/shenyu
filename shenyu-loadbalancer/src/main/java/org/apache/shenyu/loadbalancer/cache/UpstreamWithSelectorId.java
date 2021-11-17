@@ -29,7 +29,7 @@ public class UpstreamWithSelectorId {
     private String selectorId;
 
     private Upstream upstream;
-    
+
     /**
      * all args constructor.
      *
@@ -40,7 +40,7 @@ public class UpstreamWithSelectorId {
         this.selectorId = selectorId;
         this.upstream = upstream;
     }
-    
+
     /**
      * get selectorId.
      *
@@ -49,7 +49,7 @@ public class UpstreamWithSelectorId {
     public String getSelectorId() {
         return selectorId;
     }
-    
+
     /**
      * set selectorId.
      *
@@ -58,7 +58,7 @@ public class UpstreamWithSelectorId {
     public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
-    
+
     /**
      * get upstream.
      *
@@ -67,7 +67,7 @@ public class UpstreamWithSelectorId {
     public Upstream getUpstream() {
         return upstream;
     }
-    
+
     /**
      * set upstream.
      *
@@ -82,7 +82,7 @@ public class UpstreamWithSelectorId {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         UpstreamWithSelectorId that = (UpstreamWithSelectorId) o;
