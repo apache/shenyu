@@ -123,25 +123,33 @@ public class RequestPluginTest {
         assertNotNull(request);
         HttpHeaders httpHeaders = request.getHeaders();
         assertNotNull(httpHeaders);
-        assertTrue(testMapSizeAndEqualVal(httpHeaders,"addKey","addValue"));
-        assertTrue(testMapSizeAndEqualVal(httpHeaders,"newKey","oldValue"));
-        assertTrue(testMapSizeAndEqualVal(httpHeaders,"setKey","newValue"));
+        assertTrue(testMapSizeAndEqualVal(httpHeaders, "addKey", "addValue"));
+        assertTrue(testMapSizeAndEqualVal(httpHeaders, "newKey", "oldValue"));
+        assertTrue(testMapSizeAndEqualVal(httpHeaders, "setKey", "newValue"));
         assertFalse(httpHeaders.containsKey("removeKey"));
         assertTrue(httpHeaders.containsKey(HttpHeaders.COOKIE));
 
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         assertNotNull(queryParams);
-        assertTrue(testMapSizeAndEqualVal(queryParams,"addKey","addValue"));
-        assertTrue(testMapSizeAndEqualVal(queryParams,"newKey","oldValue"));
-        assertTrue(testMapSizeAndEqualVal(queryParams,"setKey","newValue"));
+        assertTrue(testMapSizeAndEqualVal(queryParams, "addKey", "addValue"));
+        assertTrue(testMapSizeAndEqualVal(queryParams, "newKey", "oldValue"));
+        assertTrue(testMapSizeAndEqualVal(queryParams, "setKey", "newValue"));
         assertFalse(queryParams.containsKey("removeKey"));
     }
 
-    public boolean testMapSizeAndEqualVal(MultiValueMap<String,String> map,String key,String value){
-        if(!map.containsKey(key)){
+    /**
+     * test MultiValueMap whether contain the key and the value.
+     *
+     * @param map MultiValue
+     * @param key key
+     * @param value value
+     * @return boolean True or False
+     */
+    public boolean testMapSizeAndEqualVal(final MultiValueMap<String, String> map, final String key, final String value) {
+        if (!map.containsKey(key)) {
             return false;
         }
-        if(map.get(key).size() != 1){
+        if (map.get(key).size() != 1) {
             return false;
         }
 
