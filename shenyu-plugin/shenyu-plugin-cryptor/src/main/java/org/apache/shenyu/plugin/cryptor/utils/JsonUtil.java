@@ -72,7 +72,7 @@ public class JsonUtil {
                 return Pair.of(true, entry.getKey());
             }
         }
-        return Pair.of(true, "");
+        return Pair.of(false, "");
     }
 
     /**
