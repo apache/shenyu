@@ -123,37 +123,32 @@ public class RequestPluginTest {
         assertNotNull(request);
         HttpHeaders httpHeaders = request.getHeaders();
         assertNotNull(httpHeaders);
-        assertTrue(testMapSizeAndEqualVal(httpHeaders, "addKey", "addValue"));
-        assertTrue(testMapSizeAndEqualVal(httpHeaders, "newKey", "oldValue"));
-        assertTrue(testMapSizeAndEqualVal(httpHeaders, "setKey", "newValue"));
+        assertTrue(checkMapSizeAndEqualVal(httpHeaders, "addKey", "addValue"));
+        assertTrue(checkMapSizeAndEqualVal(httpHeaders, "newKey", "oldValue"));
+        assertTrue(checkMapSizeAndEqualVal(httpHeaders, "setKey", "newValue"));
         assertFalse(httpHeaders.containsKey("removeKey"));
         assertTrue(httpHeaders.containsKey(HttpHeaders.COOKIE));
 
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         assertNotNull(queryParams);
-        assertTrue(testMapSizeAndEqualVal(queryParams, "addKey", "addValue"));
-        assertTrue(testMapSizeAndEqualVal(queryParams, "newKey", "oldValue"));
-        assertTrue(testMapSizeAndEqualVal(queryParams, "setKey", "newValue"));
+        assertTrue(checkMapSizeAndEqualVal(queryParams, "addKey", "addValue"));
+        assertTrue(checkMapSizeAndEqualVal(queryParams, "newKey", "oldValue"));
+        assertTrue(checkMapSizeAndEqualVal(queryParams, "setKey", "newValue"));
         assertFalse(queryParams.containsKey("removeKey"));
     }
 
     /**
      * test MultiValueMap whether contain the key and the value.
      *
-     * @param map MultiValue
-     * @param key key
-     * @param value value
-     * @return boolean True or False
      */
-    public boolean testMapSizeAndEqualVal(final MultiValueMap<String, String> map, final String key, final String value) {
-        if (!map.containsKey(key)) {
+    private boolean checkMapSizeAndEqualVal(final MultiValueMap<String, String> headersOrParams, final String key, final String value) {
+        if (!headersOrParams.containsKey(key)) {
             return false;
         }
-        if (map.get(key).size() != 1) {
+        if (headersOrParams.get(key).size() != 1) {
             return false;
         }
-
-        return value.equals(map.get(key).get(0));
+        return value.equals(headersOrParams.get(key).get(0));
     }
 
     @Test
