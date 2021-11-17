@@ -123,16 +123,19 @@ public final class ApplicationConfigCache {
                             DynamicType.Builder<?> classDefinition = new ByteBuddy()
                                     .makeInterface()
                                     .name(clazzName);
+                            Class<?>[] paramTypes;
+                            String[] paramNames;
+                            Pair<String, String> pair;
                             for (MethodInfo methodInfo : tarsParamExtInfo.getMethodInfo()) {
                                 DynamicType.Builder.MethodDefinition.ParameterDefinition<?> definition =
                                         classDefinition.defineMethod(PrxInfoUtil.getMethodName(methodInfo.methodName),
                                                 ReturnValueResolver.getCallBackType(PrxInfoUtil.getParamClass(methodInfo.getReturnType())),
                                                 Visibility.PUBLIC);
                                 if (CollectionUtils.isNotEmpty(methodInfo.getParams())) {
-                                    Class<?>[] paramTypes = new Class[methodInfo.getParams().size()];
-                                    String[] paramNames = new String[methodInfo.getParams().size()];
+                                    paramTypes = new Class[methodInfo.getParams().size()];
+                                    paramNames = new String[methodInfo.getParams().size()];
                                     for (int i = 0; i < methodInfo.getParams().size(); i++) {
-                                        Pair<String, String> pair = methodInfo.getParams().get(i);
+                                        pair = methodInfo.getParams().get(i);
                                         paramTypes[i] = PrxInfoUtil.getParamClass(pair.getKey());
                                         paramNames[i] = pair.getValue();
                                         definition = definition.withParameter(paramTypes[i], paramNames[i]);
@@ -177,7 +180,7 @@ public final class ApplicationConfigCache {
      * @return the key
      */
     public static String getClassMethodKey(final String className, final String methodName) {
-        return className + "_" + methodName;
+        return String.join("_", className, methodName);
     }
 
     /**
@@ -197,7 +200,7 @@ public final class ApplicationConfigCache {
     public void initPrxClass(final SelectorData selectorData) {
         try {
             final List<TarsUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), TarsUpstream.class);
-            if (null == upstreamList || upstreamList.size() == 0) {
+            if (CollectionUtils.isEmpty(upstreamList)) {
                 invalidate(selectorData.getName());
                 return;
             }
@@ -224,7 +227,7 @@ public final class ApplicationConfigCache {
         }
         TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
         tarsInvokePrxList.getTarsInvokePrxList().clear();
-        if (tarsInvokePrxList.getMethod() == null) {
+        if (Objects.isNull(tarsInvokePrxList.getMethod())) {
             TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
             Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
             Method method = prx.getClass().getDeclaredMethod(
@@ -246,9 +249,7 @@ public final class ApplicationConfigCache {
      */
     public void invalidate(final String contextPath) {
         List<MetaData> metaDataList = ctxPathCache.getOrDefault(contextPath, new ArrayList<>());
-        for (MetaData metaData : metaDataList) {
-            cache.invalidate(metaData.getPath());
-        }
+        metaDataList.forEach(metaData -> cache.invalidate(metaData.getPath()));
     }
 
     /**

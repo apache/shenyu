@@ -141,9 +141,11 @@ public class PrxInfoUtil {
     public static Object[] getParamArray(final Class<?>[] paramTypes, final String[] paramNames, final String body) {
         Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
         Object[] param = new Object[paramNames.length];
+        String paramName;
+        Class<?> paramType;
         for (int i = 0; i < paramNames.length; i++) {
-            String paramName = paramNames[i];
-            Class<?> paramType = paramTypes[i];
+            paramName = paramNames[i];
+            paramType = paramTypes[i];
             if (PRIMITIVE_TYPE.containsKey(paramType.getName())) {
                 param[i] = PRIMITIVE_TYPE.get(paramType.getName()).getFunc().apply(bodyMap.get(paramName));
             } else {
