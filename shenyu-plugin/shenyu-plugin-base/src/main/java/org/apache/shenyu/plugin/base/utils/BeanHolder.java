@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  */
 public class BeanHolder<O> implements Supplier<O> {
 
-    private Supplier<O> supplier;
+    private final Supplier<O> supplier;
 
     private volatile O o;
 

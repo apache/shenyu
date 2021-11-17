@@ -22,7 +22,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 /**
  * The type shenyu result warp.
  */
-public final class ShenyuResultWrap<T> {
+public final class ShenyuResultWrap {
     
     /**
      * Success object.
