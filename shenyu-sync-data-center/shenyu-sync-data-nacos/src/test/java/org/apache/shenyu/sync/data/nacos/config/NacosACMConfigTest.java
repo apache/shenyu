@@ -34,7 +34,7 @@ public final class NacosACMConfigTest {
         nacosACMConfig.setNamespace("namespace");
         nacosACMConfig.setSecretKey("secreKey");
         Assert.assertEquals("accessKey", nacosACMConfig.getAccessKey());
-        Assert.assertEquals(false, nacosACMConfig.isEnabled());
+        Assert.assertFalse(nacosACMConfig.isEnabled());
         Assert.assertEquals("endpoint", nacosACMConfig.getEndpoint());
         Assert.assertEquals("namespace", nacosACMConfig.getNamespace());
         Assert.assertEquals("secreKey", nacosACMConfig.getSecretKey());

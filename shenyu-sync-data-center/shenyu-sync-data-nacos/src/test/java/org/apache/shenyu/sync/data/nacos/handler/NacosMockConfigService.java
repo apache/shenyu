@@ -24,7 +24,7 @@ import com.alibaba.nacos.api.exception.NacosException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NacosMockConfigService implements ConfigService {
+public final class NacosMockConfigService implements ConfigService {
 
     private static final Map<String, String> EMPTY = new HashMap<>();
 
