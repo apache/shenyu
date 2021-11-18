@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.resilience4j.executor;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.apache.shenyu.plugin.resilience4j.factory.Resilience4JRegistryFactory;
@@ -34,7 +35,7 @@ public class RateLimiterExecutor implements Executor {
     public <T> Mono<T> run(final Mono<T> toRun, final Function<Throwable, Mono<T>> fallback, final Resilience4JConf conf) {
         RateLimiter rateLimiter = Resilience4JRegistryFactory.rateLimiter(conf.getId(), conf.getRateLimiterConfig());
         Mono<T> to = toRun.transformDeferred(RateLimiterOperator.of(rateLimiter));
-        if (fallback != null) {
+        if (Objects.nonNull(fallback)) {
             return to.onErrorResume(fallback);
         }
         return to;
