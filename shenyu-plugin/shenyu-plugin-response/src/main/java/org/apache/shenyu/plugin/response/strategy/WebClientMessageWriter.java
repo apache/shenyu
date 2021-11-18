@@ -59,7 +59,7 @@ public class WebClientMessageWriter implements MessageWriter {
 
     private void clean(final ServerWebExchange exchange) {
         ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-        if (clientResponse != null) {
+        if (Objects.nonNull(clientResponse)) {
             clientResponse.bodyToMono(Void.class).subscribe();
         }
     }
