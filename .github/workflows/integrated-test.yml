@@ -56,7 +56,7 @@ jobs:
           java-version: 8
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+        run: ./mvnw -B clean install -Prelease,docker,it -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/pom.xml -Pdocker
