@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -62,6 +63,13 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
                                                  RuleData rule,
                                                  MetaData metaData,
                                                  String param);
+
+    /**
+     * transmit rpc context when user rpc call.
+     *
+     * @param rpcContext rpc context map.
+     */
+    protected abstract void transmitRpcContext(Map<String, String> rpcContext);
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -91,6 +99,10 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
+        }
+        Map<String,String> rpcContext = exchange.getAttribute("rpcContext");
+        if (Objects.nonNull(exchange.getAttribute("rpcContext"))){
+            this.transmitRpcContext(rpcContext);
         }
         return this.doDubboInvoker(exchange, chain, selector, rule, metaData, param);
     }
