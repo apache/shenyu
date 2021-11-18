@@ -37,12 +37,13 @@ public class ShenyuMotanClientConfiguration {
     /**
      * Motan service bean post processor sofa service bean post processor.
      *
-     * @param clientConfig the client config
+     * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the tars service bean post processor
      */
     @Bean
-    public MotanServiceBeanPostProcessor tarsServiceBeanPostProcessor(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public MotanServiceBeanPostProcessor tarsServiceBeanPostProcessor(final ShenyuClientConfig clientConfig,
+                                                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new MotanServiceBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.MOTAN.getName()), shenyuClientRegisterRepository);
     }
 }

@@ -34,19 +34,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuTarsClientConfiguration {
-    
+
     /**
      * Tars service bean post processor sofa service bean post processor.
      *
-     * @param clientConfig the client config
+     * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the tars service bean post processor
      */
     @Bean
-    public TarsServiceBeanPostProcessor tarsServiceBeanPostProcessor(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public TarsServiceBeanPostProcessor tarsServiceBeanPostProcessor(final ShenyuClientConfig clientConfig,
+                                                                     final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new TarsServiceBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.TARS.getName()), shenyuClientRegisterRepository);
     }
-    
+
     /**
      * Tars context refreshed event listener tars context refreshed event listener.
      *

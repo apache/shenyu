@@ -33,15 +33,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSofaClientConfiguration {
+
     /**
      * Sofa service bean post processor sofa service bean post processor.
      *
-     * @param clientConfig the client config
+     * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the sofa service bean post processor
      */
     @Bean
-    public SofaServiceBeanPostProcessor sofaServiceBeanPostProcessor(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public SofaServiceBeanPostProcessor sofaServiceBeanPostProcessor(final ShenyuClientConfig clientConfig,
+                                                                     final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new SofaServiceBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.SOFA.getName()), shenyuClientRegisterRepository);
     }
 }
