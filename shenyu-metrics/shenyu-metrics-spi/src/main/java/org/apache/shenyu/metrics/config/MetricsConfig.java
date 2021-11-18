@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.metrics.config;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Properties;
@@ -238,13 +240,13 @@ public final class MetricsConfig implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = metricsName != null ? metricsName.hashCode() : 0;
-        result = 31 * result + (host != null ? host.hashCode() : 0);
-        result = 31 * result + (port != null ? port.hashCode() : 0);
-        result = 31 * result + (async != null ? async.hashCode() : 0);
-        result = 31 * result + (threadCount != null ? threadCount.hashCode() : 0);
-        result = 31 * result + (jmxConfig != null ? jmxConfig.hashCode() : 0);
-        result = 31 * result + (props != null ? props.hashCode() : 0);
+        int result = StringUtils.isNotEmpty(metricsName) ? metricsName.hashCode() : 0;
+        result = 31 * result + (StringUtils.isNotEmpty(host) ? host.hashCode() : 0);
+        result = 31 * result + (Objects.nonNull(port) ? port.hashCode() : 0);
+        result = 31 * result + (Objects.nonNull(async) ? async.hashCode() : 0);
+        result = 31 * result + (Objects.nonNull(threadCount) ? threadCount.hashCode() : 0);
+        result = 31 * result + (StringUtils.isNotEmpty(jmxConfig) ? jmxConfig.hashCode() : 0);
+        result = 31 * result + (Objects.nonNull(props) ? props.hashCode() : 0);
         return result;
     }
 
