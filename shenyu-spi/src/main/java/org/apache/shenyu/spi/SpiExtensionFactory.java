@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.spi;
 
+import java.util.Optional;
+
 /**
  * SpiExtensionFactory.
  */
@@ -25,10 +27,11 @@ public class SpiExtensionFactory implements ExtensionFactory {
 
     @Override
     public <T> T getExtension(final String key, final Class<T> clazz) {
-        if (clazz.isInterface() && clazz.isAnnotationPresent(SPI.class)) {
-            ExtensionLoader<T> extensionLoader = ExtensionLoader.getExtensionLoader(clazz);
-            return extensionLoader.getDefaultJoin();
-        }
-        return null;
+        return Optional.ofNullable(clazz)
+                .filter(Class::isInterface)
+                .filter(cls -> cls.isAnnotationPresent(SPI.class))
+                .map(ExtensionLoader::getExtensionLoader)
+                .map(ExtensionLoader::getDefaultJoin)
+                .orElse(null);
     }
 }

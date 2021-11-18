@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class RewritePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, RewriteHandle>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, RewriteHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {

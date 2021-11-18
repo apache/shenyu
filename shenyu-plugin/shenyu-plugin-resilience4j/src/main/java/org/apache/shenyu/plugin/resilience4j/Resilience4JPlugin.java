@@ -37,6 +37,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -77,9 +78,9 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
         return combinedExecutor.run(
                 chain.execute(exchange).doOnSuccess(v -> {
                     HttpStatus status = exchange.getResponse().getStatusCode();
-                    if (status == null || !status.is2xxSuccessful()) {
+                    if (Objects.isNull(status) || !status.is2xxSuccessful()) {
                         exchange.getResponse().setStatusCode(null);
-                        throw new CircuitBreakerStatusCodeException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
+                        throw new CircuitBreakerStatusCodeException(Objects.isNull(status) ? HttpStatus.INTERNAL_SERVER_ERROR : status);
                     }
                 }), fallback(combinedExecutor, exchange, conf.getFallBackUri()), conf);
     }
