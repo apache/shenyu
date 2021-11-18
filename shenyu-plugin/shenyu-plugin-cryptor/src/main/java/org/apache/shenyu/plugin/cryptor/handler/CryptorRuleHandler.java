@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 /**
  * Cryptor response rule handle.
  */
+@SuppressWarnings("unused")
 public class CryptorRuleHandler implements RuleHandle {
 
     private String strategyName;
