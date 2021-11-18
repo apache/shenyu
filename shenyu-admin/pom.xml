@@ -256,7 +256,6 @@
                     <exclude>*.yml</exclude>
                     <exclude>logback.xml</exclude>
                 </excludes>
-                <filtering>false</filtering>
             </resource>
         </resources>
         <plugins>
