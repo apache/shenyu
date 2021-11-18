@@ -32,9 +32,9 @@ import java.util.Random;
  * The type Dubbo service.
  */
 @DubboService
-public class SpringCloudAlibabaDubboTestServiceImpl implements DubboTestService {
+public class TestServiceImpl implements DubboTestService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpringCloudAlibabaDubboTestServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestServiceImpl.class);
 
     @Override
     @ShenyuDubboClient(path = "/findById", desc = "Query by Id")

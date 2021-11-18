@@ -43,16 +43,19 @@ public class BodyInserterContext implements BodyInserter.Context {
         this.exchangeStrategies = ExchangeStrategies.withDefaults();
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public List<HttpMessageWriter<?>> messageWriters() {
         return exchangeStrategies.messageWriters();
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public Optional<ServerHttpRequest> serverRequest() {
         return Optional.empty();
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public Map<String, Object> hints() {
         return Collections.emptyMap();

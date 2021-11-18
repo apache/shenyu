@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 /**
  * Test cases for {@link QueryParameterData}.
  */
-public class QueryParameterDataTest {
+public final class QueryParameterDataTest {
 
     private ServerWebExchange exchange;
 

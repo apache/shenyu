@@ -47,13 +47,11 @@ import java.util.Objects;
  */
 public class RpcParamTransformPlugin implements ShenyuPlugin {
 
-    private final List<HttpMessageReader<?>> messageReaders;
-
     /**
      * Instantiates a new param transform plugin.
      */
     public RpcParamTransformPlugin() {
-        this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
+        List<HttpMessageReader<?>> messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
 
     @Override
@@ -95,7 +93,7 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
         return Mono.from(serverHttpRequest.getBody()
                 .flatMap(map -> {
                     String param = resolveBodyFromRequest(map);
-                    LinkedMultiValueMap linkedMultiValueMap;
+                    LinkedMultiValueMap<String, String> linkedMultiValueMap;
                     try {
                         linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8.name()));
                     } catch (UnsupportedEncodingException e) {

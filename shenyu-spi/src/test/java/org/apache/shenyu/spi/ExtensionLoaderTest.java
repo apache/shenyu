@@ -194,7 +194,7 @@ public final class ExtensionLoaderTest {
     @Test
     public void testLoadClassDuplicateKey() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method loadClassMethod = getLoadClassMethod();
-        ExtensionLoader extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
+        ExtensionLoader<JdbcSPI> extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
         Map<String, Class<?>> classes = new HashMap<>();
         loadClassMethod.invoke(extensionLoader, classes, "mysql", "org.apache.shenyu.spi.fixture.MysqlSPI");
         try {
@@ -214,7 +214,7 @@ public final class ExtensionLoaderTest {
     public void loadResourcesIOException()
             throws NoSuchMethodException, MalformedURLException, IllegalAccessException {
         Method loadResourcesMethod = getLoadResources();
-        ExtensionLoader extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
+        ExtensionLoader<JdbcSPI> extensionLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class);
         try {
             loadResourcesMethod.invoke(extensionLoader, new HashMap<>(),
                     new URL("file:/org.apache.shenyu.spi.fixture.NoExistSPI"));

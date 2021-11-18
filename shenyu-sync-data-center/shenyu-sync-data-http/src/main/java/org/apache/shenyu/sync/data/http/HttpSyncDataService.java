@@ -60,7 +60,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * HTTP long polling implementation.
  */
-@SuppressWarnings("all")
 public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
     /**
@@ -85,25 +84,22 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     /**
      * default: 10s.
      */
-    private Duration connectionTimeout = Duration.ofSeconds(10);
+    private final Duration connectionTimeout = Duration.ofSeconds(10);
 
     /**
      * only use for http long polling.
      */
-    private RestTemplate httpClient;
+    private final RestTemplate httpClient;
 
     private ExecutorService executor;
 
-    private HttpConfig httpConfig;
+    private final List<String> serverList;
 
-    private List<String> serverList;
-
-    private DataRefreshFactory factory;
+    private final DataRefreshFactory factory;
 
     public HttpSyncDataService(final HttpConfig httpConfig, final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
-        this.httpConfig = httpConfig;
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.httpClient = createRestTemplate();
         this.start();
@@ -155,7 +151,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         }
         String url = server + SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
-        String json = null;
+        String json;
         try {
             json = this.httpClient.getForObject(url, String.class);
         } catch (RestClientException e) {
@@ -187,7 +183,6 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         return factory.executor(data);
     }
 
-    @SuppressWarnings("unchecked")
     private void doLongPolling(final String server) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
@@ -199,11 +194,11 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        HttpEntity httpEntity = new HttpEntity(params, headers);
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
         String listenerUrl = server + SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
         LOG.debug("request listener configs: [{}]", listenerUrl);
 
-        JsonArray groupJson = null;
+        JsonArray groupJson;
         try {
             String json = this.httpClient.postForEntity(listenerUrl, httpEntity, String.class).getBody();
             LOG.debug("listener result: [{}]", json);
@@ -224,7 +219,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         RUNNING.set(false);
         if (Objects.nonNull(executor)) {
             executor.shutdownNow();
@@ -235,9 +230,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
     class HttpLongPollingTask implements Runnable {
 
-        private String server;
-
-        private final int retryTimes = 3;
+        private final String server;
 
         HttpLongPollingTask(final String server) {
             this.server = server;
@@ -246,6 +239,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         @Override
         public void run() {
             while (RUNNING.get()) {
+                int retryTimes = 3;
                 for (int time = 1; time <= retryTimes; time++) {
                     try {
                         doLongPolling(server);

@@ -21,10 +21,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * TestSpringCloudDubboAnnotationApplication.
+ * Application.
  */
 @SpringBootApplication
-public class TestSpringCloudDubboAnnotationApplication {
+public class Application {
 
     /**
      * Main Entrance.
@@ -32,6 +32,6 @@ public class TestSpringCloudDubboAnnotationApplication {
      * @param args startup arguments
      */
     public static void main(final String[] args) {
-        SpringApplication.run(TestSpringCloudDubboAnnotationApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 }
