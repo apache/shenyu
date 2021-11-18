@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging;
 
-import java.net.InetSocketAddress;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -33,10 +32,10 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.InetSocketAddress;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * The Test Case For DebugPlugin.
@@ -61,11 +60,11 @@ public final class LoggingPluginTest {
         this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         MockServerHttpRequest request = MockServerHttpRequest
-            .get("localhost")
-            .remoteAddress(new InetSocketAddress(8090))
-            .header("X-source", "mock test")
-            .queryParam("queryParam", "Hello,World")
-            .build();
+                .get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .header("X-source", "mock test")
+                .queryParam("queryParam", "Hello,World")
+                .build();
         this.exchange = spy(MockServerWebExchange.from(request));
     }
 

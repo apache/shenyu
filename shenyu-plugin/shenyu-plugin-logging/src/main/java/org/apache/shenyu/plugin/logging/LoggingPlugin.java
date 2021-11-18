@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class LoggingPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingPlugin.class);
-    
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ServerHttpRequest request = exchange.getRequest();
@@ -67,41 +67,41 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
         return chain.execute(exchange.mutate().request(new LoggingServerHttpRequest(request, requestInfo))
                 .response(new LoggingServerHttpResponse(exchange.getResponse(), requestInfo)).build());
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.LOGGING.getCode();
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.LOGGING.getName();
     }
-    
+
     @Override
     public boolean skip(final ServerWebExchange exchange) {
         return false;
     }
-    
+
     private String getRequestMethod(final ServerHttpRequest request) {
         return "Request Method: " + request.getMethod() + System.lineSeparator();
     }
-    
+
     private String getRequestUri(final ServerHttpRequest request) {
         return "Request Uri: " + request.getURI() + System.lineSeparator();
     }
-    
+
     private String getQueryParams(final ServerHttpRequest request) {
         MultiValueMap<String, String> params = request.getQueryParams();
         StringBuilder logInfo = new StringBuilder();
         if (!params.isEmpty()) {
             logInfo.append("[Query Params Start]").append(System.lineSeparator());
-            params.forEach((key, value) -> logInfo.append(key).append(":").append(StringUtils.join(value, ",")).append(System.lineSeparator()));
+            params.forEach((key, value) -> logInfo.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator()));
             logInfo.append("[Query Params End]").append(System.lineSeparator());
         }
         return logInfo.toString();
     }
-    
+
     private String getRequestHeaders(final ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
         final StringBuilder logInfo = new StringBuilder();
@@ -112,22 +112,22 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
         }
         return logInfo.toString();
     }
-    
+
     private void print(final String info) {
         LOG.info(info);
     }
-    
+
     private String getHeaders(final HttpHeaders headers) {
         StringBuilder sb = new StringBuilder();
         Set<Map.Entry<String, List<String>>> entrySet = headers.entrySet();
-        for (Map.Entry<String, List<String>> entry : entrySet) {
+        entrySet.forEach(entry -> {
             String key = entry.getKey();
             List<String> value = entry.getValue();
             sb.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator());
-        }
+        });
         return sb.toString();
     }
-    
+
     static class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
 
         private final StringBuilder logInfo;
@@ -190,8 +190,8 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
 
         private String getResponseHeaders() {
             return System.lineSeparator() + "[Response Headers Start]" + System.lineSeparator()
-                + LoggingPlugin.this.getHeaders(serverHttpResponse.getHeaders())
-                + "[Response Headers End]" + System.lineSeparator();
+                    + LoggingPlugin.this.getHeaders(serverHttpResponse.getHeaders())
+                    + "[Response Headers End]" + System.lineSeparator();
         }
     }
 
