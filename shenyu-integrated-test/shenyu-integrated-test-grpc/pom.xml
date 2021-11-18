@@ -67,7 +67,6 @@
                             <executable>true</executable>
                         </configuration>
                     </plugin>
-                    
                     <plugin>
                         <groupId>com.spotify</groupId>
                         <artifactId>dockerfile-maven-plugin</artifactId>
@@ -86,6 +85,13 @@
                             <buildArgs>
                                 <APP_NAME>shenyu-integrated-test-grpc</APP_NAME>
                             </buildArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
                         </configuration>
                     </plugin>
                 </plugins>
