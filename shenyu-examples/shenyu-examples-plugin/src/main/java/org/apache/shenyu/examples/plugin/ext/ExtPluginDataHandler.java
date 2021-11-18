@@ -23,7 +23,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 
 public class ExtPluginDataHandler implements PluginDataHandler {
-    
+
     /**
      * Handler plugin.
      *
@@ -33,7 +33,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         System.out.println("hello, im extend plugin dataHandler" );
     }
-    
+
     /**
      * Remove plugin.
      *
@@ -41,9 +41,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removePlugin(final PluginData pluginData) {
-        
+        System.out.println("selector removed : name = " + pluginData.getName());
     }
-    
+
     /**
      * Handler selector.
      *
@@ -51,9 +51,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        
+        System.out.println("selector processing : name = " + selectorData.getName());
     }
-    
+
     /**
      * Remove selector.
      *
@@ -61,9 +61,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        
+        System.out.println("selector removed : name = " + selectorData.getName());
     }
-    
+
     /**
      * Handler rule.
      *
@@ -71,9 +71,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerRule(final RuleData ruleData) {
-        
+        System.out.println("rule processing : name = " + ruleData.getName());
     }
-    
+
     /**
      * Remove rule.
      *
@@ -81,9 +81,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removeRule(final RuleData ruleData) {
-        
+        System.out.println("rule data removed: name = " + ruleData.getName());
     }
-    
+
     /**
      * Plugin named string.
      *

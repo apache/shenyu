@@ -60,7 +60,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
 
         return new StreamObserver<RequestData>() {
 
-            private ResponseData.Builder builder = ResponseData.newBuilder();
+            private final ResponseData.Builder builder = ResponseData.newBuilder();
 
             @Override
             public void onNext(final RequestData value) {
@@ -69,7 +69,8 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
 
             @Override
             public void onError(final Throwable t) {
-
+                System.err.println(t.getMessage());
+                t.printStackTrace();
             }
 
             @Override
@@ -87,7 +88,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
 
         return new StreamObserver<RequestData>() {
 
-            private ResponseData.Builder builder = ResponseData.newBuilder();
+            private final ResponseData.Builder builder = ResponseData.newBuilder();
 
             @Override
             public void onNext(RequestData value) {
@@ -99,7 +100,8 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             }
 
             @Override
-            public void onError(final Throwable t) { t.printStackTrace();
+            public void onError(final Throwable t) {
+                t.printStackTrace();
             }
 
             @Override
