@@ -36,6 +36,7 @@ echo %version%| findstr "^11" >nul && (
 echo %version%| findstr "^17" >nul && (
    set "JAVA_OPTS=%JAVA_OPTS%
 )
+
 set MAIN_CLASS=org.apache.shenyu.admin.ShenyuAdminBootstrap
 
 echo Starting the %SERVER_NAME% ...
