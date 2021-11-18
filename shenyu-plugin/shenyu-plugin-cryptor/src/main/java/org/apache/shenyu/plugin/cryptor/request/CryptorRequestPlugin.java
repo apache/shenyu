@@ -70,10 +70,10 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         Pair<Boolean, String> pair = JsonUtil.checkParam(ruleHandle);
-        if (pair.getKey()) {
+        if (pair.getLeft()) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg()
-                    + "[" + pair.getValue() + "]", null);
+                    + "[" + pair.getRight() + "]", null);
             return WebFluxResultUtils.result(exchange, error);
         }
 
