@@ -50,7 +50,6 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -111,7 +110,6 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testCreateOrUpdate() {
-        doNothing().when(loggerSpy).error(anyString(), isA(MetaDataDTO.class));
         testCreateOrUpdateForParamsError();
         testCreateOrUpdateForPathExist();
         testCreateOrUpdateForInsert();
