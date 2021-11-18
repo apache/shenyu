@@ -45,7 +45,7 @@ import java.util.Map;
 @RequestMapping("/test")
 @ShenyuSpringMvcClient(path = "/test/**")
 public class HttpTestController {
-    
+
     /**
      * Post user dto.
      *
@@ -56,7 +56,7 @@ public class HttpTestController {
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
-    
+
     /**
      * Find by user id string.
      *
@@ -65,12 +65,9 @@ public class HttpTestController {
      */
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(userId);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(userId,"hello world");
     }
-    
+
     /**
      * Find by page user dto.
      *
@@ -81,11 +78,9 @@ public class HttpTestController {
      */
     @GetMapping("/findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserName("hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
-        return userDTO;
+        return buildUser(keyword,"hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
     }
-    
+
     /**
      * Gets path variable.
      *
@@ -95,13 +90,10 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(id);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(id, name);
     }
-    
-    
+
+
     /**
      * Test rest ful string.
      *
@@ -110,13 +102,10 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(id);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(id,"hello world");
     }
-    
-    
+
+
     /**
      * Put path variable and body string.
      *
@@ -130,7 +119,7 @@ public class HttpTestController {
         userDTO.setUserName("hello world");
         return userDTO;
     }
-    
+
     /**
      * the waf pass.
      *
@@ -143,7 +132,7 @@ public class HttpTestController {
         response.setMsg("pass");
         return response;
     }
-    
+
     /**
      * the waf deny.
      *
@@ -156,7 +145,7 @@ public class HttpTestController {
         response.setMsg("deny");
         return response;
     }
-    
+
     /**
      * request Pass.
      *
@@ -174,7 +163,7 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
-    
+
     /**
      * request Pass.
      *
@@ -192,7 +181,7 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
-    
+
     /**
      * request Pass.
      *
@@ -210,7 +199,7 @@ public class HttpTestController {
         response.setData(param);
         return response;
     }
-    
+
     /**
      * post sentinel.
      *
@@ -218,12 +207,9 @@ public class HttpTestController {
      */
     @PostMapping("/sentinel/pass")
     public ResultBean sentinelPass() {
-        ResultBean response = new ResultBean();
-        response.setCode(200);
-        response.setMsg("pass");
-        return response;
+        return pass();
     }
-    
+
     /**
      * modify response.
      *
@@ -241,5 +227,12 @@ public class HttpTestController {
                 .put("removeBodyKeys", true)
                 .build();
         return Mono.just(GsonUtils.getInstance().toJson(body));
+    }
+
+    private UserDTO buildUser(String id, String name) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(id);
+        userDTO.setUserName(name);
+        return userDTO;
     }
 }

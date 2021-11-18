@@ -177,7 +177,7 @@ public final class ApplicationConfigCache {
      * @return the key
      */
     public static String getClassMethodKey(final String className, final String methodName) {
-        return className + "_" + methodName;
+        return String.join("_", className, methodName);
     }
 
     /**
@@ -197,7 +197,7 @@ public final class ApplicationConfigCache {
     public void initPrxClass(final SelectorData selectorData) {
         try {
             final List<TarsUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), TarsUpstream.class);
-            if (null == upstreamList || upstreamList.size() == 0) {
+            if (CollectionUtils.isEmpty(upstreamList)) {
                 invalidate(selectorData.getName());
                 return;
             }
@@ -224,7 +224,7 @@ public final class ApplicationConfigCache {
         }
         TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
         tarsInvokePrxList.getTarsInvokePrxList().clear();
-        if (tarsInvokePrxList.getMethod() == null) {
+        if (Objects.isNull(tarsInvokePrxList.getMethod())) {
             TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
             Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
             Method method = prx.getClass().getDeclaredMethod(
@@ -246,9 +246,7 @@ public final class ApplicationConfigCache {
      */
     public void invalidate(final String contextPath) {
         List<MetaData> metaDataList = ctxPathCache.getOrDefault(contextPath, new ArrayList<>());
-        for (MetaData metaData : metaDataList) {
-            cache.invalidate(metaData.getPath());
-        }
+        metaDataList.forEach(metaData -> cache.invalidate(metaData.getPath()));
     }
 
     /**

@@ -25,6 +25,7 @@ import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -74,7 +75,7 @@ public final class MetricsTrackerFacade implements AutoCloseable {
      */
     public void stop() {
         this.isStarted.compareAndSet(true, false);
-        if (null != metricsBootService) {
+        if (Objects.nonNull(metricsBootService)) {
             metricsBootService.stop();
         }
     }
