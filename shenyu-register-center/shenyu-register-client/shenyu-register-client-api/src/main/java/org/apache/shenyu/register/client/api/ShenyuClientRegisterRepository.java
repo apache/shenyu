@@ -27,17 +27,7 @@ import org.apache.shenyu.spi.SPI;
  */
 @SPI
 public interface ShenyuClientRegisterRepository {
-    
-    /**
-     * Path separator.
-     */
-    String PATH_SEPARATOR = "/";
-    
-    /**
-     * Dot separator.
-     */
-    String DOT_SEPARATOR = ".";
-    
+
     /**
      * Init.
      *

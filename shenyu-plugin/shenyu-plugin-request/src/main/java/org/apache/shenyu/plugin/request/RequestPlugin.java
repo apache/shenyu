@@ -89,7 +89,6 @@ public class RequestPlugin extends AbstractShenyuPlugin {
      *
      * @param request serverHttpRequest
      * @param requestHandle requestHandle
-     * @return new headers
      */
     private void setHeaders(final HttpHeaders headers, final ServerHttpRequest request, final RequestHandle requestHandle) {
         List<HttpCookie> cookies = getCookies(request, requestHandle).values().stream()

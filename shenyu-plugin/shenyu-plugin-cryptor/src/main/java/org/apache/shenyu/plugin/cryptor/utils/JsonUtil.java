@@ -20,8 +20,8 @@ package org.apache.shenyu.plugin.cryptor.utils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 
@@ -33,8 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * json util.
  */
 public class JsonUtil {
-
-    private static String errorCollector;
 
     /**
      * parser JSON.
@@ -66,24 +64,15 @@ public class JsonUtil {
      * @param ruleHandle ruleHandle
      * @return is null
      */
-    public static boolean checkParam(final CryptorRuleHandler ruleHandle) {
+    public static Pair<Boolean, String> checkParam(final CryptorRuleHandler ruleHandle) {
         String json = GsonUtils.getGson().toJson(ruleHandle);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(json, String.class);
         for (Map.Entry<String, String> entry : map.entrySet()) {
             if (StringUtils.isEmpty(map.get(entry.getKey()))) {
-                errorCollector = entry.getKey();
-                return true;
+                return Pair.of(true, entry.getKey());
             }
         }
-        return false;
-    }
-
-    /**
-     * get error param.
-     * @return error param.
-     */
-    public static String getErrorCollector() {
-        return errorCollector;
+        return Pair.of(false, "");
     }
 
     /**
@@ -98,7 +87,7 @@ public class JsonUtil {
                                               final AtomicInteger initDeep,
                                               final String value,
                                               final List<String> deepKey) {
-        if (CollectionUtils.isEmpty(deepKey)) {
+        if (deepKey.size() == 0) {
             return jsonElement;
         }
         if (jsonElement.isJsonPrimitive()) {

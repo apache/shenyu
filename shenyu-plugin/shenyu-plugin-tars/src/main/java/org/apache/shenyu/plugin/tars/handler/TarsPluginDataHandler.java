@@ -38,7 +38,7 @@ public class TarsPluginDataHandler implements PluginDataHandler {
     public String pluginNamed() {
         return PluginEnum.TARS.getName();
     }
-    
+
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData.getName())) {
@@ -54,5 +54,4 @@ public class TarsPluginDataHandler implements PluginDataHandler {
         }
         ApplicationConfigCache.getInstance().invalidate(selectorData.getName());
     }
-
 }

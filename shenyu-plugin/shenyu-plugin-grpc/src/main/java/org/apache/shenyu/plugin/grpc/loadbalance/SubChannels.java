@@ -23,6 +23,8 @@ import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import io.grpc.ConnectivityState;
 
+import java.util.Objects;
+
 /**
  * The grpc SubChannels.
  */
@@ -106,18 +108,23 @@ public class SubChannels {
      * @param subchannel subchannel
      * @param value      value
      */
-    public static void setStateInfo(final LoadBalancer.Subchannel subchannel, final ConnectivityStateInfo value) {
+    public static void setStateInfo(final LoadBalancer.Subchannel subchannel,
+                                    final ConnectivityStateInfo value) {
         setAttributeValue(subchannel, STATE_INFO_KEY, value);
     }
 
-    private static <T> T getAttributeValue(final LoadBalancer.Subchannel subchannel, final Attributes.Key<Ref<T>> key, final T defaultValue) {
+    private static <T> T getAttributeValue(final LoadBalancer.Subchannel subchannel,
+                                           final Attributes.Key<Ref<T>> key,
+                                           final T defaultValue) {
         final Ref<T> ref = subchannel.getAttributes().get(key);
-        return ref == null ? defaultValue : ref.value;
+        return Objects.isNull(ref) ? defaultValue : ref.value;
     }
 
-    private static <T> void setAttributeValue(final LoadBalancer.Subchannel subchannel, final Attributes.Key<Ref<T>> key, final T newValue) {
+    private static <T> void setAttributeValue(final LoadBalancer.Subchannel subchannel,
+                                              final Attributes.Key<Ref<T>> key,
+                                              final T newValue) {
         final Ref<T> targetRef = subchannel.getAttributes().get(key);
-        if (targetRef != null) {
+        if (Objects.nonNull(targetRef)) {
             targetRef.value = newValue;
         }
     }
@@ -130,9 +137,11 @@ public class SubChannels {
      * @param newAttributes newAttributes
      * @param <T>           t
      */
-    private static <T> void setAttributeValue(final LoadBalancer.Subchannel subchannel, final Attributes.Key<Ref<T>> key, final Attributes newAttributes) {
+    private static <T> void setAttributeValue(final LoadBalancer.Subchannel subchannel,
+                                              final Attributes.Key<Ref<T>> key,
+                                              final Attributes newAttributes) {
         final Ref<T> newValueRef = newAttributes.get(key);
-        if (newValueRef != null) {
+        if (Objects.nonNull(newValueRef)) {
             setAttributeValue(subchannel, key, newValueRef.value);
         }
     }
@@ -143,7 +152,8 @@ public class SubChannels {
      * @param subchannel newAttributes
      * @param attributes attributes
      */
-    public static void updateAttributes(final LoadBalancer.Subchannel subchannel, final Attributes attributes) {
+    public static void updateAttributes(final LoadBalancer.Subchannel subchannel,
+                                        final Attributes attributes) {
         setAttributeValue(subchannel, WEIGHT_KEY, attributes);
         setAttributeValue(subchannel, STATSU_KEY, attributes);
     }

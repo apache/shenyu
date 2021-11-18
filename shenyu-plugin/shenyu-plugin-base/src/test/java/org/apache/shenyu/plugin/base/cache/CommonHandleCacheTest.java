@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * BaseHandleCache test.
  */
-public class CommonHandleCacheTest {
+public final class CommonHandleCacheTest {
 
     private static final String MOCK_KEY = "mockKey";
 

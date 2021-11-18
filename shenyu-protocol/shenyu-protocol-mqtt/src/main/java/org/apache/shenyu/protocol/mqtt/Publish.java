@@ -15,16 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.exception;
+package org.apache.shenyu.protocol.mqtt;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
 
 /**
- * Shenyu register exception.
+ * Publish message.
  */
-public final class ShenyuRegisterException extends RuntimeException {
-    
-    private static final long serialVersionUID = -6417179023552012152L;
-    
-    public ShenyuRegisterException(final Exception cause) {
-        super(cause);
+public class Publish extends MessageType {
+
+    @Override
+    public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
+
     }
 }

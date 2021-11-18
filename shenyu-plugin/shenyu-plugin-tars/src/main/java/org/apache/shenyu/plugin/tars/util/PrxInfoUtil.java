@@ -154,7 +154,7 @@ public class PrxInfoUtil {
     }
 
     static class PrimitiveType {
-        
+ 
         private final Class<?> clazz;
 
         private final Function<Object, Object> func;

@@ -41,8 +41,9 @@ public class URIRegisterDTO implements DataTypeParent {
 
     private EventType eventType;
 
-    public URIRegisterDTO(final String appName, final String contextPath, final String rpcType, 
-                          final String host, final Integer port, final EventType eventType) {
+    public URIRegisterDTO(final String appName, final String contextPath,
+                          final String rpcType, final String host,
+                          final Integer port, final EventType eventType) {
         this.appName = appName;
         this.contextPath = contextPath;
         this.rpcType = rpcType;
@@ -228,26 +229,26 @@ public class URIRegisterDTO implements DataTypeParent {
     public int hashCode() {
         return Objects.hash(getAppName(), getContextPath(), getRpcType(), getHost(), getPort(), getEventType());
     }
-    
+
     @Override
     public String toString() {
         return "URIRegisterDTO{"
-                + "appName='" 
+                + "appName='"
                 + appName
                 + ", contextPath='"
                 + contextPath
-                + ", rpcType='" 
+                + ", rpcType='"
                 + rpcType
-                + ", host='" 
+                + ", host='"
                 + host
-                + ", port=" 
-                + port 
-                + ", eventType=" 
-                + eventType 
+                + ", port="
+                + port
+                + ", eventType="
+                + eventType
                 + '}';
-               
+
     }
-    
+
     public static final class Builder {
 
         private String appName;
@@ -269,7 +270,6 @@ public class URIRegisterDTO implements DataTypeParent {
          * appName.
          *
          * @param appName appName
-         *
          * @return Builder
          */
         public Builder appName(final String appName) {
@@ -281,7 +281,6 @@ public class URIRegisterDTO implements DataTypeParent {
          * contextPath.
          *
          * @param contextPath contextPath
-         *
          * @return Builder
          */
         public Builder contextPath(final String contextPath) {
@@ -293,7 +292,6 @@ public class URIRegisterDTO implements DataTypeParent {
          * rpcType.
          *
          * @param rpcType rpcType
-         *
          * @return Builder
          */
         public Builder rpcType(final String rpcType) {
@@ -305,7 +303,6 @@ public class URIRegisterDTO implements DataTypeParent {
          * host.
          *
          * @param host host
-         *
          * @return Builder
          */
         public Builder host(final String host) {
@@ -317,7 +314,6 @@ public class URIRegisterDTO implements DataTypeParent {
          * port.
          *
          * @param port port
-         *
          * @return Builder
          */
         public Builder port(final Integer port) {
@@ -329,7 +325,6 @@ public class URIRegisterDTO implements DataTypeParent {
          * eventType.
          *
          * @param eventType eventType
-         *
          * @return Builder
          */
         public Builder eventType(final EventType eventType) {

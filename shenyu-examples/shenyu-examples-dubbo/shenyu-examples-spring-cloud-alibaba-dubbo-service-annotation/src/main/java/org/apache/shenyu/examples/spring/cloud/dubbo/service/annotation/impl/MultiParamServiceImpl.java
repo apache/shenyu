@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * The type Dubbo multi param service.
  */
 @DubboService
-public class SpringCloudAlibabaDubboMultiParamServiceImpl implements DubboMultiParamService {
+public class MultiParamServiceImpl implements DubboMultiParamService {
 
     @Override
     @ShenyuDubboClient(path = "/findByIdsAndName", desc = "findByIdsAndName")

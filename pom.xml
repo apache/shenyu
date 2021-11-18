@@ -44,6 +44,8 @@
         <module>shenyu-dist</module>
         <module>shenyu-agent</module>
         <module>shenyu-loadbalancer</module>
+        <module>shenyu-examples</module>
+        <module>shenyu-integrated-test</module>
     </modules>
 
     <licenses>
@@ -143,6 +145,7 @@
         <jaxb.api.version>2.3.0</jaxb.api.version>
         <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
         <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
+        <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
     </properties>
 
     <dependencyManagement>

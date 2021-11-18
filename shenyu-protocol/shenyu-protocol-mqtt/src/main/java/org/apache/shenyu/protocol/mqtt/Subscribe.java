@@ -15,23 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.spring.cloud.dubbo.service.annotation;
+package org.apache.shenyu.protocol.mqtt;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 
 /**
- * TestSpringCloudDubboAnnotationApplication.
+ *  Subscribe to named topics.
  */
-@SpringBootApplication
-public class TestSpringCloudDubboAnnotationApplication {
+public class Subscribe extends MessageType {
 
-    /**
-     * Main Entrance.
-     *
-     * @param args startup arguments
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(TestSpringCloudDubboAnnotationApplication.class, args);
+    @Override
+    public void subscribe(final ChannelHandlerContext ctx, final MqttSubscribeMessage msg) {
+
     }
 }

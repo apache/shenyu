@@ -80,31 +80,7 @@ public class RegisterPathConstants {
     public static String buildURIParentPath(final String rpcType, final String contextPath) {
         return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType, contextPath);
     }
-    
-    /**
-     * Build uri read node string.
-     *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @param nodeName the node name
-     * @return the string
-     */
-    public static String buildURIReadNode(final String rpcType, final String contextPath, final String nodeName) {
-        return buildRealNode(buildURIParentPath(rpcType, contextPath), nodeName);
-    }
-    
-    /**
-     * Build meta data child path string.
-     *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @param nodeName the node name
-     * @return the string
-     */
-    public static String buildMetaDataReadNode(final String rpcType, final String contextPath, final String nodeName) {
-        return buildRealNode(buildMetaDataParentPath(rpcType, contextPath), nodeName);
-    }
-    
+
     /**
      * Build real node string.
      *

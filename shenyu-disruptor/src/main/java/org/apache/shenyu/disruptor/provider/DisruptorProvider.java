@@ -40,7 +40,7 @@ public class DisruptorProvider<T> {
     /**
      * The Logger.
      */
-    private Logger logger = LoggerFactory.getLogger(DisruptorProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(DisruptorProvider.class);
     
     /**
      * Instantiates a new Disruptor provider.

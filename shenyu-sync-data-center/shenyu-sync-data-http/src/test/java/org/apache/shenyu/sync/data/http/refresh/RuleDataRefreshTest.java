@@ -33,7 +33,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class RuleDataRefreshTest {
+public final class RuleDataRefreshTest {
 
     private final RuleDataRefresh mockRuleDataRefresh = new RuleDataRefresh(new PluginDataSubscriber() {
         @Override

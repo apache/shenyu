@@ -29,9 +29,9 @@ import java.util.concurrent.ExecutorService;
  */
 public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
     
-    private ExecutorService executor;
+    private final ExecutorService executor;
     
-    private QueueConsumerFactory<T> factory;
+    private final QueueConsumerFactory<T> factory;
     
     /**
      * Instantiates a new Queue consumer.

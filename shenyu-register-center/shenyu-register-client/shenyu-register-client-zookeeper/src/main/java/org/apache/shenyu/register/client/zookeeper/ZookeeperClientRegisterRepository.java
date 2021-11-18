@@ -82,7 +82,9 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         zkClient.close();
     }
 
-    private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
+    private void registerMetadata(final String rpcType,
+                                  final String contextPath,
+                                  final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         if (!zkClient.exists(metaDataPath)) {
@@ -119,7 +121,8 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
+        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
+                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
             nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());

@@ -29,7 +29,7 @@ public interface ExtensionFactory {
      * @param <T>   the type parameter
      * @param key   the key
      * @param clazz the clazz
-     * @return the extenstion
+     * @return the extension
      */
     <T> T getExtension(String key, Class<T> clazz);
 }

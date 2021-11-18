@@ -40,6 +40,7 @@ import java.util.List;
  * test case for {@link ConsulCacheHandler}.
  */
 public final class ConsulCacheHandlerTest {
+
     @Test
     public void testUpdatePluginMap() {
         String pluginName1 = "PLUGIN_NAME_1";
