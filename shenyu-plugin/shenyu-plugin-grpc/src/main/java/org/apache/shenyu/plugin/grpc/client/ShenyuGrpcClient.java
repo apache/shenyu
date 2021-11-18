@@ -82,12 +82,14 @@ public class ShenyuGrpcClient implements Closeable {
 
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
         StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse);
+
         ShenyuGrpcCallRequest callParams = new ShenyuGrpcCallRequest();
         callParams.setMethodDescriptor(jsonMarshallerMethodDescriptor);
         callParams.setChannel(channel);
         callParams.setCallOptions(callOptions);
         callParams.setResponseObserver(streamObserver);
         callParams.setRequests(jsonRequestList);
+
         try {
             this.invoke(callParams).get();
         } catch (InterruptedException | ExecutionException e) {
