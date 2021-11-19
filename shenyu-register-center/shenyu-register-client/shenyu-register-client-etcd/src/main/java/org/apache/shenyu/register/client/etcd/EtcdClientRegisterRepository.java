@@ -30,6 +30,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -107,8 +108,8 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
-                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
+        if (Objects.equals(RpcTypeEnum.HTTP.getName(), rpcType)
+                || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), rpcType)) {
             nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());

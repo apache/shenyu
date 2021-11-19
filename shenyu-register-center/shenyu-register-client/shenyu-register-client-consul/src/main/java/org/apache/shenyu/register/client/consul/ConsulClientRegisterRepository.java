@@ -29,20 +29,25 @@ import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
+
+import java.util.Objects;
 
 @Join
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsulClientRegisterRepository.class);
 
-    @Autowired
-    private ConsulRegistration consulRegistration;
-    
-    @Autowired
-    private KeyValueClient keyValueClient;
-    
+    private final ConsulRegistration consulRegistration;
+
+    private final KeyValueClient keyValueClient;
+
+    public ConsulClientRegisterRepository(final ConsulRegistration consulRegistration,
+                                          final KeyValueClient keyValueClient) {
+        this.consulRegistration = consulRegistration;
+        this.keyValueClient = keyValueClient;
+    }
+
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
@@ -78,8 +83,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
-                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
+        if (Objects.equals(RpcTypeEnum.HTTP.getName(), rpcType)
+                || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), rpcType)) {
             nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());

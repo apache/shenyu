@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.server.etcd;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -32,10 +33,10 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.ArrayList;
 
 
 /**
@@ -121,9 +122,9 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
 
     private void registerUriChildrenList(final String rpcPath, final String context) {
         String contextPath = String.join("/", rpcPath, context);
-        List<URIRegisterDTO> uriRegisterDTOList = new ArrayList<>();
+        List<URIRegisterDTO> uriRegisterDTOList = new LinkedList<>();
         client.getChildren(contextPath).forEach(path -> uriRegisterDTOList.add(GsonUtils.getInstance().fromJson(client.read(path), URIRegisterDTO.class)));
-        if (uriRegisterDTOList.isEmpty()) {
+        if (CollectionUtils.isEmpty(uriRegisterDTOList)) {
             URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + context).build();
             uriRegisterDTOList.add(uriRegisterDTO);
         }

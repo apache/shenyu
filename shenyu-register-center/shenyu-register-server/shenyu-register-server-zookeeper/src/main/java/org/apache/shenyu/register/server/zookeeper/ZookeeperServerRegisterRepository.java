@@ -33,6 +33,7 @@ import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -139,12 +140,13 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
     }
     
     private void registerURIChildrenList(final List<String> childrenList, final String uriParentPath) {
-        List<URIRegisterDTO> registerDTOList = new ArrayList<>();
+        List<URIRegisterDTO> registerDTOList = new LinkedList<>();
         childrenList.forEach(addPath -> {
             String realPath = RegisterPathConstants.buildRealNode(uriParentPath, addPath);
             registerDTOList.add(GsonUtils.getInstance().fromJson(zkClient.readData(realPath).toString(), URIRegisterDTO.class));
         });
-        if (registerDTOList.isEmpty()) {
+
+        if (CollectionUtils.isEmpty(registerDTOList)) {
             String contextPath = StringUtils.substringAfterLast(uriParentPath, "/");
             URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + contextPath).build();
             registerDTOList.add(uriRegisterDTO);

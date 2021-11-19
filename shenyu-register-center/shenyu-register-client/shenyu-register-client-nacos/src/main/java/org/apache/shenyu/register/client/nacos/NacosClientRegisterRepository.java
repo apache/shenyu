@@ -50,6 +50,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class NacosClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosClientRegisterRepository.class);
+
+    private final static String NAMESPACE = "nacosNameSpace";
     
     private ConfigService configService;
     
@@ -65,8 +67,8 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
-        String nameSpace = "nacosNameSpace";
-        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(nameSpace));
+
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(NAMESPACE));
         // the nacos authentication username
         nacosProperties.put(PropertyKeyConst.USERNAME, properties.getProperty(PropertyKeyConst.USERNAME, ""));
         // the nacos authentication password
