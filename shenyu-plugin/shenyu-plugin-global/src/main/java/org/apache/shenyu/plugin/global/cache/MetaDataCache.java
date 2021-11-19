@@ -21,7 +21,7 @@ import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.PathMatchUtils;
 
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -73,11 +73,11 @@ public final class MetaDataCache {
      * @return the meta data
      */
     public MetaData obtain(final String path) {
-        MetaData metaData = META_DATA_MAP.get(path);
-        if (Objects.isNull(metaData)) {
-            String key = META_DATA_MAP.keySet().stream().filter(k -> PathMatchUtils.match(k, path)).findFirst().orElse("");
-            return META_DATA_MAP.get(key);
-        }
-        return metaData;
+        return Optional.ofNullable(META_DATA_MAP.get(path))
+                .orElseGet(() -> META_DATA_MAP.get(META_DATA_MAP.keySet()
+                        .stream()
+                        .filter(k -> PathMatchUtils.match(k, path))
+                        .findFirst()
+                        .orElse("")));
     }
 }

@@ -44,20 +44,24 @@ public class RequestController {
     public Mono<String> testRequestHeader(@RequestHeader("header_key1") String headerKey1,
                                           ServerHttpRequest serverHttpRequest) {
         LOGGER.info("header_key1:{}, receive headers: {}", headerKey1, serverHttpRequest.getHeaders());
-        return Mono.just("response success: " + serverHttpRequest.getHeaders());
+        return successMono(serverHttpRequest.getHeaders());
     }
 
     @PostMapping(path = "/parameter")
     public Mono<String> testRequestParameter(@RequestParam("parameter_key1") String parameterKey1,
                                              ServerHttpRequest serverHttpRequest) {
         LOGGER.info("parameter_key1: {}, receive param: {}", parameterKey1, serverHttpRequest.getQueryParams());
-        return Mono.just("response success: " + serverHttpRequest.getQueryParams());
+        return successMono(serverHttpRequest.getQueryParams());
     }
 
     @GetMapping(path = "/cookie")
     public Mono<String> testRequestCookie(@CookieValue("userId") String userId,
                                           ServerHttpRequest serverHttpRequest) {
         LOGGER.info("userId:{}, receive Cookies: {}", userId, serverHttpRequest.getCookies());
-        return Mono.just("response success: " + serverHttpRequest.getCookies());
+        return successMono(serverHttpRequest.getCookies());
+    }
+
+    private Mono<String> successMono(Object body) {
+        return Mono.just("response success: " + body);
     }
 }

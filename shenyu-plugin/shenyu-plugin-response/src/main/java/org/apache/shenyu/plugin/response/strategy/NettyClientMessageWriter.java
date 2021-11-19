@@ -31,6 +31,7 @@ import reactor.netty.Connection;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Netty client message writer.
@@ -43,7 +44,7 @@ public class NettyClientMessageWriter implements MessageWriter {
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).doOnError(throwable -> cleanup(exchange)).then(Mono.defer(() -> {
             Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
-            if (connection == null) {
+            if (Objects.isNull(connection)) {
                 return Mono.empty();
             }
             ServerHttpResponse response = exchange.getResponse();
@@ -62,12 +63,12 @@ public class NettyClientMessageWriter implements MessageWriter {
 
     private void cleanup(final ServerWebExchange exchange) {
         Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
-        if (connection != null) {
+        if (Objects.nonNull(connection)) {
             connection.dispose();
         }
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {
-        return contentType != null && this.streamingMediaTypes.stream().anyMatch(contentType::isCompatibleWith);
+        return Objects.nonNull(contentType) && this.streamingMediaTypes.stream().anyMatch(contentType::isCompatibleWith);
     }
 }

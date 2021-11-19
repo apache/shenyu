@@ -62,7 +62,7 @@ jobs:
         run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/pom.xml -Pdocker
       - name: Build integrated tests
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/pom.xml
+        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
@@ -72,7 +72,7 @@ jobs:
       - name: Run test
         id: test
         if: env.SKIP_CI != 'true'
-        run: ./mvnw test -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
         if: env.SKIP_CI != 'true'

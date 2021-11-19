@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.grpc.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
@@ -78,7 +79,7 @@ public final class ApplicationConfigCache {
     public void initPrx(final SelectorData selectorData) {
         try {
             final List<GrpcUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), GrpcUpstream.class);
-            if (null == upstreamList || upstreamList.size() == 0) {
+            if (CollectionUtils.isEmpty(upstreamList)) {
                 invalidate(selectorData.getName());
                 return;
             }

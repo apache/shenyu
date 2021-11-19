@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +55,7 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
             return getErrorPickResult();
         }
         SubChannelCopy channel = pick(list);
-        return channel == null ? getErrorPickResult() : LoadBalancer.PickResult.withSubchannel(channel.getChannel());
+        return Objects.isNull(channel) ? getErrorPickResult() : LoadBalancer.PickResult.withSubchannel(channel.getChannel());
     }
 
     /**
@@ -95,10 +96,10 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
     @Override
     public String getSubchannelsInfo() {
         final List<String> infos = this.list.stream().map(r -> "Subchannel"
-                + "{ weight=" + r.getWeight()
-                + ", readyState=\"" + r.getState().toString() + "\""
-                + ", address=\"" + r.getChannel().getAddresses() + "\""
-                + "}")
+                        + "{ weight=" + r.getWeight()
+                        + ", readyState=\"" + r.getState().toString() + "\""
+                        + ", address=\"" + r.getChannel().getAddresses() + "\""
+                        + "}")
                 .collect(Collectors.toList());
         return "[ " + String.join(",", infos) + " ]";
     }

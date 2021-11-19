@@ -15,23 +15,41 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.response.strategy;
+package org.apache.shenyu.protocol.mqtt.repositories;
 
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import io.netty.channel.Channel;
+
+import java.util.Map;
 
 /**
- * The interface Message writer.
+ * channel repository.
  */
-public interface MessageWriter {
+public interface ChannelRepository {
 
     /**
-     * Write with exchange and shenyu plugin chain.
-     *
-     * @param exchange exchange the current server exchange
-     * @param chain provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
+     * add channel.
+     * @param clientId clientId
+     * @param channel channel
      */
-    Mono<Void> writeWith(ServerWebExchange exchange, ShenyuPluginChain chain);
+    void add(String clientId, Channel channel);
+
+    /**
+     * remove by clientId.
+     * @param clientId clientId
+     */
+    void remove(String clientId);
+
+    /**
+     * get factory.
+     * @return factory.
+     */
+    Map<String, Channel> getFactory();
+
+    /**
+     * get channel.
+     * @param clientId clientId
+     * @return Channel
+     */
+    Channel get(String clientId);
+
 }

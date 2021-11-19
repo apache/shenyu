@@ -96,7 +96,7 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
         StringBuilder logInfo = new StringBuilder();
         if (!params.isEmpty()) {
             logInfo.append("[Query Params Start]").append(System.lineSeparator());
-            params.forEach((key, value) -> logInfo.append(key).append(":").append(StringUtils.join(value, ",")).append(System.lineSeparator()));
+            params.forEach((key, value) -> logInfo.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator()));
             logInfo.append("[Query Params End]").append(System.lineSeparator());
         }
         return logInfo.toString();
@@ -120,11 +120,11 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
     private String getHeaders(final HttpHeaders headers) {
         StringBuilder sb = new StringBuilder();
         Set<Map.Entry<String, List<String>>> entrySet = headers.entrySet();
-        for (Map.Entry<String, List<String>> entry : entrySet) {
+        entrySet.forEach(entry -> {
             String key = entry.getKey();
             List<String> value = entry.getValue();
             sb.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator());
-        }
+        });
         return sb.toString();
     }
     

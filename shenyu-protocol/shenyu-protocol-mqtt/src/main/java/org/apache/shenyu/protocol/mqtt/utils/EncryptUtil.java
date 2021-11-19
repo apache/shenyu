@@ -15,23 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.response.strategy;
+package org.apache.shenyu.protocol.mqtt.utils;
 
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.springframework.util.DigestUtils;
+import java.nio.charset.StandardCharsets;
 
 /**
- * The interface Message writer.
+ * encrypt util.
  */
-public interface MessageWriter {
+public class EncryptUtil {
 
     /**
-     * Write with exchange and shenyu plugin chain.
-     *
-     * @param exchange exchange the current server exchange
-     * @param chain provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
+     * choose encrypt mode.
+     * @param encryptMode encryptMode
+     * @param password password
+     * @return encrypt password.
      */
-    Mono<Void> writeWith(ServerWebExchange exchange, ShenyuPluginChain chain);
+    public static String choose(final String encryptMode, final String password) {
+
+        switch (encryptMode) {
+            case "MD5":
+                return md5(password);
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * md5 encrypt.
+     * @param password password
+     * @return encrypt password
+     */
+    private static String md5(final String password) {
+        return DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
+    }
 }

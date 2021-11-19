@@ -47,7 +47,8 @@ public class CompleteObserver<T> implements StreamObserver<T> {
     }
 
     /**
-     * Returns a future which completes when the rpc finishes. The returned future fails if the rpc fails.
+     * Returns a future which completes when the rpc finishes.
+     * The returned future fails if the rpc fails.
      *
      * @return ListenableFuture future
      */
