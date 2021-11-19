@@ -56,13 +56,7 @@ jobs:
           java-version: 8
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-      - name: Build examples
-        if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/pom.xml -Pdocker
-      - name: Build integrated tests
-        if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+        run: ./mvnw -B clean install -Prelease,docker,it -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -Dcheckstyle.skip=true -Drat.skip=true -Djacoco.skip=true
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
         run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
