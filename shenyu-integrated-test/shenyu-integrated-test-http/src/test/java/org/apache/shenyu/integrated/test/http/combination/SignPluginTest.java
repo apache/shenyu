@@ -71,7 +71,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         Map<String, Object> normalHeaders = buildHeadersMap(now, path, APP_KEY, APP_SECRET, version);
         UserDTO normalRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath, normalHeaders,
                 UserDTO.class);
-        assertEquals("hello world", normalRespFuture.getUserName());
+        assertEquals("Lee", normalRespFuture.getUserName());
 
         Map<String, Object> errorPathHeaders = buildHeadersMap(now, "errorPath", APP_KEY, APP_SECRET, version);
         AdminResponse<Object> rejectedErrorPathRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,

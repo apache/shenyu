@@ -15,27 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.protocol.mqtt.utils;
 
-import org.apache.shenyu.common.utils.UriUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.net.URI;
-import java.util.Objects;
+import org.springframework.util.DigestUtils;
+import java.nio.charset.StandardCharsets;
 
 /**
- * The Uri Util test.
+ * encrypt util.
  */
-@RunWith(MockitoJUnitRunner.class)
-public final class UriUtilsTest {
+public class EncryptUtil {
 
-    @Test
-    public void createUriTest() {
-        URI uri = UriUtils.createUri("/SHENYU/TEST");
-        Assert.assertEquals(Objects.requireNonNull(uri).getPath(), "/SHENYU/TEST");
-        Assert.assertNull(UriUtils.createUri(""));
+    /**
+     * choose encrypt mode.
+     * @param encryptMode encryptMode
+     * @param password password
+     * @return encrypt password.
+     */
+    public static String choose(final String encryptMode, final String password) {
+
+        switch (encryptMode) {
+            case "MD5":
+                return md5(password);
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * md5 encrypt.
+     * @param password password
+     * @return encrypt password
+     */
+    private static String md5(final String password) {
+        return DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -104,7 +104,7 @@ public final class DefaultSignServiceTest {
         this.passed.setPath(path);
         final String timestamp = String.valueOf(System.currentTimeMillis());
         this.passed.setTimestamp(timestamp);
-        this.passed.setSign(buildSign(secretKey, timestamp, this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, timestamp, this.passed.getPath()));
         this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
@@ -151,9 +151,9 @@ public final class DefaultSignServiceTest {
 
     @Test
     public void overdueTest() {
-        Long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
-        this.passed.setTimestamp(errorTimestamp.toString());
-        this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
+        this.passed.setTimestamp(Long.toString(errorTimestamp));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
@@ -183,7 +183,7 @@ public final class DefaultSignServiceTest {
     @Test
     public void errorAuthPath() {
         this.passed.setPath("errorPath");
-        this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);

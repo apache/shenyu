@@ -15,27 +15,41 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.protocol.mqtt.repositories;
 
-import org.apache.shenyu.common.utils.UriUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import io.netty.channel.Channel;
 
-import java.net.URI;
-import java.util.Objects;
+import java.util.Map;
 
 /**
- * The Uri Util test.
+ * channel repository.
  */
-@RunWith(MockitoJUnitRunner.class)
-public final class UriUtilsTest {
+public interface ChannelRepository {
 
-    @Test
-    public void createUriTest() {
-        URI uri = UriUtils.createUri("/SHENYU/TEST");
-        Assert.assertEquals(Objects.requireNonNull(uri).getPath(), "/SHENYU/TEST");
-        Assert.assertNull(UriUtils.createUri(""));
-    }
+    /**
+     * add channel.
+     * @param clientId clientId
+     * @param channel channel
+     */
+    void add(String clientId, Channel channel);
+
+    /**
+     * remove by clientId.
+     * @param clientId clientId
+     */
+    void remove(String clientId);
+
+    /**
+     * get factory.
+     * @return factory.
+     */
+    Map<String, Channel> getFactory();
+
+    /**
+     * get channel.
+     * @param clientId clientId
+     * @return Channel
+     */
+    Channel get(String clientId);
+
 }

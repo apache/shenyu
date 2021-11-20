@@ -189,7 +189,6 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                             cacheSelectorData(selectorData);
                             return realPath;
                         }).forEach(this::subscribeSelectorDataChanges);
-
                     }
                 });
                 break;
@@ -267,7 +266,8 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheSelectorData(GsonUtils.getInstance().fromJson(data.toString(), SelectorData.class));
+                Optional.ofNullable(data)
+                        .ifPresent(e -> cacheSelectorData(GsonUtils.getInstance().fromJson(data.toString(), SelectorData.class)));
             }
 
             @Override
@@ -281,7 +281,8 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheRuleData(GsonUtils.getInstance().fromJson(data.toString(), RuleData.class));
+                Optional.ofNullable(data)
+                        .ifPresent(e -> cacheRuleData(GsonUtils.getInstance().fromJson(data.toString(), RuleData.class)));
             }
 
             @Override
@@ -295,7 +296,8 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheAuthData(GsonUtils.getInstance().fromJson(data.toString(), AppAuthData.class));
+                Optional.ofNullable(data)
+                        .ifPresent(e -> cacheAuthData(GsonUtils.getInstance().fromJson(data.toString(), AppAuthData.class)));
             }
 
             @Override
@@ -309,7 +311,8 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                cacheMetaData(GsonUtils.getInstance().fromJson(data.toString(), MetaData.class));
+                Optional.ofNullable(data)
+                        .ifPresent(e -> cacheMetaData(GsonUtils.getInstance().fromJson(data.toString(), MetaData.class)));
             }
 
             @Override

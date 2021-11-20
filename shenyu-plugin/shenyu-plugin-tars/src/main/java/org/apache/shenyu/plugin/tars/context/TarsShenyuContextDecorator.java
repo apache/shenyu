@@ -26,7 +26,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
  * The type Tars shenyu context decorator.
  */
 public class TarsShenyuContextDecorator implements ShenyuContextDecorator {
-    
+
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         shenyuContext.setModule(metaData.getAppName());
@@ -36,7 +36,7 @@ public class TarsShenyuContextDecorator implements ShenyuContextDecorator {
         shenyuContext.setRpcType(RpcTypeEnum.TARS.getName());
         return shenyuContext;
     }
-    
+
     @Override
     public String rpcType() {
         return RpcTypeEnum.TARS.getName();

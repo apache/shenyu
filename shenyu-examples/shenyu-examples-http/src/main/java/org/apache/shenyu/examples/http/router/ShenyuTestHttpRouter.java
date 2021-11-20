@@ -18,6 +18,7 @@
 package org.apache.shenyu.examples.http.router;
 
 import org.apache.shenyu.examples.http.result.ResultBean;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -57,6 +58,7 @@ public class ShenyuTestHttpRouter {
                         .and(route(GET("/timeout"), this::testRetry)));
     }
 
+    @NonNull
     private Mono<ServerResponse> testRetry(final ServerRequest req) {
         int i = ATOMIC_INTEGER.incrementAndGet();
         System.out.println("Retry count: " + i);
@@ -64,24 +66,27 @@ public class ShenyuTestHttpRouter {
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
+    @NonNull
     private Mono<ServerResponse> pdmHttpGet(final ServerRequest req) {
         ResultBean resultBean = new ResultBean(1, "msg", "this is pdm get hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
+    @NonNull
     private Mono<ServerResponse> omsHttpGet(final ServerRequest req) {
         ResultBean resultBean = new ResultBean(1, "msg", "this is oms get hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
+    @NonNull
     private Mono<ServerResponse> rewriteHandler(final ServerRequest req) {
         ResultBean resultBean = new ResultBean(1, "msg", "this is rewrite hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
+    @NonNull
     private Mono<ServerResponse> postHandler(final ServerRequest req) {
         final Mono<String> string = req.bodyToMono(String.class);
-        //ResultBean resultBean = new ResultBean(1, "msg", "post hello world");
         return ok().body(string, String.class);
     }
 

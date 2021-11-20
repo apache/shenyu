@@ -19,6 +19,7 @@ package org.apache.shenyu.examples.http.result;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,7 +137,7 @@ public class PaymentTypeService {
         }
 
         @Override
-        public Thread newThread(final Runnable runnable) {
+        public Thread newThread(@NonNull final Runnable runnable) {
             Thread thread = new Thread(runnable, "payment" + "-" + namePrefix + "-" + THREAD_NUMBER.getAndIncrement());
             thread.setDaemon(daemon);
             if (thread.getPriority() != Thread.NORM_PRIORITY) {
@@ -162,12 +163,12 @@ public class PaymentTypeService {
         /**
          * isEnable.
          */
-        private boolean isEnable;
+        private final boolean isEnable;
 
         /**
          * errorCode.
          */
-        private String errorCode;
+        private final String errorCode;
 
         /**
          * Instantiates a new Consult result.

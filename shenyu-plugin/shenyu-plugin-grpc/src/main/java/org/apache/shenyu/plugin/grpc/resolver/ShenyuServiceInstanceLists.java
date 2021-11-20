@@ -44,7 +44,8 @@ public class ShenyuServiceInstanceLists {
      * @param shenyuServiceInstances the shenyu service instances
      * @param appName                the app name
      */
-    public ShenyuServiceInstanceLists(final CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances, final String appName) {
+    public ShenyuServiceInstanceLists(final CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances,
+                                      final String appName) {
         this.shenyuServiceInstances = shenyuServiceInstances;
         this.appName = appName;
     }

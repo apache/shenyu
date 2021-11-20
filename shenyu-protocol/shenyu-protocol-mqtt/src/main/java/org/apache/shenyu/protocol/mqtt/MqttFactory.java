@@ -18,6 +18,7 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
@@ -50,7 +51,7 @@ public class MqttFactory {
         switch (msg.fixedHeader().messageType()) {
 
             case CONNECT:
-                messageType.connect(ctx);
+                messageType.connect(ctx, (MqttConnectMessage) msg);
                 break;
 
             case PUBLISH:
