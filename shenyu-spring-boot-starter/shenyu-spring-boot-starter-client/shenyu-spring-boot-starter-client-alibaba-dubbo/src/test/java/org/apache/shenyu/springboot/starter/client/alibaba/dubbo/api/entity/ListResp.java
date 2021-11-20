@@ -20,10 +20,19 @@ package org.apache.shenyu.springboot.starter.client.alibaba.dubbo.api.entity;
 import java.util.List;
 import java.util.StringJoiner;
 
+/**
+ * DubboTest Set of response results.
+ */
 public class ListResp {
 
+    /**
+     * DubboTest total.
+     */
     private Integer total;
 
+    /**
+     * DubboTest Set.
+     */
     private List<DubboTest> users;
 
     public ListResp() {

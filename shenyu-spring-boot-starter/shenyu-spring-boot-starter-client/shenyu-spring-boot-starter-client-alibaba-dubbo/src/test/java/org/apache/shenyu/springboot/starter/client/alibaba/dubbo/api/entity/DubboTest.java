@@ -24,8 +24,14 @@ import java.util.StringJoiner;
  */
 public class DubboTest {
 
+    /**
+     * save id.
+     */
     private String id;
 
+    /**
+     * save name.
+     */
     private String name;
 
     public DubboTest() {

@@ -27,10 +27,19 @@ import java.util.StringJoiner;
  */
 public class ComplexBeanTest implements Serializable {
 
+    /**
+     * DubboTest.
+     */
     private DubboTest dubboTest;
 
+    /**
+     * DubboTest id list.
+     */
     private List<String> idLists;
 
+    /**
+     * DubboTest id map.
+     */
     private Map<String, String> idMaps;
 
     public ComplexBeanTest() {
