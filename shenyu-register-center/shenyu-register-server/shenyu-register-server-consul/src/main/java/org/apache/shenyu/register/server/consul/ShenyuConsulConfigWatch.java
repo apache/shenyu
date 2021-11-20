@@ -25,7 +25,6 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.SmartLifecycle;
 
@@ -101,7 +100,7 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
                         LOGGER.trace("No value for context {}", context);
                     }
                 } catch (Exception e) {
-                    LOGGER.warn("Error querying consul Key/Values for context '{}'. Message: {}", context,  e.getMessage());
+                    LOGGER.warn("Error querying consul Key/Values for context '{}'. Message: {}", context, e.getMessage());
                 }
             }
         }

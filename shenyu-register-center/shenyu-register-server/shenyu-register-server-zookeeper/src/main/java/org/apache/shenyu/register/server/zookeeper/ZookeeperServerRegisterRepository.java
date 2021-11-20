@@ -22,6 +22,7 @@ import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -147,8 +148,8 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
         });
 
         if (CollectionUtils.isEmpty(registerDTOList)) {
-            String contextPath = StringUtils.substringAfterLast(uriParentPath, "/");
-            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + contextPath).build();
+            String contextPath = StringUtils.substringAfterLast(uriParentPath, Constants.PATH_SEPARATOR);
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + contextPath).build();
             registerDTOList.add(uriRegisterDTO);
         }
         publishRegisterURI(registerDTOList);

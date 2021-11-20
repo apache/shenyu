@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.client.consul;
 
 import com.ecwid.consul.v1.kv.KeyValueClient;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -32,6 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
 
 import java.util.Objects;
+
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
 
 @Join
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
@@ -77,7 +81,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     }
     
     private void registerURI(final URIRegisterDTO metadata) {
-        consulRegistration.getService().getMeta().put("uri", GsonUtils.getInstance().toJson(metadata));
+        consulRegistration.getService().getMeta().put(Constants.URI, GsonUtils.getInstance().toJson(metadata));
     }
     
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
@@ -85,10 +89,12 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         String rpcType = metadata.getRpcType();
         if (Objects.equals(RpcTypeEnum.HTTP.getName(), rpcType)
                 || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), rpcType)) {
-            nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
+            nodeName = String.join(SELECTOR_JOIN_RULE,
+                    metadata.getContextPath(),
+                    metadata.getRuleName().replace(PATH_SEPARATOR, SELECTOR_JOIN_RULE));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
+        return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
     }
 }

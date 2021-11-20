@@ -19,6 +19,7 @@ package org.apache.shenyu.register.client.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
@@ -45,8 +46,6 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
 
     private static final String URI_PATH = "/shenyu-client/register-uri";
 
-    private static final String URI_TYPE = "uri";
-
     private List<String> serverList;
 
     @Override
@@ -61,7 +60,7 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
      */
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
-        doRegister(registerDTO, URI_PATH, URI_TYPE);
+        doRegister(registerDTO, URI_PATH, Constants.URI);
     }
     
     @Override
