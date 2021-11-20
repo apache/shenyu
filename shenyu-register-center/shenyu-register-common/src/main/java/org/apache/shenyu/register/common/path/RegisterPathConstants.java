@@ -101,7 +101,7 @@ public class RegisterPathConstants {
      */
     public static String buildServiceInstancePath(final String rpcType) {
         return String.join(SEPARATOR, ROOT_PATH, "service", rpcType)
-                .replace("/", ".").substring(1);
+                .replace("/", DOT_SEPARATOR).substring(1);
     }
 
     /**
@@ -114,7 +114,7 @@ public class RegisterPathConstants {
      */
     public static String buildServiceConfigPath(final String rpcType, final String contextPath) {
         final String serviceConfigPathOrigin = String.join(SEPARATOR, ROOT_PATH, "service", rpcType, contextPath)
-                .replace("/", ".").replace("*", "");
+                .replace("/", DOT_SEPARATOR).replace("*", "");
         final String serviceConfigPathAfterSubstring = serviceConfigPathOrigin.substring(1);
         if (serviceConfigPathAfterSubstring.endsWith(".")) {
             return serviceConfigPathAfterSubstring.substring(0, serviceConfigPathAfterSubstring.length() - 1);

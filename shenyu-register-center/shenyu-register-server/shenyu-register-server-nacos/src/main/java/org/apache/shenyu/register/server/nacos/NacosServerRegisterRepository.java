@@ -27,6 +27,7 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.google.common.collect.Lists;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -204,7 +205,7 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
             }
             if (registerDTOList.isEmpty()) {
                 URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
-                uriRegisterDTO.setContextPath("/" + contextPath);
+                uriRegisterDTO.setContextPath(Constants.PATH_SEPARATOR + contextPath);
                 registerDTOList.add(uriRegisterDTO);
             }
             publishRegisterURI(registerDTOList);

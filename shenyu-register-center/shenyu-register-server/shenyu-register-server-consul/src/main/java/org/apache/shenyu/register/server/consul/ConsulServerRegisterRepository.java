@@ -21,6 +21,7 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -115,7 +116,7 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
         Map<String, List<URIRegisterDTO>> map = new HashMap<>();
         List<ServiceInstance> instances = discoveryClient.getAllInstances();
         instances.forEach(serviceInstance -> {
-            String data = serviceInstance.getMetadata().get("uri");
+            String data = serviceInstance.getMetadata().get(Constants.URI);
             if (Objects.nonNull(data)) {
                 URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(data, URIRegisterDTO.class);
                 String contextPath = uriRegisterDTO.getContextPath();
