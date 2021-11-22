@@ -23,12 +23,8 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -58,22 +54,6 @@ public final class ShenyuApacheDubboClientConfigurationTest {
         @Configuration
         @PropertySource(value = "classpath:application.properties")
         public class ApplicationResource {
-
-        }
-
-        /**
-         * takes precedence over spring-dubbo.xml load properties.
-         */
-        @Configuration
-        @ImportAutoConfiguration(PropertySourcesPlaceholderConfigurer.class)
-        @ImportResource(value = "classpath:spring-dubbo.xml", reader = XmlBeanDefinitionReader.class)
-        public class SpringDubboResource {
-
-        }
-
-        @Configuration
-        @ComponentScan(value = "org.apache.shenyu.springboot.starter.client.apache.dubbo.service.impl")
-        public class ScanDubboImpl {
 
         }
     }
