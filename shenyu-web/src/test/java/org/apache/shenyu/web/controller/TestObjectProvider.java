@@ -25,7 +25,7 @@ import org.springframework.beans.factory.ObjectProvider;
  *
  * @param <R> the type parameter
  */
-public final class TestObjectProvider<R> implements ObjectProvider<R> {
+public class TestObjectProvider<R> implements ObjectProvider<R> {
     
     private R r;
     
