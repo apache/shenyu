@@ -71,7 +71,7 @@
             </if>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
-                and name = #{nameLike,jdbcType=VARCHAR}
+                and name like #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 and id in
