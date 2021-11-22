@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -38,33 +39,33 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-    
+
     @Override
     public String rpcType() {
         return RpcTypeEnum.GRPC.getName();
     }
-    
+
     @Override
     protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
         return "";
     }
-    
+
     @Override
     protected String ruleHandler() {
         return "";
     }
-    
+
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
         MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
-    
+
     /**
      * Build handle string.
      *
-     * @param uriList the uri list
+     * @param uriList    the uri list
      * @param selectorDO the selector do
      * @return the string
      */
@@ -78,20 +79,17 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
             canAddList = addList;
         } else {
             List<GrpcUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), GrpcUpstream.class);
-            for (GrpcUpstream exist : existList) {
-                for (GrpcUpstream add : addList) {
-                    if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
-                        existList.add(add);
-                        canAddList.add(add);
-                    }
-                }
+            List<GrpcUpstream> diffList = addList.stream().filter(grpcUpstream -> !existList.contains(grpcUpstream)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffList)) {
+                canAddList.addAll(diffList);
+                existList.addAll(diffList);
             }
             handleAdd = GsonUtils.getInstance().toJson(existList);
         }
         doSubmit(selectorDO.getId(), canAddList);
         return handleAdd;
     }
-    
+
     private List<GrpcUpstream> buildGrpcUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
                 .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort()))
