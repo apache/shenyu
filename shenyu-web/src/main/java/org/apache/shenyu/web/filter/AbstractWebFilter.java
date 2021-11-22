@@ -42,7 +42,7 @@ public abstract class AbstractWebFilter implements WebFilter {
      * @param chain    provides a way to delegate to the next filter
      * @return {@code Mono<Boolean>} result：TRUE (is pass)，and flow next filter；FALSE (is not pass) execute doDenyResponse(ServerWebExchange exchange)
      */
-    protected abstract Mono<Boolean> doFilter(final ServerWebExchange exchange,final WebFilterChain chain);
+    protected abstract Mono<Boolean> doFilter(ServerWebExchange exchange,WebFilterChain chain);
 
     /**
      * this is Template Method ,children Implement your own And response client.
@@ -50,5 +50,5 @@ public abstract class AbstractWebFilter implements WebFilter {
      * @param exchange the current server exchange.
      * @return {@code Mono<Void>} response msg.
      */
-    protected abstract Mono<Void> doDenyResponse(final ServerWebExchange exchange);
+    protected abstract Mono<Void> doDenyResponse(ServerWebExchange exchange);
 }
