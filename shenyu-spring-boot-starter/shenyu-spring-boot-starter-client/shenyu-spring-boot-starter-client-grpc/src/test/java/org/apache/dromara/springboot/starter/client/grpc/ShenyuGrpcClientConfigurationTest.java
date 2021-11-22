@@ -24,7 +24,6 @@ import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,8 +34,10 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test case for {@link ShenyuGrpcClientConfiguration}.
  */
-@ImportAutoConfiguration(ShenyuGrpcClientConfigurationTest.EnvironmentSetting.class)
-public final class ShenyuGrpcClientConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+@ComponentScan(value = "org.apache.dromara.springboot.starter.client.grpc.server")
+public class ShenyuGrpcClientConfigurationTest {
 
     private ApplicationContextRunner applicationContextRunner;
 
@@ -78,16 +79,5 @@ public final class ShenyuGrpcClientConfigurationTest {
             GrpcServerRunner runner = context.getBean("grpcServer", GrpcServerRunner.class);
             assertNotNull(runner);
         });
-    }
-
-    @Configuration
-    @EnableConfigurationProperties
-    class EnvironmentSetting {
-
-        @Configuration
-        @ComponentScan(value = "org.apache.dromara.springboot.starter.client.grpc.server")
-        public class ScanServerImpl {
-
-        }
     }
 }

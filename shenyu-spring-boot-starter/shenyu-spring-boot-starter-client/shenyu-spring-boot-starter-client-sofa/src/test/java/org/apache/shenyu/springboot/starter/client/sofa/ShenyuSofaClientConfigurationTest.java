@@ -21,7 +21,6 @@ package org.apache.shenyu.springboot.starter.client.sofa;
 import org.apache.shenyu.client.sofa.SofaServiceBeanPostProcessor;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +30,9 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test case for {@link ShenyuSofaClientConfiguration}.
  */
-@ImportAutoConfiguration(ShenyuSofaClientConfigurationTest.EnvironmentSetting.class)
-public final class ShenyuSofaClientConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+public class ShenyuSofaClientConfigurationTest {
 
     @Test
     public void testSofaServiceBeanPostProcessor() {
@@ -53,11 +53,5 @@ public final class ShenyuSofaClientConfigurationTest {
                         assertNotNull(processor);
                     }
             );
-    }
-
-    @Configuration
-    @EnableConfigurationProperties
-    class EnvironmentSetting {
-
     }
 }

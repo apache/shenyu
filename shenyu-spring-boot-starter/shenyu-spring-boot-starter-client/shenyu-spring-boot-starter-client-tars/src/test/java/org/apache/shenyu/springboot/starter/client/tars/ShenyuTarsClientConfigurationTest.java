@@ -23,7 +23,6 @@ import org.apache.shenyu.client.tars.TarsServiceBeanPostProcessor;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -33,8 +32,9 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test case for {@link ShenyuTarsClientConfiguration}.
  */
-@ImportAutoConfiguration(ShenyuTarsClientConfigurationTest.EnvironmentSetting.class)
-public final class ShenyuTarsClientConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+public class ShenyuTarsClientConfigurationTest {
 
     private ApplicationContextRunner applicationContextRunner;
 
@@ -68,11 +68,5 @@ public final class ShenyuTarsClientConfigurationTest {
             TarsContextRefreshedEventListener listener = context.getBean("tarsContextRefreshedEventListener", TarsContextRefreshedEventListener.class);
             assertNotNull(listener);
         });
-    }
-
-    @Configuration
-    @EnableConfigurationProperties
-    class EnvironmentSetting {
-
     }
 }

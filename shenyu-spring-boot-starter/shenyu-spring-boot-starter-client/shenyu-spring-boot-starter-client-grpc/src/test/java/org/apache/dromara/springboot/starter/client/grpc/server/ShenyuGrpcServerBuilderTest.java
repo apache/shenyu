@@ -22,10 +22,10 @@ import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.springframework.stereotype.Component;
 
 /**
- * Grpc ServerBuilder.
+ * Grpc ServerBuilder Test.
  */
 @Component
-public class ShenyuGrpcServerBuilder implements GrpcServerBuilder {
+public class ShenyuGrpcServerBuilderTest implements GrpcServerBuilder {
 
     @Override
     public ServerBuilder<?> buildServerBuilder() {

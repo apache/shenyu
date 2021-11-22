@@ -24,7 +24,6 @@ import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +34,9 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test case for {@link ShenyuClientCommonBeanConfiguration}.
  */
-@ImportAutoConfiguration(ShenyuClientCommonBeanConfigurationTest.EnvironmentSetting.class)
-public final class ShenyuClientCommonBeanConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+public class ShenyuClientCommonBeanConfigurationTest {
 
     private ApplicationContextRunner applicationContextRunner;
 
@@ -80,11 +80,5 @@ public final class ShenyuClientCommonBeanConfigurationTest {
             assertNotNull(config);
             assertThat(config.getClient()).containsKey("dubbo");
         });
-    }
-
-    @Configuration
-    @EnableConfigurationProperties
-    class EnvironmentSetting {
-
     }
 }

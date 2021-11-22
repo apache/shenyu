@@ -20,7 +20,6 @@ package org.apache.shenyu.springboot.starter.client.alibaba.dubbo;
 import org.apache.shenyu.client.alibaba.dubbo.AlibabaDubboServiceBeanListener;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +30,10 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test case for {@link ShenyuAlibabaDubboClientConfiguration}.
  */
-@ImportAutoConfiguration(ShenyuAlibabaDubboClientConfigurationTest.EnvironmentSetting.class)
-public final class ShenyuAlibabaDubboClientConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+@PropertySource(value = "classpath:application.properties")
+public class ShenyuAlibabaDubboClientConfigurationTest {
 
     @Test
     public void testShenyuAlibabaDubboClientConfiguration() {
@@ -46,15 +47,5 @@ public final class ShenyuAlibabaDubboClientConfigurationTest {
                     assertNotNull(listener);
                 }
             );
-    }
-
-    @Configuration
-    @EnableConfigurationProperties
-    class EnvironmentSetting {
-        @Configuration
-        @PropertySource(value = "classpath:application.properties")
-        public class ApplicationResource {
-
-        }
     }
 }

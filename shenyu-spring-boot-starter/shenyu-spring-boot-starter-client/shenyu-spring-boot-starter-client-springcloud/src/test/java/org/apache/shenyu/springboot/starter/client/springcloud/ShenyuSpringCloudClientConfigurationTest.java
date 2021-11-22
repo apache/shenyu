@@ -22,7 +22,6 @@ import org.apache.shenyu.client.springcloud.init.SpringCloudClientBeanPostProces
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +31,9 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test case for {@link ShenyuSpringCloudClientConfiguration}.
  */
-@ImportAutoConfiguration(ShenyuSpringCloudClientConfigurationTest.EnvironmentSetting.class)
-public final class ShenyuSpringCloudClientConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+public class ShenyuSpringCloudClientConfigurationTest {
 
     private ApplicationContextRunner applicationContextRunner;
 
@@ -66,11 +66,5 @@ public final class ShenyuSpringCloudClientConfigurationTest {
             ContextRegisterListener listener = context.getBean("contextRegisterListener", ContextRegisterListener.class);
             assertNotNull(listener);
         });
-    }
-
-    @Configuration
-    @EnableConfigurationProperties
-    class EnvironmentSetting {
-
     }
 }

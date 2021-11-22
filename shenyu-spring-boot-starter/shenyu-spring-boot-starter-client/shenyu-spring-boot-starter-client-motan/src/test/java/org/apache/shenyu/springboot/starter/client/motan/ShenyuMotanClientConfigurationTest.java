@@ -21,7 +21,6 @@ package org.apache.shenyu.springboot.starter.client.motan;
 import org.apache.shenyu.client.motan.MotanServiceBeanPostProcessor;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +30,9 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test case for {@link ShenyuMotanClientConfiguration}.
  */
-@ImportAutoConfiguration(ShenyuMotanClientConfigurationTest.EnvironmentSetting.class)
-public final class ShenyuMotanClientConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+public class ShenyuMotanClientConfigurationTest {
 
     @Test
     public void testMotanServiceBeanPostProcessor() {
@@ -52,11 +52,5 @@ public final class ShenyuMotanClientConfigurationTest {
                 MotanServiceBeanPostProcessor processor = context.getBean("tarsServiceBeanPostProcessor", MotanServiceBeanPostProcessor.class);
                 assertNotNull(processor);
             });
-    }
-
-    @Configuration
-    @EnableConfigurationProperties
-    class EnvironmentSetting {
-
     }
 }
