@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -117,7 +118,8 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         setupCryptorRequest();
 
         AdminResponse<DubboTest> result = HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<AdminResponse<DubboTest>>() { }.getType());
-        assertEquals(TEST_ID, RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, result.getData().getId()));
+        byte[] inputByte = Base64.getMimeDecoder().decode(result.getData().getId());
+        assertEquals(TEST_ID, RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte));
 
         cleanCryptorRequest();
     }
