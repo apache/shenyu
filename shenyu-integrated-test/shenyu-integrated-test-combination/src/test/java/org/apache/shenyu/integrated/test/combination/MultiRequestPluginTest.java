@@ -87,7 +87,7 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
         JsonObject request = new JsonObject();
         request.addProperty("userId", TEST_USER_ID);
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserId());
+        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
         assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
         assertThat(actualUser.getUserId(), is(TEST_USER_ID));
 
