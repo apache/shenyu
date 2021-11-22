@@ -90,8 +90,8 @@ public class CryptorRequestPluginTest extends AbstractPluginDataInit {
         request.addProperty("userId", TEST_USER_ID);
         request.addProperty("userName", TEST_USER_NAME);
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-
-        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, actualUser.getUserId()), is(TEST_USER_ID));
+        byte[] inputByte = Base64.getMimeDecoder().decode(RSA_PRIVATE_KEY);
+        assertThat(RSA_STRATEGY.decrypt(inputByte, actualUser.getUserId()), is(TEST_USER_ID));
         assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
     }
 
