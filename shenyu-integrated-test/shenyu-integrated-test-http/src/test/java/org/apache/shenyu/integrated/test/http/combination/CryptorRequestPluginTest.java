@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
