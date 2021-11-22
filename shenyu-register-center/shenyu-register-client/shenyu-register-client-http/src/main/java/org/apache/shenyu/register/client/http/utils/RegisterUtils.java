@@ -21,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Objects;
+
+import static org.apache.shenyu.common.constant.Constants.SUCCESS;
 
 /**
  * RegisterUtils.
@@ -42,7 +45,7 @@ public final class RegisterUtils {
      */
     public static void doRegister(final String json, final String url, final String type) throws IOException {
         String result = OkHttpTools.getInstance().post(url, json);
-        if ("success".equals(result)) {
+        if (Objects.equals(SUCCESS, result)) {
             LOGGER.info("{} client register success: {} ", type, json);
         } else {
             LOGGER.error("{} client register error: {} ", type, json);

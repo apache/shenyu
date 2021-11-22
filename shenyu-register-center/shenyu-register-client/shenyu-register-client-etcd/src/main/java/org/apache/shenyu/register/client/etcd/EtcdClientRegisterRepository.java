@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.register.client.etcd;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -30,7 +31,12 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Properties;
+
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
+
 
 /**
  * etcd register repository.
@@ -101,19 +107,20 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     private String buildURINodeName(final URIRegisterDTO registerDTO) {
         String host = registerDTO.getHost();
         int port = registerDTO.getPort();
-        return String.join(":", host, Integer.toString(port));
+        return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
-                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
+        if (Objects.equals(RpcTypeEnum.HTTP.getName(), rpcType)
+                || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), rpcType)) {
+            nodeName = String.join(SELECTOR_JOIN_RULE, metadata.getContextPath(),
+                    metadata.getRuleName().replace(PATH_SEPARATOR, SELECTOR_JOIN_RULE));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
+        return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
     }
 
 }

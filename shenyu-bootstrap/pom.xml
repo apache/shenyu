@@ -410,7 +410,24 @@
         </dependency>
         <!--shenyu param mapping end-->
     </dependencies>
-
+    
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <excludes>
+                            <exclude>*.yml</exclude>
+                            <exclude>logback.xml</exclude>
+                        </excludes>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+    </profiles>
+    
     <build>
         <finalName>shenyu-bootstrap</finalName>
         <plugins>

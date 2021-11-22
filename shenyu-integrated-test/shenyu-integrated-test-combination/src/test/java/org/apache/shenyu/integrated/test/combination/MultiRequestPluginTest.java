@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -86,8 +87,8 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
         JsonObject request = new JsonObject();
         request.addProperty("userId", TEST_USER_ID);
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-
-        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, actualUser.getUserName()), is(TEST_USER_NAME));
+        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
+        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
         assertThat(actualUser.getUserId(), is(TEST_USER_ID));
 
         cleanParamMapping();

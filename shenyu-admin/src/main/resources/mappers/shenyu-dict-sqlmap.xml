@@ -208,7 +208,8 @@
                 and dict_code = #{dictCode,jdbcType=VARCHAR}
             </if>
             <if test="dictName != null and dictName != ''">
-                and dict_name = #{dictName,jdbcType=VARCHAR}
+                <bind name="dictNameLike" value="('%' + dictName + '%')"/>
+                and dict_name like #{dictNameLike,jdbcType=VARCHAR}
             </if>
         </where>
         order by `type`,sort asc

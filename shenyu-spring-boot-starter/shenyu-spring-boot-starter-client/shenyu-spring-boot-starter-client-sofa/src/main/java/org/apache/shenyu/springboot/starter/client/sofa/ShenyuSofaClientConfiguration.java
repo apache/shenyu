@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSofaClientConfiguration {
+
     /**
      * Sofa service bean post processor sofa service bean post processor.
      *

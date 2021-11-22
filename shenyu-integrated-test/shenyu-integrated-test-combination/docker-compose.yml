@@ -21,6 +21,7 @@ services:
     restart: always
     networks:
       - shenyu
+
   shenyu-redis:
     image: redis:6.0-alpine
     container_name: shenyu-redis
@@ -52,6 +53,31 @@ services:
         condition: service_healthy
     networks:
       - shenyu
+
+  shenyu-examples-apache-dubbo-service:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-apache-dubbo-service
+    image: shenyu-examples-apache-dubbo-service:latest
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - "8011:8011"
+      - "20888:20888"
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-integrated-test-combination:
+        condition: service_healthy
+    environment:
+      - dubbo.registry.address=zookeeper://shenyu-zk:2181
+      - shenyu.register.serverLists=http://shenyu-admin:9095
 
   shenyu-admin:
     image: apache/shenyu-admin:latest

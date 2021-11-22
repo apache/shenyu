@@ -32,7 +32,7 @@ public interface CryptorStrategy {
      * @return data
      * @throws Exception error
      */
-    String decrypt(String key, String encryptData) throws Exception;
+    String decrypt(String key, byte[] encryptData) throws Exception;
 
     /**
      * encrypt.

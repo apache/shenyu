@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.client.consul;
 
 import com.ecwid.consul.v1.kv.KeyValueClient;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -29,20 +30,28 @@ import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
+
+import java.util.Objects;
+
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
 
 @Join
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsulClientRegisterRepository.class);
 
-    @Autowired
-    private ConsulRegistration consulRegistration;
-    
-    @Autowired
-    private KeyValueClient keyValueClient;
-    
+    private final ConsulRegistration consulRegistration;
+
+    private final KeyValueClient keyValueClient;
+
+    public ConsulClientRegisterRepository(final ConsulRegistration consulRegistration,
+                                          final KeyValueClient keyValueClient) {
+        this.consulRegistration = consulRegistration;
+        this.keyValueClient = keyValueClient;
+    }
+
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
@@ -72,18 +81,20 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     }
     
     private void registerURI(final URIRegisterDTO metadata) {
-        consulRegistration.getService().getMeta().put("uri", GsonUtils.getInstance().toJson(metadata));
+        consulRegistration.getService().getMeta().put(Constants.URI, GsonUtils.getInstance().toJson(metadata));
     }
     
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
-                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
+        if (Objects.equals(RpcTypeEnum.HTTP.getName(), rpcType)
+                || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), rpcType)) {
+            nodeName = String.join(SELECTOR_JOIN_RULE,
+                    metadata.getContextPath(),
+                    metadata.getRuleName().replace(PATH_SEPARATOR, SELECTOR_JOIN_RULE));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
+        return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
     }
 }
