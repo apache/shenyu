@@ -35,7 +35,7 @@ import java.util.Objects;
  * The type Uri plugin.
  */
 public class URIPlugin implements ShenyuPlugin {
-    
+
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -56,28 +56,28 @@ public class URIPlugin implements ShenyuPlugin {
         }
         URI realURI;
         if (StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")) {
-            path = path + "?" + uri.getRawQuery();
+            path = String.join("?", path, uri.getRawQuery());
             realURI = UriComponentsBuilder.fromHttpUrl(path).build(true).toUri();
         } else {
             if (StringUtils.isNotEmpty(uri.getQuery())) {
-                path = path + "?" + uri.getQuery();
+                path = String.join("?", path, uri.getQuery());
             }
             realURI = UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
         }
         exchange.getAttributes().put(Constants.HTTP_URI, realURI);
         return chain.execute(exchange);
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.URI.getCode();
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.URI.getName();
     }
-    
+
     @Override
     public boolean skip(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);

@@ -44,6 +44,8 @@
         <module>shenyu-dist</module>
         <module>shenyu-agent</module>
         <module>shenyu-loadbalancer</module>
+        <module>shenyu-examples</module>
+        <module>shenyu-integrated-test</module>
     </modules>
 
     <licenses>

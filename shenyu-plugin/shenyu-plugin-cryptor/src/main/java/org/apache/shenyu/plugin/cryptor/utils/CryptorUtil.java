@@ -27,6 +27,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -41,12 +42,10 @@ public class CryptorUtil {
      * @return Mono
      */
     public static Mono<Void> fail(final String mode, final ServerWebExchange exchange) {
-        Object error;
-        if (CryptorStrategyFactory.DECRYPT.equals(mode)) {
-            error = ShenyuResultWrap.error(ShenyuResultEnum.DECRYPTION_ERROR.getCode(), ShenyuResultEnum.DECRYPTION_ERROR.getMsg(), null);
-        } else {
-            error = ShenyuResultWrap.error(ShenyuResultEnum.ENCRYPTION_ERROR.getCode(), ShenyuResultEnum.ENCRYPTION_ERROR.getMsg(), null);
-        }
+        Object error = Optional.ofNullable(mode)
+                .filter(CryptorStrategyFactory.DECRYPT::equals)
+                .map(mod -> ShenyuResultWrap.error(ShenyuResultEnum.DECRYPTION_ERROR.getCode(), ShenyuResultEnum.DECRYPTION_ERROR.getMsg(), null))
+                .orElse(ShenyuResultWrap.error(ShenyuResultEnum.ENCRYPTION_ERROR.getCode(), ShenyuResultEnum.ENCRYPTION_ERROR.getMsg(), null));
         return WebFluxResultUtils.result(exchange, error);
     }
 

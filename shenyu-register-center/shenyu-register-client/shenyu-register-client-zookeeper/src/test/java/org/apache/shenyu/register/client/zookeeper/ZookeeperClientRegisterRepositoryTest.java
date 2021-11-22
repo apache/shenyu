@@ -18,19 +18,14 @@
 package org.apache.shenyu.register.client.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,32 +34,20 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for Zookeeper client register repository.
  */
 public class ZookeeperClientRegisterRepositoryTest {
 
-    private static TestingServer zkServer;
-
     private ZookeeperClientRegisterRepository repository;
 
     private final Map<String, Object> zookeeperBroker = new HashMap<>();
 
     private final Set<String> ephemeralNode = new HashSet<>();
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        zkServer = new TestingServer(1181, true);
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws IOException {
-        zkServer.stop();
-    }
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -167,12 +150,5 @@ public class ZookeeperClientRegisterRepositoryTest {
         Assert.assertTrue(zookeeperBroker.containsKey(metadataPath));
         Assert.assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
         repository.close();
-    }
-
-    @Test
-    public void testInit() {
-        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
-        config.setServerLists("127.0.0.1:1181");
-        repository.init(config);
     }
 }

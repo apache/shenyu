@@ -24,6 +24,7 @@ import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 /**
  * Resilience4J conf.
  */
+@SuppressWarnings("unused")
 public class Resilience4JConf {
 
     /**

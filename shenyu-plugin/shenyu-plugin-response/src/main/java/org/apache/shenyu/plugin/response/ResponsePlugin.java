@@ -34,7 +34,7 @@ import java.util.Map;
 public class ResponsePlugin implements ShenyuPlugin {
 
     private final Map<String, MessageWriter> writerMap;
-    
+
     /**
      * Instantiates a new Response plugin.
      *
@@ -43,19 +43,19 @@ public class ResponsePlugin implements ShenyuPlugin {
     public ResponsePlugin(final Map<String, MessageWriter> writerMap) {
         this.writerMap = writerMap;
     }
-    
+
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         return writerMap.get(shenyuContext.getRpcType()).writeWith(exchange, chain);
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.RESPONSE.getCode();
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.RESPONSE.getName();

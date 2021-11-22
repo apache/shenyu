@@ -18,7 +18,7 @@
 package org.apache.shenyu.common.constant;
 
 /**
- * ZkPathConstants.
+ * DefaultPathConstants.
  */
 public final class DefaultPathConstants implements Constants {
 
@@ -51,7 +51,6 @@ public final class DefaultPathConstants implements Constants {
      */
     public static final String META_DATA = PRE_FIX + "/metaData";
 
-    private static final String SEPARATOR = "/";
 
     /**
      * acquire app_auth_path.
@@ -60,7 +59,7 @@ public final class DefaultPathConstants implements Constants {
      * @return app_auth_path string
      */
     public static String buildAppAuthPath(final String appKey) {
-        return String.join(SEPARATOR, APP_AUTH_PARENT, appKey);
+        return String.join(PATH_SEPARATOR, APP_AUTH_PARENT, appKey);
     }
 
     /**
@@ -70,7 +69,7 @@ public final class DefaultPathConstants implements Constants {
      * @return the string
      */
     public static String buildMetaDataPath(final String path) {
-        return String.join(SEPARATOR, META_DATA, path);
+        return String.join(PATH_SEPARATOR, META_DATA, path);
     }
 
     /**
@@ -79,7 +78,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk path for plugin
      */
     public static String buildPluginParentPath() {
-        return String.join(SEPARATOR, PLUGIN_PARENT);
+        return String.join(PATH_SEPARATOR, PLUGIN_PARENT);
     }
 
     /**
@@ -89,7 +88,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk path for plugin
      */
     public static String buildPluginPath(final String pluginName) {
-        return String.join(SEPARATOR, PLUGIN_PARENT, pluginName);
+        return String.join(PATH_SEPARATOR, PLUGIN_PARENT, pluginName);
     }
 
     /**
@@ -99,7 +98,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk path for selector
      */
     public static String buildSelectorParentPath(final String pluginName) {
-        return String.join(SEPARATOR, SELECTOR_PARENT, pluginName);
+        return String.join(PATH_SEPARATOR, SELECTOR_PARENT, pluginName);
     }
 
     /**
@@ -110,7 +109,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk full path for selector
      */
     public static String buildSelectorRealPath(final String pluginName, final String selectorId) {
-        return String.join(SEPARATOR, SELECTOR_PARENT, pluginName, selectorId);
+        return String.join(PATH_SEPARATOR, SELECTOR_PARENT, pluginName, selectorId);
     }
 
     /**
@@ -120,7 +119,7 @@ public final class DefaultPathConstants implements Constants {
      * @return zk rule parent path.
      */
     public static String buildRuleParentPath(final String pluginName) {
-        return String.join(SEPARATOR, RULE_PARENT, pluginName);
+        return String.join(PATH_SEPARATOR, RULE_PARENT, pluginName);
     }
 
     /**
@@ -132,7 +131,7 @@ public final class DefaultPathConstants implements Constants {
      * @return /shenyu/rule/pluginName/selectorId-ruleId
      */
     public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
-        return String.join(SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));
+        return String.join(PATH_SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));
     }
 
 }

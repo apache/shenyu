@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 /**
  * Test cases for {@link URIParameterData}.
  */
-public class URIParameterDataTest {
+public final class URIParameterDataTest {
 
     private ServerWebExchange exchange;
 

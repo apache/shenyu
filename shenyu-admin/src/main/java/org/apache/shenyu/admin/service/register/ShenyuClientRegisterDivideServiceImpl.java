@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -39,22 +40,22 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRegisterService {
-    
+
     @Override
     public String rpcType() {
         return RpcTypeEnum.HTTP.getName();
     }
-    
+
     @Override
     protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
         return "";
     }
-    
+
     @Override
     protected String ruleHandler() {
         return new DivideRuleHandle().toJson();
     }
-    
+
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
@@ -63,7 +64,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
             metaDataService.saveOrUpdateMetaData(exist, dto);
         }
     }
-    
+
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         String handleAdd;
@@ -74,20 +75,17 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
             canAddList = addList;
         } else {
             List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
-            for (DivideUpstream exist : existList) {
-                for (DivideUpstream add : addList) {
-                    if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
-                        existList.add(add);
-                        canAddList.add(add);
-                    }
-                }
+            List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffList)) {
+                canAddList.addAll(diffList);
+                existList.addAll(diffList);
             }
             handleAdd = GsonUtils.getInstance().toJson(existList);
         }
         doSubmit(selectorDO.getId(), canAddList);
         return handleAdd;
     }
-    
+
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
                 .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort()))
