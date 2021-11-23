@@ -64,7 +64,7 @@ DROP TRIGGER IF EXISTS `plugin_handle_before_trigger`; ;;
 CREATE TRIGGER `plugin_handle_before_trigger` BEFORE INSERT ON `plugin_handle` FOR EACH ROW
 BEGIN
     IF NEW.id IS NULL THEN
-        SET NEW.id = REPLACE(UUID(), '-', '');
+        SET NEW.id = UUID_SHORT();
     END IF;
 END; ;;
 
