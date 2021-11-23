@@ -47,6 +47,11 @@ management:
       enabled: false
 
 shenyu:
+  instance:
+    enabled: false
+    registerType: zookeeper #etcd #consul
+    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
   cross:
     enabled: true
     allowedHeaders:
