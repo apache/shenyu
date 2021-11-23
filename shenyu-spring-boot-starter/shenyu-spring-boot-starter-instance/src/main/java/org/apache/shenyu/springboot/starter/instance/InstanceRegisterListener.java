@@ -53,7 +53,7 @@ public class InstanceRegisterListener implements ApplicationListener<WebServerIn
     public InstanceRegisterListener(final InstanceConfig config) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
-        if(StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists)) {
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists)) {
             throw new ShenyuException("please config the registerType and serverList");
         }
         repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getRegisterType());

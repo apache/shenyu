@@ -36,7 +36,7 @@ public class ShenyuInstanceConfiguration {
      */
     @Bean
     @ConditionalOnProperty(name = "shenyu.instance.enabled", havingValue = "true")
-    public InstanceRegisterListener instanceRegisterListener(final ShenyuConfig config ) {
+    public InstanceRegisterListener instanceRegisterListener(final ShenyuConfig config) {
         return new InstanceRegisterListener(config.getInstance());
     }
 }
