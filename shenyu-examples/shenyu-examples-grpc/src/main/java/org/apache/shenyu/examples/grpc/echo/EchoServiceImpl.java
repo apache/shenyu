@@ -22,25 +22,32 @@ import echo.EchoResponse;
 import echo.EchoServiceGrpc;
 import echo.Trace;
 import io.grpc.stub.StreamObserver;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(EchoServiceImpl.class);
+    
+    
     @Override
     @ShenyuGrpcClient(path = "/echo", desc = "echo")
     public void echo(EchoRequest request, StreamObserver<EchoResponse> responseObserver) {
-        System.out.println("Received: " + request.getMessage());
+        LOG.info("Received: {}", request.getMessage());
         EchoResponse.Builder response = EchoResponse.newBuilder()
                 .setMessage("ReceivedHELLO")
                 .addTraces(Trace.newBuilder().setHost(getHostname()).build());
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
     }
-
+    
     private String getHostname() {
         try {
             return InetAddress.getLocalHost().getHostName() + "(" + InetAddress.getLocalHost().getHostAddress() + ")";

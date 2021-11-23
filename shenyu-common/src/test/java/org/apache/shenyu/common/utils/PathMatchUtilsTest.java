@@ -42,5 +42,6 @@ public final class PathMatchUtilsTest {
         assertFalse(PathMatchUtils.match("test*aaa", "testblaaab"));
         // test matching with **'s
         assertTrue(PathMatchUtils.match("/**", "/testing/testing"));
+        assertTrue(PathMatchUtils.match("/test/**", "/test/test"));
     }
 }

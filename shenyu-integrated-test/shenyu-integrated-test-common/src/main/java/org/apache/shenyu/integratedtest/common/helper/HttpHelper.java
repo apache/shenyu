@@ -65,6 +65,28 @@ public class HttpHelper {
      * @param <Q> type of request object
      * @param path path
      * @param req request body as an object
+     * @param respType response type passed to {@link Gson#fromJson(String, Type)}
+     * @return response s
+     * @throws IOException IO exception
+     */
+    public <S, Q> S postGateway(final String path, final Q req, final Type respType) throws IOException {
+        Request request = new Request.Builder()
+                .url(GATEWAY_END_POINT + path)
+                .post(RequestBody.create(GSON.toJson(req), JSON))
+                .build();
+        Response response = client.newCall(request).execute();
+        String respBody = Objects.requireNonNull(response.body()).string();
+        LOG.info("postGateway({}) resp({})", path, respBody);
+        return GSON.fromJson(respBody, respType);
+    }
+    
+    /**
+     * Send a post http request to shenyu gateway.
+     *
+     * @param <S> type of response object
+     * @param <Q> type of request object
+     * @param path path
+     * @param req request body as an object
      * @param respType response type passed to {@link Gson#fromJson(String, Class)}
      * @return response s
      * @throws IOException IO exception
