@@ -45,7 +45,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removePlugin(final PluginData pluginData) {
-        LOG.info("selector removed : name = " + pluginData.getName());
+        LOG.info("selector removed : name = {}", pluginData.getName());
     }
 
     /**
@@ -55,7 +55,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        LOG.info("selector processing : name = " + selectorData.getName());
+        LOG.info("selector processing : name = {}", selectorData.getName());
     }
 
     /**
@@ -65,7 +65,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        LOG.info("selector removed : name = " + selectorData.getName());
+        LOG.info("selector removed : name = {}", selectorData.getName());
     }
 
     /**
@@ -75,7 +75,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerRule(final RuleData ruleData) {
-        LOG.info("rule processing : name = " + ruleData.getName());
+        LOG.info("rule processing : name = {}", ruleData.getName());
     }
 
     /**
@@ -85,7 +85,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removeRule(final RuleData ruleData) {
-        LOG.info("rule data removed: name = " + ruleData.getName());
+        LOG.info("rule data removed: name = {}", ruleData.getName());
     }
 
     /**
