@@ -28,11 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Plugin Handle H2 Trigger.
+ * Trigger for shenyu_dict of h2.
  */
-public class PluginHandleH2Trigger implements Trigger {
+public class ShenyuDictH2Trigger implements Trigger {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PluginHandleH2Trigger.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuDictH2Trigger.class);
 
     @Override
     public void init(final Connection connection, final String s, final String s1, final String s2, final boolean b, final int i) throws SQLException {
@@ -42,11 +42,11 @@ public class PluginHandleH2Trigger implements Trigger {
     @Override
     public void fire(final Connection connection, final Object[] oldRow, final Object[] newRow) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT IGNORE INTO PLUGIN_HANDLE (`ID`,`PLUGIN_ID`,`FIELD`,`LABEL`,`DATA_TYPE`,`TYPE`,`SORT`,`EXT_OBJ`)"
+                "INSERT IGNORE INTO SHENYU_DICT (`ID`,`TYPE`,`DICT_CODE`,`DICT_NAME`,`DICT_VALUE`,`DESC`,`SORT`,`ENABLED`)"
                         + " VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)")) {
             BaseTrigger.sqlExecute(newRow, statement);
         } catch (ShenyuException e) {
-            LOG.error("PluginHandleH2Trigger Error:" + e);
+            LOG.error("ShenyuDictH2Trigger Error:" + e);
         }
     }
 
@@ -59,6 +59,4 @@ public class PluginHandleH2Trigger implements Trigger {
     public void remove() throws SQLException {
 
     }
-
-
 }
