@@ -28,8 +28,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.motan.util.PrxInfoUtil;
@@ -61,8 +61,8 @@ public final class ApplicationConfigCache {
     private final LoadingCache<String, RefererConfig<CommonHandler>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
-                RefererConfig<CommonHandler> config = (RefererConfig<CommonHandler>) notification.getValue();
-                if (config != null) {
+                RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
+                if (Objects.nonNull(config)) {
                     try {
                         Class<?> cz = config.getClass();
                         Field field = cz.getDeclaredField("ref");
@@ -100,14 +100,14 @@ public final class ApplicationConfigCache {
      * @param motanRegisterConfig the motan register config
      */
     public void init(final MotanRegisterConfig motanRegisterConfig) {
-        if (registryConfig == null) {
+        if (Objects.isNull(registryConfig)) {
             registryConfig = new RegistryConfig();
             registryConfig.setId("shenyu_motan_proxy");
             registryConfig.setRegister(false);
             registryConfig.setRegProtocol("zookeeper");
             registryConfig.setAddress(motanRegisterConfig.getRegister());
         }
-        if (protocolConfig == null) {
+        if (Objects.isNull(protocolConfig)) {
             protocolConfig = new ProtocolConfig();
             protocolConfig.setId("motan2-breeze");
             protocolConfig.setName("motan2");
@@ -121,6 +121,7 @@ public final class ApplicationConfigCache {
      * @param path path
      * @return the reference config
      */
+    @SuppressWarnings("unchecked")
     public <T> RefererConfig<T> get(final String path) {
         try {
             return (RefererConfig<T>) cache.get(path);
@@ -164,7 +165,7 @@ public final class ApplicationConfigCache {
         // the group of motan rpc call
         MotanParamExtInfo motanParamExtInfo =
                 GsonUtils.getInstance().fromJson(metaData.getRpcExt(), MotanParamExtInfo.class);
-        for (MethodInfo methodInfo : motanParamExtInfo.getMethodInfo()) {
+        motanParamExtInfo.getMethodInfo().forEach(methodInfo -> {
             if (CollectionUtils.isNotEmpty(methodInfo.getParams())) {
                 try {
                     Class<?>[] paramTypes = new Class[methodInfo.getParams().size()];
@@ -179,14 +180,14 @@ public final class ApplicationConfigCache {
                     LOG.error("failed to init motan, {}", e.getMessage());
                 }
             }
-        }
+        });
         reference.setGroup(motanParamExtInfo.getGroup());
         reference.setVersion("1.0");
         reference.setRequestTimeout(1000);
         reference.setRegistry(registryConfig);
         reference.setProtocol(protocolConfig);
         CommonHandler obj = reference.getRef();
-        if (obj != null) {
+        if (Objects.nonNull(obj)) {
             LOG.info("init motan reference success there meteData is :{}", metaData);
             cache.put(metaData.getPath(), reference);
         }
