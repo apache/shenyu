@@ -23,13 +23,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * ShenyuConfiguration.
+ * The type Shenyu instance configuration.
  */
 @Configuration
 public class ShenyuInstanceConfiguration {
     
     /**
-     * Instance register listener instance register listener.
+     * Instance register listener.
      *
      * @param config the config
      * @return the instance register listener
