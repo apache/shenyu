@@ -156,7 +156,7 @@ public class DataSyncConfiguration {
         }
 
         /**
-         * Websocket collector websocket collector.
+         * Websocket collector.
          *
          * @return the websocket collector
          */
