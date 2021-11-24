@@ -151,8 +151,8 @@ public final class ApplicationConfigCache {
         String rpcExt = metaData.getRpcExt();
         SofaParamExtInfo sofaParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, SofaParamExtInfo.class);
         if (Objects.nonNull(sofaParamExtInfo)) {
-            if (StringUtils.isNoneBlank(sofaParamExtInfo.getLoadBalance())) {
-                final String loadBalance = sofaParamExtInfo.getLoadBalance();
+            if (StringUtils.isNoneBlank(sofaParamExtInfo.getLoadbalance())) {
+                final String loadBalance = sofaParamExtInfo.getLoadbalance();
                 reference.setLoadBalancer(buildLoadBalanceName(loadBalance));
             }
             Optional.ofNullable(sofaParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
@@ -223,7 +223,7 @@ public final class ApplicationConfigCache {
         private ApplicationConfigCacheInstance() {
         
         }
-
+        
     }
     
     /**
@@ -231,18 +231,18 @@ public final class ApplicationConfigCache {
      */
     static class SofaParamExtInfo {
         
-        private String loadBalance;
+        private String loadbalance;
         
         private Integer retries;
         
         private Integer timeout;
         
-        public String getLoadBalance() {
-            return loadBalance;
+        public String getLoadbalance() {
+            return loadbalance;
         }
         
-        public void setLoadBalance(final String loadBalance) {
-            this.loadBalance = loadBalance;
+        public void setLoadbalance(final String loadbalance) {
+            this.loadbalance = loadbalance;
         }
         
         public Integer getRetries() {
