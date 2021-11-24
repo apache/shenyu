@@ -84,6 +84,11 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
+
+    /**
+     * RpcContext plugin enum.
+     */
+    RPC_CONTEXT(125, 0, "rpcContext"),
     
     /**
      * Hystrix plugin enum.

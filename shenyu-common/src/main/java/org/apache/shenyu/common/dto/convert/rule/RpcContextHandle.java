@@ -28,90 +28,49 @@ import java.util.Set;
  * this is RequestHandle plugin handle.
  */
 public class RpcContextHandle {
-    
-    private ShenyuRequestHeaderToRpcContext headerToRpcContext;
 
     /**
-     * get headerToRpcContext.
-     *
-     * @return headerToRpcContext
+     * need to be appended new context value.
+     * key: new rpc context key, value: rpc context value.
      */
-    public ShenyuRequestHeaderToRpcContext getHeaderToRpcContext() {
-        return headerToRpcContext;
+    private Map<String, String> addRpcContext;
+
+    /**
+     * transmit http request header to rpc context.
+     * key: headerKey, value: rpc context value.
+     */
+    private Map<String, String> transmitHeaderToRpcContext;
+
+    /**
+     * no args constructor.
+     */
+    public RpcContextHandle() {
     }
 
     /**
-     * set headerToRpcContext.
+     * all args constructor.
      *
-     * @param headerToRpcContext headerToRpcContext
+     * @param addRpcContext              addRpcContext
+     * @param transmitHeaderToRpcContext transmitHeaderToRpcContext
      */
-    public void setHeaderToRpcContext(final ShenyuRequestHeaderToRpcContext headerToRpcContext) {
-        this.headerToRpcContext = headerToRpcContext;
+    public RpcContextHandle(final Map<String, String> addRpcContext, final Map<String, String> transmitHeaderToRpcContext) {
+        this.addRpcContext = addRpcContext;
+        this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
     }
 
-    public class ShenyuRequestHeaderToRpcContext {
+    public Map<String, String> getAddRpcContext() {
+        return addRpcContext;
+    }
 
-        /**
-         * need to be appended new context value.
-         * key: new rpc context key, value: rpc context value.
-         */
-        private Map<String, String> addRpcContext;
+    public void setAddRpcContext(final Map<String, String> addRpcContext) {
+        this.addRpcContext = addRpcContext;
+    }
 
-        /**
-         * transmit http request header to rpc context.
-         * key: headerKey, value: rpc context value.
-         */
-        private Map<String, String> transmitHeaderToRpcContext;
+    public Map<String, String> getTransmitHeaderToRpcContext() {
+        return transmitHeaderToRpcContext;
+    }
 
-        /**
-         * need to be covered header value and transmit to rpc context.
-         * key: headerKey, value: newValue.
-         */
-        private Map<String, String> coverHeaderToRpcContext;
-
-        /**
-         * no args constructor.
-         */
-        public ShenyuRequestHeaderToRpcContext() {
-        }
-
-        /**
-         * all args constructor.
-         *
-         * @param addRpcContext              addRpcContext
-         * @param transmitHeaderToRpcContext transmitHeaderToRpcContext
-         * @param coverHeaderToRpcContext    coverHeaderToRpcContext
-         */
-        public ShenyuRequestHeaderToRpcContext(Map<String, String> addRpcContext,
-                                               Map<String, String> transmitHeaderToRpcContext,
-                                               Map<String, String> coverHeaderToRpcContext) {
-            this.addRpcContext = addRpcContext;
-            this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
-            this.coverHeaderToRpcContext = coverHeaderToRpcContext;
-        }
-
-        public Map<String, String> getAddRpcContext() {
-            return addRpcContext;
-        }
-
-        public void setAddRpcContext(Map<String, String> addRpcContext) {
-            this.addRpcContext = addRpcContext;
-        }
-
-        public Map<String, String> getTransmitHeaderToRpcContext() {
-            return transmitHeaderToRpcContext;
-        }
-
-        public void setTransmitHeaderToRpcContext(Map<String, String> transmitHeaderToRpcContext) {
-            this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
-        }
-
-        public Map<String, String> getCoverHeaderToRpcContext() {
-            return coverHeaderToRpcContext;
-        }
-
-        public void setCoverHeaderToRpcContext(Map<String, String> coverHeaderToRpcContext) {
-            this.coverHeaderToRpcContext = coverHeaderToRpcContext;
-        }
+    public void setTransmitHeaderToRpcContext(final Map<String, String> transmitHeaderToRpcContext) {
+        this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
     }
 }
