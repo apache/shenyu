@@ -35,13 +35,6 @@ public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorit
 
     private final RedisScript<List<Long>> script;
     
-    /**
-     * Gets key name.
-     *
-     * @return the key name
-     */
-    protected abstract String getKeyName();
-    
     @SuppressWarnings({"unchecked", "rawtypes"})
     public AbstractRateLimiterAlgorithm(final String scriptName) {
         DefaultRedisScript redisScript = new DefaultRedisScript<>();
@@ -51,6 +44,13 @@ public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorit
         this.script = redisScript;
         this.scriptName = scriptName;
     }
+    
+    /**
+     * Gets key name.
+     *
+     * @return the key name
+     */
+    protected abstract String getKeyName();
 
     @Override
     public String getScriptName() {
