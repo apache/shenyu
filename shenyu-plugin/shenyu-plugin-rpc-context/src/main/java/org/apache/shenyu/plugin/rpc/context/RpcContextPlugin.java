@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.rpc.context;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RpcContextHandle;
@@ -51,7 +52,7 @@ public class RpcContextPlugin extends AbstractShenyuPlugin {
                     (k, v) -> rpcContextMap.put(StringUtils.isBlank(v) ? k : v, headers.getFirst(k))
                 )
             );
-        exchange.getAttributes().put("shenyuRpcContext", rpcContextMap);
+        exchange.getAttributes().put(Constants.RPC_CONTEXT, rpcContextMap);
         return chain.execute(exchange);
     }
 

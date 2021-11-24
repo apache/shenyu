@@ -452,7 +452,11 @@ public interface Constants {
      * cache max count.
      */
     int CACHE_MAX_COUNT = 1000;
-    
+
+    /**
+     * rpc context.
+     */
+    String RPC_CONTEXT = "rpcContext";
     /**
      * String q.
      */

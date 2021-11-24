@@ -100,7 +100,7 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        Map<String, String> rpcContext = exchange.getAttribute("shenyuRpcContext");
+        Map<String, String> rpcContext = exchange.getAttribute(Constants.RPC_CONTEXT);
         if (Objects.nonNull(rpcContext)) {
             this.transmitRpcContext(rpcContext);
         }
