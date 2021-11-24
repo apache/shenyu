@@ -198,7 +198,7 @@ public final class SofaBodyParamResolveServiceTest {
         if (object instanceof GenericObject) {
             final GenericObject genericObject = (GenericObject) object;
             for (Field field : fields) {
-                if (excludeField(field)){
+                if (excludeField(field)) {
                     continue;
                 }
                 if (!genericObject.hasField(field.getName())) {
@@ -215,7 +215,7 @@ public final class SofaBodyParamResolveServiceTest {
         if (object instanceof Map) {
             final Map<?, ?> map = (Map<?, ?>) object;
             for (Field field : fields) {
-                if (excludeField(field)){
+                if (excludeField(field)) {
                     continue;
                 }
                 if (!map.containsKey(field.getName())) {
