@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sofa.param;
 
 import com.alipay.hessian.generic.model.GenericObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -197,6 +198,9 @@ public final class SofaBodyParamResolveServiceTest {
         if (object instanceof GenericObject) {
             final GenericObject genericObject = (GenericObject) object;
             for (Field field : fields) {
+                if (excludeField(field)){
+                    continue;
+                }
                 if (!genericObject.hasField(field.getName())) {
                     fail(genericObject + " fieldName: " + field.getName() + " fieldType => " + field.getType().getName());
                 }
@@ -211,6 +215,9 @@ public final class SofaBodyParamResolveServiceTest {
         if (object instanceof Map) {
             final Map<?, ?> map = (Map<?, ?>) object;
             for (Field field : fields) {
+                if (excludeField(field)){
+                    continue;
+                }
                 if (!map.containsKey(field.getName())) {
                     fail(map + " fieldName: " + field.getName() + " fieldType => " + field.getType().getName());
                 }
@@ -226,6 +233,19 @@ public final class SofaBodyParamResolveServiceTest {
                 assertIsObject(o, clazz, allowValueToBeNull);
             }
         }
+    }
+    
+    /**
+     * exclude field.<br>
+     * if used jacoco, if used idea test coverage, It will add fields to your clazz. you mast ignore.
+     * <a href="https://youtrack.jetbrains.com/issue/IDEA-274803">idea test coverage solution</a>
+     * <a href="https://www.eclemma.org/jacoco/trunk/doc/faq.html">jacoco solution</a>
+     *
+     * @param field field
+     * @return is exclude
+     */
+    private boolean excludeField(Field field) {
+        return StringUtils.startsWithAny(field.getName(), "_", "$");
     }
     
     private static final class Student {
