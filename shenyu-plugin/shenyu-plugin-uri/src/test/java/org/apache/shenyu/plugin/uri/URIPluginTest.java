@@ -29,86 +29,82 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class URIPluginTest {
-	
-	private URIPlugin uriPlugin;
-	
-	private ServerWebExchange exchange;
-	
-	private ShenyuPluginChain chain;
-	
-	private ShenyuContext shenyuContext;
-	
-	MockServerHttpRequest request;
-	
-	@Before
-	public void setUp() {
-		this.uriPlugin = new URIPlugin();
-		this.chain = mock(ShenyuPluginChain.class);
-		this.request = MockServerHttpRequest
-				.get("localhost")
-				.remoteAddress(new InetSocketAddress(8090))
-				.header("X-source", "mock test")
-				.queryParam("queryParam", "Hello,World")
-				.build();
-		this.exchange = spy(MockServerWebExchange.from(request));
-		shenyuContext = mock(ShenyuContext.class);
-		exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-	}
-	
-	@Test
-	public void testDoExecute() {
-		when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090");
-		when(chain.execute(exchange)).thenReturn(Mono.empty());
-		StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-		assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(),"http://localhost:8090?queryParam=Hello,World");
-		/**
-		 * test realUrl
-		 */
-		when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost");
-		when(shenyuContext.getRealUrl()).thenReturn("/test");
-		when(chain.execute(exchange)).thenReturn(Mono.empty());
-		StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-		assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(),"http://localhost/test?queryParam=Hello,World");
-		/**
-		 * test rewrite
-		 */
-		when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090");
-		exchange.getAttributes().put(Constants.REWRITE_URI,"/rewrite");
-		when(chain.execute(exchange)).thenReturn(Mono.empty());
-		StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-		assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(),"http://localhost:8090/rewrite?queryParam=Hello,World");
-		/**
-		 * test contains % in the row query
-		 */
-		request = MockServerHttpRequest
-				.get("localhost")
-				.remoteAddress(new InetSocketAddress(8090))
-				.queryParam("queryParam", "Hello, World")
-				.build();
-		this.exchange = spy(MockServerWebExchange.from(request));
-		shenyuContext = mock(ShenyuContext.class);
-		exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-		when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/query");
-		when(chain.execute(exchange)).thenReturn(Mono.empty());
-		StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-		assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(),"http://localhost:8090/query?queryParam=Hello,%20World");
-	}
-	
-	@Test
-	public void testGetOrder() {
-		assertEquals(uriPlugin.getOrder(), PluginEnum.URI.getCode());
-	}
-	
-	@Test
-	public void tesNamed() {
-		assertEquals(uriPlugin.named(), PluginEnum.URI.getName());
-	}
-	
-	@Test
-	public void testSkip() {
-		when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.HTTP.getName());
-		Assert.assertFalse(uriPlugin.skip(exchange));
-		when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
-		Assert.assertFalse(uriPlugin.skip(exchange));
-	}
+
+    MockServerHttpRequest request;
+    private URIPlugin uriPlugin;
+    private ServerWebExchange exchange;
+    private ShenyuPluginChain chain;
+    private ShenyuContext shenyuContext;
+
+    @Before
+    public void setUp() {
+        this.uriPlugin = new URIPlugin();
+        this.chain = mock(ShenyuPluginChain.class);
+        this.request = MockServerHttpRequest
+                .get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .header("X-source", "mock test")
+                .queryParam("queryParam", "Hello,World")
+                .build();
+        this.exchange = spy(MockServerWebExchange.from(request));
+        shenyuContext = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+    }
+
+    @Test
+    public void testDoExecute() {
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost:8090?queryParam=Hello,World");
+        /**
+         * test realUrl
+         */
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost");
+        when(shenyuContext.getRealUrl()).thenReturn("/test");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost/test?queryParam=Hello,World");
+        /**
+         * test rewrite
+         */
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090");
+        exchange.getAttributes().put(Constants.REWRITE_URI, "/rewrite");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost:8090/rewrite?queryParam=Hello,World");
+        /**
+         * test contains % in the row query
+         */
+        request = MockServerHttpRequest
+                .get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .queryParam("queryParam", "Hello, World")
+                .build();
+        this.exchange = spy(MockServerWebExchange.from(request));
+        shenyuContext = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/query");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost:8090/query?queryParam=Hello,%20World");
+    }
+
+    @Test
+    public void testGetOrder() {
+        assertEquals(uriPlugin.getOrder(), PluginEnum.URI.getCode());
+    }
+
+    @Test
+    public void tesNamed() {
+        assertEquals(uriPlugin.named(), PluginEnum.URI.getName());
+    }
+
+    @Test
+    public void testSkip() {
+        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.HTTP.getName());
+        Assert.assertFalse(uriPlugin.skip(exchange));
+        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
+        Assert.assertFalse(uriPlugin.skip(exchange));
+    }
 }
