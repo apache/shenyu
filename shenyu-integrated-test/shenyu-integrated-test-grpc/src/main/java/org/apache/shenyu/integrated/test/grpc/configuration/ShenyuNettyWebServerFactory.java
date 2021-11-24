@@ -73,10 +73,15 @@ public class ShenyuNettyWebServerFactory {
                             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis())
                             .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
                                     nettyTcpConfig.getWriteBufferHighWaterMark()))
+                            .option(ChannelOption.MAX_MESSAGES_PER_READ, nettyTcpConfig.getMaxMessagesPerRead())
+                            .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpConfig.getWriteSpinCount())
+                            .option(ChannelOption.AUTO_READ, nettyTcpConfig.isAutoRead())
+                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay())
                             .option(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive())
                             .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
                             .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
-                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay()));
+                            .option(ChannelOption.SO_SNDBUF, nettyTcpConfig.getSoSndBuf())
+                            .option(ChannelOption.SO_RCVBUF, nettyTcpConfig.getSoRcvBuf()));
         }
     }
 }

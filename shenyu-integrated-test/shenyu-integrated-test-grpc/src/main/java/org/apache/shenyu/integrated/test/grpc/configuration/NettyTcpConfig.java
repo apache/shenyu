@@ -17,42 +17,44 @@
 
 package org.apache.shenyu.integrated.test.grpc.configuration;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * The netty tcp config.
  */
+@ConfigurationProperties(prefix = "shenyu.netty.tcp")
 public class NettyTcpConfig {
 
-    @Value("${netty.tcp.select.count:1}")
     private int selectCount;
 
-    @Value("${netty.tcp.worker.count:4}")
     private int workerCount;
 
-    @Value("${netty.tcp.connect_timeout_millis:10000}")
-    private int connectTimeoutMillis;
+    private Integer connectTimeoutMillis;
 
-    @Value("${netty.tcp.write_buffer_high_water_mark:65536}")
-    private int writeBufferHighWaterMark;
+    private Integer writeBufferHighWaterMark;
 
-    @Value("${netty.tcp.write_buffer_low_water_mark:32768}")
-    private int writeBufferLowWaterMark;
+    private Integer writeBufferLowWaterMark;
 
-    @Value("${netty.tcp.so_keepalive:false}")
-    private boolean soKeepalive;
+    private Integer maxMessagesPerRead;
 
-    @Value("${netty.tcp.so_reuseaddr:false}")
-    private boolean soReuseaddr;
+    private Integer writeSpinCount;
 
-    @Value("${netty.tcp.so_linger:-1}")
-    private int soLinger;
+    private Boolean autoRead;
 
-    @Value("${netty.tcp.so_backlog:128}")
-    private int soBacklog;
+    private Boolean tcpNodelay;
 
-    @Value("${netty.tcp.tcp_nodelay:true}")
-    private boolean tcpNodelay;
+    private Boolean soKeepalive;
+
+    private Boolean soReuseaddr;
+
+    private Integer soLinger;
+
+    private Integer soBacklog;
+
+    private Integer soSndBuf;
+
+    private Integer soRcvBuf;
+
 
     /**
      * get select count.
@@ -142,5 +144,51 @@ public class NettyTcpConfig {
      */
     public boolean isTcpNodelay() {
         return tcpNodelay;
+    }
+
+
+    /**
+     * get soSndBuf.
+     *
+     * @return soSndBuf
+     */
+    public Integer getSoSndBuf() {
+        return soSndBuf;
+    }
+
+    /**
+     * get soRcvBuf.
+     *
+     * @return soRcvBuf
+     */
+    public Integer getSoRcvBuf() {
+        return soRcvBuf;
+    }
+
+    /**
+     * get maxMessagesPerRead.
+     *
+     * @return maxMessagesPerRead
+     */
+    public Integer getMaxMessagesPerRead() {
+        return maxMessagesPerRead;
+    }
+
+    /**
+     * get writeSpinCount.
+     *
+     * @return writeSpinCount
+     */
+    public Integer getWriteSpinCount() {
+        return writeSpinCount;
+    }
+
+    /**
+     * get autoRead.
+     *
+     * @return autoRead
+     */
+    public Boolean isAutoRead() {
+        return autoRead;
     }
 }
