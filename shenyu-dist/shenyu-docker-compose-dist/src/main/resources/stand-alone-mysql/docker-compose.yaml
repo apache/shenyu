@@ -1,0 +1,17 @@
+version: "3"
+services:
+  shenyu-bootstrap:
+    image: apache/shenyu-bootstrap:latest
+    container_name: shenyu-bootstrap
+    volumes:
+    - ./shenyu-bootstrap/logs/:/opt/shenyu-bootstrap/logs
+    - ./shenyu-bootstrap/conf/:/opt/shenyu-bootstrap/conf
+    network_mode: host
+  shenyu-admin:
+    image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
+    volumes:
+    - ./shenyu-admin/logs/:/opt/shenyu-admin/logs
+    - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
+    - ./shenyu-admin/ext-lib/:/opt/shenyu-admin/ext-lib
+    network_mode: host
