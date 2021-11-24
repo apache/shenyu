@@ -57,7 +57,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
-        String uriNodeName = buildURINodeName(instance);
+        String uriNodeName = buildInstanceNodeName(instance);
         String instancePath = RegisterPathConstants.buildInstanceParentPath();
         if (!zkClient.exists(instancePath)) {
             zkClient.createPersistent(instancePath, true);
@@ -75,7 +75,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         zkClient.close();
     }
 
-    private String buildURINodeName(final InstanceRegisterDTO instance) {
+    private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));

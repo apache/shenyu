@@ -31,10 +31,11 @@ import java.util.List;
  */
 public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorithm<List<Long>> {
 
-    private String scriptName;
+    private final String scriptName;
 
-    private RedisScript<List<Long>> script;
-
+    private final RedisScript<List<Long>> script;
+    
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public AbstractRateLimiterAlgorithm(final String scriptName) {
         DefaultRedisScript redisScript = new DefaultRedisScript<>();
         String scriptPath = Constants.SCRIPT_PATH + scriptName;
@@ -43,12 +44,7 @@ public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorit
         this.script = redisScript;
         this.scriptName = scriptName;
     }
-
-    @Override
-    public String getScriptName() {
-        return scriptName;
-    }
-
+    
     /**
      * Gets key name.
      *
@@ -57,7 +53,11 @@ public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorit
     protected abstract String getKeyName();
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    public String getScriptName() {
+        return scriptName;
+    }
+
+    @Override
     public RedisScript<List<Long>> getScript() {
         return script;
     }
