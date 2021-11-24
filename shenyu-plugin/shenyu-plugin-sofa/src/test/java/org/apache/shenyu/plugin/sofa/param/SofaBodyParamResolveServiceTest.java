@@ -24,93 +24,122 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.lang.NonNull;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for WebSocketParamFilter.
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaBodyParamResolveServiceTest {
-
+    
     @InjectMocks
     private SofaParamResolveServiceImpl impl;
-
+    
     @Test
     public void testBuildParameter() {
+        //language=JSON
         String body = "{\"id\": \"12345\",\"name\": \"candyYu\"}";
         String parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student";
-        assertLeftAndRightSame(impl.buildParameter(body, parameterTypes), 1);
-
+        Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
+        assertLeftAndRightSame(pair, 1);
+        assertIsStudent(pair.getRight()[0], true);
+    
+        //language=JSON
         body = "{\"testArray\":[{\"id\":\"123\",\"name\":\"candy\"},{\"id\":\"456\",\"name\":\"myth\"}]}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
-        assertLeftAndRightSame(impl.buildParameter(body, parameterTypes), 1);
+        pair = impl.buildParameter(body, parameterTypes);
+        assertLeftAndRightSame(pair, 1);
+        assertIsStudent(pair.getRight()[0], true);
     
+        //language=JSON
         body = "{\"ids\":[\"123\",\"456\"],\"name\":\"hello world\"}\n";
         parameterTypes = "java.lang.Integer[],java.lang.String";
-        assertLeftAndRightSame(impl.buildParameter(body, parameterTypes), 2);
+        pair = impl.buildParameter(body, parameterTypes);
+        assertLeftAndRightSame(pair, 2);
     
+        //language=JSON
         body = "{\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"},\"name\":\"hello world\"}\n";
         parameterTypes = "java.util.HashMap,java.lang.String";
-        assertLeftAndRightSame(impl.buildParameter(body, parameterTypes), 2);
+        pair = impl.buildParameter(body, parameterTypes);
+        assertLeftAndRightSame(pair, 2);
     
-        body = "{\"dubboTest\":{\"id\":\"123\",\"name\":\"xiaoyu\"},\"idLists\":[\"456\",\"789\"],\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"}}";
+        //language=JSON
+        body = "{\"complexBeanTest\":{\"dubboTest\":{\"id\":\"123\",\"name\":\"xiaoyu\"},\"idLists\":[\"456\",\"789\"],\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"}}}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
-        assertLeftAndRightSame(impl.buildParameter(body, parameterTypes), 1);
-    
+        pair = impl.buildParameter(body, parameterTypes);
+        assertLeftAndRightSame(pair, 1);
+        assertIsComplexBean(pair.getRight()[0], true);
+        
+        //language=JSON
         body = "{\"complexBeanTest\":{\"dubboTest\":{\"id\":\"123\",\"name\":\"xiaoyu\"},\"idLists\":[\"456\",\"789\"],\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"}},\"name\":\"xiaoyu\"}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean, java.lang.String";
-        assertLeftAndRightSame(impl.buildParameter(body, parameterTypes), 2);
+        pair = impl.buildParameter(body, parameterTypes);
+        assertLeftAndRightSame(pair, 2);
     
-        body = "{\"ids\":[\"123\",\"456\"],\"id\":123,\"name\":\"hello world\",\"testArray\":[{\"id\":\"123\",\"name\":\"candy\"},{\"id\":\"456\",\"name\":\"myth\"}]}\n";
+        // test format json
+        //language=JSON
+        body = "{\n" +
+                "  \"ids\": [\n" +
+                "    \"123\",\n" +
+                "    \"456\"\n" +
+                "  ],\n" +
+                "  \"id\": 123,\n" +
+                "  \"name\": \"hello world\",\n" +
+                "  \"testArray\": [\n" +
+                "    {\n" +
+                "      \"id\": \"123\",\n" +
+                "      \"name\": \"candy\"\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"id\": \"456\",\n" +
+                "      \"name\": \"myth\"\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n";
         parameterTypes = "java.lang.Integer[],java.lang.Integer,java.lang.String,org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
-        assertLeftAndRightSame(impl.buildParameter(body, parameterTypes), 4);
-    
+        pair = impl.buildParameter(body, parameterTypes);
+        assertLeftAndRightSame(pair, 4);
+        assertIsStudent(pair.getRight()[3], true);
     }
     
     @Test
     public void testBuildParameterWithNull() {
+        //language=JSON
         String body = "{\"student\":{\"id\":null,\"name\":null}}";
         String parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student";
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
-        assertThat(pair.getLeft().length, is(1));
-        assertThat(pair.getRight().length, is(1));
-        GenericObject student = (GenericObject) pair.getRight()[0];
-        assertNull(student.getField("id"));
-        assertNull(student.getField("name"));
-
+        assertLeftAndRightSame(pair, 1);
+        assertIsStudent(pair.getRight()[0], false);
+    
+        //language=JSON
         body = "{\"students\":[{\"id\":null,\"name\":null}]}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
-        assertThat(pair.getLeft().length, is(1));
-        assertThat(pair.getRight().length, is(1));
-        List list = (List) pair.getRight()[0];
-        Map map = (Map) list.get(0);
-        assertNull(map.get("id"));
-        assertNull(map.get("name"));
-
+        assertLeftAndRightSame(pair, 1);
+        assertIsStudent(pair.getRight()[0], false);
+    
+        //language=JSON
         body = "{\"complexBean\":{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}}}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
         pair = impl.buildParameter(body, parameterTypes);
-        assertThat(pair.getLeft().length, is(1));
-        assertThat(pair.getRight().length, is(1));
-        GenericObject dubboTest = (GenericObject) pair.getRight()[0];
-        assertNull(dubboTest.getField("id"));
-        assertNull(dubboTest.getField("name"));
-        list = (List) dubboTest.getField("idLists");
-        assertNull(list.get(0));
-        assertNull(list.get(1));
-
+        assertLeftAndRightSame(pair, 1);
+        assertIsComplexBean(pair.getRight()[0], false);
+    
+        //language=JSON
         body = "{\"name\":null}";
         parameterTypes = "java.lang.String";
         pair = impl.buildParameter(body, parameterTypes);
-        assertThat(pair.getLeft().length, is(1));
-        assertThat(pair.getRight().length, is(1));
+        assertLeftAndRightSame(pair, 1);
         assertNull(pair.getRight()[0]);
     }
     
@@ -118,75 +147,154 @@ public final class SofaBodyParamResolveServiceTest {
         assertThat(pair.getLeft().length, is(i));
         assertThat(pair.getRight().length, is(i));
     }
-    private static final class Student {
     
-
+    /**
+     * assert object is student.<br>
+     * <ul>
+     *     <li>{@link GenericObject} structure is {@link Student}.</li>
+     *     <li>{@link Map} structure is {@link Student}.</li>
+     *     <li>{@link List} value structure is {@link Student}.</li>
+     * </ul>
+     *
+     * @param object            target.
+     * @param allowValueNotNull allow value not null.
+     * @see Student
+     */
+    private void assertIsStudent(@NonNull final Object object, boolean allowValueNotNull) {
+        assertIsObject(object, Student.class, !allowValueNotNull);
+    }
+    
+    /**
+     * assert object is student.<br>
+     * <ul>
+     *     <li>{@link GenericObject} structure is {@link ComplexBean}.</li>
+     *     <li>{@link Map} structure is {@link ComplexBean}.</li>
+     *     <li>{@link List} value structure is {@link ComplexBean}.</li>
+     * </ul>
+     *
+     * @param object            target.
+     * @param allowValueNotNull allow value not null.
+     * @see ComplexBean
+     */
+    private void assertIsComplexBean(@NonNull final Object object, boolean allowValueNotNull) {
+        assertIsObject(object, ComplexBean.class, !allowValueNotNull);
+        
+    }
+    
+    /**
+     * assert object is target structure.<br>
+     * <ul>
+     *     <li>{@link GenericObject} structure is target structure.</li>
+     *     <li>{@link Map} structure is target structure.</li>
+     *     <li>{@link List} value structure is target structure.</li>
+     * </ul>
+     *
+     * @param object             object.
+     * @param clazz              target structure.
+     * @param allowValueToBeNull allow value to be Null. If the value is not null, the deep assertion
+     */
+    private void assertIsObject(@NonNull final Object object, @NonNull final Class<?> clazz, final boolean allowValueToBeNull) {
+        final Field[] fields = clazz.getDeclaredFields();
+        if (object instanceof GenericObject) {
+            final GenericObject genericObject = (GenericObject) object;
+            for (Field field : fields) {
+                assertTrue(genericObject.hasField(field.getName()));
+                // not allow value is null
+                if (!allowValueToBeNull) {
+                    assertNotNull(genericObject.getField(field.getName()));
+                    // value is not null, deep assert
+                    assertIsObject(genericObject.getField(field.getName()), field.getType(), allowValueToBeNull);
+                }
+                
+            }
+        }
+        if (object instanceof Map) {
+            final Map<?, ?> map = (Map<?, ?>) object;
+            for (Field field : fields) {
+                assertTrue(map.containsKey(field.getName()));
+                // not allow value is null
+                if (!allowValueToBeNull) {
+                    assertNotNull(map.get(field.getName()));
+                    assertIsObject(map.get(field.getName()), field.getType(), allowValueToBeNull);
+                }
+            }
+        }
+        if (object instanceof List) {
+            for (Object o : (List<?>) object) {
+                assertIsObject(o, clazz, allowValueToBeNull);
+            }
+        }
+    }
+    
+    private static final class Student {
+        
+        
         private String id;
-
+        
         private String name;
-
+        
         private Student() {
         }
-
+        
         private Student(final String id, final String name) {
             this.id = id;
             this.name = name;
         }
-
+        
         private String getId() {
             return id;
         }
-
+        
         private void setId(final String id) {
             this.id = id;
         }
-
+        
         private String getName() {
             return name;
         }
-
+        
         private void setName(final String name) {
             this.name = name;
         }
     }
-
-    private final class ComplexBean {
-
+    
+    private static final class ComplexBean {
+        
         private Student dubboTest;
-
+        
         private List<String> idLists;
-
+        
         private Map<String, String> idMaps;
-
+        
         private ComplexBean() {
         }
-
+        
         private ComplexBean(final Student dubboTest, final List<String> idLists, final Map<String, String> idMaps) {
             this.dubboTest = dubboTest;
             this.idLists = idLists;
             this.idMaps = idMaps;
         }
-
+        
         private Student getDubboTest() {
             return dubboTest;
         }
-
+        
         private void setDubboTest(final Student dubboTest) {
             this.dubboTest = dubboTest;
         }
-
+        
         private List<String> getIdLists() {
             return idLists;
         }
-
+        
         private void setIdLists(final List<String> idLists) {
             this.idLists = idLists;
         }
-
+        
         private Map<String, String> getIdMaps() {
             return idMaps;
         }
-
+        
         private void setIdMaps(final Map<String, String> idMaps) {
             this.idMaps = idMaps;
         }

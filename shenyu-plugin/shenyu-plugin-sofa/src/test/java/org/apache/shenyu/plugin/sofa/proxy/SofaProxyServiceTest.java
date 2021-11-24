@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.lang.NonNull;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -100,6 +101,7 @@ public final class SofaProxyServiceTest {
     static class SofaParamResolveServiceImpl implements SofaParamResolveService {
         
         @Override
+        @NonNull
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
             return new ImmutablePair<>(LEFT, RIGHT);
         }
