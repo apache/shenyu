@@ -53,26 +53,26 @@ public final class SofaBodyParamResolveServiceTest {
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 1);
         assertIsStudent(pair.getRight()[0], true);
-    
+        
         //language=JSON
         body = "{\"testArray\":[{\"id\":\"123\",\"name\":\"candy\"},{\"id\":\"456\",\"name\":\"myth\"}]}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 1);
         assertIsStudent(pair.getRight()[0], true);
-    
+        
         //language=JSON
         body = "{\"ids\":[\"123\",\"456\"],\"name\":\"hello world\"}\n";
         parameterTypes = "java.lang.Integer[],java.lang.String";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 2);
-    
+        
         //language=JSON
         body = "{\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"},\"name\":\"hello world\"}\n";
         parameterTypes = "java.util.HashMap,java.lang.String";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 2);
-    
+        
         //language=JSON
         body = "{\"complexBeanTest\":{\"dubboTest\":{\"id\":\"123\",\"name\":\"xiaoyu\"},\"idLists\":[\"456\",\"789\"],\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"}}}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
@@ -85,27 +85,27 @@ public final class SofaBodyParamResolveServiceTest {
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean, java.lang.String";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 2);
-    
+        
         // test format json
         //language=JSON
-        body = "{\n" +
-                "  \"ids\": [\n" +
-                "    \"123\",\n" +
-                "    \"456\"\n" +
-                "  ],\n" +
-                "  \"id\": 123,\n" +
-                "  \"name\": \"hello world\",\n" +
-                "  \"testArray\": [\n" +
-                "    {\n" +
-                "      \"id\": \"123\",\n" +
-                "      \"name\": \"candy\"\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"id\": \"456\",\n" +
-                "      \"name\": \"myth\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}\n";
+        body = "{\n"
+                + "  \"ids\": [\n"
+                + "    \"123\",\n"
+                + "    \"456\"\n"
+                + "  ],\n"
+                + "  \"id\": 123,\n"
+                + "  \"name\": \"hello world\",\n"
+                + "  \"testArray\": [\n"
+                + "    {\n"
+                + "      \"id\": \"123\",\n"
+                + "      \"name\": \"candy\"\n"
+                + "    },\n"
+                + "    {\n"
+                + "      \"id\": \"456\",\n"
+                + "      \"name\": \"myth\"\n"
+                + "    }\n"
+                + "  ]\n"
+                + "}\n";
         parameterTypes = "java.lang.Integer[],java.lang.Integer,java.lang.String,org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 4);
@@ -120,21 +120,21 @@ public final class SofaBodyParamResolveServiceTest {
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 1);
         assertIsStudent(pair.getRight()[0], false);
-    
+        
         //language=JSON
         body = "{\"students\":[{\"id\":null,\"name\":null}]}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 1);
         assertIsStudent(pair.getRight()[0], false);
-    
+        
         //language=JSON
         body = "{\"complexBean\":{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}}}";
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 1);
         assertIsComplexBean(pair.getRight()[0], false);
-    
+        
         //language=JSON
         body = "{\"name\":null}";
         parameterTypes = "java.lang.String";
@@ -143,7 +143,7 @@ public final class SofaBodyParamResolveServiceTest {
         assertNull(pair.getRight()[0]);
     }
     
-    private void assertLeftAndRightSame(Pair<String[], Object[]> pair, int i) {
+    private void assertLeftAndRightSame(final Pair<String[], Object[]> pair, final int i) {
         assertThat(pair.getLeft().length, is(i));
         assertThat(pair.getRight().length, is(i));
     }
@@ -160,7 +160,7 @@ public final class SofaBodyParamResolveServiceTest {
      * @param allowValueNotNull allow value not null.
      * @see Student
      */
-    private void assertIsStudent(@NonNull final Object object, boolean allowValueNotNull) {
+    private void assertIsStudent(@NonNull final Object object, final boolean allowValueNotNull) {
         assertIsObject(object, Student.class, !allowValueNotNull);
     }
     
@@ -176,7 +176,7 @@ public final class SofaBodyParamResolveServiceTest {
      * @param allowValueNotNull allow value not null.
      * @see ComplexBean
      */
-    private void assertIsComplexBean(@NonNull final Object object, boolean allowValueNotNull) {
+    private void assertIsComplexBean(@NonNull final Object object, final boolean allowValueNotNull) {
         assertIsObject(object, ComplexBean.class, !allowValueNotNull);
         
     }
@@ -227,7 +227,6 @@ public final class SofaBodyParamResolveServiceTest {
     }
     
     private static final class Student {
-        
         
         private String id;
         

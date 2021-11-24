@@ -186,7 +186,7 @@ public final class ApplicationConfigCache {
      * @param path path
      * @return the reference config
      */
-    public  ConsumerConfig<GenericService> get(final String path) {
+    public ConsumerConfig<GenericService> get(final String path) {
         try {
             return cache.get(path);
         } catch (ExecutionException e) {
@@ -213,16 +213,17 @@ public final class ApplicationConfigCache {
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
-        
-        private ApplicationConfigCacheInstance() {
-        
-        }
+    static final class ApplicationConfigCacheInstance {
         
         /**
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
+        
+        private ApplicationConfigCacheInstance() {
+        
+        }
+
     }
     
     /**
