@@ -81,7 +81,7 @@ public final class SofaProxyServiceTest {
     
     @Test
     @SuppressWarnings("all")
-    public void testGenericInvoker() throws  IllegalAccessException {
+    public void testGenericInvoker() throws IllegalAccessException {
         ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(consumerConfig.refer()).thenReturn(genericService);
