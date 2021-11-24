@@ -15,26 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
+package org.apache.shenyu.springboot.starter.instance;
 
-import org.apache.shenyu.common.enums.RateLimitEnum;
-import org.apache.shenyu.spi.Join;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * The type Token bucket rate limiter algorithm.
- *
- * @see <a href="https://stripe.com/blog/rate-limiters">rate-limiters</a>
- * @see <a href="https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34">check_request_rate_limiter</a>
+ * The type Shenyu instance configuration.
  */
-@Join
-public class TokenBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
-
-    public TokenBucketRateLimiterAlgorithm() {
-        super(RateLimitEnum.TOKEN_BUCKET.getScriptName());
-    }
-
-    @Override
-    protected String getKeyName() {
-        return RateLimitEnum.TOKEN_BUCKET.getKeyName();
+@Configuration
+public class ShenyuInstanceConfiguration {
+    
+    /**
+     * Instance register listener.
+     *
+     * @param config the config
+     * @return the instance register listener
+     */
+    @Bean
+    @ConditionalOnProperty(name = "shenyu.instance.enabled", havingValue = "true")
+    public InstanceRegisterListener instanceRegisterListener(final ShenyuConfig config) {
+        return new InstanceRegisterListener(config.getInstance());
     }
 }

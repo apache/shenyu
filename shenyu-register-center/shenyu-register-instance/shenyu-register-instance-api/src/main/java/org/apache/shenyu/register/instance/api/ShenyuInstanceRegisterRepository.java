@@ -15,50 +15,36 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
+package org.apache.shenyu.register.instance.api;
 
+import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.spi.SPI;
-import org.springframework.data.redis.core.script.RedisScript;
-
-import java.util.List;
 
 /**
- * The interface Rate limiter algorithm.
- *
- * @param <T> the type parameter
+ * Shenyu instance register repository.
  */
 @SPI
-public interface RateLimiterAlgorithm<T> {
+public interface ShenyuInstanceRegisterRepository {
 
     /**
-     * Gets script name.
+     * Init.
      *
-     * @return the script name
+     * @param config the config
      */
-    String getScriptName();
-
+    default void init(InstanceConfig config) {
+    }
+    
     /**
-     * Gets script.
+     * Persist instance.
      *
-     * @return the script
+     * @param instance instance
      */
-    RedisScript<T> getScript();
-
+    void persistInstance(InstanceRegisterDTO instance);
+    
     /**
-     * Gets keys.
-     *
-     * @param id the id
-     * @return the keys
+     * Close.
      */
-    List<String> getKeys(String id);
-
-    /**
-     * Callback string.
-     *
-     * @param script     the script
-     * @param keys       the keys
-     * @param scriptArgs the script args
-     */
-    default void callback(final RedisScript<?> script, final List<String> keys, final List<String> scriptArgs) {
+    default void close() {
     }
 }
