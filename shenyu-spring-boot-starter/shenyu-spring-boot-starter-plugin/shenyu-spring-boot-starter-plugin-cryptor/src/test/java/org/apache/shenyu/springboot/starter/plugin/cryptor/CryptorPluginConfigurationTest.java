@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.cryptor;
 
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.request.CryptorRequestPlugin;
 import org.apache.shenyu.plugin.cryptor.response.CryptorResponsePlugin;
 import org.junit.Test;
@@ -36,6 +37,8 @@ public class CryptorPluginConfigurationTest {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(CryptorPluginConfiguration.class))
                 .run(context -> {
+                    PluginDataHandler dataHandler = context.getBean("cryptorRequestPluginDataHandler", PluginDataHandler.class);
+                    assertThat(dataHandler.pluginNamed()).isEqualTo(PluginEnum.CRYPTOR_REQUEST.getName());
                     CryptorRequestPlugin plugin = context.getBean("cryptorRequestPlugin", CryptorRequestPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.CRYPTOR_REQUEST.getName());
                 });
@@ -46,6 +49,8 @@ public class CryptorPluginConfigurationTest {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(CryptorPluginConfiguration.class))
                 .run(context -> {
+                    PluginDataHandler dataHandler = context.getBean("cryptorResponsePluginDataHandler", PluginDataHandler.class);
+                    assertThat(dataHandler.pluginNamed()).isEqualTo(PluginEnum.CRYPTOR_RESPONSE.getName());
                     CryptorResponsePlugin plugin = context.getBean("cryptorResponsePlugin", CryptorResponsePlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.CRYPTOR_RESPONSE.getName());
                 });
