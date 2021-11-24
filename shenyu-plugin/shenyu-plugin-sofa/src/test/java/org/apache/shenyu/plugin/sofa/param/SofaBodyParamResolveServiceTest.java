@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test cases for WebSocketParamFilter.
@@ -198,7 +199,7 @@ public final class SofaBodyParamResolveServiceTest {
             final GenericObject genericObject = (GenericObject) object;
             for (Field field : fields) {
                 if (!genericObject.hasField(field.getName())) {
-                    System.out.println(genericObject + " fieldName: " + field.getName() + " ; result => " + genericObject.hasField(field.getName()));
+                    fail(genericObject + " fieldName: " + field.getName() + " fieldType => " + field.getType().getName());
                 }
                 assertTrue(genericObject.hasField(field.getName()));
                 // not allow value is null
@@ -213,9 +214,7 @@ public final class SofaBodyParamResolveServiceTest {
             final Map<?, ?> map = (Map<?, ?>) object;
             for (Field field : fields) {
                 if (!map.containsKey(field.getName())) {
-                    System.out.println(map + " fieldName: " + field.getName() + " ; result => " + map.containsKey(field.getName()));
-                    System.out.println(field.getType().getName());
-                    System.out.println(field);
+                    fail(map + " fieldName: " + field.getName() + " fieldType => " + field.getType().getName());
                 }
                 assertTrue(map.containsKey(field.getName()));
                 // not allow value is null
