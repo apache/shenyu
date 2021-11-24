@@ -35,10 +35,4 @@
             <outputDirectory>stand-alone-mysql</outputDirectory>
         </fileSet>
     </fileSets>
-    <dependencySets>
-        <dependencySet>
-            <outputDirectory>lib</outputDirectory>
-            <fileMode>0644</fileMode>
-        </dependencySet>
-    </dependencySets>
 </assembly>
