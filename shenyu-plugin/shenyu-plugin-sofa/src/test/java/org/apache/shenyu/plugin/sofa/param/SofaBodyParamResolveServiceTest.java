@@ -33,7 +33,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -201,7 +200,6 @@ public final class SofaBodyParamResolveServiceTest {
                 if (!genericObject.hasField(field.getName())) {
                     fail(genericObject + " fieldName: " + field.getName() + " fieldType => " + field.getType().getName());
                 }
-                assertTrue(genericObject.hasField(field.getName()));
                 // not allow value is null
                 if (!allowValueToBeNull) {
                     assertNotNull(genericObject.getField(field.getName()));
@@ -216,7 +214,6 @@ public final class SofaBodyParamResolveServiceTest {
                 if (!map.containsKey(field.getName())) {
                     fail(map + " fieldName: " + field.getName() + " fieldType => " + field.getType().getName());
                 }
-                assertTrue(map.containsKey(field.getName()));
                 // not allow value is null
                 if (!allowValueToBeNull) {
                     assertNotNull(map.get(field.getName()));
