@@ -17,12 +17,7 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * this is RequestHandle plugin handle.
@@ -58,18 +53,38 @@ public class RpcContextHandle {
         this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
     }
 
+    /**
+     * get addRpcContext.
+     *
+     * @return addRpcContext
+     */
     public Map<String, String> getAddRpcContext() {
         return addRpcContext;
     }
 
+    /**
+     * set addRpcContext.
+     *
+     * @param addRpcContext addRpcContext
+     */
     public void setAddRpcContext(final Map<String, String> addRpcContext) {
         this.addRpcContext = addRpcContext;
     }
 
+    /**
+     * get transmitHeaderToRpcContext.
+     *
+     * @return transmitHeaderToRpcContext
+     */
     public Map<String, String> getTransmitHeaderToRpcContext() {
         return transmitHeaderToRpcContext;
     }
 
+    /**
+     * set transmitHeaderToRpcContext.
+     *
+     * @param transmitHeaderToRpcContext transmitHeaderToRpcContext
+     */
     public void setTransmitHeaderToRpcContext(final Map<String, String> transmitHeaderToRpcContext) {
         this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
     }

@@ -47,6 +47,6 @@ public class RpcContextPluginConfigurationTest {
                             assertThat(plugin instanceof RpcContextPlugin).isEqualTo(true);
                             assertThat(plugin.named()).isEqualTo(PluginEnum.RPC_CONTEXT.getName());
                         }
-                );
+            );
     }
 }

@@ -40,17 +40,17 @@ import java.util.Optional;
 public class RpcContextPlugin extends AbstractShenyuPlugin {
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         RpcContextHandle rpcContextHandle = RpcContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         Map<String, String> rpcContextMap = new HashMap<>();
-        Optional.ofNullable(rpcContextHandle.getAddRpcContext()).ifPresent(addRpcContextMap -> addRpcContextMap.forEach((k,v) -> rpcContextMap.put(k, v)));
+        Optional.ofNullable(rpcContextHandle.getAddRpcContext()).ifPresent(addRpcContextMap -> addRpcContextMap.forEach((k, v) -> rpcContextMap.put(k, v)));
         final HttpHeaders headers = exchange.getRequest().getHeaders();
         Optional.ofNullable(rpcContextHandle.getTransmitHeaderToRpcContext())
-                .ifPresent(
-                        transmitHeaderToRpcContext -> transmitHeaderToRpcContext.forEach(
-                                (k, v) -> rpcContextMap.put(StringUtils.isBlank(v) ? k : v, headers.getFirst(k))
-                        )
-                );
+            .ifPresent(
+                transmitHeaderToRpcContext -> transmitHeaderToRpcContext.forEach(
+                    (k, v) -> rpcContextMap.put(StringUtils.isBlank(v) ? k : v, headers.getFirst(k))
+                )
+            );
         exchange.getAttributes().put("shenyuRpcContext", rpcContextMap);
         return chain.execute(exchange);
     }
@@ -66,7 +66,7 @@ public class RpcContextPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    public boolean skip(ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         return false;
     }
 

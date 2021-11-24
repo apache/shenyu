@@ -69,7 +69,7 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
      *
      * @param rpcContext rpc context map.
      */
-    protected abstract void transmitRpcContext(Map<String, String> rpcContext);
+    protected abstract void transmitRpcContext(final Map<String, String> rpcContext);
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -100,8 +100,8 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        Map<String,String> rpcContext = exchange.getAttribute("rpcContext");
-        if (Objects.nonNull(exchange.getAttribute("rpcContext"))){
+        Map<String, String> rpcContext = exchange.getAttribute("shenyuRpcContext");
+        if (Objects.nonNull(rpcContext)) {
             this.transmitRpcContext(rpcContext);
         }
         return this.doDubboInvoker(exchange, chain, selector, rule, metaData, param);

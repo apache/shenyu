@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.rpc.context.handler;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.rpc.context.RpcContextPlugin;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

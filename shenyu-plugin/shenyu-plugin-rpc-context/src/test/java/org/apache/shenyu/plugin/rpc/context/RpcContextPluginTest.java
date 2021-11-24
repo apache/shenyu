@@ -20,10 +20,6 @@ package org.apache.shenyu.plugin.rpc.context;
 import com.google.common.collect.ImmutableMap;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
-import org.apache.shenyu.common.dto.convert.rule.RequestHandle.ShenyuCookie;
-import org.apache.shenyu.common.dto.convert.rule.RequestHandle.ShenyuRequestHeader;
-import org.apache.shenyu.common.dto.convert.rule.RequestHandle.ShenyuRequestParameter;
 import org.apache.shenyu.common.dto.convert.rule.RpcContextHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -35,23 +31,21 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.HttpCookie;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 /**
  * Request plugin test.
@@ -95,7 +89,7 @@ public class RpcContextPluginTest {
         ArgumentCaptor<ServerWebExchange> newExchange = ArgumentCaptor.forClass(ServerWebExchange.class);
         Mockito.verify(this.chain, times(1)).execute(newExchange.capture());
 
-        Map<String,String> shenyuRpcContext = (Map<String,String>)newExchange.getValue().getAttributes().get("shenyuRpcContext");
+        Map<String, String> shenyuRpcContext = (Map<String, String>) newExchange.getValue().getAttributes().get("shenyuRpcContext");
 
         assertTrue(shenyuRpcContext.containsKey("addRpcContextKey"));
         assertTrue(shenyuRpcContext.containsKey("transmitHeaderToRpcContextKey"));
