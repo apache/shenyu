@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -24,46 +25,43 @@ import org.springframework.scripting.support.ResourceScriptSource;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Abstract rate limiter algorithm.
  */
 public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorithm<List<Long>> {
-    
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
-    
+
+    private String scriptName;
+
     private RedisScript<List<Long>> script;
-    
-    /**
-     * Gets script name.
-     *
-     * @return the script name
-     */
-    protected abstract String getScriptName();
-    
+
+    public AbstractRateLimiterAlgorithm(final String scriptName) {
+        DefaultRedisScript redisScript = new DefaultRedisScript<>();
+        String scriptPath = Constants.SCRIPT_PATH + scriptName;
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
+        redisScript.setResultType(List.class);
+        this.script = redisScript;
+        this.scriptName = scriptName;
+    }
+
+    @Override
+    public String getScriptName() {
+        return scriptName;
+    }
+
     /**
      * Gets key name.
      *
      * @return the key name
      */
     protected abstract String getKeyName();
-    
+
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public RedisScript<List<Long>> getScript() {
-        if (!this.initialized.get()) {
-            DefaultRedisScript redisScript = new DefaultRedisScript<>();
-            String scriptPath = "/META-INF/scripts/" + getScriptName();
-            redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
-            redisScript.setResultType(List.class);
-            this.script = redisScript;
-            initialized.compareAndSet(false, true);
-            return redisScript;
-        }
         return script;
     }
-    
+
     @Override
     public List<String> getKeys(final String id) {
         String prefix = getKeyName() + ".{" + id;
