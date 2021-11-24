@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -34,13 +35,13 @@ import java.util.function.Supplier;
  */
 public class RpcContextPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, RpcContextHandle>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, List<RpcContextHandle>>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            RpcContextHandle rpcContextHandle = GsonUtils.getInstance().fromJson(s, RpcContextHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rpcContextHandle);
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(handleData -> {
+            List<RpcContextHandle> rpcContextHandles = GsonUtils.getInstance().fromList(handleData, RpcContextHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rpcContextHandles);
         });
     }
 

@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.rpc.context;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RpcContextHandle;
@@ -38,6 +39,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -65,18 +69,28 @@ public class RpcContextPluginTest {
     public void setup() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .get("localhost")
-                .header("transmitHeaderToRpcContextKey", "oldValue")
+                .header("shenyuTestHeaderKey", "shenyuTestHeaderValue")
                 .build());
         this.rpcContextPlugin = new RpcContextPlugin();
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test-selectorId");
         this.ruleData.setName("test-rpc-context-plugin");
 
-        RpcContextHandle requestHandle = new RpcContextHandle();
-        requestHandle.setAddRpcContext(ImmutableMap.of("addRpcContextKey", "addRpcContextValue"));
-        requestHandle.setTransmitHeaderToRpcContext(ImmutableMap.of("transmitHeaderToRpcContextKey", ""));
+        List<RpcContextHandle> requestHandles = new ArrayList<>();
 
-        RpcContextPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), requestHandle);
+        RpcContextHandle addRpcRequestHandle = new RpcContextHandle();
+        addRpcRequestHandle.setRpcContextType(Constants.ADD_RPC_CONTEXT_TYPE);
+        addRpcRequestHandle.setRpcContextKey("addRpcContextKey");
+        addRpcRequestHandle.setRpcContextValue("addRpcContextValue");
+        requestHandles.add(addRpcRequestHandle);
+
+        RpcContextHandle transmitRpcRequestHandle = new RpcContextHandle();
+        transmitRpcRequestHandle.setRpcContextType(Constants.TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE);
+        transmitRpcRequestHandle.setRpcContextKey("shenyuTestHeaderKey");
+        transmitRpcRequestHandle.setRpcContextValue("shenyuTestHeaderNewKey");
+        requestHandles.add(transmitRpcRequestHandle);
+
+        RpcContextPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), requestHandles);
     }
 
     @Test
@@ -89,10 +103,13 @@ public class RpcContextPluginTest {
         ArgumentCaptor<ServerWebExchange> newExchange = ArgumentCaptor.forClass(ServerWebExchange.class);
         Mockito.verify(this.chain, times(1)).execute(newExchange.capture());
 
-        Map<String, String> shenyuRpcContext = (Map<String, String>) newExchange.getValue().getAttributes().get("shenyuRpcContext");
+        Map<String, String> shenyuRpcContext = (Map<String, String>) newExchange.getValue().getAttributes().get(Constants.RPC_CONTEXT);
 
         assertTrue(shenyuRpcContext.containsKey("addRpcContextKey"));
-        assertTrue(shenyuRpcContext.containsKey("transmitHeaderToRpcContextKey"));
+        assertTrue(shenyuRpcContext.containsKey("shenyuTestHeaderNewKey"));
+
+        assertEquals(shenyuRpcContext.get("addRpcContextKey"), "addRpcContextValue");
+        assertEquals(shenyuRpcContext.get("shenyuTestHeaderNewKey"), "shenyuTestHeaderValue");
     }
 
     @Test

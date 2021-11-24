@@ -25,16 +25,25 @@ import java.util.Map;
 public class RpcContextHandle {
 
     /**
+     * rpc context type.
+     */
+    private String rpcContextType;
+
+    /**
+     * rpcContextKey.
+     *
      * need to be appended new context value.
      * key: new rpc context key, value: rpc context value.
      */
-    private Map<String, String> addRpcContext;
+    private String rpcContextKey;
 
     /**
-     * transmit http request header to rpc context.
-     * key: headerKey, value: rpc context value.
+     * rpcContextValue.
+     * when rpcContextType is addRpcContext, the rpcContextValue is the value of rpcContextKey.
+     * when rpcContextType is transmitHeaderToRpcContext, the rpcContextValue is the new key of rpcContext.
+     * In this case, if rpcContextValue is blank, default value is same as rpcContextKey.
      */
-    private Map<String, String> transmitHeaderToRpcContext;
+    private String rpcContextValue;
 
     /**
      * no args constructor.
@@ -45,47 +54,37 @@ public class RpcContextHandle {
     /**
      * all args constructor.
      *
-     * @param addRpcContext              addRpcContext
-     * @param transmitHeaderToRpcContext transmitHeaderToRpcContext
+     * @param rpcContextType  rpcContextType
+     * @param rpcContextKey   rpcContextKey
+     * @param rpcContextValue rpcContextValue
      */
-    public RpcContextHandle(final Map<String, String> addRpcContext, final Map<String, String> transmitHeaderToRpcContext) {
-        this.addRpcContext = addRpcContext;
-        this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
+    public RpcContextHandle(String rpcContextType, String rpcContextKey, String rpcContextValue) {
+        this.rpcContextType = rpcContextType;
+        this.rpcContextKey = rpcContextKey;
+        this.rpcContextValue = rpcContextValue;
     }
 
-    /**
-     * get addRpcContext.
-     *
-     * @return addRpcContext
-     */
-    public Map<String, String> getAddRpcContext() {
-        return addRpcContext;
+    public String getRpcContextType() {
+        return rpcContextType;
     }
 
-    /**
-     * set addRpcContext.
-     *
-     * @param addRpcContext addRpcContext
-     */
-    public void setAddRpcContext(final Map<String, String> addRpcContext) {
-        this.addRpcContext = addRpcContext;
+    public void setRpcContextType(String rpcContextType) {
+        this.rpcContextType = rpcContextType;
     }
 
-    /**
-     * get transmitHeaderToRpcContext.
-     *
-     * @return transmitHeaderToRpcContext
-     */
-    public Map<String, String> getTransmitHeaderToRpcContext() {
-        return transmitHeaderToRpcContext;
+    public String getRpcContextKey() {
+        return rpcContextKey;
     }
 
-    /**
-     * set transmitHeaderToRpcContext.
-     *
-     * @param transmitHeaderToRpcContext transmitHeaderToRpcContext
-     */
-    public void setTransmitHeaderToRpcContext(final Map<String, String> transmitHeaderToRpcContext) {
-        this.transmitHeaderToRpcContext = transmitHeaderToRpcContext;
+    public void setRpcContextKey(String rpcContextKey) {
+        this.rpcContextKey = rpcContextKey;
+    }
+
+    public String getRpcContextValue() {
+        return rpcContextValue;
+    }
+
+    public void setRpcContextValue(String rpcContextValue) {
+        this.rpcContextValue = rpcContextValue;
     }
 }

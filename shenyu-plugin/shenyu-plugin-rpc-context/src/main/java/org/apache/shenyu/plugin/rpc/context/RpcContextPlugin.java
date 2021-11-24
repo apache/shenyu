@@ -32,8 +32,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * RpcContextPlugin, transfer http headers to rpc context.
@@ -42,16 +42,21 @@ public class RpcContextPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        RpcContextHandle rpcContextHandle = RpcContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        List<RpcContextHandle> rpcContextHandles = RpcContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         Map<String, String> rpcContextMap = new HashMap<>();
-        Optional.ofNullable(rpcContextHandle.getAddRpcContext()).ifPresent(addRpcContextMap -> addRpcContextMap.forEach((k, v) -> rpcContextMap.put(k, v)));
-        final HttpHeaders headers = exchange.getRequest().getHeaders();
-        Optional.ofNullable(rpcContextHandle.getTransmitHeaderToRpcContext())
-            .ifPresent(
-                transmitHeaderToRpcContext -> transmitHeaderToRpcContext.forEach(
-                    (k, v) -> rpcContextMap.put(StringUtils.isBlank(v) ? k : v, headers.getFirst(k))
-                )
-            );
+        HttpHeaders headers = exchange.getRequest().getHeaders();
+        rpcContextHandles.stream().forEach(each -> {
+            switch (each.getRpcContextType()) {
+                case Constants.ADD_RPC_CONTEXT_TYPE:
+                    rpcContextMap.put(each.getRpcContextKey(), each.getRpcContextValue());
+                    break;
+                case Constants.TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE:
+                    rpcContextMap.put(StringUtils.isBlank(each.getRpcContextValue()) ? each.getRpcContextKey() : each.getRpcContextValue(), headers.getFirst(each.getRpcContextKey()));
+                    break;
+                default:
+                    break;
+            }
+        });
         exchange.getAttributes().put(Constants.RPC_CONTEXT, rpcContextMap);
         return chain.execute(exchange);
     }

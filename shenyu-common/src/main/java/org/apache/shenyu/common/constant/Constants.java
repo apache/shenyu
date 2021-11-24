@@ -457,6 +457,17 @@ public interface Constants {
      * rpc context.
      */
     String RPC_CONTEXT = "rpcContext";
+
+    /**
+     * addRpcContextType.
+     */
+    String ADD_RPC_CONTEXT_TYPE = "addRpcContext";
+
+    /**
+     * transmitHeaderToRpcContextType.
+     */
+    String TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE = "transmitHeaderToRpcContext";
+
     /**
      * String q.
      */
