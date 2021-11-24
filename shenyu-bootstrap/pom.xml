@@ -409,6 +409,14 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu param mapping end-->
+
+        <!--shenyu instance start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-instance</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu instance end-->
     </dependencies>
     
     <profiles>
