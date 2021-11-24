@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.sofa.param;
 
 import com.alipay.hessian.generic.model.GenericObject;
 import org.apache.commons.lang3.tuple.Pair;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -198,6 +197,9 @@ public final class SofaBodyParamResolveServiceTest {
         if (object instanceof GenericObject) {
             final GenericObject genericObject = (GenericObject) object;
             for (Field field : fields) {
+                if (!genericObject.hasField(field.getName())) {
+                    System.out.println(genericObject + " fieldName: " + field.getName() + " ; result => " + genericObject.hasField(field.getName()));
+                }
                 assertTrue(genericObject.hasField(field.getName()));
                 // not allow value is null
                 if (!allowValueToBeNull) {
@@ -205,12 +207,16 @@ public final class SofaBodyParamResolveServiceTest {
                     // value is not null, deep assert
                     assertIsObject(genericObject.getField(field.getName()), field.getType(), allowValueToBeNull);
                 }
-                
             }
         }
         if (object instanceof Map) {
             final Map<?, ?> map = (Map<?, ?>) object;
             for (Field field : fields) {
+                if (!map.containsKey(field.getName())) {
+                    System.out.println(map + " fieldName: " + field.getName() + " ; result => " + map.containsKey(field.getName()));
+                    System.out.println(field.getType().getName());
+                    System.out.println(field);
+                }
                 assertTrue(map.containsKey(field.getName()));
                 // not allow value is null
                 if (!allowValueToBeNull) {
