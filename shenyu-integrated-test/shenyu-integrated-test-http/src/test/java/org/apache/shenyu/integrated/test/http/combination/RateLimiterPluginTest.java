@@ -49,7 +49,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
 
     @Before
     public void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.RATE_LIMITER.getName(), "{\"mode\":\"standalone\",\"master\":\"mymaster\",\"url\":\"localhost:6379\",\"password\":\"\"}");
+        String pluginResult = initPlugin(PluginEnum.RATE_LIMITER.getName(), "{\"mode\":\"standalone\",\"master\":\"mymaster\",\"url\":\"shenyu-redis:6379\",\"password\":\"abc\"}");
         assertThat(pluginResult, is("success"));
     }
 
