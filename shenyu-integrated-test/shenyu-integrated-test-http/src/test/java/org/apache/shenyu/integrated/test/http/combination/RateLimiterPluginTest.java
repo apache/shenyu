@@ -67,7 +67,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         AdminResponse<Object> dto = rejectedRespFuture.get();
         assertEquals("You have been restricted, please try again later!", dto.getMessage());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
         assertEquals("Tom", allowedRespFuture2.get().getUserName());
     }
@@ -86,7 +86,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         AdminResponse<Object> dto = rejectedRespFuture.get();
         assertEquals("You have been restricted, please try again later!", dto.getMessage());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
         assertEquals("Tom", allowedRespFuture2.get().getUserName());
     }
@@ -105,7 +105,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         AdminResponse<Object> dto = rejectedRespFuture.get();
         assertEquals("You have been restricted, please try again later!", dto.getMessage());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
         assertEquals("Tom", allowedRespFuture2.get().getUserName());
     }
@@ -153,7 +153,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
 
         RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();
         rateLimiterHandle.setAlgorithmName(algorithmName);
-        rateLimiterHandle.setReplenishRate(0.2);
+        rateLimiterHandle.setReplenishRate(0.5);
         rateLimiterHandle.setBurstCapacity(1);
         // see WholeKeyResolver.java
         rateLimiterHandle.setKeyResolverName("WHOLE_KEY_RESOLVER");
