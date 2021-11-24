@@ -216,7 +216,7 @@ public final class ApplicationConfigCache {
      */
     static class ApplicationConfigCacheInstance {
 
-        private ApplicationConfigCacheInstance() {}
+//        private ApplicationConfigCacheInstance() {}
         /**
          * The Instance.
          */

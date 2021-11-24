@@ -58,6 +58,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
+    @SuppressWarnings("all")
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
@@ -71,7 +72,6 @@ public class MotanPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        assert metaData != null;
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM.getMsg(), null);
