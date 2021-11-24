@@ -71,6 +71,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        assert metaData != null;
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM.getMsg(), null);
@@ -109,6 +110,6 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     }
 
     private boolean checkMetaData(final MetaData metaData) {
-        return null != metaData && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+        return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
     }
 }
