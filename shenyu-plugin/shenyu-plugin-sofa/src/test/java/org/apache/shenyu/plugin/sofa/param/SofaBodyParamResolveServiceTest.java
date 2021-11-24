@@ -244,7 +244,7 @@ public final class SofaBodyParamResolveServiceTest {
      * @param field field
      * @return is exclude
      */
-    private boolean excludeField(Field field) {
+    private boolean excludeField(final Field field) {
         return StringUtils.startsWithAny(field.getName(), "_", "$");
     }
     
