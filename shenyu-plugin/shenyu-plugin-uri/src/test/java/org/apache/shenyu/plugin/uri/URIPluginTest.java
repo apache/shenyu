@@ -111,13 +111,4 @@ public class URIPluginTest {
 		when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
 		Assert.assertFalse(uriPlugin.skip(exchange));
 	}
-
-	private ServerWebExchange generateServerWebExchange(final String name) {
-		ServerWebExchange exchange = MockServerWebExchange
-				.from(MockServerHttpRequest.get("/test").build());
-		ShenyuContext shenyuContext = new ShenyuContext();
-		shenyuContext.setRpcType(name);
-		exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-		return exchange;
-	}
 }
