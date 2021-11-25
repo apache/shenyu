@@ -65,7 +65,7 @@ import static org.mockito.Mockito.when;
  *
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GlobalErrorHandlerTest {
+public final class GlobalErrorHandlerTest {
 
     private static Logger loggerSpy;
 

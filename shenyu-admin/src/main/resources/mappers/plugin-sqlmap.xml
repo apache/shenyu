@@ -74,7 +74,8 @@
         from plugin
         <where>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                and name like #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="enabled != null">
                 and enabled = #{enabled,jdbcType=TINYINT}

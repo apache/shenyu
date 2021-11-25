@@ -19,6 +19,8 @@ package org.apache.shenyu.examples.grpc.stream;
 
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import stream.RequestData;
 import stream.ResponseData;
@@ -26,52 +28,55 @@ import stream.StreamServiceGrpc;
 
 @Service
 public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(StreamServiceImpl.class);
+    
     @Override
     @ShenyuGrpcClient(path = "/unaryFun", desc = "unaryFun")
     public void unaryFun(final RequestData request, final StreamObserver<ResponseData> responseObserver) {
-        System.out.println("unaryFun received：" + request.getText());
-
+        LOG.info("unaryFun received：{}", request.getText());
+        
         ResponseData responseData = ResponseData.newBuilder()
-                                                .setText("unaryFun response: hello gRPC")
-                                                .build();
+                .setText("unaryFun response: hello gRPC")
+                .build();
         responseObserver.onNext(responseData);
         responseObserver.onCompleted();
     }
-
+    
     @Override
     @ShenyuGrpcClient(path = "/serverStreamingFun", desc = "serverStreamingFun")
     public void serverStreamingFun(final RequestData request, final StreamObserver<ResponseData> responseObserver) {
-        System.out.println("serverStreamingFun received：" + request.getText());
-
+        LOG.info("serverStreamingFun received：{}", request.getText());
+        
         for (int i = 0; i < 10; i++) {
             ResponseData responseData = ResponseData.newBuilder()
-                                                    .setText("serverStreamingFun response: hello " + i)
-                                                    .build();
+                    .setText("serverStreamingFun response: hello " + i)
+                    .build();
             responseObserver.onNext(responseData);
         }
-
+        
         responseObserver.onCompleted();
     }
-
+    
     @Override
     @ShenyuGrpcClient(path = "/clientStreamingFun", desc = "clientStreamingFun")
     public StreamObserver<RequestData> clientStreamingFun(StreamObserver<ResponseData> responseObserver) {
-
+        
         return new StreamObserver<RequestData>() {
-
-            private ResponseData.Builder builder = ResponseData.newBuilder();
-
+            
+            private final ResponseData.Builder builder = ResponseData.newBuilder();
+            
             @Override
             public void onNext(final RequestData value) {
-                System.out.println("clientStreamingFun received: " + value.getText());
+                LOG.info("clientStreamingFun received: {}", value.getText());
             }
-
+            
             @Override
             public void onError(final Throwable t) {
-
+                LOG.error(t.getMessage());
+                t.printStackTrace();
             }
-
+            
             @Override
             public void onCompleted() {
                 builder.setText("clientStreamingFun onCompleted");
@@ -80,35 +85,37 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             }
         };
     }
-
+    
     @Override
     @ShenyuGrpcClient(path = "/bidiStreamingFun", desc = "bidiStreamingFun")
     public StreamObserver<RequestData> bidiStreamingFun(final StreamObserver<ResponseData> responseObserver) {
-
+        
         return new StreamObserver<RequestData>() {
-
-            private ResponseData.Builder builder = ResponseData.newBuilder();
-
+            
+            private final ResponseData.Builder builder = ResponseData.newBuilder();
+            
             @Override
             public void onNext(RequestData value) {
-                System.out.println("bidiStreamingFun received: " + value.getText());
+                LOG.info("bidiStreamingFun received: {}", value.getText());
                 ResponseData responseData = ResponseData.newBuilder()
-                                                        .setText("bidiStreamingFun response: hello")
-                                                        .build();
+                        .setText("bidiStreamingFun response: hello")
+                        .build();
                 responseObserver.onNext(responseData);
             }
-
+            
             @Override
-            public void onError(final Throwable t) { t.printStackTrace();
+            public void onError(final Throwable t) {
+                LOG.error(t.getMessage());
+                t.printStackTrace();
             }
-
+            
             @Override
             public void onCompleted() {
                 builder.setText("bidiStreamingFun onCompleted");
                 responseObserver.onNext(builder.build());
                 responseObserver.onCompleted();
             }
-
+            
         };
     }
 }

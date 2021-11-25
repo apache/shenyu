@@ -57,10 +57,7 @@ public class OrderController {
     @GetMapping("/findById")
     @ShenyuSpringCloudClient(path = "/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(id);
-        orderDTO.setName("hello world spring cloud findById");
-        return orderDTO;
+        return buildOrder(id, "hello world spring cloud findById");
     }
 
     /**
@@ -73,10 +70,7 @@ public class OrderController {
     @GetMapping("/path/{id}/{name}")
     @ShenyuSpringCloudClient(path = "/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(id);
-        orderDTO.setName("hello world spring cloud restful: " + name);
-        return orderDTO;
+        return buildOrder(id, "hello world spring cloud restful: " + name);
     }
 
     /**
@@ -88,9 +82,13 @@ public class OrderController {
     @GetMapping("/path/{id}/name")
     @ShenyuSpringCloudClient(path = "/path/**/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
+        return buildOrder(id, "hello world spring cloud restful inline " + id);
+    }
+
+    private OrderDTO buildOrder(String id, String name) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
-        orderDTO.setName("hello world spring cloud restful inline " + id);
+        orderDTO.setName(name);
         return orderDTO;
     }
 }

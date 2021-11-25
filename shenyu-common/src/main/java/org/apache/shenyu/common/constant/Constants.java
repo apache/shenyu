@@ -459,6 +459,11 @@ public interface Constants {
     String GROUP = "group";
 
     /**
+     * redis script path.
+     */
+    String SCRIPT_PATH = "/META-INF/scripts/";
+
+    /**
      * cache max count.
      */
     int CACHE_MAX_COUNT = 1000;

@@ -46,14 +46,9 @@ public final class AbstractRateLimiterAlgorithmTest {
 
     @Before
     public void startup() {
-        abstractRateLimiterAlgorithm = new AbstractRateLimiterAlgorithm() {
+        abstractRateLimiterAlgorithm = new AbstractRateLimiterAlgorithm(RATE_ALGORITHM_SCRIPT_NAME) {
             @Override
-            protected String getScriptName() {
-                return RATE_ALGORITHM_SCRIPT_NAME;
-            }
-
-            @Override
-            protected String getKeyName() {
+            public String getKeyName() {
                 return KEY_NAME;
             }
         };
