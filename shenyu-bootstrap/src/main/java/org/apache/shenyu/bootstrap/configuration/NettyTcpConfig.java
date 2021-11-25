@@ -38,9 +38,9 @@ public class NettyTcpConfig {
 
     private boolean tcpNodelay = true;
 
-    private boolean soKeepalive = false;
+    private boolean soKeepalive;
 
-    private boolean soReuseaddr = false;
+    private boolean soReuseaddr;
 
     private int soLinger = -1;
 

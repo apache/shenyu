@@ -46,10 +46,11 @@ public class ShenyuNettyWebServerFactory {
     public NettyTcpConfig nettyTcpConfig() {
         return new NettyTcpConfig();
     }
-
+    
     /**
      * Netty reactive web server factory netty reactive web server factory.
      *
+     * @param config the config
      * @return the netty reactive web server factory
      */
     @Bean
@@ -63,7 +64,12 @@ public class ShenyuNettyWebServerFactory {
     private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
 
         private final NettyTcpConfig nettyTcpConfig;
-
+    
+        /**
+         * Instantiates a new Event loop netty customizer.
+         *
+         * @param nettyTcpConfig the netty tcp config
+         */
         EventLoopNettyCustomizer(final NettyTcpConfig nettyTcpConfig) {
             this.nettyTcpConfig = nettyTcpConfig;
         }
