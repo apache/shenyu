@@ -34,5 +34,23 @@
             </includes>
             <outputDirectory>stand-alone-mysql</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-mysql.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-mysql/shenyu-admin/conf</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-bootstrap/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-local.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-mysql/shenyu-bootstrap/conf</outputDirectory>
+        </fileSet>
     </fileSets>
 </assembly>
