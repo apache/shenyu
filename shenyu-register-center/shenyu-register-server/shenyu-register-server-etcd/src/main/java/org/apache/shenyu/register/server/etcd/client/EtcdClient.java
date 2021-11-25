@@ -71,7 +71,7 @@ public class EtcdClient {
                         .setDaemon(true)
                         .build());
 
-        this.client = Client.builder().endpoints(urls).build();
+        this.client = Client.builder().endpoints(urls.split(",")).build();
 
         try {
             initLease();

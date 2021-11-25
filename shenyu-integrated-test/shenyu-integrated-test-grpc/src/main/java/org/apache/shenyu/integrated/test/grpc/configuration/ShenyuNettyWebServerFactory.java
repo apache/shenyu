@@ -19,6 +19,7 @@ package org.apache.shenyu.integrated.test.grpc.configuration;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -51,6 +52,7 @@ public class ShenyuNettyWebServerFactory {
      * @return the netty tcp config
      */
     @Bean
+    @ConfigurationProperties(prefix = "shenyu.netty.tcp")
     public NettyTcpConfig nettyTcpConfig() {
         return new NettyTcpConfig();
     }
@@ -73,10 +75,12 @@ public class ShenyuNettyWebServerFactory {
                             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis())
                             .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
                                     nettyTcpConfig.getWriteBufferHighWaterMark()))
+                            .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpConfig.getWriteSpinCount())
+                            .option(ChannelOption.AUTO_READ, nettyTcpConfig.isAutoRead())
+                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay())
                             .option(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive())
                             .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
-                            .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
-                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay()));
+                            .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger()));
         }
     }
 }
