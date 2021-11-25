@@ -69,7 +69,7 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
      *
      * @param rpcContext rpc context map.
      */
-    protected abstract void transmitRpcContext(final Map<String, String> rpcContext);
+    protected abstract void transmitRpcContext(Map<String, String> rpcContext);
 
     /**
      * this is Template Method child has Implement your own logic.

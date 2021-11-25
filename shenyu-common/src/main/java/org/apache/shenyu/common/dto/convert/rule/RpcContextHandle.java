@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
-import java.util.Map;
-
 /**
  * this is RequestHandle plugin handle.
  */
@@ -31,9 +29,10 @@ public class RpcContextHandle {
 
     /**
      * rpcContextKey.
-     *
-     * need to be appended new context value.
+     * <p>
+     * need to be added new context value.
      * key: new rpc context key, value: rpc context value.
+     * </p>
      */
     private String rpcContextKey;
 
@@ -58,33 +57,63 @@ public class RpcContextHandle {
      * @param rpcContextKey   rpcContextKey
      * @param rpcContextValue rpcContextValue
      */
-    public RpcContextHandle(String rpcContextType, String rpcContextKey, String rpcContextValue) {
+    public RpcContextHandle(final String rpcContextType, final String rpcContextKey, final String rpcContextValue) {
         this.rpcContextType = rpcContextType;
         this.rpcContextKey = rpcContextKey;
         this.rpcContextValue = rpcContextValue;
     }
 
+    /**
+     * get rpcContextType.
+     *
+     * @return rpcContextType
+     */
     public String getRpcContextType() {
         return rpcContextType;
     }
 
-    public void setRpcContextType(String rpcContextType) {
+    /**
+     * set rpcContextType.
+     *
+     * @param rpcContextType rpcContextType
+     */
+    public void setRpcContextType(final String rpcContextType) {
         this.rpcContextType = rpcContextType;
     }
 
+    /**
+     * get rpcContextKey.
+     *
+     * @return rpcContextKey
+     */
     public String getRpcContextKey() {
         return rpcContextKey;
     }
 
-    public void setRpcContextKey(String rpcContextKey) {
+    /**
+     * set rpcContextKey.
+     *
+     * @param rpcContextKey rpcContextKey
+     */
+    public void setRpcContextKey(final String rpcContextKey) {
         this.rpcContextKey = rpcContextKey;
     }
 
+    /**
+     * get rpcContextValue.
+     *
+     * @return rpcContextValue
+     */
     public String getRpcContextValue() {
         return rpcContextValue;
     }
 
-    public void setRpcContextValue(String rpcContextValue) {
+    /**
+     * set rpcContextValue.
+     *
+     * @param rpcContextValue rpcContextValue
+     */
+    public void setRpcContextValue(final String rpcContextValue) {
         this.rpcContextValue = rpcContextValue;
     }
 }

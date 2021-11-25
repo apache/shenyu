@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.rpc.context;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -40,7 +39,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -76,18 +74,16 @@ public class RpcContextPluginTest {
         this.ruleData.setSelectorId("test-selectorId");
         this.ruleData.setName("test-rpc-context-plugin");
 
-        List<RpcContextHandle> requestHandles = new ArrayList<>();
-
         RpcContextHandle addRpcRequestHandle = new RpcContextHandle();
         addRpcRequestHandle.setRpcContextType(Constants.ADD_RPC_CONTEXT_TYPE);
         addRpcRequestHandle.setRpcContextKey("addRpcContextKey");
         addRpcRequestHandle.setRpcContextValue("addRpcContextValue");
-        requestHandles.add(addRpcRequestHandle);
-
         RpcContextHandle transmitRpcRequestHandle = new RpcContextHandle();
         transmitRpcRequestHandle.setRpcContextType(Constants.TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE);
         transmitRpcRequestHandle.setRpcContextKey("shenyuTestHeaderKey");
         transmitRpcRequestHandle.setRpcContextValue("shenyuTestHeaderNewKey");
+        List<RpcContextHandle> requestHandles = new ArrayList<>();
+        requestHandles.add(addRpcRequestHandle);
         requestHandles.add(transmitRpcRequestHandle);
 
         RpcContextPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), requestHandles);
