@@ -29,11 +29,10 @@ import org.apache.shenyu.spi.Join;
 @Join
 public class TokenBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
 
-    @Override
-    protected String getScriptName() {
-        return RateLimitEnum.TOKEN_BUCKET.getScriptName();
+    public TokenBucketRateLimiterAlgorithm() {
+        super(RateLimitEnum.TOKEN_BUCKET.getScriptName());
     }
-    
+
     @Override
     protected String getKeyName() {
         return RateLimitEnum.TOKEN_BUCKET.getKeyName();

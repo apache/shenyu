@@ -59,7 +59,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
 
         Future<UserDTO> allowedRespFuture1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
-        assertEquals("hello world", allowedRespFuture1.get().getUserName());
+        assertEquals("Tom", allowedRespFuture1.get().getUserName());
 
         Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
                 HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
@@ -67,9 +67,9 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         AdminResponse<Object> dto = rejectedRespFuture.get();
         assertEquals("You have been restricted, please try again later!", dto.getMessage());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
-        assertEquals("hello world", allowedRespFuture2.get().getUserName());
+        assertEquals("Tom", allowedRespFuture2.get().getUserName());
     }
 
     @Test
@@ -78,7 +78,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
 
         Future<UserDTO> allowedRespFuture1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
-        assertEquals("hello world", allowedRespFuture1.get().getUserName());
+        assertEquals("Tom", allowedRespFuture1.get().getUserName());
 
         Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
                 HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
@@ -86,9 +86,9 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         AdminResponse<Object> dto = rejectedRespFuture.get();
         assertEquals("You have been restricted, please try again later!", dto.getMessage());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
-        assertEquals("hello world", allowedRespFuture2.get().getUserName());
+        assertEquals("Tom", allowedRespFuture2.get().getUserName());
     }
 
     @Test
@@ -97,7 +97,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
 
         Future<UserDTO> allowedRespFuture1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
-        assertEquals("hello world", allowedRespFuture1.get().getUserName());
+        assertEquals("Tom", allowedRespFuture1.get().getUserName());
 
         Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
                 HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
@@ -105,9 +105,9 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         AdminResponse<Object> dto = rejectedRespFuture.get();
         assertEquals("You have been restricted, please try again later!", dto.getMessage());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
-        assertEquals("hello world", allowedRespFuture2.get().getUserName());
+        assertEquals("Tom", allowedRespFuture2.get().getUserName());
     }
 
     @Test
@@ -116,7 +116,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
 
         UserDTO allowedResp = HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class);
-        assertEquals("hello world", allowedResp.getUserName());
+        assertEquals("Tom", allowedResp.getUserName());
 
         List<Future<AdminResponse<Object>>> futures = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
@@ -153,7 +153,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
 
         RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();
         rateLimiterHandle.setAlgorithmName(algorithmName);
-        rateLimiterHandle.setReplenishRate(1);
+        rateLimiterHandle.setReplenishRate(0.5);
         rateLimiterHandle.setBurstCapacity(1);
         // see WholeKeyResolver.java
         rateLimiterHandle.setKeyResolverName("WHOLE_KEY_RESOLVER");
@@ -170,6 +170,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
 
     @After
     public void clean() throws IOException {
-        cleanPluginData(PluginEnum.RATE_LIMITER.getName());
+        String res = cleanPluginData(PluginEnum.RATE_LIMITER.getName());
+        assertThat(res, is("success"));
     }
 }

@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -90,8 +91,8 @@ public class CryptorRequestPluginTest extends AbstractPluginDataInit {
         request.addProperty("userId", TEST_USER_ID);
         request.addProperty("userName", TEST_USER_NAME);
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-
-        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, actualUser.getUserId()), is(TEST_USER_ID));
+        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserId());
+        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_ID));
         assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
     }
 

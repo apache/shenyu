@@ -68,7 +68,8 @@
                 selector_id = #{selectorId,jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                and name like #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 and id in

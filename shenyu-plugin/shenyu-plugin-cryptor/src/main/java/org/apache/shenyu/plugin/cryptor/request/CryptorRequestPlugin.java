@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.cryptor.request;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -68,10 +69,11 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
             LOG.error("Cryptor request rule configuration is null :{}", rule.getId());
             return chain.execute(exchange);
         }
-        if (JsonUtil.checkParam(ruleHandle)) {
+        Pair<Boolean, String> pair = JsonUtil.checkParam(ruleHandle);
+        if (pair.getLeft()) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg()
-                    + "[" + JsonUtil.getErrorCollector() + "]", null);
+                    + "[" + pair.getRight() + "]", null);
             return WebFluxResultUtils.result(exchange, error);
         }
 
