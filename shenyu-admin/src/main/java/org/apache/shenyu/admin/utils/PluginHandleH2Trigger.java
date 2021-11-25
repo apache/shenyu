@@ -52,13 +52,9 @@ public class PluginHandleH2Trigger implements Trigger {
 
     @Override
     public void close() throws SQLException {
-
     }
 
     @Override
     public void remove() throws SQLException {
-
     }
-
-
 }
