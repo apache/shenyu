@@ -33,23 +33,21 @@ import java.net.InetSocketAddress;
 /**
  * Test cases for {@link PostParameterData}.
  */
-public class PostParameterDataTest {
+public final class PostParameterDataTest {
 
     private ServerWebExchange exchange;
 
     private PostParameterData postParameterData;
-
-    private ShenyuContext context;
 
     @Before
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/uri/path")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
-        this.context = new ShenyuContext();
-        this.context.setRpcType(RpcTypeEnum.HTTP.getName());
-        this.context.setHttpMethod(HttpMethodEnum.POST.getName());
-        this.exchange.getAttributes().put(Constants.CONTEXT, this.context);
+        ShenyuContext context = new ShenyuContext();
+        context.setRpcType(RpcTypeEnum.HTTP.getName());
+        context.setHttpMethod(HttpMethodEnum.POST.getName());
+        this.exchange.getAttributes().put(Constants.CONTEXT, context);
         this.postParameterData = new PostParameterData();
     }
 

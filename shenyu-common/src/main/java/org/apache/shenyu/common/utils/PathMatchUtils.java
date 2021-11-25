@@ -30,7 +30,7 @@ public class PathMatchUtils {
     /**
      * Match boolean.
      *
-     * @param matchUrls the ignore urls
+     * @param matchUrls to ignore urls
      * @param path      the path
      * @return the boolean
      */

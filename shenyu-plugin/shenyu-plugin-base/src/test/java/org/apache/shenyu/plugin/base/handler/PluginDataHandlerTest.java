@@ -54,12 +54,7 @@ public final class PluginDataHandlerTest {
         this.pluginData = mock(PluginData.class);
         this.selectorData = mock(SelectorData.class);
         this.testPluginDataHandler = new TestPluginDataHandler();
-        this.pluginDataHandler = new PluginDataHandler() {
-            @Override
-            public String pluginNamed() {
-                return "SHENYU";
-            }
-        };
+        this.pluginDataHandler = () -> "SHENYU";
         when(ruleData.getId()).thenReturn("SHENYU");
         when(pluginData.getId()).thenReturn("SHENYU");
         when(selectorData.getId()).thenReturn("SHENYU");

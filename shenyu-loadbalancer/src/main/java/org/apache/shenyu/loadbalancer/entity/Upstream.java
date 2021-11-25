@@ -40,7 +40,7 @@ public final class Upstream {
     private int weight;
 
     /**
-     * false close/ true open.
+     * false close, true open.
      */
     private boolean status;
 

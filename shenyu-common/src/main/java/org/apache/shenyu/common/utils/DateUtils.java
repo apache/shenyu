@@ -33,11 +33,11 @@ public class DateUtils {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME);
 
     /**
-     * parseLocalDateTime.
-     * out put format:yyyy-MM-dd HH:mm:ss
+     * parse LocalDateTime.
+     * out put format: yyyy-MM-dd HH:mm:ss
      *
      * @param dataTime date String
-     * @return yyyy -MM-dd HH:mm:ss
+     * @return LocalDateTime: yyyy-MM-dd HH:mm:ss
      * @see LocalDateTime
      */
     public static LocalDateTime parseLocalDateTime(final String dataTime) {
@@ -60,7 +60,8 @@ public class DateUtils {
      *
      * @param start this is start date.
      * @param end   this is start date.
-     * @return The number of days between start and end, if end is after start, returns a positive number, otherwise returns a negative number
+     * @return The number of days between start and end, if end is after start,
+     *         returns a positive number, otherwise returns a negative number.
      */
     public static long acquireMinutesBetween(final LocalDateTime start, final LocalDateTime end) {
         return start.until(end, ChronoUnit.MINUTES);

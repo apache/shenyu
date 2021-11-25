@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
@@ -79,7 +80,7 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
 
     @Override
     public Integer enabled(final List<String> ids, final Boolean enabled) {
-        if (ids == null || ids.isEmpty()) {
+        if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
         return shenyuDictMapper.enabled(ids, enabled);

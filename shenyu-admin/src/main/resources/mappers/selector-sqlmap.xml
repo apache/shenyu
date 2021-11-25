@@ -70,7 +70,8 @@
                 plugin_id = #{pluginId,jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                and name like #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 and id in
@@ -86,9 +87,17 @@
         <include refid="Base_Column_List"/>
         from selector
         where plugin_id = #{pluginId,jdbcType=VARCHAR}
-
     </select>
 
+    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where plugin_id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
             resultType="java.lang.Integer">
@@ -266,9 +275,16 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByIds" parameterType="java.util.List">
+        delete from selector
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <delete id="deleteByPluginId" parameterType="java.lang.String">
         delete from selector
         where plugin_id = #{pluginId,jdbcType=VARCHAR}
-
     </delete>
 </mapper>

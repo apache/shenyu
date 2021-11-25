@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -62,7 +63,7 @@ public final class ExtensionLoader<T> {
      */
     private ExtensionLoader(final Class<T> clazz) {
         this.clazz = clazz;
-        if (clazz != ExtensionFactory.class) {
+        if (!Objects.equals(clazz, ExtensionFactory.class)) {
             ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getExtensionClasses();
         }
     }
@@ -75,9 +76,9 @@ public final class ExtensionLoader<T> {
      * @return the extension loader.
      */
     public static <T> ExtensionLoader<T> getExtensionLoader(final Class<T> clazz) {
-        if (clazz == null) {
-            throw new NullPointerException("extension clazz is null");
-        }
+
+        Objects.requireNonNull(clazz, "extension clazz is null");
+
         if (!clazz.isInterface()) {
             throw new IllegalArgumentException("extension clazz (" + clazz + ") is not interface!");
         }
@@ -85,7 +86,7 @@ public final class ExtensionLoader<T> {
             throw new IllegalArgumentException("extension clazz (" + clazz + ") without @" + SPI.class + " Annotation");
         }
         ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) LOADERS.get(clazz);
-        if (extensionLoader != null) {
+        if (Objects.nonNull(extensionLoader)) {
             return extensionLoader;
         }
         LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz));
@@ -116,15 +117,15 @@ public final class ExtensionLoader<T> {
             throw new NullPointerException("get join name is null");
         }
         Holder<Object> objectHolder = cachedInstances.get(name);
-        if (objectHolder == null) {
+        if (Objects.isNull(objectHolder)) {
             cachedInstances.putIfAbsent(name, new Holder<>());
             objectHolder = cachedInstances.get(name);
         }
         Object value = objectHolder.getValue();
-        if (value == null) {
+        if (Objects.isNull(value)) {
             synchronized (cachedInstances) {
                 value = objectHolder.getValue();
-                if (value == null) {
+                if (Objects.isNull(value)) {
                     value = createExtension(name);
                     objectHolder.setValue(value);
                 }
@@ -136,11 +137,11 @@ public final class ExtensionLoader<T> {
     @SuppressWarnings("unchecked")
     private T createExtension(final String name) {
         Class<?> aClass = getExtensionClasses().get(name);
-        if (aClass == null) {
+        if (Objects.isNull(aClass)) {
             throw new IllegalArgumentException("name is error");
         }
         Object o = joinInstances.get(aClass);
-        if (o == null) {
+        if (Objects.isNull(o)) {
             try {
                 joinInstances.putIfAbsent(aClass, aClass.newInstance());
                 o = joinInstances.get(aClass);
@@ -160,10 +161,10 @@ public final class ExtensionLoader<T> {
      */
     public Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.getValue();
-        if (classes == null) {
+        if (Objects.isNull(classes)) {
             synchronized (cachedClasses) {
                 classes = cachedClasses.getValue();
-                if (classes == null) {
+                if (Objects.isNull(classes)) {
                     classes = loadExtensionClass();
                     cachedClasses.setValue(classes);
                 }
@@ -174,7 +175,7 @@ public final class ExtensionLoader<T> {
 
     private Map<String, Class<?>> loadExtensionClass() {
         SPI annotation = clazz.getAnnotation(SPI.class);
-        if (annotation != null) {
+        if (Objects.nonNull(annotation)) {
             String value = annotation.value();
             if (StringUtils.isNotBlank(value)) {
                 cachedDefaultName = value;
@@ -192,9 +193,9 @@ public final class ExtensionLoader<T> {
         String fileName = SHENYU_DIRECTORY + clazz.getName();
         try {
             ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
-            Enumeration<URL> urls = classLoader != null ? classLoader.getResources(fileName)
+            Enumeration<URL> urls = Objects.nonNull(classLoader) ? classLoader.getResources(fileName)
                     : ClassLoader.getSystemResources(fileName);
-            if (urls != null) {
+            if (Objects.nonNull(urls)) {
                 while (urls.hasMoreElements()) {
                     URL url = urls.nextElement();
                     loadResources(classes, url);
@@ -232,13 +233,13 @@ public final class ExtensionLoader<T> {
             throw new IllegalStateException("load extension resources error," + subClass + " subtype is not of " + clazz);
         }
         Join annotation = subClass.getAnnotation(Join.class);
-        if (annotation == null) {
+        if (Objects.isNull(annotation)) {
             throw new IllegalStateException("load extension resources error," + subClass + " with Join annotation");
         }
         Class<?> oldClass = classes.get(name);
-        if (oldClass == null) {
+        if (Objects.isNull(oldClass)) {
             classes.put(name, subClass);
-        } else if (oldClass != subClass) {
+        } else if (!Objects.equals(oldClass, subClass)) {
             throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + " name " + name + " on " + oldClass.getName() + " or " + subClass.getName());
         }
     }

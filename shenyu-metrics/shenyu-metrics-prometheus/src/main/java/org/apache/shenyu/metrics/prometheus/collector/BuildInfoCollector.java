@@ -19,6 +19,8 @@ package org.apache.shenyu.metrics.prometheus.collector;
 
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +40,8 @@ public class BuildInfoCollector extends Collector {
         Package pkg = this.getClass().getPackage();
         String version = pkg.getImplementationVersion();
         String name = pkg.getImplementationTitle();
-        artifactInfo.addMetric(Arrays.asList(version != null ? version : "unknown", name != null ? name : "unknown"), 1L);
+        artifactInfo.addMetric(Arrays.asList(StringUtils.isNotEmpty(version) ? version : "unknown",
+                StringUtils.isNotEmpty(name) ? name : "unknown"), 1L);
         mfs.add(artifactInfo);
         return mfs;
     }

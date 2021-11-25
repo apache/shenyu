@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -43,10 +44,8 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
     }
 
     private boolean hasIdleNode() {
-        return this.list.stream().anyMatch(r -> {
-            final ConnectivityState state = r.getState().getState();
-            return state == ConnectivityState.IDLE || state == ConnectivityState.CONNECTING;
-        });
+        return this.list.stream().anyMatch(r -> r.getState().getState() == ConnectivityState.IDLE
+                || r.getState().getState() == ConnectivityState.CONNECTING);
     }
 
     @Override
@@ -55,8 +54,8 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
         if (CollectionUtils.isEmpty(list)) {
             return getErrorPickResult();
         }
-        SubChannelCopy channel = pick(getSubchannels());
-        return channel == null ? getErrorPickResult() : LoadBalancer.PickResult.withSubchannel(channel.getChannel());
+        SubChannelCopy channel = pick(list);
+        return Objects.isNull(channel) ? getErrorPickResult() : LoadBalancer.PickResult.withSubchannel(channel.getChannel());
     }
 
     /**
@@ -69,18 +68,16 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
 
     @Override
     public List<SubChannelCopy> getSubchannels() {
-        return list.stream().filter(r -> {
-            final ConnectivityState state = r.getState().getState();
-            final boolean status = Boolean.valueOf(r.getStatus());
-            return state == ConnectivityState.READY && status;
-        }).collect(Collectors.toList());
+        return list.stream().filter(r -> r.getState().getState() == ConnectivityState.READY
+                && Boolean.parseBoolean(r.getStatus())).collect(Collectors.toList());
     }
 
     private LoadBalancer.PickResult getErrorPickResult() {
         if (hasIdleNode) {
             return LoadBalancer.PickResult.withNoResult();
         } else {
-            return LoadBalancer.PickResult.withError(Status.UNAVAILABLE.withCause(new NoSuchElementException()).withDescription("can not find the subChannel")
+            return LoadBalancer.PickResult.withError(
+                    Status.UNAVAILABLE.withCause(new NoSuchElementException()).withDescription("can not find the subChannel")
             );
         }
     }
@@ -99,10 +96,10 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
     @Override
     public String getSubchannelsInfo() {
         final List<String> infos = this.list.stream().map(r -> "Subchannel"
-                + "{ weight=" + r.getWeight()
-                + ", readyState=\"" + r.getState().toString() + "\""
-                + ", address=\"" + r.getChannel().getAddresses() + "\""
-                + "}")
+                        + "{ weight=" + r.getWeight()
+                        + ", readyState=\"" + r.getState().toString() + "\""
+                        + ", address=\"" + r.getChannel().getAddresses() + "\""
+                        + "}")
                 .collect(Collectors.toList());
         return "[ " + String.join(",", infos) + " ]";
     }

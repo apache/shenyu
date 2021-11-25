@@ -40,22 +40,22 @@ import java.util.stream.Collectors;
  */
 @Service("springCloud")
 public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextPathRegisterService {
-    
+
     @Override
     public String rpcType() {
         return RpcTypeEnum.SPRING_CLOUD.getName();
     }
-    
+
     @Override
     protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
         return GsonUtils.getInstance().toJson(SpringCloudSelectorHandle.builder().serviceId(metaDataDTO.getAppName()).build());
     }
-    
+
     @Override
     protected String ruleHandler() {
         return new SpringCloudRuleHandle().toJson();
     }
-    
+
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
@@ -63,7 +63,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
         MetaDataDO metaDataDO = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
-    
+
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
@@ -73,31 +73,27 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
             return doHandler(springCloudSelectorHandle, addList, addList, selectorDO);
         }
         List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
-        existList = new CopyOnWriteArrayList<>(springCloudSelectorHandle.getDivideUpstreams());
-        for (DivideUpstream exist : existList) {
-            for (DivideUpstream add : addList) {
-                if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
-                    existList.add(add);
-                    canAddList.add(add);
-                }
-            }
+        List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(diffList)) {
+            canAddList.addAll(diffList);
+            existList.addAll(diffList);
         }
         return doHandler(springCloudSelectorHandle, existList, canAddList, selectorDO);
     }
-    
-    private String doHandler(final SpringCloudSelectorHandle springCloudSelectorHandle, 
-                              final List<DivideUpstream> existList,
-                              final List<DivideUpstream> canAddList,
-                              final SelectorDO selectorDO) {
+
+    private String doHandler(final SpringCloudSelectorHandle springCloudSelectorHandle,
+                             final List<DivideUpstream> existList,
+                             final List<DivideUpstream> canAddList,
+                             final SelectorDO selectorDO) {
         springCloudSelectorHandle.setDivideUpstreams(existList);
         doSubmit(selectorDO.getId(), canAddList);
         return GsonUtils.getInstance().toJson(springCloudSelectorHandle);
     }
-    
+
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
                 .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
-    
+
 }

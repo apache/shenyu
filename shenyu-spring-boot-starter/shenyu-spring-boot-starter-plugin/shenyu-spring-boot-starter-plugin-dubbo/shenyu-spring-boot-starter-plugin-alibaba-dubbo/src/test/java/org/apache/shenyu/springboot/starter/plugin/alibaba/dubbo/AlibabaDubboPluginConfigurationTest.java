@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.alibaba.dubbo;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin;
-import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
+import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaAbstractDubboPluginDataHandler;
 import org.apache.shenyu.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +50,7 @@ public final class AlibabaDubboPluginConfigurationTest {
     private AlibabaDubboPlugin alibabaDubboPlugin;
     
     @Autowired(required = false)
-    private AlibabaDubboPluginDataHandler alibabaDubboPluginDataHandler;
+    private AlibabaAbstractDubboPluginDataHandler alibabaDubboPluginDataHandler;
     
     @Autowired(required = false)
     private AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriber;

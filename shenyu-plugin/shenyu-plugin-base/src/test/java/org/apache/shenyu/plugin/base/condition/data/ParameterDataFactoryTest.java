@@ -41,11 +41,12 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link ParameterDataFactory}.
  */
-public class ParameterDataFactoryTest {
+public final class ParameterDataFactoryTest {
 
     @Test
     public void testNewInstance() {
 
+        @SuppressWarnings("rawtypes")
         Map<String, Class> parameterInstance = new HashMap<>();
         parameterInstance.put("header", HeaderParameterData.class);
         parameterInstance.put("cookie", CookieParameterData.class);
@@ -56,9 +57,7 @@ public class ParameterDataFactoryTest {
         parameterInstance.put("post", PostParameterData.class);
         parameterInstance.put("req_method", RequestMethodParameterData.class);
 
-        parameterInstance.forEach((key, clazz) -> {
-            Assert.assertEquals(ParameterDataFactory.newInstance(key).getClass(), clazz);
-        });
+        parameterInstance.forEach((key, clazz) -> Assert.assertEquals(ParameterDataFactory.newInstance(key).getClass(), clazz));
     }
 
     @Test

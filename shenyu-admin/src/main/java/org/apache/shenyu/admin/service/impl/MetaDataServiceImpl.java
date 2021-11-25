@@ -97,7 +97,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         DataEventTypeEnum eventType;
-        String pathDesc = metaDataDO.getPathDesc() == null ? "" : metaDataDO.getPathDesc();
+        String pathDesc = Objects.isNull(metaDataDO.getPathDesc()) ? "" : metaDataDO.getPathDesc();
         if (StringUtils.isEmpty(metaDataDTO.getId())) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -168,11 +168,10 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     @Pageable
     public CommonPager<MetaDataVO> listByPage(final MetaDataQuery metaDataQuery) {
-        return PageResultUtils.result(metaDataQuery.getPageParameter(),
-            () -> metaDataMapper.selectByQuery(metaDataQuery)
-                        .stream()
-                        .map(MetaDataTransfer.INSTANCE::mapToVO)
-                        .collect(Collectors.toList()));
+        return PageResultUtils.result(metaDataQuery.getPageParameter(), () -> metaDataMapper.selectByQuery(metaDataQuery)
+                .stream()
+                .map(MetaDataTransfer.INSTANCE::mapToVO)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -216,10 +215,12 @@ public class MetaDataServiceImpl implements MetaDataService {
             LOG.error("metaData create param is error, {}", metaDataDTO);
             return AdminConstants.PARAMS_ERROR;
         }
+
         final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());
-        if (exist != null && !exist.getId().equals(metaDataDTO.getId())) {
+        if (Objects.nonNull(exist) && !exist.getId().equals(metaDataDTO.getId())) {
             return AdminConstants.DATA_PATH_IS_EXIST;
         }
+
         return StringUtils.EMPTY;
     }
 

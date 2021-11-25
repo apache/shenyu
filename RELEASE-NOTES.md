@@ -7,7 +7,7 @@
 1. Support local modification data mode
 1. Add Websocket plugin
 1. Add CryptorRequest plugin
-1. Add CryptorResponsePlugin plugin
+1. Add CryptorResponse plugin
 1. Support Grayscale Release for SpringCloud
 1. Support Grayscale Release for Apache Dubbo
 1. Implement the async dubbo invoking for alibaba-dubbo

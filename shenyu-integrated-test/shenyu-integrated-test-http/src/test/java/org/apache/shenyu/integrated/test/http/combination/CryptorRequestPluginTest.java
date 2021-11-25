@@ -26,7 +26,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.plugin.cryptor.dto.CryptorRuleHandle;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.After;
@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -90,8 +91,8 @@ public class CryptorRequestPluginTest extends AbstractPluginDataInit {
         request.addProperty("userId", TEST_USER_ID);
         request.addProperty("userName", TEST_USER_NAME);
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-
-        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, actualUser.getUserId()), is(TEST_USER_ID));
+        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserId());
+        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_ID));
         assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
     }
 
@@ -112,14 +113,14 @@ public class CryptorRequestPluginTest extends AbstractPluginDataInit {
     private RuleLocalData buildRuleLocalData(final String fieldNames, final String way) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
 
-        CryptorRuleHandle cryptorRuleHandle = new CryptorRuleHandle();
-        cryptorRuleHandle.setDecryptKey(RSA_PRIVATE_KEY);
-        cryptorRuleHandle.setEncryptKey(RSA_PUBLIC_KEY);
-        cryptorRuleHandle.setStrategyName("rsa");
-        cryptorRuleHandle.setFieldNames(fieldNames);
-        cryptorRuleHandle.setWay(way);
+        CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
+        cryptorRuleHandler.setDecryptKey(RSA_PRIVATE_KEY);
+        cryptorRuleHandler.setEncryptKey(RSA_PUBLIC_KEY);
+        cryptorRuleHandler.setStrategyName("rsa");
+        cryptorRuleHandler.setFieldNames(fieldNames);
+        cryptorRuleHandler.setWay(way);
 
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(cryptorRuleHandle));
+        ruleLocalData.setRuleHandler(JsonUtils.toJson(cryptorRuleHandler));
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());

@@ -112,7 +112,7 @@ public final class PermissionServiceTest {
                 .id("1347053375029653504").build();
         when(mockDashboardUserMapper.selectByUserName("admin")).thenReturn(dashboardUserDO);
         when(mockUserRoleMapper.findByUserId("1")).thenReturn(Collections.singletonList(userRoleDO));
-        when(mockPermissionMapper.findByObjectId("1346358560427216896")).thenReturn(permissionDOS);
+        when(mockPermissionMapper.findByObjectIds(Collections.singletonList("1346358560427216896"))).thenReturn(permissionDOS);
         when(mockResourceMapper.selectById("1346775491550474240")).thenReturn(resourceDO1);
         when(mockResourceMapper.selectById("1346776175553376256")).thenReturn(resourceDO2);
         when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);

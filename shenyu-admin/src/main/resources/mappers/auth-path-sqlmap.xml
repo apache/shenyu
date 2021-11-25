@@ -108,4 +108,12 @@
         delete from auth_path
         where auth_id = #{authId,jdbcType=VARCHAR}
     </delete>
+
+    <delete id="deleteByAuthIds" parameterType="java.lang.String">
+        delete from auth_path
+        where auth_id in
+        <foreach item="authId" collection="list" open="(" separator="," close=")">
+            #{authId,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
 </mapper>

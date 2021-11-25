@@ -42,13 +42,11 @@ public final class HostAddressUtilsTest {
 
     private ServerWebExchange exchange;
 
-    private RemoteAddressResolver remoteAddressResolver;
-
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        this.remoteAddressResolver = new RemoteAddressResolver() {
+        RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))

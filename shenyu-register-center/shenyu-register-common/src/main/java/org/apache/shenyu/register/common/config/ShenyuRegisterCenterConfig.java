@@ -32,7 +32,9 @@ public final class ShenyuRegisterCenterConfig extends PropertiesConfig {
 
     }
 
-    public ShenyuRegisterCenterConfig(final String registerType, final String serverLists, final Properties props) {
+    public ShenyuRegisterCenterConfig(final String registerType,
+                                      final String serverLists,
+                                      final Properties props) {
         this.registerType = registerType;
         this.serverLists = serverLists;
         this.setProps(props);

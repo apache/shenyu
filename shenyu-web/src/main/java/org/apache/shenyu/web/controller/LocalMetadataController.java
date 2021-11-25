@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.web.controller;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

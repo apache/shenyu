@@ -92,4 +92,11 @@ public interface PluginHandleMapper {
      * @return affected rows
      */
     int delete(String id);
+
+    /**
+     * delete string id.
+     * @param pluginIds plugin ids
+     * @return affected rows
+     */
+    int deleteByPluginIds(List<String> pluginIds);
 }

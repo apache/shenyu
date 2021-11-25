@@ -38,16 +38,16 @@ public class ShenyuSpringCloudClientConfiguration {
     /**
      * Spring cloud client bean post processor spring cloud client bean post processor.
      *
-     * @param env the env
-     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @param clientConfig the client config
+     * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param env the env
      * @return the spring cloud client bean post processor
      */
     @Bean
-    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final Environment env,
+    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final ShenyuClientConfig clientConfig,
                                                                                  final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
-                                                                                 final ShenyuClientConfig clientConfig) {
-        return new SpringCloudClientBeanPostProcessor(env, shenyuClientRegisterRepository, clientConfig.getClient().get(RpcTypeEnum.SPRING_CLOUD.getName()));
+                                                                                 final Environment env) {
+        return new SpringCloudClientBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.SPRING_CLOUD.getName()), shenyuClientRegisterRepository, env);
     }
     
     /**

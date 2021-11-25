@@ -97,7 +97,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");
-        return new SpringCloudClientBeanPostProcessor(env, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), config);
+        return new SpringCloudClientBeanPostProcessor(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
 
     @RestController

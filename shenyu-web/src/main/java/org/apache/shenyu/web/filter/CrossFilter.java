@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.web.filter;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;

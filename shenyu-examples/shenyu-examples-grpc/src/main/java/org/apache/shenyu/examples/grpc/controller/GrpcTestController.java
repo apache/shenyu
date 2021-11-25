@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test/grpc")
 public class GrpcTestController {
 
-    private Channel channel = channel();
+    private final Channel channel = channel();
 
     @GetMapping("/hello")
     public String hello() {

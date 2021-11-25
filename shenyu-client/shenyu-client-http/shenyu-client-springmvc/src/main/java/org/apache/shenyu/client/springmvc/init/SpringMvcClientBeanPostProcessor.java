@@ -18,8 +18,11 @@
 package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -51,30 +54,30 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     private final String appName;
 
     private final Boolean isFull;
-    
+
     /**
      * Instantiates a new Spring mvc client bean post processor.
      *
-     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @param clientConfig the client config
+     * @param shenyuClientRegisterRepository the shenyu client register repository
      */
-    public SpringMvcClientBeanPostProcessor(final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
-                                            final PropertiesConfig clientConfig) {
+    public SpringMvcClientBeanPostProcessor(final PropertiesConfig clientConfig,
+                                            final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
-        int port = Integer.parseInt(props.getProperty("port"));
+        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
         if (port <= 0) {
             String errorMsg = "http register param must config the port must > 0";
             LOG.error(errorMsg);
-            throw new RuntimeException(errorMsg);
+            throw new ShenyuClientIllegalArgumentException(errorMsg);
         }
-        this.appName = props.getProperty("appName");
-        this.contextPath = props.getProperty("contextPath");
+        this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+        this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         if (StringUtils.isBlank(appName) && StringUtils.isBlank(contextPath)) {
             String errorMsg = "http register param must config the appName or contextPath";
             LOG.error(errorMsg);
-            throw new RuntimeException(errorMsg);
+            throw new ShenyuClientIllegalArgumentException(errorMsg);
         }
-        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
+        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -124,12 +127,10 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .appName(appName)
                 .path(path)
                 .pathDesc(desc)
-                .rpcType(shenyuSpringMvcClient.rpcType())
+                .rpcType(RpcTypeEnum.HTTP.getName())
                 .enabled(shenyuSpringMvcClient.enabled())
                 .ruleName(ruleName)
                 .registerMetaData(shenyuSpringMvcClient.registerMetaData())
                 .build();
     }
 }
-
-

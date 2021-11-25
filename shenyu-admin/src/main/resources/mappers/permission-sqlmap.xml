@@ -43,6 +43,16 @@
         from permission where object_id = #{objectId,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByObjectIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from permission
+        where object_id in
+        <foreach item="objectId" collection="list" open="(" separator="," close=")">
+            #{objectId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PermissionDO">
         insert into permission (id, date_created, date_updated,
         object_id, resource_id)

@@ -45,7 +45,7 @@ public class AbstractLoadBalancerTest {
         LoadBalancer.ResolvedAddresses resolvedAddresses = mock(LoadBalancer.ResolvedAddresses.class);
         when(resolvedAddresses.getAddresses()).thenReturn(Arrays.asList(group));
         Attributes attributes = mock(Attributes.class);
-        when(attributes.get(GrpcAttributeUtils.appName())).thenReturn("");
+        when(attributes.get(GrpcAttributeUtils.APP_NAME)).thenReturn("");
         when(resolvedAddresses.getAttributes()).thenReturn(attributes);
         loadBalancer.handleResolvedAddresses(resolvedAddresses);
 

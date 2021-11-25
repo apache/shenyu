@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -101,7 +102,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
+        if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
             String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
@@ -120,7 +121,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
+        if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
             String selectorParentPath = DefaultPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
@@ -136,25 +137,25 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
             insertZkNode(ruleRealPath, data);
         }
     }
-    
+
     private void insertZkNode(final String path, final Object data) {
         createZkNode(path);
         zkClient.writeData(path, null == data ? "" : GsonUtils.getInstance().toJson(data));
     }
-    
+
     private void createZkNode(final String path) {
         if (!zkClient.exists(path)) {
             zkClient.createPersistent(path, true);
         }
     }
-    
+
     private void deleteZkPath(final String path) {
         if (zkClient.exists(path)) {
             zkClient.delete(path);
         }
     }
-    
-    private void deleteZkPathRecursive(final String path) { 
+
+    private void deleteZkPathRecursive(final String path) {
         if (zkClient.exists(path)) {
             zkClient.deleteRecursive(path);
         }

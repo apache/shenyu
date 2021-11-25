@@ -23,7 +23,7 @@ UPDATE plugin SET role = 'FaultTolerance' WHERE name = 'sentinel';
 UPDATE plugin SET role = 'Proxy' WHERE name = 'sofa';
 UPDATE plugin SET role = 'FaultTolerance' WHERE name = 'resilience4j';
 UPDATE plugin SET role = 'Proxy' WHERE name = 'tars';
-UPDATE plugin SET role = 'HttpProcess' WHERE name = 'context_path';
+UPDATE plugin SET role = 'HttpProcess', name = 'contextPath' WHERE name = 'context_path';
 UPDATE plugin SET role = 'Proxy' WHERE name = 'grpc';
 UPDATE plugin SET role = 'HttpProcess' WHERE name = 'redirect';
 UPDATE plugin SET role = 'Proxy' WHERE name = 'motan';
@@ -32,13 +32,13 @@ UPDATE plugin SET role = 'Authentication' WHERE name = 'jwt';
 UPDATE plugin SET role = 'Authentication' WHERE name = 'waf';
 UPDATE plugin SET role = 'HttpProcess' WHERE name = 'request';
 UPDATE plugin SET role = 'Authentication' WHERE name = 'oauth2';
-UPDATE plugin SET role = 'HttpProcess' WHERE name = 'param_mapping';
+UPDATE plugin SET role = 'HttpProcess', name = 'paramMapping' WHERE name = 'param_mapping';
 UPDATE plugin SET role = 'HttpProcess' WHERE name = 'modifyResponse';
-UPDATE plugin SET role = 'Cryptor' WHERE name = 'cryptor_request';
-UPDATE plugin SET role = 'Cryptor' WHERE name = 'cryptor_response';
+UPDATE plugin SET role = 'Cryptor', name = 'cryptorRequest' WHERE name = 'cryptor_request';
+UPDATE plugin SET role = 'Cryptor', name = 'cryptorResponse' WHERE name = 'cryptor_response';
 UPDATE plugin SET role = 'HttpProcess' WHERE name = 'websocket';
 UPDATE plugin SET role = 'HttpProcess' WHERE name = 'rewrite';
-UPDATE plugin SET role = 'FaultTolerance' WHERE name = 'rate_limiter';
+UPDATE plugin SET role = 'FaultTolerance', name = 'rateLimiter' WHERE name = 'rate_limiter';
 UPDATE plugin SET role = 'Proxy' WHERE name = 'divide';
 UPDATE plugin SET role = 'Proxy' WHERE name = 'dubbo';
 UPDATE plugin SET role = 'Monitor' WHERE name = 'monitor';
@@ -60,3 +60,7 @@ UPDATE resource SET perms = REPLACE(perms, 'context_path', 'contextPath') WHERE 
 UPDATE resource SET perms = REPLACE(perms, 'cryptor_r', 'cryptorR') WHERE perms LIKE 'plugin:cryptor_r%';
 UPDATE resource SET perms = REPLACE(perms, 'modifyResponse', 'modifyResponse') WHERE perms LIKE 'plugin:modify_response%';
 UPDATE resource SET perms = REPLACE(perms, 'param_mapping', 'paramMapping') WHERE perms LIKE 'plugin:param_mapping%';
+
+-- add dubbo multiSelectorHandle
+INSERT IGNORE INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('123', '6', 'multiSelectorHandle', 'multiSelectorHandle', '3', '3', '0', NULL, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
+

@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.agent.spi;
 
+import org.apache.shenyu.spi.SPI;
+
 /**
  * PluginAdviceDef.
  */
+@SPI
 public interface PluginAdviceDef {
 
     /**

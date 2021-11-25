@@ -20,6 +20,8 @@ package org.apache.shenyu.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
@@ -61,17 +63,17 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
 
     private final String port;
 
-    public AlibabaDubboServiceBeanListener(final ShenyuClientRegisterRepository shenyuClientRegisterRepository, final PropertiesConfig config) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String appName = props.getProperty("appName");
+    public AlibabaDubboServiceBeanListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isBlank(contextPath)) {
-            throw new RuntimeException("alibaba dubbo client must config the contextPath");
+            throw new ShenyuClientIllegalArgumentException("alibaba dubbo client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;
-        this.host = props.getProperty("host");
-        this.port = props.getProperty("port");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
     }
     
@@ -149,6 +151,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
                 .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
+                .sent(Objects.isNull(serviceBean.getSent()) ? Constants.DEFAULT_SENT : serviceBean.getSent())
                 .url("")
                 .build();
         return GsonUtils.getInstance().toJson(builder);

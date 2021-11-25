@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 /**
  * Test cases for {@link HeaderParameterData}.
  */
-public class HeaderParameterDataTest {
+public final class HeaderParameterDataTest {
 
     private ServerWebExchange exchange;
 

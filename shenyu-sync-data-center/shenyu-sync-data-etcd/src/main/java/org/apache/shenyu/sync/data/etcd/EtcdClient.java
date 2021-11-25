@@ -21,10 +21,10 @@ import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.ByteSequence;
-import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,12 @@ public class EtcdClient {
         } catch (InterruptedException | ExecutionException e) {
             LOG.error(e.getMessage(), e);
         }
-        return keyValues.isEmpty() ? null : keyValues.iterator().next().getValue().toString(StandardCharsets.UTF_8);
+
+        if (CollectionUtils.isEmpty(keyValues)) {
+            return null;
+        }
+
+        return keyValues.iterator().next().getValue().toString(StandardCharsets.UTF_8);
     }
 
     /**
@@ -88,47 +93,26 @@ public class EtcdClient {
      */
     public List<String> getChildrenKeys(final String prefix, final String separator) throws ExecutionException, InterruptedException {
         ByteSequence prefixByteSequence = ByteSequence.from(prefix, StandardCharsets.UTF_8);
-        GetOption getOption = GetOption.newBuilder().withPrefix(prefixByteSequence).withSortField(GetOption.SortTarget.KEY).withSortOrder(GetOption.SortOrder.ASCEND).build();
-        List<KeyValue> keyValues = client.getKVClient().get(prefixByteSequence, getOption).get().getKvs();
-        return keyValues.stream().map(e -> getSubNodeKeyName(prefix, e.getKey().toString(StandardCharsets.UTF_8), separator)).distinct().collect(Collectors.toList());
+        GetOption getOption = GetOption.newBuilder()
+                .withPrefix(prefixByteSequence)
+                .withSortField(GetOption.SortTarget.KEY)
+                .withSortOrder(GetOption.SortOrder.ASCEND)
+                .build();
+
+        List<KeyValue> keyValues = client.getKVClient()
+                .get(prefixByteSequence, getOption)
+                .get()
+                .getKvs();
+
+        return keyValues.stream()
+                .map(e -> getSubNodeKeyName(prefix, e.getKey().toString(StandardCharsets.UTF_8), separator))
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     private String getSubNodeKeyName(final String prefix, final String fullPath, final String separator) {
         String pathWithoutPrefix = fullPath.substring(prefix.length());
         return pathWithoutPrefix.contains(separator) ? pathWithoutPrefix.substring(1) : pathWithoutPrefix;
-    }
-
-    /**
-     * update value of node.
-     *
-     * @param key   node name
-     * @param value node value
-     * @throws ExecutionException   the exception
-     * @throws InterruptedException the exception
-     */
-    public void put(final String key, final String value) throws ExecutionException, InterruptedException {
-        client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8)).get();
-    }
-
-    /**
-     * delete node.
-     *
-     * @param key node name
-     */
-    public void delete(final String key) {
-        client.getKVClient().delete(ByteSequence.from(key, StandardCharsets.UTF_8));
-    }
-
-    /**
-     * delete node of recursive.
-     *
-     * @param key parent node name
-     */
-    public void deleteRecursive(final String key) {
-        DeleteOption option = DeleteOption.newBuilder()
-                .withPrefix(ByteSequence.from(key, StandardCharsets.UTF_8))
-                .build();
-        client.getKVClient().delete(ByteSequence.from(key, StandardCharsets.UTF_8), option);
     }
 
     /**
@@ -138,7 +122,9 @@ public class EtcdClient {
      * @param updateHandler node value handler of update
      * @param deleteHandler node value handler of delete
      */
-    public void watchDataChange(final String key, final BiConsumer<String, String> updateHandler, final Consumer<String> deleteHandler) {
+    public void watchDataChange(final String key,
+                                final BiConsumer<String, String> updateHandler,
+                                final Consumer<String> deleteHandler) {
         Watch.Listener listener = watch(updateHandler, deleteHandler);
         Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, StandardCharsets.UTF_8), listener);
         watchCache.put(key, watch);
@@ -151,7 +137,9 @@ public class EtcdClient {
      * @param updateHandler sub node handler of update
      * @param deleteHandler sub node delete of delete
      */
-    public void watchChildChange(final String key, final BiConsumer<String, String> updateHandler, final Consumer<String> deleteHandler) {
+    public void watchChildChange(final String key,
+                                 final BiConsumer<String, String> updateHandler,
+                                 final Consumer<String> deleteHandler) {
         Watch.Listener listener = watch(updateHandler, deleteHandler);
         WatchOption option = WatchOption.newBuilder()
                 .withPrefix(ByteSequence.from(key, StandardCharsets.UTF_8))
@@ -160,7 +148,8 @@ public class EtcdClient {
         watchCache.put(key, watch);
     }
 
-    private Watch.Listener watch(final BiConsumer<String, String> updateHandler, final Consumer<String> deleteHandler) {
+    private Watch.Listener watch(final BiConsumer<String, String> updateHandler,
+                                 final Consumer<String> deleteHandler) {
         return Watch.listener(response -> {
             for (WatchEvent event : response.getEvents()) {
                 String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
@@ -180,6 +169,7 @@ public class EtcdClient {
 
     /**
      * cancel subscribe.
+     *
      * @param key node name
      */
     public void watchClose(final String key) {

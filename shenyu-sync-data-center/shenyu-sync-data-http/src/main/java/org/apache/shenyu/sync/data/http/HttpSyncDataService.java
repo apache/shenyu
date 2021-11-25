@@ -50,6 +50,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -59,7 +60,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * HTTP long polling implementation.
  */
-@SuppressWarnings("all")
 public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
     /**
@@ -72,27 +72,34 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     private static final Gson GSON = new Gson();
 
     /**
+     * shenyu admin path configs fetch.
+     */
+    private static final String SHENYU_ADMIN_PATH_CONFIGS_FETCH = "/configs/fetch";
+
+    /**
+     * shenyu admin path configs listener.
+     */
+    private static final String SHENYU_ADMIN_PATH_CONFIGS_LISTENER = "/configs/listener";
+
+    /**
      * default: 10s.
      */
-    private Duration connectionTimeout = Duration.ofSeconds(10);
+    private final Duration connectionTimeout = Duration.ofSeconds(10);
 
     /**
      * only use for http long polling.
      */
-    private RestTemplate httpClient;
+    private final RestTemplate httpClient;
 
     private ExecutorService executor;
 
-    private HttpConfig httpConfig;
+    private final List<String> serverList;
 
-    private List<String> serverList;
-
-    private DataRefreshFactory factory;
+    private final DataRefreshFactory factory;
 
     public HttpSyncDataService(final HttpConfig httpConfig, final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
-        this.httpConfig = httpConfig;
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.httpClient = createRestTemplate();
         this.start();
@@ -142,9 +149,9 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKeys").append("=").append(groupKey.name()).append("&");
         }
-        String url = server + "/configs/fetch?" + StringUtils.removeEnd(params.toString(), "&");
+        String url = server + SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
-        String json = null;
+        String json;
         try {
             json = this.httpClient.getForObject(url, String.class);
         } catch (RestClientException e) {
@@ -176,7 +183,6 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         return factory.executor(data);
     }
 
-    @SuppressWarnings("unchecked")
     private void doLongPolling(final String server) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
@@ -188,10 +194,11 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        HttpEntity httpEntity = new HttpEntity(params, headers);
-        String listenerUrl = server + "/configs/listener";
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
+        String listenerUrl = server + SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
         LOG.debug("request listener configs: [{}]", listenerUrl);
-        JsonArray groupJson = null;
+
+        JsonArray groupJson;
         try {
             String json = this.httpClient.postForEntity(listenerUrl, httpEntity, String.class).getBody();
             LOG.debug("listener result: [{}]", json);
@@ -200,7 +207,8 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
         }
-        if (groupJson != null) {
+
+        if (Objects.nonNull(groupJson)) {
             // fetch group configuration async.
             ConfigGroupEnum[] changedGroups = GSON.fromJson(groupJson, ConfigGroupEnum[].class);
             if (ArrayUtils.isNotEmpty(changedGroups)) {
@@ -211,9 +219,9 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         RUNNING.set(false);
-        if (executor != null) {
+        if (Objects.nonNull(executor)) {
             executor.shutdownNow();
             // help gc
             executor = null;
@@ -222,9 +230,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
     class HttpLongPollingTask implements Runnable {
 
-        private String server;
-
-        private final int retryTimes = 3;
+        private final String server;
 
         HttpLongPollingTask(final String server) {
             this.server = server;
@@ -233,6 +239,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         @Override
         public void run() {
             while (RUNNING.get()) {
+                int retryTimes = 3;
                 for (int time = 1; time <= retryTimes; time++) {
                     try {
                         doLongPolling(server);

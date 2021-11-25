@@ -76,6 +76,19 @@
         </if>
     </select>
 
+    <select id="selectByTitles" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where status = 1
+        <if test="list != null">
+            and title in
+            <foreach item="title" collection="list" open="(" separator="," close=")">
+                #{title,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+    </select>
+
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
             resultType="java.lang.Integer">
         select count(1)

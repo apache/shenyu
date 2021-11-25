@@ -76,7 +76,7 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
     }
 
     private void setAttribute(final Attributes attributes) {
-        this.serviceName.compareAndSet(null, attributes.get(GrpcAttributeUtils.appName()).toString());
+        this.serviceName.compareAndSet(null, attributes.get(GrpcAttributeUtils.APP_NAME));
     }
 
     @Override

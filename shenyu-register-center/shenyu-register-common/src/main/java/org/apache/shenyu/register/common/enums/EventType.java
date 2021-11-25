@@ -27,14 +27,17 @@ public enum EventType {
      * Register event type.
      */
     REGISTER,
+
     /**
      * Updated event type.
      */
     UPDATED,
+
     /**
      * Deleted event type.
      */
     DELETED,
+
     /**
      * Ignored event type.
      */

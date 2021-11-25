@@ -38,6 +38,14 @@ public interface PluginMapper {
     PluginDO selectById(String id);
 
     /**
+     * select plugin by id.
+     *
+     * @param ids primary keys.
+     * @return {@linkplain PluginDO}
+     */
+    List<PluginDO> selectByIds(List<String> ids);
+
+    /**
      * Select by name plugin do.
      *
      * @param name the name
@@ -123,4 +131,12 @@ public interface PluginMapper {
      * @return rows int
      */
     int delete(String id);
+
+    /**
+     * delete plugin.
+     *
+     * @param ids primary keys.
+     * @return rows int
+     */
+    int deleteByIds(List<String> ids);
 }

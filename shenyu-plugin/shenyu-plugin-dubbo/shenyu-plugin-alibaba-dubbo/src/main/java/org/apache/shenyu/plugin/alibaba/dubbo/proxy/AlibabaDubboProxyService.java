@@ -29,7 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
-import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,10 +63,10 @@ public class AlibabaDubboProxyService {
      * @throws ShenyuException the shenyu exception
      */
     public ResponseFuture genericInvoker(final String body, final MetaData metaData) throws ShenyuException {
-        ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
+        ReferenceConfig<GenericService> reference = AlibabaDubboConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
-            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
-            reference = ApplicationConfigCache.getInstance().initRef(metaData);
+            AlibabaDubboConfigCache.getInstance().invalidate(metaData.getPath());
+            reference = AlibabaDubboConfigCache.getInstance().initRef(metaData);
         }
         try {
             GenericService genericService = reference.get();

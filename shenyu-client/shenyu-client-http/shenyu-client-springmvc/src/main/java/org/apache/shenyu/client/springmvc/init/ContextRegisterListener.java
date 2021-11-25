@@ -18,6 +18,8 @@
 package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -40,20 +42,20 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
     private String contextPath;
 
-    private String appName;
+    private final String appName;
 
-    private String host;
+    private final String host;
 
-    private Integer port;
+    private final Integer port;
 
     private final Boolean isFull;
-    
+
     /**
      * Instantiates a new Context register listener.
      *
@@ -61,20 +63,20 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      */
     public ContextRegisterListener(final PropertiesConfig clientConfig) {
         Properties props = clientConfig.getProps();
-        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        String contextPath = props.getProperty("contextPath");
+        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.contextPath = contextPath;
         if (isFull) {
             if (StringUtils.isBlank(contextPath)) {
                 String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
-                throw new RuntimeException(errorMsg);
+                throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
             this.contextPath = contextPath + "/**";
         }
-        int port = Integer.parseInt(props.getProperty("port"));
-        this.appName = props.getProperty("appName");
-        this.host = props.getProperty("host");
+        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
+        this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = port;
     }
 
@@ -88,7 +90,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         }
         publisher.publishEvent(buildURIRegisterDTO());
     }
-    
+
     private URIRegisterDTO buildURIRegisterDTO() {
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return URIRegisterDTO.builder()
@@ -98,7 +100,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .port(port)
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .build();
-                
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {

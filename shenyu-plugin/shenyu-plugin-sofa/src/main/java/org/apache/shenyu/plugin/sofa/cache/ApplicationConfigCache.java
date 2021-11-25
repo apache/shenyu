@@ -26,6 +26,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
@@ -50,10 +51,8 @@ public final class ApplicationConfigCache {
 
     private RegistryConfig registryConfig;
 
-    private final int maxCount = 1000;
-
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
                 ConsumerConfig<GenericService> config = (ConsumerConfig<GenericService>) notification.getValue();
                 if (config != null) {
