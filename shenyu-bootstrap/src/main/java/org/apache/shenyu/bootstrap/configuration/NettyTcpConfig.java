@@ -26,25 +26,25 @@ public class NettyTcpConfig {
 
     private int workerCount;
 
-    private Integer connectTimeoutMillis;
+    private int connectTimeoutMillis;
 
-    private Integer writeBufferHighWaterMark;
+    private int writeBufferHighWaterMark;
 
-    private Integer writeBufferLowWaterMark;
+    private int writeBufferLowWaterMark;
 
-    private Integer writeSpinCount;
+    private int writeSpinCount;
 
-    private Boolean autoRead;
+    private boolean autoRead;
 
-    private Boolean tcpNodelay;
+    private boolean tcpNodelay;
 
-    private Boolean soKeepalive;
+    private boolean soKeepalive;
 
-    private Boolean soReuseaddr;
+    private boolean soReuseaddr;
 
-    private Integer soLinger;
+    private int soLinger;
 
-    private Integer soBacklog;
+    private int soBacklog;
 
     /**
      * get select count.
@@ -141,7 +141,7 @@ public class NettyTcpConfig {
      *
      * @return writeSpinCount
      */
-    public Integer getWriteSpinCount() {
+    public int getWriteSpinCount() {
         return writeSpinCount;
     }
 
@@ -150,7 +150,115 @@ public class NettyTcpConfig {
      *
      * @return autoRead
      */
-    public Boolean isAutoRead() {
+    public boolean isAutoRead() {
         return autoRead;
+    }
+
+    /**
+     * set selectCount.
+     *
+     * @param selectCount select count
+     */
+    public void setSelectCount(final int selectCount) {
+        this.selectCount = selectCount;
+    }
+
+    /**
+     * set workerCount.
+     *
+     * @param workerCount worker count
+     */
+    public void setWorkerCount(final int workerCount) {
+        this.workerCount = workerCount;
+    }
+
+    /**
+     * set connectTimeoutMillis.
+     *
+     * @param connectTimeoutMillis connect timeout millis
+     */
+    public void setConnectTimeoutMillis(final int connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis;
+    }
+
+    /**
+     * set writeBufferHighWaterMark.
+     *
+     * @param writeBufferHighWaterMark write buffer high water mark
+     */
+    public void setWriteBufferHighWaterMark(final int writeBufferHighWaterMark) {
+        this.writeBufferHighWaterMark = writeBufferHighWaterMark;
+    }
+
+    /**
+     * set writeBufferLowWaterMark.
+     *
+     * @param writeBufferLowWaterMark write buffer low water mark
+     */
+    public void setWriteBufferLowWaterMark(final int writeBufferLowWaterMark) {
+        this.writeBufferLowWaterMark = writeBufferLowWaterMark;
+    }
+
+    /**
+     * set writeSpinCount.
+     *
+     * @param writeSpinCount write spin count
+     */
+    public void setWriteSpinCount(final int writeSpinCount) {
+        this.writeSpinCount = writeSpinCount;
+    }
+
+    /**
+     * set autoRead.
+     *
+     * @param autoRead auto read
+     */
+    public void setAutoRead(final boolean autoRead) {
+        this.autoRead = autoRead;
+    }
+
+    /**
+     * set tcpNodelay.
+     *
+     * @param tcpNodelay tcp no delay
+     */
+    public void setTcpNodelay(final boolean tcpNodelay) {
+        this.tcpNodelay = tcpNodelay;
+    }
+
+    /**
+     * set soKeepalive.
+     *
+     * @param soKeepalive tcp keepalive
+     */
+    public void setSoKeepalive(final boolean soKeepalive) {
+        this.soKeepalive = soKeepalive;
+    }
+
+    /**
+     * ser setSoReuseaddr.
+     *
+     * @param soReuseaddr reuse addr
+     */
+    public void setSoReuseaddr(final boolean soReuseaddr) {
+        this.soReuseaddr = soReuseaddr;
+    }
+
+    /**
+     * set soLinger.
+     *
+     * @param soLinger linger
+     */
+    public void setSoLinger(final int soLinger) {
+        this.soLinger = soLinger;
+    }
+
+    /**
+     * set soBacklog.
+     *
+     * @param soBacklog tcp backlog
+     */
+    public void setSoBacklog(final int soBacklog) {
+        this.soBacklog = soBacklog;
     }
 }
