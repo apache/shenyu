@@ -17,42 +17,34 @@
 
 package org.apache.shenyu.integrated.test.grpc.configuration;
 
-import org.springframework.beans.factory.annotation.Value;
-
 /**
  * The netty tcp config.
  */
 public class NettyTcpConfig {
 
-    @Value("${netty.tcp.select.count:1}")
     private int selectCount;
 
-    @Value("${netty.tcp.worker.count:4}")
     private int workerCount;
 
-    @Value("${netty.tcp.connect_timeout_millis:10000}")
     private int connectTimeoutMillis;
 
-    @Value("${netty.tcp.write_buffer_high_water_mark:65536}")
     private int writeBufferHighWaterMark;
 
-    @Value("${netty.tcp.write_buffer_low_water_mark:32768}")
     private int writeBufferLowWaterMark;
 
-    @Value("${netty.tcp.so_keepalive:false}")
+    private int writeSpinCount;
+
+    private boolean autoRead;
+
+    private boolean tcpNodelay;
+
     private boolean soKeepalive;
 
-    @Value("${netty.tcp.so_reuseaddr:false}")
     private boolean soReuseaddr;
 
-    @Value("${netty.tcp.so_linger:-1}")
     private int soLinger;
 
-    @Value("${netty.tcp.so_backlog:128}")
     private int soBacklog;
-
-    @Value("${netty.tcp.tcp_nodelay:true}")
-    private boolean tcpNodelay;
 
     /**
      * get select count.
@@ -142,5 +134,131 @@ public class NettyTcpConfig {
      */
     public boolean isTcpNodelay() {
         return tcpNodelay;
+    }
+
+    /**
+     * get writeSpinCount.
+     *
+     * @return writeSpinCount
+     */
+    public int getWriteSpinCount() {
+        return writeSpinCount;
+    }
+
+    /**
+     * get autoRead.
+     *
+     * @return autoRead
+     */
+    public boolean isAutoRead() {
+        return autoRead;
+    }
+
+    /**
+     * set selectCount.
+     *
+     * @param selectCount select count
+     */
+    public void setSelectCount(final int selectCount) {
+        this.selectCount = selectCount;
+    }
+
+    /**
+     * set workerCount.
+     *
+     * @param workerCount worker count
+     */
+    public void setWorkerCount(final int workerCount) {
+        this.workerCount = workerCount;
+    }
+
+    /**
+     * set connectTimeoutMillis.
+     *
+     * @param connectTimeoutMillis connect timeout millis
+     */
+    public void setConnectTimeoutMillis(final int connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis;
+    }
+
+    /**
+     * set writeBufferHighWaterMark.
+     *
+     * @param writeBufferHighWaterMark write buffer high water mark
+     */
+    public void setWriteBufferHighWaterMark(final int writeBufferHighWaterMark) {
+        this.writeBufferHighWaterMark = writeBufferHighWaterMark;
+    }
+
+    /**
+     * set writeBufferLowWaterMark.
+     *
+     * @param writeBufferLowWaterMark write buffer low water mark
+     */
+    public void setWriteBufferLowWaterMark(final int writeBufferLowWaterMark) {
+        this.writeBufferLowWaterMark = writeBufferLowWaterMark;
+    }
+
+    /**
+     * set writeSpinCount.
+     *
+     * @param writeSpinCount write spin count
+     */
+    public void setWriteSpinCount(final int writeSpinCount) {
+        this.writeSpinCount = writeSpinCount;
+    }
+
+    /**
+     * set autoRead.
+     *
+     * @param autoRead auto read
+     */
+    public void setAutoRead(final boolean autoRead) {
+        this.autoRead = autoRead;
+    }
+
+    /**
+     * set tcpNodelay.
+     *
+     * @param tcpNodelay tcp no delay
+     */
+    public void setTcpNodelay(final boolean tcpNodelay) {
+        this.tcpNodelay = tcpNodelay;
+    }
+
+    /**
+     * set soKeepalive.
+     *
+     * @param soKeepalive tcp keepalive
+     */
+    public void setSoKeepalive(final boolean soKeepalive) {
+        this.soKeepalive = soKeepalive;
+    }
+
+    /**
+     * ser setSoReuseaddr.
+     *
+     * @param soReuseaddr reuse addr
+     */
+    public void setSoReuseaddr(final boolean soReuseaddr) {
+        this.soReuseaddr = soReuseaddr;
+    }
+
+    /**
+     * set soLinger.
+     *
+     * @param soLinger linger
+     */
+    public void setSoLinger(final int soLinger) {
+        this.soLinger = soLinger;
+    }
+
+    /**
+     * set soBacklog.
+     *
+     * @param soBacklog tcp backlog
+     */
+    public void setSoBacklog(final int soBacklog) {
+        this.soBacklog = soBacklog;
     }
 }
