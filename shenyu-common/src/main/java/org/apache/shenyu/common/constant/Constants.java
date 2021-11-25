@@ -58,11 +58,6 @@ public interface Constants {
     String DUBBO_RPC_RESULT_EMPTY = "dubbo has not return value!";
     
     /**
-     * The constant DUBBO_TAG_ROUTE.
-     */
-    String DUBBO_TAG_ROUTE = "Dubbo_Tag_Route";
-    
-    /**
      * The constant SOFA_RPC_RESULT_EMPTY.
      */
     String SOFA_RPC_RESULT_EMPTY = "sofa has not return value!";
