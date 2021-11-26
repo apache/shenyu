@@ -19,6 +19,7 @@ package org.apache.shenyu.integrated.test.grpc.configuration;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
@@ -27,24 +28,13 @@ import org.springframework.context.annotation.Configuration;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.resources.LoopResources;
 
+import java.util.Optional;
+
 /**
  * The type shenyu netty web server factory.
  */
 @Configuration
 public class ShenyuNettyWebServerFactory {
-
-    /**
-     * Netty reactive web server factory netty reactive web server factory.
-     *
-     * @return the netty reactive web server factory
-     */
-    @Bean
-    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory() {
-        NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
-        NettyTcpConfig nettyTcpConfig = nettyTcpConfig();
-        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfig));
-        return webServerFactory;
-    }
 
     /**
      * Netty tcp config.
@@ -57,10 +47,29 @@ public class ShenyuNettyWebServerFactory {
         return new NettyTcpConfig();
     }
 
+    /**
+     * Netty reactive web server factory netty reactive web server factory.
+     *
+     * @param config the config
+     * @return the netty reactive web server factory
+     */
+    @Bean
+    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpConfig> config) {
+        NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
+        NettyTcpConfig nettyTcpConfig = Optional.ofNullable(config.getIfAvailable()).orElse(new NettyTcpConfig());
+        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfig));
+        return webServerFactory;
+    }
+
     private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
 
         private final NettyTcpConfig nettyTcpConfig;
 
+        /**
+         * Instantiates a new Event loop netty customizer.
+         *
+         * @param nettyTcpConfig the netty tcp config
+         */
         EventLoopNettyCustomizer(final NettyTcpConfig nettyTcpConfig) {
             this.nettyTcpConfig = nettyTcpConfig;
         }
