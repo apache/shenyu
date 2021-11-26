@@ -49,9 +49,9 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
-        String uriNodeName = buildInstanceNodeName(instance);
+        String instanceNodeName = buildInstanceNodeName(instance);
         String instancePath = RegisterPathConstants.buildInstanceParentPath();
-        String realNode = RegisterPathConstants.buildRealNode(instancePath, uriNodeName);
+        String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
         LOGGER.info("etcd client register success: {}", nodeData);
