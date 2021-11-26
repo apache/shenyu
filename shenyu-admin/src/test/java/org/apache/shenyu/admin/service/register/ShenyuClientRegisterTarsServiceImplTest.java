@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+    
 package org.apache.shenyu.admin.service.register;
-
+    
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -45,35 +45,35 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+    
 /**
  * Test cases for {@link ShenyuClientRegisterTarsServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class ShenyuClientRegisterTarsServiceImplTest {
-
+    
     @InjectMocks
     private ShenyuClientRegisterTarsServiceImpl shenyuClientRegisterTarsService;
 
     @Mock
     private MetaDataServiceImpl metaDataService;
-
+    
     @Test
     public void testRpcType() {
         Assert.assertEquals(RpcTypeEnum.TARS.getName(), shenyuClientRegisterTarsService.rpcType());
     }
-
+    
     @Test
     public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
         Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterTarsService.selectorHandler(metaDataRegisterDTO));
     }
-
+    
     @Test
     public void testRuleHandler() {
         Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterTarsService.ruleHandler());
     }
-
+    
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
@@ -86,14 +86,14 @@ public class ShenyuClientRegisterTarsServiceImplTest {
         verify(metaDataService).findByServiceNameAndMethodName(serviceName, methodName);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
-
+    
     @Test
     public void testBuildHandle() {
         shenyuClientRegisterTarsService = spy(shenyuClientRegisterTarsService);
-
-        String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:true,timestamp:1637826588267},"
+    
+        final String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:true,timestamp:1637826588267},"
                 + "{upstreamUrl:'localhost:8091',weight:2,warmup:10,status:true,timestamp:1637826588267}]";
-        String expected = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267}," 
+        final String expected = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
                 + "{\"weight\":2,\"warmup\":10,\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267}]";
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8090).build());
@@ -104,7 +104,7 @@ public class ShenyuClientRegisterTarsServiceImplTest {
         assertEquals(actual, expected);
         List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 2);
-
+    
         list.clear();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8092).build());
         selectorDO = mock(SelectorDO.class);
@@ -113,7 +113,7 @@ public class ShenyuClientRegisterTarsServiceImplTest {
         actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 3);
-
+    
         list.clear();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8090).build());
         doNothing().when(shenyuClientRegisterTarsService).doSubmit(any(), any());
@@ -122,7 +122,7 @@ public class ShenyuClientRegisterTarsServiceImplTest {
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 1);
     }
-
+    
     @Test
     public void testBuildTarsUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();
@@ -137,5 +137,4 @@ public class ShenyuClientRegisterTarsServiceImplTest {
             throw new ShenyuException(e.getCause());
         }
     }
-
 }
