@@ -93,9 +93,8 @@ public class ShenyuClientRegisterTarsServiceImplTest {
 
         String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:true,timestamp:1637826588267},"
                 + "{upstreamUrl:'localhost:8091',weight:2,warmup:10,status:true,timestamp:1637826588267}]";
-        String expected = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
+        String expected = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267}," 
                 + "{\"weight\":2,\"warmup\":10,\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267}]";
-
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8090).build());
         SelectorDO selectorDO = mock(SelectorDO.class);
