@@ -17,17 +17,18 @@
 
 package org.apache.shenyu.springboot.starter.plugin.httpclient;
 
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
-import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties.Pool.PoolType;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
+
 import java.time.Duration;
 
 import static org.hamcrest.Matchers.is;
@@ -37,14 +38,24 @@ import static org.junit.Assert.assertThat;
 /**
  * Test case for {@link HttpClientPluginConfiguration}.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-        classes = {
-                HttpClientPluginConfiguration.class,
-                HttpClientPluginConfigurationTest.class
-        },
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
+@Configuration
+@EnableConfigurationProperties
+public class HttpClientPluginConfigurationTest {
+
+    private ApplicationContextRunner applicationContextRunner;
+
+    @Before
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(HttpClientPluginConfiguration.class))
+            .withBean(HttpClientPluginConfigurationTest.class);
+    }
+
+    @Test
+    public void testHttpClientProperties() {
+        applicationContextRunner
+            .withPropertyValues(
+                "debug=true",
                 "shenyu.httpclient.connectTimeout=3",
                 "shenyu.httpclient.responseTimeout=0",
                 "shenyu.httpclient.pool.PoolType=0",
@@ -61,38 +72,62 @@ import static org.junit.Assert.assertThat;
                 "shenyu.httpclient.ssl.closeNotifyFlushTimeout=3000",
                 "shenyu.httpclient.ssl.closeNotifyReadTimeout=0",
                 "shenyu.httpclient.ssl.SslProvider.DefaultConfigurationType=1"
-        })
-@EnableAutoConfiguration
-public final class HttpClientPluginConfigurationTest {
-    
-    @Autowired
-    private HttpClient httpClient;
-    
-    @Autowired
-    private HttpClientProperties httpClientProperties;
-    
-    @Test
-    public void testHttpClientProperties() {
-        assertThat(httpClientProperties.getConnectTimeout(), is(3));
-        assertThat(httpClientProperties.getResponseTimeout(), is(Duration.ZERO));
-        assertThat(httpClientProperties.getPool().getType(), is(PoolType.ELASTIC));
-        assertThat(httpClientProperties.getPool().getName(), is("proxy"));
-        assertThat(httpClientProperties.getPool().getMaxConnections(), is(1));
-        assertThat(httpClientProperties.getPool().getAcquireTimeout(), is(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT));
-        assertThat(httpClientProperties.getProxy().getHost(), is("http://localhost"));
-        assertThat(httpClientProperties.getProxy().getPort(), is(18848));
-        assertThat(httpClientProperties.getProxy().getUsername(), is("itmiwang"));
-        assertThat(httpClientProperties.getProxy().getPassword(), is("itmiwang"));
-        assertThat(httpClientProperties.getProxy().getNonProxyHostsPattern(), is("itmiwang"));
-        assertThat(httpClientProperties.getSsl().getHandshakeTimeout(), is(Duration.ofMillis(10000)));
-        assertNotNull(httpClientProperties.getSsl().getTrustedX509Certificates());
-        assertThat(httpClientProperties.getSsl().getCloseNotifyFlushTimeout(), is(Duration.ofMillis(3000)));
-        assertThat(httpClientProperties.getSsl().getCloseNotifyReadTimeout(), is(Duration.ZERO));
-        assertThat(httpClientProperties.getSsl().getDefaultConfigurationType(), is(SslProvider.DefaultConfigurationType.TCP));
+            )
+            .run(context -> {
+                HttpClientProperties properties = context.getBean("httpClientProperties", HttpClientProperties.class);
+                assertNotNull(properties);
+                assertThat(properties.getConnectTimeout(), is(3));
+                assertThat(properties.getResponseTimeout(), is(Duration.ZERO));
+                assertThat(properties.getPool().getType(), is(HttpClientProperties.Pool.PoolType.ELASTIC));
+                assertThat(properties.getPool().getName(), is("proxy"));
+                assertThat(properties.getPool().getMaxConnections(), is(1));
+                assertThat(properties.getPool().getAcquireTimeout(), is(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT));
+                assertThat(properties.getProxy().getHost(), is("http://localhost"));
+                assertThat(properties.getProxy().getPort(), is(18848));
+                assertThat(properties.getProxy().getUsername(), is("itmiwang"));
+                assertThat(properties.getProxy().getPassword(), is("itmiwang"));
+                assertThat(properties.getProxy().getNonProxyHostsPattern(), is("itmiwang"));
+                assertThat(properties.getSsl().getHandshakeTimeout(), is(Duration.ofMillis(10000)));
+                assertNotNull(properties.getSsl().getTrustedX509Certificates());
+                assertThat(properties.getSsl().getCloseNotifyFlushTimeout(), is(Duration.ofMillis(3000)));
+                assertThat(properties.getSsl().getCloseNotifyReadTimeout(), is(Duration.ZERO));
+                assertThat(properties.getSsl().getDefaultConfigurationType(), is(SslProvider.DefaultConfigurationType.TCP));
+            });
     }
-    
+
     @Test
     public void testHttpClient() {
-        assertNotNull(httpClient);
+        applicationContextRunner
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                HttpClient client = context.getBean("httpClient", HttpClient.class);
+                assertNotNull(client);
+            });
+    }
+
+    @Test
+    public void testWebClientPlugin() {
+        applicationContextRunner
+            .withPropertyValues(
+                "debug=true",
+                "shenyu.httpclient.strategy=webClient"
+            )
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("webClientPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+            });
+    }
+
+    @Test
+    public void testNettyHttpClientPlugin() {
+        applicationContextRunner
+            .withPropertyValues(
+                "debug=true",
+                "shenyu.httpclient.strategy=netty"
+            )
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("nettyHttpClientPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+            });
     }
 }

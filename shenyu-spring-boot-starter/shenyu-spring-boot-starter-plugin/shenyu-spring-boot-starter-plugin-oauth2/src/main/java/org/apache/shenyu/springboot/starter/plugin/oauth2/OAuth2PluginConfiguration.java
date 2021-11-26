@@ -70,6 +70,7 @@ public class OAuth2PluginConfiguration {
 
     /**
      * oauth2 plugin shenyu plugin.
+     *
      * @param authorizedClientServiceProvider the ReactiveOAuth2AuthorizedClientServiceProvider
      * @return the shenyu plugin
      */
@@ -141,7 +142,7 @@ public class OAuth2PluginConfiguration {
 
     /**
      * Build default clientRegistration.
-     * if this bean load, the oauth2 plugin don't take effect
+     * if this bean load, the oauth2 plugin don't take effect.
      *
      * @return The clientRegistration instance.
      */
