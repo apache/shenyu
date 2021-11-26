@@ -22,29 +22,29 @@ package org.apache.shenyu.integrated.test.grpc.configuration;
  */
 public class NettyTcpConfig {
 
-    private int selectCount;
+    private int selectCount = 1;
 
-    private int workerCount;
+    private int workerCount = Runtime.getRuntime().availableProcessors() << 1;
 
-    private int connectTimeoutMillis;
+    private int connectTimeoutMillis = 10000;
 
-    private int writeBufferHighWaterMark;
+    private int writeBufferHighWaterMark = 65536;
 
-    private int writeBufferLowWaterMark;
+    private int writeBufferLowWaterMark = 32768;
 
-    private int writeSpinCount;
+    private int writeSpinCount = 16;
 
-    private boolean autoRead;
+    private boolean autoRead = true;
 
-    private boolean tcpNodelay;
+    private boolean tcpNodelay = true;
 
     private boolean soKeepalive;
 
     private boolean soReuseaddr;
 
-    private int soLinger;
+    private int soLinger = -1;
 
-    private int soBacklog;
+    private int soBacklog = 128;
 
     /**
      * get select count.
