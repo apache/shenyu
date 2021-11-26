@@ -187,7 +187,8 @@ CREATE TABLE IF NOT EXISTS `shenyu_dict` (
    `enabled` tinyint(4) DEFAULT NULL COMMENT 'whether it is enabled',
    `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
    `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
-   PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `dict_type_dict_code_dict_name` (`type`,`dict_code`,`dict_name`)
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;;
 
 /*Trigger for `shenyu-dict` */
