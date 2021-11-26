@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+    
 package org.apache.shenyu.admin.service.register;
-
+    
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -45,35 +45,35 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+    
 /**
  * Test cases for {@link ShenyuClientRegisterGrpcServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class ShenyuClientRegisterGrpcServiceImplTest {
-
+    
     @InjectMocks
     private ShenyuClientRegisterGrpcServiceImpl shenyuClientRegisterGrpcService;
-
+    
     @Mock
     private MetaDataServiceImpl metaDataService;
-
+    
     @Test
     public void testRpcType() {
         Assert.assertEquals(RpcTypeEnum.GRPC.getName(), shenyuClientRegisterGrpcService.rpcType());
     }
-
+    
     @Test
     public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
         Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterGrpcService.selectorHandler(metaDataRegisterDTO));
     }
-
+    
     @Test
     public void testRuleHandler() {
         Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterGrpcService.ruleHandler());
     }
-
+    
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
@@ -83,48 +83,50 @@ public class ShenyuClientRegisterGrpcServiceImplTest {
         verify(metaDataService).findByPath("/test");
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
-
+    
     @Test
     public void testBuildHandle() {
         shenyuClientRegisterGrpcService = spy(shenyuClientRegisterGrpcService);
-
-        List<URIRegisterDTO> list = new ArrayList<>();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8090).build());
-        SelectorDO selectorDO = mock(SelectorDO.class);
-        when(selectorDO.getHandle()).thenReturn("[{upstreamUrl='localhost:8090',weight=1,status=true,timestamp=1637826588267},"
-                + "{upstreamUrl='localhost:8091',weight=2,status=true,timestamp=1637826588267}]");
-        doNothing().when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
-        String handler = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        String result = "[{\"weight\":1,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
+        
+        final String returnStr = "[{upstreamUrl='localhost:8090',weight=1,status=true,timestamp=1637826588267},"
+                + "{upstreamUrl='localhost:8091',weight=2,status=true,timestamp=1637826588267}]";
+        final String expected = "[{\"weight\":1,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
                 + "{\"weight\":2,\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267}]";
-        assertEquals(handler, result);
-        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(handler, TarsUpstream.class);
-        assertEquals(resultList.size(), 2);
-
-        list.clear();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8092).build());
-        selectorDO = mock(SelectorDO.class);
-        when(selectorDO.getHandle()).thenReturn("[{upstreamUrl='localhost:8090',weight=1,status=true,timestamp=1637826588267},"
-                + "{upstreamUrl='localhost:8091',weight=2,status=true,timestamp=1637826588267}]");
+        
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8090).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
         doNothing().when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
-        handler = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(handler, TarsUpstream.class);
+        String actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
+
+        assertEquals(actual, expected);
+        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        assertEquals(resultList.size(), 2);
+    
+        list.clear();
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8092).build());
+        selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doNothing().when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
+        actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 3);
 
         list.clear();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8090).build());
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8090).build());
         doNothing().when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
         selectorDO = mock(SelectorDO.class);
-        handler = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(handler, TarsUpstream.class);
+        actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 1);
     }
-
+    
     @Test
     public void testBuildGrpcUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("grpc").host("localhost").port(8090).build());
-        list.add(URIRegisterDTO.builder().appName("test2").rpcType("grpc").host("localhost").port(8091).build());
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8090).build());
+        list.add(URIRegisterDTO.builder().appName("test2").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8091).build());
         try {
             Method testMethod = shenyuClientRegisterGrpcService.getClass().getDeclaredMethod("buildGrpcUpstreamList", List.class);
             testMethod.setAccessible(true);
