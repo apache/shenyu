@@ -35,7 +35,7 @@ public class CryptorPluginConfiguration {
     /**
      * Cryptor request plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin cryptorRequestPlugin() {
@@ -45,7 +45,7 @@ public class CryptorPluginConfiguration {
     /**
      * Cryptor response plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin cryptorResponsePlugin() {
