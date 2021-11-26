@@ -77,11 +77,13 @@ public class ShenyuClientRegisterTarsServiceImplTest {
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
+        String serviceName = "metaDataService";
+        String methodName = "registerMetadata";
         when(metaDataService.findByServiceNameAndMethodName(any(), any())).thenReturn(metaDataDO);
-        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().serviceName("metaDataService")
-                .methodName("registerMetadata").build();
+        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().serviceName(serviceName)
+                .methodName(methodName).build();
         shenyuClientRegisterTarsService.registerMetadata(metaDataDTO);
-        verify(metaDataService).findByServiceNameAndMethodName("metaDataService", "registerMetadata");
+        verify(metaDataService).findByServiceNameAndMethodName(serviceName, methodName);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
 
@@ -89,43 +91,44 @@ public class ShenyuClientRegisterTarsServiceImplTest {
     public void testBuildHandle() {
         shenyuClientRegisterTarsService = spy(shenyuClientRegisterTarsService);
 
-        List<URIRegisterDTO> list = new ArrayList<>();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8090).build());
-        SelectorDO selectorDO = mock(SelectorDO.class);
-        when(selectorDO.getHandle()).thenReturn("[{upstreamUrl='localhost:8090',weight=1,warmup=10,status=true,timestamp=1637826588267},"
-                + "{upstreamUrl='localhost:8091',weight=2,warmup=10,status=true,timestamp=1637826588267}]");
-        doNothing().when(shenyuClientRegisterTarsService).doSubmit(any(), any());
-        String handler = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
-        String result = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
+        String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:true,timestamp:1637826588267},"
+                + "{upstreamUrl:'localhost:8091',weight:2,warmup:10,status:true,timestamp:1637826588267}]";
+        String expected = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
                 + "{\"weight\":2,\"warmup\":10,\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267}]";
-        assertEquals(handler, result);
-        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(handler, TarsUpstream.class);
+
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8090).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doNothing().when(shenyuClientRegisterTarsService).doSubmit(any(), any());
+        String actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
+        assertEquals(actual, expected);
+        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 2);
 
         list.clear();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8092).build());
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8092).build());
         selectorDO = mock(SelectorDO.class);
-        when(selectorDO.getHandle()).thenReturn("[{upstreamUrl='localhost:8090',weight=1,warmup=10,status=true,timestamp=1637826588267},"
-                + "{upstreamUrl='localhost:8091',weight=2,warmup=10,status=true,timestamp=1637826588267}]");
+        when(selectorDO.getHandle()).thenReturn(returnStr);
         doNothing().when(shenyuClientRegisterTarsService).doSubmit(any(), any());
-        handler = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(handler, TarsUpstream.class);
+        actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 3);
 
         list.clear();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8090).build());
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8090).build());
         doNothing().when(shenyuClientRegisterTarsService).doSubmit(any(), any());
         selectorDO = mock(SelectorDO.class);
-        handler = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(handler, TarsUpstream.class);
+        actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 1);
     }
 
     @Test
     public void testBuildTarsUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8090).build());
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType("http").host("localhost").port(8091).build());
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8090).build());
+        list.add(URIRegisterDTO.builder().appName("test2").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8091).build());
         try {
             Method testMethod = shenyuClientRegisterTarsService.getClass().getDeclaredMethod("buildTarsUpstreamList", List.class);
             testMethod.setAccessible(true);
