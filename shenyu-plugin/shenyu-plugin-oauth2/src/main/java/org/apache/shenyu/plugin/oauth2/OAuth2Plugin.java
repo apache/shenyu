@@ -51,9 +51,9 @@ public class OAuth2Plugin implements ShenyuPlugin {
             .filter(t -> t instanceof OAuth2AuthenticationToken)
             .cast(OAuth2AuthenticationToken.class)
             .flatMap(token ->
-                authorizedClientService.<OAuth2AuthorizedClient>loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
+                authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
             )
-            .flatMap(client -> chain.execute(this.handleToken(exchange, client)));
+            .flatMap(client -> chain.execute(this.handleToken(exchange, (OAuth2AuthorizedClient) client)));
     }
 
     @Override
