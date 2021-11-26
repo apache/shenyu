@@ -86,7 +86,7 @@ shenyu:
       - /favicon.*
       - /static/**
       - /index**
-      - /platform/**
+      - /platform/login
       - /websocket
       - /configs/**
       - /shenyu-client/**
