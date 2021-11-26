@@ -21,29 +21,30 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for {@link URIPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class URIPluginConfigurationTest {
 
     @Test
     public void testURIPlugin() {
         new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                    URIPluginConfiguration.class
-                ))
+            .withConfiguration(AutoConfigurations.of(URIPluginConfiguration.class))
+            .withBean(URIPluginConfigurationTest.class)
             .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(ShenyuPlugin.class);
-                    ShenyuPlugin plugin = context.getBean("uriPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.URI.getName());
-                }
-            );
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("uriPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.URI.getName());
+            });
     }
 }
