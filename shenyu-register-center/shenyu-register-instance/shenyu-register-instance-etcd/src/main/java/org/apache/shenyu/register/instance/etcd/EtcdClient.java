@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.etcd;
+package org.apache.shenyu.register.instance.etcd;
 
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
@@ -62,7 +62,6 @@ public class EtcdClient {
             client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<LeaseKeepAliveResponse>() {
                 @Override
                 public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
-
                 }
 
                 @Override
@@ -72,7 +71,6 @@ public class EtcdClient {
 
                 @Override
                 public void onCompleted() {
-
                 }
             });
         } catch (InterruptedException | ExecutionException e) {

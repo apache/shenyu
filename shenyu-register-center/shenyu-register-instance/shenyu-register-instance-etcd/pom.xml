@@ -25,24 +25,51 @@
         <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-register-instance-core</artifactId>
+    <artifactId>shenyu-register-instance-etcd</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spi</artifactId>
+            <artifactId>shenyu-register-instance-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-instance-zookeeper</artifactId>
-            <version>${project.version}</version>
+            <groupId>io.etcd</groupId>
+            <artifactId>jetcd-core</artifactId>
+            <version>${jetcd-core.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>grpc-protobuf</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>grpc-stub</artifactId>
+                    <groupId>io.grpc</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-instance-etcd</artifactId>
-            <version>${project.version}</version>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>grpc-protobuf</artifactId>
+            <groupId>io.grpc</groupId>
+            <version>${grpc.version}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>grpc-stub</artifactId>
+            <groupId>io.grpc</groupId>
+            <version>${grpc.version}</version>
         </dependency>
     </dependencies>
-
 </project>
