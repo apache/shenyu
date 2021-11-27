@@ -137,10 +137,10 @@ public class ShenyuClientRegisterDubboServiceImplTest {
     public void testBuildDivideUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().appName("test1")
-                .rpcType(RpcTypeEnum.HTTP.getName())
+                .rpcType(RpcTypeEnum.DUBBO.getName())
                 .host(LOCALHOST).port(8090).build());
         list.add(URIRegisterDTO.builder().appName("test2")
-                .rpcType(RpcTypeEnum.HTTP.getName())
+                .rpcType(RpcTypeEnum.DUBBO.getName())
                 .host(LOCALHOST).port(8091).build());
         try {
             Method testMethod = shenyuClientRegisterDubboService.getClass().getDeclaredMethod("buildDubboUpstreamList", List.class);
