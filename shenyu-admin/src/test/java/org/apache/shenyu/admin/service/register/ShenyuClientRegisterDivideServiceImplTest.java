@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
  * Test cases for {@link ShenyuClientRegisterDivideServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class ShenyuClientRegisterDivideServiceImplTest {
+public final class ShenyuClientRegisterDivideServiceImplTest {
     
     public static final String LOCALHOST = "localhost";
     

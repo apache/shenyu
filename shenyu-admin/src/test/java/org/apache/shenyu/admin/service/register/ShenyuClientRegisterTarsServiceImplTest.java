@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
  * Test cases for {@link ShenyuClientRegisterTarsServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class ShenyuClientRegisterTarsServiceImplTest {
+public final class ShenyuClientRegisterTarsServiceImplTest {
     
     @InjectMocks
     private ShenyuClientRegisterTarsServiceImpl shenyuClientRegisterTarsService;

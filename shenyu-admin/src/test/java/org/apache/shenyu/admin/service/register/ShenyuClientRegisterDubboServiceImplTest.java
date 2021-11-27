@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
  */
 @PrepareForTest(ShenyuClientRegisterDubboServiceImpl.class)
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class ShenyuClientRegisterDubboServiceImplTest {
+public final class ShenyuClientRegisterDubboServiceImplTest {
     
     public static final String LOCALHOST = "localhost";
     

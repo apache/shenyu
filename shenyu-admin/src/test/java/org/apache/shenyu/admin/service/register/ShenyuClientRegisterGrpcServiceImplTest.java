@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
  * Test cases for {@link ShenyuClientRegisterGrpcServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class ShenyuClientRegisterGrpcServiceImplTest {
+public final class ShenyuClientRegisterGrpcServiceImplTest {
     
     @InjectMocks
     private ShenyuClientRegisterGrpcServiceImpl shenyuClientRegisterGrpcService;

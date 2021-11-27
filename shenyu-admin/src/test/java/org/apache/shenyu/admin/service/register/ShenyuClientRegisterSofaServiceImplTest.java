@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * Test cases for {@link ShenyuClientRegisterSofaServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class ShenyuClientRegisterSofaServiceImplTest {
+public final class ShenyuClientRegisterSofaServiceImplTest {
 
     @InjectMocks
     private ShenyuClientRegisterSofaServiceImpl shenyuClientRegisterSofaService;
