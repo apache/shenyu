@@ -45,9 +45,6 @@
         <if test="roleName != null">
             and role_name = #{roleName,jdbcType=VARCHAR}
         </if>
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <select id="findByRoleName" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -56,7 +53,8 @@
         from role where role_name = #{roleName,jdbcType=VARCHAR}
     </select>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RoleQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RoleQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from role
         where role_name != 'super'

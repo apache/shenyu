@@ -22,21 +22,22 @@ import java.util.Properties;
 /**
  * Governance center configuration.
  */
-public final class ShenyuRegisterCenterConfig {
+public final class ShenyuRegisterCenterConfig extends PropertiesConfig {
     
     private String registerType;
     
     private String serverLists;
-    
-    private Properties props = new Properties();
 
     public ShenyuRegisterCenterConfig() {
+
     }
 
-    public ShenyuRegisterCenterConfig(final String registerType, final String serverLists, final Properties props) {
+    public ShenyuRegisterCenterConfig(final String registerType,
+                                      final String serverLists,
+                                      final Properties props) {
         this.registerType = registerType;
         this.serverLists = serverLists;
-        this.props = props;
+        this.setProps(props);
     }
 
     /**
@@ -73,23 +74,5 @@ public final class ShenyuRegisterCenterConfig {
      */
     public void setServerLists(final String serverLists) {
         this.serverLists = serverLists;
-    }
-
-    /**
-     * getProps.
-     *
-     * @return String
-     */
-    public Properties getProps() {
-        return props;
-    }
-
-    /**
-     * setProps.
-     *
-     * @param props props
-     */
-    public void setProps(final Properties props) {
-        this.props = props;
     }
 }

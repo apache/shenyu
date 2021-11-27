@@ -17,23 +17,16 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
+
+import java.util.Objects;
 
 /**
  * The type Spring cloud rule handle.
  */
-@ToString
-@Getter
-@Setter
-@NoArgsConstructor
 public class SpringCloudRuleHandle implements RuleHandle {
-
-    private static final long serialVersionUID = 269429745060607954L;
 
     /**
      * this remote uri path.
@@ -45,9 +38,91 @@ public class SpringCloudRuleHandle implements RuleHandle {
      */
     private long timeout = Constants.TIME_OUT;
 
-    @Override
-    public RuleHandle createDefault(final String path) {
+    /**
+     * loadBalance.
+     * {@linkplain LoadBalanceEnum}
+     */
+    private String loadBalance = LoadBalanceEnum.ROUND_ROBIN.getName();
+
+    /**
+     * get path.
+     *
+     * @return path
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * set path.
+     *
+     * @param path path
+     */
+    public void setPath(final String path) {
         this.path = path;
-        return this;
+    }
+
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public long getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     *
+     * @param timeout timeout
+     */
+    public void setTimeout(final long timeout) {
+        this.timeout = timeout;
+    }
+
+    /**
+     * get loadBalance.
+     *
+     * @return loadBalance loadBalance
+     */
+    public String getLoadBalance() {
+        return loadBalance;
+    }
+
+    /**
+     * set loadBalance.
+     *
+     * @param loadBalance loadBalance
+     */
+    public void setLoadBalance(final String loadBalance) {
+        this.loadBalance = loadBalance;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SpringCloudRuleHandle that = (SpringCloudRuleHandle) o;
+        return timeout == that.timeout && Objects.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(path, timeout);
+    }
+
+    @Override
+    public String toString() {
+        return "SpringCloudRuleHandle{"
+                + "path='"
+                + path
+                + '\''
+                + ", timeout="
+                + timeout
+                + '}';
     }
 }

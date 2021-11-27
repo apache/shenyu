@@ -54,13 +54,14 @@
     </delete>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
-    insert into shenyu_dict (id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created, date_updated
-      )
-    values (#{id,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{dictCode,jdbcType=VARCHAR},
-      #{dictName,jdbcType=VARCHAR}, #{dictValue,jdbcType=VARCHAR}, #{desc,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER},
-       #{enabled,jdbcType=TINYINT}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
-      )
-  </insert>
+        insert into shenyu_dict (id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created,
+        date_updated
+        )
+        values (#{id,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{dictCode,jdbcType=VARCHAR},
+        #{dictName,jdbcType=VARCHAR}, #{dictValue,jdbcType=VARCHAR}, #{desc,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER},
+        #{enabled,jdbcType=TINYINT}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
+        )
+    </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         insert into shenyu_dict
@@ -166,18 +167,19 @@
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         update shenyu_dict
         set `type` = #{type,jdbcType=VARCHAR},
-          dict_code = #{dictCode,jdbcType=VARCHAR},
-          dict_name = #{dictName,jdbcType=VARCHAR},
-          dict_value = #{dictValue,jdbcType=VARCHAR},
-          `desc` = #{desc,jdbcType=VARCHAR},
-          sort = #{sort,jdbcType=INTEGER},
-          enabled = #{enabled,jdbcType=TINYINT},
-          date_created = #{dateCreated,jdbcType=TIMESTAMP},
-          date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+        dict_code = #{dictCode,jdbcType=VARCHAR},
+        dict_name = #{dictName,jdbcType=VARCHAR},
+        dict_value = #{dictValue,jdbcType=VARCHAR},
+        `desc` = #{desc,jdbcType=VARCHAR},
+        sort = #{sort,jdbcType=INTEGER},
+        enabled = #{enabled,jdbcType=TINYINT},
+        date_created = #{dateCreated,jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from shenyu_dict
         <where>
@@ -193,7 +195,8 @@
         </where>
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery"
+            resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from shenyu_dict
@@ -205,19 +208,17 @@
                 and dict_code = #{dictCode,jdbcType=VARCHAR}
             </if>
             <if test="dictName != null and dictName != ''">
-                and dict_name = #{dictName,jdbcType=VARCHAR}
+                <bind name="dictNameLike" value="('%' + dictName + '%')"/>
+                and dict_name like #{dictNameLike,jdbcType=VARCHAR}
             </if>
         </where>
         order by `type`,sort asc
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
     </select>
 
     <update id="enabled">
         update shenyu_dict set enabled = #{enabled,jdbcType=TINYINT} where id in
         <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
-        #{item}
+            #{item}
         </foreach>
     </update>
 </mapper>

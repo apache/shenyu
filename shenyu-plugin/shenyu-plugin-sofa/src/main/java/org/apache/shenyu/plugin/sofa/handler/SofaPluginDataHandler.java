@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.sofa.handler;
 
-import org.apache.shenyu.common.config.SofaRegisterConfig;
+import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 
 import java.util.Objects;
@@ -36,10 +36,10 @@ public class SofaPluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         if (null != pluginData && pluginData.getEnabled()) {
             SofaRegisterConfig sofaRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), SofaRegisterConfig.class);
-            SofaRegisterConfig exist = Singleton.INST.get(SofaRegisterConfig.class);
             if (Objects.isNull(sofaRegisterConfig)) {
                 return;
             }
+            SofaRegisterConfig exist = Singleton.INST.get(SofaRegisterConfig.class);
             if (Objects.isNull(exist) || !sofaRegisterConfig.equals(exist)) {
                 // If it is null, initialize it
                 ApplicationConfigCache.getInstance().init(sofaRegisterConfig);

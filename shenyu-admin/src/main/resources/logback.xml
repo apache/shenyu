@@ -20,7 +20,7 @@
 
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
-    <property name="LOG_HOME" value="${log.home:-.}"/>
+    <property name="LOG_HOME" value="${log.home:-./logs}"/>
     <property name="LOG_APP_NAME" value="${log.app-name:-shenyu-admin}"/>
     <property name="MAX_SINGLE_LOG_FILE_SIZE" value="${log.max-single-log-file-size:-100MB}"/>
     <property name="MAX_LOG_FILE_HISTORY" value="${log.max-log-file-history:-7}"/>
@@ -47,7 +47,7 @@
         <file>${LOG_HOME}/${LOG_APP_NAME}.log</file>
         <append>true</append>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/logs/${LOG_APP_NAME}.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/${LOG_APP_NAME}.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
             <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>
             <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>
             <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>
@@ -72,7 +72,7 @@
         </filter>
         <file>${LOG_HOME}/${LOG_APP_NAME}-error.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/logs/${LOG_APP_NAME}.%d{yyyy-MM-dd}-error.%i.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/${LOG_APP_NAME}.%d{yyyy-MM-dd}-error.%i.log.zip</fileNamePattern>
             <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>
             <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>
             <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>

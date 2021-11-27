@@ -26,9 +26,8 @@ import org.apache.shenyu.spi.Join;
 @Join
 public class LeakyBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
 
-    @Override
-    protected String getScriptName() {
-        return RateLimitEnum.LEAKY_BUCKET.getScriptName();
+    public LeakyBucketRateLimiterAlgorithm() {
+        super(RateLimitEnum.LEAKY_BUCKET.getScriptName());
     }
 
     @Override

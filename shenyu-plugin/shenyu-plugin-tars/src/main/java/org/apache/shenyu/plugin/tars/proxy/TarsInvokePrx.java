@@ -21,7 +21,7 @@ package org.apache.shenyu.plugin.tars.proxy;
  * Tars path invoke metadata.
  */
 public class TarsInvokePrx {
-    
+
     private Object invokePrx;
 
     private String host;

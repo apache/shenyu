@@ -46,7 +46,7 @@ public final class ForwardedRemoteAddressResolverTest {
         Assert.assertEquals(maxTrustedIndex, 5);
 
         ForwardedRemoteAddressResolver all = ForwardedRemoteAddressResolver.trustAll();
-        maxTrustedIndex = (int) (int) ReflectionTestUtils.getField(all, "maxTrustedIndex");
+        maxTrustedIndex = (int) ReflectionTestUtils.getField(all, "maxTrustedIndex");
         Assert.assertEquals(maxTrustedIndex, Integer.MAX_VALUE);
     }
 

@@ -28,7 +28,7 @@ public interface MetricsRegister {
     /**
      * Register gauge.
      *
-     * @param name  name
+     * @param name name
      * @param labelNames label names
      * @param document document for gauge
      */
@@ -85,4 +85,9 @@ public interface MetricsRegister {
      * @param duration duration
      */
     void recordTime(String name, String[] labelValues, long duration);
+    
+    /**
+     * Clean.
+     */
+    void clean();
 }

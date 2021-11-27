@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.mapper;
 
-import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
+
+import java.util.List;
 
 /**
  * The interface Plugin handle mapper.
@@ -91,4 +92,11 @@ public interface PluginHandleMapper {
      * @return affected rows
      */
     int delete(String id);
+
+    /**
+     * delete string id.
+     * @param pluginIds plugin ids
+     * @return affected rows
+     */
+    int deleteByPluginIds(List<String> pluginIds);
 }

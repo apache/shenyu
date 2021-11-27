@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.4.1-SNAPSHOT</version>
+        <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-dist</artifactId>
@@ -30,5 +30,6 @@
         <module>shenyu-src-dist</module>
         <module>shenyu-admin-dist</module>
         <module>shenyu-bootstrap-dist</module>
+        <module>shenyu-docker-compose-dist</module>
     </modules>
 </project>

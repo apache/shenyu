@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
  * load balance enum.
  */
-@RequiredArgsConstructor
-@Getter
 public enum LoadBalanceEnum {
 
     /**
@@ -47,4 +42,44 @@ public enum LoadBalanceEnum {
     private final String name;
 
     private final boolean support;
+
+    /**
+     * all args constructor.
+     *
+     * @param code    code
+     * @param name    name
+     * @param support support
+     */
+    LoadBalanceEnum(final int code, final String name, final boolean support) {
+        this.code = code;
+        this.name = name;
+        this.support = support;
+    }
+
+    /**
+     * get code.
+     *
+     * @return code
+     */
+    public int getCode() {
+        return code;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * get support.
+     *
+     * @return support
+     */
+    public boolean isSupport() {
+        return support;
+    }
 }

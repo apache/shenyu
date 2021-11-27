@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -115,12 +116,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         }
+
         if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
             userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
         }
+
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
+
         return dashboardUserMapper.updateSelective(dashboardUserDO);
     }
 
@@ -212,9 +216,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, password);
         }
+
         if (Objects.isNull(dashboardUserVO)) {
             dashboardUserVO = loginByDatabase(userName, password);
         }
+
         return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO)
                 .setToken(JwtUtils.generateToken(dashboardUserVO.getUserName(), dashboardUserVO.getPassword(),
                         jwtProperties.getExpiredSeconds()));
@@ -223,7 +229,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), userName, ldapProperties.getBaseDn());
+        String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
         try {
             DashboardUserVO dashboardUserVO = null;
@@ -255,19 +261,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        DashboardUserVO dashboardUserVO = findByQuery(userName, password);
-        if (!ObjectUtils.isEmpty(dashboardUserVO)) {
-            DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
-                    .id(dashboardUserVO.getId())
-                    .userName(dashboardUserVO.getUserName())
-                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), key, iv))
-                    .role(dashboardUserVO.getRole())
-                    .enabled(dashboardUserVO.getEnabled()).build();
-            createOrUpdate(dashboardUserDTO);
-        } else {
-            dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
-        }
-        return dashboardUserVO;
+        return findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
     }
 
     /**

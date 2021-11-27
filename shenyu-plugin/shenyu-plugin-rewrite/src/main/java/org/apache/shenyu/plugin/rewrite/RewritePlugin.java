@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.RewriteHandle;
+import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -46,26 +46,21 @@ public class RewritePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String handle = rule.getHandle();
-        final RewriteHandle rewriteHandle = RewritePluginDataHandler.CACHED_HANDLE.get()
-                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        RewriteHandle rewriteHandle = RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(rewriteHandle)) {
             LOG.error("uri rewrite rule can not configuration：{}", handle);
             return chain.execute(exchange);
         }
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         String rewriteUri = exchange.getRequest().getURI().getPath();
-        if (StringUtils.isNotBlank(shenyuContext.getRealUrl())) {
-            rewriteUri = shenyuContext.getRealUrl();
-        }
         if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())) {
             rewriteUri = rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+            exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
         }
-        exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
         return chain.execute(exchange);
     }
 
     @Override
-    public Boolean skip(final ServerWebExchange exchange) {
+    public boolean skip(final ServerWebExchange exchange) {
         final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
         return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }

@@ -19,14 +19,20 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.utils.ThreadLocalUtil;
+import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -37,14 +43,24 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * Test case for WebsocketCollector.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(WebsocketCollector.class)
 public final class WebsocketCollectorTest {
+
+    private static Logger loggerSpy;
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
     private WebsocketCollector websocketCollector;
 
@@ -53,6 +69,19 @@ public final class WebsocketCollectorTest {
 
     @Mock
     private SyncDataService syncDataService;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerSpy = spy(LoggerFactory.getLogger(WebsocketCollector.class));
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(WebsocketCollector.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
+    }
+
+    @AfterClass
+    public static void close() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
     public void setUp() {
@@ -63,19 +92,21 @@ public final class WebsocketCollectorTest {
     public void testOnOpen() {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
     }
 
     @Test
     public void testOnMessage() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
         when(syncDataService.syncAll(DataEventTypeEnum.MYSELF)).thenReturn(true);
         websocketCollector.onOpen(session);
         websocketCollector.onMessage(DataEventTypeEnum.MYSELF.name(), session);
         assertEquals(1L, getSessionSetSize());
         Mockito.verify(syncDataService, Mockito.times(1)).syncAll(DataEventTypeEnum.MYSELF);
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
     }
 
@@ -83,6 +114,7 @@ public final class WebsocketCollectorTest {
     public void testOnClose() {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
         assertEquals(0L, getSessionSetSize());
         assertNull(getSession());
@@ -92,6 +124,7 @@ public final class WebsocketCollectorTest {
     public void testOnError() {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
+        doNothing().when(loggerSpy).error(anyString(), anyString(), isA(Throwable.class));
         Throwable throwable = mock(Throwable.class);
         websocketCollector.onError(session, throwable);
         assertEquals(0L, getSessionSetSize());
@@ -106,11 +139,12 @@ public final class WebsocketCollectorTest {
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
         Mockito.verify(basic, Mockito.times(0)).sendText(null);
-        ThreadLocalUtil.put("sessionKey", session);
+        ThreadLocalUtils.put("sessionKey", session);
         WebsocketCollector.send("test_message_1", DataEventTypeEnum.MYSELF);
         Mockito.verify(basic, Mockito.times(1)).sendText("test_message_1");
         WebsocketCollector.send("test_message_2", DataEventTypeEnum.CREATE);
         Mockito.verify(basic, Mockito.times(1)).sendText("test_message_2");
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
     }
 
@@ -120,6 +154,6 @@ public final class WebsocketCollectorTest {
     }
 
     private Session getSession() {
-        return (Session) ThreadLocalUtil.get("sessionKey");
+        return (Session) ThreadLocalUtils.get("sessionKey");
     }
 }

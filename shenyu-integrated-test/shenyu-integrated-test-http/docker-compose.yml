@@ -40,7 +40,7 @@ services:
     image: shenyu-examples-http:latest
     restart: always
     environment:
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
       timeout: 2s
@@ -54,15 +54,11 @@ services:
       - shenyu
 
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:
       - shenyu
-    volumes:
-      - type: bind
-        source: ./admin-config/
-        target: /opt/sql/
     depends_on:
       shenyu-redis:
         condition: service_healthy
@@ -70,7 +66,7 @@ services:
       - 9095:9095
     environment:
       - SPRING_PROFILES_ACTIVE=h2
-      - "shenyu.database.init_script=META-INF/schema.h2.sql;file:/opt/sql/schema.sql"
+      - "shenyu.database.init_script=sql-script/h2/schema.sql"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s

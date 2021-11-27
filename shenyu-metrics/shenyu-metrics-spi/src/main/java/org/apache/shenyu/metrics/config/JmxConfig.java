@@ -297,7 +297,6 @@ public class JmxConfig implements Serializable {
                 .toString();
     }
 
-
     /**
      * The enum Type.
      */
@@ -375,7 +374,6 @@ public class JmxConfig implements Serializable {
          */
         private List<String> labelValues = new ArrayList<>();
 
-
         /**
          * Gets pattern.
          *
@@ -435,7 +433,6 @@ public class JmxConfig implements Serializable {
             this.value = value;
             return this;
         }
-
 
         /**
          * Gets value factor.

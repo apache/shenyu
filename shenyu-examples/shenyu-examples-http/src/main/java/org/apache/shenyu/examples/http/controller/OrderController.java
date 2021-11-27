@@ -22,7 +22,13 @@ import org.apache.shenyu.examples.http.dto.OAuth2DTO;
 import org.apache.shenyu.examples.http.dto.OrderDTO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
@@ -57,10 +63,7 @@ public class OrderController {
     @GetMapping("/findById")
     @ShenyuSpringMvcClient(path = "/findById", desc = "Find by id")
     public OrderDTO findById(@RequestParam("id") final String id) {
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(id);
-        orderDTO.setName("hello world findById");
-        return orderDTO;
+        return build(id,"hello world findById");
     }
 
     /**
@@ -73,10 +76,7 @@ public class OrderController {
     @GetMapping("/path/{id}/{name}")
     @ShenyuSpringMvcClient(path = "/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(id);
-        orderDTO.setName("hello world restful: " + name);
-        return orderDTO;
+        return build(id,"hello world restful: " + name);
     }
 
     /**
@@ -88,10 +88,7 @@ public class OrderController {
     @GetMapping("/path/{id}/name")
     @ShenyuSpringMvcClient(path = "/path/**/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(id);
-        orderDTO.setName("hello world restful inline " + id);
-        return orderDTO;
+        return build(id,"hello world restful inline " + id);
     }
 
     @GetMapping("/oauth2/test")
@@ -100,12 +97,15 @@ public class OrderController {
         HttpHeaders headers = request.getHeaders();
         List<String> tokens = headers.get("Authorization");
         OAuth2DTO oAuth2DTO = new OAuth2DTO();
-        if (Objects.isNull(tokens)) {
-            oAuth2DTO.setToken("no authorization");
-        } else {
-            oAuth2DTO.setToken(tokens.get(0));
-        }
+        oAuth2DTO.setToken(Objects.isNull(tokens) ? "no authorization" : tokens.get(0));
         return oAuth2DTO;
+    }
+
+    private OrderDTO build(String id, String name) {
+        OrderDTO orderDTO = new OrderDTO();
+        orderDTO.setId(id);
+        orderDTO.setName(name);
+        return orderDTO;
     }
 
 }

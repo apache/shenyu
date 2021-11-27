@@ -38,6 +38,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
+
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -58,13 +60,11 @@ public final class NettyHttpClientPluginTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
-
         chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any())).thenReturn(Mono.empty());
         HttpClient httpClient = HttpClient.create();
-
         nettyHttpClientPlugin = new NettyHttpClientPlugin(httpClient);
     }
 
@@ -76,12 +76,11 @@ public final class NettyHttpClientPluginTest {
         ServerWebExchange exchangeNoPath = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchangeNoPath.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         StepVerifier.create(nettyHttpClientPlugin.execute(exchangeNoPath, chain)).expectSubscription().verifyComplete();
-
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
                 .header(HttpHeaderNames.CONNECTION.toString(), HttpHeaderValues.KEEP_ALIVE.toString())
                 .body("test"));
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create("/test"));
 
         StepVerifier.create(nettyHttpClientPlugin.execute(exchange, chain)).expectSubscription().verifyError();
     }
@@ -110,7 +109,7 @@ public final class NettyHttpClientPluginTest {
      */
     @Test
     public void testGetOrder() {
-        assertEquals(PluginEnum.DIVIDE.getCode() + 1, nettyHttpClientPlugin.getOrder());
+        assertEquals(PluginEnum.NETTY_HTTP_CLIENT.getCode(), nettyHttpClientPlugin.getOrder());
     }
 
     /**
@@ -118,14 +117,13 @@ public final class NettyHttpClientPluginTest {
      */
     @Test
     public void testNamed() {
-        assertEquals("NettyHttpClient", nettyHttpClientPlugin.named());
+        assertEquals(PluginEnum.NETTY_HTTP_CLIENT.getName(), nettyHttpClientPlugin.named());
     }
 
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
-
+        exchange.getAttributes().put(Constants.HTTP_URI, "/test");
         return exchange;
     }
 }

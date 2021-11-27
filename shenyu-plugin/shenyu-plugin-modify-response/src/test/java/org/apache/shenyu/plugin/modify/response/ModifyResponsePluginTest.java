@@ -78,10 +78,6 @@ public final class ModifyResponsePluginTest {
 
     @Test
     public void testDoExecute() {
-        ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
-        when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ModifyResponsePlugin.ModifyServerHttpResponse.class))).thenReturn(builder);
-        when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         Mono<Void> result = modifyResponsePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();

@@ -81,7 +81,7 @@ public final class PermissionServiceTest {
     public void setUp() throws Exception {
         SecurityUtils.setSecurityManager(securityManager);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         final DashboardUserDO dashboardUserDO = DashboardUserDO.builder().id("1").userName("admin").role(1).enabled(true).build();
         final UserRoleDO userRoleDO = UserRoleDO.builder().userId("1").roleId("1346358560427216896")
                 .id("1351007709096976384").dateCreated(new Timestamp(1610940313000L)).dateUpdated(new Timestamp(1610940313000L)).build();
@@ -112,7 +112,7 @@ public final class PermissionServiceTest {
                 .id("1347053375029653504").build();
         when(mockDashboardUserMapper.selectByUserName("admin")).thenReturn(dashboardUserDO);
         when(mockUserRoleMapper.findByUserId("1")).thenReturn(Collections.singletonList(userRoleDO));
-        when(mockPermissionMapper.findByObjectId("1346358560427216896")).thenReturn(permissionDOS);
+        when(mockPermissionMapper.findByObjectIds(Collections.singletonList("1346358560427216896"))).thenReturn(permissionDOS);
         when(mockResourceMapper.selectById("1346775491550474240")).thenReturn(resourceDO1);
         when(mockResourceMapper.selectById("1346776175553376256")).thenReturn(resourceDO2);
         when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);

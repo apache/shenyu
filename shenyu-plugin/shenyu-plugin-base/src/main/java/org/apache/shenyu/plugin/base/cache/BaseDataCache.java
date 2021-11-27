@@ -53,7 +53,7 @@ public final class BaseDataCache {
 
     private BaseDataCache() {
     }
-
+    
     /**
      * Gets instance.
      *
@@ -62,7 +62,7 @@ public final class BaseDataCache {
     public static BaseDataCache getInstance() {
         return INSTANCE;
     }
-
+    
     /**
      * Cache plugin data.
      *
@@ -71,7 +71,7 @@ public final class BaseDataCache {
     public void cachePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.put(data.getName(), data));
     }
-
+    
     /**
      * Remove plugin data.
      *
@@ -80,14 +80,23 @@ public final class BaseDataCache {
     public void removePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.remove(data.getName()));
     }
-
+    
+    /**
+     * Remove plugin data by plugin name.
+     *
+     * @param pluginName the plugin name
+     */
+    public void removePluginDataByPluginName(final String pluginName) {
+        PLUGIN_MAP.remove(pluginName);
+    }
+    
     /**
      * Clean plugin data.
      */
     public void cleanPluginData() {
         PLUGIN_MAP.clear();
     }
-
+    
     /**
      * Clean plugin data self.
      *
@@ -96,7 +105,7 @@ public final class BaseDataCache {
     public void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
         pluginDataList.forEach(this::removePluginData);
     }
-
+    
     /**
      * Obtain plugin data plugin data.
      *
@@ -106,7 +115,7 @@ public final class BaseDataCache {
     public PluginData obtainPluginData(final String pluginName) {
         return PLUGIN_MAP.get(pluginName);
     }
-
+    
     /**
      * Cache select data.
      *
@@ -115,7 +124,7 @@ public final class BaseDataCache {
     public void cacheSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(this::selectorAccept);
     }
-
+    
     /**
      * Remove select data.
      *
@@ -127,14 +136,23 @@ public final class BaseDataCache {
             Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
         });
     }
-
+    
+    /**
+     * Remove select data by plugin name.
+     *
+     * @param pluginName the plugin name
+     */
+    public void removeSelectDataByPluginName(final String pluginName) {
+        SELECTOR_MAP.remove(pluginName);
+    }
+    
     /**
      * Clean selector data.
      */
     public void cleanSelectorData() {
         SELECTOR_MAP.clear();
     }
-
+    
     /**
      * Clean selector data self.
      *
@@ -143,7 +161,7 @@ public final class BaseDataCache {
     public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
         selectorDataList.forEach(this::removeSelectData);
     }
-
+    
     /**
      * Obtain selector data list list.
      *
@@ -153,7 +171,7 @@ public final class BaseDataCache {
     public List<SelectorData> obtainSelectorData(final String pluginName) {
         return SELECTOR_MAP.get(pluginName);
     }
-
+    
     /**
      * Cache rule data.
      *
@@ -162,7 +180,7 @@ public final class BaseDataCache {
     public void cacheRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(this::ruleAccept);
     }
-
+    
     /**
      * Remove rule data.
      *
@@ -174,14 +192,23 @@ public final class BaseDataCache {
             Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
         });
     }
-
+    
+    /**
+     * Remove rule data by selector id.
+     *
+     * @param selectorId the selector id
+     */
+    public void removeRuleDataBySelectorId(final String selectorId) {
+        RULE_MAP.remove(selectorId);
+    }
+    
     /**
      * Clean rule data.
      */
     public void cleanRuleData() {
         RULE_MAP.clear();
     }
-
+    
     /**
      * Clean rule data self.
      *
@@ -190,7 +217,7 @@ public final class BaseDataCache {
     public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
         ruleDataList.forEach(this::removeRuleData);
     }
-
+    
     /**
      * Obtain rule data list list.
      *

@@ -68,7 +68,9 @@ public class HttpClientPluginConfiguration {
      */
     @Bean
     public HttpClient httpClient(final HttpClientProperties properties) {
-        // configure pool resources
+        /**
+         * configure pool resources.
+         */
         HttpClientProperties.Pool pool = properties.getPool();
         ConnectionProvider connectionProvider;
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
@@ -86,7 +88,9 @@ public class HttpClientPluginConfiguration {
                                 ChannelOption.CONNECT_TIMEOUT_MILLIS,
                                 properties.getConnectTimeout());
                     }
-                    // configure proxy if proxy host is set.
+                    /**
+                     * configure proxy if proxy host is set.
+                     */
                     HttpClientProperties.Proxy proxy = properties.getProxy();
                     if (StringUtils.hasText(proxy.getHost())) {
                         tcpClient = tcpClient.proxy(proxySpec -> {
@@ -103,7 +107,9 @@ public class HttpClientPluginConfiguration {
                                     .to(builder::nonProxyHosts);
                         });
                     }
-                    // The write and read timeouts are serving as generic socket idle state handlers.
+                    /**
+                     * The write and read timeouts are serving as generic socket idle state handlers.
+                     */
                     tcpClient = tcpClient.doOnConnected(c -> {
                         c.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
                         c.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
@@ -114,7 +120,9 @@ public class HttpClientPluginConfiguration {
         if (ssl.getTrustedX509CertificatesForTrustManager().length > 0
                 || ssl.isUseInsecureTrustManager()) {
             httpClient = httpClient.secure(sslContextSpec -> {
-                // configure ssl
+                /**
+                 * configure ssl.
+                 */
                 SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
                 X509Certificate[] trustedX509Certificates = ssl
                         .getTrustedX509CertificatesForTrustManager();

@@ -27,6 +27,8 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.google.common.collect.Lists;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -62,7 +64,7 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private static final List<RpcTypeEnum> RPC_URI_TYPE_SET = RpcTypeEnum.acquireSupportURIs();
 
-    private final String defaultGroup = "default_group";
+    private final String defaultGroup = NacosPathConstants.GROUP;
 
     private ConfigService configService;
 
@@ -80,7 +82,8 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
     }
 
     @Override
-    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher,
+                     final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
         String serverAddr = config.getServerLists();
         Properties properties = config.getProps();
@@ -95,12 +98,14 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
         nacosProperties.put(PropertyKeyConst.ACCESS_KEY, properties.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
         // secret key for namespace
         nacosProperties.put(PropertyKeyConst.SECRET_KEY, properties.getProperty(PropertyKeyConst.SECRET_KEY, ""));
+
         try {
             this.configService = ConfigFactory.createConfigService(nacosProperties);
             this.namingService = NamingFactory.createNamingService(nacosProperties);
         } catch (NacosException e) {
             throw new ShenyuException(e);
         }
+
         subscribe();
     }
 
@@ -110,7 +115,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private void subscribeRpcTypeService(final RpcTypeEnum rpcType) {
         final String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType.getName());
-
         try {
             Map<String, List<URIRegisterDTO>> services = new HashMap<>();
             List<Instance> healthyInstances = namingService.selectInstances(serviceName, true);
@@ -124,11 +128,9 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
                 services.computeIfAbsent(contextPath, k -> new ArrayList<>()).add(uriRegisterDTO);
                 uriServiceCache.computeIfAbsent(serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
             });
-
             if (RPC_URI_TYPE_SET.contains(rpcType)) {
                 services.values().forEach(this::publishRegisterURI);
             }
-
             LOGGER.info("subscribe uri : {}", serviceName);
             namingService.subscribe(serviceName, event -> {
                 if (event instanceof NamingEvent) {
@@ -147,7 +149,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
 
     private void subscribeMetadata(final String serviceConfigName) {
         registerMetadata(readData(serviceConfigName));
-
         LOGGER.info("subscribe metadata: {}", serviceConfigName);
         try {
             configService.addListener(serviceConfigName, defaultGroup, new Listener() {
@@ -185,7 +186,6 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
     private void registerURI(final String contextPath, final String serviceName, final RpcTypeEnum rpcType) {
         try {
             List<Instance> healthyInstances = namingService.selectInstances(serviceName, true);
-
             List<URIRegisterDTO> registerDTOList = new ArrayList<>();
             healthyInstances.forEach(healthyInstance -> {
                 if (contextPath.equals(healthyInstance.getMetadata().get("contextPath"))) {
@@ -200,13 +200,12 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
                     }
                 }
             });
-
             if (!RPC_URI_TYPE_SET.contains(rpcType)) {
                 return;
             }
             if (registerDTOList.isEmpty()) {
                 URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
-                uriRegisterDTO.setContextPath("/" + contextPath);
+                uriRegisterDTO.setContextPath(Constants.PATH_SEPARATOR + contextPath);
                 registerDTOList.add(uriRegisterDTO);
             }
             publishRegisterURI(registerDTOList);

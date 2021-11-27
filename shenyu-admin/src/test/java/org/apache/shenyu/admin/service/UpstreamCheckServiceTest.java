@@ -18,30 +18,39 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
+import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
+import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.ZombieUpstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.reflect.Whitebox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -52,15 +61,17 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for UpstreamCheckService.
  */
 @RunWith(MockitoJUnitRunner.class)
+@PrepareForTest(UpstreamCheckService.class)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
@@ -70,6 +81,10 @@ public final class UpstreamCheckServiceTest {
     private static final String MOCK_SELECTOR_NAME_OTHER = "mockSelectorNameOther";
 
     private static final String MOCK_PLUGIN_ID = "mockPluginId";
+
+    private static Logger loggerSpy;
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
     private UpstreamCheckService upstreamCheckService;
 
@@ -84,12 +99,27 @@ public final class UpstreamCheckServiceTest {
 
     @Mock
     private SelectorConditionMapper selectorConditionMapper;
+    
+    private SelectorHandleConverterFactor converterFactor;
 
     private ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
 
     private Map<String, List<DivideUpstream>> upstreamMap;
 
     private Set<ZombieUpstream> zombieSet;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckService.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
     public void setUp() {
@@ -98,8 +128,10 @@ public final class UpstreamCheckServiceTest {
         // get static variable reference by reflection
         upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
         zombieSet = (Set<ZombieUpstream>) ReflectionTestUtils.getField(UpstreamCheckService.class, "ZOMBIE_SET");
-
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig);
+        Map<String, SelectorHandleConverter> maps = new HashMap<>();
+        maps.put(PluginEnum.DIVIDE.getName(), new DivideSelectorHandleConverter());
+        converterFactor = new SelectorHandleConverterFactor(maps);
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig, converterFactor);
     }
 
     @Test
@@ -118,17 +150,6 @@ public final class UpstreamCheckServiceTest {
                 .name("UrlReachable")
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
-
-        when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
-        when(selectorMapper.selectByName(anyString())).then(invocationOnMock -> {
-            Object[] args = invocationOnMock.getArguments();
-            if ("UrlError".equals(args[0])) {
-                return selectorDOWithUrlError;
-            } else if ("UrlReachable".equals(args[0])) {
-                return selectorDOWithUrlReachable;
-            }
-            return null;
-        });
         try (MockedStatic<UpstreamCheckUtils> mocked = mockStatic(UpstreamCheckUtils.class)) {
             mocked.when(() -> UpstreamCheckUtils.checkUrl("ReachableUrl"))
                     .thenReturn(true);
@@ -193,11 +214,13 @@ public final class UpstreamCheckServiceTest {
                 .build();
         SelectorDO selectorDOWithUrlError = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
+                .id(MOCK_SELECTOR_NAME)
                 .name(MOCK_SELECTOR_NAME)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
                 .build();
         SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
+                .id(MOCK_SELECTOR_NAME_OTHER)
                 .name(MOCK_SELECTOR_NAME_OTHER)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
@@ -213,7 +236,7 @@ public final class UpstreamCheckServiceTest {
         Properties properties = new Properties();
         properties.setProperty(Constants.IS_CHECKED, "true");
         shenyuRegisterCenterConfig.setProps(properties);
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig);
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig, converterFactor);
         ScheduledThreadPoolExecutor executor = Whitebox.getInternalState(upstreamCheckService, "executor");
         assertNotNull(executor);
         upstreamCheckService.close();
@@ -231,14 +254,14 @@ public final class UpstreamCheckServiceTest {
                 .upstreamHost("ErrorUrl")
                 .build();
         ZombieUpstream zombieUpstream1 = ZombieUpstream.builder()
-                .divideUpstream(divideUpstream1)
+                .commonUpstream(divideUpstream1)
                 .zombieCheckTimes(5)
-                .selectorName("UrlReachable")
+                .selectorId("UrlReachable")
                 .build();
         ZombieUpstream zombieUpstream2 = ZombieUpstream.builder()
-                .divideUpstream(divideUpstream2)
+                .commonUpstream(divideUpstream2)
                 .zombieCheckTimes(5)
-                .selectorName("UrlError")
+                .selectorId("UrlError")
                 .build();
 
         zombieSet.add(zombieUpstream1);

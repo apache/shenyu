@@ -21,6 +21,7 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Join
 public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepository {
@@ -58,7 +60,8 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
     private final Map<String, Long> indexMap = new HashMap<>();
 
     @Override
-    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher,
+                     final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
     }
 
@@ -113,8 +116,8 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
         Map<String, List<URIRegisterDTO>> map = new HashMap<>();
         List<ServiceInstance> instances = discoveryClient.getAllInstances();
         instances.forEach(serviceInstance -> {
-            String data = serviceInstance.getMetadata().get("uri");
-            if (null != data) {
+            String data = serviceInstance.getMetadata().get(Constants.URI);
+            if (Objects.nonNull(data)) {
                 URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(data, URIRegisterDTO.class);
                 String contextPath = uriRegisterDTO.getContextPath();
                 map.putIfAbsent(contextPath, new ArrayList<>());
@@ -127,11 +130,11 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
     }
 
     private boolean metadataChanged(final String path, final long index) {
-        boolean result = !indexMap.containsKey(path) || indexMap.get(path) < index;
-        if (result) {
+        boolean hasResult = !indexMap.containsKey(path) || indexMap.get(path) < index;
+        if (hasResult) {
             indexMap.put(path, index);
         }
-        return result;
+        return hasResult;
     }
 
 }

@@ -18,12 +18,14 @@
 package org.apache.shenyu.client.springcloud.init;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -41,44 +43,43 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
     private final Boolean isFull;
-
-    private Environment env;
+    
+    private final String host;
 
     private String contextPath;
-
-    private final String host;
+    
+    private final String appName;
+    
+    private final Integer port;
 
     /**
      * Instantiates a new Context register listener.
      *
      * @param config the config
      * @param env    the env
-     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public ContextRegisterListener(final PropertiesConfig config, final Environment env) {
         Properties props = config.getProps();
-        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        this.host = props.getProperty("host");
+        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        this.contextPath = contextPath;
         if (isFull) {
-            String registerType = config.getRegisterType();
-            String serverLists = config.getServerLists();
-            String contextPath = props.getProperty("contextPath");
-            String appName = env.getProperty("spring.application.name");
-            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                    || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
-                String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
+            if (StringUtils.isBlank(contextPath)) {
+                String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
-                throw new RuntimeException(errorMsg);
+                throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
-            this.env = env;
-            this.contextPath = contextPath;
-            publisher.start(shenyuClientRegisterRepository);
+            this.contextPath = contextPath + "/**";
         }
+        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
+        this.appName = env.getProperty("spring.application.name");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        this.port = port;
     }
 
     @Override
@@ -89,23 +90,30 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (isFull) {
             publisher.publishEvent(buildMetaDataDTO());
         }
+        publisher.publishEvent(buildURIRegisterDTO());
+    }
+    
+    private URIRegisterDTO buildURIRegisterDTO() {
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+        return URIRegisterDTO.builder()
+                .contextPath(this.contextPath)
+                .appName(appName)
+                .host(host)
+                .port(port)
+                .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                .build();
+        
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
         String contextPath = this.contextPath;
-        String appName = env.getProperty("spring.application.name");
-        Integer port = env.getProperty("server.port", Integer.class, 8080);
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        String path = contextPath + "/**";
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
-                .host(host)
-                .port(port)
-                .path(path)
+                .path(contextPath)
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(true)
-                .ruleName(path)
+                .ruleName(contextPath)
                 .build();
     }
 }

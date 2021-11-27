@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -33,10 +36,6 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.apache.shenyu.admin.model.query.RuleConditionQuery;
-import org.apache.shenyu.admin.model.query.RuleQuery;
-import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
-import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PluginService;
@@ -51,12 +50,13 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -66,6 +66,8 @@ import java.util.stream.Collectors;
 public class PluginServiceImpl implements PluginService {
 
     private final PluginMapper pluginMapper;
+
+    private final PluginHandleMapper pluginHandleMapper;
 
     private final SelectorMapper selectorMapper;
 
@@ -80,6 +82,7 @@ public class PluginServiceImpl implements PluginService {
     private final ResourceService resourceService;
 
     public PluginServiceImpl(final PluginMapper pluginMapper,
+                             final PluginHandleMapper pluginHandleMapper,
                              final SelectorMapper selectorMapper,
                              final SelectorConditionMapper selectorConditionMapper,
                              final RuleMapper ruleMapper,
@@ -87,6 +90,7 @@ public class PluginServiceImpl implements PluginService {
                              final ApplicationEventPublisher eventPublisher,
                              final ResourceService resourceService) {
         this.pluginMapper = pluginMapper;
+        this.pluginHandleMapper = pluginHandleMapper;
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.ruleMapper = ruleMapper;
@@ -108,6 +112,7 @@ public class PluginServiceImpl implements PluginService {
         if (StringUtils.isNoneBlank(msg)) {
             return msg;
         }
+
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         DataEventTypeEnum eventType = DataEventTypeEnum.CREATE;
         if (StringUtils.isBlank(pluginDTO.getId())) {
@@ -133,27 +138,52 @@ public class PluginServiceImpl implements PluginService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
-        for (String id : ids) {
-            PluginDO pluginDO = pluginMapper.selectById(id);
-            if (Objects.isNull(pluginDO)) {
-                return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
-            }
-            pluginMapper.delete(id);
-            deletePluginDataFromResourceAndPermission(pluginDO.getName());
-            final List<SelectorDO> selectorDOList = selectorMapper.selectByQuery(new SelectorQuery(id, null, null));
-            selectorDOList.forEach(selectorDO -> {
-                final List<RuleDO> ruleDOS = ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null, null));
-                ruleDOS.forEach(ruleDO -> {
-                    ruleMapper.delete(ruleDO.getId());
-                    ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
-                });
-                selectorMapper.delete(selectorDO.getId());
-                selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
-            });
-            // publish change event.
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
-                    Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+        // 1. select plugin id.
+        List<PluginDO> plugins = Optional.ofNullable(this.pluginMapper.selectByIds(ids))
+                .orElse(Collections.emptyList());
+        final List<String> pluginIds = plugins.stream()
+                .map(PluginDO::getId).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(pluginIds)) {
+            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
+
+        // 2. delete plugins.
+        this.pluginMapper.deleteByIds(pluginIds);
+        // 3. delete plugin handle.
+        this.pluginHandleMapper.deleteByPluginIds(pluginIds);
+
+        // 4. all selectors.
+        final List<String> selectorIds = Optional.ofNullable(this.selectorMapper.findByPluginIds(pluginIds))
+                .orElse(Collections.emptyList())
+                .stream().map(SelectorDO::getId).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(selectorIds)) {
+            // delete all selectors
+            this.selectorMapper.deleteByIds(selectorIds);
+            // delete all selector conditions
+            this.selectorConditionMapper.deleteBySelectorIds(selectorIds);
+            // delete all rules
+            final List<String> ruleIds = Optional.ofNullable(this.ruleMapper.findBySelectorIds(selectorIds))
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(RuleDO::getId)
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(ruleIds)) {
+                this.ruleMapper.deleteByIds(ruleIds);
+                // delete all rule conditions
+                this.ruleConditionMapper.deleteByRuleIds(ruleIds);
+            }
+        }
+
+        // 5. delete resource & permission.
+        final List<ResourceVO> resources = this.resourceService.listByTitles(plugins.stream()
+                .map(PluginDO::getName).collect(Collectors.toList()));
+        if (CollectionUtils.isNotEmpty(resources)) {
+            this.resourceService.delete(resources.stream().map(ResourceVO::getId).collect(Collectors.toList()));
+        }
+
+        // 6. publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
+                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
         return StringUtils.EMPTY;
     }
 
@@ -166,6 +196,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
+        List<PluginDO> plugins = new ArrayList<>(ids.size());
         for (String id : ids) {
             PluginDO pluginDO = pluginMapper.selectById(id);
             if (Objects.isNull(pluginDO)) {
@@ -174,10 +205,13 @@ public class PluginServiceImpl implements PluginService {
             pluginDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
             pluginDO.setEnabled(enabled);
             pluginMapper.updateEnable(pluginDO);
+            plugins.add(pluginDO);
+        }
 
-            // publish change event.
+        // publish change event.
+        if (CollectionUtils.isNotEmpty(plugins)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                    Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+                    plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
         }
         return StringUtils.EMPTY;
     }
@@ -200,9 +234,9 @@ public class PluginServiceImpl implements PluginService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
         return PageResultUtils.result(pluginQuery.getPageParameter(),
-            () -> pluginMapper.countByQuery(pluginQuery),
             () -> pluginMapper.selectByQuery(pluginQuery).stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
     }
 
@@ -226,6 +260,17 @@ public class PluginServiceImpl implements PluginService {
     }
 
     /**
+     * Find by name plugin do.
+     *
+     * @param name the name
+     * @return the plugin do
+     */
+    @Override
+    public PluginDO findByName(final String name) {
+        return pluginMapper.selectByName(name);
+    }
+
+    /**
      * check plugin Data integrity.
      *
      * @param pluginDTO {@linkplain PluginDTO}
@@ -243,18 +288,6 @@ public class PluginServiceImpl implements PluginService {
             }
         }
         return StringUtils.EMPTY;
-    }
-
-    /**
-     * delete plugin resource from resource and permission.
-     *
-     * @param pluginName plugin name
-     */
-    private void deletePluginDataFromResourceAndPermission(final String pluginName) {
-        ResourceVO resourceVO = resourceService.findByTitle(pluginName);
-        if (!ObjectUtils.isEmpty(resourceVO)) {
-            resourceService.delete(Collections.singletonList(resourceVO.getId()));
-        }
     }
 
     /**

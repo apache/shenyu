@@ -27,7 +27,12 @@ import com.qq.tars.protocol.annotation.Servant;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
 import org.apache.shenyu.plugin.tars.util.PrxInfoUtil;
@@ -37,10 +42,6 @@ import org.assertj.core.internal.bytebuddy.description.annotation.AnnotationDesc
 import org.assertj.core.internal.bytebuddy.description.modifier.Visibility;
 import org.assertj.core.internal.bytebuddy.dynamic.DynamicType;
 import org.assertj.core.internal.bytebuddy.dynamic.loading.ClassLoadingStrategy;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,10 +64,8 @@ public final class ApplicationConfigCache {
 
     private static final ReentrantLock LOCK = new ReentrantLock();
 
-    private final int maxCount = 1000;
-
     private final LoadingCache<String, TarsInvokePrxList> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .build(new CacheLoader<String, TarsInvokePrxList>() {
                 @Override
                 public TarsInvokePrxList load(final String key) {
@@ -80,7 +79,7 @@ public final class ApplicationConfigCache {
 
     private final ConcurrentHashMap<String, TarsParamInfo> prxParamCache = new ConcurrentHashMap<>();
 
-    private final ConcurrentHashMap<String, List<DivideUpstream>> refreshUpstreamCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<TarsUpstream>> refreshUpstreamCache = new ConcurrentHashMap<>();
 
     private final Communicator communicator;
 
@@ -178,7 +177,7 @@ public final class ApplicationConfigCache {
      * @return the key
      */
     public static String getClassMethodKey(final String className, final String methodName) {
-        return className + "_" + methodName;
+        return String.join("_", className, methodName);
     }
 
     /**
@@ -197,8 +196,8 @@ public final class ApplicationConfigCache {
      */
     public void initPrxClass(final SelectorData selectorData) {
         try {
-            final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
-            if (null == upstreamList || upstreamList.size() == 0) {
+            final List<TarsUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), TarsUpstream.class);
+            if (CollectionUtils.isEmpty(upstreamList)) {
                 invalidate(selectorData.getName());
                 return;
             }
@@ -218,14 +217,14 @@ public final class ApplicationConfigCache {
      * @param metaData     metaData
      * @param upstreamList upstream list
      */
-    private void refreshTarsInvokePrxList(final MetaData metaData, final List<DivideUpstream> upstreamList) throws NoSuchMethodException, ExecutionException {
+    private void refreshTarsInvokePrxList(final MetaData metaData, final List<TarsUpstream> upstreamList) throws NoSuchMethodException, ExecutionException {
         Class<?> prxClass = prxClassCache.get(metaData.getPath());
         if (Objects.isNull(prxClass)) {
             return;
         }
         TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
         tarsInvokePrxList.getTarsInvokePrxList().clear();
-        if (tarsInvokePrxList.getMethod() == null) {
+        if (Objects.isNull(tarsInvokePrxList.getMethod())) {
             TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
             Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
             Method method = prx.getClass().getDeclaredMethod(
@@ -247,9 +246,7 @@ public final class ApplicationConfigCache {
      */
     public void invalidate(final String contextPath) {
         List<MetaData> metaDataList = ctxPathCache.getOrDefault(contextPath, new ArrayList<>());
-        for (MetaData metaData : metaDataList) {
-            cache.invalidate(metaData.getPath());
-        }
+        metaDataList.forEach(metaData -> cache.invalidate(metaData.getPath()));
     }
 
     /**

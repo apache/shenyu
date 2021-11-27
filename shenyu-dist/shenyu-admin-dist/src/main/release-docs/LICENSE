@@ -330,6 +330,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     encoder 1.2.2: https://www.owasp.org/index.php/OWASP_Java_Encoder_Project/encoder, BSD 3-Clause
     kryo-shaded 4.0.0: https://github.com/EsotericSoftware/kryo/kryo-shaded, BSD 2-Clause
     minlog 1.3.0: https://github.com/EsotericSoftware/minlog, BSD 2-Clause
+    postgresql 42.2.8: https://github.com/pgjdbc/pgjdbc, BSD 2-Clause
     protobuf-java 3.11.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.11.0: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
 
@@ -368,7 +369,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     java-jwt 3.12.0: https://mvnrepository.com/artifact/com.auth0/java-jwt, MIT
     jcl-over-slf4j 1.7.29: https://www.slf4j.org, MIT
     jul-to-slf4j 1.7.29: http://www.slf4j.org, MIT
-    lombok 1.18.12: https://projectlombok.org, MIT
     pagehelper 5.1.2: https://github.com/pagehelper/Mybatis-PageHelper, MIT
     slf4j-api 1.7.29: https://www.slf4j.org, MIT
 
@@ -482,3 +482,12 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
    stylelint 9.2.1: https://stylelint.io, MIT
    stylelint-config-prettier 3.0.4: https://github.com/prettier/stylelint-config-prettier, MIT
    stylelint-config-standard 18.0.0: https://github.com/stylelint/stylelint-config-standard, MIT
+
+========================================================================
+CDDL licenses
+========================================================================
+
+The following components are provided under the CDDL License. See project link for details.
+The text of each license is also included at licenses/LICENSE-[project].txt.
+
+    jaxb-api 2.3.0: https://javaee.github.io/jaxb-v2, CDDL 1.1 and GPLv2

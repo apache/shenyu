@@ -23,8 +23,8 @@ import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
 import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
 import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
+import org.apache.shenyu.examples.motan.service.config.RegistryProperties;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
@@ -40,7 +40,6 @@ public class TestMotanApplication {
      * @param args startup arguments
      */
     public static void main(final String[] args) {
-        System.setProperty("server.port", "8081");
         SpringApplication.run(TestMotanApplication.class, args);
         MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
     }
@@ -62,10 +61,10 @@ public class TestMotanApplication {
     }
 
     @Bean(name = "registryConfig1")
-    public RegistryConfigBean registryConfig() {
+    public RegistryConfigBean registryConfig(RegistryProperties properties) {
         RegistryConfigBean config = new RegistryConfigBean();
-        config.setRegProtocol("zookeeper");
-        config.setAddress("localhost:2181");
+        config.setRegProtocol(properties.getProtocol());
+        config.setAddress(properties.getAddress());
         return config;
     }
 

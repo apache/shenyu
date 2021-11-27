@@ -145,7 +145,6 @@ public final class RuleServiceTest {
         parameter.setTotalCount(10);
         parameter.setTotalPage(parameter.getTotalCount() / parameter.getPageSize());
         RuleQuery ruleQuery = new RuleQuery("456", null, parameter);
-        given(this.ruleMapper.countByQuery(ruleQuery)).willReturn(10);
         List<RuleDO> ruleDOList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             RuleDO ruleDO = buildRuleDO(String.valueOf(i));
@@ -220,14 +219,14 @@ public final class RuleServiceTest {
     private void testRegisterCreate() {
         RuleDTO ruleDTO = buildRuleDTO("");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
-        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
+        String ruleId = this.ruleService.registerDefault(ruleDTO);
         assertNotNull(ruleId);
         assertEquals(ruleId.length(), ruleDO.getId().length());
     }
 
     private void testRegisterUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
+        String ruleId = this.ruleService.registerDefault(ruleDTO);
         assertNotNull(ruleId);
         assertEquals(ruleId, ruleDTO.getId());
     }

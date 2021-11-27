@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import org.apache.shenyu.common.utils.UriUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
+import java.util.Objects;
 
 /**
  * The Uri Util test.
@@ -33,7 +35,7 @@ public final class UriUtilsTest {
     @Test
     public void createUriTest() {
         URI uri = UriUtils.createUri("/SHENYU/TEST");
-        Assert.assertEquals(uri.getPath(), "/SHENYU/TEST");
+        Assert.assertEquals(Objects.requireNonNull(uri).getPath(), "/SHENYU/TEST");
         Assert.assertNull(UriUtils.createUri(""));
     }
 }

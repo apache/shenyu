@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ConsulSyncDataService extends ConsulCacheHandler implements AutoCloseable, SyncDataService {
     /**
-     * logger. 
+     * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ConsulSyncDataService.class);
 
@@ -57,9 +58,9 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
 
     private ScheduledFuture<?> watchFuture;
 
-    private ConsulConfig consulConfig;
+    private final ConsulConfig consulConfig;
 
-    private ConsulClient consulClient;
+    private final ConsulClient consulClient;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -70,12 +71,16 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers
      */
-    public ConsulSyncDataService(final ConsulClient consulClient, final ConsulConfig consulConfig, final PluginDataSubscriber pluginDataSubscriber,
-                                 final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
+    public ConsulSyncDataService(final ConsulClient consulClient,
+                                 final ConsulConfig consulConfig,
+                                 final PluginDataSubscriber pluginDataSubscriber,
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers) {
         super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         this.consulClient = consulClient;
         this.consulConfig = consulConfig;
-        this.executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("consul-config-watch", true));
+        this.executor = new ScheduledThreadPoolExecutor(1,
+                ShenyuThreadFactory.create("consul-config-watch", true));
         consulIndexes.put(ConsulConstants.SYNC_PRE_FIX, 0L);
         initUpdateMap();
         start();
@@ -97,19 +102,19 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
             for (String context : this.consulIndexes.keySet()) {
                 try {
                     Long currentIndex = this.consulIndexes.get(context);
-                    if (currentIndex == null) {
+                    if (Objects.isNull(currentIndex)) {
                         currentIndex = ConsulConstants.INIT_CONFIG_VERSION_INDEX;
                     }
                     Response<List<GetValue>> response = this.consulClient.getKVValues(context, null,
                             new QueryParams(consulConfig.getWaitTime(), currentIndex));
-                    if (response.getValue() == null || response.getValue().isEmpty()) {
+                    if (Objects.isNull(response.getValue()) || response.getValue().isEmpty()) {
                         if (LOG.isTraceEnabled()) {
                             LOG.trace("No value for context " + context);
                         }
                         continue;
                     }
                     Long newIndex = response.getConsulIndex();
-                    if (newIndex == null || newIndex.equals(currentIndex)) {
+                    if (Objects.isNull(newIndex) || Objects.equals(newIndex, currentIndex)) {
                         if (LOG.isTraceEnabled()) {
                             LOG.trace("Same index for context " + context);
                         }
@@ -152,7 +157,7 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
 
     @Override
     public void close() {
-        if (this.running.compareAndSet(true, false) && this.watchFuture != null) {
+        if (this.running.compareAndSet(true, false) && Objects.nonNull(this.watchFuture)) {
             this.watchFuture.cancel(true);
         }
     }

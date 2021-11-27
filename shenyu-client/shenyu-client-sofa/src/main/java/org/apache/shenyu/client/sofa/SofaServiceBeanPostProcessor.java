@@ -19,16 +19,18 @@ package org.apache.shenyu.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
@@ -52,7 +56,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaServiceBeanPostProcessor.class);
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final ExecutorService executorService;
 
@@ -64,17 +68,17 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final String port;
 
-    public SofaServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String appName = props.getProperty("appName");
+    public SofaServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isEmpty(contextPath)) {
-            throw new RuntimeException("sofa client must config the contextPath");
+            throw new ShenyuClientIllegalArgumentException("sofa client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;
-        this.host = props.getProperty("host");
-        this.port = props.getProperty("port");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        this.port = props.getProperty(ShenyuClientConstants.PORT);
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-sofa-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
@@ -119,9 +123,18 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String configRuleName = shenyuSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
-        Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-                .collect(Collectors.joining(","));
+        String parameterTypes = Arrays.stream(method.getParameters())
+                .map(parameter -> {
+                    StringBuilder result = new StringBuilder(parameter.getType().getName());
+                    final Type type = parameter.getParameterizedType();
+                    if (type instanceof ParameterizedType) {
+                        final Type[] actualTypeArguments = ((ParameterizedType) type).getActualTypeArguments();
+                        for (Type actualTypeArgument : actualTypeArguments) {
+                            result.append("#").append(actualTypeArgument.getTypeName());
+                        }
+                    }
+                    return result.toString();
+                }).collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
@@ -133,7 +146,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcType("sofa")
+                .rpcType(RpcTypeEnum.SOFA.getName())
                 .rpcExt(buildRpcExt(shenyuSofaClient))
                 .enabled(shenyuSofaClient.enabled())
                 .build();

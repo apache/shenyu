@@ -86,6 +86,14 @@ public interface RuleConditionMapper {
     int delete(String id);
 
     /**
+     * delete rule condition.
+     *
+     * @param ruleIds the rule ids
+     * @return rows
+     */
+    int deleteByRuleIds(List<String> ruleIds);
+
+    /**
      * delete rule condition by query.
      *
      * @param ruleConditionQuery {@linkplain RuleConditionQuery}

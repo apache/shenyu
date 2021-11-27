@@ -42,15 +42,13 @@ public class IpParameterDataTest {
 
     private IpParameterData ipParameterData;
 
-    private RemoteAddressResolver remoteAddressResolver;
-
     private final String testHost = "127.0.0.1";
 
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
-        this.remoteAddressResolver = new RemoteAddressResolver() {
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
 
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")

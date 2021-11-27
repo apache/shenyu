@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-dist</artifactId>
-        <version>2.4.1-SNAPSHOT</version>
+        <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-bootstrap-dist</artifactId>
@@ -28,6 +28,11 @@
     <packaging>pom</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-agent-bootstrap</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-bootstrap</artifactId>
@@ -50,7 +55,7 @@
         <profile>
             <id>release</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <finalName>apache-shenyu-incubating-${project.version}</finalName>
@@ -88,18 +93,29 @@
                     <plugin>
                         <groupId>com.spotify</groupId>
                         <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>1.4.6</version>
+                        <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>shenyu-bootstrap</id>
+                                <id>tag-latest</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
+                                <configuration>
+                                    <tag>latest</tag>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>tag-version</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <configuration>
+                                    <tag>${project.version}</tag>
+                                </configuration>
                             </execution>
                         </executions>
                         <configuration>
                             <repository>apache/shenyu-bootstrap</repository>
-                            <tag>${project.version}</tag>
                             <buildArgs>
                                 <APP_NAME>apache-shenyu-incubating-${project.version}-bootstrap-bin</APP_NAME>
                             </buildArgs>

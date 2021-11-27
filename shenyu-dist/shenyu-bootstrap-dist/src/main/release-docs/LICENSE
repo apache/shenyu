@@ -413,6 +413,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jboss-annotations-api_1.3_spec 1.0.1.Final: http://www.jboss.org/jboss-annotations-api_1.3_spec, CDDL 1.1 and GPLv2
     jboss-jaxb-api_2.3_spec 1.0.1.Final: http://www.jboss.org/jboss-jaxb-api_2.3_spec, CDDL 1.1 and GPLv2
     jboss-jaxrs-api_2.1_spec 1.0.2.Final: http://www.jboss.org/jboss-jaxrs-api_2.1_spec, CDDL 1.1 and GPLv2
+    jaxb-api 2.3.0: https://javaee.github.io/jaxb-v2, CDDL 1.1 and GPLv2
 
 ========================================================================
 EPL licenses
@@ -440,7 +441,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     Java-WebSocket 1.5.0: https://github.com/TooTallNate/Java-WebSocket, MIT
     jcl-over-slf4j 1.7.29: https://www.slf4j.org, MIT
     jul-to-slf4j 1.7.29: http://www.slf4j.org, MIT
-    lombok 1.18.12: https://projectlombok.org, MIT
     slf4j-api 1.7.29: https://www.slf4j.org, MIT
 
 ========================================================================

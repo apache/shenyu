@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -89,10 +90,12 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public String register(final RuleDTO ruleDTO, final String name, final boolean metaDataIsNull) {
-        if (Objects.nonNull(ruleMapper.findByName(name)) || metaDataIsNull) {
+    public String registerDefault(final RuleDTO ruleDTO) {
+        RuleDO exist = ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName());
+        if (Objects.nonNull(exist)) {
             return "";
         }
+
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
@@ -193,9 +196,9 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_RULE)
+    @Pageable
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
         return PageResultUtils.result(ruleQuery.getPageParameter(),
-            () -> ruleMapper.countByQuery(ruleQuery),
             () -> ruleMapper.selectByQuery(ruleQuery).stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
     }
 
@@ -234,21 +237,23 @@ public class RuleServiceImpl implements RuleService {
     }
 
     private RuleData buildRuleData(final RuleDO ruleDO) {
-        // query for conditions
-        List<ConditionData> conditions = ruleConditionMapper.selectByQuery(
-                new RuleConditionQuery(ruleDO.getId()))
-                .stream()
-                .filter(Objects::nonNull)
-                .map(ConditionTransfer.INSTANCE::mapToRuleDO)
-                .collect(Collectors.toList());
         SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
         if (Objects.isNull(selectorDO)) {
             return null;
         }
+
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         if (Objects.isNull(pluginDO)) {
             return null;
         }
+
+        // query for conditions
+        List<ConditionData> conditions = ruleConditionMapper.selectByQuery(
+                        new RuleConditionQuery(ruleDO.getId()))
+                .stream()
+                .filter(Objects::nonNull)
+                .map(ConditionTransfer.INSTANCE::mapToRuleDO)
+                .collect(Collectors.toList());
         return RuleDO.transFrom(ruleDO, pluginDO.getName(), conditions);
     }
 }

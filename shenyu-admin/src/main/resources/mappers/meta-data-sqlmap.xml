@@ -72,14 +72,10 @@
         select
         <include refid="Base_Column_List"/>
         from meta_data
-        <if test="appName != null">
-            where app_name = #{appName,jdbcType=VARCHAR}
+        <if test="appName != null and appName != ''">
+            <bind name="appNameLike" value="('%' + appName + '%')"/>
+            where app_name LIKE #{appNameLike,jdbcType=VARCHAR}
         </if>
-
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
-        </if>
-
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.MetaDataQuery" resultType="java.lang.Integer">
@@ -113,7 +109,7 @@
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.MetaDataDO">
         update meta_data
-        set  app_name = #{appName,jdbcType=VARCHAR},
+        set app_name = #{appName,jdbcType=VARCHAR},
         path = #{path,jdbcType=VARCHAR},
         path_desc = #{pathDesc,jdbcType=VARCHAR},
         rpc_type = #{rpcType,jdbcType=VARCHAR},
@@ -126,7 +122,7 @@
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         update meta_data
-        set  enabled = #{enabled,jdbcType=TINYINT}
+        set enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

@@ -52,7 +52,7 @@ public class MotanProxyService {
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-
+    @SuppressWarnings("all")
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         RefererConfig<CommonHandler> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
@@ -62,23 +62,22 @@ public class MotanProxyService {
         CommonHandler commonHandler = reference.getRef();
         ApplicationConfigCache.MotanParamInfo motanParamInfo = ApplicationConfigCache.PARAM_MAP.get(metaData.getMethodName());
         Object[] params;
-        if (motanParamInfo == null) {
+        if (Objects.isNull(motanParamInfo)) {
             params = new Object[0];
         } else {
             int num = motanParamInfo.getParamTypes().length;
             params = new Object[num];
+            Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
             for (int i = 0; i < num; i++) {
-                Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
                 params[i] = bodyMap.get(motanParamInfo.getParamNames()[i]).toString();
             }
         }
         ResponseFuture responseFuture;
         //CHECKSTYLE:OFF IllegalCatch
         try {
-            responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(),
-                    params, Object.class);
+            responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(), params, Object.class);
         } catch (Throwable e) {
-            LOG.error("Exception caught in MotanProxyService#genericInvoker.");
+            LOG.error("Exception caught in MotanProxyService#genericInvoker.", e);
             return null;
         }
         //CHECKSTYLE:ON IllegalCatch
@@ -88,19 +87,9 @@ public class MotanProxyService {
             if (Objects.isNull(ret)) {
                 ret = Constants.MOTAN_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.MOTAN_RPC_RESULT, ret);
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new);
     }
-
-//    private GenericMessage buildGenericMessage(String name, Map<String, Object> map) {
-//        GenericMessage message = new GenericMessage();
-//        message.setName(name);
-//        for (Map.Entry<String, Object> e : map.entrySet()) {
-//            int nameIndex = CommonSerializer.getHash(e.getKey());
-//            message.putFields(nameIndex,e.getValue());
-//        }
-//        return message;
-//    }
 }

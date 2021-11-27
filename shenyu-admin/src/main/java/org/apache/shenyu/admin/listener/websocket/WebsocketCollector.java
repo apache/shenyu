@@ -21,7 +21,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.utils.ThreadLocalUtil;
+import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,8 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -67,11 +69,10 @@ public class WebsocketCollector {
         if (MapUtils.isEmpty(userProperties)) {
             return StringUtils.EMPTY;
         }
-        Object ipObject = userProperties.get(WebsocketListener.CLIENT_IP_NAME);
-        if (null == ipObject) {
-            return StringUtils.EMPTY;
-        }
-        return ipObject.toString();
+
+        return Optional.ofNullable(userProperties.get(WebsocketListener.CLIENT_IP_NAME))
+                .map(Object::toString)
+                .orElse(StringUtils.EMPTY);
     }
 
     /**
@@ -82,14 +83,17 @@ public class WebsocketCollector {
      */
     @OnMessage
     public void onMessage(final String message, final Session session) {
-        if (message.equals(DataEventTypeEnum.MYSELF.name())) {
-            try {
-                ThreadLocalUtil.put(SESSION_KEY, session);
-                SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
-            } finally {
-                ThreadLocalUtil.clear();
-            }
+        if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
+            return;
         }
+
+        try {
+            ThreadLocalUtils.put(SESSION_KEY, session);
+            SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
+        } finally {
+            ThreadLocalUtils.clear();
+        }
+
     }
 
     /**
@@ -100,7 +104,7 @@ public class WebsocketCollector {
     @OnClose
     public void onClose(final Session session) {
         SESSION_SET.remove(session);
-        ThreadLocalUtil.clear();
+        ThreadLocalUtils.clear();
         LOG.warn("websocket close on client[{}]", getClientIp(session));
     }
 
@@ -113,7 +117,7 @@ public class WebsocketCollector {
     @OnError
     public void onError(final Session session, final Throwable error) {
         SESSION_SET.remove(session);
-        ThreadLocalUtil.clear();
+        ThreadLocalUtils.clear();
         LOG.error("websocket collection on client[{}] error: ", getClientIp(session), error);
     }
 
@@ -124,19 +128,22 @@ public class WebsocketCollector {
      * @param type    the type
      */
     public static void send(final String message, final DataEventTypeEnum type) {
-        if (StringUtils.isNotBlank(message)) {
-            if (DataEventTypeEnum.MYSELF == type) {
-                Session session = (Session) ThreadLocalUtil.get(SESSION_KEY);
-                if (session != null) {
-                    sendMessageBySession(session, message);
-                }
-            } else {
-                SESSION_SET.forEach(session -> sendMessageBySession(session, message));
-            }
+        if (StringUtils.isBlank(message)) {
+            return;
         }
+
+        if (DataEventTypeEnum.MYSELF == type) {
+            Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
+            if (Objects.nonNull(session)) {
+                sendMessageBySession(session, message);
+            }
+        } else {
+            SESSION_SET.forEach(session -> sendMessageBySession(session, message));
+        }
+
     }
 
-    private static void sendMessageBySession(final Session session, final String message) {
+    private static synchronized void sendMessageBySession(final Session session, final String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {

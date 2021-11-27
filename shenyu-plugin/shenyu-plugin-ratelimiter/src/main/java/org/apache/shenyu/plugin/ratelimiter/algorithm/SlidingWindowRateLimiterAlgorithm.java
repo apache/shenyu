@@ -30,9 +30,8 @@ import java.util.List;
 @Join
 public class SlidingWindowRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
 
-    @Override
-    protected String getScriptName() {
-        return RateLimitEnum.SLIDING_WINDOW.getScriptName();
+    public SlidingWindowRateLimiterAlgorithm() {
+        super(RateLimitEnum.SLIDING_WINDOW.getScriptName());
     }
 
     @Override

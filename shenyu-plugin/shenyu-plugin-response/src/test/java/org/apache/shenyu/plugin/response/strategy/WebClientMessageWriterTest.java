@@ -57,7 +57,7 @@ public class WebClientMessageWriterTest {
     @Before
     public void setup() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setCfgContext(context);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
         chain = mock(ShenyuPluginChain.class);
         webClientMessageWriter = new WebClientMessageWriter();
@@ -113,7 +113,7 @@ public class WebClientMessageWriterTest {
                 .from(MockServerHttpRequest.get("/test").build());
 
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+        exchange.getAttributes().put(Constants.HTTP_URI, "/test");
         if (haveResponse) {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, mockResponse);
         }

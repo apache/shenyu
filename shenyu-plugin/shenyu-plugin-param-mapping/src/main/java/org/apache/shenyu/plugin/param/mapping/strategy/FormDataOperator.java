@@ -18,9 +18,9 @@
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
 import com.jayway.jsonpath.DocumentContext;
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
@@ -58,7 +58,7 @@ public class FormDataOperator implements Operator {
     private static final Logger LOG = LoggerFactory.getLogger(FormDataOperator.class);
 
     @Override
-    public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingHandle paramMappingHandle) {
+    public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingRuleHandle paramMappingRuleHandle) {
         return exchange.getFormData()
                 .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
                 .flatMap(multiValueMap -> {
@@ -67,7 +67,7 @@ public class FormDataOperator implements Operator {
                     }
                     String original = GsonUtils.getInstance().toJson(multiValueMap);
                     LOG.info("get from data success data:{}", original);
-                    String modify = operation(original, paramMappingHandle);
+                    String modify = operation(original, paramMappingRuleHandle);
                     if (StringUtils.isEmpty(modify)) {
                         return shenyuPluginChain.execute(exchange);
                     }
@@ -94,9 +94,9 @@ public class FormDataOperator implements Operator {
     }
 
     @Override
-    public void operation(final DocumentContext context, final ParamMappingHandle paramMappingHandle) {
-        if (!CollectionUtils.isEmpty(paramMappingHandle.getAddParameterKeys())) {
-            paramMappingHandle.getAddParameterKeys().forEach(info -> {
+    public void operation(final DocumentContext context, final ParamMappingRuleHandle paramMappingRuleHandle) {
+        if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys())) {
+            paramMappingRuleHandle.getAddParameterKeys().forEach(info -> {
                 context.put(info.getPath(), info.getKey(), Arrays.asList(info.getValue()));
             });
         }

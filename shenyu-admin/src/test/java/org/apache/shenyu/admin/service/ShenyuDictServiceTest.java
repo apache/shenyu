@@ -117,7 +117,6 @@ public final class ShenyuDictServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery("1", "t", "t_n", pageParameter);
-        given(this.shenyuDictMapper.countByQuery(shenyuDictQuery)).willReturn(10);
         List<ShenyuDictDO> shenyuDictDOList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             ShenyuDictDO shenyuDictVO = buildShenyuDictDO();

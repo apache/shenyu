@@ -40,7 +40,7 @@ public class TarsMetaDataSubscriber implements MetaDataSubscriber {
     @Override
     public void onSubscribe(final MetaData metaData) {
         metaData.updateContextPath();
-        if (RpcTypeEnum.TARS.getName().equals(metaData.getRpcType())) {
+        if (Objects.equals(RpcTypeEnum.TARS.getName(), metaData.getRpcType())) {
             MetaData metaExist = META_DATA.get(metaData.getPath());
             List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                     .get(metaData.getPath()).getTarsInvokePrxList();
@@ -57,7 +57,7 @@ public class TarsMetaDataSubscriber implements MetaDataSubscriber {
     @Override
     public void unSubscribe(final MetaData metaData) {
         metaData.updateContextPath();
-        if (RpcTypeEnum.TARS.getName().equals(metaData.getRpcType())) {
+        if (Objects.equals(RpcTypeEnum.TARS.getName(), metaData.getRpcType())) {
             List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                     .get(metaData.getPath()).getTarsInvokePrxList();
             List<TarsInvokePrx> removePrxList = prxList.stream()

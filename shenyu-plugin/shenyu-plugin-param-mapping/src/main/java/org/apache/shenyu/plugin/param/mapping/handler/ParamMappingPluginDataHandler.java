@@ -18,10 +18,10 @@
 package org.apache.shenyu.plugin.param.mapping.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.RuleHandleCache;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -34,13 +34,13 @@ import java.util.function.Supplier;
  */
 public class ParamMappingPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<RuleHandleCache<String, ParamMappingHandle>> CACHED_HANDLE = new BeanHolder(() -> new RuleHandleCache());
+    public static final Supplier<CommonHandleCache<String, ParamMappingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            ParamMappingHandle paramMappingHandle = GsonUtils.getInstance().fromJson(s, ParamMappingHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), paramMappingHandle);
+            ParamMappingRuleHandle paramMappingRuleHandle = GsonUtils.getInstance().fromJson(s, ParamMappingRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), paramMappingRuleHandle);
         });
     }
 

@@ -26,9 +26,12 @@ import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.SignUtils;
-import org.apache.shenyu.plugin.api.SignService;
+import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
+import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.sign.api.SignProvider;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 
@@ -38,12 +41,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * DefaultSignService Test.
@@ -97,10 +104,14 @@ public final class DefaultSignServiceTest {
         this.passed.setPath(path);
         final String timestamp = String.valueOf(System.currentTimeMillis());
         this.passed.setTimestamp(timestamp);
-        this.passed.setSign(buildSign(secretKey, timestamp, this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, timestamp, this.passed.getPath()));
         this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
+
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 
     @Test
@@ -140,9 +151,9 @@ public final class DefaultSignServiceTest {
 
     @Test
     public void overdueTest() {
-        Long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
-        this.passed.setTimestamp(errorTimestamp.toString());
-        this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
+        this.passed.setTimestamp(Long.toString(errorTimestamp));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
@@ -172,7 +183,7 @@ public final class DefaultSignServiceTest {
     @Test
     public void errorAuthPath() {
         this.passed.setPath("errorPath");
-        this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);

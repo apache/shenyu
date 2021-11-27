@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,7 +98,6 @@ public final class DashboardUserControllerTest {
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data.dataList[0].password", is("123456")))
                 .andReturn();
 
         final CommonPager<DashboardUserVO> commonPagerError = new CommonPager<>(new PageParameter(),
@@ -120,8 +120,7 @@ public final class DashboardUserControllerTest {
         final String url = "/dashboardUser/1";
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andExpect(jsonPath("$.data.password", is("123456")));
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)));
 
         given(dashboardUserService.findById(any())).willReturn(null);
         mockMvc.perform(get(url))
@@ -158,7 +157,7 @@ public final class DashboardUserControllerTest {
     @Test
     public void deleteDashboardUser() throws Exception {
         final String url = "/dashboardUser/batch";
-        final List<String> ids = Collections.emptyList();
+        final List<String> ids = Lists.newArrayList();
         given(dashboardUserService.delete(any())).willReturn(0);
         mockMvc.perform(delete(url, ids)
                 .content(GsonUtils.getInstance().toJson(ids))

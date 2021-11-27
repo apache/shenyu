@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 55290
+  port: 55222
   servlet:
     context-path: /
   address: 0.0.0.0
@@ -25,15 +25,17 @@ spring:
 
 
 shenyu:
-  client:
+  register:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      contextPath: /grpc
-      appName: grpc
-      ipAndPort: 127.0.0.1:8080
-      nacosNameSpace: ShenyuRegisterCenter
-      port: 8080
+  client:
+    grpc:
+      props:
+        contextPath: /grpc
+        appName: grpc
+        ipAndPort: 127.0.0.1:8080
+        port: 8080
 
 logging:
   level:

@@ -39,18 +39,12 @@ import java.util.Optional;
  */
 public class MonitorPlugin extends AbstractShenyuPlugin {
     
-    static {
-        MetricsReporter.registerCounter(LabelNames.REQUEST_TOTAL, "shenyu request total count");
-        MetricsReporter.registerCounter(LabelNames.HTTP_REQUEST_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
-        MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
-    }
-    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TOTAL);
         MetricsReporter.counterIncrement(LabelNames.HTTP_REQUEST_TOTAL, new String[]{exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue()});
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        LocalDateTime startDateTime = Optional.ofNullable(shenyuContext).map(ShenyuContext::getStartDateTime).orElse(LocalDateTime.now());
+        LocalDateTime startDateTime = Optional.ofNullable(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
                 .doOnError(throwable -> responseCommitted(exchange, startDateTime));
     }

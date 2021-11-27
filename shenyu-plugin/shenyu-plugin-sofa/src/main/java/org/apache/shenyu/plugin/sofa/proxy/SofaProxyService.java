@@ -31,8 +31,8 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -43,22 +43,22 @@ import java.util.concurrent.CompletableFuture;
  * sofa proxy service is use GenericService.
  */
 public class SofaProxyService {
-
-    private final BodyParamResolveService bodyParamResolveService;
+    
+    private final SofaParamResolveService sofaParamResolveService;
     
     /**
      * Instantiates a new Sofa proxy service.
      *
-     * @param bodyParamResolveService the body param resolve service
+     * @param sofaParamResolveService the sofa param resolve service
      */
-    public SofaProxyService(final BodyParamResolveService bodyParamResolveService) {
-        this.bodyParamResolveService = bodyParamResolveService;
+    public SofaProxyService(final SofaParamResolveService sofaParamResolveService) {
+        this.sofaParamResolveService = sofaParamResolveService;
     }
     
     /**
      * Generic invoker object.
      *
-     * @param body the body
+     * @param body     the body
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
@@ -70,12 +70,12 @@ public class SofaProxyService {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
-        GenericService genericService = reference.refer();
+        
         Pair<String[], Object[]> pair;
-        if (StringUtils.isBlank(metaData.getParameterTypes()) || null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
+        if (StringUtils.isBlank(metaData.getParameterTypes()) || parameterIsNone(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
-            pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
+            pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future = new CompletableFuture<>();
         RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<Object>() {
@@ -83,27 +83,39 @@ public class SofaProxyService {
             public void onAppResponse(final Object o, final String s, final RequestBase requestBase) {
                 future.complete(o);
             }
-
+            
             @Override
             public void onAppException(final Throwable throwable, final String s, final RequestBase requestBase) {
                 future.completeExceptionally(throwable);
             }
-
+            
             @Override
             public void onSofaException(final SofaRpcException e, final String s, final RequestBase requestBase) {
                 future.completeExceptionally(e);
             }
         });
+        GenericService genericService = reference.refer();
         genericService.$genericInvoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.SOFA_RPC_RESULT_EMPTY;
             }
-
+            
             GenericObject genericObject = (GenericObject) ret;
             exchange.getAttributes().put(Constants.RPC_RESULT, genericObject.getFields());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new);
+    }
+    
+    /**
+     * check request body.<br>
+     * if none [null, none, none json, null string].
+     *
+     * @param parameterBody parameter body
+     * @return check result
+     */
+    private boolean parameterIsNone(final String parameterBody) {
+        return null == parameterBody || "".equals(parameterBody) || "{}".equals(parameterBody) || "null".equals(parameterBody);
     }
 }

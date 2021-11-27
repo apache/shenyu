@@ -48,44 +48,6 @@
 
 --------------------------------------------------------------------------------
 
-# 结构图
-
-![](https://shenyu.apache.org/img/shenyu/activite/shenyu-xmind.png)
-
---------------------------------------------------------------------------------
-
-# 模块
-
- * shenyu-admin : 插件和其他信息配置的管理后台
-
- * shenyu-bootstrap : 用于启动项目，用户可以参考
-
- * shenyu-client : 用户可以使用 Spring MVC，Dubbo，Spring Cloud 快速访问
- 
- * shenyu-disruptor : 基于disruptor的封装
-  
- * shenyu-register-center : shenyu-client提供各种rpc接入注册中心的支持
-  
- * shenyu-common : 框架的通用类
-
- * shenyu-dist : 构建项目
-
- * shenyu-metrics : prometheus（普罗米修斯）实现的 metrics
-
- * shenyu-plugin : ShenYu 支持的插件集合
-
- * shenyu-spi : 定义 ShenYu spi
-
- * shenyu-spring-boot-starter : 支持 spring boot starter
-
- * shenyu-sync-data-center : 提供 ZooKeeper，HTTP，WebSocket，Nacos 的方式同步数据
-
- * shenyu-examples : RPC 示例项目
-
- * shenyu-web : 包括插件、请求路由和转发等的核心处理包
-
---------------------------------------------------------------------------------
-
 # 功能特点
 
    * 提供了诸如限流、熔断、转发 、重写、重定向、和路由监控等插件；
@@ -94,6 +56,76 @@
    * 为了灵活的适配，选择器和规则可以动态的适配；
    * 支持集群部署；
    * 支持 A/B 测试和灰度发布。
+
+--------------------------------------------------------------------------------
+
+# 快速体验
+
+### 启动Apache ShenYu Admin
+
+```
+> docker pull apache/shenyu-admin
+> docker network create shenyu
+```
+
+* 使用 `h2` 来存储后台数据：
+
+```
+> docker run -d -p 9095:9095 --net shenyu apache/shenyu-admin
+```
+
+
+### 启动Apache ShenYu Bootstrap
+
+```
+> docker network create shenyu
+> docker pull apache/shenyu-bootstrap
+> docker run -d -p 9195:9195 --net shenyu apache/shenyu-bootstrap
+```                       
+
+### 设置路由规则
+
+* 如果你有一个这样的接口 ：http://127.0.0.1:8080/helloworld,它的直接访问返回如下
+
+```json
+{
+  "name" : "Shenyu",
+  "data" : "hello world"
+}
+```
+
+* 单机模式设置路由规则
+
+```
+curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndRules' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "pluginName": "divide",
+    "selectorHandler": "[{\"upstreamUrl\":\"127.0.0.1:8080\"}]",
+    "conditionDataList": [{
+        "paramType": "uri",
+        "operator": "match",
+        "paramValue": "/**"
+    }],
+    "ruleDataList": [{
+        "ruleHandler": "{\"loadBalance\":\"random\"}",
+        "conditionDataList": [{
+            "paramType": "uri",
+            "operator": "match",
+            "paramValue": "/**"
+        }]
+    }]
+}'
+```
+
+* 通过网关代理请求：http://localhost:9195/helloworld 请求服务，返回如下：
+
+```json
+{
+  "name" : "Shenyu",
+  "data" : "hello world"
+}
+```
 
 --------------------------------------------------------------------------------
 
@@ -107,7 +139,7 @@
 
 当然，用户也可以定制化插件去满足他们自己的需求。
 
-如果你有定制化插件的需求，请参看这里：[custom-plugin](https://shenyu.apache.org/zh/projects/shenyu/custom-plugin/)
+如果你有定制化插件的需求，请参看这里：[custom-plugin](https://shenyu.apache.org/zh/docs/developer/custom-plugin)
 
 --------------------------------------------------------------------------------
 
@@ -141,18 +173,10 @@
 
 --------------------------------------------------------------------------------
 
-# 关于
-
-ShenYu 已经被很多公司广泛使用在越来越多的业务系统，它能以高性能和灵活性让我们方便快捷的集成自己的服务和 API 。
-
-在中国的双 11 购物狂欢节中，ShenYu集群成功支撑了海量的互联网业务。
-
---------------------------------------------------------------------------------
-
 # 文档 & 网站
 
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/projects/shenyu/overview)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/projects/shenyu/overview)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/docs/index)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/docs/index/)
 
 --------------------------------------------------------------------------------
 
@@ -166,4 +190,4 @@ ShenYu 已经被很多公司广泛使用在越来越多的业务系统，它能�
 
 为了便于登记，欢迎已经使用了 ShenYu 的公司在 [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) 注册。（仅适用于开源用户）
 
-所有用户 : [Known Users](https://shenyu.apache.org/awesome/)
+所有用户 : [Known Users](https://shenyu.apache.org/zh/community/user-registration/)

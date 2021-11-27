@@ -41,7 +41,7 @@ public final class SpringBeanUtilsTest {
     public void testGetBean() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(TestBean.class)).thenReturn(new TestBean());
-        springBeanUtilsUnderTest.setCfgContext(applicationContext);
+        springBeanUtilsUnderTest.setApplicationContext(applicationContext);
         final TestBean result = springBeanUtilsUnderTest.getBean(TestBean.class);
         Assert.assertNotNull(result);
     }
@@ -49,8 +49,8 @@ public final class SpringBeanUtilsTest {
     @Test
     public void testSetCfgContext() throws NoSuchFieldException {
         final ConfigurableApplicationContext cfgContext = mock(ConfigurableApplicationContext.class);
-        springBeanUtilsUnderTest.setCfgContext(cfgContext);
-        Assert.assertNotNull(springBeanUtilsUnderTest.getClass().getDeclaredField("cfgContext"));
+        springBeanUtilsUnderTest.setApplicationContext(cfgContext);
+        Assert.assertNotNull(springBeanUtilsUnderTest.getClass().getDeclaredField("applicationContext"));
     }
 
     @Test

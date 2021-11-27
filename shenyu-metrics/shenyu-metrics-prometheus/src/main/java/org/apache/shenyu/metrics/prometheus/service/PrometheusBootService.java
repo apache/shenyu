@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.management.MalformedObjectNameException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -56,10 +57,11 @@ public final class PrometheusBootService implements MetricsBootService {
     
     @Override
     public void stop() {
-        if (server != null) {
+        if (Objects.nonNull(server)) {
             server.stop();
             registered.set(false);
             CollectorRegistry.defaultRegistry.clear();
+            MetricsReporter.clean();
         }
     }
 
@@ -86,7 +88,7 @@ public final class PrometheusBootService implements MetricsBootService {
         int port = metricsConfig.getPort();
         String host = metricsConfig.getHost();
         InetSocketAddress inetSocketAddress;
-        if (null == host || "".equalsIgnoreCase(host)) {
+        if (StringUtils.isNotEmpty(host)) {
             inetSocketAddress = new InetSocketAddress(port);
         } else {
             inetSocketAddress = new InetSocketAddress(host, port);

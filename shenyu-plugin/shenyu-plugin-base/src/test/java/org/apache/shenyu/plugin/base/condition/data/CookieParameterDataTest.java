@@ -30,7 +30,7 @@ import java.net.InetSocketAddress;
 /**
  * Test cases for {@link CookieParameterData}.
  */
-public class CookieParameterDataTest {
+public final class CookieParameterDataTest {
 
     private ServerWebExchange exchange;
 

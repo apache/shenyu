@@ -37,7 +37,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status
+        id, date_created, date_updated, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf,
+        is_route, perms, status
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -54,16 +55,14 @@
         where parent_id = #{parentId,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
+            resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from resource
         where status = 1
         <if test="title != null">
             and title = #{title,jdbcType=VARCHAR}
-        </if>
-        <if test="pageParameter != null">
-            limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>
     </select>
 
@@ -77,7 +76,21 @@
         </if>
     </select>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery" resultType="java.lang.Integer">
+    <select id="selectByTitles" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where status = 1
+        <if test="list != null">
+            and title in
+            <foreach item="title" collection="list" open="(" separator="," close=")">
+                #{title,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from resource
         where status = 1
