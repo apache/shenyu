@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sofa.param;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.lang.NonNull;
 
 /**
  * The interface Generic param service.
@@ -33,5 +34,6 @@ public interface SofaParamResolveService {
      * @param parameterTypes the parameter types
      * @return the pair
      */
+    @NonNull
     Pair<String[], Object[]> buildParameter(String body, String parameterTypes);
 }

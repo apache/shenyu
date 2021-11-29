@@ -201,11 +201,21 @@ public interface Constants {
      * The constant REWRITE_URI.
      */
     String REWRITE_URI = "rewrite_uri";
-    
+
+    /**
+     * The constant URI.
+     */
+    String URI = "uri";
+
     /**
      * The constant LINE_SEPARATOR.
      */
     String LINE_SEPARATOR = System.getProperty("line.separator");
+
+    /**
+     * The constant URL_SEPARATOR.
+     */
+    String PATH_SEPARATOR = "/";
     
     /**
      * hystrix withExecutionIsolationSemaphoreMaxConcurrentRequests.
@@ -447,6 +457,11 @@ public interface Constants {
      * dubbo group.
      */
     String GROUP = "group";
+
+    /**
+     * redis script path.
+     */
+    String SCRIPT_PATH = "/META-INF/scripts/";
 
     /**
      * cache max count.

@@ -36,10 +36,10 @@ public class SofaPluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         if (null != pluginData && pluginData.getEnabled()) {
             SofaRegisterConfig sofaRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), SofaRegisterConfig.class);
-            SofaRegisterConfig exist = Singleton.INST.get(SofaRegisterConfig.class);
             if (Objects.isNull(sofaRegisterConfig)) {
                 return;
             }
+            SofaRegisterConfig exist = Singleton.INST.get(SofaRegisterConfig.class);
             if (Objects.isNull(exist) || !sofaRegisterConfig.equals(exist)) {
                 // If it is null, initialize it
                 ApplicationConfigCache.getInstance().init(sofaRegisterConfig);

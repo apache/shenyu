@@ -32,6 +32,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,8 +53,9 @@ public class OAuth2PreFilter implements WebFilter {
         this.matchers = matchers;
     }
 
+    @Nonnull
     @Override
-    public Mono<Void> filter(final ServerWebExchange serverWebExchange, final WebFilterChain webFilterChain) {
+    public Mono<Void> filter(final ServerWebExchange serverWebExchange, @Nonnull final WebFilterChain webFilterChain) {
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.OAUTH2.getName());
         boolean enable = Objects.nonNull(pluginData) && pluginData.getEnabled();
         serverWebExchange.getAttributes().put("enable", enable);

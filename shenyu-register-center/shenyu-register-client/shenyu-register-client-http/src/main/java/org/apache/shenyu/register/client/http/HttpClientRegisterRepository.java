@@ -19,7 +19,8 @@ package org.apache.shenyu.register.client.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -45,12 +46,8 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
 
     private static final String URI_PATH = "/shenyu-client/register-uri";
 
-    private static final String URI_TYPE = "uri";
-
     private List<String> serverList;
 
-    private Gson gson = new Gson();
-    
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
@@ -63,7 +60,7 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
      */
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
-        doRegister(registerDTO, URI_PATH, URI_TYPE);
+        doRegister(registerDTO, URI_PATH, Constants.URI);
     }
     
     @Override
@@ -74,7 +71,7 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
     private <T> void doRegister(final T t, final String path, final String type) {
         for (String server : serverList) {
             try {
-                RegisterUtils.doRegister(gson.toJson(t), server + path, type);
+                RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), server + path, type);
                 return;
             } catch (Exception e) {
                 LOGGER.error("register admin url :{} is fail, will retry", server);

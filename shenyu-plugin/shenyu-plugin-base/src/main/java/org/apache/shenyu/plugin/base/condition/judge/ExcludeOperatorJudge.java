@@ -18,9 +18,8 @@
 package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.spi.Join;
-
-import java.util.Objects;
 
 /**
  * Exclude predicate judge.
@@ -30,6 +29,6 @@ public class ExcludeOperatorJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return !Objects.equals(realData, conditionData.getParamValue().trim());
+        return !PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
     }
 }

@@ -72,8 +72,9 @@
         select
         <include refid="Base_Column_List"/>
         from meta_data
-        <if test="appName != null">
-            where app_name = #{appName,jdbcType=VARCHAR}
+        <if test="appName != null and appName != ''">
+            <bind name="appNameLike" value="('%' + appName + '%')"/>
+            where app_name LIKE #{appNameLike,jdbcType=VARCHAR}
         </if>
     </select>
 

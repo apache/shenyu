@@ -22,31 +22,42 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for {@link MonitorPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class MonitorPluginConfigurationTest {
 
     @Test
     public void testMonitorPlugin() {
         new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                    MonitorPluginConfiguration.class
-                ))
-            .withBean(DefaultServerCodecConfigurer.class)
+            .withConfiguration(AutoConfigurations.of(MonitorPluginConfiguration.class))
+            .withBean(MonitorPluginConfigurationTest.class)
             .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(PluginDataHandler.class);
-                    ShenyuPlugin plugin = context.getBean("monitorPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.MONITOR.getName());
-                }
-            );
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("monitorPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.MONITOR.getName());
+            });
+    }
+
+    @Test
+    public void testMonitorPluginDataHandler() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(MonitorPluginConfiguration.class))
+            .withBean(MonitorPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                PluginDataHandler handler = context.getBean("monitorPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            });
     }
 }

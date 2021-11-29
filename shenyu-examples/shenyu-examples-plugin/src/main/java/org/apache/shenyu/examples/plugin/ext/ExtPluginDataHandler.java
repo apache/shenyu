@@ -21,9 +21,13 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExtPluginDataHandler implements PluginDataHandler {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(ExtPluginDataHandler.class);
+
     /**
      * Handler plugin.
      *
@@ -31,9 +35,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        System.out.println("hello, im extend plugin dataHandler" );
+        LOG.info("hello, im extend plugin dataHandler" );
     }
-    
+
     /**
      * Remove plugin.
      *
@@ -41,9 +45,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removePlugin(final PluginData pluginData) {
-        
+        LOG.info("selector removed : name = {}", pluginData.getName());
     }
-    
+
     /**
      * Handler selector.
      *
@@ -51,9 +55,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerSelector(final SelectorData selectorData) {
-        
+        LOG.info("selector processing : name = {}", selectorData.getName());
     }
-    
+
     /**
      * Remove selector.
      *
@@ -61,9 +65,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        
+        LOG.info("selector removed : name = {}", selectorData.getName());
     }
-    
+
     /**
      * Handler rule.
      *
@@ -71,9 +75,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerRule(final RuleData ruleData) {
-        
+        LOG.info("rule processing : name = {}", ruleData.getName());
     }
-    
+
     /**
      * Remove rule.
      *
@@ -81,9 +85,9 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void removeRule(final RuleData ruleData) {
-        
+        LOG.info("rule data removed: name = {}", ruleData.getName());
     }
-    
+
     /**
      * Plugin named string.
      *

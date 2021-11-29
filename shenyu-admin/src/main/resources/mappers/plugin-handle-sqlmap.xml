@@ -210,7 +210,8 @@
                 and plugin_id = #{pluginId,jdbcType=VARCHAR}
             </if>
             <if test="field != null and field != ''">
-                and field = #{field,jdbcType=VARCHAR}
+                <bind name="fieldLike" value="('%' + field + '%')"/>
+                and field like #{fieldLike,jdbcType=VARCHAR}
             </if>
             <if test="type != null">
                 and type = #{type,jdbcType=INTEGER}

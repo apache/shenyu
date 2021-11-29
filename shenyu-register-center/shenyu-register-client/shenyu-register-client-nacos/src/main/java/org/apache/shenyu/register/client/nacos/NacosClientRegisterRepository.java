@@ -50,6 +50,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class NacosClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosClientRegisterRepository.class);
+
+    private static final String NAMESPACE = "nacosNameSpace";
+
+    private static final String URI_META_DATA = "uriMetadata";
     
     private ConfigService configService;
     
@@ -65,8 +69,8 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
-        String nameSpace = "nacosNameSpace";
-        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(nameSpace));
+
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(NAMESPACE));
         // the nacos authentication username
         nacosProperties.put(PropertyKeyConst.USERNAME, properties.getProperty(PropertyKeyConst.USERNAME, ""));
         // the nacos authentication password
@@ -129,7 +133,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         instance.setPort(port);
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(Constants.CONTEXT_PATH, contextPath);
-        metadataMap.put("uriMetadata", GsonUtils.getInstance().toJson(registerDTO));
+        metadataMap.put(URI_META_DATA, GsonUtils.getInstance().toJson(registerDTO));
         instance.setMetadata(metadataMap);
 
         String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType);

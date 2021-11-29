@@ -53,6 +53,8 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     private static final String PRE_FIX = "file:";
 
+    private static final String DELIMITER = ";;";
+
     @Resource
     private DataBaseProperties dataBaseProperties;
     
@@ -84,6 +86,10 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
             // doesn't print logger
             runner.setLogWriter(null);
             runner.setAutoCommit(true);
+            runner.setFullLineDelimiter(false);
+            runner.setDelimiter(DELIMITER);
+            runner.setSendFullScript(false);
+            runner.setStopOnError(false);
             Resources.setCharset(StandardCharsets.UTF_8);
             List<String> initScripts = Splitter.on(";").splitToList(script);
             for (String sqlScript : initScripts) {

@@ -35,11 +35,14 @@ import java.util.stream.Stream;
 /**
  * The type Plugin controller Test.
  */
-public class LocalPluginControllerTest {
+public final class LocalPluginControllerTest {
     
     @Test
     public void testSelectorRuleData() {
-        List<DivideUpstream> collect = Stream.of(1).map(weight -> DivideUpstream.builder().upstreamUrl("127.0.0.1:8089").build()).collect(Collectors.toList());
+        List<DivideUpstream> collect = Stream.of(1).map(weight -> DivideUpstream.builder()
+                .upstreamUrl("127.0.0.1:8089")
+                .build())
+                .collect(Collectors.toList());
         SelectorRuleData selectorRuleData = new SelectorRuleData();
         selectorRuleData.setPluginName(PluginEnum.DIVIDE.getName());
         selectorRuleData.setSelectorHandler(JsonUtils.toJson(collect));

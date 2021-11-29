@@ -19,12 +19,16 @@ package org.apache.shenyu.integrated.test.grpc.configuration;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.resources.LoopResources;
+
+import java.util.Optional;
 
 /**
  * The type shenyu netty web server factory.
@@ -33,32 +37,39 @@ import reactor.netty.resources.LoopResources;
 public class ShenyuNettyWebServerFactory {
 
     /**
-     * Netty reactive web server factory netty reactive web server factory.
-     *
-     * @return the netty reactive web server factory
-     */
-    @Bean
-    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory() {
-        NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
-        NettyTcpConfig nettyTcpConfig = nettyTcpConfig();
-        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfig));
-        return webServerFactory;
-    }
-
-    /**
      * Netty tcp config.
      *
      * @return the netty tcp config
      */
     @Bean
+    @ConfigurationProperties(prefix = "shenyu.netty.tcp")
     public NettyTcpConfig nettyTcpConfig() {
         return new NettyTcpConfig();
+    }
+
+    /**
+     * Netty reactive web server factory netty reactive web server factory.
+     *
+     * @param config the config
+     * @return the netty reactive web server factory
+     */
+    @Bean
+    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpConfig> config) {
+        NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
+        NettyTcpConfig nettyTcpConfig = Optional.ofNullable(config.getIfAvailable()).orElse(new NettyTcpConfig());
+        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfig));
+        return webServerFactory;
     }
 
     private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
 
         private final NettyTcpConfig nettyTcpConfig;
 
+        /**
+         * Instantiates a new Event loop netty customizer.
+         *
+         * @param nettyTcpConfig the netty tcp config
+         */
         EventLoopNettyCustomizer(final NettyTcpConfig nettyTcpConfig) {
             this.nettyTcpConfig = nettyTcpConfig;
         }
@@ -73,10 +84,12 @@ public class ShenyuNettyWebServerFactory {
                             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis())
                             .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
                                     nettyTcpConfig.getWriteBufferHighWaterMark()))
+                            .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpConfig.getWriteSpinCount())
+                            .option(ChannelOption.AUTO_READ, nettyTcpConfig.isAutoRead())
+                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay())
                             .option(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive())
                             .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
-                            .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
-                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay()));
+                            .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger()));
         }
     }
 }

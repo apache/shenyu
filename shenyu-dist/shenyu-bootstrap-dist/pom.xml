@@ -55,7 +55,7 @@
         <profile>
             <id>release</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <finalName>apache-shenyu-incubating-${project.version}</finalName>

@@ -36,7 +36,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class ExcludeFilterTest {
+public final class ExcludeFilterTest {
     
     private ExcludeFilter excludeFilter;
 

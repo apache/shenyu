@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ public final class UpstreamCheckUtilsTest {
     }
 
     @Test
+    @Ignore
     public void testSocketConnect() {
         Runnable runnable = () -> {
             ServerSocket serverSocket;

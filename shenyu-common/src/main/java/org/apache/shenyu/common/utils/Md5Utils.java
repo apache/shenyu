@@ -40,6 +40,7 @@ public class Md5Utils {
      *
      * @param src     the src
      * @param charset the charset
+     *
      * @return the string
      */
     private static String md5(final String src, final String charset) {

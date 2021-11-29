@@ -58,7 +58,7 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
+        Objects.requireNonNull(shenyuContext);
         Resilience4JHandle resilience4JHandle = Resilience4JHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         resilience4JHandle.checkData(resilience4JHandle);
         if (resilience4JHandle.getCircuitEnable() == 1) {

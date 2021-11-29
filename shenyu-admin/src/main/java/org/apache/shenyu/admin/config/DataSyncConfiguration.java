@@ -156,7 +156,7 @@ public class DataSyncConfiguration {
         }
 
         /**
-         * Websocket collector websocket collector.
+         * Websocket collector.
          *
          * @return the websocket collector
          */
@@ -189,7 +189,7 @@ public class DataSyncConfiguration {
         @Bean
         public EtcdClient etcdClient(final EtcdProperties etcdProperties) {
             Client client = Client.builder()
-                    .endpoints(etcdProperties.getUrl())
+                    .endpoints(etcdProperties.getUrl().split(","))
                     .build();
             return new EtcdClient(client);
         }
