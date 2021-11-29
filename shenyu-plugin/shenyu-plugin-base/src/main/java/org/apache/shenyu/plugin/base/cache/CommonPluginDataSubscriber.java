@@ -154,7 +154,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      * @param data data is plugin mate data, data is not null
      * @param <T>  data type, support is [{@link PluginData},{@link SelectorData},{@link RuleData}]
      */
-    private <T> void updateCacheData(@NonNull T data) {
+    private <T> void updateCacheData(@NonNull final T data) {
         if (data instanceof PluginData) {
             PluginData pluginData = (PluginData) data;
             BaseDataCache.getInstance().cachePluginData(pluginData);
