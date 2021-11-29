@@ -15,17 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.loadbalance;
+package org.apache.shenyu.plugin.grpc.exception;
 
-import io.grpc.Attributes;
-import io.grpc.LoadBalancer;
-import org.junit.Test;
-import static org.mockito.Mockito.mock;
-
-public class SubChannelsTest {
-    @Test
-    public void testUpdateAttributes() {
-        final LoadBalancer.Subchannel subchannel = mock(LoadBalancer.Subchannel.class);
-        SubChannels.updateAttributes(subchannel, mock(Attributes.class));
+/**
+ * Shenyu Grpc exception
+ */
+public class ShenyuGrpcException extends RuntimeException {
+    
+    public ShenyuGrpcException() {
+        super();
+    }
+    
+    public ShenyuGrpcException(String message) {
+        super(message);
+    }
+    
+    public ShenyuGrpcException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

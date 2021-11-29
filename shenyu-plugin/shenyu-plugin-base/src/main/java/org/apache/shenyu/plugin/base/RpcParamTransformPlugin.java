@@ -28,10 +28,9 @@ import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,20 +38,12 @@ import reactor.core.publisher.Mono;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Objects;
 
 /**
  * The param transform plugin.
  */
 public class RpcParamTransformPlugin implements ShenyuPlugin {
-
-    /**
-     * Instantiates a new param transform plugin.
-     */
-    public RpcParamTransformPlugin() {
-        List<HttpMessageReader<?>> messageReaders = HandlerStrategies.withDefaults().messageReaders();
-    }
 
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -121,6 +112,7 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
                 && !Objects.equals(rpcType, RpcTypeEnum.SOFA.getName());
     }
 
+    @NonNull
     private String resolveBodyFromRequest(final DataBuffer dataBuffer) {
         byte[] bytes = new byte[dataBuffer.readableByteCount()];
         dataBuffer.read(bytes);

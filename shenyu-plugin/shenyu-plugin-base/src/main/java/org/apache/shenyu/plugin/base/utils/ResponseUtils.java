@@ -37,6 +37,10 @@ import java.util.Objects;
 public final class ResponseUtils {
 
     private static final String CHUNKED = "chunked";
+    
+    private ResponseUtils(){
+    
+    }
 
     /**
      * create CachedBodyOutputMessage.
@@ -88,7 +92,7 @@ public final class ResponseUtils {
      * @return Mono.
      */
     public static Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
-        if (outputMessage.getCache()) {
+        if (Boolean.TRUE.equals(outputMessage.getCache())) {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
         return Mono.error(throwable);

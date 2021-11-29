@@ -17,14 +17,19 @@
 
 package org.apache.shenyu.plugin.grpc.cache;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.List;
+
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +70,8 @@ public class ApplicationConfigCacheTest {
     @Test
     public void testInvalidate() {
         this.applicationConfigCache.invalidate(selector.getName());
-        assert this.applicationConfigCache.get(selector.getName()).getShenyuServiceInstances().size() == 0;
+        final List<ShenyuServiceInstance> shenyuServiceInstances = this.applicationConfigCache.get(selector.getName()).getShenyuServiceInstances();
+        assertTrue("shenyuServiceInstances mast is empty",CollectionUtils.isEmpty(shenyuServiceInstances));
     }
 
     @Test

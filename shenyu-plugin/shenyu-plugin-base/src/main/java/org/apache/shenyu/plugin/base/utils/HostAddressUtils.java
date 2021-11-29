@@ -25,6 +25,10 @@ import org.springframework.web.server.ServerWebExchange;
  * The type Host address utils.
  */
 public class HostAddressUtils {
+    
+    private HostAddressUtils(){
+    
+    }
 
     /**
      * Acquire host string.

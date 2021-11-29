@@ -76,12 +76,13 @@ public class GrpcPluginTest {
     }
 
     @Test
+    @SuppressWarnings("all")
     public void testDoExecute() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         ServerWebExchange exchange = getServerWebExchange();
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{message:1}");
         exchange.getAttributes().put(Constants.META_DATA, getMetaData());
 
-        Class grpcClientCacheClass = Class.forName("org.apache.shenyu.plugin.grpc.cache.GrpcClientCache");
+        Class<?> grpcClientCacheClass = Class.forName("org.apache.shenyu.plugin.grpc.cache.GrpcClientCache");
         Field clientCacheField = grpcClientCacheClass.getDeclaredField("CLIENT_CACHE");
         clientCacheField.setAccessible(true);
         Map<String, ShenyuGrpcClient> clientCacheMap = (Map<String, ShenyuGrpcClient>) clientCacheField.get(grpcClientCacheClass);

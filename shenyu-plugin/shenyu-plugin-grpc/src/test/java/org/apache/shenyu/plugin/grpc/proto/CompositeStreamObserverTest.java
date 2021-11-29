@@ -28,11 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doAnswer;
 
 /**
  * The Test Case For {@link CompositeStreamObserver}.
@@ -43,34 +44,33 @@ public class CompositeStreamObserverTest {
     /**
      * The Logger.
      */
-    private Logger logger = LoggerFactory.getLogger(CompositeStreamObserverTest.class);
+    private final Logger logger = LoggerFactory.getLogger(CompositeStreamObserverTest.class);
 
     private CompositeStreamObserver<Boolean> compositeStreamObserver;
-
-    private CompleteObserver<Boolean> completeObserver;
-
+    
     private MyStreamObserver streamObserver;
 
     @Before
     public void setUp() {
         streamObserver = new MyStreamObserver(false);
-        completeObserver = new CompleteObserver<>();
+        CompleteObserver<Boolean> completeObserver = new CompleteObserver<>();
         compositeStreamObserver = CompositeStreamObserver.of(streamObserver, completeObserver);
     }
 
     @Test
+    @SuppressWarnings("all")
     public void onCompleted() throws ExecutionException, InterruptedException {
         CompositeStreamObserver compositeStreamObserverMock = mock(CompositeStreamObserver.class);
         doNothing().when(compositeStreamObserverMock).onCompleted();
         compositeStreamObserverMock.onCompleted();
         CompleteObserver completeObserverMock = mock(CompleteObserver.class);
         when(completeObserverMock.getCompletionFuture()).thenReturn(SettableFuture.create());
-        ListenableFuture<Void> future = completeObserverMock.getCompletionFuture();
-        future = mock(ListenableFuture.class);
-        assert future.get() == null;
+        ListenableFuture<Void> future = mock(ListenableFuture.class);
+        assertNull(future.get());
     }
 
     @Test(expected = Throwable.class)
+    @SuppressWarnings("all")
     public void onError() throws Exception {
         Throwable throwable = new Throwable("error");
         CompleteObserver completeObserver = mock(CompleteObserver.class);
@@ -89,6 +89,7 @@ public class CompositeStreamObserverTest {
     }
 
     @Test
+    @SuppressWarnings("all")
     public void onNextThrowException() {
         CompleteObserver completeObserver = mock(CompleteObserver.class);
         doAnswer(invocationOnMock -> {

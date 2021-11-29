@@ -17,19 +17,24 @@
 
 package org.apache.shenyu.plugin.grpc.handler;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
+import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,11 +42,11 @@ import static org.mockito.Mockito.when;
  * The Test Case For {@link GrpcPluginDataHandler}.
  */
 public class GrpcPluginDataHandlerTest {
-
+    
     private SelectorData selectorData;
-
+    
     private GrpcPluginDataHandler grpcPluginDataHandler;
-
+    
     @Before
     public void setUp() {
         this.grpcPluginDataHandler = new GrpcPluginDataHandler();
@@ -51,10 +56,10 @@ public class GrpcPluginDataHandlerTest {
                         .build())
                 .collect(Collectors.toList());
         this.selectorData = mock(SelectorData.class);
-
+        
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
     }
-
+    
     @Test
     public void testHandlerSelector() {
         when(selectorData.getName()).thenReturn(null);
@@ -63,16 +68,17 @@ public class GrpcPluginDataHandlerTest {
         grpcPluginDataHandler.handlerSelector(selectorData);
         assertNotNull(GrpcClientCache.getGrpcClient(selectorData.getName()));
     }
-
+    
     @Test
     public void testRemoveSelector() {
         when(selectorData.getName()).thenReturn(null);
         grpcPluginDataHandler.removeSelector(selectorData);
         when(selectorData.getName()).thenReturn("/grpc");
         grpcPluginDataHandler.removeSelector(selectorData);
-        assert ApplicationConfigCache.getInstance().get(selectorData.getName()).getShenyuServiceInstances().size() == 0;
+        final List<ShenyuServiceInstance> shenyuServiceInstances = ApplicationConfigCache.getInstance().get(selectorData.getName()).getShenyuServiceInstances();
+        assertTrue("shenyuServiceInstances mast is empty", CollectionUtils.isEmpty(shenyuServiceInstances));
     }
-
+    
     @Test
     public void testPpluginNamed() {
         Assert.assertEquals(grpcPluginDataHandler.pluginNamed(), PluginEnum.GRPC.getName());
