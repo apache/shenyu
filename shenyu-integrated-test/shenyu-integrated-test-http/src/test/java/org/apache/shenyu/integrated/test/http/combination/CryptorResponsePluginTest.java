@@ -71,25 +71,24 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
 
         JsonObject request = new JsonObject();
-        request.addProperty("userId", RSA_STRATEGY.encrypt(RSA_PRIVATE_KEY, TEST_USER_ID));
+        request.addProperty("userId", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, TEST_USER_ID));
         request.addProperty("userName", TEST_USER_NAME);
-        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-        assertThat(actualUser.getUserId(), is(TEST_USER_ID));
-        assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
+        String actualUserId = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, String.class);
+        assertThat(actualUserId, is(TEST_USER_ID));
     }
 
     @Test
     public void testEncryptResponse() throws Exception {
-//        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-//                "", buildSelectorConditionList(), buildRuleLocalDataList("userId", "encrypt"));
-//        assertThat(selectorAndRulesResult, is("success"));
-//
-//        JsonObject request = new JsonObject();
-//        request.addProperty("userId", RSA_STRATEGY.encrypt(RSA_PRIVATE_KEY, TEST_USER_ID));
-//        request.addProperty("userName", TEST_USER_NAME);
-//        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-//        assertThat(actualUser.getUserId(), is(TEST_USER_ID));
-//        assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", buildSelectorConditionList(), buildRuleLocalDataList("userName", "encrypt"));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        JsonObject request = new JsonObject();
+        request.addProperty("userId", TEST_USER_ID);
+        request.addProperty("userName", TEST_USER_NAME);
+        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
+        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
+        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
     }
 
     private List<ConditionData> buildSelectorConditionList() {
