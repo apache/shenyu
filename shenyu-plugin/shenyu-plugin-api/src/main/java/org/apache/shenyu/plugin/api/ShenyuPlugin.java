@@ -72,10 +72,10 @@ public interface ShenyuPlugin {
     }
 
     /**
-     * plugin is executed,
+     * plugin is executed.
      * if return true this plugin can not execute.
      *
-     * the same for:
+     * <p>the same for:
      * <pre>
      * <code>Objects.equals(rpcType, typeA.getName())
      * || Objects.equals(rpcType, typeB.getName())
@@ -103,10 +103,10 @@ public interface ShenyuPlugin {
     }
 
     /**
-     * the plugin execute skip except some rpc types,
+     * the plugin execute skip except some rpc types.
      * if return true this plugin can not execute.
-     *
-     * the same for:
+     * 
+     * <p>the same for:
      * <pre>
      * <code>!Objects.equals(rpcType, typeA.getName())
      * && !Objects.equals(rpcType, typeB.getName())
