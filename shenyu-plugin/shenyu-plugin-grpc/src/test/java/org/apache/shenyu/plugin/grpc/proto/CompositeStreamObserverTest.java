@@ -30,10 +30,10 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doAnswer;
 
 /**
  * The Test Case For {@link CompositeStreamObserver}.
@@ -65,7 +65,8 @@ public class CompositeStreamObserverTest {
         compositeStreamObserverMock.onCompleted();
         CompleteObserver completeObserverMock = mock(CompleteObserver.class);
         when(completeObserverMock.getCompletionFuture()).thenReturn(SettableFuture.create());
-        ListenableFuture<Void> future = mock(ListenableFuture.class);
+        ListenableFuture future = completeObserverMock.getCompletionFuture();
+        future = mock(ListenableFuture.class);
         assertNull(future.get());
     }
 
