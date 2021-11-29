@@ -111,11 +111,11 @@ public interface ShenyuPlugin {
      * if return true this plugin can not execute.
      *
      * @param exchange the current server exchange
-     * @param skip skip status
-     * @param rpcTypes the skip rpc type list
-     * @return return skip when current rpcType == someone rpcType, others !skip.
+     * @param equalSkip equalSkip status
+     * @param rpcTypes the equalSkip rpc type list
+     * @return return equalSkip when current rpcType == someone rpcType, others !equalSkip.
      */
-    default boolean innerSkip(ServerWebExchange exchange, boolean skip, RpcTypeEnum... rpcTypes) {
+    default boolean innerSkip(ServerWebExchange exchange, boolean equalSkip, RpcTypeEnum... rpcTypes) {
         if (ArrayUtils.isEmpty(rpcTypes)) {
             return false;
         }
@@ -124,10 +124,10 @@ public interface ShenyuPlugin {
         String rpcType = shenyuContext.getRpcType();
         for (final RpcTypeEnum type : rpcTypes) {
             if (Objects.equals(rpcType, type.getName())) {
-                return skip;
+                return equalSkip;
             }
         }
-        return !skip;
+        return !equalSkip;
     }
 }
 
