@@ -78,6 +78,6 @@ public class URIPlugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        return skipNonHttpSpringCloudCall(exchange);
+        return skipExceptHttpLike(exchange);
     }
 }

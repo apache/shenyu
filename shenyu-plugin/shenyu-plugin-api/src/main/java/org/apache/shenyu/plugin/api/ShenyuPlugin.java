@@ -72,27 +72,54 @@ public interface ShenyuPlugin {
     }
 
     /**
-     * plugin is executed.
+     * plugin is executed,
      * if return true this plugin can not execute.
+     *
+     * the same for:
+     * <pre>
+     * <code>Objects.equals(rpcType, typeA.getName())
+     * || Objects.equals(rpcType, typeB.getName())
+     * || Objects.equals(rpcType, type...getName())
+     * </code>
+     * </pre>
      *
      * @param exchange the current server exchange
      * @param rpcTypes the skip rpc type list
      * @return current rpcType == someone rpcType
      */
     default boolean skip(ServerWebExchange exchange, RpcTypeEnum... rpcTypes) {
-        return innerSkip(exchange, true, rpcTypes);
+        if (ArrayUtils.isEmpty(rpcTypes)) {
+            return false;
+        }
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        String rpcType = shenyuContext.getRpcType();
+        for (final RpcTypeEnum type : rpcTypes) {
+            if (Objects.equals(rpcType, type.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
-     * the plugin execute skip.
+     * the plugin execute skip except some rpc types,
      * if return true this plugin can not execute.
+     *
+     * the same for:
+     * <pre>
+     * <code>!Objects.equals(rpcType, typeA.getName())
+     * && !Objects.equals(rpcType, typeB.getName())
+     * && !Objects.equals(rpcType, type...getName())
+     * </code>
+     * </pre>
      *
      * @param exchange the current server exchange
      * @param exceptRpcTypes the except rpc type list
      * @return current rpcType != someone exceptRpcType
      */
     default boolean skipExcept(ServerWebExchange exchange, RpcTypeEnum... exceptRpcTypes) {
-        return innerSkip(exchange, false, exceptRpcTypes);
+        return !skip(exchange, exceptRpcTypes);
     }
 
     /**
@@ -102,32 +129,8 @@ public interface ShenyuPlugin {
      * @param exchange the current server exchange
      * @return http/spring cloud return true, others false.
      */
-    default boolean skipNonHttpSpringCloudCall(ServerWebExchange exchange) {
-        return skipExcept(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD);
-    }
-
-    /**
-     * plugin is executed.
-     * if return true this plugin can not execute.
-     *
-     * @param exchange the current server exchange
-     * @param equalSkip equalSkip status
-     * @param rpcTypes the equalSkip rpc type list
-     * @return return equalSkip when current rpcType == someone rpcType, others !equalSkip.
-     */
-    default boolean innerSkip(ServerWebExchange exchange, boolean equalSkip, RpcTypeEnum... rpcTypes) {
-        if (ArrayUtils.isEmpty(rpcTypes)) {
-            return false;
-        }
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        String rpcType = shenyuContext.getRpcType();
-        for (final RpcTypeEnum type : rpcTypes) {
-            if (Objects.equals(rpcType, type.getName())) {
-                return equalSkip;
-            }
-        }
-        return !equalSkip;
+    default boolean skipExceptHttpLike(ServerWebExchange exchange) {
+        return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD);
     }
 }
 

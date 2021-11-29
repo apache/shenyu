@@ -95,7 +95,7 @@ public class WebClientPlugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        return skipNonHttpSpringCloudCall(exchange);
+        return skipExceptHttpLike(exchange);
     }
 
     private Mono<Void> handleRequestBody(final WebClient.RequestBodySpec requestBodySpec,
