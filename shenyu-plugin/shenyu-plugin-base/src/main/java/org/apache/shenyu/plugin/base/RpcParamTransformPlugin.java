@@ -111,14 +111,12 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        String rpcType = shenyuContext.getRpcType();
-        return !Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName())
-                && !Objects.equals(rpcType, RpcTypeEnum.GRPC.getName())
-                && !Objects.equals(rpcType, RpcTypeEnum.TARS.getName())
-                && !Objects.equals(rpcType, RpcTypeEnum.MOTAN.getName())
-                && !Objects.equals(rpcType, RpcTypeEnum.SOFA.getName());
+        return skipExcept(exchange,
+                RpcTypeEnum.DUBBO,
+                RpcTypeEnum.GRPC,
+                RpcTypeEnum.TARS,
+                RpcTypeEnum.MOTAN,
+                RpcTypeEnum.SOFA);
     }
 
     private String resolveBodyFromRequest(final DataBuffer dataBuffer) {
