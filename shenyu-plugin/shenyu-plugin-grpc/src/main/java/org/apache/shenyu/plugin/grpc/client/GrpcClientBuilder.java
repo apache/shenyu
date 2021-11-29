@@ -29,7 +29,7 @@ import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 /**
  * Grpc client Builder.
  */
-public class GrpcClientBuilder {
+public final class GrpcClientBuilder {
     
     static {
         LoadBalancerRegistry.getDefaultRegistry().register(new RandomLoadBalancerProvider());

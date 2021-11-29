@@ -56,6 +56,7 @@ public final class ApplicationConfigCache {
     private final Map<String, Consumer<Object>> listener = new ConcurrentHashMap<>();
     
     private ApplicationConfigCache() {
+    
     }
     
     /**
@@ -138,7 +139,7 @@ public final class ApplicationConfigCache {
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
         /**
          * The Instance.
          */

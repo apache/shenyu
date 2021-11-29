@@ -57,7 +57,7 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
+        final String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
 
         assert shenyuContext != null;

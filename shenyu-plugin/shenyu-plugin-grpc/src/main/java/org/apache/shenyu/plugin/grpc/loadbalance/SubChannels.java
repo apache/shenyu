@@ -28,7 +28,7 @@ import java.util.Objects;
 /**
  * The grpc SubChannels.
  */
-public class SubChannels {
+public final class SubChannels {
     
     private static final Attributes.Key<Ref<ConnectivityStateInfo>> STATE_INFO_KEY = Attributes.Key.create("state-info");
     

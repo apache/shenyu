@@ -27,7 +27,7 @@ import java.util.Objects;
 /**
  * The Grpc client cache.
  */
-public class GrpcClientCache {
+public final class GrpcClientCache {
     
     private static final Map<String, ShenyuGrpcClient> CLIENT_CACHE = Maps.newConcurrentMap();
     

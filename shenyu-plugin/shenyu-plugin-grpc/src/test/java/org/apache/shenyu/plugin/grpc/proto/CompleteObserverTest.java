@@ -23,9 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.concurrent.ExecutionException;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -42,7 +39,7 @@ public class CompleteObserverTest {
     }
     
     @Test
-    public void onCompleted() throws ExecutionException, InterruptedException {
+    public void onCompleted() {
         completeObserver.onCompleted();
         ListenableFuture<Void> future = completeObserver.getCompletionFuture();
         assertNotNull(future);
@@ -54,7 +51,6 @@ public class CompleteObserverTest {
         completeObserver.onError(throwable);
         ListenableFuture<Void> future = completeObserver.getCompletionFuture();
         future.get();
-
     }
     
     @Test

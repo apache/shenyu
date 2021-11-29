@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.grpc.exception;
 
 /**
- * Shenyu Grpc exception
+ * Shenyu Grpc exception.
  */
 public class ShenyuGrpcException extends RuntimeException {
     
@@ -26,11 +26,11 @@ public class ShenyuGrpcException extends RuntimeException {
         super();
     }
     
-    public ShenyuGrpcException(String message) {
+    public ShenyuGrpcException(final String message) {
         super(message);
     }
     
-    public ShenyuGrpcException(String message, Throwable cause) {
+    public ShenyuGrpcException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

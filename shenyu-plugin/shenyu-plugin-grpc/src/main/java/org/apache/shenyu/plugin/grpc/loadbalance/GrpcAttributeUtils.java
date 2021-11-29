@@ -22,7 +22,7 @@ import io.grpc.Attributes;
 /**
  * GrpcAttributeUtils.
  */
-public class GrpcAttributeUtils {
+public final class GrpcAttributeUtils {
     
     /**
      * The instance appName.

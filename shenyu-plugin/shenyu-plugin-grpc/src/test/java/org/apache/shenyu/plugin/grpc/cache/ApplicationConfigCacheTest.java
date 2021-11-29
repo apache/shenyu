@@ -38,11 +38,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApplicationConfigCacheTest {
-
+    
     private ApplicationConfigCache applicationConfigCache;
-
+    
     private SelectorData selector;
-
+    
     @Before
     public void setUp() {
         applicationConfigCache = ApplicationConfigCache.getInstance();
@@ -50,30 +50,30 @@ public class ApplicationConfigCacheTest {
         when(selector.getName()).thenReturn("/grpc");
         when(selector.getHandle()).thenReturn("[{\"upstreamUrl\":\"localhost:8080\",\"weight\":50,\"status\":true}]");
     }
-
+    
     @Test
     public void getInstance() {
         assertNotNull(this.applicationConfigCache);
     }
-
+    
     @Test
     public void testInitPrx() {
         this.applicationConfigCache.initPrx(selector);
         assertNotNull(applicationConfigCache.get(selector.getName()));
     }
-
+    
     @Test
     public void testGet() {
         assertNotNull(this.applicationConfigCache.get("/test"));
     }
-
+    
     @Test
     public void testInvalidate() {
         this.applicationConfigCache.invalidate(selector.getName());
         final List<ShenyuServiceInstance> shenyuServiceInstances = this.applicationConfigCache.get(selector.getName()).getShenyuServiceInstances();
-        assertTrue("shenyuServiceInstances mast is empty",CollectionUtils.isEmpty(shenyuServiceInstances));
+        assertTrue("shenyuServiceInstances mast is empty", CollectionUtils.isEmpty(shenyuServiceInstances));
     }
-
+    
     @Test
     public void testWatch() {
         this.applicationConfigCache.watch(selector.getName(), Assert::assertNotNull);

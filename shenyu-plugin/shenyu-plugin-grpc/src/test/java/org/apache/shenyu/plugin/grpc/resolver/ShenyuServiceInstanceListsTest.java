@@ -38,7 +38,7 @@ import static org.mockito.Mockito.mock;
 @RunWith(MockitoJUnitRunner.class)
 public class ShenyuServiceInstanceListsTest {
     
-    private final String APP_NAME = "shenyu";
+    private final String appName = "shenyu";
     
     private ShenyuServiceInstanceLists shenyuServiceInstanceLists;
     
@@ -48,7 +48,7 @@ public class ShenyuServiceInstanceListsTest {
     public void setUp() {
         shenyuServiceInstances = new CopyOnWriteArrayList<>();
         shenyuServiceInstances.add(mock(ShenyuServiceInstance.class));
-        shenyuServiceInstanceLists = new ShenyuServiceInstanceLists(shenyuServiceInstances, APP_NAME);
+        shenyuServiceInstanceLists = new ShenyuServiceInstanceLists(shenyuServiceInstances, appName);
     }
     
     @Test
@@ -61,7 +61,7 @@ public class ShenyuServiceInstanceListsTest {
     public void testSet() {
         shenyuServiceInstanceLists.setAppName("shenyu");
         shenyuServiceInstanceLists.addShenyuServiceInstances(Stream.of(mock(ShenyuServiceInstance.class)).collect(Collectors.toList()));
-        assertEquals(shenyuServiceInstanceLists.getAppName(), APP_NAME);
+        assertEquals(shenyuServiceInstanceLists.getAppName(), appName);
         assertTrue(shenyuServiceInstanceLists.getShenyuServiceInstances().containsAll(shenyuServiceInstances));
     }
     
