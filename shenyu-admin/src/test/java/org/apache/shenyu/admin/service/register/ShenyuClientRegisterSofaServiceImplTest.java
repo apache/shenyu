@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+    
 package org.apache.shenyu.admin.service.register;
-
+    
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -39,40 +39,41 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
     
 /**
- * Test cases for {@link ShenyuClientRegisterMotanServiceImpl}.
+ * Test cases for {@link ShenyuClientRegisterSofaServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-public final class ShenyuClientRegisterMotanServiceImplTest {
-    
+public final class ShenyuClientRegisterSofaServiceImplTest {
+
     @InjectMocks
-    private ShenyuClientRegisterMotanServiceImpl shenyuClientRegisterMotanService;
-    
+    private ShenyuClientRegisterSofaServiceImpl shenyuClientRegisterSofaService;
+
     @Mock
     private MetaDataServiceImpl metaDataService;
-    
+
     @Test
     public void testRpcType() {
-        String rpcType = shenyuClientRegisterMotanService.rpcType();
-        Assert.assertEquals(RpcTypeEnum.MOTAN.getName(), rpcType);
+        String rpcType = shenyuClientRegisterSofaService.rpcType();
+        Assert.assertEquals(RpcTypeEnum.SOFA.getName(), rpcType);
     }
     
     @Test
     public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
-        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.selectorHandler(metaDataRegisterDTO));
+        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterSofaService.selectorHandler(metaDataRegisterDTO));
     }
     
     @Test
     public void testRuleHandler() {
-        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.ruleHandler());
+        Assert.assertEquals("{\"retries\":0,\"loadBalance\":\"random\",\"timeout\":3000}",
+                shenyuClientRegisterSofaService.ruleHandler());
     }
     
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
-        when(metaDataService.findByPath(any())).thenReturn(metaDataDO);
+        when(metaDataService.findByServiceNameAndMethodName(any(), any())).thenReturn(metaDataDO);
         MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().build();
-        shenyuClientRegisterMotanService.registerMetadata(metaDataDTO);
+        shenyuClientRegisterSofaService.registerMetadata(metaDataDTO);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
     
@@ -81,6 +82,6 @@ public final class ShenyuClientRegisterMotanServiceImplTest {
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().build());
         Assert.assertEquals(StringUtils.EMPTY,
-            shenyuClientRegisterMotanService.buildHandle(list, SelectorDO.builder().build()));
+                shenyuClientRegisterSofaService.buildHandle(list, SelectorDO.builder().build()));
     }
 }
