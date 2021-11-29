@@ -39,9 +39,9 @@ import java.util.Objects;
  * abstract shenyu plugin please extends.
  */
 public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
-    
+
     /**
      * this is Template Method child has Implement your own logic.
      *
@@ -52,7 +52,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     protected abstract Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule);
-    
+
     /**
      * Process the Web request and (optionally) delegate to the next
      * {@code ShenyuPlugin} through the given {@link ShenyuPluginChain}.
@@ -68,16 +68,16 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (pluginData != null && pluginData.getEnabled()) {
             final Collection<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
             if (CollectionUtils.isEmpty(selectors)) {
-                return handleSelectorIfNull(exchange, chain);
+                return handleSelectorIfNull(pluginName, exchange, chain);
             }
             SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
-                return handleSelectorIfNull(exchange, chain);
+                return handleSelectorIfNull(pluginName, exchange, chain);
             }
             selectorLog(selectorData, pluginName);
             List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
-                return handleRuleIfNull(exchange, chain);
+                return handleRuleIfNull(pluginName, exchange, chain);
             }
             RuleData rule;
             if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
@@ -87,28 +87,28 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 rule = matchRule(exchange, rules);
             }
             if (Objects.isNull(rule)) {
-                return handleRuleIfNull(exchange, chain);
+                return handleRuleIfNull(pluginName, exchange, chain);
             }
             ruleLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
         return chain.execute(exchange);
     }
-    
-    protected Mono<Void> handleSelectorIfNull(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
-    
-    protected Mono<Void> handleRuleIfNull(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
-    
+
     private SelectorData matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
         return selectors.stream()
                 .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
                 .findFirst().orElse(null);
     }
-    
+
     private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
         if (selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
             if (CollectionUtils.isEmpty(selector.getConditionList())) {
@@ -118,21 +118,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         return true;
     }
-    
+
     private RuleData matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
         return rules.stream().filter(rule -> filterRule(rule, exchange)).findFirst().orElse(null);
     }
-    
+
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
         return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
-    
+
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
         if (Boolean.TRUE.equals(selectorData.getLogged())) {
             LOG.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
         }
     }
-    
+
     private void ruleLog(final RuleData ruleData, final String pluginName) {
         if (Boolean.TRUE.equals(ruleData.getLoged())) {
             LOG.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
