@@ -45,7 +45,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-public class ParamMappingPluginTest extends AbstractPluginDataInit {
+public final class ParamMappingPluginTest extends AbstractPluginDataInit {
 
     @BeforeClass
     public static void setup() throws IOException {
