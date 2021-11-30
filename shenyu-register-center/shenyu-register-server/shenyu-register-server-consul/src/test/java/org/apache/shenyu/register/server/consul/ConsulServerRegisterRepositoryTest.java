@@ -21,9 +21,9 @@ import com.ecwid.consul.transport.DefaultHttpTransport;
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.ConsulRawClient;
 import com.ecwid.consul.v1.Response;
-import com.ecwid.consul.v1.agent.model.NewService;
 import com.ecwid.consul.v1.agent.model.Service;
 import com.ecwid.consul.v1.kv.model.GetValue;
+import com.google.common.collect.Maps;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -36,19 +36,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.consul.discovery.ConsulDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,16 +63,18 @@ public class ConsulServerRegisterRepositoryTest {
     private ConsulClient mockConsulClient() throws Exception {
         URIRegisterDTO mockServer = URIRegisterDTO.builder().appName("mockServer").contextPath("/mockServer").eventType(EventType.REGISTER).build();
         Service newService = new Service();
-        newService.setMeta(new HashMap<String, String>() {{
-            put("uri", GsonUtils.getInstance().toJson(mockServer));
-        }});
+        Map<String, String> map = Maps.newHashMap();
+        map.put("uri", GsonUtils.getInstance().toJson(mockServer));
+        newService.setMeta(map);
         CloseableHttpClient httpClientMock = Mockito.mock(CloseableHttpClient.class);
         PowerMockito.whenNew(CloseableHttpClient.class).withNoArguments().thenReturn(httpClientMock);
         PowerMockito.whenNew(DefaultHttpTransport.class).withAnyArguments().thenReturn(Mockito.mock(DefaultHttpTransport.class));
         ConsulClient client = PowerMockito.mock(ConsulClient.class);
-        Mockito.when(client.getAgentServices()).thenReturn(new Response<Map<String, Service>>(new HashMap<String, Service>() {{
-            put(mockServer.getContextPath(), newService);
-        }}, 1L, true, 1L));
+
+        Map<String, Service> serviceHashMap = Maps.newHashMap();
+        serviceHashMap.put(mockServer.getContextPath(), newService);
+        Response<Map<String, Service>> mapResponse = new Response<Map<String, Service>>(serviceHashMap, 1L, true, 1L);
+        Mockito.when(client.getAgentServices()).thenReturn(mapResponse);
         return client;
     }
 
