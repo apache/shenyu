@@ -20,7 +20,7 @@ package org.apache.shenyu.springboot.starter.netty;
 /**
  * The netty tcp configuration properties.
  */
-public class NettyTcpConfigurationProperties {
+public class NettyTcpProperties {
 
     private int selectCount = 1;
 

@@ -43,8 +43,8 @@ public class ShenyuNettyWebServerConfiguration {
      */
     @Bean
     @ConfigurationProperties(prefix = "shenyu.netty.tcp")
-    public NettyTcpConfigurationProperties nettyTcpConfigurationProperties() {
-        return new NettyTcpConfigurationProperties();
+    public NettyTcpProperties nettyTcpProperties() {
+        return new NettyTcpProperties();
     }
     
     /**
@@ -54,42 +54,42 @@ public class ShenyuNettyWebServerConfiguration {
      * @return the netty reactive web server factory
      */
     @Bean
-    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpConfigurationProperties> config) {
+    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpProperties> config) {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
-        NettyTcpConfigurationProperties nettyTcpConfigurationProperties = Optional.ofNullable(config.getIfAvailable()).orElse(new NettyTcpConfigurationProperties());
-        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpConfigurationProperties));
+        NettyTcpProperties nettyTcpProperties = Optional.ofNullable(config.getIfAvailable()).orElse(new NettyTcpProperties());
+        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpProperties));
         return webServerFactory;
     }
 
     private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
 
-        private final NettyTcpConfigurationProperties nettyTcpConfigurationProperties;
+        private final NettyTcpProperties nettyTcpProperties;
     
         /**
          * Instantiates a new Event loop netty customizer.
          *
-         * @param nettyTcpConfigurationProperties the netty tcp config
+         * @param nettyTcpProperties the netty tcp config
          */
-        EventLoopNettyCustomizer(final NettyTcpConfigurationProperties nettyTcpConfigurationProperties) {
-            this.nettyTcpConfigurationProperties = nettyTcpConfigurationProperties;
+        EventLoopNettyCustomizer(final NettyTcpProperties nettyTcpProperties) {
+            this.nettyTcpProperties = nettyTcpProperties;
         }
 
         @Override
         public HttpServer apply(final HttpServer httpServer) {
             return httpServer
                     .tcpConfiguration(tcpServer -> tcpServer
-                            .runOn(LoopResources.create("shenyu-netty", nettyTcpConfigurationProperties.getSelectCount(), nettyTcpConfigurationProperties.getWorkerCount(), true))
-                            .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpConfigurationProperties.getSoBacklog())
-                            .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpConfigurationProperties.isSoReuseaddr())
-                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfigurationProperties.getConnectTimeoutMillis())
-                            .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfigurationProperties.getWriteBufferLowWaterMark(),
-                                    nettyTcpConfigurationProperties.getWriteBufferHighWaterMark()))
-                            .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpConfigurationProperties.getWriteSpinCount())
-                            .option(ChannelOption.AUTO_READ, nettyTcpConfigurationProperties.isAutoRead())
-                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfigurationProperties.isTcpNodelay())
-                            .option(ChannelOption.SO_KEEPALIVE, nettyTcpConfigurationProperties.isSoKeepalive())
-                            .option(ChannelOption.SO_REUSEADDR, nettyTcpConfigurationProperties.isSoReuseaddr())
-                            .option(ChannelOption.SO_LINGER, nettyTcpConfigurationProperties.getSoLinger()));
+                            .runOn(LoopResources.create("shenyu-netty", nettyTcpProperties.getSelectCount(), nettyTcpProperties.getWorkerCount(), true))
+                            .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpProperties.getSoBacklog())
+                            .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpProperties.isSoReuseaddr())
+                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpProperties.getConnectTimeoutMillis())
+                            .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpProperties.getWriteBufferLowWaterMark(),
+                                    nettyTcpProperties.getWriteBufferHighWaterMark()))
+                            .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpProperties.getWriteSpinCount())
+                            .option(ChannelOption.AUTO_READ, nettyTcpProperties.isAutoRead())
+                            .option(ChannelOption.TCP_NODELAY, nettyTcpProperties.isTcpNodelay())
+                            .option(ChannelOption.SO_KEEPALIVE, nettyTcpProperties.isSoKeepalive())
+                            .option(ChannelOption.SO_REUSEADDR, nettyTcpProperties.isSoReuseaddr())
+                            .option(ChannelOption.SO_LINGER, nettyTcpProperties.getSoLinger()));
         }
     }
 }
