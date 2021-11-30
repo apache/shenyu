@@ -62,25 +62,29 @@ public class MultiParamServiceImpl implements DubboMultiParamService {
     @Override
     @ShenyuDubboClient(path = "/batchSave", desc = "batchSave")
     public DubboTest batchSave(List<DubboTest> dubboTestList) {
-        return new DubboTest(join(dubboTestList, DubboTest::getId), "hello world shenyu apache dubbo param batchSave :" + join(dubboTestList, DubboTest::getName));
+        return new DubboTest(join(dubboTestList, DubboTest::getId),
+                "hello world shenyu apache dubbo param batchSave :" + join(dubboTestList, DubboTest::getName));
     }
     
     @Override
     @ShenyuDubboClient(path = "/batchSaveAndNameAndId", desc = "batchSaveAndNameAndId")
     public DubboTest batchSaveAndNameAndId(List<DubboTest> dubboTestList, String id, String name) {
-        return new DubboTest(id, "hello world shenyu apache dubbo param batchSaveAndNameAndId :" + name + ":" + join(dubboTestList, DubboTest::getName));
+        return new DubboTest(id, "hello world shenyu apache dubbo param batchSaveAndNameAndId :"
+                + name + ":" + join(dubboTestList, DubboTest::getName));
     }
     
     @Override
     @ShenyuDubboClient(path = "/saveComplexBeanTest", desc = "saveComplexBeanTest")
     public DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest) {
-        return new DubboTest(complexBeanTest.getIdLists().toString(), "hello world shenyu apache dubbo param saveComplexBeanTest :" + complexBeanTest.getDubboTest().getName());
+        return new DubboTest(complexBeanTest.getIdLists().toString(),
+                "hello world shenyu apache dubbo param saveComplexBeanTest :" + complexBeanTest.getDubboTest().getName());
     }
     
     @Override
     @ShenyuDubboClient(path = "/saveComplexBeanTestAndName", desc = "saveComplexBeanTestAndName")
     public DubboTest saveComplexBeanTestAndName(ComplexBeanTest complexBeanTest, String name) {
-        return new DubboTest(complexBeanTest.getIdLists().toString(), "hello world shenyu alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
+        return new DubboTest(complexBeanTest.getIdLists().toString(),
+                "hello world shenyu alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
     }
     
     private <T> String join(final @NonNull List<T> list, final Function<T, String> mapper) {

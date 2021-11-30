@@ -61,13 +61,15 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     @Override
     @ShenyuDubboClient(path = "/batchSave", desc = "batchSave")
     public DubboTest batchSave(List<DubboTest> dubboTestList) {
-        return new DubboTest(join(dubboTestList, DubboTest::getId), "hello world shenyu alibaba dubbo param batchSave :" + join(dubboTestList, DubboTest::getName));
+        return new DubboTest(join(dubboTestList, DubboTest::getId),
+                "hello world shenyu alibaba dubbo param batchSave :" + join(dubboTestList, DubboTest::getName));
     }
     
     @Override
     @ShenyuDubboClient(path = "/batchSaveAndNameAndId", desc = "batchSaveAndNameAndId")
     public DubboTest batchSaveAndNameAndId(List<DubboTest> dubboTestList, String id, String name) {
-        return new DubboTest(id, "hello world shenyu alibaba dubbo param batchSaveAndNameAndId :" + name + ":" + join(dubboTestList, DubboTest::getName));
+        return new DubboTest(id, "hello world shenyu alibaba dubbo param batchSaveAndNameAndId :"
+                + name + ":" + join(dubboTestList, DubboTest::getName));
     }
     
     @Override
