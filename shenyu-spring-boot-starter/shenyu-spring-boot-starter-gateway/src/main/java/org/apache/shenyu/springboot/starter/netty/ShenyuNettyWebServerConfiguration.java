@@ -19,7 +19,6 @@ package org.apache.shenyu.springboot.starter.netty;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
-import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -52,14 +51,14 @@ public class ShenyuNettyWebServerConfiguration {
     /**
      * Netty reactive web server factory netty reactive web server factory.
      *
-     * @param config the config
+     * @param properties the properties
      * @return the netty reactive web server factory
      */
     @Bean
     @ConditionalOnMissingBean(NettyReactiveWebServerFactory.class)
-    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpProperties> config) {
+    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpProperties> properties) {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
-        NettyTcpProperties nettyTcpProperties = Optional.ofNullable(config.getIfAvailable()).orElse(new NettyTcpProperties());
+        NettyTcpProperties nettyTcpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyTcpProperties());
         webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpProperties));
         return webServerFactory;
     }
