@@ -114,8 +114,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
+        return skipExcept(exchange, RpcTypeEnum.SPRING_CLOUD);
     }
 
     @Override

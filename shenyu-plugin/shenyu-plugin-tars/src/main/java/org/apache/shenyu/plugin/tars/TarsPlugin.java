@@ -110,9 +110,7 @@ public class TarsPlugin extends AbstractShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.TARS.getName());
+        return skipExcept(exchange, RpcTypeEnum.TARS);
     }
 
     private boolean checkMetaData(final MetaData metaData) {
