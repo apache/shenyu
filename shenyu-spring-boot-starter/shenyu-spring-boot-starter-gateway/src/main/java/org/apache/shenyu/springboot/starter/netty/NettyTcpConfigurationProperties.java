@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integrated.test.grpc.configuration;
+package org.apache.shenyu.springboot.starter.netty;
 
 /**
- * The netty tcp config.
+ * The netty tcp configuration properties.
  */
-public class NettyTcpConfig {
+public class NettyTcpConfigurationProperties {
 
     private int selectCount = 1;
 
