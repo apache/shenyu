@@ -30,53 +30,54 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
+    
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-
+    
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+    
 /**
- * Test cases for ShenyuClientRegisterMotanServiceImpl.
+ * Test cases for {@link ShenyuClientRegisterMotanServiceImpl}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class ShenyuClientRegisterMotanServiceImplTest {
-
+    
     @InjectMocks
     private ShenyuClientRegisterMotanServiceImpl shenyuClientRegisterMotanService;
-
+    
     @Mock
     private MetaDataServiceImpl metaDataService;
-
+    
     @Test
-    public void rpcType() {
+    public void testRpcType() {
         String rpcType = shenyuClientRegisterMotanService.rpcType();
         Assert.assertEquals(RpcTypeEnum.MOTAN.getName(), rpcType);
     }
-
+    
     @Test
-    public void selectorHandler() {
+    public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
         Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.selectorHandler(metaDataRegisterDTO));
     }
-
+    
     @Test
-    public void ruleHandler() {
+    public void testRuleHandler() {
         Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.ruleHandler());
     }
-
+    
     @Test
-    public void registerMetadata() {
+    public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
-        given(metaDataService.findByPath(anyString())).willReturn(metaDataDO);
-
+        when(metaDataService.findByPath(any())).thenReturn(metaDataDO);
         MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().build();
         shenyuClientRegisterMotanService.registerMetadata(metaDataDTO);
+        verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
-
+    
     @Test
-    public void buildHandle() {
+    public void testBuildHandle() {
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().build());
         Assert.assertEquals(StringUtils.EMPTY,

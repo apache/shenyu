@@ -78,11 +78,6 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
         return PluginEnum.LOGGING.getName();
     }
     
-    @Override
-    public boolean skip(final ServerWebExchange exchange) {
-        return false;
-    }
-    
     private String getRequestMethod(final ServerHttpRequest request) {
         return "Request Method: " + request.getMethod() + System.lineSeparator();
     }
