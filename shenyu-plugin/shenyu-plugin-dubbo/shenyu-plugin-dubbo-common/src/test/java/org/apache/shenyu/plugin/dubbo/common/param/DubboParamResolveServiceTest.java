@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +47,7 @@ public class DubboParamResolveServiceTest {
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
-        Map map = (Map) pair.getRight()[0];
+        Map<?, ?> map = (HashMap<?, ?>) pair.getRight()[0];
         assertNull(map.get("id"));
         assertNull(map.get("name"));
         
@@ -55,11 +56,11 @@ public class DubboParamResolveServiceTest {
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
-        map = (Map) pair.getRight()[0];
-        Map dubboTest = (Map) map.get("dubboTest");
+        map = (Map<?, ?>) pair.getRight()[0];
+        Map<?, ?> dubboTest = (Map<?, ?>) map.get("dubboTest");
         assertNull(dubboTest.get("id"));
         assertNull(dubboTest.get("name"));
-        List idList = (List) map.get("idLists");
+        List<?> idList = (List<?>) map.get("idLists");
         assertNull(idList.get(0));
         assertNull(idList.get(1));
 
@@ -68,11 +69,11 @@ public class DubboParamResolveServiceTest {
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(2));
         assertThat(pair.getRight().length, is(2));
-        map = (Map) pair.getRight()[0];
-        Map dubboTest1 = (Map) map.get("dubboTest");
+        map = (Map<?, ?>) pair.getRight()[0];
+        Map<?, ?> dubboTest1 = (Map<?, ?>) map.get("dubboTest");
         assertNull(dubboTest1.get("id"));
         assertNull(dubboTest1.get("name"));
-        List idList1 = (List) map.get("idLists");
+        List<?> idList1 = (List<?>) map.get("idLists");
         assertNull(idList1.get(0));
         assertNull(idList1.get(1));
     }

@@ -38,7 +38,7 @@ public class AlibabaDubboMetaDataSubscriber implements MetaDataSubscriber {
     public void onSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
-            if (Objects.isNull(exist) || Objects.isNull(AlibabaDubboConfigCache.getInstance().get(metaData.getPath()))) {
+            if (Objects.isNull(exist)) {
                 // The first initialization
                 AlibabaDubboConfigCache.getInstance().initRef(metaData);
             } else {

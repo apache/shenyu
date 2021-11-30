@@ -70,7 +70,7 @@ public class ApacheDubboProxyService {
             RpcContext.getContext().setAttachment(CommonConstants.TAG_KEY, dubboTagRouteFromHttpHeaders);
         }
         ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(metaData.getPath());
-        if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
+        if (StringUtils.isEmpty(reference.getInterface())) {
             ApacheDubboConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApacheDubboConfigCache.getInstance().initRef(metaData);
         }
