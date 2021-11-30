@@ -26,8 +26,12 @@ import java.net.InetSocketAddress;
 /**
  * ShenyuResolverHelper.
  */
-public class ShenyuResolverHelper {
-
+public final class ShenyuResolverHelper {
+    
+    private ShenyuResolverHelper() {
+    
+    }
+    
     /**
      * ConvertToEquivalentAddressGroup.
      *
@@ -37,7 +41,7 @@ public class ShenyuResolverHelper {
     public static EquivalentAddressGroup convertToEquivalentAddressGroup(final ShenyuServiceInstance instance) {
         return new EquivalentAddressGroup(new InetSocketAddress(instance.getHost(), instance.getPort()), createAttributes(instance));
     }
-
+    
     /**
      * CreateAttributes.
      *

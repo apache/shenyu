@@ -30,13 +30,12 @@ import static org.mockito.Mockito.mock;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MessageWriterTest {
-    private ShenyuGrpcResponse shenyuGrpcResponse;
-
+    
     private MessageWriter<Message> messageWriter;
 
     @Before
     public void setUp() {
-        shenyuGrpcResponse = mock(ShenyuGrpcResponse.class);
+        ShenyuGrpcResponse shenyuGrpcResponse = mock(ShenyuGrpcResponse.class);
         messageWriter = MessageWriter.newInstance(shenyuGrpcResponse);
     }
 
@@ -44,6 +43,7 @@ public class MessageWriterTest {
     public void onError() {
         Throwable throwable = mock(Throwable.class);
         messageWriter.onError(throwable);
+        
     }
 
     @Test
