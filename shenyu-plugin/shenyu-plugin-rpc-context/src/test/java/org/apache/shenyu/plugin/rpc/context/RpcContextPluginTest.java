@@ -39,6 +39,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -75,18 +76,16 @@ public class RpcContextPluginTest {
         this.ruleData.setName("test-rpc-context-plugin");
 
         RpcContextHandle addRpcRequestHandle = new RpcContextHandle();
-        addRpcRequestHandle.setRpcContextType(Constants.ADD_RPC_CONTEXT_TYPE);
-        addRpcRequestHandle.setRpcContextKey("addRpcContextKey");
-        addRpcRequestHandle.setRpcContextValue("addRpcContextValue");
-        RpcContextHandle transmitRpcRequestHandle = new RpcContextHandle();
-        transmitRpcRequestHandle.setRpcContextType(Constants.TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE);
-        transmitRpcRequestHandle.setRpcContextKey("shenyuTestHeaderKey");
-        transmitRpcRequestHandle.setRpcContextValue("shenyuTestHeaderNewKey");
-        List<RpcContextHandle> requestHandles = new ArrayList<>();
-        requestHandles.add(addRpcRequestHandle);
-        requestHandles.add(transmitRpcRequestHandle);
+        addRpcRequestHandle.setRpcType(PluginEnum.DUBBO.getName());
+        List<RpcContextHandle.RpcContextHandleContent> rpcContextHandleContents = new ArrayList<>();
+        RpcContextHandle.RpcContextHandleContent contextHandleContent = addRpcRequestHandle.new RpcContextHandleContent(Constants.ADD_RPC_CONTEXT_TYPE, "addRpcContextKey", "addRpcContextValue");
+        rpcContextHandleContents.add(contextHandleContent);
+        RpcContextHandle.RpcContextHandleContent transmitRpcRequestHandle =
+                addRpcRequestHandle.new RpcContextHandleContent(Constants.TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE, "shenyuTestHeaderKey", "shenyuTestHeaderNewKey");
+        rpcContextHandleContents.add(transmitRpcRequestHandle);
+        addRpcRequestHandle.setRpcContextHandleContents(rpcContextHandleContents);
 
-        RpcContextPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), requestHandles);
+        RpcContextPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), Arrays.asList(addRpcRequestHandle));
     }
 
     @Test
@@ -99,7 +98,7 @@ public class RpcContextPluginTest {
         ArgumentCaptor<ServerWebExchange> newExchange = ArgumentCaptor.forClass(ServerWebExchange.class);
         Mockito.verify(this.chain, times(1)).execute(newExchange.capture());
 
-        Map<String, String> shenyuRpcContext = (Map<String, String>) newExchange.getValue().getAttributes().get(Constants.RPC_CONTEXT);
+        Map<String, String> shenyuRpcContext = ((Map<String, Map<String, String>>) newExchange.getValue().getAttributes().get(Constants.RPC_CONTEXT)).get(PluginEnum.DUBBO.getName());
 
         assertTrue(shenyuRpcContext.containsKey("addRpcContextKey"));
         assertTrue(shenyuRpcContext.containsKey("shenyuTestHeaderNewKey"));

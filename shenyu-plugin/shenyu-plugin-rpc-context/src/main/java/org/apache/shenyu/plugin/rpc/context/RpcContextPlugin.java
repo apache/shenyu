@@ -43,19 +43,25 @@ public class RpcContextPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         List<RpcContextHandle> rpcContextHandles = RpcContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        Map<String, String> rpcContextMap = new HashMap<>();
+        Map<String, Map<String, String>> rpcContextMap = new HashMap<>();
         HttpHeaders headers = exchange.getRequest().getHeaders();
         rpcContextHandles.stream().forEach(each -> {
-            switch (each.getRpcContextType()) {
-                case Constants.ADD_RPC_CONTEXT_TYPE:
-                    rpcContextMap.put(each.getRpcContextKey(), each.getRpcContextValue());
-                    break;
-                case Constants.TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE:
-                    rpcContextMap.put(StringUtils.isBlank(each.getRpcContextValue()) ? each.getRpcContextKey() : each.getRpcContextValue(), headers.getFirst(each.getRpcContextKey()));
-                    break;
-                default:
-                    break;
-            }
+            Map<String, String> rpcContextMapWithRpcType = new HashMap<>();
+            final List<RpcContextHandle.RpcContextHandleContent> rpcContextHandleContents = each.getRpcContextHandleContents();
+            rpcContextHandleContents.forEach(eachContents -> {
+                switch (eachContents.getRpcContextType()) {
+                    case Constants.ADD_RPC_CONTEXT_TYPE:
+                        rpcContextMapWithRpcType.put(eachContents.getRpcContextKey(), eachContents.getRpcContextValue());
+                        break;
+                    case Constants.TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE:
+                        rpcContextMapWithRpcType.put(StringUtils.isBlank(eachContents.getRpcContextValue()) ? eachContents.getRpcContextKey() : eachContents.getRpcContextValue(),
+                                headers.getFirst(eachContents.getRpcContextKey()));
+                        break;
+                    default:
+                        break;
+                }
+            });
+            rpcContextMap.put(each.getRpcType(), rpcContextMapWithRpcType);
         });
         exchange.getAttributes().put(Constants.RPC_CONTEXT, rpcContextMap);
         return chain.execute(exchange);

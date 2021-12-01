@@ -17,32 +17,23 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * this is RequestHandle plugin handle.
  */
 public class RpcContextHandle {
 
     /**
-     * rpc context type.
+     * rpcType.
      */
-    private String rpcContextType;
+    private String rpcType;
 
     /**
-     * rpcContextKey.
-     * <p>
-     * need to be added new context value.
-     * key: new rpc context key, value: rpc context value.
-     * </p>
+     * RpcContextHandleContent.
      */
-    private String rpcContextKey;
-
-    /**
-     * rpcContextValue.
-     * when rpcContextType is addRpcContext, the rpcContextValue is the value of rpcContextKey.
-     * when rpcContextType is transmitHeaderToRpcContext, the rpcContextValue is the new key of rpcContext.
-     * In this case, if rpcContextValue is blank, default value is same as rpcContextKey.
-     */
-    private String rpcContextValue;
+    private List<RpcContextHandleContent> rpcContextHandleContents;
 
     /**
      * no args constructor.
@@ -53,67 +44,197 @@ public class RpcContextHandle {
     /**
      * all args constructor.
      *
-     * @param rpcContextType  rpcContextType
-     * @param rpcContextKey   rpcContextKey
-     * @param rpcContextValue rpcContextValue
+     * @param rpcType                  rpc
+     * @param rpcContextHandleContents rpcContextHandleContents
      */
-    public RpcContextHandle(final String rpcContextType, final String rpcContextKey, final String rpcContextValue) {
-        this.rpcContextType = rpcContextType;
-        this.rpcContextKey = rpcContextKey;
-        this.rpcContextValue = rpcContextValue;
+    public RpcContextHandle(final String rpcType, final List<RpcContextHandleContent> rpcContextHandleContents) {
+        this.rpcType = rpcType;
+        this.rpcContextHandleContents = rpcContextHandleContents;
     }
 
     /**
-     * get rpcContextType.
+     * get rpcType.
      *
-     * @return rpcContextType
+     * @return rpcType
      */
-    public String getRpcContextType() {
-        return rpcContextType;
+    public String getRpcType() {
+        return rpcType;
     }
 
     /**
-     * set rpcContextType.
+     * set rpcType.
      *
-     * @param rpcContextType rpcContextType
+     * @param rpcType rpcType
      */
-    public void setRpcContextType(final String rpcContextType) {
-        this.rpcContextType = rpcContextType;
+    public void setRpcType(final String rpcType) {
+        this.rpcType = rpcType;
     }
 
     /**
-     * get rpcContextKey.
+     * get rpcContextHandleContents.
      *
-     * @return rpcContextKey
+     * @return rpcContextHandleContents
      */
-    public String getRpcContextKey() {
-        return rpcContextKey;
+    public List<RpcContextHandleContent> getRpcContextHandleContents() {
+        return rpcContextHandleContents;
     }
 
     /**
-     * set rpcContextKey.
+     * set rpcContextHandleContents.
      *
-     * @param rpcContextKey rpcContextKey
+     * @param rpcContextHandleContents rpcContextHandleContents
      */
-    public void setRpcContextKey(final String rpcContextKey) {
-        this.rpcContextKey = rpcContextKey;
+    public void setRpcContextHandleContents(final List<RpcContextHandleContent> rpcContextHandleContents) {
+        this.rpcContextHandleContents = rpcContextHandleContents;
     }
 
-    /**
-     * get rpcContextValue.
-     *
-     * @return rpcContextValue
-     */
-    public String getRpcContextValue() {
-        return rpcContextValue;
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RpcContextHandle that = (RpcContextHandle) o;
+        return Objects.equals(rpcType, that.rpcType) && Objects.equals(rpcContextHandleContents, that.rpcContextHandleContents);
     }
 
-    /**
-     * set rpcContextValue.
-     *
-     * @param rpcContextValue rpcContextValue
-     */
-    public void setRpcContextValue(final String rpcContextValue) {
-        this.rpcContextValue = rpcContextValue;
+    @Override
+    public int hashCode() {
+        return Objects.hash(rpcType, rpcContextHandleContents);
+    }
+
+    @Override
+    public String toString() {
+        return "RpcContextHandle{"
+                + "rpcType='" + rpcType + '\''
+                + ", rpcContextHandleContents=" + rpcContextHandleContents
+                + '}';
+    }
+
+    public class RpcContextHandleContent {
+        /**
+         * rpc context type.
+         */
+        private String rpcContextType;
+
+        /**
+         * rpcContextKey.
+         * <p>
+         * need to be added new context value.
+         * key: new rpc context key, value: rpc context value.
+         * </p>
+         */
+        private String rpcContextKey;
+
+        /**
+         * rpcContextValue.
+         * when rpcContextType is addRpcContext, the rpcContextValue is the value of rpcContextKey.
+         * when rpcContextType is transmitHeaderToRpcContext, the rpcContextValue is the new key of rpcContext.
+         * In this case, if rpcContextValue is blank, default value is same as rpcContextKey.
+         */
+        private String rpcContextValue;
+
+        /**
+         * no args constructor.
+         */
+        public RpcContextHandleContent() {
+        }
+
+        /**
+         * all args constructor.
+         *
+         * @param rpcContextType  rpcContextType
+         * @param rpcContextKey   rpcContextKey
+         * @param rpcContextValue rpcContextValue
+         */
+        public RpcContextHandleContent(final String rpcContextType, final String rpcContextKey, final String rpcContextValue) {
+            this.rpcContextType = rpcContextType;
+            this.rpcContextKey = rpcContextKey;
+            this.rpcContextValue = rpcContextValue;
+        }
+
+        /**
+         * get rpcContextType.
+         *
+         * @return rpcContextType
+         */
+        public String getRpcContextType() {
+            return rpcContextType;
+        }
+
+        /**
+         * set rpcContextType.
+         *
+         * @param rpcContextType rpcContextType
+         */
+        public void setRpcContextType(final String rpcContextType) {
+            this.rpcContextType = rpcContextType;
+        }
+
+        /**
+         * get rpcContextKey.
+         *
+         * @return rpcContextKey
+         */
+        public String getRpcContextKey() {
+            return rpcContextKey;
+        }
+
+        /**
+         * set rpcContextKey.
+         *
+         * @param rpcContextKey rpcContextKey
+         */
+        public void setRpcContextKey(final String rpcContextKey) {
+            this.rpcContextKey = rpcContextKey;
+        }
+
+        /**
+         * get rpcContextValue.
+         *
+         * @return rpcContextValue
+         */
+        public String getRpcContextValue() {
+            return rpcContextValue;
+        }
+
+        /**
+         * set rpcContextValue.
+         *
+         * @param rpcContextValue rpcContextValue
+         */
+        public void setRpcContextValue(final String rpcContextValue) {
+            this.rpcContextValue = rpcContextValue;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            RpcContextHandleContent that = (RpcContextHandleContent) o;
+            return Objects.equals(rpcContextType, that.rpcContextType)
+                    && Objects.equals(rpcContextKey, that.rpcContextKey)
+                    && Objects.equals(rpcContextValue, that.rpcContextValue);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(rpcContextType, rpcContextKey, rpcContextValue);
+        }
+
+        @Override
+        public String toString() {
+            return "RpcContextHandleContent{"
+                    + "rpcContextType='" + rpcContextType + '\''
+                    + ", rpcContextKey='" + rpcContextKey + '\''
+                    + ", rpcContextValue='" + rpcContextValue + '\''
+                    + '}';
+        }
     }
 }
