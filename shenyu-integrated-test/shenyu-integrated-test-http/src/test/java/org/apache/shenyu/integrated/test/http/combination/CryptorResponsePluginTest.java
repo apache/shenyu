@@ -35,14 +35,14 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
-import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
+public class CryptorResponsePluginTest extends AbstractPluginDataInit {
 
     private static final String RSA_PRIVATE_KEY = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAvEXyUDh5qliWhM6KrpTFi1OXumoJQzMfSr8XjfKa/kHKb1uxr7N8lJd3I850m2IYrxckFCQW6nrnRKctm"
             + "iMgZQIDAQABAkBEFbdvMz0sUST9mgOk5sAZhn1UOIxo9M/YJArMlnNehqQs3Pv8RD6ASisgs19XnBhcUNdl2ecfxddp7OVQ6PVxAiEA+XagQdbwkFrEjUsPqPQTweKkc7aoVGJfifEGWvCKtAcCIQDBNN0K5vlVV5YKnA5WtDAN"
@@ -60,40 +60,35 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
 
     @Before
     public void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.CRYPTOR_REQUEST.getName(), null);
+        String pluginResult = initPlugin(PluginEnum.CRYPTOR_RESPONSE.getName(), null);
         assertThat(pluginResult, is("success"));
     }
 
     @Test
-    public void testDecryptRequest() throws Exception {
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList("data", "decrypt"));
+    public void testDecryptResponse() throws Exception {
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", buildSelectorConditionList(), buildRuleLocalDataList("userId", "decrypt"));
         assertThat(selectorAndRulesResult, is("success"));
 
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("userId", TEST_USER_ID);
-        jsonObject.addProperty("userName", TEST_USER_NAME);
         JsonObject request = new JsonObject();
-        request.addProperty("data", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, jsonObject.toString()));
-        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-
-        assertThat(actualUser.getUserId(), is(TEST_USER_ID));
-        assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
+        request.addProperty("userId", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, TEST_USER_ID));
+        request.addProperty("userName", TEST_USER_NAME);
+        String actualUserId = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, String.class);
+        assertThat(actualUserId, is(TEST_USER_ID));
     }
 
     @Test
-    public void testEncryptRequest() throws Exception {
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList("userId", "encrypt"));
+    public void testEncryptResponse() throws Exception {
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", buildSelectorConditionList(), buildRuleLocalDataList("userName", "encrypt"));
         assertThat(selectorAndRulesResult, is("success"));
 
         JsonObject request = new JsonObject();
         request.addProperty("userId", TEST_USER_ID);
         request.addProperty("userName", TEST_USER_NAME);
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
-        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserId());
-        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_ID));
-        assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
+        byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
+        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
     }
 
     private List<ConditionData> buildSelectorConditionList() {
@@ -131,7 +126,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
 
     @After
     public void clean() throws IOException {
-        String cleanResult = cleanPluginData(PluginEnum.CRYPTOR_REQUEST.getName());
+        String cleanResult = cleanPluginData(PluginEnum.CRYPTOR_RESPONSE.getName());
         assertThat(cleanResult, is("success"));
     }
 }

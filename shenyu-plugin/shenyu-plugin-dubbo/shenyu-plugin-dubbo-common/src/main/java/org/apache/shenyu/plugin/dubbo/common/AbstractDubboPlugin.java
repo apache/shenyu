@@ -127,9 +127,7 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.DUBBO.getName());
+        return skipExcept(exchange, RpcTypeEnum.DUBBO);
     }
 
     private boolean checkMetaData(final MetaData metaData) {

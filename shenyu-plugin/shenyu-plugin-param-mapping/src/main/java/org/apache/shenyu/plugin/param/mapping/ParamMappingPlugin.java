@@ -72,11 +72,6 @@ public class ParamMappingPlugin extends AbstractShenyuPlugin {
         return PluginEnum.PARAM_MAPPING.getName();
     }
 
-    @Override
-    public boolean skip(final ServerWebExchange exchange) {
-        return false;
-    }
-
     /**
      * OperatorFactory match.
      *

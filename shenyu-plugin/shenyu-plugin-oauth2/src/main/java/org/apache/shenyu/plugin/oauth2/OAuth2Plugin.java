@@ -37,6 +37,8 @@ public class OAuth2Plugin implements ShenyuPlugin {
 
     private static final String BEARER = "Bearer ";
 
+    private static final String OAUTH2_ENABLE = "enable";
+
     private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 
     public OAuth2Plugin(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
@@ -68,8 +70,7 @@ public class OAuth2Plugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        Boolean skipStatus = exchange.<Boolean>getAttribute("enable");
-        return skipStatus == null || skipStatus;
+        return Boolean.TRUE.equals(exchange.<Boolean>getAttribute(OAUTH2_ENABLE));
     }
 
     private ServerWebExchange handleToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {
