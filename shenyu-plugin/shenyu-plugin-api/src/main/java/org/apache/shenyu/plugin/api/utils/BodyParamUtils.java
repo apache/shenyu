@@ -133,7 +133,7 @@ public class BodyParamUtils {
      */
     private static boolean isBaseType(final String paramType) {
         try {
-          return ReflectUtils.isPrimitives(ClassUtils.getClass(paramType));
+            return ReflectUtils.isPrimitives(ClassUtils.getClass(paramType));
         } catch (ClassNotFoundException e) {
             throw new SerializerException(e);
         }
