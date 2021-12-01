@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
-
 /**
  * Alibaba dubbo proxy service is  use GenericService.
  */

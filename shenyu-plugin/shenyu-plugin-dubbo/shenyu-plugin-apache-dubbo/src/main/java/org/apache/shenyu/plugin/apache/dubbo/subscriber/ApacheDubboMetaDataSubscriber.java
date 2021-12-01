@@ -35,14 +35,14 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
 
     @Override
+    @SuppressWarnings("all")
     public void onSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
-            if (Objects.isNull(exist)) {
+            if (Objects.isNull(exist) || Objects.isNull(ApacheDubboConfigCache.getInstance().get(metaData.getPath()))) {
                 // The first initialization
                 ApacheDubboConfigCache.getInstance().initRef(metaData);
             } else {
-                ApacheDubboConfigCache.getInstance().get(metaData.getPath());
                 // There are updates, which only support the update of four properties of serviceName rpcExt parameterTypes methodName,
                 // because these four properties will affect the call of Dubbo;
                 if (!Objects.equals(metaData.getServiceName(), exist.getServiceName())
