@@ -29,8 +29,6 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -45,7 +43,7 @@ import static org.junit.Assert.assertThat;
 /**
  * The integrated test for combination plugins about cryptor request and cryptor response.
  */
-public final class CryptorRequestAndCryptorResponsePluginTest extends AbstractPluginDataInit {
+public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     private static final String RSA_PRIVATE_KEY = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAvEXyUDh5qliWhM6KrpTFi1OXumoJQzMfSr8XjfKa/kHKb1uxr7N8lJd3I850m2IYrxckFCQW6nrnRKctm"
             + "iMgZQIDAQABAkBEFbdvMz0sUST9mgOk5sAZhn1UOIxo9M/YJArMlnNehqQs3Pv8RD6ASisgs19XnBhcUNdl2ecfxddp7OVQ6PVxAiEA+XagQdbwkFrEjUsPqPQTweKkc7aoVGJfifEGWvCKtAcCIQDBNN0K5vlVV5YKnA5WtDAN"
@@ -61,22 +59,10 @@ public final class CryptorRequestAndCryptorResponsePluginTest extends AbstractPl
 
     private static final RsaStrategy RSA_STRATEGY = new RsaStrategy();
 
-    @BeforeClass
-    public static void setup() throws IOException {
-        String requestPluginResult = initPlugin(PluginEnum.CRYPTOR_REQUEST.getName(), null);
-        assertThat(requestPluginResult, is("success"));
-        String responsePluginResult = initPlugin(PluginEnum.CRYPTOR_RESPONSE.getName(), null);
-        assertThat(responsePluginResult, is("success"));
-    }
-
     @Test
     public void testDecryptRequestAndEncryptResponse() throws Exception {
-        String cryptorRequestResult = initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList("data", "decrypt"));
-        assertThat(cryptorRequestResult, is("success"));
-        String cryptorResponseResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList("userName", "encrypt"));
-        assertThat(cryptorResponseResult, is("success"));
+        setupCryptorRequest("data", "decrypt");
+        setupCryptorResponse("userName", "encrypt");
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("userId", TEST_USER_ID);
@@ -87,6 +73,9 @@ public final class CryptorRequestAndCryptorResponsePluginTest extends AbstractPl
         byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
         assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
         assertThat(actualUser.getUserId(), is(TEST_USER_ID));
+
+        cleanCryptorRequest();
+        cleanCryptorResponse();
     }
 
     private List<LocalPluginController.RuleLocalData> buildRuleLocalDataList(final String fieldNames, final String way) {
@@ -122,12 +111,29 @@ public final class CryptorRequestAndCryptorResponsePluginTest extends AbstractPl
         return Collections.singletonList(conditionData);
     }
 
-    @AfterClass
-    public static void cleanAll() throws IOException {
-        String req = cleanPluginData(PluginEnum.CRYPTOR_REQUEST.getName());
-        assertThat(req, is("success"));
-        String res = cleanPluginData(PluginEnum.CRYPTOR_RESPONSE.getName());
+    private void setupCryptorRequest(final String fieldNames, final String way) throws IOException {
+        String requestPluginResult = initPlugin(PluginEnum.CRYPTOR_REQUEST.getName(), null);
+        assertThat(requestPluginResult, is("success"));
+        String initSelectorAndRules = initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
+                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way));
+        assertThat(initSelectorAndRules, is("success"));
+    }
+
+    private void setupCryptorResponse(final String fieldNames, final String way) throws IOException {
+        String responsePluginResult = initPlugin(PluginEnum.CRYPTOR_RESPONSE.getName(), null);
+        assertThat(responsePluginResult, is("success"));
+        String cryptorResponseResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way));
+        assertThat(cryptorResponseResult, is("success"));
+    }
+
+    private void cleanCryptorRequest() throws IOException {
+        String res = cleanPluginData(PluginEnum.CRYPTOR_REQUEST.getName());
         assertThat(res, is("success"));
     }
 
+    private void cleanCryptorResponse() throws IOException {
+        String res = cleanPluginData(PluginEnum.CRYPTOR_RESPONSE.getName());
+        assertThat(res, is("success"));
+    }
 }
