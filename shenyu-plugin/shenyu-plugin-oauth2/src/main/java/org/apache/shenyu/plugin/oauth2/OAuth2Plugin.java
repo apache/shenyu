@@ -70,7 +70,8 @@ public class OAuth2Plugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        return Boolean.TRUE.equals(exchange.<Boolean>getAttribute(OAUTH2_ENABLE));
+        Boolean skipStatus = exchange.<Boolean>getAttribute(OAUTH2_ENABLE);
+        return skipStatus == null || skipStatus;
     }
 
     private ServerWebExchange handleToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {
