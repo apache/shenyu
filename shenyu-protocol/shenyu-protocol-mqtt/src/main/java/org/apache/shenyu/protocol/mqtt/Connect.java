@@ -24,14 +24,11 @@ import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
-import org.apache.shenyu.protocol.mqtt.repositories.SimpleChannelRepository;
 
 /**
  * Client requests a connection to a server.
  */
 public class Connect extends MessageType {
-
-    private final ChannelRepository channelRepository = new SimpleChannelRepository();
 
     @Override
     public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
@@ -52,7 +49,7 @@ public class Connect extends MessageType {
         }
 
         // record connect
-        channelRepository.add(clientId, ctx.channel());
+        ChannelRepository.getInstance().add(ctx.channel(), clientId);
 
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()
                 .returnCode(MqttConnectReturnCode.CONNECTION_ACCEPTED)
