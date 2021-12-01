@@ -186,12 +186,12 @@ public class ReflectUtils {
     }
 
     /**
-     * Verify the cls is Primitives (Maybe array)
+     * Verify the cls is Primitives (Maybe array).
      *
      * @param cls class
      * @return boolean
      */
-    public static boolean isPrimitives(Class<?> cls) {
+    public static boolean isPrimitives(final Class<?> cls) {
         if (cls.isArray()) {
             return isPrimitive(cls.getComponentType());
         }
@@ -199,12 +199,12 @@ public class ReflectUtils {
     }
 
     /**
-     * Verify the cls is Primitive
+     * Verify the cls is Primitive.
      *
      * @param cls class
      * @return boolean
      */
-    public static boolean isPrimitive(Class<?> cls) {
+    public static boolean isPrimitive(final Class<?> cls) {
         return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
                 || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
     }
