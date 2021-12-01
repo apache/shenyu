@@ -35,12 +35,12 @@ public class ChannelRepository implements BaseRepository<Channel, String> {
     }
 
     @Override
-    public void remove(Channel channel) {
+    public void remove(final Channel channel) {
         CHANNEL_FACTORY.remove(channel);
     }
 
     @Override
-    public String get(Channel channel) {
+    public String get(final Channel channel) {
         return CHANNEL_FACTORY.get(channel);
     }
 

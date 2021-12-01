@@ -18,27 +18,27 @@
 package org.apache.shenyu.protocol.mqtt.repositories;
 
 /**
- * Base repository
- * @param <K>
- * @param <V>
+ * Base repository.
+ * @param <K> k
+ * @param <V> v
  */
 public interface BaseRepository<K, V> {
 
     /**
-     * add k v
+     * add k v.
      * @param k k
      * @param v v
      */
     void add(K k, V v);
 
     /**
-     * remove k
+     * remove k.
      * @param k k
      */
     void remove(K k);
 
     /**
-     * get v by k
+     * get v by k.
      * @param k k
      * @return v
      */
