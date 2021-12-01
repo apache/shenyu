@@ -27,6 +27,7 @@
     <baseDirectory>${project.build.finalName}-docker-compose-bin</baseDirectory>
 
     <fileSets>
+        <!-- mysql -->
         <fileSet>
             <directory>src/main/resources/stand-alone-mysql</directory>
             <includes>
@@ -51,6 +52,32 @@
                 <include>logback.xml</include>
             </includes>
             <outputDirectory>stand-alone-mysql/shenyu-bootstrap/conf</outputDirectory>
+        </fileSet>
+        <!-- h2 -->
+        <fileSet>
+            <directory>src/main/resources/stand-alone-h2</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>stand-alone-h2</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-h2.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-h2/shenyu-admin/conf</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-bootstrap/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-local.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-h2/shenyu-bootstrap/conf</outputDirectory>
         </fileSet>
     </fileSets>
 </assembly>
