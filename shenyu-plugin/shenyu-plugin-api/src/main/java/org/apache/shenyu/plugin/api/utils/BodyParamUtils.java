@@ -135,7 +135,7 @@ public class BodyParamUtils {
         try {
             return ReflectUtils.isPrimitives(ClassUtils.getClass(paramType));
         } catch (ClassNotFoundException e) {
-            throw new SerializerException(e);
+            return false;
         }
     }
 }
