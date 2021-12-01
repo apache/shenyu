@@ -41,7 +41,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * The integrated test for combination plugins about cryptor request and cryptor response.
+ * The integrated test for combination plugins about request and response.
  */
 public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
