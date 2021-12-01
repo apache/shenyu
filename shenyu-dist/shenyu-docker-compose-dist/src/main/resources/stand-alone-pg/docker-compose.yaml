@@ -11,17 +11,16 @@ services:
     links:
       - shenyu-admin:admin
     depends_on:
-      - shenyu-admin
+      - shenyu-admin 
     environment:
       - shenyu.sync.websocket.urls=ws://admin:9095/websocket
   shenyu-admin:
     image: apache/shenyu-admin:latest
     container_name: shenyu-admin
-    environment:
-      - spring.profiles.active=mysql
     volumes:
     - ./shenyu-admin/logs/:/opt/shenyu-admin/logs
     - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
-    - ./shenyu-admin/ext-lib/:/opt/shenyu-admin/ext-lib
+    environment:
+      - spring.profiles.active=pg
     ports:
     - "9095:9095"
