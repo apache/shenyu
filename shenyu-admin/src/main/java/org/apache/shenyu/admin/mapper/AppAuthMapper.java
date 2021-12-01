@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * AppAuthMapper.
@@ -100,6 +101,15 @@ public interface AppAuthMapper {
      * @return the int
      */
     int updateEnable(AppAuthDO appAuthDO);
+
+    /**
+     * update enable batch.
+     *
+     * @param idSet the ids
+     * @param enabled the status
+     * @return the count
+     */
+    int updateEnableBatch(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
 
 
     /**
