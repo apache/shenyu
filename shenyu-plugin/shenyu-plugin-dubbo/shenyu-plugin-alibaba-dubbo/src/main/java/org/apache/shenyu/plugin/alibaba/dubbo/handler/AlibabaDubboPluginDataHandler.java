@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.apache.dubbo.handler;
+package org.apache.shenyu.plugin.alibaba.dubbo.handler;
 
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
+import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.handler.AbstractDubboPluginDataHandler;
 
 /**
- * The type Apache dubbo plugin data handler.
+ * The type Alibaba dubbo plugin data subscriber.
  */
-public class ApacheAbstractDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
+public class AlibabaDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
 
     @Override
     protected void initConfigCache(final DubboRegisterConfig dubboRegisterConfig) {
-        ApacheDubboConfigCache.getInstance().init(dubboRegisterConfig);
-        ApacheDubboConfigCache.getInstance().invalidateAll();
+        AlibabaDubboConfigCache.getInstance().init(dubboRegisterConfig);
+        AlibabaDubboConfigCache.getInstance().invalidateAll();
     }
 }
