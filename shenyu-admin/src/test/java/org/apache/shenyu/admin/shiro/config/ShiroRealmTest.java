@@ -25,22 +25,19 @@ import org.apache.shenyu.admin.shiro.bean.StatelessToken;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
+    
 import java.util.HashSet;
 import java.util.Set;
-
+    
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -48,37 +45,34 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 /**
  * Test cases for {@link ShiroRealm}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class ShiroRealmTest {
-
-    private static final String PASSWORD = "Axmk89Li3Aji9e";
+    
+    private static final String PASSWORD = "123456";
+    
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
     @InjectMocks
     private ShiroRealm shiroRealm;
-    
     @Mock
     private PermissionService permissionService;
-
     @Mock
     private DashboardUserService dashboardUserService;
 
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
-    
     @Test
     public void testSupports() {
         StatelessToken token = mock(StatelessToken.class);
-        assertEquals(true,shiroRealm.supports(token));
+        assertEquals(true, shiroRealm.supports(token));
     }
-    
+
     @Test
-    public void testDoGetAuthorizationInfo(){
+    public void testDoGetAuthorizationInfo() {
         PrincipalCollection principalCollection = mock(PrincipalCollection.class);
         UserInfo userInfo = new UserInfo();
-        
+
         Set<String> strings = new HashSet<>();
         when(principalCollection.getPrimaryPrincipal()).thenReturn(userInfo);
         when(permissionService.getAuthPermByUserName(any())).thenReturn(strings);
@@ -88,12 +82,11 @@ public final class ShiroRealmTest {
         when(principalCollection.getPrimaryPrincipal()).thenReturn(userInfo);
         when(permissionService.getAuthPermByUserName(any())).thenReturn(strings);
         AuthorizationInfo info = shiroRealm.doGetAuthorizationInfo(principalCollection);
-        assertEquals(strings,info.getStringPermissions());
+        assertEquals(strings, info.getStringPermissions());
     }
-    
+
     @Test
     public void testDoGetAuthenticationInfo() {
-
         AuthenticationToken token = mock(AuthenticationToken.class);
         DashboardUserVO dashboardUserVO = mock(DashboardUserVO.class);
 
@@ -105,23 +98,27 @@ public final class ShiroRealmTest {
                 + ".cThIIoDvwdueQB468K5xDc5633seEFoqwxjF_xSJyQQ");
         exception.expect(AuthenticationException.class);
         shiroRealm.doGetAuthenticationInfo(token);
-
+    
         when(dashboardUserService.findByUserName(any())).thenReturn(null);
-        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0.vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
+                + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
         exception.expect(AuthenticationException.class);
         shiroRealm.doGetAuthenticationInfo(token);
-        
+    
         when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
-        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0.vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
+                + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
         exception.expect(AuthenticationException.class);
         shiroRealm.doGetAuthenticationInfo(token);
-        
+    
         when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
-        when(dashboardUserVO.getPassword()).thenReturn("123456");
-        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0.Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
+        when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
+                + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
         AuthenticationInfo info = shiroRealm.doGetAuthenticationInfo(token);
         assertNotNull(info);
     }
-    
-    
 }

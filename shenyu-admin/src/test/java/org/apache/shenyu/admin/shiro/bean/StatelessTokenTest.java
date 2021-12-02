@@ -22,23 +22,24 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
+    
 /**
  * Test cases for {@link StatelessToken}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class StatelessTokenTest {
     
-    private final String token = "token";
+    private static final String TOKEN = "token";
     
-    private final StatelessToken statelessToken = new StatelessToken(token);
+    private final StatelessToken statelessToken = new StatelessToken(TOKEN);
     
     @Test
     public void testGetPrincipal() {
-        assertEquals(token,statelessToken.getPrincipal());
+        assertEquals(TOKEN, statelessToken.getPrincipal());
     }
-
+    
     @Test
     public void testGetCredentials() {
-        assertEquals(token,statelessToken.getCredentials());
+        assertEquals(TOKEN, statelessToken.getCredentials());
     }
 }
