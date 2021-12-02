@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Date;
 
 /**
  * The type Reflect utils.
@@ -182,5 +183,29 @@ public class ReflectUtils {
                 .isFinal(field.getModifiers())) && !field.isAccessible()) {
             field.setAccessible(true);
         }
+    }
+
+    /**
+     * Verify the cls is Primitives (Maybe array).
+     *
+     * @param cls class
+     * @return boolean
+     */
+    public static boolean isPrimitives(final Class<?> cls) {
+        if (cls.isArray()) {
+            return isPrimitive(cls.getComponentType());
+        }
+        return isPrimitive(cls);
+    }
+
+    /**
+     * Verify the cls is Primitive.
+     *
+     * @param cls class
+     * @return boolean
+     */
+    public static boolean isPrimitive(final Class<?> cls) {
+        return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
+                || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
     }
 }
