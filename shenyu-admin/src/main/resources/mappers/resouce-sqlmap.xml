@@ -48,6 +48,16 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIdsBatch" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where id in
+        <foreach item="id" collection="resourceIds" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="selectByParentId" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
