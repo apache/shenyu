@@ -62,7 +62,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (StringUtils.isBlank(serverList)) {
             throw new ShenyuException("serverList can not be null.");
         }
-        String[] addresses = splitAddress(serverList);
+        String[] addresses = splitAndCheckAddress(serverList);
         consulClient = new ConsulClient(addresses[0], Integer.parseInt(addresses[1]));
         service = new NewService();
         service.setMeta(new HashMap<>());
@@ -87,7 +87,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         }
     }
 
-    private String[] splitAddress(String serverList) {
+    private String[] splitAndCheckAddress(String serverList) {
         String[] addresses = serverList.split(":");
         if (addresses == null || addresses.length != 2) {
             throw new ShenyuException("serverList formatter is not incorrect.");
