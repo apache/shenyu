@@ -89,10 +89,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     private String[] splitAddress(String serverList) {
         String[] addresses = serverList.split(":");
-        if (addresses == null) {
-            throw new ShenyuException("serverList formatter is not incorrect.");
-        }
-        if (addresses.length != 2) {
+        if (addresses == null || addresses.length != 2) {
             throw new ShenyuException("serverList formatter is not incorrect.");
         }
         return addresses;
