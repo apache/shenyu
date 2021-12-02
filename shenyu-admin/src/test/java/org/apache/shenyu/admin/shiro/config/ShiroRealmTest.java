@@ -55,10 +55,13 @@ public final class ShiroRealmTest {
     
     @Rule
     public final ExpectedException exception = ExpectedException.none();
+    
     @InjectMocks
     private ShiroRealm shiroRealm;
+    
     @Mock
     private PermissionService permissionService;
+    
     @Mock
     private DashboardUserService dashboardUserService;
 
@@ -87,8 +90,8 @@ public final class ShiroRealmTest {
 
     @Test
     public void testDoGetAuthenticationInfo() {
-        AuthenticationToken token = mock(AuthenticationToken.class);
-        DashboardUserVO dashboardUserVO = mock(DashboardUserVO.class);
+        final AuthenticationToken token = mock(AuthenticationToken.class);
+        final DashboardUserVO dashboardUserVO = mock(DashboardUserVO.class);
 
         when(token.getCredentials()).thenReturn(null);
         assertNull(shiroRealm.doGetAuthenticationInfo(token));
