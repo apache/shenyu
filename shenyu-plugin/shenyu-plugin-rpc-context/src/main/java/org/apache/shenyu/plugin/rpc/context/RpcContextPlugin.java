@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.rpc.context;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -47,7 +48,10 @@ public class RpcContextPlugin extends AbstractShenyuPlugin {
         HttpHeaders headers = exchange.getRequest().getHeaders();
         rpcContextHandles.stream().forEach(each -> {
             Map<String, String> rpcContextMapWithRpcType = new HashMap<>();
-            final List<RpcContextHandle.RpcContextHandleContent> rpcContextHandleContents = each.getRpcContextHandleContents();
+            List<RpcContextHandle.RpcContextHandleContent> rpcContextHandleContents = each.getRpcContextHandleContents();
+            if (CollectionUtils.isEmpty(rpcContextHandleContents)) {
+                return;
+            }
             rpcContextHandleContents.forEach(eachContents -> {
                 switch (eachContents.getRpcContextType()) {
                     case Constants.ADD_RPC_CONTEXT_TYPE:
