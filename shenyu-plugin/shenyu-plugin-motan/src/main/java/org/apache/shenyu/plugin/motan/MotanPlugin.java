@@ -99,9 +99,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.MOTAN.getName());
+        return skipExcept(exchange, RpcTypeEnum.MOTAN);
     }
 
     @Override

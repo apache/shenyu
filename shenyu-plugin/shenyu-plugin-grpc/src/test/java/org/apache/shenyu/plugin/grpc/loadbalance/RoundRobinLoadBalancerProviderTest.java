@@ -44,7 +44,7 @@ public class RoundRobinLoadBalancerProviderTest {
 
     @Test
     public void testGetPriority() {
-        assertEquals(roundRobinLoadBalancerProvider.getPriority(), 6);
+        assertEquals(6, roundRobinLoadBalancerProvider.getPriority());
     }
 
     @Test

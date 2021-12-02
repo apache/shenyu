@@ -24,8 +24,12 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * The type Host address utils.
  */
-public class HostAddressUtils {
-
+public final class HostAddressUtils {
+    
+    private HostAddressUtils() {
+    
+    }
+    
     /**
      * Acquire host string.
      *
@@ -35,7 +39,7 @@ public class HostAddressUtils {
     public static String acquireHost(final ServerWebExchange exchange) {
         return SpringBeanUtils.getInstance().getBean(RemoteAddressResolver.class).resolve(exchange).getHostString();
     }
-
+    
     /**
      * Acquire ip string.
      *

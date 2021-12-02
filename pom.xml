@@ -125,6 +125,7 @@
         <nacos-client.version>2.0.0</nacos-client.version>
         <groovy.version>2.5.14</groovy.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
+        <grpc.version>1.33.1</grpc.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>

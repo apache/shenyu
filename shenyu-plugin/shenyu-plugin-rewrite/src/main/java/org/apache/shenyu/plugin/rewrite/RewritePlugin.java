@@ -25,7 +25,6 @@ import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
@@ -61,8 +60,12 @@ public class RewritePlugin extends AbstractShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
+        return skip(exchange,
+                RpcTypeEnum.DUBBO,
+                RpcTypeEnum.GRPC,
+                RpcTypeEnum.TARS,
+                RpcTypeEnum.MOTAN,
+                RpcTypeEnum.SOFA);
     }
 
     @Override

@@ -39,14 +39,14 @@ public class ShenyuServiceInstanceTest {
 
     @Test
     public void testWeight() {
-        assertEquals(shenyuServiceInstance.getWeight(), 0);
+        assertEquals(0, shenyuServiceInstance.getWeight());
         shenyuServiceInstance.setWeight(1);
-        assertEquals(shenyuServiceInstance.getWeight(), 1);
+        assertEquals(1, shenyuServiceInstance.getWeight());
     }
 
     @Test
     public void testStatus() {
         shenyuServiceInstance.setStatus(true);
-        assertEquals(shenyuServiceInstance.getStatus(), "true");
+        assertEquals("true", shenyuServiceInstance.getStatus());
     }
 }

@@ -31,7 +31,7 @@ import java.util.Map;
 
 /**
  * The OAuth2 plugin default repository config condition.
- * if not spring oauth2's config in .yml file, use default java config, else use spring config
+ * if not spring oauth2's config in .yml file, use default java config, else use spring config.
  *
  * @see org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition
  */

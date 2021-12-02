@@ -57,20 +57,19 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
+        final String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
 
         assert shenyuContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
 
         if (!checkMetaData(metaData)) {
-            assert metaData != null;
             LOG.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-
+        assert metaData != null;
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.GRPC_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.GRPC_HAVE_BODY_PARAM.getMsg(), null);
@@ -113,9 +112,7 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.GRPC.getName());
+        return skipExcept(exchange, RpcTypeEnum.GRPC);
     }
 
     @Override

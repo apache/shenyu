@@ -54,8 +54,8 @@ public class UnitTestIdleHelper extends LoadBalancer.Helper {
         return new UnitTestIdleSubchannel(args);
     }
 
-    public class UnitTestIdleSubchannel extends LoadBalancer.Subchannel {
-        private LoadBalancer.CreateSubchannelArgs args;
+    public static class UnitTestIdleSubchannel extends LoadBalancer.Subchannel {
+        private final LoadBalancer.CreateSubchannelArgs args;
 
         public UnitTestIdleSubchannel(final LoadBalancer.CreateSubchannelArgs args) {
             this.args = args;

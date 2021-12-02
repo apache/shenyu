@@ -22,7 +22,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -96,10 +95,7 @@ public class WebClientPlugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
+        return skipExceptHttpLike(exchange);
     }
 
     private Mono<Void> handleRequestBody(final WebClient.RequestBodySpec requestBodySpec,

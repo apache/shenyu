@@ -89,6 +89,13 @@
         </if>
     </select>
 
+    <select id="selectByResourceType" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where resource_type = #{resourceType,jdbcType=INTEGER}
+    </select>
+
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
             resultType="java.lang.Integer">
         select count(1)

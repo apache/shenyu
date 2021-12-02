@@ -19,34 +19,80 @@ package org.apache.shenyu.springboot.starter.plugin.sofa;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for {@link SofaPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class SofaPluginConfigurationTest {
-   
+
+    private ApplicationContextRunner applicationContextRunner;
+
+    @Before
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(SofaPluginConfiguration.class))
+            .withBean(SofaPluginConfigurationTest.class)
+            .withPropertyValues("debug=true");
+    }
+
     @Test
     public void testSofaPlugin() {
-        new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                    SofaPluginConfiguration.class
-                ))
-            .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(PluginDataHandler.class);
-                    assertThat(context).hasSingleBean(MetaDataSubscriber.class);
-                    ShenyuPlugin plugin = context.getBean("sofaPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.SOFA.getName());
-                }
-            );
+        applicationContextRunner.run(context -> {
+                ShenyuPlugin plugin = context.getBean("sofaPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.SOFA.getName());
+            }
+        );
+    }
+
+    @Test
+    public void testSofaParamResolveServiceImpl() {
+        applicationContextRunner.run(context -> {
+                SofaParamResolveService service = context.getBean("sofaParamResolveService", SofaParamResolveService.class);
+                assertNotNull(service);
+            }
+        );
+    }
+
+    @Test
+    public void testSofaPluginDataHandler() {
+        applicationContextRunner.run(context -> {
+                PluginDataHandler handler = context.getBean("sofaPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            }
+        );
+    }
+
+    @Test
+    public void testSofaMetaDataSubscriber() {
+        applicationContextRunner.run(context -> {
+                MetaDataSubscriber subscriber = context.getBean("sofaMetaDataSubscriber", MetaDataSubscriber.class);
+                assertNotNull(subscriber);
+            }
+        );
+    }
+
+    @Test
+    public void testSofaShenyuContextDecorator() {
+        applicationContextRunner.run(context -> {
+                ShenyuContextDecorator decorator = context.getBean("sofaShenyuContextDecorator", ShenyuContextDecorator.class);
+                assertNotNull(decorator);
+            }
+        );
     }
 }
