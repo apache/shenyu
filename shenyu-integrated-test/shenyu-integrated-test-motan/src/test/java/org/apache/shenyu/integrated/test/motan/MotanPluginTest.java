@@ -17,6 +17,14 @@
 
 package org.apache.shenyu.integrated.test.motan;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
@@ -24,12 +32,7 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.Map;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import com.google.gson.reflect.TypeToken;
 
 public class MotanPluginTest extends AbstractPluginDataInit {
 
@@ -42,7 +45,9 @@ public class MotanPluginTest extends AbstractPluginDataInit {
     @Test
     public void testHelloWorld() throws Exception {
         MotanDTO request = new MotanDTO("shenyu");
-        Map<String, Object> response = HttpHelper.INSTANCE.postGateway("/motan/hello", request, Map.class);
+        Type returnType = new TypeToken<Map<String, Object>>() {
+        }.getType();
+        Map<String, Object> response = HttpHelper.INSTANCE.postGateway("/motan/hello", request, returnType);
         assertEquals("hello shenyu", response.get("data"));
     }
 
