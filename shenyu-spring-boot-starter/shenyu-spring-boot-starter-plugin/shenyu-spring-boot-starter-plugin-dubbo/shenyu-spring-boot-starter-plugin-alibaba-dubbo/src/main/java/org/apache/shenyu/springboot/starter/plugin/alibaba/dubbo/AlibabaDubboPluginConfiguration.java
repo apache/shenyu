@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.alibaba.dubbo;
 
 import org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin;
-import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaAbstractDubboPluginDataHandler;
+import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
 import org.apache.shenyu.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.apache.shenyu.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
@@ -58,7 +58,7 @@ public class AlibabaDubboPluginConfiguration {
      */
     @Bean
     public PluginDataHandler alibabaDubboPluginDataHandler() {
-        return new AlibabaAbstractDubboPluginDataHandler();
+        return new AlibabaDubboPluginDataHandler();
     }
     
     /**
