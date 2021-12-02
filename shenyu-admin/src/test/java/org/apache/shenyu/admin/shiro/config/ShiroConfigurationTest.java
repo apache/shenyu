@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.shiro.config;
 
-import com.alibaba.nacos.common.utils.Objects;
 import org.apache.shenyu.admin.config.properties.ShiroProperties;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
@@ -34,6 +33,7 @@ import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreato
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
