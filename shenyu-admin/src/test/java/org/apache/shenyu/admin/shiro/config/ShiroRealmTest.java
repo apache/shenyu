@@ -106,7 +106,7 @@ public final class ShiroRealmTest {
         } catch (AuthenticationException e) {
             thrown = true;
         }
-       assertTrue(thrown);
+        assertTrue(thrown);
 
         try {
             when(dashboardUserService.findByUserName(any())).thenReturn(null);
