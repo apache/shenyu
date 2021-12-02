@@ -103,7 +103,7 @@ public final class ShiroRealmTest {
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
                     + ".cThIIoDvwdueQB468K5xDc5633seEFoqwxjF_xSJyQQ");
             shiroRealm.doGetAuthenticationInfo(token);
-        }catch (AuthenticationException e){
+        } catch (AuthenticationException e) {
             thrown = true;
         }
        assertTrue(thrown);
@@ -114,7 +114,7 @@ public final class ShiroRealmTest {
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                     + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
             shiroRealm.doGetAuthenticationInfo(token);
-        }catch (AuthenticationException e){
+        } catch (AuthenticationException e) {
             thrown = true;
         }
         assertTrue(thrown);
@@ -126,10 +126,8 @@ public final class ShiroRealmTest {
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                     + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
             shiroRealm.doGetAuthenticationInfo(token);
-        }catch (AuthenticationException e){
+        } catch (AuthenticationException e) {
             thrown = true;
-        }catch (Exception e) {
-            e.printStackTrace();
         }
         assertTrue(thrown);
         
