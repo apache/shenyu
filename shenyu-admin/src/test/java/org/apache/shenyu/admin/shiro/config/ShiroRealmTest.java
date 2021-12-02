@@ -41,6 +41,7 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -96,26 +97,42 @@ public final class ShiroRealmTest {
         when(token.getCredentials()).thenReturn(null);
         assertNull(shiroRealm.doGetAuthenticationInfo(token));
 
-        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-                + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
-                + ".cThIIoDvwdueQB468K5xDc5633seEFoqwxjF_xSJyQQ");
-        exception.expect(AuthenticationException.class);
-        shiroRealm.doGetAuthenticationInfo(token);
-    
-        when(dashboardUserService.findByUserName(any())).thenReturn(null);
-        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-                + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
-                + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
-        exception.expect(AuthenticationException.class);
-        shiroRealm.doGetAuthenticationInfo(token);
-    
-        when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
-        when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-                + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
-                + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
-        exception.expect(AuthenticationException.class);
-        shiroRealm.doGetAuthenticationInfo(token);
-    
+        boolean thrown = false;
+        try {
+            when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                    + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
+                    + ".cThIIoDvwdueQB468K5xDc5633seEFoqwxjF_xSJyQQ");
+            shiroRealm.doGetAuthenticationInfo(token);
+        }catch (AuthenticationException e){
+            thrown = true;
+        }
+       assertTrue(thrown);
+
+        try {
+            when(dashboardUserService.findByUserName(any())).thenReturn(null);
+            when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                    + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
+                    + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+            shiroRealm.doGetAuthenticationInfo(token);
+        }catch (AuthenticationException e){
+            thrown = true;
+        }
+        assertTrue(thrown);
+
+        try {
+            when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
+            when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+            when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                    + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
+                    + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+            shiroRealm.doGetAuthenticationInfo(token);
+        }catch (AuthenticationException e){
+            thrown = true;
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        assertTrue(thrown);
+        
         when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
         when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
         when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
