@@ -37,13 +37,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class AlibabaDubboPluginDataTest {
 
-    private AlibabaAbstractDubboPluginDataHandler alibabaDubboPluginDataHandler;
+    private AlibabaDubboPluginDataHandler alibabaDubboPluginDataHandler;
 
     private final String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
 
     @Before
     public void setUp() {
-        alibabaDubboPluginDataHandler = new AlibabaAbstractDubboPluginDataHandler();
+        alibabaDubboPluginDataHandler = new AlibabaDubboPluginDataHandler();
         MetaData metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("dubbo");

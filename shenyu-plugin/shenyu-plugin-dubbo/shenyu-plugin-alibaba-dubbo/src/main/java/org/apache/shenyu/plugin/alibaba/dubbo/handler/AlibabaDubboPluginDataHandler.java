@@ -15,55 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.common.dto;
+package org.apache.shenyu.plugin.alibaba.dubbo.handler;
+
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
+import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
+import org.apache.shenyu.plugin.dubbo.common.handler.AbstractDubboPluginDataHandler;
 
 /**
- * The type Order dto.
+ * The type Alibaba dubbo plugin data subscriber.
  */
-public class OrderDTO {
+public class AlibabaDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
 
-    private String id;
-
-    private String name;
-
-    public OrderDTO(final String id, final String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    /**
-     * Get the id.
-     *
-     * @return the id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Set the id.
-     *
-     * @param id the id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-
-    /**
-     * Get the name.
-     *
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Set the name.
-     *
-     * @param name the name
-     */
-    public void setName(final String name) {
-        this.name = name;
+    @Override
+    protected void initConfigCache(final DubboRegisterConfig dubboRegisterConfig) {
+        AlibabaDubboConfigCache.getInstance().init(dubboRegisterConfig);
+        AlibabaDubboConfigCache.getInstance().invalidateAll();
     }
 }
