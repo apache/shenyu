@@ -17,36 +17,38 @@
 
 package org.apache.shenyu.integratedtest.common.helper;
 
-import com.google.gson.Gson;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
+import com.google.gson.Gson;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 /**
  * The type Http helper.
  */
 public class HttpHelper {
-    
+
     /**
      * The constant INSTANCE.
      */
     public static final HttpHelper INSTANCE = new HttpHelper();
-    
+
     /**
      * The constant GATEWAY_END_POINT.
      */
     public static final String GATEWAY_END_POINT = "http://localhost:9195";
-    
+
     /**
      * The constant JSON.
      */
@@ -57,7 +59,7 @@ public class HttpHelper {
     private static final Gson GSON = new Gson();
 
     private final OkHttpClient client = new OkHttpClient.Builder().build();
-    
+
     /**
      * Send a post http request to shenyu gateway.
      *
@@ -79,7 +81,21 @@ public class HttpHelper {
         LOG.info("postGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, respType);
     }
-    
+
+    /**
+     * Send a post http request to shenyu gateway.
+     *
+     * @param <S> type of response object
+     * @param <Q> type of request object
+     * @param path path
+     * @param respType response type passed to {@link Gson#fromJson(String, Type)}
+     * @return response s
+     * @throws IOException IO exception
+     */
+    public <S, Q> S postGateway(final String path, final Type respType) throws IOException {
+        return postGateway(path, "", respType);
+    }
+
     /**
      * Send a post http request to shenyu gateway.
      *
@@ -93,15 +109,15 @@ public class HttpHelper {
      */
     public <S, Q> S postGateway(final String path, final Q req, final Class<S> respType) throws IOException {
         Request request = new Request.Builder()
-                .url(GATEWAY_END_POINT + path)
                 .post(RequestBody.create(GSON.toJson(req), JSON))
+                .url(GATEWAY_END_POINT + path)
                 .build();
         Response response = client.newCall(request).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("postGateway({}) resp({})", path, respBody);
         return GSON.fromJson(respBody, respType);
     }
-    
+
     /**
      * Send a get http request to shenyu gateway without headers.
      *
@@ -114,7 +130,7 @@ public class HttpHelper {
     public <S> S getFromGateway(final String path, final Type type) throws IOException {
         return this.getFromGateway(path, null, type);
     }
-    
+
     /**
      * Send a get http request to shenyu gateway with headers.
      *
