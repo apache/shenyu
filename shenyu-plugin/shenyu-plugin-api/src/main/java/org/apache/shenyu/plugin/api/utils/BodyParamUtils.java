@@ -19,10 +19,12 @@ package org.apache.shenyu.plugin.api.utils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ReflectUtils;
 import org.springframework.util.LinkedMultiValueMap;
 
 import java.util.ArrayList;
@@ -129,6 +131,10 @@ public class BodyParamUtils {
      * @return whether the base type is.
      */
     private static boolean isBaseType(final String paramType) {
-        return paramType.startsWith("java") || paramType.startsWith("[Ljava");
+        try {
+            return ReflectUtils.isPrimitives(ClassUtils.getClass(paramType));
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }

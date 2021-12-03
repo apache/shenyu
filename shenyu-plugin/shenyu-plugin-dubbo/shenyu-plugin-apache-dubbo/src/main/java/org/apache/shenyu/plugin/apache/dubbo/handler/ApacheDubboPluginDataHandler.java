@@ -24,7 +24,7 @@ import org.apache.shenyu.plugin.dubbo.common.handler.AbstractDubboPluginDataHand
 /**
  * The type Apache dubbo plugin data handler.
  */
-public class ApacheAbstractDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
+public class ApacheDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
 
     @Override
     protected void initConfigCache(final DubboRegisterConfig dubboRegisterConfig) {

@@ -39,6 +39,17 @@
         where auth_id = #{authId,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByAuthIdList" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from auth_path
+        where auth_id in
+        <foreach collection="authIdSet" index="index" item="authId"
+                 open="(" separator="," close=")" >
+            #{authId,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="findByAuthIdAndAppName" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

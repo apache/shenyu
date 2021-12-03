@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.uri;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -29,7 +28,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.Objects;
 
 /**
  * The type Uri plugin.
@@ -80,12 +78,6 @@ public class URIPlugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        String rpcType = shenyuContext.getRpcType();
-        if (Objects.equals(rpcType, RpcTypeEnum.HTTP.getName())) {
-            return false;
-        }
-        return !Objects.equals(rpcType, RpcTypeEnum.SPRING_CLOUD.getName());
+        return skipExceptHttpLike(exchange);
     }
 }

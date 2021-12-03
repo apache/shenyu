@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.apache.dubbo;
 
 import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
-import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheAbstractDubboPluginDataHandler;
+import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.apache.shenyu.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
@@ -58,7 +58,7 @@ public class ApacheDubboPluginConfiguration {
      */
     @Bean
     public PluginDataHandler apacheDubboPluginDataHandler() {
-        return new ApacheAbstractDubboPluginDataHandler();
+        return new ApacheDubboPluginDataHandler();
     }
 
     /**

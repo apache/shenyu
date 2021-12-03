@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import static org.mockito.Mockito.mock;
@@ -40,15 +41,13 @@ import static org.mockito.Mockito.when;
 public class RandomPickerTest {
 
     private RandomPicker randomPicker;
-
-    private List<LoadBalancer.Subchannel> list;
-
+    
     @Before
     public void setUp() {
         Attributes attributes = SubChannels.createAttributes(1, "ok");
         LoadBalancer.Subchannel subchannel =
                 SubChannels.createSubChannel(new UnitTestReadHelper(), mock(EquivalentAddressGroup.class), attributes);
-        list = new LinkedList<>();
+        List<LoadBalancer.Subchannel> list = new LinkedList<>();
         list.add(subchannel);
         randomPicker = new RandomPicker(list);
     }
@@ -75,7 +74,7 @@ public class RandomPickerTest {
         when(secondSubChannelCopy.getWeight()).thenReturn(10);
         List<SubChannelCopy> list = Arrays.asList(firstSubChannelCopy, secondSubChannelCopy);
         Assert.assertNotNull(randomPicker.pick(list));
-        Assert.assertEquals(firstSubChannelCopy, randomPicker.pick(Arrays.asList(firstSubChannelCopy)));
+        Assert.assertEquals(firstSubChannelCopy, randomPicker.pick(Collections.singletonList(firstSubChannelCopy)));
         Assert.assertEquals(firstSubChannelCopy, randomPicker.pick(Arrays.asList(firstSubChannelCopy, firstSubChannelCopy)));
         Assert.assertNull(randomPicker.pick(null));
     }

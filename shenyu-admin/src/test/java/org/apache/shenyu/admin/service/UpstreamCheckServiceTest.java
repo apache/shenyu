@@ -37,6 +37,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -135,6 +136,7 @@ public final class UpstreamCheckServiceTest {
     }
 
     @Test
+    @Ignore
     public void testScheduled() {
         PluginDO pluginDO = PluginDO.builder()
                 .name(PluginEnum.DIVIDE.getName())

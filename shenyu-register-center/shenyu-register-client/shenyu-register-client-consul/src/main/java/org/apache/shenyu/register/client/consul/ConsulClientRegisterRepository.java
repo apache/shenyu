@@ -71,7 +71,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         service.setName(normalizeForDns(appName));
         final String instanceId = properties.getProperty("instanceId");
         service.setId(normalizeForDns(instanceId));
-        final Boolean preferAgentAddress = Boolean.valueOf(properties.getProperty("preferAgentAddress", "false"));
+        final boolean preferAgentAddress = Boolean.parseBoolean(properties.getProperty("preferAgentAddress", "false"));
         if (!preferAgentAddress) {
             service.setAddress(properties.getProperty("hostName"));
         }
@@ -89,7 +89,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     private String[] splitAndCheckAddress(String serverList) {
         final String[] addresses = serverList.split(":");
-        if (addresses == null || addresses.length != 2) {
+        if (addresses.length != 2) {
             throw new ShenyuException("serverList formatter is not incorrect.");
         }
         return addresses;

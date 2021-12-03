@@ -142,8 +142,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.WEB_SOCKET.getName());
+        return skipExcept(exchange, RpcTypeEnum.WEB_SOCKET);
     }
 
     @Override
