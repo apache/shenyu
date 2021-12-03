@@ -41,12 +41,12 @@ public class HttpClientProperties {
     /**
      * The connect timeout in millis, the default is 45s.
      */
-    private Integer connectTimeout;
+    private Integer connectTimeout = 45000;
 
     /**
      * The response timeout.
      */
-    private Duration responseTimeout;
+    private Duration responseTimeout = Duration.ofMillis(3000);
 
     /**
      * readTimeout, the default is 3s.
