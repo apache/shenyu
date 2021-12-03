@@ -39,9 +39,9 @@ import java.util.Optional;
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
 
-    private final Map<String, ShenyuContextDecorator> decoratorMap;
-
     private static final String RPC_TYPE = "rpc_type";
+
+    private final Map<String, ShenyuContextDecorator> decoratorMap;
 
     /**
      * Instantiates a new Default shenyu context builder.
