@@ -17,8 +17,14 @@
 
 package org.apache.shenyu.plugin.api;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * the shenyu plugin interface.
@@ -55,7 +61,7 @@ public interface ShenyuPlugin {
     }
 
     /**
-     * plugin is execute.
+     * plugin is executed.
      * if return true this plugin can not execute.
      *
      * @param exchange the current server exchange
@@ -63,6 +69,68 @@ public interface ShenyuPlugin {
      */
     default boolean skip(ServerWebExchange exchange) {
         return false;
+    }
+
+    /**
+     * plugin is executed.
+     * if return true this plugin can not execute.
+     *
+     * <p>the same for:
+     * <pre>
+     * <code>Objects.equals(rpcType, typeA.getName())
+     * || Objects.equals(rpcType, typeB.getName())
+     * || Objects.equals(rpcType, type...getName())
+     * </code>
+     * </pre>
+     *
+     * @param exchange the current server exchange
+     * @param rpcTypes the skip rpc type list
+     * @return current rpcType == someone rpcType
+     */
+    default boolean skip(ServerWebExchange exchange, RpcTypeEnum... rpcTypes) {
+        if (ArrayUtils.isEmpty(rpcTypes)) {
+            return false;
+        }
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        String rpcType = shenyuContext.getRpcType();
+        for (final RpcTypeEnum type : rpcTypes) {
+            if (Objects.equals(rpcType, type.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * the plugin execute skip except some rpc types.
+     * if return true this plugin can not execute.
+     *
+     * <p>the same for:
+     * <pre>
+     * <code>!Objects.equals(rpcType, typeA.getName())
+     * &amp;&amp; !Objects.equals(rpcType, typeB.getName())
+     * &amp;&amp; !Objects.equals(rpcType, type...getName())
+     * </code>
+     * </pre>
+     *
+     * @param exchange the current server exchange
+     * @param exceptRpcTypes the except rpc type list
+     * @return current rpcType != someone exceptRpcType
+     */
+    default boolean skipExcept(ServerWebExchange exchange, RpcTypeEnum... exceptRpcTypes) {
+        return !skip(exchange, exceptRpcTypes);
+    }
+
+    /**
+     * Skip the non http call.
+     * if return true this plugin can not execute.
+     *
+     * @param exchange the current server exchange
+     * @return http/spring cloud return true, others false.
+     */
+    default boolean skipExceptHttpLike(ServerWebExchange exchange) {
+        return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD);
     }
 }
 

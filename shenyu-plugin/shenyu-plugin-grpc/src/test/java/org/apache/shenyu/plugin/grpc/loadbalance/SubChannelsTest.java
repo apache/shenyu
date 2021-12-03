@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 public class SubChannelsTest {
     @Test
     public void testUpdateAttributes() {
-        SubChannels.updateAttributes(mock(LoadBalancer.Subchannel.class), mock(Attributes.class));
+        final LoadBalancer.Subchannel subchannel = mock(LoadBalancer.Subchannel.class);
+        SubChannels.updateAttributes(subchannel, mock(Attributes.class));
     }
 }

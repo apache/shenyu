@@ -35,9 +35,13 @@ import java.util.Objects;
  * ResponseUtils.
  */
 public final class ResponseUtils {
-
+    
     private static final String CHUNKED = "chunked";
-
+    
+    private ResponseUtils() {
+    
+    }
+    
     /**
      * create CachedBodyOutputMessage.
      *
@@ -50,12 +54,12 @@ public final class ResponseUtils {
         headers.remove(HttpHeaders.CONTENT_LENGTH);
         return new CachedBodyOutputMessage(exchange, headers);
     }
-
+    
     /**
      * build client response with current response data.
      *
      * @param response current response
-     * @param body current response body
+     * @param body     current response body
      * @return the client response
      */
     public static ClientResponse buildClientResponse(final ServerHttpResponse response,
@@ -67,11 +71,11 @@ public final class ResponseUtils {
                 .cookies(cookies -> response.getCookies())
                 .body(Flux.from(body)).build();
     }
-
+    
     /**
      * fix the body message.
      *
-     * @param response current response
+     * @param response      current response
      * @param outputMessage cache message
      * @return fixed body message
      */
@@ -80,20 +84,21 @@ public final class ResponseUtils {
         fixHeaders(response.getHeaders());
         return DataBufferUtils.join(outputMessage.getBody());
     }
-
+    
     /**
      * release source.
+     *
      * @param outputMessage CachedBodyOutputMessage
-     * @param throwable Throwable
+     * @param throwable     Throwable
      * @return Mono.
      */
     public static Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
-        if (outputMessage.getCache()) {
+        if (Boolean.TRUE.equals(outputMessage.getCache())) {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
         return Mono.error(throwable);
     }
-
+    
     /**
      * Chunked Headers.
      *
@@ -106,7 +111,7 @@ public final class ResponseUtils {
         fixHeaders(httpHeaders);
         return httpHeaders;
     }
-
+    
     /**
      * fix headers.
      *

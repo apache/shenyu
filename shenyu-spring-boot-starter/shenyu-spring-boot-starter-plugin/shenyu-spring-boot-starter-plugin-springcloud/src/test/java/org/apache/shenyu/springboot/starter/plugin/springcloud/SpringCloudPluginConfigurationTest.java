@@ -17,47 +17,82 @@
 
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
+import com.netflix.loadbalancer.IRule;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
-import org.springframework.cloud.netflix.ribbon.RibbonClientConfiguration;
-import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
-import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.cloud.netflix.ribbon.RibbonClientSpecification;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * test case for {@link SpringCloudPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class SpringCloudPluginConfigurationTest {
+
+    private ApplicationContextRunner applicationContextRunner;
+
+    @Before
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(SpringCloudPluginConfiguration.class))
+            .withBean(SpringCloudPluginConfigurationTest.class)
+            .withPropertyValues("debug=true");
+    }
 
     @Test
     public void testSpringCloudPlugin() {
-        new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                        RibbonAutoConfiguration.class,
-                        DispatcherHandler.class,
-                        RibbonClientConfiguration.class,
-                        SpringCloudPluginConfiguration.class
-                ))
-            .withPropertyValues(
-                "debug=true",
-                "spring.main.banner-mode=off",
-                "ribbon.client.name=test")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(LoadBalancerClient.class);
-                    assertThat(context).hasSingleBean(RibbonAutoConfiguration.class);
-                    assertThat(context).hasSingleBean(DispatcherHandler.class);
-                    assertThat(context).getBean(LoadBalancerClient.class).isInstanceOf(RibbonLoadBalancerClient.class);
-                    ShenyuPlugin plugin = context.getBean(ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.SPRING_CLOUD.getName());
-                }
-            );
+        applicationContextRunner.run(context -> {
+                ShenyuPlugin plugin = context.getBean("springCloudPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.SPRING_CLOUD.getName());
+            }
+        );
+    }
+
+    @Test
+    public void testSpringCloudShenyuContextDecorator() {
+        applicationContextRunner.run(context -> {
+                ShenyuContextDecorator decorator = context.getBean("springCloudShenyuContextDecorator", ShenyuContextDecorator.class);
+                assertNotNull(decorator);
+            }
+        );
+    }
+
+    @Test
+    public void testSpringCloudPluginDataHandler() {
+        applicationContextRunner.run(context -> {
+                PluginDataHandler handler = context.getBean("springCloudPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            }
+        );
+    }
+
+    @Test
+    public void testRibbonClientSpecification() {
+        applicationContextRunner.run(context -> {
+                RibbonClientSpecification specification = context.getBean("ribbonClientSpecification", RibbonClientSpecification.class);
+                assertNotNull(specification);
+            }
+        );
+    }
+
+    @Test
+    public void testLoadBalanceRulen() {
+        applicationContextRunner.run(context -> {
+                IRule rule = context.getBean("ribbonRule", IRule.class);
+                assertNotNull(rule);
+            }
+        );
     }
 }

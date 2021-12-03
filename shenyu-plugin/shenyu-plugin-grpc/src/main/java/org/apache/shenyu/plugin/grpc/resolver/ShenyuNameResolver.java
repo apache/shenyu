@@ -25,6 +25,7 @@ import io.grpc.Status;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.SynchronizationContext;
 import io.grpc.internal.SharedResourceHolder;
+import java.util.Collections;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.grpc.loadbalance.GrpcAttributeUtils;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
@@ -166,7 +167,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
             if (!needsToUpdateConnections(newInstanceList)) {
                 LOG.info("Nothing has changed... skipping update for {}", name);
-                return null;
+                return Collections.emptyList();
             }
 
             LOG.info("Ready to update server list for {}", name);

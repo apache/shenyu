@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * The Test Case For {@link GrpcShenyuContextDecorator}.
@@ -44,7 +45,11 @@ public class GrpcShenyuContextDecoratorTest {
         metaData.setServiceName("echo");
         metaData.setRpcType(PluginEnum.GRPC.getName());
         metaData.setContextPath("/grpc");
-        assert grpcShenyuContextDecorator.decorator(new ShenyuContext(), metaData) != null;
+        final ShenyuContext shenyuContext = grpcShenyuContextDecorator.decorator(new ShenyuContext(), metaData);
+        assertNotNull(shenyuContext);
+        assertNotNull(shenyuContext.getContextPath());
+        assertNotNull(shenyuContext.getMethod());
+        assertNotNull(shenyuContext.getModule());
     }
 
     @Test

@@ -50,7 +50,7 @@ public class EtcdClient {
     private long globalLeaseId;
 
     public EtcdClient(final String url, final long ttl, final long timeout) {
-        this.client = Client.builder().endpoints(url).build();
+        this.client = Client.builder().endpoints(url.split(",")).build();
         this.ttl = ttl;
         this.timeout = timeout;
         initLease();

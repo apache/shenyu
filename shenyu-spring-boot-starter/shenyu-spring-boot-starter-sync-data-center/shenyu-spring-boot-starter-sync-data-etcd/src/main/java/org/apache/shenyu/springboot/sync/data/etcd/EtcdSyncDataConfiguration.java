@@ -75,7 +75,7 @@ public class EtcdSyncDataConfiguration {
     @Bean
     public EtcdClient etcdClient(final EtcdConfig etcdConfig) {
         Client client = Client.builder()
-                .endpoints(etcdConfig.getUrl())
+                .endpoints(etcdConfig.getUrl().split(","))
                 .build();
         return new EtcdClient(client);
     }

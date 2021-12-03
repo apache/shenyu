@@ -98,7 +98,9 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         if (zkClient.exists(realNode)) {
             zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         } else {
-            zkClient.createPersistent(realNode, GsonUtils.getInstance().toJson(metadata));
+            // if contextPath has two /, in zk means two folder, we need to create parent folder first, or else it will throw no node exception
+            zkClient.createPersistent(realNode, true);
+            zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         }
     }
     
