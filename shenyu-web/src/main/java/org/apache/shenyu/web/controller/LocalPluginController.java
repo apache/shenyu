@@ -106,7 +106,7 @@ public class LocalPluginController {
      */
     @PostMapping("/plugin/saveOrUpdate")
     public Mono<String> saveOrUpdate(@RequestBody final PluginData pluginData) {
-        LOG.info("saveOrUpdate apache shenyu local plugin");
+        LOG.info("saveOrUpdate apache shenyu local plugin for {}", pluginData.getName());
         subscriber.onSubscribe(pluginData);
         return Mono.just(Constants.SUCCESS);
     }
