@@ -87,7 +87,7 @@ public class LocalPluginController {
      */
     @GetMapping("/cleanPlugin")
     public Mono<String> cleanPlugin(@RequestParam("name") final String name) {
-        LOG.info("clean apache shenyu local plugin");
+        LOG.info("clean apache shenyu local plugin for {}", name);
         BaseDataCache.getInstance().removePluginDataByPluginName(name);
         List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
         List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
@@ -119,7 +119,7 @@ public class LocalPluginController {
      */
     @GetMapping("/plugin/delete")
     public Mono<String> delete(@RequestParam("name") final String name) {
-        LOG.info("delete apache shenyu local plugin");
+        LOG.info("delete apache shenyu local plugin for {}", name);
         PluginData pluginData = PluginData.builder().name(name).build();
         subscriber.unSubscribe(pluginData);
         return Mono.just(Constants.SUCCESS);
