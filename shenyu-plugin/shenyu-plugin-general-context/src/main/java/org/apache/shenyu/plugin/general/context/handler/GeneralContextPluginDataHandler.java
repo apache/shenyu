@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Rpc Context Plugin DataHandler.
+ * General Context Plugin DataHandler.
  */
 public class GeneralContextPluginDataHandler implements PluginDataHandler {
 

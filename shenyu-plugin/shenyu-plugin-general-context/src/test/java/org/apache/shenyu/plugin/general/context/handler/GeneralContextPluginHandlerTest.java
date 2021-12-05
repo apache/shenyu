@@ -18,9 +18,7 @@
 package org.apache.shenyu.plugin.general.context.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.GeneralContextHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,13 +71,5 @@ public class GeneralContextPluginHandlerTest {
     @Test
     public void testPluginNamed() {
         assertEquals(this.generalContextPluginDataHandler.pluginNamed(), PluginEnum.GENERAL_CONTEXT.getName());
-    }
-
-    @Test
-    public void parse(){
-        String parse = "{\"dubbo\":[{\"getContextType\":\"addRpcContext\",\"rpcContextKey\":\"testHeader\",\"rpcContextValue\":\"testHeaderValue\"},{\"rpcContextType\":\"transmitHeaderToRpcContext\",\"rpcContextKey\":\"shenyuHeaderKey\",\"rpcContextValue\":\"shenyuHeaderNewKey\"}],\"grpc\":[],\"tars\":[]}";
-//        final Map<String, List<GeneralContextHandle.GeneralContextHandleContent>> stringListMap = GsonUtils.getInstance().toObjectMapList(parse, GeneralContextHandle.GeneralContextHandleContent.class);
-        final GeneralContextHandle generalContextHandle = GsonUtils.getInstance().fromJson(parse, GeneralContextHandle.class);
-        System.out.println("11");
     }
 }
