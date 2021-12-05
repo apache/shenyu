@@ -74,24 +74,15 @@ public class GeneralContextPluginTest {
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test-selectorId");
         this.ruleData.setName("test-general-context-plugin");
-
         Map<String, List<GeneralContextHandle>> generalContextHandleMap = new HashMap<>();
-
         List<GeneralContextHandle> contextHandles = new ArrayList<>();
-        GeneralContextHandle addGeneralContextHandle = new GeneralContextHandle();
-        addGeneralContextHandle.setGeneralContextType(Constants.ADD_GENERAL_CONTEXT_TYPE);
-        addGeneralContextHandle.setGeneralContextKey("addGeneralContextKey");
-        addGeneralContextHandle.setGeneralContextValue("addGeneralContextValue");
+        GeneralContextHandle addGeneralContextHandle = new GeneralContextHandle(Constants.ADD_GENERAL_CONTEXT_TYPE, "addGeneralContextKey", "addGeneralContextValue");
         contextHandles.add(addGeneralContextHandle);
 
-        GeneralContextHandle transmitGeneralContextHandle = new GeneralContextHandle();
-        transmitGeneralContextHandle.setGeneralContextType(Constants.TRANSMIT_HEADER_TO_GENERAL_CONTEXT_TYPE);
-        transmitGeneralContextHandle.setGeneralContextKey("shenyuTestHeaderKey");
-        transmitGeneralContextHandle.setGeneralContextValue("shenyuTestHeaderNewKey");
+        GeneralContextHandle transmitGeneralContextHandle = new GeneralContextHandle(Constants.TRANSMIT_HEADER_TO_GENERAL_CONTEXT_TYPE, "shenyuTestHeaderKey", "shenyuTestHeaderNewKey");
         contextHandles.add(transmitGeneralContextHandle);
 
         generalContextHandleMap.put(PluginEnum.DUBBO.getName(), contextHandles);
-
         GeneralContextPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), generalContextHandleMap);
     }
 

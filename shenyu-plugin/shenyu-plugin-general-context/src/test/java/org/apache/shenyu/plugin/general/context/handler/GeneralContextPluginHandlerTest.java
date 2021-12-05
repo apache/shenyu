@@ -45,8 +45,8 @@ public class GeneralContextPluginHandlerTest {
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test-selectorId");
         this.ruleData.setName("test-rpc-context-plugin");
-        this.ruleData.setHandle("{\"dubbo\":[{\"getContextType\":\"addRpcContext\",\"rpcContextKey\":\"testHeader\",\"rpcContextValue\":\"testHeaderValue\"}" +
-                ",{\"rpcContextType\":\"transmitHeaderToRpcContext\",\"rpcContextKey\":\"shenyuHeaderKey\",\"rpcContextValue\":\"shenyuHeaderNewKey\"}]}");
+        this.ruleData.setHandle("{\"dubbo\":[{\"getContextType\":\"addRpcContext\",\"rpcContextKey\":\"testHeader\",\"rpcContextValue\":\"testHeaderValue\"}"
+                + ",{\"rpcContextType\":\"transmitHeaderToRpcContext\",\"rpcContextKey\":\"shenyuHeaderKey\",\"rpcContextValue\":\"shenyuHeaderNewKey\"}]}");
     }
 
     @Test
