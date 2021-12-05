@@ -464,19 +464,19 @@ public interface Constants {
     int CACHE_MAX_COUNT = 1000;
 
     /**
-     * rpc context.
+     * general context.
      */
-    String RPC_CONTEXT = "rpcContext";
+    String GENERAL_CONTEXT = "generalContext";
 
     /**
-     * addRpcContextType.
+     * addGeneralContextType.
      */
-    String ADD_RPC_CONTEXT_TYPE = "addRpcContext";
+    String ADD_GENERAL_CONTEXT_TYPE = "addGeneralContext";
 
     /**
-     * transmitHeaderToRpcContextType.
+     * transmitHeaderToGeneralContext.
      */
-    String TRANSMIT_HEADER_TO_RPC_CONTEXT_TYPE = "transmitHeaderToRpcContext";
+    String TRANSMIT_HEADER_TO_GENERAL_CONTEXT_TYPE = "transmitHeaderToGeneralContext";
 
     /**
      * String q.

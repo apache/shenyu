@@ -140,7 +140,7 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
     }
 
     private void rpcContext(final ServerWebExchange exchange) {
-        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.RPC_CONTEXT);
+        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         if (Objects.nonNull(rpcContext) && Objects.nonNull(rpcContext.get(PluginEnum.DUBBO.getName()))) {
             this.transmitRpcContext(rpcContext.get(PluginEnum.DUBBO.getName()));
         }

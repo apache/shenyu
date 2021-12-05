@@ -338,8 +338,8 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('gray', 'GRAY_STATUS', 'open', 'true', 'open', '0', '1');;
 
 /*insert dict for rpcContext plugin*/
-INSERT IGNORE INTO shenyu_dict (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('rpcContextType', 'RPC_CONTEXT_TYPE', 'addRpcContext', 'addRpcContext', 'addRpcContext', '1', '1');;
-INSERT IGNORE INTO shenyu_dict (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('rpcContextType', 'RPC_CONTEXT_TYPE', 'transmitHeaderToRpcContext', 'transmitHeaderToRpcContext', 'transmitHeaderToRpcContext', '0', '1');;
+INSERT IGNORE INTO shenyu_dict (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('generalContextType', 'RPC_CONTEXT_TYPE', 'addRpcContext', 'addRpcContext', 'addRpcContext', '1', '1');;
+INSERT IGNORE INTO shenyu_dict (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('generalContextType', 'RPC_CONTEXT_TYPE', 'transmitHeaderToRpcContext', 'transmitHeaderToRpcContext', 'transmitHeaderToRpcContext', '0', '1');;
 
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1','sign','Authentication',  20, '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');;
@@ -530,9 +530,9 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`
 
 /*insert plugin_handle data for plugin rpcContext*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'multiRuleHandle', 'multiRuleHandle', '3', '3', '0', NULL);;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'rpcContextType', 'rpcContextType', '3', '2', '1', '{\"required\":\"1\",\"defaultValue\":\"addRpcContext\",\"rule\":\"\"}');;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'rpcContextKey', 'rpcContextKey', '2', '2', '1', '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}');;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'rpcContextValue', 'rpcContextValue', '2', '2', '1', '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}');;
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'generalContextType', 'generalContextType', '3', '2', '1', '{\"required\":\"1\",\"defaultValue\":\"addRpcContext\",\"rule\":\"\"}');;
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'generalContextKey', 'generalContextKey', '2', '2', '1', '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}');;
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'generalContextValue', 'generalContextValue', '2', '2', '1', '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}');;
 
 /** insert resource for resource */
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1346775491550474240','','SHENYU.MENU.PLUGIN.LIST','plug','/plug','PluginList','0','0','dashboard','0','0','','1','2021-01-06 05:07:54','2021-01-07 18:34:11');;
