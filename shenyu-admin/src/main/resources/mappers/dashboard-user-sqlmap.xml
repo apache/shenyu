@@ -171,4 +171,13 @@
         delete from dashboard_user
         where id = #{id,jdbcType=VARCHAR}
     </delete>
+
+    <delete id="deleteByIdSet">
+        delete from dashboard_user
+        where id in
+        <foreach collection="idSet" index="index" item="id"
+                 open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
 </mapper>
