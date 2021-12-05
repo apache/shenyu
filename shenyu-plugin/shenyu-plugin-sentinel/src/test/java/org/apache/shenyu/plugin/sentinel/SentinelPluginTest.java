@@ -176,9 +176,7 @@ public final class SentinelPluginTest {
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
 
-        Mono mono = Mono.empty().doOnSuccess(v -> {
-            exchange.getResponse().setStatusCode(HttpStatus.OK);
-        });
+        Mono mono = Mono.empty().doOnSuccess(v -> exchange.getResponse().setStatusCode(HttpStatus.OK));
         when(chain.execute(exchange)).thenReturn(mono);
         StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectSubscription().verifyComplete();
@@ -209,9 +207,7 @@ public final class SentinelPluginTest {
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
 
-        Mono mono = Mono.empty().doOnSuccess(v -> {
-            exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-        });
+        Mono mono = Mono.empty().doOnSuccess(v -> exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS));
         when(chain.execute(exchange)).thenReturn(mono);
         StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectError(HttpStatusCodeException.class).verify();

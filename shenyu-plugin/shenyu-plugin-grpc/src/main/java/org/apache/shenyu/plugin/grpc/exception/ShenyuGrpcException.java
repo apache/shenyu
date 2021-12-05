@@ -15,20 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.alibaba.dubbo.handler;
-
-import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
-import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
-import org.apache.shenyu.plugin.dubbo.common.handler.AbstractDubboPluginDataHandler;
+package org.apache.shenyu.plugin.grpc.exception;
 
 /**
- * The type Alibaba dubbo plugin data subscriber.
+ * Shenyu Grpc exception.
  */
-public class AlibabaAbstractDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
-
-    @Override
-    protected void initConfigCache(final DubboRegisterConfig dubboRegisterConfig) {
-        AlibabaDubboConfigCache.getInstance().init(dubboRegisterConfig);
-        AlibabaDubboConfigCache.getInstance().invalidateAll();
+public class ShenyuGrpcException extends RuntimeException {
+    
+    public ShenyuGrpcException() {
+        super();
+    }
+    
+    public ShenyuGrpcException(final String message) {
+        super(message);
+    }
+    
+    public ShenyuGrpcException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }

@@ -157,6 +157,7 @@ public final class AppAuthServiceTest {
         assertEquals(AdminConstants.ID_NOT_EXIST, this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
 
         given(this.appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
+        given(this.appAuthMapper.selectByIds(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
         assertEquals(StringUtils.EMPTY, this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertEquals(Boolean.TRUE, appAuthVO.getEnabled());
