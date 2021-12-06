@@ -129,8 +129,8 @@ public final class ResponseUtils {
      * @param <P> the publishing type
      * @return the response wrapper data
      */
-    public static <T, P extends Publisher<T>> Mono<Void> writeWith(ClientResponse clientResponse,
-                                                                   ServerWebExchange exchange,
+    public static <T, P extends Publisher<T>> Mono<Void> writeWith(final ClientResponse clientResponse,
+                                                                   final ServerWebExchange exchange,
                                                                    final P publisher,
                                                                    final Class<T> elementClass) {
         BodyInserter<P, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(publisher, elementClass);
