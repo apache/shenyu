@@ -62,7 +62,6 @@ public class AlibabaDubboProxyService {
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-    @SuppressWarnings("all")
     public ResponseFuture genericInvoker(final String body, final MetaData metaData) throws ShenyuException {
         ReferenceConfig<GenericService> reference = AlibabaDubboConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {

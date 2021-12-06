@@ -63,7 +63,6 @@ public class ApacheDubboProxyService {
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-    @SuppressWarnings("all")
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         // issue(https://github.com/dromara/shenyu/issues/471), add dubbo tag route
         String dubboTagRouteFromHttpHeaders = exchange.getRequest().getHeaders().getFirst(Constants.DUBBO_TAG_ROUTE);
