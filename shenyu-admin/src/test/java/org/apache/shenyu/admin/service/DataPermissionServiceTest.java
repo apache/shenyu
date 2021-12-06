@@ -46,6 +46,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -103,6 +104,7 @@ public final class DataPermissionServiceTest {
         List<RuleDO> list = new LinkedList<>();
         list.add(RuleDO.buildRuleDO(ruleDTO));
         given(ruleMapper.findBySelectorId("1")).willReturn(list);
+        given(dataPermissionMapper.insertBatch(anyList())).willReturn(2);
         assertThat(dataPermissionService.createSelector(dataPermissionDTO), is(2));
     }
 

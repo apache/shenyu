@@ -144,7 +144,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>()).stream()
                     .filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
             DashboardUserDO dashboardUserDO = dashboardUserMapper.selectByUserName(AdminConstants.ADMIN_NAME);
-            if (null != dashboardUserDO) {
+            if (Objects.nonNull(dashboardUserDO)) {
                 idSet.remove(dashboardUserDO.getId());
             }
             if (idSet.size() > 0) {

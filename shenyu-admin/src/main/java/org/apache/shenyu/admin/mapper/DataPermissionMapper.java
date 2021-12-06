@@ -90,6 +90,13 @@ public interface DataPermissionMapper {
     int insertSelective(DataPermissionDO dataPermissionDO);
 
     /**
+     * batch insert data permission.
+     * @param dataPermissionList list of data permission
+     * @return the count of inserted
+     */
+    int insertBatch(List<DataPermissionDO> dataPermissionList);
+
+    /**
      * select data ids via list of data id and user id.
      * @param dataIds selector or rule id
      * @param userId user id
