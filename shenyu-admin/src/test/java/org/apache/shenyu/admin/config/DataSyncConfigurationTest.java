@@ -24,7 +24,6 @@ import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
-import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -139,9 +138,8 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
         NacosConfigService configService = mock(NacosConfigService.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(nacosListener.nacosDataInit(configService,syncDataService));
+        assertNotNull(nacosListener.nacosDataInit(configService, syncDataService));
     }
-    
     
     @Test
     public void testEtcdDataChangedListener() {
@@ -149,15 +147,15 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         EtcdClient client = mock(EtcdClient.class);
         assertNotNull(etcdListener.etcdDataChangedListener(client));
     }
-    
+
     @Test
     public void testEtcdDataInit() {
         DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
         EtcdClient client = mock(EtcdClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(etcdListener.etcdDataInit(client,syncDataService));
+        assertNotNull(etcdListener.etcdDataInit(client, syncDataService));
     }
-    
+
     @Test
     public void testConsulClient() {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
@@ -165,7 +163,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         when(consulProperties.getUrl()).thenReturn("127.0.0.1");
         assertNotNull(consulListener.consulClient(consulProperties));
     }
-    
+
     @Test
     public void testConsulDataChangedListener() {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
@@ -178,7 +176,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
         ConsulClient consulClient = mock(ConsulClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(consulListener.consulDataInit(consulClient,syncDataService));
+        assertNotNull(consulListener.consulDataInit(consulClient, syncDataService));
     }
     
     @After
