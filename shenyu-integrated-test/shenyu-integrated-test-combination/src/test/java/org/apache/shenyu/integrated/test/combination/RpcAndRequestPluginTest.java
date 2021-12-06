@@ -26,7 +26,6 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
@@ -37,13 +36,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -104,8 +103,8 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         setupParamMapping();
 
         Map<String, Object> request = new HashMap<>();
-        AdminResponse<DubboTest> result = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, new TypeToken<AdminResponse<DubboTest>>() { }.getType());
-        assertEquals(TEST_ID, result.getData().getId());
+        DubboTest result = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, new TypeToken<DubboTest>() { }.getType());
+        assertEquals(TEST_ID, result.getId());
 
         cleanParamMapping();
     }
@@ -117,8 +116,8 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
     public void testDubboAndCryptorRequest() throws Exception {
         setupCryptorRequest();
 
-        AdminResponse<DubboTest> result = HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<AdminResponse<DubboTest>>() { }.getType());
-        byte[] inputByte = Base64.getMimeDecoder().decode(result.getData().getId());
+        DubboTest result = HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<DubboTest>() { }.getType());
+        byte[] inputByte = Base64.getMimeDecoder().decode(result.getId());
         assertEquals(TEST_ID, RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte));
 
         cleanCryptorRequest();
@@ -131,18 +130,14 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
     public void testDubboAndRateLimiter() throws IOException, ExecutionException, InterruptedException {
         setupRateLimiter();
 
-        Future<AdminResponse<DubboTest>> allowedRespFuture1 = this.getService().submit(() ->
-                HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<AdminResponse<DubboTest>>() { }.getType()));
-        assertEquals(TEST_ID, allowedRespFuture1.get().getData().getId());
-
-        Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
-                HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<AdminResponse<DubboTest>>() { }.getType()));
-        assertEquals("You have been restricted, please try again later!", rejectedRespFuture.get().getMessage());
+        Future<DubboTest> allowedRespFuture1 = this.getService().submit(() ->
+                HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<DubboTest>() { }.getType()));
+        assertEquals(TEST_ID, allowedRespFuture1.get().getId());
 
         Thread.sleep(5000);
-        Future<AdminResponse<DubboTest>> allowedRespFuture2 = this.getService().submit(() ->
-                HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<AdminResponse<DubboTest>>() { }.getType()));
-        assertEquals(TEST_ID, allowedRespFuture2.get().getData().getId());
+        Future<DubboTest> allowedRespFuture2 = this.getService().submit(() ->
+                HttpHelper.INSTANCE.postGateway(TEST_PATH, DUBBO_REQUEST, new TypeToken<DubboTest>() { }.getType()));
+        assertEquals(TEST_ID, allowedRespFuture2.get().getId());
 
         cleanRateLimiter();
     }
