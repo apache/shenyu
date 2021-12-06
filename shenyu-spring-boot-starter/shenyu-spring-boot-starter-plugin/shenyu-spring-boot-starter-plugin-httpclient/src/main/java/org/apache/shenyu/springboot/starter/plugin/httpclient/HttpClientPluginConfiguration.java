@@ -114,7 +114,7 @@ public class HttpClientPluginConfiguration {
                     return tcpClient;
                 });
         HttpClientProperties.Ssl ssl = properties.getSsl();
-        if (ArrayUtils.isEmpty(ssl.getTrustedX509CertificatesForTrustManager())
+        if (ArrayUtils.isNotEmpty(ssl.getTrustedX509CertificatesForTrustManager())
                 || ssl.isUseInsecureTrustManager()) {
             httpClient = httpClient.secure(sslContextSpec -> {
                 // configure ssl.
