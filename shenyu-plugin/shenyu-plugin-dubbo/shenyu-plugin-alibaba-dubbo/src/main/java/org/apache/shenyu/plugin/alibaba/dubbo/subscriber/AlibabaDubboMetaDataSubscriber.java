@@ -35,6 +35,7 @@ public class AlibabaDubboMetaDataSubscriber implements MetaDataSubscriber {
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
 
     @Override
+    @SuppressWarnings("all")
     public void onSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());

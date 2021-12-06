@@ -35,6 +35,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -57,6 +58,9 @@ public final class AlibabaDubboProxyServiceTest {
 
     private MetaData metaData;
 
+    @Mock
+    private ReferenceConfig<GenericService> referenceConfig;
+
     @Before
     public void setup() {
         metaData = new MetaData();
@@ -75,7 +79,6 @@ public final class AlibabaDubboProxyServiceTest {
 
     @Test
     public void testGenericInvoker() throws Exception {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
         String sample = String.format("%x", System.nanoTime());
         when(referenceConfig.get()).thenReturn(genericService);
@@ -84,9 +87,9 @@ public final class AlibabaDubboProxyServiceTest {
                     RpcContext.getContext().setFuture(new FutureAdapter<>(new SimpleFuture(new RpcResult(sample))));
                     return sample;
                 });
-        try (MockedStatic<AlibabaDubboConfigCache> applicationConfigCacheMockedStatic = mockStatic(AlibabaDubboConfigCache.class)) {
+        try (MockedStatic<AlibabaDubboConfigCache> ignored = mockStatic(AlibabaDubboConfigCache.class)) {
             AlibabaDubboConfigCache alibabaDubboConfigCache = mock(AlibabaDubboConfigCache.class);
-            applicationConfigCacheMockedStatic.when(AlibabaDubboConfigCache::getInstance).thenReturn(alibabaDubboConfigCache);
+            when(AlibabaDubboConfigCache.getInstance()).thenReturn(alibabaDubboConfigCache);
             when(alibabaDubboConfigCache.initRef(metaData)).thenReturn(referenceConfig);
 
             AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new BodyParamResolveServiceImpl());
@@ -97,7 +100,7 @@ public final class AlibabaDubboProxyServiceTest {
         }
     }
 
-    class BodyParamResolveServiceImpl implements DubboParamResolveService {
+    static class BodyParamResolveServiceImpl implements DubboParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {

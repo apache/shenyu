@@ -50,6 +50,7 @@ public final class AlibabaDubboPluginDataTest {
         metaData.setPath("/dubbo/findAll");
         metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName("findAll");
+        Assert.assertNotNull(metaData);
     }
 
     @Test
