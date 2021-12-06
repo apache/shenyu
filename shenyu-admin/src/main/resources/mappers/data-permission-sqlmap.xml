@@ -130,7 +130,7 @@
             #{dataPermission.id,jdbcType=VARCHAR},
             #{dataPermission.userId,jdbcType=VARCHAR},
             #{dataPermission.dataId,jdbcType=VARCHAR},
-            #{dataPermission.dataType,jdbcType=VARCHAR}
+            #{dataPermission.dataType,jdbcType=INTEGER}
             )
         </foreach>
     </insert>
