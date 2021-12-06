@@ -53,17 +53,5 @@ public class DataPermissionAspectTest {
             thrown = true;
         }
         assertTrue(thrown);
-
-        MethodSignature signature = mock(MethodSignature.class);
-        Method method = mock(Method.class);
-        when(point.getSignature()).thenReturn(signature);
-        when(signature.getMethod()).thenReturn(method);
-        when(method.getAnnotation(any())).thenReturn(null);
-        dataPermissionAspect.around(point);
-        try {
-            verify(point).proceed(null);
-        } catch (Throwable t) {
-            throw new ShenyuException(t);
-        }
     }
 }
