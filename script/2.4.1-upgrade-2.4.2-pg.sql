@@ -14,7 +14,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- this file works for MySQL and PostgreSQL at the same time, can not use "`" syntax.
+-- this file works for PostgreSQL, can not use "`" syntax.
 
 -- upgrade plguin
 -- name & role
@@ -54,6 +54,23 @@ UPDATE resource SET title = 'cryptorResponse', name = 'cryptorResponse', compone
 UPDATE resource SET title = 'modifyResponse', name = 'modifyResponse', component = 'modifyResponse', url = REPLACE(url, 'modifyResponse', 'modifyResponse') WHERE title = 'modify_response';
 UPDATE resource SET title = 'paramMapping', name = 'paramMapping', component = 'paramMapping', url = REPLACE(url, 'param_mapping', 'paramMapping') WHERE title = 'param_mapping';
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 -- perms
 UPDATE resource SET perms = REPLACE(perms, 'rate_limiter', 'rateLimiter') WHERE perms LIKE 'plugin:rate_limiter%';
 UPDATE resource SET perms = REPLACE(perms, 'context_path', 'contextPath') WHERE perms LIKE 'plugin:context_path%';
@@ -62,7 +79,7 @@ UPDATE resource SET perms = REPLACE(perms, 'modifyResponse', 'modifyResponse') W
 UPDATE resource SET perms = REPLACE(perms, 'param_mapping', 'paramMapping') WHERE perms LIKE 'plugin:param_mapping%';
 
 -- add dubbo multiSelectorHandle
-INSERT IGNORE INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('123', '6', 'multiSelectorHandle', 'multiSelectorHandle', '3', '3', '0', NULL, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
+INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('123', '6', 'multiSelectorHandle', 'multiSelectorHandle', '3', '3', '0', NULL, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 
 -- change shenyu-dict unique key
-ALTER TABLE shenyu_dict ADD UNIQUE KEY `dict_type_dict_code_dict_name` (`type`, `dict_code`,`dict_name`);
+ALTER TABLE shenyu_dict ADD CONSTRAINT un_dict_type_dict_code_dict_name UNIQUE (type,dict_code,dict_name);

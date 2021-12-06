@@ -29,15 +29,15 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
- * The Test Case For ApacheAbstractDubboPluginDataHandler.
+ * The Test Case For ApacheDubboPluginDataHandler.
  */
-public final class ApacheAbstractDubboPluginDataHandlerTest {
+public final class ApacheDubboPluginDataHandlerTest {
 
-    private ApacheAbstractDubboPluginDataHandler apacheDubboPluginDataHandler;
+    private ApacheDubboPluginDataHandler apacheDubboPluginDataHandler;
 
     @Before
     public void setUp() {
-        apacheDubboPluginDataHandler = new ApacheAbstractDubboPluginDataHandler();
+        apacheDubboPluginDataHandler = new ApacheDubboPluginDataHandler();
     }
 
     @Test
