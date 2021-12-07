@@ -18,9 +18,11 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * this is User Role Mapper.
@@ -53,6 +55,13 @@ public interface UserRoleMapper {
     int insert(UserRoleDO userRoleDO);
 
     /**
+     * batch insert userRoles.
+     * @param userRoleList the datas to insert
+     * @return the count of insert
+     */
+    int insertBatch(@Param("userRoleList") List<UserRoleDO> userRoleList);
+
+    /**
      * insert selective user role.
      *
      * @param userRoleDO {@linkplain UserRoleDO}
@@ -75,4 +84,11 @@ public interface UserRoleMapper {
      * @return row int
      */
     int deleteByUserId(String userId);
+
+    /**
+     * delete role by ids of users.
+     * @param userIdSet set of user ids
+     * @return the count of deleted
+     */
+    int deleteByUserIdSet(@Param("userIdSet") Set<String> userIdSet);
 }

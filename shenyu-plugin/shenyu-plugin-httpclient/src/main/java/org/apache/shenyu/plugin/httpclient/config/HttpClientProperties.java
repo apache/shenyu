@@ -41,12 +41,27 @@ public class HttpClientProperties {
     /**
      * The connect timeout in millis, the default is 45s.
      */
-    private Integer connectTimeout;
+    private Integer connectTimeout = 45000;
 
     /**
      * The response timeout.
      */
-    private Duration responseTimeout;
+    private Duration responseTimeout = Duration.ofMillis(3000);
+
+    /**
+     * readerIdleTime, the default is 3s.
+     */
+    private Integer readerIdleTime = 3000;
+
+    /**
+     * writerIdleTime, the default is 3s.
+     */
+    private Integer writerIdleTime = 3000;
+
+    /**
+     * allIdleTime, the default is 3s.
+     */
+    private Integer allIdleTime = 3000;
 
     /**
      * readTimeout, the default is 3s.
@@ -112,6 +127,60 @@ public class HttpClientProperties {
      */
     public void setResponseTimeout(final Duration responseTimeout) {
         this.responseTimeout = responseTimeout;
+    }
+
+    /**
+     * Gets read idle timeout.
+     *
+     * @return the read idle timeout
+     */
+    public Integer getReaderIdleTime() {
+        return readerIdleTime;
+    }
+
+    /**
+     * Sets read idle timeout.
+     *
+     * @param readerIdleTime the read idle timeout
+     */
+    public void setReaderIdleTime(final Integer readerIdleTime) {
+        this.readerIdleTime = readerIdleTime;
+    }
+
+    /**
+     * Gets writer idle timeout.
+     *
+     * @return the writer idle timeout
+     */
+    public Integer getWriterIdleTime() {
+        return writerIdleTime;
+    }
+
+    /**
+     * Sets writer idle timeout.
+     *
+     * @param writerIdleTime the writer idle timeout
+     */
+    public void setWriterIdleTime(final Integer writerIdleTime) {
+        this.writerIdleTime = writerIdleTime;
+    }
+
+    /**
+     * Gets all idle timeout.
+     *
+     * @return the all idle timeout
+     */
+    public Integer getAllIdleTime() {
+        return allIdleTime;
+    }
+
+    /**
+     * Sets all idle timeout.
+     *
+     * @param allIdleTime the all idle timeout
+     */
+    public void setAllIdleTime(final Integer allIdleTime) {
+        this.allIdleTime = allIdleTime;
     }
 
     /**

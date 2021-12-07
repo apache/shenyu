@@ -30,8 +30,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.support.BodyInserterContext;
-import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
@@ -41,10 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -56,7 +51,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * ModifyResponse plugin.
@@ -106,15 +100,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             ClientResponse clientResponse = this.buildModifiedResponse(body);
             Mono<byte[]> modifiedBody = clientResponse.bodyToMono(byte[].class)
                     .flatMap(originalBody -> Mono.just(modifyBody(originalBody)));
-
-            BodyInserter<Mono<byte[]>, ReactiveHttpOutputMessage> bodyInserter =
-                    BodyInserters.fromPublisher(modifiedBody, byte[].class);
-            CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(this.exchange);
-            return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
-                Mono<DataBuffer> messageBody = ResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
-                exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
-                return getDelegate().writeWith(messageBody);
-            })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+            return ResponseUtils.writeWith(clientResponse, this.exchange, modifiedBody, byte[].class);
         }
 
         private ClientResponse buildModifiedResponse(final Publisher<? extends DataBuffer> body) {

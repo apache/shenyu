@@ -78,6 +78,21 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorResponse();
     }
 
+    @Test
+    public void testEncryptRequestAndDecryptResponse() throws Exception {
+        setupCryptorRequest("userName", "encrypt");
+        setupCryptorResponse("userName", "decrypt");
+
+        JsonObject request = new JsonObject();
+        request.addProperty("userId", TEST_USER_ID);
+        request.addProperty("userName", TEST_USER_NAME);
+        String actualUserName = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, String.class);
+        assertThat(actualUserName, is(TEST_USER_NAME));
+
+        cleanCryptorRequest();
+        cleanCryptorResponse();
+    }
+
     private List<LocalPluginController.RuleLocalData> buildRuleLocalDataList(final String fieldNames, final String way) {
         List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
         ruleLocalDataList.add(buildRuleLocalData(fieldNames, way));
