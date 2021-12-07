@@ -30,6 +30,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -58,6 +59,9 @@ public final class ApacheDubboProxyServiceTest {
 
     private ServerWebExchange exchange;
 
+    @Mock
+    private ReferenceConfig<GenericService> referenceConfig;
+
     @Before
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -76,8 +80,8 @@ public final class ApacheDubboProxyServiceTest {
     }
 
     @Test
+    @SuppressWarnings(value = "unchecked")
     public void genericInvokerTest() throws IllegalAccessException, NoSuchFieldException {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(referenceConfig.get()).thenReturn(genericService);
         when(referenceConfig.getInterface()).thenReturn(PATH);
@@ -86,7 +90,7 @@ public final class ApacheDubboProxyServiceTest {
         ApacheDubboConfigCache apacheDubboConfigCache = ApacheDubboConfigCache.getInstance();
         Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache) field.get(apacheDubboConfigCache)).put(PATH, referenceConfig);
+        ((LoadingCache<String, ReferenceConfig<GenericService>>) field.get(apacheDubboConfigCache)).put(PATH, referenceConfig);
         ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
         apacheDubboProxyService.genericInvoker("", metaData, exchange);
         future.complete("success");

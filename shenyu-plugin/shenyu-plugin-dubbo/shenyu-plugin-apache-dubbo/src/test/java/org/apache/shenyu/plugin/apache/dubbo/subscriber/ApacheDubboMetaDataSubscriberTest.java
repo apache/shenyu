@@ -17,20 +17,15 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.subscriber;
 
-import com.google.common.cache.LoadingCache;
-import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.lang.reflect.Field;
-
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
 
 /**
@@ -58,13 +53,7 @@ public final class ApacheDubboMetaDataSubscriberTest {
     }
 
     @Test
-    public void testOnSubscribe() throws NoSuchFieldException, IllegalAccessException {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
-        when(referenceConfig.getInterface()).thenReturn("/dubbo/findAll");
-        ApacheDubboConfigCache apacheDubboConfigCache = ApacheDubboConfigCache.getInstance();
-        Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
-        field.setAccessible(true);
-        ((LoadingCache) field.get(apacheDubboConfigCache)).put("/dubbo/findAll", referenceConfig);
+    public void testOnSubscribe() {
         apacheDubboMetaDataSubscriber.onSubscribe(metaData);
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")

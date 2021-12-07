@@ -17,20 +17,14 @@
 
 package org.apache.shenyu.plugin.alibaba.dubbo.subscriber;
 
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.google.common.cache.LoadingCache;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.lang.reflect.Field;
-
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
 
 
@@ -38,7 +32,7 @@ import static org.mockito.Mockito.doNothing;
  * The Test Case For AlibabaDubboMetaDataSubscriber.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class ApacheDubboMetaDataSubscriberTest {
+public final class AlibabaDubboMetaDataSubscriberTest {
 
     private AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriber;
 
@@ -59,13 +53,7 @@ public final class ApacheDubboMetaDataSubscriberTest {
     }
 
     @Test
-    public void testOnSubscribe() throws NoSuchFieldException, IllegalAccessException {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
-        when(referenceConfig.getInterface()).thenReturn("/dubbo/findAll");
-        AlibabaDubboConfigCache alibabaDubboConfigCache = AlibabaDubboConfigCache.getInstance();
-        Field field = AlibabaDubboConfigCache.class.getDeclaredField("cache");
-        field.setAccessible(true);
-        ((LoadingCache) field.get(alibabaDubboConfigCache)).put("/dubbo/findAll", referenceConfig);
+    public void testOnSubscribe() {
         alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")
