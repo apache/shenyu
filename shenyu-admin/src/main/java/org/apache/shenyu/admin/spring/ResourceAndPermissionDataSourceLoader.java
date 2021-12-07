@@ -178,11 +178,4 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
             resourceService.createOrUpdate(resourceDTO);
         }
     }
-
-    /**
-     * init permission.
-     */
-    private void initPermission() {
-
-    }
 }
