@@ -36,6 +36,10 @@
             <artifactId>shenyu-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>com.weibo</groupId>
+			<artifactId>motan-core</artifactId>
+		</dependency>
+	</dependencies>
 
 </project>

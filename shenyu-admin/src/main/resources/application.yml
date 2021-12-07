@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: h2
+    active: mysql
   thymeleaf:
     cache: true
     encoding: utf-8
