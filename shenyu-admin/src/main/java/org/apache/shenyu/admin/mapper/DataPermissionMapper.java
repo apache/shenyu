@@ -94,7 +94,7 @@ public interface DataPermissionMapper {
      * @param dataPermissionList list of data permission
      * @return the count of inserted
      */
-    int insertBatch(List<DataPermissionDO> dataPermissionList);
+    int insertBatch(@Param("dataPermissionList") List<DataPermissionDO> dataPermissionList);
 
     /**
      * select data ids via list of data id and user id.

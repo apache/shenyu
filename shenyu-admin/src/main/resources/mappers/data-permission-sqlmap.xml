@@ -125,7 +125,7 @@
     <insert id="insertBatch">
         insert into data_permission (id, user_id, data_id, data_type)
         values
-        <foreach collection="dataPermissionList" index="index" item="dataPermission" separator=",">
+        <foreach collection="dataPermissionList" item="dataPermission" separator=",">
             (
             #{dataPermission.id,jdbcType=VARCHAR},
             #{dataPermission.userId,jdbcType=VARCHAR},
