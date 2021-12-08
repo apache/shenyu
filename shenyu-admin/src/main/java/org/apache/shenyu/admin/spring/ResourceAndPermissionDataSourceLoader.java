@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.spring;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -97,7 +98,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
     public void init() {
         List<PluginData> pluginDataList = pluginService.listAll();
         if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            pluginDataList.stream().filter(pluginData -> !getResource(pluginData.getName())).collect(Collectors.toList())
+            pluginDataList.stream().filter(pluginData -> getResource(pluginData.getName())).collect(Collectors.toList())
                     .forEach(item -> insertResource(item.getName(), Integer.parseInt(item.getId())));
         } else {
             LOG.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
@@ -110,7 +111,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
      * @return {@link Boolean}
      */
     private Boolean getResource(final String pluginTitle) {
-        return ObjectUtils.notEqual(resourceService.findByTitle(pluginTitle), null);
+        return Objects.isNull(resourceService.findByTitle(pluginTitle));
     }
 
     /**
