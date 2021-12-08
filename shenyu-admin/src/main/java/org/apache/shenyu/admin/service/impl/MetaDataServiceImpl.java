@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
@@ -44,11 +43,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -122,33 +123,36 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        int count = 0;
-        List<MetaData> metaDataList = Lists.newArrayList();
-        for (String id : ids) {
-            MetaDataDO metaDataDO = metaDataMapper.selectById(id);
-            count += metaDataMapper.delete(id);
-            // publish delete event
-            metaDataList.add(MetaDataTransfer.INSTANCE.mapToData(metaDataDO));
-        }
+
+        Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>())
+                .stream().filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
+
+        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdSet(idSet);
+        List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(() -> new ArrayList<>())
+                .stream().map(metaDataDO -> MetaDataTransfer.INSTANCE.mapToData(metaDataDO)).collect(Collectors.toList());
+
+        int count = metaDataMapper.deleteByIdSet(idSet);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
+
         return count;
     }
 
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-        List<MetaData> metaDataList = Lists.newArrayList();
-        for (String id : ids) {
-            MetaDataDO metaDataDO = metaDataMapper.selectById(id);
-            if (Objects.isNull(metaDataDO)) {
-                return AdminConstants.ID_NOT_EXIST;
-            }
-            metaDataDO.setEnabled(enabled);
-            metaDataMapper.updateEnable(metaDataDO);
-            metaDataList.add(MetaDataTransfer.INSTANCE.mapToData(metaDataDO));
+
+        Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>())
+                .stream().filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
+        List<MetaDataDO> metaDataDoList = Optional.ofNullable(metaDataMapper.selectByIdSet(idSet)).orElseGet(() -> new ArrayList<>());
+        if (idSet.size() != metaDataDoList.size()) {
+            return AdminConstants.ID_NOT_EXIST;
         }
-        // publish change event.
+        List<MetaData> metaDataList = metaDataDoList.stream().map(metaDataDO -> MetaDataTransfer.INSTANCE.mapToData(metaDataDO))
+                .collect(Collectors.toList());
+        metaDataMapper.updateEnableBatch(idSet, enabled);
+
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
                 metaDataList));
+
         return StringUtils.EMPTY;
     }
 

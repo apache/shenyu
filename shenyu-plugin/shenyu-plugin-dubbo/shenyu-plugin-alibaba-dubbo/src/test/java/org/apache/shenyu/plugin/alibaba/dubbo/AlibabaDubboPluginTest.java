@@ -90,7 +90,7 @@ public final class AlibabaDubboPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
 
-        final Boolean result = alibabaDubboPluginUnderTest.skip(exchange);
+        final boolean result = alibabaDubboPluginUnderTest.skip(exchange);
 
         assertFalse(result);
     }
