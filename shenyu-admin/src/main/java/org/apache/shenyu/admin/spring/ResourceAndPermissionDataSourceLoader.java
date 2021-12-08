@@ -27,7 +27,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
-import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
