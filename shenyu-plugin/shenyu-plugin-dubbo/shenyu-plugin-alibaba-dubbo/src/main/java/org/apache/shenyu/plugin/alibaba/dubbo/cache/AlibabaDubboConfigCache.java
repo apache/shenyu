@@ -24,6 +24,7 @@ import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -34,6 +35,7 @@ import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -43,7 +45,6 @@ import java.util.concurrent.ExecutionException;
 /**
  * The type Application config cache.
  */
-@SuppressWarnings("all")
 public final class AlibabaDubboConfigCache extends DubboConfigCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(AlibabaDubboConfigCache.class);
@@ -54,15 +55,16 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
 
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
-            .removalListener(notification -> {
-                ReferenceConfig config = (ReferenceConfig<GenericService>) notification.getValue();
+            .removalListener((RemovalListener<Object, ReferenceConfig<GenericService>>) notification -> {
+                ReferenceConfig<GenericService> config = notification.getValue();
                 if (config != null) {
                     config.destroy();
                 }
             })
             .build(new CacheLoader<String, ReferenceConfig<GenericService>>() {
                 @Override
-                public ReferenceConfig<GenericService> load(final String key) {
+                @Nonnull
+                public ReferenceConfig<GenericService> load(@Nonnull final String key) {
                     return new ReferenceConfig<>();
                 }
             });
@@ -181,13 +183,12 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
     /**
      * Get reference config.
      *
-     * @param <T>  the type parameter
      * @param path the path
      * @return the reference config
      */
-    public <T> ReferenceConfig<T> get(final String path) {
+    public ReferenceConfig<GenericService> get(final String path) {
         try {
-            return (ReferenceConfig<T>) cache.get(path);
+            return cache.get(path);
         } catch (ExecutionException e) {
             throw new ShenyuException(e.getCause());
         }

@@ -22,7 +22,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 /**
  * DubboConfigCache.
  */
-public class DubboConfigCache<T extends DubboConfigCache<?>> {
+public class DubboConfigCache {
 
     /**
      * parser the rpc ext to dubbo param.

@@ -39,6 +39,8 @@ import java.util.Optional;
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
 
+    private static final String RPC_TYPE = "rpc_type";
+
     private final Map<String, ShenyuContextDecorator> decoratorMap;
 
     /**
@@ -64,7 +66,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         } else if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             rpcType = RpcTypeEnum.WEB_SOCKET.getName();
         } else {
-            String rpcTypeParam = request.getHeaders().getFirst("rpc_type");
+            String rpcTypeParam = request.getHeaders().getFirst(RPC_TYPE);
             rpcType = StringUtils.isEmpty(rpcTypeParam) ? RpcTypeEnum.HTTP.getName() : rpcTypeParam;
         }
         return decoratorMap.get(rpcType).decorator(buildDefaultContext(request), metaData);

@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.plugin.cryptor.decorator;
 
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.plugin.base.support.BodyInserterContext;
-import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
@@ -27,17 +24,13 @@ import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Build and modify the response class.
@@ -62,14 +55,7 @@ public class CryptorResponseDecorator extends ServerHttpResponseDecorator {
         ClientResponse clientResponse = ResponseUtils.buildClientResponse(this.getDelegate(), body);
         Mono<String> mono = clientResponse.bodyToMono(String.class).flatMap(originalBody ->
                         strategyMatch(originalBody, this.ruleHandle, this.exchange));
-        BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
-        CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
-        return bodyInserter.insert(outputMessage, new BodyInserterContext())
-                .then(Mono.defer(() -> {
-                    Mono<DataBuffer> messageBody = ResponseUtils.fixBodyMessage(this.getDelegate(), outputMessage);
-                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
-                    return getDelegate().writeWith(messageBody);
-                })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+        return ResponseUtils.writeWith(clientResponse, this.exchange, mono, String.class);
     }
 
     @SuppressWarnings("rawtypes")

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.cache;
 
-import com.alibaba.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
@@ -97,7 +97,7 @@ public final class ApacheDubboConfigCacheTest {
         metaData.setPath("/test");
         ApacheDubboConfigCache apacheDubboConfigCacheMock = mock(ApacheDubboConfigCache.class);
         when(apacheDubboConfigCacheMock.initRef(metaData))
-                .thenReturn(new ReferenceConfig());
+                .thenReturn(new org.apache.dubbo.config.ReferenceConfig<>());
         assertNotNull(apacheDubboConfigCacheMock.initRef(metaData));
     }
 
@@ -117,7 +117,7 @@ public final class ApacheDubboConfigCacheTest {
         metaData.setRpcExt(GsonUtils.getInstance().toJson(dubboParamExtInfo));
         ApacheDubboConfigCache apacheDubboConfigCacheMock = mock(ApacheDubboConfigCache.class);
         when(apacheDubboConfigCacheMock.build(metaData))
-                .thenReturn(new ReferenceConfig());
+                .thenReturn(new ReferenceConfig<>());
         assertNotNull(apacheDubboConfigCacheMock.build(metaData));
     }
 

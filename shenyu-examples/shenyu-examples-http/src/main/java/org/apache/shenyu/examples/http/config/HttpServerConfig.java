@@ -35,12 +35,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 public class HttpServerConfig {
-
+    
     @Bean
     public RouterFunction<ServerResponse> monoRouterFunction(final ShenyuTestHttpRouter shenyuTestHttpRouter) {
         return shenyuTestHttpRouter.routes();
     }
-
+    
     @Bean
     public Scheduler scheduler() {
         ExecutorService threadPool = new ThreadPoolExecutor(100, 100,
