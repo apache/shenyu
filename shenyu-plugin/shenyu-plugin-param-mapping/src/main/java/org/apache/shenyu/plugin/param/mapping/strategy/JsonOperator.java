@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -57,7 +58,7 @@ public class JsonOperator implements Operator {
             String modify = operation(originalBody, paramMappingRuleHandle);
             return Mono.just(modify);
         });
-        BodyInserter bodyInserter = BodyInserters.fromPublisher(mono, String.class);
+        BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
         HttpHeaders headers = new HttpHeaders();
         headers.putAll(exchange.getRequest().getHeaders());
         headers.remove(HttpHeaders.CONTENT_LENGTH);
@@ -83,6 +84,7 @@ public class JsonOperator implements Operator {
             this.cachedBodyOutputMessage = cachedBodyOutputMessage;
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public HttpHeaders getHeaders() {
             long contentLength = headers.getContentLength();
@@ -96,6 +98,7 @@ public class JsonOperator implements Operator {
             return httpHeaders;
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public Flux<DataBuffer> getBody() {
             return cachedBodyOutputMessage.getBody();
