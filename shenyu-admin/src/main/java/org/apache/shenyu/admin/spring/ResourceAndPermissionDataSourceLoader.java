@@ -76,7 +76,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
 
     private static final Integer STATUS = 1;
 
-    private Random rand = new Random();
+    private final Random rand = new Random();
 
     private final PluginService pluginService;
 

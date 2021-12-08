@@ -19,7 +19,6 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSqlQueryInterceptor;
-import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSqlUpdateInterceptor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -40,11 +39,5 @@ public class MapperConfigTest {
     public void testPostgreSqlQueryInterceptor() {
         PostgreSqlQueryInterceptor postgreSqlQueryInterceptor = mapperConfig.postgreSqlQueryInterceptor();
         assertNotNull(postgreSqlQueryInterceptor);
-    }
-
-    @Test
-    public void testPostgreSqlUpdateInterceptor() {
-        PostgreSqlUpdateInterceptor postgreSqlUpdateInterceptor = mapperConfig.postgreSqlUpdateInterceptor();
-        assertNotNull(postgreSqlUpdateInterceptor);
     }
 }
