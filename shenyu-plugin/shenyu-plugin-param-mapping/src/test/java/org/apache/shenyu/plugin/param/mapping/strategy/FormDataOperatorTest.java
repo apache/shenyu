@@ -35,7 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -75,8 +75,8 @@ public class FormDataOperatorTest {
         param.set("age", "18");
         this.paramMappingRuleHandle = new ParamMappingRuleHandle();
         this.paramMappingRuleHandle.setRemoveParameterKeys(remove);
-        this.paramMappingRuleHandle.setAddParameterKeys(Arrays.asList(add));
-        this.paramMappingRuleHandle.setReplaceParameterKeys(Arrays.asList(replace));
+        this.paramMappingRuleHandle.setAddParameterKeys(Collections.singletonList(add));
+        this.paramMappingRuleHandle.setReplaceParameterKeys(Collections.singletonList(replace));
         this.formDataOperator = new FormDataOperator();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.POST, "localhost")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE).queryParams(param));
