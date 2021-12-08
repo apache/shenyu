@@ -47,6 +47,8 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
 
     private List<String> serverList;
 
+    public HttpClientRegisterRepository() { }
+
     public HttpClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         init(config);
     }

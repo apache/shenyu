@@ -53,6 +53,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     private NewService service;
 
+    public ConsulClientRegisterRepository() { }
+
     public ConsulClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         init(config);
     }
