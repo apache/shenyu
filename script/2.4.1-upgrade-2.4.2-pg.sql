@@ -54,23 +54,6 @@ UPDATE resource SET title = 'cryptorResponse', name = 'cryptorResponse', compone
 UPDATE resource SET title = 'modifyResponse', name = 'modifyResponse', component = 'modifyResponse', url = REPLACE(url, 'modifyResponse', 'modifyResponse') WHERE title = 'modify_response';
 UPDATE resource SET title = 'paramMapping', name = 'paramMapping', component = 'paramMapping', url = REPLACE(url, 'param_mapping', 'paramMapping') WHERE title = 'param_mapping';
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 -- perms
 UPDATE resource SET perms = REPLACE(perms, 'rate_limiter', 'rateLimiter') WHERE perms LIKE 'plugin:rate_limiter%';
 UPDATE resource SET perms = REPLACE(perms, 'context_path', 'contextPath') WHERE perms LIKE 'plugin:context_path%';
@@ -86,54 +69,70 @@ UPDATE plugin_handle SET data_type = '3' WHERE plugin_id = '6' AND field = 'load
 -- change shenyu-dict unique key
 ALTER TABLE shenyu_dict ADD CONSTRAINT un_dict_type_dict_code_dict_name UNIQUE (type,dict_code,dict_name);
 
--- change app_auth date_created,date_updated
-ALTER TABLE app_auth ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE app_auth ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add app_auth date_created,date_updated default
+ALTER TABLE app_auth ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE app_auth ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE auth_param ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE auth_param ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add auth_param date_created,date_updated default
+ALTER TABLE auth_param ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE auth_param ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE auth_path ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE auth_path ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add auth_path date_created,date_updated default
+ALTER TABLE auth_path ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE auth_path ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE meta_data ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE meta_data ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add meta_data date_created,date_updated default
+ALTER TABLE meta_data ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE meta_data ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE dashboard_user ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE dashboard_user ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add dashboard userdate_created,date_updated default
+ALTER TABLE dashboard_user ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE dashboard_user ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE data_permission ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE data_permission ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add data_permission date_created,date_updated default
+ALTER TABLE data_permission ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE data_permission ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE permission ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE permission ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add permission date_created,date_updated default
+ALTER TABLE permission ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE permission ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE plugin ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE plugin ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add plugin date_created,date_updated default
+ALTER TABLE plugin ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE plugin ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE plugin_handle ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE plugin_handle ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add plugin_handle date_created,date_updated default
+ALTER TABLE plugin_handle ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE plugin_handle ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE resource ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE resource ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add resource date_created,date_updated default
+ALTER TABLE resource ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE resource ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE "role" ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE "role" ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add role date_created,date_updated default
+ALTER TABLE "role" ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE "role" ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE rule ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE rule ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add rule date_created,date_updated default
+ALTER TABLE "rule" ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE "rule" ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE rule_condition ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE rule_condition ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add rule_condition date_created,date_updated default
+ALTER TABLE rule_condition ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE rule_condition ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE selector ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE selector ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add selector date_created,date_updated default
+ALTER TABLE selector ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE selector ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE selector_condition ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE selector_condition ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add selector_condition date_created,date_updated default
+ALTER TABLE selector_condition ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE selector_condition ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE shenyu_dict ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE shenyu_dict ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add shenyu_dict date_created,date_updated default
+ALTER TABLE shenyu_dict ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE shenyu_dict ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
-ALTER TABLE user_role ALTER COLUMN date_created SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
-ALTER TABLE user_role ALTER COLUMN date_updated SET TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+-- add user_role date_created,date_updated default
+ALTER TABLE user_role ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+ALTER TABLE user_role ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
