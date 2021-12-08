@@ -85,7 +85,7 @@ ALTER TABLE auth_path ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TE
 ALTER TABLE meta_data ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 ALTER TABLE meta_data ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
--- add dashboard userdate_created,date_updated default
+-- add dashboard_user date_created,date_updated default
 ALTER TABLE dashboard_user ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 ALTER TABLE dashboard_user ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 
