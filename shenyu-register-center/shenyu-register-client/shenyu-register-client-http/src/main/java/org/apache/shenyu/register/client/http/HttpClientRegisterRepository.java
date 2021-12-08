@@ -19,6 +19,7 @@ package org.apache.shenyu.register.client.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -29,8 +30,6 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * The type Http client register repository.
@@ -47,6 +46,10 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
     private static final String URI_PATH = "/shenyu-client/register-uri";
 
     private List<String> serverList;
+
+    public HttpClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {

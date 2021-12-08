@@ -24,6 +24,10 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -37,11 +41,6 @@ import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * nacos register center client.
@@ -62,6 +61,12 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
     private final ConcurrentLinkedQueue<String> metadataCache = new ConcurrentLinkedQueue<>();
 
     private boolean registerService;
+
+    public NacosClientRegisterRepository() { }
+
+    public NacosClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {

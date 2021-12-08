@@ -19,8 +19,15 @@ package org.apache.shenyu.register.client.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
@@ -35,15 +42,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.Objects;
-
-import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
-import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
-
 @Join
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
 
@@ -54,6 +52,10 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     private ConsulClient consulClient;
 
     private NewService service;
+
+    public ConsulClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
