@@ -82,13 +82,9 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
 
     private final ResourceService resourceService;
 
-    private final PermissionService permissionService;
-
-    public ResourceAndPermissionDataSourceLoader(final PluginService pluginService, final ResourceService resourceService,
-            final PermissionService permissionService) {
+    public ResourceAndPermissionDataSourceLoader(final PluginService pluginService, final ResourceService resourceService) {
         this.pluginService = pluginService;
         this.resourceService = resourceService;
-        this.permissionService = permissionService;
     }
 
     @Override
