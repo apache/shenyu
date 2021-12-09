@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The shenyu dict mapper.
@@ -45,6 +46,13 @@ public interface ShenyuDictMapper {
      * @return the list
      */
     List<ShenyuDictDO> findByType(@Param("type") String type);
+
+    /**
+     * find shenyu dict do list by a set of types.
+     * @param typeSet a set of types
+     * @return the list
+     */
+    List<ShenyuDictDO> findByTypeBatch(@Param("typeSet") Set<String> typeSet);
 
     /**
      * insert shenyu dict.

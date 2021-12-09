@@ -15,20 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.apache.dubbo.handler;
+package org.apache.shenyu.admin.shiro.bean;
 
-import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
-import org.apache.shenyu.plugin.dubbo.common.handler.AbstractDubboPluginDataHandler;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.junit.Assert.assertEquals;
+    
 /**
- * The type Apache dubbo plugin data handler.
+ * Test cases for {@link StatelessToken}.
  */
-public class ApacheAbstractDubboPluginDataHandler extends AbstractDubboPluginDataHandler {
-
-    @Override
-    protected void initConfigCache(final DubboRegisterConfig dubboRegisterConfig) {
-        ApacheDubboConfigCache.getInstance().init(dubboRegisterConfig);
-        ApacheDubboConfigCache.getInstance().invalidateAll();
+@RunWith(MockitoJUnitRunner.Silent.class)
+public final class StatelessTokenTest {
+    
+    private static final String TOKEN = "token";
+    
+    private final StatelessToken statelessToken = new StatelessToken(TOKEN);
+    
+    @Test
+    public void testGetPrincipal() {
+        assertEquals(TOKEN, statelessToken.getPrincipal());
+    }
+    
+    @Test
+    public void testGetCredentials() {
+        assertEquals(TOKEN, statelessToken.getCredentials());
     }
 }

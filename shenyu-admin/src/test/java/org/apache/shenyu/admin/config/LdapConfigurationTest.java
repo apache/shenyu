@@ -20,6 +20,10 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -30,9 +34,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The TestCase for LdapConfiguration.
+ * Test cases for {@link LdapConfiguration}.
  */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class LdapConfigurationTest {
+
+    @InjectMocks
+    private LdapConfiguration ldapConfiguration;
 
     @Test
     public void testContextSource() {
@@ -45,12 +53,18 @@ public final class LdapConfigurationTest {
         when(ldapProp.getPassword()).thenReturn(pass);
         when(ldapProp.getConnectTimeout()).thenReturn(5000);
         when(ldapProp.getReadTimeout()).thenReturn(10000);
-        LdapConfiguration ldapConfiguration = new LdapConfiguration();
         LdapContextSource ldapContextSource = ldapConfiguration.contextSource(ldapProp);
         assertNotNull(ldapContextSource);
         assertThat(ldapContextSource.getUrls().length, is(1));
         assertEquals(ldapContextSource.getUrls()[0], ldapUrl);
         assertEquals(ldapContextSource.getUserDn(), user);
         assertEquals(ldapContextSource.getPassword(), pass);
+    }
+    
+    @Test
+    public void testLdapTemplate() {
+        LdapContextSource ldapContextSource = new LdapContextSource();
+        LdapTemplate ldapTemplate = ldapConfiguration.ldapTemplate(ldapContextSource);
+        assertNotNull(ldapTemplate);
     }
 }

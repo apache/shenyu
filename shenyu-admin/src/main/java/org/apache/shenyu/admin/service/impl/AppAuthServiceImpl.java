@@ -55,8 +55,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -223,9 +227,17 @@ public class AppAuthServiceImpl implements AppAuthService {
     public ShenyuAdminResult syncData() {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
         if (CollectionUtils.isNotEmpty(appAuthDOList)) {
+            Set<String> idSet = appAuthDOList.stream().map(appAuthDO -> appAuthDO.getId()).collect(Collectors.toSet());
+            Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idSet);
+            Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idSet);
+
             List<AppAuthData> dataList = appAuthDOList.stream()
                     .filter(Objects::nonNull)
-                    .map(this::buildByEntity).collect(Collectors.toList());
+                    .map(appAuthDO -> {
+                        String id = appAuthDO.getId();
+                        return buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
+                    })
+                    .collect(Collectors.toList());
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
                     DataEventTypeEnum.REFRESH,
                     dataList));
@@ -300,19 +312,33 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-        List<AppAuthData> authDataList = Lists.newArrayList();
-        for (String id : ids) {
-            AppAuthDO appAuthDO = appAuthMapper.selectById(id);
-            if (Objects.isNull(appAuthDO)) {
-                return AdminConstants.ID_NOT_EXIST;
-            }
-            appAuthDO.setEnabled(enabled);
-            appAuthMapper.updateEnable(appAuthDO);
-            authDataList.add(buildByEntity(appAuthDO));
+
+        if (CollectionUtils.isEmpty(ids)) {
+            return AdminConstants.ID_NOT_EXIST;
         }
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.UPDATE,
-                authDataList));
+        Set<String> idSet = new HashSet<>(ids);
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectByIds(ids);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            return AdminConstants.ID_NOT_EXIST;
+        }
+        if (appAuthDOList.size() == idSet.size()) {
+            Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idSet);
+            Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idSet);
+
+            List<AppAuthData> authDataList = appAuthDOList.stream().map(appAuthDO -> {
+                String id = appAuthDO.getId();
+                appAuthDO.setEnabled(enabled);
+                return this.buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
+            }).collect(Collectors.toList());
+
+            appAuthMapper.updateEnableBatch(idSet, enabled);
+
+            // publish change event.
+            if (CollectionUtils.isNotEmpty(authDataList)) {
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.UPDATE,
+                        authDataList));
+            }
+        }
         return StringUtils.EMPTY;
     }
 
@@ -372,10 +398,17 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AppAuthData> listAll() {
-        return appAuthMapper.selectAll()
-                .stream()
-                .map(this::buildByEntity)
-                .collect(Collectors.toList());
+
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
+        Set<String> idSet = appAuthDOList.stream().map(appAuthDO -> appAuthDO.getId()).collect(Collectors.toSet());
+        Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idSet);
+        Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idSet);
+
+        return Optional.ofNullable(appAuthDOList).orElseGet(() -> new ArrayList<>())
+                .stream().map(appAuthDO -> {
+                    String id = appAuthDO.getId();
+                    return buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
+                }).collect(Collectors.toList());
     }
 
     @Override
@@ -403,9 +436,67 @@ public class AppAuthServiceImpl implements AppAuthService {
             data.setPathDataList(
                     authPathDOList.stream()
                             .map(pathDO -> new AuthPathData(pathDO.getAppName(), pathDO.getPath(), pathDO.getEnabled()))
-                            .collect(Collectors.toList())
-            );
+                            .collect(Collectors.toList()));
         }
         return data;
     }
+
+    private AppAuthData buildByEntityWithParamAndPath(final AppAuthDO appAuthDO, final List<AuthParamData> authParamDataList, final List<AuthPathData> authPathDataList) {
+        AppAuthData data = AppAuthData.builder()
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .open(appAuthDO.getOpen())
+                .enabled(appAuthDO.getEnabled())
+                .build();
+        if (CollectionUtils.isNotEmpty(authParamDataList)) {
+            data.setParamDataList(authParamDataList);
+        }
+        if (CollectionUtils.isNotEmpty(authPathDataList)) {
+            data.setPathDataList(authPathDataList);
+        }
+        return data;
+    }
+
+    /**
+     * prepare the Map with authIds.
+     * @param authIds auth id
+     * @return a map consist of param info
+     */
+    private Map<String, List<AuthParamData>> prepareAuthParamData(final Set<String> authIds) {
+
+        List<AuthParamDO> authPathDOList = authParamMapper.findByAuthIdList(authIds);
+
+        return Optional.ofNullable(authPathDOList).orElseGet(() -> new ArrayList<AuthParamDO>())
+                .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
+                    data -> {
+                        List<AuthParamData> dataList = new ArrayList<>();
+                        dataList.add(new AuthParamData(data.getAppName(), data.getAppParam()));
+                        return dataList;
+                    }, (List<AuthParamData> dataList1, List<AuthParamData> dataList2) -> {
+                        dataList1.addAll(dataList2);
+                        return dataList1;
+                    }));
+    }
+
+    /**
+     * prepare the Map with authIds.
+     * @param authIds auth id
+     * @return a map consist of path info
+     */
+    private Map<String, List<AuthPathData>> prepareAuthPathData(final Set<String> authIds) {
+
+        List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
+        Map<String, List<AuthPathData>> retMap = Optional.ofNullable(authPathDOList).orElseGet(() -> new ArrayList<AuthPathDO>())
+                .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
+                    data -> {
+                        List<AuthPathData> dataList = new ArrayList<>();
+                        dataList.add(new AuthPathData(data.getAppName(), data.getPath(), data.getEnabled()));
+                        return dataList;
+                    }, (List<AuthPathData> dataList1, List<AuthPathData> dataList2) -> {
+                        dataList1.addAll(dataList2);
+                        return dataList1;
+                    }));
+        return retMap;
+    }
+
 }

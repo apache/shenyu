@@ -44,7 +44,6 @@ public class Disconnect extends MessageType {
 
     private void cleanChannel(final Channel channel) {
         //// todo ttl
-
         Singleton.INST.get(ChannelRepository.class).remove(channel);
     }
 }
