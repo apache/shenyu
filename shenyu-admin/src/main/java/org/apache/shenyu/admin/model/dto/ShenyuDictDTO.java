@@ -72,6 +72,27 @@ public class ShenyuDictDTO implements Serializable {
      */
     private Boolean enabled;
 
+    public ShenyuDictDTO() {
+    }
+
+    public ShenyuDictDTO(final String id,
+                         @NotNull final String type,
+                         final String dictCode,
+                         @NotNull final String dictName,
+                         @NotNull final String dictValue,
+                         final String desc,
+                         @NotNull final Integer sort,
+                         final Boolean enabled) {
+        this.id = id;
+        this.type = type;
+        this.dictCode = dictCode;
+        this.dictName = dictName;
+        this.dictValue = dictValue;
+        this.desc = desc;
+        this.sort = sort;
+        this.enabled = enabled;
+    }
+
     /**
      * Gets the value of id.
      *
@@ -216,6 +237,15 @@ public class ShenyuDictDTO implements Serializable {
         this.enabled = enabled;
     }
 
+    /**
+     * builder method.
+     *
+     * @return builder object.
+     */
+    public static ShenyuDictDTO.ShenyuDictDTOBuilder builder() {
+        return new ShenyuDictDTO.ShenyuDictDTOBuilder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -238,5 +268,124 @@ public class ShenyuDictDTO implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, type, dictCode, dictName, dictValue, desc, sort, enabled);
+    }
+
+    public static final class ShenyuDictDTOBuilder {
+
+        private String id;
+
+        private String type;
+
+        private String dictCode;
+
+        private String dictName;
+
+        private String dictValue;
+
+        private String desc;
+
+        private Integer sort;
+
+        private Boolean enabled;
+
+        private ShenyuDictDTOBuilder() {
+        }
+
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return ResourceDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * type.
+         *
+         * @param type the type.
+         * @return ShenyuDictDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder type(final String type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * dictCode.
+         *
+         * @param dictCode the dictCode.
+         * @return ShenyuDictDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder dictCode(final String dictCode) {
+            this.dictCode = dictCode;
+            return this;
+        }
+
+        /**
+         * dictName.
+         *
+         * @param dictName the dictName.
+         * @return ShenyuDictDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder dictName(final String dictName) {
+            this.dictName = dictName;
+            return this;
+        }
+
+        /**
+         * dictValue.
+         *
+         * @param dictValue the dictValue.
+         * @return ShenyuDictDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder dictValue(final String dictValue) {
+            this.dictValue = dictValue;
+            return this;
+        }
+
+        /**
+         * desc.
+         *
+         * @param desc the desc.
+         * @return ShenyuDictDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder desc(final String desc) {
+            this.desc = desc;
+            return this;
+        }
+
+        /**
+         * sort.
+         *
+         * @param sort the sort.
+         * @return ShenyuDictDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder sort(final Integer sort) {
+            this.sort = sort;
+            return this;
+        }
+
+        /**
+         * enabled.
+         *
+         * @param enabled the enabled.
+         * @return ShenyuDictDTOBuilder.
+         */
+        public ShenyuDictDTOBuilder enabled(final Boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * build method.
+         *
+         * @return build object.
+         */
+        public ShenyuDictDTO build() {
+            return new ShenyuDictDTO(id, type, dictCode, dictName, dictValue, desc, sort, enabled);
+        }
     }
 }

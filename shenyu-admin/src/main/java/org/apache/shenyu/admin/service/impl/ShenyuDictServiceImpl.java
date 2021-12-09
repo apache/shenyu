@@ -92,6 +92,11 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     }
 
     @Override
+    public ShenyuDictVO findByDictCodeAndDictName(final String dictCode, final String dictName) {
+       return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectByDictCodeAndDictName(dictCode, dictName));
+    }
+
+    @Override
     public List<ShenyuDictVO> list(final String type) {
         ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
         shenyuDictQuery.setType(type);
