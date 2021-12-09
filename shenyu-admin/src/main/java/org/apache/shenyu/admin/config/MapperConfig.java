@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSqlQueryInterceptor;
+import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLQueryInterceptor;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -33,11 +33,11 @@ public class MapperConfig {
     /**
      * Add the plugin to the MyBatis plugin interceptor chain.
      *
-     * @return {@linkplain PostgreSqlQueryInterceptor}
+     * @return {@linkplain PostgreSQLQueryInterceptor}
      */
     @Bean
     @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
-    public PostgreSqlQueryInterceptor postgreSqlQueryInterceptor() {
-        return new PostgreSqlQueryInterceptor();
+    public PostgreSQLQueryInterceptor postgreSqlQueryInterceptor() {
+        return new PostgreSQLQueryInterceptor();
     }
 }

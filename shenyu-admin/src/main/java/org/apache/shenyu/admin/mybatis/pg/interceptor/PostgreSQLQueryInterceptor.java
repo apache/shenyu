@@ -38,14 +38,14 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * The limit syntax of postgreSql conflicts with that of mysql,
+ * The limit syntax of PostgreSQL conflicts with that of MySQL,
  * So use the interceptor to process the SQL syntax here.
  */
 @Intercepts({
     @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
     @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class})
 })
-public class PostgreSqlQueryInterceptor implements Interceptor {
+public class PostgreSQLQueryInterceptor implements Interceptor {
 
     @Override
     public Object intercept(final Invocation invocation) throws Throwable {

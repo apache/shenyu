@@ -47,9 +47,9 @@ import java.sql.SQLException;
  */
 @Component
 @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
-public class PostgreSqlLoader implements InstantiationAwareBeanPostProcessor {
+public class PostgreSQLLoader implements InstantiationAwareBeanPostProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLLoader.class);
 
     @Resource
     private DataBaseProperties dataBaseProperties;
