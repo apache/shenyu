@@ -15,38 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.api;
+package org.apache.shenyu.plugin.tars.exception;
 
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-
-import java.util.Map;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
- * The shenyu sign plugin sign provider warp.
+ * @date 2021/12/9
  */
-public final class ShenyuSignProviderWrap {
+public class ShenyuTarsPluginException extends ShenyuException {
     
-    private ShenyuSignProviderWrap() {
-    
+    public ShenyuTarsPluginException(Throwable e) {
+        super(e);
     }
     
-    /**
-     * find the sign provider object.
-     *
-     * @return the sign provider
-     */
-    public static SignProvider signProvider() {
-        return SpringBeanUtils.getInstance().getBean(SignProvider.class);
+    public ShenyuTarsPluginException(String message) {
+        super(message);
     }
     
-    /**
-     * acquired sign.
-     *
-     * @param signKey sign key
-     * @param params  params
-     * @return sign
-     */
-    public static String generateSign(final String signKey, final Map<String, String> params) {
-        return signProvider().generateSign(signKey, params);
+    public ShenyuTarsPluginException(String message, Throwable throwable) {
+        super(message, throwable);
     }
 }

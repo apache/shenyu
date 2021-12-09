@@ -24,27 +24,28 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Test case for {@link TarsPluginDataHandler}.
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class TarsPluginDataHandlerTest {
-
+    
     private TarsPluginDataHandler tarsPluginDataHandlerUnderTest;
-
+    
     @Before
     public void setUp() {
         tarsPluginDataHandlerUnderTest = new TarsPluginDataHandler();
     }
-
+    
     @Test
     public void testHandlerPlugin() {
         final PluginData pluginData = new PluginData("id", "name", "config", "0", false);
         tarsPluginDataHandlerUnderTest.handlerPlugin(pluginData);
+        assertTrue(pluginData.getName().endsWith("tested"));
     }
-
+    
     @Test
     public void testPluginNamed() {
         final String result = tarsPluginDataHandlerUnderTest.pluginNamed();
