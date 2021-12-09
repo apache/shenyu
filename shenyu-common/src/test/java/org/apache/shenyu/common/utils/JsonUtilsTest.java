@@ -75,7 +75,7 @@ public final class JsonUtilsTest {
         assertEquals(EXPECTED_JSON, JsonUtils.toJson(object));
 
         Object o = new Object();
-        assertEquals("{}", JsonUtils.toJson(o));
+        assertEquals(o.toString(), JsonUtils.toJson(o));
     }
 
     @Test

@@ -30,6 +30,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
+import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +85,7 @@ public final class JsonUtils {
             return MAPPER.writeValueAsString(object);
         } catch (IOException e) {
             LOG.warn("write to json string error: " + object, e);
-            return "{}";
+            return Constants.EMPTY_JSON;
         }
     }
 

@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,7 +50,7 @@ import java.util.stream.Collectors;
  * The type Plugin controller.
  */
 @RestController
-@RequestMapping("/shenyu")
+@RequestMapping(value = "/shenyu", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class LocalPluginController {
     
     private static final Logger LOG = LoggerFactory.getLogger(LocalPluginController.class);
@@ -110,7 +111,7 @@ public class LocalPluginController {
         subscriber.onSubscribe(pluginData);
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Delete mono.
      *
@@ -124,7 +125,7 @@ public class LocalPluginController {
         subscriber.unSubscribe(pluginData);
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Delete all mono.
      *
@@ -136,7 +137,7 @@ public class LocalPluginController {
         subscriber.refreshPluginDataAll();
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Find by name mono.
      *
@@ -151,7 +152,7 @@ public class LocalPluginController {
         }
         return Mono.just(JsonUtils.toJson(pluginData));
     }
-    
+
     /**
      * Save selector mono.
      *
@@ -166,7 +167,7 @@ public class LocalPluginController {
         subscriber.onSelectorSubscribe(buildDefaultSelectorData(selectorData));
         return Mono.just(selectorData.getId());
     }
-    
+
     /**
      * Selector and rule mono.
      *
@@ -192,7 +193,7 @@ public class LocalPluginController {
         subscriber.onRuleSubscribe(buildDefaultRuleData(ruleData));
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Selector and rules mono.
      *
@@ -224,7 +225,7 @@ public class LocalPluginController {
         }
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Delete selector mono.
      *
@@ -239,7 +240,7 @@ public class LocalPluginController {
         subscriber.unSelectorSubscribe(selectorData);
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Find list selector mono.
      *
@@ -260,7 +261,7 @@ public class LocalPluginController {
         }
         return Mono.just(JsonUtils.toJson(selectorDataList));
     }
-    
+
     /**
      * Save rule mono.
      *
@@ -275,7 +276,7 @@ public class LocalPluginController {
         subscriber.onRuleSubscribe(buildDefaultRuleData(ruleData));
         return Mono.just(ruleData.getId());
     }
-    
+
     /**
      * Delete rule mono.
      *
@@ -290,7 +291,7 @@ public class LocalPluginController {
         subscriber.unRuleSubscribe(ruleData);
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Find list rule mono.
      *

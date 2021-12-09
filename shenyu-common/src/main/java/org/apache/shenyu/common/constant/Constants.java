@@ -266,8 +266,7 @@ public interface Constants {
      * hystrix thread pool queue size.
      */
     int HYSTRIX_THREAD_POOL_QUEUE_SIZE = 12;
-    
-    
+
     /**
      * ratelimiter timeoutDurationRate.
      */
@@ -467,6 +466,21 @@ public interface Constants {
      * cache max count.
      */
     int CACHE_MAX_COUNT = 1000;
+
+    /**
+     * the data format.
+     */
+    String DATA_FORMAT = "Format";
+
+    /**
+     * the empty json.
+     */
+    String EMPTY_JSON = "{}";
+
+    /**
+     * the default xml root.
+     */
+    String DEFAULT_XML_ROOT = "shenyu";
     
     /**
      * String q.

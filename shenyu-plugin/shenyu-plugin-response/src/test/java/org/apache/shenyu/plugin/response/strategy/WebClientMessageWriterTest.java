@@ -66,6 +66,7 @@ public class WebClientMessageWriterTest {
     @Test
     public void testWriteWith() {
         ServerWebExchange exchangeNormal = generateServerWebExchange(true);
+        exchangeNormal.getResponse().setStatusCode(HttpStatus.OK);
         reset(chain);
         when(chain.execute(exchangeNormal)).thenReturn(Mono.empty());
         Mono<Void> monoSuccess = webClientMessageWriter.writeWith(exchangeNormal, chain);

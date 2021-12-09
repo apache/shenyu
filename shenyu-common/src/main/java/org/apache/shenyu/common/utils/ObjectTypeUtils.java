@@ -15,24 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.api.result;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.shenyu.common.constant.Constants;
+package org.apache.shenyu.common.utils;
 
 /**
- * The type Shenyu default result.
+ * ObjectTypeUtils.
  */
-@JacksonXmlRootElement(localName = Constants.DEFAULT_XML_ROOT)
-public class DefaultShenyuResult extends ShenyuResult<DefaultShenyuEntity> {
+public final class ObjectTypeUtils {
 
-    @Override
-    public DefaultShenyuEntity success(final int code, final String message, final Object object) {
-        return DefaultShenyuEntity.success(code, message, object);
-    }
-
-    @Override
-    public DefaultShenyuEntity error(final int code, final String message, final Object object) {
-        return DefaultShenyuEntity.error(code, message, object);
+    /**
+     * is basic type or not.
+     * @param object the object
+     * @return true is basic
+     */
+    public static boolean isBasicTypeExceptString(final Object object) {
+        return (object instanceof Integer)
+                || (object instanceof Byte)
+                || (object instanceof Long)
+                || (object instanceof Double)
+                || (object instanceof Float)
+                || (object instanceof Short)
+                || (object instanceof Boolean);
     }
 }
