@@ -35,14 +35,14 @@ import java.util.Objects;
 import java.util.Properties;
 
 /**
- * The 'date_updated' field in the postgreSql library is not automatically updated.
+ * The 'date_updated' field in the PostgreSQL library is not automatically updated.
  * So this interceptor intercepts the UPDATE statement.
  * Adds the current time to the 'date_updated' field at run time.
  */
 @Intercepts({
     @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})
 })
-public class PostgreSqlUpdateInterceptor implements Interceptor {
+public class PostgreSQLUpdateInterceptor implements Interceptor {
 
     private static final List<String> AUTOMATIC_DATES = ImmutableList.of("dateUpdated");
 

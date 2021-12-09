@@ -45,7 +45,7 @@ import java.util.Properties;
     @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
     @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class})
 })
-public class PostgreSqlQueryInterceptor implements Interceptor {
+public class PostgreSQLQueryInterceptor implements Interceptor {
 
     @Override
     public Object intercept(final Invocation invocation) throws Throwable {

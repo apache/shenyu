@@ -43,13 +43,13 @@ import java.sql.SQLException;
 
 /**
  * for execute schema sql file. initialize the database.
- * PostgreSql library statements cannot be executed in the same transaction block as table statements.
+ * PostgreSQL library statements cannot be executed in the same transaction block as table statements.
  */
 @Component
 @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
-public class PostgreSqlLoader implements InstantiationAwareBeanPostProcessor {
+public class PostgreSQLLoader implements InstantiationAwareBeanPostProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLLoader.class);
 
     @Resource
     private DataBaseProperties dataBaseProperties;
