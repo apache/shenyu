@@ -21,6 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * DataFormatEnum.
@@ -103,5 +106,14 @@ public enum DataFormatEnum {
         return Arrays.stream(DataFormatEnum.values())
                 .filter(dataFormatEnum -> dataFormatEnum.getFormat().equals(format))
                 .findFirst().orElse(DEFAULT);
+    }
+
+    /**
+     * Gets all format names.
+     *
+     * @return names
+     */
+    public static List<String> getFormatNames() {
+        return Stream.of(values()).map(DataFormatEnum::getFormat).collect(Collectors.toList());
     }
 }

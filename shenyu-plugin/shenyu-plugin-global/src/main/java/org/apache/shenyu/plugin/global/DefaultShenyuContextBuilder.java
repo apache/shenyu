@@ -26,6 +26,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.cache.MetaDataCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -39,6 +41,8 @@ import java.util.Optional;
  * The type Default Shenyu context builder.
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GlobalPlugin.class);
 
     private static final String RPC_TYPE = "rpc_type";
 
@@ -89,7 +93,11 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         shenyuContext.setSign(sign);
         shenyuContext.setTimestamp(timestamp);
         shenyuContext.setStartDateTime(LocalDateTime.now());
-        shenyuContext.setFormat(DataFormatEnum.getByFormat(request.getHeaders().getFirst(Constants.DATA_FORMAT)));
+        String format = request.getHeaders().getFirst(Constants.DATA_FORMAT);
+        shenyuContext.setFormat(DataFormatEnum.getByFormat(format));
+        if (!shenyuContext.getFormat().getFormat().equals(format)) {
+            LOG.info("the format {} is invalid, just support {}", format, DataFormatEnum.getFormatNames());
+        }
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;
     }
