@@ -213,16 +213,6 @@ public final class AdminConstants {
     public static final String DICT_TABLE_FLAG_DICTNAME = "status";
 
     /**
-     * the constant table init dict value.
-     */
-    public static final String DICT_TABLE_FLAG_DEFAULT_DICTVALUE = "false";
-
-    /**
-     * the constant table init dict value.
-     */
-    public static final String DICT_TABLE_FLAG_TRUE_DICTVALUE = "true";
-
-    /**
      * the constant table init dict desc.
      */
     public static final String DICT_TABLE_FLAG_DESC = "table(resource,permission) init status";

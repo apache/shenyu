@@ -59,7 +59,7 @@ public interface ShenyuDictService {
      * @param dictName shenyu dict name.
      * @return {@linkplain ShenyuDictVO}
      */
-    ShenyuDictVO findByDictCodeAndDictName(String dictCode, String dictName);
+    ShenyuDictVO findByDictCodeName(String dictCode, String dictName);
 
     /**
      * find shenyu dict list by dict type.
