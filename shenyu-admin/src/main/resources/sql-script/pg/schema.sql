@@ -1051,6 +1051,8 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'gray' || ''', ''' || 'GRAY_STATUS' || ''', ''' || 'close' || ''', ''' || 'false' || ''', ''' || 'close' || ''', ''' || '1' || ''', ''' || '1' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'gray' || ''', ''' || 'GRAY_STATUS' || ''', ''' || 'open' || ''', ''' || 'true' || ''', ''' || 'open' || ''', ''' || '0' || ''', ''' || '1' || ''');');
 
+    /* insert dict for init resource,permission table */
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'table'|| ''', ''' || 'INIT_FLAG' || ''', ''' || 'status' || ''',''' ||  'false' ||''',''' || 'table(resource,permission) init status' ||''',''' || '0' || ''',''' || '1' || ''');');;
 
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;

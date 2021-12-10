@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.PluginServiceImpl;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +48,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -131,11 +134,14 @@ public final class PluginServiceTest {
 
     @Test
     public void testEnable() {
+
+        List<String> idList = Lists.list("123", "1234");
+        Set<String> idSet = new HashSet<>(idList);
         publishEvent();
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
-        batchCommonDTO.setIds(Collections.singletonList("123"));
-        given(this.pluginMapper.updateEnable(any())).willReturn(1);
+        batchCommonDTO.setIds(idList);
+        given(this.pluginMapper.selectByIds(idList)).willReturn(Lists.list(buildPluginDO(), buildPluginDO()));
         assertThat(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()), equalTo(StringUtils.EMPTY));
     }
 

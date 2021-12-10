@@ -40,6 +40,15 @@ public interface ShenyuDictMapper {
     ShenyuDictDO selectById(@Param("id") String id);
 
     /**
+     * Select shenyu dict by dict code and dict name.
+     *
+     * @param dictCode the dict code.
+     * @param dictName the dict name.
+     * @return the shenyu dict do.
+     */
+    ShenyuDictDO selectByDictCodeAndDictName(@Param("dictCode") String dictCode, @Param("dictName") String dictName);
+
+    /**
      * find shenyu dict do list by dict type.
      *
      * @param type the dict type.

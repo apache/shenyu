@@ -17,32 +17,33 @@
 
 package org.apache.shenyu.protocol.mqtt.repositories;
 
-import io.netty.channel.Channel;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * channel repository.
+ * Topic repository.
+ * Save the posted message.
+ * {@link org.apache.shenyu.protocol.mqtt.agent.MessageAgent}
  */
-public class ChannelRepository implements BaseRepository<Channel, String> {
+public class TopicRepository implements BaseRepository<String, String> {
 
-    private static final Map<Channel, String> CHANNEL_FACTORY = new ConcurrentHashMap<>();
+    private static final Map<String, String> TOPIC_FACTORY = new ConcurrentHashMap<>();
 
     @Override
-    public void add(final Channel channel, final String clientId) {
-        CompletableFuture.runAsync(() -> CHANNEL_FACTORY.put(channel, clientId));
+    public void add(final String topic, final String message) {
+        //// todo MessageAgent.java. Carry out message processing and processing
+        CompletableFuture.runAsync(() -> TOPIC_FACTORY.put(topic, message));
     }
 
     @Override
-    public void remove(final Channel channel) {
-        CHANNEL_FACTORY.remove(channel);
+    public void remove(final String topic) {
+        TOPIC_FACTORY.remove(topic);
     }
 
     @Override
-    public String get(final Channel channel) {
-        return CHANNEL_FACTORY.get(channel);
+    public String get(final String topic) {
+        return TOPIC_FACTORY.getOrDefault(topic, null);
     }
 
 }

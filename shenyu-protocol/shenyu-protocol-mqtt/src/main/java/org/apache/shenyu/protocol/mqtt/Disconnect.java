@@ -19,6 +19,7 @@ package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 
 /**
@@ -42,6 +43,7 @@ public class Disconnect extends MessageType {
     }
 
     private void cleanChannel(final Channel channel) {
-        ChannelRepository.getInstance().remove(channel);
+        //// todo ttl
+        Singleton.INST.get(ChannelRepository.class).remove(channel);
     }
 }

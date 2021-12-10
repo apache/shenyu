@@ -17,29 +17,38 @@
 
 package org.apache.shenyu.admin.spring;
 
+import com.alibaba.nacos.common.utils.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.ResourceDTO;
+import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
+import org.apache.shenyu.admin.model.vo.ResourceVO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.ResourceService;
+import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.AdminResourceEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import com.alibaba.nacos.common.utils.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.ResourceDTO;
-import org.apache.shenyu.admin.model.vo.ResourceVO;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.ResourceService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.AdminResourceEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.stereotype.Component;
-
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DEFAULT_DICTVALUE;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DESC;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DICTCODE;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DICTNAME;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_SORT;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_TRUE_DICTVALUE;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_TYPE;
 import static org.apache.shenyu.common.constant.AdminConstants.PLUGIN_RULE_ADD;
 import static org.apache.shenyu.common.constant.AdminConstants.PLUGIN_RULE_DELETE;
 import static org.apache.shenyu.common.constant.AdminConstants.PLUGIN_RULE_EDIT;
@@ -82,14 +91,20 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
 
     private final ResourceService resourceService;
 
-    public ResourceAndPermissionDataSourceLoader(final PluginService pluginService, final ResourceService resourceService) {
+    private final ShenyuDictService shenyuDictService;
+
+    public ResourceAndPermissionDataSourceLoader(final PluginService pluginService, final ResourceService resourceService,
+                                                 final ShenyuDictService shenyuDictService) {
         this.pluginService = pluginService;
         this.resourceService = resourceService;
+        this.shenyuDictService = shenyuDictService;
     }
 
     @Override
     public void run(final ApplicationArguments args) throws Exception {
-        init();
+        if (!checkInitStatus(DICT_TABLE_FLAG_DICTCODE, DICT_TABLE_FLAG_DICTNAME)) {
+            init();
+        }
     }
 
     /**
@@ -100,6 +115,8 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
         if (CollectionUtils.isNotEmpty(pluginDataList)) {
             pluginDataList.stream().filter(pluginData -> getResource(pluginData.getName())).collect(Collectors.toList())
                     .forEach(item -> insertResource(item.getName(), Integer.parseInt(item.getId())));
+            updateTableDictStatus(DICT_TABLE_FLAG_TRUE_DICTVALUE,
+                    shenyuDictService.findByDictCodeAndDictName(DICT_TABLE_FLAG_DICTCODE, DICT_TABLE_FLAG_DICTNAME).getId());
         } else {
             LOG.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
         }
@@ -173,5 +190,37 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
                     .build();
             resourceService.createOrUpdate(resourceDTO);
         }
+    }
+
+    /**
+     * check init status.
+     * @param dictCode shenyu dict code
+     * @param dictName shenyu dict name
+     * @return {@link Boolean}
+     */
+    private Boolean checkInitStatus(final String dictCode, final String dictName) {
+        ShenyuDictVO shenyuDictVO = shenyuDictService.findByDictCodeAndDictName(dictCode, dictName);
+        if (Objects.isNull(shenyuDictVO)) {
+            updateTableDictStatus(DICT_TABLE_FLAG_DEFAULT_DICTVALUE, null);
+            return false;
+        }
+        return !DICT_TABLE_FLAG_DEFAULT_DICTVALUE.equals(shenyuDictVO.getDictValue());
+    }
+
+    /**
+     * update table dict value.
+     * @param dictValue dict value
+     * @param id dict id
+     */
+    private void updateTableDictStatus(final String dictValue, final String id) {
+        shenyuDictService.createOrUpdate(ShenyuDictDTO.builder()
+                .id(id)
+                .type(DICT_TABLE_FLAG_TYPE)
+                .dictCode(DICT_TABLE_FLAG_DICTCODE)
+                .dictName(DICT_TABLE_FLAG_DICTNAME)
+                .dictValue(dictValue)
+                .desc(DICT_TABLE_FLAG_DESC)
+                .sort(DICT_TABLE_FLAG_SORT)
+                .enabled(false).build());
     }
 }
