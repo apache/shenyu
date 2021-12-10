@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -60,16 +61,20 @@ public final class WebFluxResultUtils {
         DataFormatEnum dataFormat = exchange.getAttributeOrDefault(Constants.DATA_FORMAT, DataFormatEnum.DEFAULT);
         // return basic data
         if (ObjectTypeUtils.isBasicTypeExceptString(result)) {
-            return writeWith(exchange, dataFormat, result.toString());
+            return writeWith(exchange, MediaType.TEXT_PLAIN, result.toString());
         }
         String json;
         String data;
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         if (dataFormat.isXml()) {
-            // was xml or just a string
-            if (XmlUtils.isValidXml(data = result.toString())
-                    || !GsonUtils.isValidJson(json = result.toString())) {
-                return writeWith(exchange, dataFormat, data);
+            // was xml
+            if (XmlUtils.isValidXml(data = result.toString())) {
+                return writeWith(exchange, dataFormat.getMediaType(), data);
+            }
+            // just a string
+            if (!GsonUtils.isValidJson(json = result.toString())
+                    && !GsonUtils.isValidJson(json = GsonUtils.getInstance().toJson(result))) {
+                return writeWith(exchange, MediaType.TEXT_PLAIN, data);
             }
             // the format is xml, but the upstream is json data. convert the json to xml.
             data = getXmlDataByJson(shenyuResult, json);
@@ -77,18 +82,18 @@ public final class WebFluxResultUtils {
             // was json
             if (GsonUtils.isValidJson(json = result.toString())
                     || GsonUtils.isValidJson(json = GsonUtils.getInstance().toJson(result))) {
-                return writeWith(exchange, dataFormat, json);
+                return writeWith(exchange, dataFormat.getMediaType(), json);
             }
             // just a string
             if (!XmlUtils.isValidXml(data = XmlUtils.toXml(result))) {
-                return writeWith(exchange, dataFormat, data);
+                return writeWith(exchange, MediaType.TEXT_PLAIN, data);
             }
             // the format is json, but the upstream is xml data. convert the xml to json.
             data = getJsonDataByXml(shenyuResult, data);
         }
         // reset the map.
         shenyuResult.clear();
-        return writeWith(exchange, dataFormat, data);
+        return writeWith(exchange, dataFormat.getMediaType(), data);
     }
 
     /**
@@ -121,12 +126,12 @@ public final class WebFluxResultUtils {
      * Write With data.
      *
      * @param exchange the exchange
-     * @param dataFormat the data format
+     * @param mediaType the data mediaType
      * @param data the data
      * @return response result
      */
-    private static Mono<Void> writeWith(final ServerWebExchange exchange, final DataFormatEnum dataFormat, final String data) {
-        exchange.getResponse().getHeaders().setContentType(dataFormat.getMediaType());
+    private static Mono<Void> writeWith(final ServerWebExchange exchange, final MediaType mediaType, final String data) {
+        exchange.getResponse().getHeaders().setContentType(mediaType);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                 .bufferFactory().wrap(Objects.requireNonNull(data).getBytes(StandardCharsets.UTF_8))));
     }

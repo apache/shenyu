@@ -114,6 +114,6 @@ public enum DataFormatEnum {
      * @return names
      */
     public static List<String> getFormatNames() {
-        return Stream.of(values()).map(DataFormatEnum::getFormat).collect(Collectors.toList());
+        return Stream.of(values()).map(DataFormatEnum::getFormat).distinct().collect(Collectors.toList());
     }
 }
