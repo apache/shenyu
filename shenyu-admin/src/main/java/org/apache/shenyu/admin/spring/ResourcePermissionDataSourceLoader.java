@@ -37,6 +37,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -83,7 +84,7 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
 
     private static final Integer STATUS = 1;
 
-    private final Random rand = new Random();
+    private final Random rand = new SecureRandom();
 
     private final PluginService pluginService;
 
