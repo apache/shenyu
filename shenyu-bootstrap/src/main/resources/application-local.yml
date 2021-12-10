@@ -144,4 +144,9 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
+    # reset the com.alibaba log
+    com.alibaba.cloud.dubbo.autoconfigure.DubboServiceDiscoveryAutoConfiguration: warn
+    com.alibaba.nacos: warn
+    # remove dubbo subscribe warning message.
+    com.alibaba.cloud.dubbo.metadata.repository.DubboServiceMetadataRepository: off
 
