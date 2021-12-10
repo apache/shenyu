@@ -182,6 +182,15 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
+    <update id="updateEnableByIdSet">
+        update plugin
+        SET enabled = #{enabled,jdbcType=TINYINT}
+        where id in
+        <foreach collection="idSet" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         update plugin
