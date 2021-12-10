@@ -114,7 +114,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
         List<PluginData> pluginDataList = pluginService.listAll();
         if (CollectionUtils.isNotEmpty(pluginDataList)) {
             pluginDataList.stream().filter(pluginData -> getResource(pluginData.getName())).collect(Collectors.toList())
-                    .forEach(item -> insertResource(item.getName(), Integer.parseInt(item.getId())));
+                    .forEach(item -> insertResource(item.getName()));
             updateTableDictStatus(DICT_TABLE_FLAG_TRUE_DICTVALUE,
                     shenyuDictService.findByDictCodeAndDictName(DICT_TABLE_FLAG_DICTCODE, DICT_TABLE_FLAG_DICTNAME).getId());
         } else {
@@ -135,8 +135,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
      * insert Resource for pluginName.
      * @param pluginName plugin name
      */
-    private void insertResource(final String pluginName, final Integer sortId) {
-        Integer sort = 0;
+    private void insertResource(final String pluginName) {
         ResourceDTO pluginMenuResourceDTO = ResourceDTO.builder()
                 .parentId(RESOURCE_PLUGIN_ID)
                 .title(pluginName)
@@ -144,7 +143,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
                 .url(RESOURCE_PLUGIN_URL_PREFIX + pluginName)
                 .component(pluginName)
                 .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
-                .sort(sortId)
+                .sort(0)
                 .icon(ICONLIST.get(rand.nextInt(ICONLIST.size())))
                 .isLeaf(false)
                 .isRoute(ROUTE)
@@ -154,15 +153,15 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
         resourceService.createOrUpdate(pluginMenuResourceDTO);
         ResourceVO resourceVO = resourceService.findByTitle(pluginName);
         if (ObjectUtils.notEqual(resourceVO, null)) {
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_DELETE, pluginName, PLUGIN_TYPE_SELECTOR_DELETE, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_ADD, pluginName, PLUGIN_TYPE_RULE_ADD, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_QUERY, pluginName, PLUGIN_TYPE_RULE_QUERY, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_EDIT, pluginName, PLUGIN_TYPE_RULE_EDIT, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_DELETE, pluginName, PLUGIN_TYPE_RULE_DELETE, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SYNCHRONIZE, pluginName, PLUGIN_TYPE_SYNCHRONIZE, sort);
+            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD);
+            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY);
+            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT);
+            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_DELETE, pluginName, PLUGIN_TYPE_SELECTOR_DELETE);
+            insertPerms(resourceVO.getId(), PLUGIN_RULE_ADD, pluginName, PLUGIN_TYPE_RULE_ADD);
+            insertPerms(resourceVO.getId(), PLUGIN_RULE_QUERY, pluginName, PLUGIN_TYPE_RULE_QUERY);
+            insertPerms(resourceVO.getId(), PLUGIN_RULE_EDIT, pluginName, PLUGIN_TYPE_RULE_EDIT);
+            insertPerms(resourceVO.getId(), PLUGIN_RULE_DELETE, pluginName, PLUGIN_TYPE_RULE_DELETE);
+            insertPerms(resourceVO.getId(), PLUGIN_SYNCHRONIZE, pluginName, PLUGIN_TYPE_SYNCHRONIZE);
         }
     }
 
@@ -171,8 +170,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
      * @param title resource title
      * @param type resource type
      */
-    private void insertPerms(final String parentId, final String title, final String pluginName, final String type,
-            final Integer sort) {
+    private void insertPerms(final String parentId, final String title, final String pluginName, final String type) {
         if (StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(type)) {
             ResourceDTO resourceDTO = ResourceDTO.builder()
                     .parentId(parentId)
@@ -181,7 +179,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
                     .url(StringUtils.EMPTY)
                     .component(StringUtils.EMPTY)
                     .resourceType(AdminResourceEnum.THREE_MENU.getCode())
-                    .sort(sort)
+                    .sort(0)
                     .icon(StringUtils.EMPTY)
                     .isLeaf(true)
                     .isRoute(ROUTE)
