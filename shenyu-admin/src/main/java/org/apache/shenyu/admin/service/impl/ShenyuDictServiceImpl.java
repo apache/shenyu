@@ -92,7 +92,7 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     }
 
     @Override
-    public ShenyuDictVO findByDictCodeAndDictName(final String dictCode, final String dictName) {
+    public ShenyuDictVO findByDictCodeName(final String dictCode, final String dictName) {
         return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectByDictCodeAndDictName(dictCode, dictName));
     }
 
