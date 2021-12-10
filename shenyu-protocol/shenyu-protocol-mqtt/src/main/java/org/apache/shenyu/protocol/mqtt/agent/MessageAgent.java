@@ -15,34 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.protocol.mqtt.repositories;
-
-import io.netty.channel.Channel;
-
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+package org.apache.shenyu.protocol.mqtt.agent;
 
 /**
- * channel repository.
+ * Information Agency.
  */
-public class ChannelRepository implements BaseRepository<Channel, String> {
-
-    private static final Map<Channel, String> CHANNEL_FACTORY = new ConcurrentHashMap<>();
-
-    @Override
-    public void add(final Channel channel, final String clientId) {
-        CompletableFuture.runAsync(() -> CHANNEL_FACTORY.put(channel, clientId));
-    }
-
-    @Override
-    public void remove(final Channel channel) {
-        CHANNEL_FACTORY.remove(channel);
-    }
-
-    @Override
-    public String get(final Channel channel) {
-        return CHANNEL_FACTORY.get(channel);
-    }
+public interface MessageAgent {
 
 }
