@@ -15,3 +15,5 @@
 # limitations under the License.
 
 http://localhost:9095/actuator/health
+http://localhost:9195/actuator/health
+https://localhost:8190/order/findById/?id=3
