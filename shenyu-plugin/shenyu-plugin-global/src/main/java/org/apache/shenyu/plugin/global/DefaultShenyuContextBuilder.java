@@ -95,7 +95,8 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         shenyuContext.setStartDateTime(LocalDateTime.now());
         String format = request.getHeaders().getFirst(Constants.DATA_FORMAT);
         shenyuContext.setFormat(DataFormatEnum.getByFormat(format));
-        if (!shenyuContext.getFormat().getFormat().equals(format)) {
+        if (StringUtils.isNotBlank(format)
+                && !shenyuContext.getFormat().getFormat().equals(format)) {
             LOG.info("the format {} is invalid, just support {}", format, DataFormatEnum.getFormatNames());
         }
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
