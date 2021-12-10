@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.springboot.starter.gateway;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.springboot.starter.netty.NettyTcpProperties;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -45,6 +47,7 @@ import reactor.netty.resources.LoopResources;
 
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -157,6 +160,16 @@ public class ShenyuConfigurationTest {
         });
     }
 
+    @Test
+    public void testClass() {
+        applicationContextRunner.run(context -> {
+            ShenyuResult<?> shenyuResult = context.getBean(ShenyuResult.class);
+            assertEquals(CustomShenyuResultConfig.CustomShenyuResult.class, shenyuResult.getClass());
+            assertEquals(Boolean.TRUE, shenyuResult.getClass().isAnnotationPresent(JacksonXmlRootElement.class));
+            assertEquals("root", shenyuResult.getClass().getAnnotation(JacksonXmlRootElement.class).localName());
+        });
+    }
+
     @Configuration
     static class CustomNettyConfig {
         /**
@@ -202,6 +215,29 @@ public class ShenyuConfigurationTest {
                                 .option(ChannelOption.SO_KEEPALIVE, nettyTcpProperties.isSoKeepalive())
                                 .option(ChannelOption.SO_REUSEADDR, nettyTcpProperties.isSoReuseaddr())
                                 .option(ChannelOption.SO_LINGER, nettyTcpProperties.getSoLinger()));
+            }
+        }
+    }
+
+    @Configuration
+    static class CustomShenyuResultConfig {
+
+        @Bean
+        public ShenyuResult<?> shenyuResult() {
+            return new CustomShenyuResult();
+        }
+
+        @JacksonXmlRootElement(localName = "root")
+        static class CustomShenyuResult extends ShenyuResult<Object> {
+
+            @Override
+            public Object success(final int code, final String message, final Object object) {
+                return null;
+            }
+
+            @Override
+            public Object error(final int code, final String message, final Object object) {
+                return null;
             }
         }
     }

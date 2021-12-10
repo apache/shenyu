@@ -20,11 +20,14 @@ package org.apache.shenyu.plugin.global;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.enums.DataFormatEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.cache.MetaDataCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -39,7 +42,11 @@ import java.util.Optional;
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
 
+    private static final Logger LOG = LoggerFactory.getLogger(GlobalPlugin.class);
+
     private static final String RPC_TYPE = "rpc_type";
+
+    private static final String UPGRADE = "Upgrade";
 
     private final Map<String, ShenyuContextDecorator> decoratorMap;
 
@@ -58,7 +65,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         String path = request.getURI().getPath();
         MetaData metaData = MetaDataCache.getInstance().obtain(path);
         HttpHeaders headers = request.getHeaders();
-        String upgrade = headers.getFirst("Upgrade");
+        String upgrade = headers.getFirst(UPGRADE);
         String rpcType;
         if (Objects.nonNull(metaData) && metaData.getEnabled()) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
@@ -69,7 +76,10 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
             String rpcTypeParam = request.getHeaders().getFirst(RPC_TYPE);
             rpcType = StringUtils.isEmpty(rpcTypeParam) ? RpcTypeEnum.HTTP.getName() : rpcTypeParam;
         }
-        return decoratorMap.get(rpcType).decorator(buildDefaultContext(request), metaData);
+        final ShenyuContext shenyuContext = buildDefaultContext(request);
+        final DataFormatEnum dataFormat = shenyuContext.getFormat();
+        exchange.getAttributes().put(Constants.DATA_FORMAT, dataFormat);
+        return decoratorMap.get(rpcType).decorator(shenyuContext, metaData);
     }
 
     private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
@@ -83,6 +93,11 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         shenyuContext.setSign(sign);
         shenyuContext.setTimestamp(timestamp);
         shenyuContext.setStartDateTime(LocalDateTime.now());
+        String format = request.getHeaders().getFirst(Constants.DATA_FORMAT);
+        shenyuContext.setFormat(DataFormatEnum.getByFormat(format));
+        if (!shenyuContext.getFormat().getFormat().equals(format)) {
+            LOG.info("the format {} is invalid, just support {}", format, DataFormatEnum.getFormatNames());
+        }
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;
     }

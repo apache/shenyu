@@ -280,6 +280,17 @@ public class GsonUtilsTest {
         assertThat(resultPair.getRight(), comparesEqualTo(testPair.getRight()));
     }
 
+    @Test
+    public void testValidJson() {
+        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson("{}"));
+        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson("[]"));
+        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson(GsonUtils.getInstance().toJson(generateTestObject())));
+        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson(JsonUtils.toJson(generateTestObject())));
+        Assert.assertEquals(Boolean.FALSE, GsonUtils.isValidJson(null));
+        Assert.assertEquals(Boolean.FALSE, GsonUtils.isValidJson("json"));
+        Assert.assertEquals(Boolean.FALSE, GsonUtils.isValidJson(Integer.toString(123)));
+    }
+
     private static TestObject generateTestObject() {
         List<String> testList = Lists.newLinkedList();
         Map<String, String> testMap = Maps.newHashMap();

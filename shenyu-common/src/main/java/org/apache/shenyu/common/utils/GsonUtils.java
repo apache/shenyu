@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -111,6 +112,27 @@ public class GsonUtils {
      */
     public static GsonUtils getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * json string valid check.
+     *
+     * @param json the json
+     * @return true is valid
+     */
+    public static boolean isValidJson(final String json) {
+        if (StringUtils.isBlank(json)) {
+            return false;
+        }
+        try {
+            if (Objects.nonNull(GsonUtils.getInstance().convertToMap(json))
+                    || Objects.nonNull(GsonUtils.getInstance().toListMap(json))) {
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 
     /**

@@ -24,6 +24,7 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,13 +40,13 @@ import java.util.List;
  * The type Meta data controller.
  */
 @RestController
-@RequestMapping("/shenyu")
+@RequestMapping(value = "/shenyu", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class LocalMetadataController {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(LocalMetadataController.class);
 
     private final List<MetaDataSubscriber> subscribers;
-    
+
     /**
      * Instantiates a new Local metadata controller.
      *
@@ -54,7 +55,7 @@ public class LocalMetadataController {
     public LocalMetadataController(final ObjectProvider<List<MetaDataSubscriber>> subscribers) {
         this.subscribers = subscribers.getIfAvailable(ArrayList::new);
     }
-    
+
     /**
      * Clean mono.
      *
@@ -73,7 +74,7 @@ public class LocalMetadataController {
         subscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData));
         return Mono.just(Constants.SUCCESS);
     }
-    
+
     /**
      * Save or update mono.
      *
