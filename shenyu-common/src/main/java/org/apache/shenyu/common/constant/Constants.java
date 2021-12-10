@@ -467,6 +467,11 @@ public interface Constants {
      * cache max count.
      */
     int CACHE_MAX_COUNT = 1000;
+
+    /**
+     * http accept encoding gzip.
+     */
+    String HTTP_ACCEPT_ENCODING_GZIP = "gzip";
     
     /**
      * String q.
