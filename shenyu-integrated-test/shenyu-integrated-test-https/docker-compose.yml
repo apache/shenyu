@@ -26,11 +26,12 @@ services:
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
-      test: [ "CMD", "wget", "https://shenyu-examples-https:8190/order/findById?id=3" ]
+      test: [ "CMD", "wget", "http://shenyu-examples-https:8080/order/findById?id=3" ]
       timeout: 2s
       retries: 30
     ports:
       - 8190:8190
+      - 8080:8080
     depends_on:
       shenyu-integrated-test-https:
         condition: service_healthy

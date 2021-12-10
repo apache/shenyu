@@ -18,6 +18,7 @@
 package org.apache.shenyu.examples.https.configuration;
 
 import org.apache.catalina.Context;
+import org.apache.catalina.connector.Connector;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -39,7 +40,7 @@ public class HttpsConfiguration {
      */
     @Bean
     public ConfigurableServletWebServerFactory servletContainer() {
-        return new TomcatServletWebServerFactory() {
+        TomcatServletWebServerFactory factory =  new TomcatServletWebServerFactory() {
             @Override
             protected void postProcessContext(Context context) {
                 SecurityConstraint securityConstraint = new SecurityConstraint();
@@ -50,5 +51,16 @@ public class HttpsConfiguration {
                 context.addConstraint(securityConstraint);
             }
         };
+        factory.addAdditionalTomcatConnectors(getHttpConnector());
+        return factory;
+    }
+    
+    private Connector getHttpConnector() {
+        Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
+        connector.setScheme("http");
+        connector.setPort(8080);
+        connector.setSecure(false);
+        connector.setRedirectPort(8190);
+        return connector;
     }
 }
