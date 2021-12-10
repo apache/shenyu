@@ -22,10 +22,6 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
-#  cloud:
-#    nacos:
-#      discovery:
-#        server-addr: 127.0.0.1:8848
 
 management:
   health:
@@ -33,43 +29,26 @@ management:
       enabled: false
 
 shenyu:
+  httpclient:
+    wiretap: true
+    ssl:
+      key-store-type: PKCS12
+      key-store-path: classpath:keystore.p12
+      key-store-password: 123456
+      key-password: 123456
+      use-insecure-trust-manager: true
   switchConfig:
     local: true
   cross:
-    enabled: true 
+    enabled: true
   sync:
     websocket:
-      urls: ws://shenyu-admin:9095/websocket
-#    zookeeper:
-#      url: localhost:2181
-#      sessionTimeout: 5000
-#      connectionTimeout: 2000
-#    http:
-#      url: http://localhost:9095
-#    nacos:
-#      url: localhost:8848
-#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#      username:
-#      password:
-#      acm:
-#        enabled: false
-#        endpoint: acm.aliyun.com
-#        namespace:
-#        accessKey:
-#        secretKey:
+      urls: ws://localhost:9095/websocket
   exclude:
     enabled: true
     paths:
       - /favicon.ico
       - /actuator/health
-
-#eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone: http://localhost:8761/eureka/
-#  instance:
-#    prefer-ip-address: true
-
 
 logging:
   level:
@@ -79,4 +58,3 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
-
