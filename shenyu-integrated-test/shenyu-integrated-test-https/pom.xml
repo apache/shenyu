@@ -29,6 +29,14 @@
     <name>shenyu-integrated-test-https</name>
     <url>https://shenyu.apache.org</url>
     
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-integrated-test-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    
     <profiles>
         <profile>
             <id>it</id>

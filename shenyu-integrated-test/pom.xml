@@ -104,11 +104,6 @@
             <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-integrated-test-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         
         <dependency>
             <groupId>junit</groupId>
