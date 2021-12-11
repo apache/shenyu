@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.netty;
 
+import org.apache.shenyu.springboot.starter.netty.config.ServerSocketChannelConfig;
+import org.apache.shenyu.springboot.starter.netty.config.SocketChannelConfig;
+
 /**
  * The netty tcp configuration properties.
  */
@@ -26,25 +29,10 @@ public class NettyTcpProperties {
 
     private int workerCount = Runtime.getRuntime().availableProcessors() << 1;
 
-    private int connectTimeoutMillis = 10000;
+    private ServerSocketChannelConfig serverSocketChannelConfig = new ServerSocketChannelConfig();
 
-    private int writeBufferHighWaterMark = 65536;
+    private SocketChannelConfig socketChannelConfig = new SocketChannelConfig();
 
-    private int writeBufferLowWaterMark = 32768;
-
-    private int writeSpinCount = 16;
-
-    private boolean autoRead = true;
-
-    private boolean tcpNodelay = true;
-
-    private boolean soKeepalive;
-
-    private boolean soReuseaddr;
-
-    private int soLinger = -1;
-
-    private int soBacklog = 128;
 
     /**
      * get select count.
@@ -65,93 +53,21 @@ public class NettyTcpProperties {
     }
 
     /**
-     * get connectTimeoutMillis.
+     * get serverSocketChannelConfig.
      *
-     * @return connectTimeoutMillis
+     * @return serverSocketChannelConfig
      */
-    public int getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
+    public ServerSocketChannelConfig getServerSocketChannelConfig() {
+        return serverSocketChannelConfig;
     }
 
     /**
-     * get writeBufferHighWaterMark.
+     * get socketChannelConfig.
      *
-     * @return writeBufferHighWaterMark
+     * @return socketChannelConfig
      */
-    public int getWriteBufferHighWaterMark() {
-        return writeBufferHighWaterMark;
-    }
-
-    /**
-     * get writeBufferLowWaterMark.
-     *
-     * @return writeBufferLowWaterMark
-     */
-    public int getWriteBufferLowWaterMark() {
-        return writeBufferLowWaterMark;
-    }
-
-    /**
-     * get soKeepalive.
-     *
-     * @return soKeepalive
-     */
-    public boolean isSoKeepalive() {
-        return soKeepalive;
-    }
-
-    /**
-     * get isSoReuseaddr.
-     *
-     * @return soReuseaddr
-     */
-    public boolean isSoReuseaddr() {
-        return soReuseaddr;
-    }
-
-    /**
-     * get soLinger.
-     *
-     * @return soLinger
-     */
-    public int getSoLinger() {
-        return soLinger;
-    }
-
-    /**
-     * get soBacklog.
-     *
-     * @return soBacklog
-     */
-    public int getSoBacklog() {
-        return soBacklog;
-    }
-
-    /**
-     * get tcpNodelay.
-     *
-     * @return tcpNodelay
-     */
-    public boolean isTcpNodelay() {
-        return tcpNodelay;
-    }
-
-    /**
-     * get writeSpinCount.
-     *
-     * @return writeSpinCount
-     */
-    public int getWriteSpinCount() {
-        return writeSpinCount;
-    }
-
-    /**
-     * get autoRead.
-     *
-     * @return autoRead
-     */
-    public boolean isAutoRead() {
-        return autoRead;
+    public SocketChannelConfig getSocketChannelConfig() {
+        return socketChannelConfig;
     }
 
     /**
@@ -173,92 +89,20 @@ public class NettyTcpProperties {
     }
 
     /**
-     * set connectTimeoutMillis.
+     * set serverSocketChannelConfig.
      *
-     * @param connectTimeoutMillis connect timeout millis
+     * @param serverSocketChannelConfig server socket channel config
      */
-    public void setConnectTimeoutMillis(final int connectTimeoutMillis) {
-        this.connectTimeoutMillis = connectTimeoutMillis;
+    public void setServerSocketChannelConfig(final ServerSocketChannelConfig serverSocketChannelConfig) {
+        this.serverSocketChannelConfig = serverSocketChannelConfig;
     }
 
     /**
-     * set writeBufferHighWaterMark.
+     * set socketChannelConfig.
      *
-     * @param writeBufferHighWaterMark write buffer high water mark
+     * @param socketChannelConfig socket channel config
      */
-    public void setWriteBufferHighWaterMark(final int writeBufferHighWaterMark) {
-        this.writeBufferHighWaterMark = writeBufferHighWaterMark;
-    }
-
-    /**
-     * set writeBufferLowWaterMark.
-     *
-     * @param writeBufferLowWaterMark write buffer low water mark
-     */
-    public void setWriteBufferLowWaterMark(final int writeBufferLowWaterMark) {
-        this.writeBufferLowWaterMark = writeBufferLowWaterMark;
-    }
-
-    /**
-     * set writeSpinCount.
-     *
-     * @param writeSpinCount write spin count
-     */
-    public void setWriteSpinCount(final int writeSpinCount) {
-        this.writeSpinCount = writeSpinCount;
-    }
-
-    /**
-     * set autoRead.
-     *
-     * @param autoRead auto read
-     */
-    public void setAutoRead(final boolean autoRead) {
-        this.autoRead = autoRead;
-    }
-
-    /**
-     * set tcpNodelay.
-     *
-     * @param tcpNodelay tcp no delay
-     */
-    public void setTcpNodelay(final boolean tcpNodelay) {
-        this.tcpNodelay = tcpNodelay;
-    }
-
-    /**
-     * set soKeepalive.
-     *
-     * @param soKeepalive tcp keepalive
-     */
-    public void setSoKeepalive(final boolean soKeepalive) {
-        this.soKeepalive = soKeepalive;
-    }
-
-    /**
-     * ser setSoReuseaddr.
-     *
-     * @param soReuseaddr reuse addr
-     */
-    public void setSoReuseaddr(final boolean soReuseaddr) {
-        this.soReuseaddr = soReuseaddr;
-    }
-
-    /**
-     * set soLinger.
-     *
-     * @param soLinger linger
-     */
-    public void setSoLinger(final int soLinger) {
-        this.soLinger = soLinger;
-    }
-
-    /**
-     * set soBacklog.
-     *
-     * @param soBacklog tcp backlog
-     */
-    public void setSoBacklog(final int soBacklog) {
-        this.soBacklog = soBacklog;
+    public void setSocketChannelConfig(final SocketChannelConfig socketChannelConfig) {
+        this.socketChannelConfig = socketChannelConfig;
     }
 }
