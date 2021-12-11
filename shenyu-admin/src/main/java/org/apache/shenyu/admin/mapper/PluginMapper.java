@@ -79,6 +79,13 @@ public interface PluginMapper {
     List<PluginDO> selectAll();
 
     /**
+     * select all not in resource.
+     *
+     * @return {@linkplain List}
+     */
+    List<PluginDO> listAllNotInResource();
+
+    /**
      * count plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}

@@ -250,6 +250,13 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
+    public List<PluginData> listAllNotInResource() {
+        return pluginMapper.listAllNotInResource().stream()
+                .map(PluginTransfer.INSTANCE::mapToData)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public String selectIdByName(final String name) {
         PluginDO pluginDO = pluginMapper.selectByName(name);
         Objects.requireNonNull(pluginDO);
