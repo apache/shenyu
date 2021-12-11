@@ -21,6 +21,7 @@ import com.alibaba.nacos.common.utils.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
+import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ResourceService;
@@ -143,9 +144,7 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
                 .perms(StringUtils.EMPTY)
                 .status(STATUS)
                 .build();
-        if (resourceService.createOrUpdate(resource) <= 0) {
-            return;
-        }
+        resourceService.createResource(ResourceDO.buildResourceDO(resource));
         insertPerms(resource.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD);
         insertPerms(resource.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY);
         insertPerms(resource.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT);
@@ -172,7 +171,6 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
         if (StringUtils.isNoneBlank(title, type)) {
             ResourceDTO resourceDTO = ResourceDTO.builder()
                     .parentId(parentId)
-                    .id(UUIDUtils.getInstance().generateShortUuid())
                     .name(StringUtils.EMPTY)
                     .title(PLUGIN_SELECTOR_ADD)
                     .url(StringUtils.EMPTY)
