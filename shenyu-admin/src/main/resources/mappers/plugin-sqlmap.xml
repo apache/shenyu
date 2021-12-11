@@ -110,7 +110,7 @@
         <include refid="Base_Column_List"/>
         from plugin
         where name not in
-        (select title from resource where status = 1)
+        (select title from resource)
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
