@@ -21,15 +21,14 @@ import com.alibaba.nacos.common.utils.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
-import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -42,7 +41,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DESC;
 import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DICTCODE;
@@ -114,27 +112,17 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
             // for reset (update)
             id = shenyuInitData.getId();
         }
-        List<PluginData> pluginDataList = pluginService.listAll();
+        List<PluginData> pluginDataList = pluginService.listAllNotInResource();
         if (CollectionUtils.isEmpty(pluginDataList)) {
-            LOG.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
+            LOG.info("All plugin are permissioned.");
             return;
         }
         // fixme loop db call
-        pluginDataList.stream().filter(pluginData -> getResource(pluginData.getName()))
-                .collect(Collectors.toList()).forEach(item -> insertResource(item.getName()));
+        pluginDataList.forEach(item -> insertResource(item.getName()));
         // reset (create or update) status
         resetTableDictStatus(id);
     }
-
-    /**
-     * get resource info by plugin name.
-     * @param pluginName plugin name
-     * @return {@link Boolean}
-     */
-    private Boolean getResource(final String pluginName) {
-        return Objects.isNull(resourceService.findByTitle(pluginName));
-    }
-
+    
     /**
      * insert Resource for pluginName.
      * @param pluginName plugin name
@@ -142,6 +130,7 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
     private void insertResource(final String pluginName) {
         ResourceDTO resource = ResourceDTO.builder()
                 .parentId(RESOURCE_PLUGIN_ID)
+                .id(UUIDUtils.getInstance().generateShortUuid())
                 .title(pluginName)
                 .name(pluginName)
                 .url(RESOURCE_PLUGIN_URL_PREFIX + pluginName)
@@ -154,20 +143,18 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
                 .perms(StringUtils.EMPTY)
                 .status(STATUS)
                 .build();
-        resourceService.createOrUpdate(resource);
-        ResourceVO resourceVO = resourceService.findByTitle(pluginName);
-        if (Objects.isNull(resourceVO)) {
+        if (resourceService.createOrUpdate(resource) <= 0) {
             return;
         }
-        insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD);
-        insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY);
-        insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT);
-        insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_DELETE, pluginName, PLUGIN_TYPE_SELECTOR_DELETE);
-        insertPerms(resourceVO.getId(), PLUGIN_RULE_ADD, pluginName, PLUGIN_TYPE_RULE_ADD);
-        insertPerms(resourceVO.getId(), PLUGIN_RULE_QUERY, pluginName, PLUGIN_TYPE_RULE_QUERY);
-        insertPerms(resourceVO.getId(), PLUGIN_RULE_EDIT, pluginName, PLUGIN_TYPE_RULE_EDIT);
-        insertPerms(resourceVO.getId(), PLUGIN_RULE_DELETE, pluginName, PLUGIN_TYPE_RULE_DELETE);
-        insertPerms(resourceVO.getId(), PLUGIN_SYNCHRONIZE, pluginName, PLUGIN_TYPE_SYNCHRONIZE);
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD);
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY);
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT);
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_DELETE, pluginName, PLUGIN_TYPE_SELECTOR_DELETE);
+        insertPerms(resource.getId(), PLUGIN_RULE_ADD, pluginName, PLUGIN_TYPE_RULE_ADD);
+        insertPerms(resource.getId(), PLUGIN_RULE_QUERY, pluginName, PLUGIN_TYPE_RULE_QUERY);
+        insertPerms(resource.getId(), PLUGIN_RULE_EDIT, pluginName, PLUGIN_TYPE_RULE_EDIT);
+        insertPerms(resource.getId(), PLUGIN_RULE_DELETE, pluginName, PLUGIN_TYPE_RULE_DELETE);
+        insertPerms(resource.getId(), PLUGIN_SYNCHRONIZE, pluginName, PLUGIN_TYPE_SYNCHRONIZE);
     }
 
     /**
@@ -185,6 +172,7 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
         if (StringUtils.isNoneBlank(title, type)) {
             ResourceDTO resourceDTO = ResourceDTO.builder()
                     .parentId(parentId)
+                    .id(UUIDUtils.getInstance().generateShortUuid())
                     .name(StringUtils.EMPTY)
                     .title(PLUGIN_SELECTOR_ADD)
                     .url(StringUtils.EMPTY)
