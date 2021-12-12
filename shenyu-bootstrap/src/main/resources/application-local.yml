@@ -49,33 +49,35 @@ management:
 shenyu:
   netty:
     tcp:
-      select-count: 1
-      worker-count: 4
-      server-socket-channel-config:
-        so-rcvbuf: 87380
-        so-backlog: 128
-        so-reuseaddr: false
-        connect-timeout-millis: 10000
-        write-buffer-high-water-mark: 65536
-        write-buffer-low-water-mark: 32768
-        write-spin-count: 16
-        auto-read: true
-        alloc-type: "pooled"
-      socket-channel-config:
-        so-keepalive: false
-        so-reuseaddr: false
-        so-linger: -1
-        tcp-nodelay: true
-        so-rcvbuf: 87380
-        so-sndbuf: 16384
-        ip-tos: 0
-        allow-half-closure: false
-        connect-timeout-millis: 10000
-        write-buffer-high-water-mark: 65536
-        write-buffer-low-water-mark: 32768
-        write-spin-count: 16
-        auto-read: true
-        alloc-type: "pooled"
+      # set to false, user can custom the netty tcp server config.
+      webServerFactoryEnabled: true
+      selectCount: 1
+      workerCount: 4
+      serverSocketChannel:
+        soRcvBuf: 87380
+        soBackLog: 128
+        soReuseAddr: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
+      socketChannel:
+        soKeepAlive: false
+        soReuseAddr: false
+        soLinger: -1
+        tcpNoDelay: true
+        soRcvBuf: 87380
+        soSndBuf: 16384
+        ipTos: 0
+        allowHalfClosure: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
   instance:
     enabled: false
     registerType: zookeeper #etcd #consul
