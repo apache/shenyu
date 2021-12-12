@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.springboot.starter.netty;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
+
 /**
  * The netty tcp configuration properties.
  */
@@ -26,25 +30,9 @@ public class NettyTcpProperties {
 
     private int workerCount = Runtime.getRuntime().availableProcessors() << 1;
 
-    private int connectTimeoutMillis = 10000;
+    private ServerSocketChannelConfig serverSocketChannelConfig = new ServerSocketChannelConfig();
 
-    private int writeBufferHighWaterMark = 65536;
-
-    private int writeBufferLowWaterMark = 32768;
-
-    private int writeSpinCount = 16;
-
-    private boolean autoRead = true;
-
-    private boolean tcpNodelay = true;
-
-    private boolean soKeepalive;
-
-    private boolean soReuseaddr;
-
-    private int soLinger = -1;
-
-    private int soBacklog = 128;
+    private SocketChannelConfig socketChannelConfig = new SocketChannelConfig();
 
     /**
      * get select count.
@@ -65,93 +53,21 @@ public class NettyTcpProperties {
     }
 
     /**
-     * get connectTimeoutMillis.
+     * get serverSocketChannelConfig.
      *
-     * @return connectTimeoutMillis
+     * @return serverSocketChannelConfig
      */
-    public int getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
+    public ServerSocketChannelConfig getServerSocketChannelConfig() {
+        return serverSocketChannelConfig;
     }
 
     /**
-     * get writeBufferHighWaterMark.
+     * get socketChannelConfig.
      *
-     * @return writeBufferHighWaterMark
+     * @return socketChannelConfig
      */
-    public int getWriteBufferHighWaterMark() {
-        return writeBufferHighWaterMark;
-    }
-
-    /**
-     * get writeBufferLowWaterMark.
-     *
-     * @return writeBufferLowWaterMark
-     */
-    public int getWriteBufferLowWaterMark() {
-        return writeBufferLowWaterMark;
-    }
-
-    /**
-     * get soKeepalive.
-     *
-     * @return soKeepalive
-     */
-    public boolean isSoKeepalive() {
-        return soKeepalive;
-    }
-
-    /**
-     * get isSoReuseaddr.
-     *
-     * @return soReuseaddr
-     */
-    public boolean isSoReuseaddr() {
-        return soReuseaddr;
-    }
-
-    /**
-     * get soLinger.
-     *
-     * @return soLinger
-     */
-    public int getSoLinger() {
-        return soLinger;
-    }
-
-    /**
-     * get soBacklog.
-     *
-     * @return soBacklog
-     */
-    public int getSoBacklog() {
-        return soBacklog;
-    }
-
-    /**
-     * get tcpNodelay.
-     *
-     * @return tcpNodelay
-     */
-    public boolean isTcpNodelay() {
-        return tcpNodelay;
-    }
-
-    /**
-     * get writeSpinCount.
-     *
-     * @return writeSpinCount
-     */
-    public int getWriteSpinCount() {
-        return writeSpinCount;
-    }
-
-    /**
-     * get autoRead.
-     *
-     * @return autoRead
-     */
-    public boolean isAutoRead() {
-        return autoRead;
+    public SocketChannelConfig getSocketChannelConfig() {
+        return socketChannelConfig;
     }
 
     /**
@@ -173,92 +89,377 @@ public class NettyTcpProperties {
     }
 
     /**
-     * set connectTimeoutMillis.
+     * set serverSocketChannelConfig.
      *
-     * @param connectTimeoutMillis connect timeout millis
+     * @param serverSocketChannelConfig server socket channel config
      */
-    public void setConnectTimeoutMillis(final int connectTimeoutMillis) {
-        this.connectTimeoutMillis = connectTimeoutMillis;
+    public void setServerSocketChannelConfig(final ServerSocketChannelConfig serverSocketChannelConfig) {
+        this.serverSocketChannelConfig = serverSocketChannelConfig;
     }
 
     /**
-     * set writeBufferHighWaterMark.
+     * set socketChannelConfig.
      *
-     * @param writeBufferHighWaterMark write buffer high water mark
+     * @param socketChannelConfig socket channel config
      */
-    public void setWriteBufferHighWaterMark(final int writeBufferHighWaterMark) {
-        this.writeBufferHighWaterMark = writeBufferHighWaterMark;
+    public void setSocketChannelConfig(final SocketChannelConfig socketChannelConfig) {
+        this.socketChannelConfig = socketChannelConfig;
     }
 
-    /**
-     * set writeBufferLowWaterMark.
-     *
-     * @param writeBufferLowWaterMark write buffer low water mark
-     */
-    public void setWriteBufferLowWaterMark(final int writeBufferLowWaterMark) {
-        this.writeBufferLowWaterMark = writeBufferLowWaterMark;
+    public static class ChannelConfig {
+
+        private int connectTimeoutMillis = 10000;
+
+        private int writeBufferHighWaterMark = 65536;
+
+        private int writeBufferLowWaterMark = 32768;
+
+        private int writeSpinCount = 16;
+
+        private boolean autoRead = true;
+
+        private String allocType = "pooled";
+
+        /**
+         * get connectTimeoutMillis.
+         *
+         * @return connectTimeoutMillis
+         */
+        public int getConnectTimeoutMillis() {
+            return connectTimeoutMillis;
+        }
+
+        /**
+         * get writeBufferHighWaterMark.
+         *
+         * @return writeBufferHighWaterMark
+         */
+        public int getWriteBufferHighWaterMark() {
+            return writeBufferHighWaterMark;
+        }
+
+        /**
+         * get writeBufferLowWaterMark.
+         *
+         * @return writeBufferLowWaterMark
+         */
+        public int getWriteBufferLowWaterMark() {
+            return writeBufferLowWaterMark;
+        }
+
+        /**
+         * get writeSpinCount.
+         *
+         * @return writeSpinCount
+         */
+        public int getWriteSpinCount() {
+            return writeSpinCount;
+        }
+
+        /**
+         * get autoRead.
+         *
+         * @return autoRead
+         */
+        public boolean isAutoRead() {
+            return autoRead;
+        }
+
+        /**
+         * get allocator.
+         *
+         * @return ByteBufAllocator
+         */
+        public ByteBufAllocator getAllocator() {
+            return "unpooled".equals(allocType) ? UnpooledByteBufAllocator.DEFAULT : PooledByteBufAllocator.DEFAULT;
+        }
+
+        /**
+         * get allocator type.
+         *
+         * @return allocator type
+         */
+        public String getAllocType() {
+            return allocType;
+        }
+
+        /**
+         * set connectTimeoutMillis.
+         *
+         * @param connectTimeoutMillis CONNECT_TIMEOUT_MILLIS
+         */
+        public void setConnectTimeoutMillis(final int connectTimeoutMillis) {
+            this.connectTimeoutMillis = connectTimeoutMillis;
+        }
+
+        /**
+         * set writeBufferHighWaterMark.
+         *
+         * @param writeBufferHighWaterMark write buffer high water mark
+         */
+        public void setWriteBufferHighWaterMark(final int writeBufferHighWaterMark) {
+            this.writeBufferHighWaterMark = writeBufferHighWaterMark;
+        }
+
+        /**
+         * set writeBufferLowWaterMark.
+         *
+         * @param writeBufferLowWaterMark write buffer low water mark
+         */
+        public void setWriteBufferLowWaterMark(final int writeBufferLowWaterMark) {
+            this.writeBufferLowWaterMark = writeBufferLowWaterMark;
+        }
+
+        /**
+         * set writeSpinCount.
+         *
+         * @param writeSpinCount WRITE_SPIN_COUNT
+         */
+        public void setWriteSpinCount(final int writeSpinCount) {
+            this.writeSpinCount = writeSpinCount;
+        }
+
+        /**
+         * set autoRead.
+         *
+         * @param autoRead AUTO_READ
+         */
+        public void setAutoRead(final boolean autoRead) {
+            this.autoRead = autoRead;
+        }
+
+        /**
+         * set allocator type.
+         *
+         * @param allocType allocator type
+         */
+        public void setAllocType(final String allocType) {
+            this.allocType = allocType;
+        }
     }
 
-    /**
-     * set writeSpinCount.
-     *
-     * @param writeSpinCount write spin count
-     */
-    public void setWriteSpinCount(final int writeSpinCount) {
-        this.writeSpinCount = writeSpinCount;
+    public static class ServerSocketChannelConfig extends ChannelConfig {
+
+        private int soRcvbuf = 87380;
+
+        private int soBacklog = 128;
+
+        private boolean soReuseaddr;
+
+        /**
+         * get soRcvbuf.
+         *
+         * @return soRcvbuf
+         */
+        public int getSoRcvbuf() {
+            return soRcvbuf;
+        }
+
+        /**
+         * get soBacklog.
+         *
+         * @return soBacklog
+         */
+        public int getSoBacklog() {
+            return soBacklog;
+        }
+
+        /**
+         * get SoReuseaddr.
+         *
+         * @return soReuseaddr
+         */
+        public boolean isSoReuseaddr() {
+            return soReuseaddr;
+        }
+
+        /**
+         * set soRcvbuf.
+         *
+         * @param soRcvbuf SO_RCVBUF
+         */
+        public void setSoRcvbuf(final int soRcvbuf) {
+            this.soRcvbuf = soRcvbuf;
+        }
+
+        /**
+         * set soBacklog.
+         *
+         * @param soBacklog SO_BACKLOG
+         */
+        public void setSoBacklog(final int soBacklog) {
+            this.soBacklog = soBacklog;
+        }
+
+        /**
+         * ser setSoReuseaddr.
+         *
+         * @param soReuseaddr SO_REUSEADDR
+         */
+        public void setSoReuseaddr(final boolean soReuseaddr) {
+            this.soReuseaddr = soReuseaddr;
+        }
     }
 
-    /**
-     * set autoRead.
-     *
-     * @param autoRead auto read
-     */
-    public void setAutoRead(final boolean autoRead) {
-        this.autoRead = autoRead;
-    }
+    public static class SocketChannelConfig extends ChannelConfig {
 
-    /**
-     * set tcpNodelay.
-     *
-     * @param tcpNodelay tcp no delay
-     */
-    public void setTcpNodelay(final boolean tcpNodelay) {
-        this.tcpNodelay = tcpNodelay;
-    }
+        private boolean soKeepalive;
 
-    /**
-     * set soKeepalive.
-     *
-     * @param soKeepalive tcp keepalive
-     */
-    public void setSoKeepalive(final boolean soKeepalive) {
-        this.soKeepalive = soKeepalive;
-    }
+        private boolean soReuseaddr;
 
-    /**
-     * ser setSoReuseaddr.
-     *
-     * @param soReuseaddr reuse addr
-     */
-    public void setSoReuseaddr(final boolean soReuseaddr) {
-        this.soReuseaddr = soReuseaddr;
-    }
+        private int soLinger = -1;
 
-    /**
-     * set soLinger.
-     *
-     * @param soLinger linger
-     */
-    public void setSoLinger(final int soLinger) {
-        this.soLinger = soLinger;
-    }
+        private boolean tcpNodelay = true;
 
-    /**
-     * set soBacklog.
-     *
-     * @param soBacklog tcp backlog
-     */
-    public void setSoBacklog(final int soBacklog) {
-        this.soBacklog = soBacklog;
+        private int soRcvbuf = 87380;
+
+        private int soSndbuf = 16384;
+
+        private int ipTos;
+
+        private boolean allowHalfClosure;
+
+        /**
+         * get soKeepalive.
+         *
+         * @return soKeepalive
+         */
+        public boolean isSoKeepalive() {
+            return soKeepalive;
+        }
+
+        /**
+         * get SoReuseaddr.
+         *
+         * @return soReuseaddr
+         */
+        public boolean isSoReuseaddr() {
+            return soReuseaddr;
+        }
+
+        /**
+         * get soLinger.
+         *
+         * @return soLinger
+         */
+        public int getSoLinger() {
+            return soLinger;
+        }
+
+        /**
+         * get tcpNodelay.
+         *
+         * @return tcpNodelay
+         */
+        public boolean isTcpNodelay() {
+            return tcpNodelay;
+        }
+
+        /**
+         * get soRcvbuf.
+         *
+         * @return soRcvbuf
+         */
+        public int getSoRcvbuf() {
+            return soRcvbuf;
+        }
+
+        /**
+         * get soSndbuf.
+         *
+         * @return soSndbuf
+         */
+        public int getSoSndbuf() {
+            return soSndbuf;
+        }
+
+        /**
+         * get ipTos.
+         * @return ipTos
+         */
+        public int getIpTos() {
+            return ipTos;
+        }
+
+        /**
+         * get isAllowHalfClosure.
+         *
+         * @return isAllowHalfClosure
+         */
+        public boolean isAllowHalfClosure() {
+            return allowHalfClosure;
+        }
+
+        /**
+         * set soKeepalive.
+         *
+         * @param soKeepalive SO_KEEPALIVE
+         */
+        public void setSoKeepalive(final boolean soKeepalive) {
+            this.soKeepalive = soKeepalive;
+        }
+
+        /**
+         * ser setSoReuseaddr.
+         *
+         * @param soReuseaddr SO_REUSEADDR
+         */
+        public void setSoReuseaddr(final boolean soReuseaddr) {
+            this.soReuseaddr = soReuseaddr;
+        }
+
+        /**
+         * set soLinger.
+         *
+         * @param soLinger SO_LINGER
+         */
+        public void setSoLinger(final int soLinger) {
+            this.soLinger = soLinger;
+        }
+
+        /**
+         * set tcpNodelay.
+         *
+         * @param tcpNodelay TCP_NODELAY
+         */
+        public void setTcpNodelay(final boolean tcpNodelay) {
+            this.tcpNodelay = tcpNodelay;
+        }
+
+        /**
+         * set soRcvbuf.
+         *
+         * @param soRcvbuf SO_RCVBUF
+         */
+        public void setSoRcvbuf(final int soRcvbuf) {
+            this.soRcvbuf = soRcvbuf;
+        }
+
+        /**
+         * set soSndbuf.
+         *
+         * @param soSndbuf SO_SNDBUF
+         */
+        public void setSoSndbuf(final int soSndbuf) {
+            this.soSndbuf = soSndbuf;
+        }
+
+        /**
+         * set ipTos.
+         *
+         * @param ipTos IP_TOS
+         */
+        public void setIpTos(final int ipTos) {
+            this.ipTos = ipTos;
+        }
+
+        /**
+         * set allowHalfClosure.
+         *
+         * @param allowHalfClosure ALLOW_HALF_CLOSURE
+         */
+        public void setAllowHalfClosure(final boolean allowHalfClosure) {
+            this.allowHalfClosure = allowHalfClosure;
+        }
     }
 }
