@@ -106,7 +106,7 @@ public class NettyTcpProperties {
         this.socketChannelConfig = socketChannelConfig;
     }
 
-    static class ChannelConfig {
+    public static class ChannelConfig {
 
         private int connectTimeoutMillis = 10000;
 
@@ -238,7 +238,7 @@ public class NettyTcpProperties {
         }
     }
 
-    static class ServerSocketChannelConfig extends ChannelConfig {
+    public static class ServerSocketChannelConfig extends ChannelConfig {
 
         private int soRcvbuf = 87380;
 
@@ -301,7 +301,7 @@ public class NettyTcpProperties {
         }
     }
 
-    static class SocketChannelConfig extends ChannelConfig {
+    public static class SocketChannelConfig extends ChannelConfig {
 
         private boolean soKeepalive;
 
