@@ -49,18 +49,33 @@ management:
 shenyu:
   netty:
     tcp:
-      selectCount: 1
-      workerCount: 4
-      connectTimeoutMillis: 10000
-      writeBufferHighWaterMark: 65536
-      writeBufferLowWaterMark: 32768
-      writeSpinCount: 16
-      autoRead: true
-      tcpNodelay: true
-      soKeepalive: false
-      soReuseaddr: false
-      soLinger: -1
-      soBacklog: 128
+      select-count: 1
+      worker-count: 4
+      server-socket-channel-config:
+        so-rcvbuf: 87380
+        so-backlog: 128
+        so-reuseaddr: false
+        connect-timeout-millis: 10000
+        write-buffer-high-water-mark: 65536
+        write-buffer-low-water-mark: 32768
+        write-spin-count: 16
+        auto-read: true
+        alloc-type: "pooled"
+      socket-channel-config:
+        so-keepalive: false
+        so-reuseaddr: false
+        so-linger: -1
+        tcp-nodelay: true
+        so-rcvbuf: 87380
+        so-sndbuf: 16384
+        ip-tos: 0
+        allow-half-closure: false
+        connect-timeout-millis: 10000
+        write-buffer-high-water-mark: 65536
+        write-buffer-low-water-mark: 32768
+        write-spin-count: 16
+        auto-read: true
+        alloc-type: "pooled"
   instance:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -144,4 +159,3 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
-
