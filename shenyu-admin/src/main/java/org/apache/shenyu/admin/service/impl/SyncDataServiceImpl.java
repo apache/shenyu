@@ -35,9 +35,9 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
@@ -111,11 +111,9 @@ public class SyncDataServiceImpl implements SyncDataService {
 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
 
-        List<RuleData> allRuleDataList = new ArrayList<>();
-        for (SelectorData selectData : selectorDataList) {
-            List<RuleData> ruleDataList = ruleService.findBySelectorId(selectData.getId());
-            allRuleDataList.addAll(ruleDataList);
-        }
+        List<String> selectorIdList = selectorDataList.stream().map(selectorData -> selectorData.getId())
+                .collect(Collectors.toList());
+        List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
 
