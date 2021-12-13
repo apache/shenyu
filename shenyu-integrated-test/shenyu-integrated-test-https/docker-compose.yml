@@ -25,6 +25,10 @@ services:
     restart: always
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
+    healthcheck:
+      test: [ "CMD", "wget", "http://shenyu-examples-https:8080/order/findById?id=3" ]
+      timeout: 2s
+      retries: 30
     ports:
       - 8190:8190
       - 8080:8080
@@ -53,7 +57,6 @@ services:
   shenyu-integrated-test-https:
     container_name: shenyu-integrated-test-https
     image: apache/shenyu-integrated-test-https:latest
-#    image: apache/shenyu-bootstrap:2.4.0-SNAPSHOT
     restart: always
     deploy:
       resources:
@@ -69,7 +72,7 @@ services:
     networks:
       - shenyu
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-integrated-test-http:9195/actuator/health" ]
+      test: [ "CMD", "wget", "http://shenyu-integrated-test-https:9195/actuator/health" ]
       timeout: 2s
       retries: 30
 
