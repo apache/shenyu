@@ -21,13 +21,17 @@ import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public final class HttpsDividePluginTest extends AbstractTest {
 
     @Test
     public void testHelloWorld() throws Exception {
-        String result = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=3", String.class);
-        assertEquals("hello world findById 3", result);
+        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/order/order/findById?id=3", Map.class);
+        assertNotNull(result);
+        assertEquals("3", result.get("id"));
     }
 }
