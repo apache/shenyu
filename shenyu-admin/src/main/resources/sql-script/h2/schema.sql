@@ -293,8 +293,6 @@ INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`,
 INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', '=', '=', '=', 1, 1);;
 INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', 'regex', 'regex', 'regex', 2, 1);;
 INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', 'contains', 'contains', 'contains', 3, 1);;
-INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', 'SpEL', 'SpEL', 'SpEL', 4, 1);;
-INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', 'Groovy', 'Groovy', 'Groovy', 5, 1);;
 INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', 'TimeBefore', 'TimeBefore', 'TimeBefore', 6, 1);;
 INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', 'TimeAfter', 'TimeAfter', 'TimeAfter', 7, 1);;
 INSERT IGNORE INTO `shenyu_dict` (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('operator', 'OPERATOR', 'exclude', 'exclude', 'exclude', 8, 1);;
