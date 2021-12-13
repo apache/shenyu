@@ -17,16 +17,17 @@
 
 package org.apache.shenyu.agent.bootstrap.classloader;
 
-import org.apache.shenyu.agent.bootstrap.ShenyuAgentBootstrap;
-import org.apache.shenyu.agent.bootstrap.exception.AgentBootstrapFailException;
+import org.apache.shenyu.agent.core.exception.AgentBootstrapFailException;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -42,29 +43,41 @@ public class AgentClassLoader extends URLClassLoader {
      * Get the agent class loader.
      *
      * @return AgentClassLoader agent class loader
-     * @throws AgentBootstrapFailException the exception
+     * @throws org.apache.shenyu.agent.core.exception.AgentBootstrapFailException the exception
      */
-    public static AgentClassLoader createAgentClassloader() throws AgentBootstrapFailException {
-        CodeSource codeSource = ShenyuAgentBootstrap.class.getProtectionDomain().getCodeSource();
+    public static AgentClassLoader createAgentClassloader() throws org.apache.shenyu.agent.core.exception.AgentBootstrapFailException {
+        CodeSource codeSource = AgentClassLoader.class.getProtectionDomain().getCodeSource();
         if (codeSource == null) {
-            throw new AgentBootstrapFailException("could not get agent jar location");
+            throw new org.apache.shenyu.agent.core.exception.AgentBootstrapFailException("could not get agent jar location");
         }
         try {
             File javaagentFile = new File(codeSource.getLocation().toURI());
             if (!javaagentFile.isFile()) {
-                throw new AgentBootstrapFailException("agent jar location doesn't appear to be a file: " + javaagentFile.getAbsolutePath());
+                throw new org.apache.shenyu.agent.core.exception.AgentBootstrapFailException("agent jar location doesn't appear to be a file: " + javaagentFile.getAbsolutePath());
             }
+
             File pluginFileDirectory = new File(javaagentFile.getParent() + "/plugins");
-            File[] jars = Arrays.stream(Objects.requireNonNull(pluginFileDirectory.listFiles()))
+            File libsFileDirectory = new File(javaagentFile.getParent() + "/libs");
+
+            File[] pluginJars = Arrays.stream(Objects.requireNonNull(pluginFileDirectory.listFiles()))
                     .filter(filePointer -> filePointer.getName().endsWith(".jar")).toArray(File[]::new);
-            URL[] urls = new URL[jars.length + 1];
-            for (int i = 0; i < urls.length - 1; i++) {
-                urls[i] = jars[i].toURI().toURL();
+
+            File[] libJars = Arrays.stream(Objects.requireNonNull(libsFileDirectory.listFiles()))
+                    .filter(filePointer -> filePointer.getName().endsWith(".jar")).toArray(File[]::new);
+
+            List<URL> urls = new ArrayList<>(pluginJars.length + libJars.length + 1);
+            for (File pluginJar : pluginJars) {
+                urls.add(pluginJar.toURI().toURL());
             }
-            urls[jars.length] = javaagentFile.toURI().toURL();
-            return new AgentClassLoader(urls, null);
-        } catch (URISyntaxException | MalformedURLException e) {
+            for (File libJar : libJars) {
+                urls.add(libJar.toURI().toURL());
+            }
+            urls.add(javaagentFile.toURI().toURL());
+            return new AgentClassLoader(urls.toArray(new URL[0]), null);
+        } catch (IOException | URISyntaxException e) {
             throw new AgentBootstrapFailException("failed to construct the agent classloader dur to: " + e.getMessage());
         }
     }
+
 }
+
