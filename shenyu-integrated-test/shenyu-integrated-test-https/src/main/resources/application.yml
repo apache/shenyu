@@ -43,7 +43,7 @@ shenyu:
     enabled: true
   sync:
     websocket:
-      urls: ws://localhost:9095/websocket
+      urls: ws://shenyu-admin:9095/websocket
   exclude:
     enabled: true
     paths:
