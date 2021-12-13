@@ -21,12 +21,12 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-import reactor.util.annotation.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -43,8 +43,9 @@ public final class HealthFilter implements WebFilter {
     private static final List<String> URL_PATTERNS = Arrays.asList("/actuator/health", "/health_check");
 
     @Override
-    public Mono<Void> filter(@Nullable final ServerWebExchange exchange, @Nullable final WebFilterChain chain) {
-        String urlPath = Objects.requireNonNull(exchange).getRequest().getURI().getPath();
+    @NonNull
+    public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
+        String urlPath = exchange.getRequest().getURI().getPath();
         return URL_PATTERNS.contains(urlPath) ? writeHealthInfo(exchange) : Objects.requireNonNull(chain).filter(exchange);
     }
 

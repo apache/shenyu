@@ -17,9 +17,13 @@
 
 package org.apache.shenyu.register.client.zookeeper;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.common.constant.Constants;
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
@@ -34,12 +38,6 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
-
 /**
  * The type Zookeeper client register repository.
  */
@@ -51,6 +49,12 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     private ZkClient zkClient;
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
+
+    public ZookeeperClientRegisterRepository() { }
+
+    public ZookeeperClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {

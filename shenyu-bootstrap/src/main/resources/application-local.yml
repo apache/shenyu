@@ -49,18 +49,35 @@ management:
 shenyu:
   netty:
     tcp:
+      # set to false, user can custom the netty tcp server config.
+      webServerFactoryEnabled: true
       selectCount: 1
       workerCount: 4
-      connectTimeoutMillis: 10000
-      writeBufferHighWaterMark: 65536
-      writeBufferLowWaterMark: 32768
-      writeSpinCount: 16
-      autoRead: true
-      tcpNodelay: true
-      soKeepalive: false
-      soReuseaddr: false
-      soLinger: -1
-      soBacklog: 128
+      serverSocketChannel:
+        soRcvBuf: 87380
+        soBackLog: 128
+        soReuseAddr: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
+      socketChannel:
+        soKeepAlive: false
+        soReuseAddr: false
+        soLinger: -1
+        tcpNoDelay: true
+        soRcvBuf: 87380
+        soSndBuf: 16384
+        ipTos: 0
+        allowHalfClosure: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
   instance:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -144,4 +161,3 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
-

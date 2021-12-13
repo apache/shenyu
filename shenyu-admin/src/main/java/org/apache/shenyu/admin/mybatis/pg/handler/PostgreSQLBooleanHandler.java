@@ -26,10 +26,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * PostgreSql's custom type handler for Boolean types.
+ * PostgreSQL's custom type handler for Boolean types.
  */
 @MappedTypes(value = Boolean.class)
-public class PostGreSqlBooleanHandler extends BaseTypeHandler<Boolean> {
+public class PostgreSQLBooleanHandler extends BaseTypeHandler<Boolean> {
 
     @Override
     public void setNonNullParameter(final PreparedStatement preparedStatement, final int i,

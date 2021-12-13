@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The interface Meta data mapper.
@@ -37,6 +38,13 @@ public interface MetaDataMapper {
      * @return the meta data do
      */
     MetaDataDO selectById(String id);
+
+    /**
+     * Select a list of MetaDataDOs by idList.
+     * @param idSet a set of ids
+     * @return a list of MetaDataDOs
+     */
+    List<MetaDataDO> selectByIdSet(@Param("idSet") Set<String> idSet);
 
     /**
      * Find all list.
@@ -110,10 +118,26 @@ public interface MetaDataMapper {
     int updateEnable(MetaDataDO metaDataDO);
 
     /**
+     * update enable batch.
+     *
+     * @param idSet the ids
+     * @param enabled the status
+     * @return the count
+     */
+    int updateEnableBatch(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
+
+    /**
      * Delete int.
      *
      * @param id the id
      * @return the int
      */
     int delete(String id);
+
+    /**
+     * batch delete by a set of ids.
+     * @param idSet a set of ids
+     * @return the count of deleted
+     */
+    int deleteByIdSet(@Param("idSet") Set<String> idSet);
 }

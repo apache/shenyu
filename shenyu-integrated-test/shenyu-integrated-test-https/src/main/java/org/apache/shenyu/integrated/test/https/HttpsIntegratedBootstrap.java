@@ -15,25 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
+package org.apache.shenyu.integrated.test.https;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.spi.Join;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * SpEL predicate judge.
+ * The type Https integrated bootstrap.
  */
-@Join
-public class SpELPredicateJudge implements PredicateJudge {
+@SpringBootApplication
+public class HttpsIntegratedBootstrap {
     
-    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
-    
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        Expression expression = EXPRESSION_PARSER.parseExpression(conditionData.getParamValue().replace('#' + conditionData.getParamName(), realData));
-        return expression.getValue(Boolean.class);
+    /**
+     * main method of App.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(HttpsIntegratedBootstrap.class);
     }
 }

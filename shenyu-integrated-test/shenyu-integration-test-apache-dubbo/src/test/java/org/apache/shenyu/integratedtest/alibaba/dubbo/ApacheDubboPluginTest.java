@@ -20,7 +20,6 @@ package org.apache.shenyu.integratedtest.alibaba.dubbo;
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.BeforeClass;
@@ -42,8 +41,8 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testFindById() throws IOException {
-        AdminResponse<DubboTest> dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", new TypeToken<AdminResponse<DubboTest>>() {
+        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", new TypeToken<DubboTest>() {
         }.getType());
-        assertEquals("hello world shenyu Apache, findById", dubboTest.getData().getName());
+        assertEquals("hello world shenyu Apache, findById", dubboTest.getName());
     }
 }

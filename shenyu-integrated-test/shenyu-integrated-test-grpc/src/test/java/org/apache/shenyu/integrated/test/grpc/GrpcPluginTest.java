@@ -20,13 +20,14 @@ package org.apache.shenyu.integrated.test.grpc;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.integrated.test.grpc.dto.GrpcResponse;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -43,8 +44,9 @@ public class GrpcPluginTest extends AbstractPluginDataInit {
     @Test
     public void testHelloWorld() throws Exception {
         JsonObject request = buildGrpcRequest();
-        GrpcResponse response = HttpHelper.INSTANCE.postGateway("/grpc/echo", request, GrpcResponse.class);
-        assertEquals("200", response.getCode());
+        JsonArray response = HttpHelper.INSTANCE.postGateway("/grpc/echo", request, JsonArray.class);
+        Map<String, Object> result = GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(response.get(0)), Object.class);
+        assertEquals("ReceivedHELLO", result.get("message"));
     }
 
     private JsonObject buildGrpcRequest() {
