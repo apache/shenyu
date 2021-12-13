@@ -17,57 +17,47 @@
 
 package org.apache.shenyu.springboot.starter.netty;
 
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.UnpooledByteBufAllocator;
-
 /**
- * The netty tcp configuration properties.
+ * The netty tcp properties.
  */
 public class NettyTcpProperties {
 
-    private int selectCount = 1;
+    private Boolean webServerFactoryEnabled = true;
 
-    private int workerCount = Runtime.getRuntime().availableProcessors() << 1;
+    private Integer selectCount = 1;
 
-    private ServerSocketChannelConfig serverSocketChannelConfig = new ServerSocketChannelConfig();
+    private Integer workerCount = Runtime.getRuntime().availableProcessors() << 1;
 
-    private SocketChannelConfig socketChannelConfig = new SocketChannelConfig();
+    private ServerSocketChannelProperties serverSocketChannel = new ServerSocketChannelProperties();
+
+    private SocketChannelProperties socketChannel = new SocketChannelProperties();
+
+    /**
+     * gets webServerFactoryEnabled.
+     *
+     * @return webServerFactoryEnabled
+     */
+    public Boolean isWebServerFactoryEnabled() {
+        return webServerFactoryEnabled;
+    }
+
+    /**
+     * set webServerFactoryEnabled.
+     * set to false, user can custom the netty tcp server config.
+     *
+     * @param webServerFactoryEnabled web server factory enabled
+     */
+    public void setWebServerFactoryEnabled(final Boolean webServerFactoryEnabled) {
+        this.webServerFactoryEnabled = webServerFactoryEnabled;
+    }
 
     /**
      * get select count.
      *
      * @return selectCount
      */
-    public int getSelectCount() {
+    public Integer getSelectCount() {
         return selectCount;
-    }
-
-    /**
-     * get workerCount.
-     *
-     * @return workerCount
-     */
-    public int getWorkerCount() {
-        return workerCount;
-    }
-
-    /**
-     * get serverSocketChannelConfig.
-     *
-     * @return serverSocketChannelConfig
-     */
-    public ServerSocketChannelConfig getServerSocketChannelConfig() {
-        return serverSocketChannelConfig;
-    }
-
-    /**
-     * get socketChannelConfig.
-     *
-     * @return socketChannelConfig
-     */
-    public SocketChannelConfig getSocketChannelConfig() {
-        return socketChannelConfig;
     }
 
     /**
@@ -75,8 +65,17 @@ public class NettyTcpProperties {
      *
      * @param selectCount select count
      */
-    public void setSelectCount(final int selectCount) {
+    public void setSelectCount(final Integer selectCount) {
         this.selectCount = selectCount;
+    }
+
+    /**
+     * get workerCount.
+     *
+     * @return workerCount
+     */
+    public Integer getWorkerCount() {
+        return workerCount;
     }
 
     /**
@@ -84,202 +83,57 @@ public class NettyTcpProperties {
      *
      * @param workerCount worker count
      */
-    public void setWorkerCount(final int workerCount) {
+    public void setWorkerCount(final Integer workerCount) {
         this.workerCount = workerCount;
     }
 
     /**
-     * set serverSocketChannelConfig.
+     * get serverSocketChannel.
      *
-     * @param serverSocketChannelConfig server socket channel config
+     * @return serverSocketChannel
      */
-    public void setServerSocketChannelConfig(final ServerSocketChannelConfig serverSocketChannelConfig) {
-        this.serverSocketChannelConfig = serverSocketChannelConfig;
+    public ServerSocketChannelProperties getServerSocketChannel() {
+        return serverSocketChannel;
     }
 
     /**
-     * set socketChannelConfig.
+     * set serverSocketChannel.
      *
-     * @param socketChannelConfig socket channel config
+     * @param serverSocketChannel server socket channel config
      */
-    public void setSocketChannelConfig(final SocketChannelConfig socketChannelConfig) {
-        this.socketChannelConfig = socketChannelConfig;
+    public void setServerSocketChannel(final ServerSocketChannelProperties serverSocketChannel) {
+        this.serverSocketChannel = serverSocketChannel;
     }
 
-    public static class ChannelConfig {
-
-        private int connectTimeoutMillis = 10000;
-
-        private int writeBufferHighWaterMark = 65536;
-
-        private int writeBufferLowWaterMark = 32768;
-
-        private int writeSpinCount = 16;
-
-        private boolean autoRead = true;
-
-        private String allocType = "pooled";
-
-        /**
-         * get connectTimeoutMillis.
-         *
-         * @return connectTimeoutMillis
-         */
-        public int getConnectTimeoutMillis() {
-            return connectTimeoutMillis;
-        }
-
-        /**
-         * get writeBufferHighWaterMark.
-         *
-         * @return writeBufferHighWaterMark
-         */
-        public int getWriteBufferHighWaterMark() {
-            return writeBufferHighWaterMark;
-        }
-
-        /**
-         * get writeBufferLowWaterMark.
-         *
-         * @return writeBufferLowWaterMark
-         */
-        public int getWriteBufferLowWaterMark() {
-            return writeBufferLowWaterMark;
-        }
-
-        /**
-         * get writeSpinCount.
-         *
-         * @return writeSpinCount
-         */
-        public int getWriteSpinCount() {
-            return writeSpinCount;
-        }
-
-        /**
-         * get autoRead.
-         *
-         * @return autoRead
-         */
-        public boolean isAutoRead() {
-            return autoRead;
-        }
-
-        /**
-         * get allocator.
-         *
-         * @return ByteBufAllocator
-         */
-        public ByteBufAllocator getAllocator() {
-            return "unpooled".equals(allocType) ? UnpooledByteBufAllocator.DEFAULT : PooledByteBufAllocator.DEFAULT;
-        }
-
-        /**
-         * get allocator type.
-         *
-         * @return allocator type
-         */
-        public String getAllocType() {
-            return allocType;
-        }
-
-        /**
-         * set connectTimeoutMillis.
-         *
-         * @param connectTimeoutMillis CONNECT_TIMEOUT_MILLIS
-         */
-        public void setConnectTimeoutMillis(final int connectTimeoutMillis) {
-            this.connectTimeoutMillis = connectTimeoutMillis;
-        }
-
-        /**
-         * set writeBufferHighWaterMark.
-         *
-         * @param writeBufferHighWaterMark write buffer high water mark
-         */
-        public void setWriteBufferHighWaterMark(final int writeBufferHighWaterMark) {
-            this.writeBufferHighWaterMark = writeBufferHighWaterMark;
-        }
-
-        /**
-         * set writeBufferLowWaterMark.
-         *
-         * @param writeBufferLowWaterMark write buffer low water mark
-         */
-        public void setWriteBufferLowWaterMark(final int writeBufferLowWaterMark) {
-            this.writeBufferLowWaterMark = writeBufferLowWaterMark;
-        }
-
-        /**
-         * set writeSpinCount.
-         *
-         * @param writeSpinCount WRITE_SPIN_COUNT
-         */
-        public void setWriteSpinCount(final int writeSpinCount) {
-            this.writeSpinCount = writeSpinCount;
-        }
-
-        /**
-         * set autoRead.
-         *
-         * @param autoRead AUTO_READ
-         */
-        public void setAutoRead(final boolean autoRead) {
-            this.autoRead = autoRead;
-        }
-
-        /**
-         * set allocator type.
-         *
-         * @param allocType allocator type
-         */
-        public void setAllocType(final String allocType) {
-            this.allocType = allocType;
-        }
+    /**
+     * set socketChannel.
+     *
+     * @param socketChannel socket channel config
+     */
+    public void setSocketChannel(final SocketChannelProperties socketChannel) {
+        this.socketChannel = socketChannel;
     }
 
-    public static class ServerSocketChannelConfig extends ChannelConfig {
+    /**
+     * get socketChannel.
+     *
+     * @return socketChannel
+     */
+    public SocketChannelProperties getSocketChannel() {
+        return socketChannel;
+    }
 
-        private int soRcvbuf = 87380;
+    public static class ServerSocketChannelProperties extends NettyChannelProperties {
 
-        private int soBacklog = 128;
-
-        private boolean soReuseaddr;
-
-        /**
-         * get soRcvbuf.
-         *
-         * @return soRcvbuf
-         */
-        public int getSoRcvbuf() {
-            return soRcvbuf;
-        }
+        private Integer soBacklog = 128;
 
         /**
          * get soBacklog.
          *
          * @return soBacklog
          */
-        public int getSoBacklog() {
+        public Integer getSoBacklog() {
             return soBacklog;
-        }
-
-        /**
-         * get SoReuseaddr.
-         *
-         * @return soReuseaddr
-         */
-        public boolean isSoReuseaddr() {
-            return soReuseaddr;
-        }
-
-        /**
-         * set soRcvbuf.
-         *
-         * @param soRcvbuf SO_RCVBUF
-         */
-        public void setSoRcvbuf(final int soRcvbuf) {
-            this.soRcvbuf = soRcvbuf;
         }
 
         /**
@@ -287,54 +141,41 @@ public class NettyTcpProperties {
          *
          * @param soBacklog SO_BACKLOG
          */
-        public void setSoBacklog(final int soBacklog) {
+        public void setSoBacklog(final Integer soBacklog) {
             this.soBacklog = soBacklog;
-        }
-
-        /**
-         * ser setSoReuseaddr.
-         *
-         * @param soReuseaddr SO_REUSEADDR
-         */
-        public void setSoReuseaddr(final boolean soReuseaddr) {
-            this.soReuseaddr = soReuseaddr;
         }
     }
 
-    public static class SocketChannelConfig extends ChannelConfig {
+    public static class SocketChannelProperties extends NettyChannelProperties {
 
-        private boolean soKeepalive;
+        private Boolean soKeepAlive = false;
 
-        private boolean soReuseaddr;
+        private Integer soLinger = -1;
 
-        private int soLinger = -1;
+        private Boolean tcpNoDelay = true;
 
-        private boolean tcpNodelay = true;
+        private Integer soSndBuf = 16384;
 
-        private int soRcvbuf = 87380;
+        private Integer ipTos = 0;
 
-        private int soSndbuf = 16384;
-
-        private int ipTos;
-
-        private boolean allowHalfClosure;
+        private Boolean allowHalfClosure = false;
 
         /**
-         * get soKeepalive.
+         * get soKeepAlive.
          *
-         * @return soKeepalive
+         * @return soKeepAlive
          */
-        public boolean isSoKeepalive() {
-            return soKeepalive;
+        public Boolean isSoKeepAlive() {
+            return soKeepAlive;
         }
 
         /**
-         * get SoReuseaddr.
+         * set soKeepAlive.
          *
-         * @return soReuseaddr
+         * @param soKeepAlive SO_KEEPALIVE
          */
-        public boolean isSoReuseaddr() {
-            return soReuseaddr;
+        public void setSoKeepAlive(final Boolean soKeepAlive) {
+            this.soKeepAlive = soKeepAlive;
         }
 
         /**
@@ -342,70 +183,8 @@ public class NettyTcpProperties {
          *
          * @return soLinger
          */
-        public int getSoLinger() {
+        public Integer getSoLinger() {
             return soLinger;
-        }
-
-        /**
-         * get tcpNodelay.
-         *
-         * @return tcpNodelay
-         */
-        public boolean isTcpNodelay() {
-            return tcpNodelay;
-        }
-
-        /**
-         * get soRcvbuf.
-         *
-         * @return soRcvbuf
-         */
-        public int getSoRcvbuf() {
-            return soRcvbuf;
-        }
-
-        /**
-         * get soSndbuf.
-         *
-         * @return soSndbuf
-         */
-        public int getSoSndbuf() {
-            return soSndbuf;
-        }
-
-        /**
-         * get ipTos.
-         * @return ipTos
-         */
-        public int getIpTos() {
-            return ipTos;
-        }
-
-        /**
-         * get isAllowHalfClosure.
-         *
-         * @return isAllowHalfClosure
-         */
-        public boolean isAllowHalfClosure() {
-            return allowHalfClosure;
-        }
-
-        /**
-         * set soKeepalive.
-         *
-         * @param soKeepalive SO_KEEPALIVE
-         */
-        public void setSoKeepalive(final boolean soKeepalive) {
-            this.soKeepalive = soKeepalive;
-        }
-
-        /**
-         * ser setSoReuseaddr.
-         *
-         * @param soReuseaddr SO_REUSEADDR
-         */
-        public void setSoReuseaddr(final boolean soReuseaddr) {
-            this.soReuseaddr = soReuseaddr;
         }
 
         /**
@@ -413,35 +192,52 @@ public class NettyTcpProperties {
          *
          * @param soLinger SO_LINGER
          */
-        public void setSoLinger(final int soLinger) {
+        public void setSoLinger(final Integer soLinger) {
             this.soLinger = soLinger;
         }
 
         /**
-         * set tcpNodelay.
+         * get tcpNoDelay.
          *
-         * @param tcpNodelay TCP_NODELAY
+         * @return tcpNoDelay
          */
-        public void setTcpNodelay(final boolean tcpNodelay) {
-            this.tcpNodelay = tcpNodelay;
+        public Boolean isTcpNoDelay() {
+            return tcpNoDelay;
         }
 
         /**
-         * set soRcvbuf.
+         * set tcpNoDelay.
          *
-         * @param soRcvbuf SO_RCVBUF
+         * @param tcpNoDelay TCP_NODELAY
          */
-        public void setSoRcvbuf(final int soRcvbuf) {
-            this.soRcvbuf = soRcvbuf;
+        public void setTcpNoDelay(final Boolean tcpNoDelay) {
+            this.tcpNoDelay = tcpNoDelay;
         }
 
         /**
-         * set soSndbuf.
+         * get soSndBuf.
          *
-         * @param soSndbuf SO_SNDBUF
+         * @return soSndBuf
          */
-        public void setSoSndbuf(final int soSndbuf) {
-            this.soSndbuf = soSndbuf;
+        public Integer getSoSndBuf() {
+            return soSndBuf;
+        }
+
+        /**
+         * set soSndBuf.
+         *
+         * @param soSndBuf SO_SNDBUF
+         */
+        public void setSoSndBuf(final Integer soSndBuf) {
+            this.soSndBuf = soSndBuf;
+        }
+
+        /**
+         * get ipTos.
+         * @return ipTos
+         */
+        public Integer getIpTos() {
+            return ipTos;
         }
 
         /**
@@ -449,8 +245,17 @@ public class NettyTcpProperties {
          *
          * @param ipTos IP_TOS
          */
-        public void setIpTos(final int ipTos) {
+        public void setIpTos(final Integer ipTos) {
             this.ipTos = ipTos;
+        }
+
+        /**
+         * get isAllowHalfClosure.
+         *
+         * @return isAllowHalfClosure
+         */
+        public Boolean isAllowHalfClosure() {
+            return allowHalfClosure;
         }
 
         /**
@@ -458,7 +263,7 @@ public class NettyTcpProperties {
          *
          * @param allowHalfClosure ALLOW_HALF_CLOSURE
          */
-        public void setAllowHalfClosure(final boolean allowHalfClosure) {
+        public void setAllowHalfClosure(final Boolean allowHalfClosure) {
             this.allowHalfClosure = allowHalfClosure;
         }
     }
