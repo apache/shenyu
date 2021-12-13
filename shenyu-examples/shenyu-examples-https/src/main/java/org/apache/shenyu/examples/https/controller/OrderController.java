@@ -18,6 +18,7 @@
 package org.apache.shenyu.examples.https.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.examples.https.dto.OrderDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,7 +40,9 @@ public class OrderController {
      */
     @GetMapping("/findById")
     @ShenyuSpringMvcClient(path = "/findById", desc = "Find by id")
-    public String findById(@RequestParam("id") final String id) {
-        return "hello world findById" + id;
+    public OrderDTO findById(@RequestParam("id") final String id) {
+        OrderDTO dto = new OrderDTO();
+        dto.setId(id);
+        return dto;
     }
 }

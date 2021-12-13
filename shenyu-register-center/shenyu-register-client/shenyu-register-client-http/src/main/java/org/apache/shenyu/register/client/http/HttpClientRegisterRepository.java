@@ -80,8 +80,7 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
                 RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), server + path, type);
                 return;
             } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("register admin url :{} is fail, will retry", server);
+                LOGGER.error("register admin url :{} is fail, will retry, ex is :{}", server, e);
             }
         }
     }
