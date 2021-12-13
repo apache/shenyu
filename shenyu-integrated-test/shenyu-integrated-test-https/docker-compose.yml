@@ -25,10 +25,6 @@ services:
     restart: always
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
-    healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-examples-https:8080/order/findById?id=3" ]
-      timeout: 2s
-      retries: 30
     ports:
       - 8190:8190
       - 8080:8080
