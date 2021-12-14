@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.tars.exception;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
+ * ShenyuTarsPluginException.
+ *
  * @date 2021/12/9
  */
 public class ShenyuTarsPluginException extends ShenyuException {
