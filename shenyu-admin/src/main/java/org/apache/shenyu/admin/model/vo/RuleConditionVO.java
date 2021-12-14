@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * this is rule condition view to web front.
@@ -295,8 +296,10 @@ public class RuleConditionVO implements Serializable {
     public static RuleConditionVO buildRuleConditionVO(final RuleConditionDO ruleConditionDO) {
         ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(ruleConditionDO.getParamType());
         OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(ruleConditionDO.getOperator());
-        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), paramTypeEnum == null ? null : paramTypeEnum.getName(),
-                ruleConditionDO.getOperator(), operatorEnum == null ? null : operatorEnum.name(), ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
+        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), 
+                Optional.ofNullable(paramTypeEnum).map(ParamTypeEnum::getName).orElse(ruleConditionDO.getParamType()),
+                ruleConditionDO.getOperator(), Optional.ofNullable(operatorEnum).map(OperatorEnum::getAlias).orElse(ruleConditionDO.getOperator()), 
+                ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
                 DateUtils.localDateTimeToString(ruleConditionDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(ruleConditionDO.getDateUpdated().toLocalDateTime()));
     }
