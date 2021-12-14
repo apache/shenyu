@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
@@ -107,10 +108,14 @@ public class EtcdClient {
         return keyValues.stream()
                 .map(e -> getSubNodeKeyName(prefix, e.getKey().toString(StandardCharsets.UTF_8), separator))
                 .distinct()
+                .filter(e -> Objects.nonNull(e))
                 .collect(Collectors.toList());
     }
 
     private String getSubNodeKeyName(final String prefix, final String fullPath, final String separator) {
+        if (prefix.length() > fullPath.length()) {
+            return null;
+        }
         String pathWithoutPrefix = fullPath.substring(prefix.length());
         return pathWithoutPrefix.contains(separator) ? pathWithoutPrefix.substring(1) : pathWithoutPrefix;
     }
