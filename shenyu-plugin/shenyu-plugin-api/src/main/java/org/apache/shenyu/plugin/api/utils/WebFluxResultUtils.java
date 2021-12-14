@@ -42,14 +42,14 @@ import java.util.Objects;
  */
 public final class WebFluxResultUtils {
     
-    private WebFluxResultUtils() {
-    
-    }
-    
     /**
      * result utils log.
      */
     private static final Logger LOG = LoggerFactory.getLogger(WebFluxResultUtils.class);
+    
+    private WebFluxResultUtils() {
+    
+    }
 
     /**
      * Response result.
