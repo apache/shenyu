@@ -45,6 +45,17 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIdSet" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where id in
+        <foreach collection="idSet" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
