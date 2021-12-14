@@ -27,8 +27,6 @@ public class DefaultShenyuEntity implements Serializable {
     private static final long serialVersionUID = -2792556188993845048L;
     
     private static final int ERROR = 500;
-    
-    private static final int SUCCESSFUL = 200;
 
     private Integer code;
 
@@ -101,58 +99,6 @@ public class DefaultShenyuEntity implements Serializable {
      */
     public void setData(final Object data) {
         this.data = data;
-    }
-
-    /**
-     * return success.
-     *
-     * @return {@linkplain DefaultShenyuEntity}
-     */
-    public static DefaultShenyuEntity success() {
-        return success("");
-    }
-
-    /**
-     * return success.
-     *
-     * @param msg msg
-     * @return {@linkplain DefaultShenyuEntity}
-     */
-    public static DefaultShenyuEntity success(final String msg) {
-        return success(msg, null);
-    }
-
-    /**
-     * return success.
-     *
-     * @param data this is result data.
-     * @return {@linkplain DefaultShenyuEntity}
-     */
-    public static DefaultShenyuEntity success(final Object data) {
-        return success(null, data);
-    }
-
-    /**
-     * return success.
-     *
-     * @param msg  this ext msg.
-     * @param data this is result data.
-     * @return {@linkplain DefaultShenyuEntity}
-     */
-    public static DefaultShenyuEntity success(final String msg, final Object data) {
-        return get(SUCCESSFUL, msg, data);
-    }
-
-    /**
-     * Success shenyu web result.
-     *
-     * @param code the code
-     * @param msg  the msg
-     * @param data the data
-     * @return the shenyu web result
-     */
-    public static DefaultShenyuEntity success(final int code, final String msg, final Object data) {
-        return get(code, msg, data);
     }
 
     /**

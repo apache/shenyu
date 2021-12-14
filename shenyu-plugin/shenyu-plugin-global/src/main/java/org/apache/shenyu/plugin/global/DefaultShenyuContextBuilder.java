@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.global;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.DataFormatEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
@@ -76,10 +75,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
             String rpcTypeParam = request.getHeaders().getFirst(RPC_TYPE);
             rpcType = StringUtils.isEmpty(rpcTypeParam) ? RpcTypeEnum.HTTP.getName() : rpcTypeParam;
         }
-        final ShenyuContext shenyuContext = buildDefaultContext(request);
-        final DataFormatEnum dataFormat = shenyuContext.getFormat();
-        exchange.getAttributes().put(Constants.DATA_FORMAT, dataFormat);
-        return decoratorMap.get(rpcType).decorator(shenyuContext, metaData);
+        return decoratorMap.get(rpcType).decorator(buildDefaultContext(request), metaData);
     }
 
     private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
@@ -93,12 +89,6 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         shenyuContext.setSign(sign);
         shenyuContext.setTimestamp(timestamp);
         shenyuContext.setStartDateTime(LocalDateTime.now());
-        String format = request.getHeaders().getFirst(Constants.DATA_FORMAT);
-        shenyuContext.setFormat(DataFormatEnum.getByFormat(format));
-        if (StringUtils.isNotBlank(format)
-                && !shenyuContext.getFormat().getFormat().equals(format)) {
-            LOG.info("the format {} is invalid, just support {}", format, DataFormatEnum.getFormatNames());
-        }
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;
     }

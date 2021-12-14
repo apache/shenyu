@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.config;
 
-import org.apache.shenyu.common.constant.Constants;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -651,7 +650,6 @@ public class ShenyuConfig {
                     add("token");
                     add("username");
                     add("client");
-                    add(Constants.DATA_FORMAT);
                 }
             };
         }

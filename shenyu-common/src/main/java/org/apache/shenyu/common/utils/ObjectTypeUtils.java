@@ -27,13 +27,14 @@ public final class ObjectTypeUtils {
      * @param object the object
      * @return true is basic
      */
-    public static boolean isBasicTypeExceptString(final Object object) {
+    public static boolean isBasicType(final Object object) {
         return (object instanceof Integer)
                 || (object instanceof Byte)
                 || (object instanceof Long)
                 || (object instanceof Double)
                 || (object instanceof Float)
                 || (object instanceof Short)
-                || (object instanceof Boolean);
+                || (object instanceof Boolean)
+                || (object instanceof CharSequence);
     }
 }
