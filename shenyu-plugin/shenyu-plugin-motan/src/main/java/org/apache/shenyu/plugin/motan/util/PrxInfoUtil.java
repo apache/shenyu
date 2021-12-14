@@ -24,7 +24,7 @@ import java.util.function.Function;
 /**
  * Proxy info util.
  */
-public class PrxInfoUtil {
+public final class PrxInfoUtil {
 
     private static final Map<String, PrimitiveType> PRIMITIVE_TYPE;
 
@@ -80,7 +80,7 @@ public class PrxInfoUtil {
         }));
     }
     
-    private PrxInfoUtil () {
+    private PrxInfoUtil() {
     
     }
 
