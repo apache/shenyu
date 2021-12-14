@@ -120,6 +120,13 @@ public interface ShenyuDictMapper {
     int delete(String id);
 
     /**
+     * delete by ids.
+     * @param idList a list of ids
+     * @return the count of deleted
+     */
+    int deleteByIdList(@Param("idList") List<String> idList);
+
+    /**
      * batch enabled.
      *
      * @param ids shenyu dict ids

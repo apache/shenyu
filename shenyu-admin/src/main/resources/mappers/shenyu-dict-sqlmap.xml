@@ -70,6 +70,15 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByIdList">
+        delete from shenyu_dict
+        where id in
+        <foreach collection="idList" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         insert into shenyu_dict (id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created,
         date_updated

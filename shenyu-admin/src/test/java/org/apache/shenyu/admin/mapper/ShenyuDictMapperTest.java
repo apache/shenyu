@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.assertj.core.util.Lists;
 import org.junit.Test;
 
 import javax.annotation.Resource;
@@ -66,6 +67,23 @@ public final class ShenyuDictMapperTest extends AbstractSpringIntegrationTest {
 
         count = shenyuDictMapper.delete(record.getId());
         assertThat(count, greaterThan(0));
+    }
+
+    @Test
+    public void deleteByIdList() {
+
+        ShenyuDictDO record1 = buildShenyuDictDO();
+        int count1 = shenyuDictMapper.insert(record1);
+        assertThat(count1, equalTo(1));
+
+        ShenyuDictDO record = buildShenyuDictDO();
+        int count = shenyuDictMapper.insert(record);
+        assertThat(count, equalTo(1));
+
+        List<String> idList = Lists.list(record1.getId(), record.getId());
+        int ret = shenyuDictMapper.deleteByIdList(idList);
+        assertThat(ret, equalTo(idList.size()));
+
     }
 
     private ShenyuDictDO buildShenyuDictDO() {
