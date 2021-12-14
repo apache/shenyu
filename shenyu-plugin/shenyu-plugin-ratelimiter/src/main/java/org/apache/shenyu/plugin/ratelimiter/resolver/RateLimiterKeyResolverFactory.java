@@ -24,7 +24,7 @@ import org.apache.shenyu.spi.ExtensionLoader;
  */
 public final class RateLimiterKeyResolverFactory {
     
-    private RateLimiterKeyResolverFactory () {
+    private RateLimiterKeyResolverFactory() {
     
     }
 

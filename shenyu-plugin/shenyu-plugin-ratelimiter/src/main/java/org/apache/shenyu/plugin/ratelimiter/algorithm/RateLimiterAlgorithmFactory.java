@@ -24,9 +24,9 @@ import java.util.Optional;
 /**
  * The type Rate limiter algorithm factory.
  */
-public class RateLimiterAlgorithmFactory {
+public final class RateLimiterAlgorithmFactory {
     
-    private RateLimiterAlgorithmFactory () {
+    private RateLimiterAlgorithmFactory() {
     
     }
     
