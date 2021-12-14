@@ -81,6 +81,9 @@ public class SelectorConditionVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+    
+    public SelectorConditionVO() {
+    }
 
     public SelectorConditionVO(final String id,
                                final String selectorId,
