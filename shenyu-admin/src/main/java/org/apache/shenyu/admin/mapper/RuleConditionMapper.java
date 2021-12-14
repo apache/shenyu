@@ -18,10 +18,12 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * RuleConditionMapper.
@@ -44,6 +46,13 @@ public interface RuleConditionMapper {
      * @return {@linkplain List}
      */
     List<RuleConditionDO> selectByQuery(RuleConditionQuery ruleConditionQuery);
+
+    /**
+     * select list of rule conditions by a set of ruleIds.
+     * @param ruleIdSet a set of ruleIds
+     * @return a list of {@linkplain RuleConditionDO}
+     */
+    List<RuleConditionDO> selectByRuleIdSet(@Param("ruleIdSet") Set<String> ruleIdSet);
 
     /**
      * insert rule condition.
