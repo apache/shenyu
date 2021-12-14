@@ -25,6 +25,10 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ParameterDataFactory {
     
+    private ParameterDataFactory () {
+    
+    }
+    
     /**
      * New instance parameter data.
      *

@@ -105,7 +105,9 @@ public final class ApplicationConfigCache {
     }
     
     /**
-     * Init prx.
+     * Init prx.<br>
+     * Try to load the meta information defined by meta data to the local cache.<br>
+     * eg: class definition, all method definition params,context path.<br>
      *
      * @param metaData metaData
      */
@@ -114,7 +116,8 @@ public final class ApplicationConfigCache {
             Class<?> prxClass = prxClassCache.get(metaData.getPath());
             try {
                 if (Objects.isNull(prxClass)) {
-                    init(metaData);
+                    // Spin's Attempt to Load
+                    tryLockedLoadMetaData(metaData);
                 } else {
                     if (Objects.nonNull(metaData.getContextPath()) && Objects.nonNull(refreshUpstreamCache.get(metaData.getContextPath()))) {
                         refreshTarsInvokePrxList(metaData, refreshUpstreamCache.get(metaData.getContextPath()));
@@ -128,7 +131,17 @@ public final class ApplicationConfigCache {
         }
     }
     
-    private void init(MetaData metaData) throws ClassNotFoundException {
+    /**
+     * Try to load once, if it fails, it will give up.<br>
+     * add class cache to {@link #prxClassCache}.<br>
+     * add method params cache to {@link #prxParamCache}.<br>
+     * add paths cache to {@link #ctxPathCache}.<br>
+     *
+     * @param metaData metaData
+     * @throws ClassNotFoundException meta data
+     * @see ReentrantLock
+     */
+    private void tryLockedLoadMetaData(MetaData metaData) throws ClassNotFoundException {
         assert LOCK != null;
         if (LOCK.tryLock()) {
             try {

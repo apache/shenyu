@@ -59,7 +59,7 @@ public final class HostAddressUtilsTest {
      */
     @Test
     public void acquireHostTest() {
-        Assert.assertEquals(HostAddressUtils.acquireHost(exchange), "0.0.0.0");
+        Assert.assertEquals("0.0.0.0", HostAddressUtils.acquireHost(exchange));
     }
 
     /**
@@ -67,6 +67,6 @@ public final class HostAddressUtilsTest {
      */
     @Test
     public void acquireIpTest() {
-        Assert.assertEquals(HostAddressUtils.acquireIp(exchange), "0.0.0.0");
+        Assert.assertEquals("0.0.0.0", HostAddressUtils.acquireIp(exchange));
     }
 }

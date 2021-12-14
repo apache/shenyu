@@ -34,6 +34,10 @@ public class CryptorStrategyFactory {
     public static final String ENCRYPT = "encrypt";
     
     private static final Logger LOG = LoggerFactory.getLogger(CryptorStrategyFactory.class);
+    
+    private CryptorStrategyFactory () {
+    
+    }
 
     /**
      * New instance cryptor strategy.

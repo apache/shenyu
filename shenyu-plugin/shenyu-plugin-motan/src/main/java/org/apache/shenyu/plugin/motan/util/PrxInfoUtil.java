@@ -79,6 +79,10 @@ public class PrxInfoUtil {
             return ((Double) o).floatValue();
         }));
     }
+    
+    private PrxInfoUtil () {
+    
+    }
 
     /**
      * Get class type by name.

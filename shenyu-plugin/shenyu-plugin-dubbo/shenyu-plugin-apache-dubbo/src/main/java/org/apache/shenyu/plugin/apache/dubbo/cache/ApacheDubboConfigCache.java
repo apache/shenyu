@@ -22,6 +22,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
@@ -61,13 +62,11 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
                 ReferenceConfig<GenericService> config = notification.getValue();
                 if (config != null) {
                     try {
-                        Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("ref");
-                        field.setAccessible(true);
+                        Field field = FieldUtils.getDeclaredField(config.getClass(),"ref", true);
+                        field.set(config, null);
                         // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
-                        field.set(config, null);
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                    } catch (NullPointerException | IllegalAccessException e) {
                         LOG.error("modify ref have exception", e);
                     }
                 }
@@ -224,10 +223,14 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
         /**
          * The Instance.
          */
         static final ApacheDubboConfigCache INSTANCE = new ApacheDubboConfigCache();
+        
+        private ApplicationConfigCacheInstance () {
+        
+        }
     }
 }

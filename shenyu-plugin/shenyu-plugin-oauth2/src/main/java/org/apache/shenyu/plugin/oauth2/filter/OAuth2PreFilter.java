@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.oauth2.filter;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -66,7 +67,7 @@ public class OAuth2PreFilter implements WebFilter {
     }
 
     private void processPathMatchers(final ServerWebExchange serverWebExchange) {
-        if ((Boolean) serverWebExchange.getAttributes().get("enable")) {
+        if (Boolean.TRUE.equals(serverWebExchange.getAttributes().get("enable"))) {
             this.buildPathMatchers(serverWebExchange);
         } else {
             this.refreshPathMatchers();

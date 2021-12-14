@@ -60,7 +60,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         HttpHeaders headers = request.getHeaders();
         String upgrade = headers.getFirst("Upgrade");
         String rpcType;
-        if (Objects.nonNull(metaData) && metaData.getEnabled()) {
+        if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             rpcType = metaData.getRpcType();
         } else if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {

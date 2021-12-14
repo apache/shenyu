@@ -38,6 +38,10 @@ public class Resilience4JRegistryFactory {
      * CircuitBreaker registry.
      */
     private static final CircuitBreakerRegistry CIRCUIT_BREAKER_REGISTRY = CircuitBreakerRegistry.ofDefaults();
+    
+    private Resilience4JRegistryFactory () {
+    
+    }
 
     /**
      * circuitBreaker.

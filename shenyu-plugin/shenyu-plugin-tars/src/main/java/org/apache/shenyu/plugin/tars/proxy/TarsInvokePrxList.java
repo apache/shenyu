@@ -26,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class TarsInvokePrxList {
 
-    private final CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList;
+    private final List<TarsInvokePrx> tarsInvokePrxList;
 
     private Method method;
 

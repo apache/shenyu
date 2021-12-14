@@ -33,7 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * cryptor util.
  */
-public class CryptorUtil {
+public final class CryptorUtil {
+    
+    private CryptorUtil () {
+    
+    }
 
     /**
      * error handling.

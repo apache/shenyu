@@ -24,6 +24,10 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
  */
 public final class ShenyuResultWrap {
     
+    private ShenyuResultWrap () {
+    
+    }
+    
     /**
      * Success object.
      *

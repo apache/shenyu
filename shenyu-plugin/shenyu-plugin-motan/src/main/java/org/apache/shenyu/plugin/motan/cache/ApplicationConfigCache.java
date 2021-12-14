@@ -26,6 +26,7 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonHandler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
@@ -35,6 +36,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.motan.util.PrxInfoUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -65,20 +67,19 @@ public final class ApplicationConfigCache {
                 RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
                 if (Objects.nonNull(config)) {
                     try {
-                        Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("ref");
-                        field.setAccessible(true);
+                        Field field = FieldUtils.getDeclaredField(config.getClass(),"ref", true);
                         field.set(config, null);
                         // After the configuration change, motan destroys the instance, but does not empty it. If it is not handled,
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                    } catch (NullPointerException | IllegalAccessException e) {
                         LOG.error("modify ref have exception", e);
                     }
                 }
             })
             .build(new CacheLoader<String, RefererConfig<CommonHandler>>() {
                 @Override
-                public RefererConfig<CommonHandler> load(final String key) {
+                @NonNull
+                public RefererConfig<CommonHandler> load(@NonNull final String key) {
                     return new RefererConfig<>();
                 }
             });
@@ -214,13 +215,16 @@ public final class ApplicationConfigCache {
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
 
-//        private ApplicationConfigCacheInstance() {}
         /**
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
+        
+        private ApplicationConfigCacheInstance() {
+        
+        }
     }
 
     /**

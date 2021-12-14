@@ -26,6 +26,10 @@ import java.util.Optional;
  */
 public class RateLimiterAlgorithmFactory {
     
+    private RateLimiterAlgorithmFactory () {
+    
+    }
+    
     /**
      * New instance rate limiter algorithm.
      *
