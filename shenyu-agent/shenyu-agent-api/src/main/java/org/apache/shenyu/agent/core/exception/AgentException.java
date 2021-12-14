@@ -15,36 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.tracing.jaeger.advice;
-
-import net.bytebuddy.asm.Advice;
-import org.springframework.web.server.ServerWebExchange;
+package org.apache.shenyu.agent.core.exception;
 
 /**
- * HandlerAdvice.
+ * Agent exception.
  */
-public class HandlerAdvice {
-
-    /**
-     * onEnter.
-     *
-     * @param exchange exchange.
-     */
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter(@Advice.Argument(0) final ServerWebExchange exchange) {
-
-    }
-
-    /**
-     * onExit.
-     *
-     * @param throwable throw.
-     * @param exchange exchange.
-     */
-    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-    public static void onExit(
-            @Advice.Thrown final Throwable throwable,
-            @Advice.Argument(0) final ServerWebExchange exchange) {
-
+public final class AgentException extends RuntimeException {
+    
+    public AgentException(final String errorMessage, final Object... args) {
+        super(String.format(errorMessage, args));
     }
 }

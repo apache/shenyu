@@ -54,6 +54,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <outputDirectory>${project.basedir}/../target/libs</outputDirectory>
                             <artifactSet>
                                 <excludes>
                                     <exclude>net.bytebuddy:*</exclude>

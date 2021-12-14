@@ -15,15 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.enums;
+package org.apache.shenyu.agent.core.exception;
 
 /**
- * TraceTypes.
+ * The Shenyu AgentBootstrapFailException.
  */
-public enum TraceTypes {
-    OPENTELEMETRY,
-    OPENTRACING,
-    SKYWALKING,
-    ZIPKIN,
-    JAEGER
+public class AgentBootstrapFailException extends Exception {
+
+    public AgentBootstrapFailException(final String s) {
+        super(s);
+    }
 }

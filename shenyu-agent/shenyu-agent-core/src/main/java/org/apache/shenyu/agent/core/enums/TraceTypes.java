@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.exception;
+package org.apache.shenyu.agent.core.enums;
 
 /**
- * Agent exception.
+ * TraceTypes.
  */
-public final class AgentException extends RuntimeException {
-    
-    public AgentException(final String errorMessage, final Object... args) {
-        super(String.format(errorMessage, args));
-    }
+public enum TraceTypes {
+    OPENTELEMETRY,
+    OPENTRACING,
+    SKYWALKING,
+    ZIPKIN,
+    JAEGER
 }

@@ -36,8 +36,9 @@ public class ShenyuAgentBootstrap {
      */
     public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
         AgentClassLoader agentClassLoader = AgentClassLoader.createAgentClassloader();
-        Class<?> agentInstallerClass = agentClassLoader.loadClass("org.apache.shenyu.agent.AgentInstaller");
+        Class<?> agentInstallerClass = agentClassLoader.loadClass("org.apache.shenyu.agent.core.AgentInstaller");
         Method agentInstallerMethod = agentInstallerClass.getMethod("installBytebuddyAgent", Instrumentation.class);
+
         ClassLoader originClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(agentClassLoader);
         try {
