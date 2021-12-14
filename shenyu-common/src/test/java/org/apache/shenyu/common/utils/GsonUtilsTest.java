@@ -30,10 +30,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -278,17 +278,6 @@ public class GsonUtilsTest {
         assertThat(resultListJson, comparesEqualTo(testListJson));
         assertThat(resultPair.getLeft(), comparesEqualTo(testPair.getLeft()));
         assertThat(resultPair.getRight(), comparesEqualTo(testPair.getRight()));
-    }
-
-    @Test
-    public void testValidJson() {
-        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson("{}"));
-        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson("[]"));
-        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson(GsonUtils.getInstance().toJson(generateTestObject())));
-        Assert.assertEquals(Boolean.TRUE, GsonUtils.isValidJson(JsonUtils.toJson(generateTestObject())));
-        Assert.assertEquals(Boolean.FALSE, GsonUtils.isValidJson(null));
-        Assert.assertEquals(Boolean.FALSE, GsonUtils.isValidJson("json"));
-        Assert.assertEquals(Boolean.FALSE, GsonUtils.isValidJson(Integer.toString(123)));
     }
 
     private static TestObject generateTestObject() {

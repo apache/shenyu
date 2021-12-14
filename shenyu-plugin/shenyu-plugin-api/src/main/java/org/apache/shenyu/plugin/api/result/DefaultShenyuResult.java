@@ -17,19 +17,10 @@
 
 package org.apache.shenyu.plugin.api.result;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.shenyu.common.constant.Constants;
-
 /**
  * The type Shenyu default result.
  */
-@JacksonXmlRootElement(localName = Constants.DEFAULT_XML_ROOT)
-public class DefaultShenyuResult extends ShenyuResult<DefaultShenyuEntity> {
-
-    @Override
-    public DefaultShenyuEntity success(final int code, final String message, final Object object) {
-        return DefaultShenyuEntity.success(code, message, object);
-    }
+public class DefaultShenyuResult implements ShenyuResult<DefaultShenyuEntity> {
 
     @Override
     public DefaultShenyuEntity error(final int code, final String message, final Object object) {
