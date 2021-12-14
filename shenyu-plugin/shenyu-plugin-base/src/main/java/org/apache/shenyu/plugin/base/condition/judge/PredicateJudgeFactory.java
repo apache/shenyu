@@ -29,7 +29,7 @@ import java.util.Objects;
  */
 public final class PredicateJudgeFactory {
     
-    private PredicateJudgeFactory () {
+    private PredicateJudgeFactory() {
     
     }
     

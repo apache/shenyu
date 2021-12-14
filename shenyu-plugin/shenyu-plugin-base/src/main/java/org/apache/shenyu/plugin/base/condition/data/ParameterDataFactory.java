@@ -23,9 +23,9 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * The type Parameter data factory.
  */
-public class ParameterDataFactory {
+public final class ParameterDataFactory {
     
-    private ParameterDataFactory () {
+    private ParameterDataFactory() {
     
     }
     

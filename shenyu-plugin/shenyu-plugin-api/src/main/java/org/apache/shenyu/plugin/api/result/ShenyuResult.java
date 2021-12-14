@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * The interface shenyu result.
  */
 public abstract class ShenyuResult<T> extends ConcurrentHashMap<String, Object> {
-
+    
     /**
      * Success t.
      *
