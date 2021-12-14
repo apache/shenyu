@@ -221,6 +221,15 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
+    public List<RuleData> findBySelectorIdList(final List<String> selectorIdList) {
+        return ruleMapper.findBySelectorIds(selectorIdList)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(this::buildRuleData)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public RuleDO findByName(final String name) {
         return ruleMapper.findByName(name);
     }

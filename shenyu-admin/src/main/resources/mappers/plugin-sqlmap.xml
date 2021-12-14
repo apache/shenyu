@@ -98,10 +98,19 @@
             </if>
         </where>
     </select>
+
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from plugin
+    </select>
+
+    <select id="listAllNotInResource" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin
+        where name not in
+        (select title from resource)
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -182,6 +191,15 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
+    <update id="updateEnableByIdSet">
+        update plugin
+        SET enabled = #{enabled,jdbcType=TINYINT}
+        where id in
+        <foreach collection="idSet" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         update plugin

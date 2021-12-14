@@ -49,6 +49,8 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private String contextPath;
 
     private final String appName;
+    
+    private final String protocol;
 
     private final String host;
 
@@ -74,10 +76,10 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             }
             this.contextPath = contextPath + "/**";
         }
-        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
+        this.port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+        this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
-        this.port = port;
     }
 
     @Override
@@ -96,6 +98,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(appName)
+                .protocol(protocol)
                 .host(host)
                 .port(port)
                 .rpcType(RpcTypeEnum.HTTP.getName())

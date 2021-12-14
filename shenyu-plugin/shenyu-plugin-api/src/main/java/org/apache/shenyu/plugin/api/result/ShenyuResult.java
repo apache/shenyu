@@ -17,10 +17,16 @@
 
 package org.apache.shenyu.plugin.api.result;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * The interface shenyu result.
  */
-public interface ShenyuResult<T> {
+public abstract class ShenyuResult<T> extends ConcurrentHashMap<String, Object> {
 
     /**
      * Success t.
@@ -30,7 +36,7 @@ public interface ShenyuResult<T> {
      * @param object  the object
      * @return the t
      */
-    T success(int code, String message, Object object);
+    public abstract T success(int code, String message, Object object);
 
     /**
      * Error t.
@@ -40,6 +46,22 @@ public interface ShenyuResult<T> {
      * @param object  the object
      * @return the t
      */
-    T error(int code, String message, Object object);
+    public abstract T error(int code, String message, Object object);
 
+    /**
+     * put all data and skip the null data.
+     *
+     * @param m the putting data
+     */
+    @Override
+    public void putAll(final Map<? extends String, ?> m) {
+        Optional.ofNullable(m).ifPresent(map -> {
+            final Object[] value = {new AtomicReference<>()};
+            map.keySet().stream().filter(Objects::nonNull).forEach(key -> {
+                if (Objects.nonNull(value[0] = m.get(key))) {
+                    put(key, value[0]);
+                }
+            });
+        });
+    }
 }

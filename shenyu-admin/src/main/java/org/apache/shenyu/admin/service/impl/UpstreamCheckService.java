@@ -50,6 +50,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This is the upstream check service.
@@ -299,21 +301,22 @@ public class UpstreamCheckService {
      * fetch upstream data from db.
      */
     public void fetchUpstreamData() {
+
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(PluginEnum.getUpstreamNames());
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return;
         }
-        pluginDOList.stream().filter(Objects::nonNull).forEach(pluginDO -> {
-            final List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
-            for (SelectorDO selectorDO : selectorDOList) {
-                if (Objects.isNull(selectorDO) || StringUtils.isBlank(selectorDO.getHandle())) {
-                    continue;
-                }
-                List<CommonUpstream> commonUpstreams = converterFactor.newInstance(pluginDO.getName()).convertUpstream(selectorDO.getHandle());
-                if (CollectionUtils.isNotEmpty(commonUpstreams)) {
-                    UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
-                }
-            }
-        });
+        Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
+        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIds(new ArrayList<>(pluginMap.keySet()));
+        Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream()
+                .filter(selectorDO -> Objects.nonNull(selectorDO) && StringUtils.isNotEmpty(selectorDO.getHandle()))
+                .forEach(selectorDO -> {
+                    String name = pluginMap.get(selectorDO.getPluginId());
+                    List<CommonUpstream> commonUpstreams = converterFactor.newInstance(name).convertUpstream(selectorDO.getHandle());
+                    if (CollectionUtils.isNotEmpty(commonUpstreams)) {
+                        UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
+                    }
+                });
     }
 }

@@ -45,7 +45,7 @@ public class GrpcPluginTest extends AbstractPluginDataInit {
     public void testHelloWorld() throws Exception {
         JsonObject request = buildGrpcRequest();
         JsonArray response = HttpHelper.INSTANCE.postGateway("/grpc/echo", request, JsonArray.class);
-        Map<String, Object> result = GsonUtils.getInstance().toObjectMap(response.get(0).getAsString(), Object.class);
+        Map<String, Object> result = GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(response.get(0)), Object.class);
         assertEquals("ReceivedHELLO", result.get("message"));
     }
 

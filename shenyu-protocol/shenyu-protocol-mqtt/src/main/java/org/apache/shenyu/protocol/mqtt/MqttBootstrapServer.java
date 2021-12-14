@@ -17,14 +17,24 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.BaseRepository;
+import org.reflections.Reflections;
+
 /**
  * mqtt server.
  */
 public class MqttBootstrapServer implements BootstrapServer {
 
+    private static final String REPOSITORY_PACKAGE_NAME = "org.apache.shenyu.protocol.mqtt.repositories";
+
     @Override
     public void init() {
-
+        try {
+            initRepositories();
+        } catch (Exception e) {
+            //// todo log
+        }
     }
 
     @Override
@@ -36,4 +46,12 @@ public class MqttBootstrapServer implements BootstrapServer {
     public void shutdown() {
 
     }
+
+    private void initRepositories() throws IllegalAccessException, InstantiationException {
+        Reflections reflections = new Reflections(REPOSITORY_PACKAGE_NAME);
+        for (Class<? extends BaseRepository> clazz : reflections.getSubTypesOf(BaseRepository.class)) {
+            Singleton.INST.single(clazz, clazz.newInstance());
+        }
+    }
+
 }

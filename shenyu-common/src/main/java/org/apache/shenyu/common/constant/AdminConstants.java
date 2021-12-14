@@ -196,4 +196,29 @@ public final class AdminConstants {
      * the constant plugin type modify.
      */
     public static final String PLUGIN_TYPE_SYNCHRONIZE = ":modify";
+
+    /**
+     * the constant table init dict type.
+     */
+    public static final String DICT_TABLE_FLAG_TYPE = "table";
+
+    /**
+     * the constant table init dict code.
+     */
+    public static final String DICT_TABLE_FLAG_DICTCODE = "INIT_FLAG";
+
+    /**
+     * the constant table init dict name.
+     */
+    public static final String DICT_TABLE_FLAG_DICTNAME = "status";
+
+    /**
+     * the constant table init dict desc.
+     */
+    public static final String DICT_TABLE_FLAG_DESC = "table(resource,permission) init status";
+
+    /**
+     * the constant table init dict sort.
+     */
+    public static final Integer DICT_TABLE_FLAG_SORT = 0;
 }

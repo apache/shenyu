@@ -37,7 +37,7 @@ public final class ShenyuResultWrap {
      * @return the object
      */
     public static Object success(final int code, final String message, final Object object) {
-        return SpringBeanUtils.getInstance().getBean(ShenyuResult.class).success(code, message, object);
+        return shenyuResult().success(code, message, object);
     }
 
     /**
@@ -49,6 +49,15 @@ public final class ShenyuResultWrap {
      * @return the object
      */
     public static Object error(final int code, final String message, final Object object) {
-        return SpringBeanUtils.getInstance().getBean(ShenyuResult.class).error(code, message, object);
+        return shenyuResult().error(code, message, object);
+    }
+
+    /**
+     * shenyu result bean.
+     *
+     * @return the shenyu result bean.
+     */
+    public static ShenyuResult<?> shenyuResult() {
+        return SpringBeanUtils.getInstance().getBean(ShenyuResult.class);
     }
 }

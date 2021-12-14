@@ -18,140 +18,46 @@
 package org.apache.shenyu.springboot.starter.netty;
 
 /**
- * The netty tcp configuration properties.
+ * The netty tcp properties.
  */
 public class NettyTcpProperties {
 
-    private int selectCount = 1;
+    private Boolean webServerFactoryEnabled = true;
 
-    private int workerCount = Runtime.getRuntime().availableProcessors() << 1;
+    private Integer selectCount = 1;
 
-    private int connectTimeoutMillis = 10000;
+    private Integer workerCount = Runtime.getRuntime().availableProcessors() << 1;
 
-    private int writeBufferHighWaterMark = 65536;
+    private ServerSocketChannelProperties serverSocketChannel = new ServerSocketChannelProperties();
 
-    private int writeBufferLowWaterMark = 32768;
+    private SocketChannelProperties socketChannel = new SocketChannelProperties();
 
-    private int writeSpinCount = 16;
+    /**
+     * gets webServerFactoryEnabled.
+     *
+     * @return webServerFactoryEnabled
+     */
+    public Boolean isWebServerFactoryEnabled() {
+        return webServerFactoryEnabled;
+    }
 
-    private boolean autoRead = true;
-
-    private boolean tcpNodelay = true;
-
-    private boolean soKeepalive;
-
-    private boolean soReuseaddr;
-
-    private int soLinger = -1;
-
-    private int soBacklog = 128;
+    /**
+     * set webServerFactoryEnabled.
+     * set to false, user can custom the netty tcp server config.
+     *
+     * @param webServerFactoryEnabled web server factory enabled
+     */
+    public void setWebServerFactoryEnabled(final Boolean webServerFactoryEnabled) {
+        this.webServerFactoryEnabled = webServerFactoryEnabled;
+    }
 
     /**
      * get select count.
      *
      * @return selectCount
      */
-    public int getSelectCount() {
+    public Integer getSelectCount() {
         return selectCount;
-    }
-
-    /**
-     * get workerCount.
-     *
-     * @return workerCount
-     */
-    public int getWorkerCount() {
-        return workerCount;
-    }
-
-    /**
-     * get connectTimeoutMillis.
-     *
-     * @return connectTimeoutMillis
-     */
-    public int getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
-    }
-
-    /**
-     * get writeBufferHighWaterMark.
-     *
-     * @return writeBufferHighWaterMark
-     */
-    public int getWriteBufferHighWaterMark() {
-        return writeBufferHighWaterMark;
-    }
-
-    /**
-     * get writeBufferLowWaterMark.
-     *
-     * @return writeBufferLowWaterMark
-     */
-    public int getWriteBufferLowWaterMark() {
-        return writeBufferLowWaterMark;
-    }
-
-    /**
-     * get soKeepalive.
-     *
-     * @return soKeepalive
-     */
-    public boolean isSoKeepalive() {
-        return soKeepalive;
-    }
-
-    /**
-     * get isSoReuseaddr.
-     *
-     * @return soReuseaddr
-     */
-    public boolean isSoReuseaddr() {
-        return soReuseaddr;
-    }
-
-    /**
-     * get soLinger.
-     *
-     * @return soLinger
-     */
-    public int getSoLinger() {
-        return soLinger;
-    }
-
-    /**
-     * get soBacklog.
-     *
-     * @return soBacklog
-     */
-    public int getSoBacklog() {
-        return soBacklog;
-    }
-
-    /**
-     * get tcpNodelay.
-     *
-     * @return tcpNodelay
-     */
-    public boolean isTcpNodelay() {
-        return tcpNodelay;
-    }
-
-    /**
-     * get writeSpinCount.
-     *
-     * @return writeSpinCount
-     */
-    public int getWriteSpinCount() {
-        return writeSpinCount;
-    }
-
-    /**
-     * get autoRead.
-     *
-     * @return autoRead
-     */
-    public boolean isAutoRead() {
-        return autoRead;
     }
 
     /**
@@ -159,8 +65,17 @@ public class NettyTcpProperties {
      *
      * @param selectCount select count
      */
-    public void setSelectCount(final int selectCount) {
+    public void setSelectCount(final Integer selectCount) {
         this.selectCount = selectCount;
+    }
+
+    /**
+     * get workerCount.
+     *
+     * @return workerCount
+     */
+    public Integer getWorkerCount() {
+        return workerCount;
     }
 
     /**
@@ -168,97 +83,188 @@ public class NettyTcpProperties {
      *
      * @param workerCount worker count
      */
-    public void setWorkerCount(final int workerCount) {
+    public void setWorkerCount(final Integer workerCount) {
         this.workerCount = workerCount;
     }
 
     /**
-     * set connectTimeoutMillis.
+     * get serverSocketChannel.
      *
-     * @param connectTimeoutMillis connect timeout millis
+     * @return serverSocketChannel
      */
-    public void setConnectTimeoutMillis(final int connectTimeoutMillis) {
-        this.connectTimeoutMillis = connectTimeoutMillis;
+    public ServerSocketChannelProperties getServerSocketChannel() {
+        return serverSocketChannel;
     }
 
     /**
-     * set writeBufferHighWaterMark.
+     * set serverSocketChannel.
      *
-     * @param writeBufferHighWaterMark write buffer high water mark
+     * @param serverSocketChannel server socket channel config
      */
-    public void setWriteBufferHighWaterMark(final int writeBufferHighWaterMark) {
-        this.writeBufferHighWaterMark = writeBufferHighWaterMark;
+    public void setServerSocketChannel(final ServerSocketChannelProperties serverSocketChannel) {
+        this.serverSocketChannel = serverSocketChannel;
     }
 
     /**
-     * set writeBufferLowWaterMark.
+     * set socketChannel.
      *
-     * @param writeBufferLowWaterMark write buffer low water mark
+     * @param socketChannel socket channel config
      */
-    public void setWriteBufferLowWaterMark(final int writeBufferLowWaterMark) {
-        this.writeBufferLowWaterMark = writeBufferLowWaterMark;
+    public void setSocketChannel(final SocketChannelProperties socketChannel) {
+        this.socketChannel = socketChannel;
     }
 
     /**
-     * set writeSpinCount.
+     * get socketChannel.
      *
-     * @param writeSpinCount write spin count
+     * @return socketChannel
      */
-    public void setWriteSpinCount(final int writeSpinCount) {
-        this.writeSpinCount = writeSpinCount;
+    public SocketChannelProperties getSocketChannel() {
+        return socketChannel;
     }
 
-    /**
-     * set autoRead.
-     *
-     * @param autoRead auto read
-     */
-    public void setAutoRead(final boolean autoRead) {
-        this.autoRead = autoRead;
+    public static class ServerSocketChannelProperties extends NettyChannelProperties {
+
+        private Integer soBacklog = 128;
+
+        /**
+         * get soBacklog.
+         *
+         * @return soBacklog
+         */
+        public Integer getSoBacklog() {
+            return soBacklog;
+        }
+
+        /**
+         * set soBacklog.
+         *
+         * @param soBacklog SO_BACKLOG
+         */
+        public void setSoBacklog(final Integer soBacklog) {
+            this.soBacklog = soBacklog;
+        }
     }
 
-    /**
-     * set tcpNodelay.
-     *
-     * @param tcpNodelay tcp no delay
-     */
-    public void setTcpNodelay(final boolean tcpNodelay) {
-        this.tcpNodelay = tcpNodelay;
-    }
+    public static class SocketChannelProperties extends NettyChannelProperties {
 
-    /**
-     * set soKeepalive.
-     *
-     * @param soKeepalive tcp keepalive
-     */
-    public void setSoKeepalive(final boolean soKeepalive) {
-        this.soKeepalive = soKeepalive;
-    }
+        private Boolean soKeepAlive = false;
 
-    /**
-     * ser setSoReuseaddr.
-     *
-     * @param soReuseaddr reuse addr
-     */
-    public void setSoReuseaddr(final boolean soReuseaddr) {
-        this.soReuseaddr = soReuseaddr;
-    }
+        private Integer soLinger = -1;
 
-    /**
-     * set soLinger.
-     *
-     * @param soLinger linger
-     */
-    public void setSoLinger(final int soLinger) {
-        this.soLinger = soLinger;
-    }
+        private Boolean tcpNoDelay = true;
 
-    /**
-     * set soBacklog.
-     *
-     * @param soBacklog tcp backlog
-     */
-    public void setSoBacklog(final int soBacklog) {
-        this.soBacklog = soBacklog;
+        private Integer soSndBuf = 16384;
+
+        private Integer ipTos = 0;
+
+        private Boolean allowHalfClosure = false;
+
+        /**
+         * get soKeepAlive.
+         *
+         * @return soKeepAlive
+         */
+        public Boolean isSoKeepAlive() {
+            return soKeepAlive;
+        }
+
+        /**
+         * set soKeepAlive.
+         *
+         * @param soKeepAlive SO_KEEPALIVE
+         */
+        public void setSoKeepAlive(final Boolean soKeepAlive) {
+            this.soKeepAlive = soKeepAlive;
+        }
+
+        /**
+         * get soLinger.
+         *
+         * @return soLinger
+         */
+        public Integer getSoLinger() {
+            return soLinger;
+        }
+
+        /**
+         * set soLinger.
+         *
+         * @param soLinger SO_LINGER
+         */
+        public void setSoLinger(final Integer soLinger) {
+            this.soLinger = soLinger;
+        }
+
+        /**
+         * get tcpNoDelay.
+         *
+         * @return tcpNoDelay
+         */
+        public Boolean isTcpNoDelay() {
+            return tcpNoDelay;
+        }
+
+        /**
+         * set tcpNoDelay.
+         *
+         * @param tcpNoDelay TCP_NODELAY
+         */
+        public void setTcpNoDelay(final Boolean tcpNoDelay) {
+            this.tcpNoDelay = tcpNoDelay;
+        }
+
+        /**
+         * get soSndBuf.
+         *
+         * @return soSndBuf
+         */
+        public Integer getSoSndBuf() {
+            return soSndBuf;
+        }
+
+        /**
+         * set soSndBuf.
+         *
+         * @param soSndBuf SO_SNDBUF
+         */
+        public void setSoSndBuf(final Integer soSndBuf) {
+            this.soSndBuf = soSndBuf;
+        }
+
+        /**
+         * get ipTos.
+         * @return ipTos
+         */
+        public Integer getIpTos() {
+            return ipTos;
+        }
+
+        /**
+         * set ipTos.
+         *
+         * @param ipTos IP_TOS
+         */
+        public void setIpTos(final Integer ipTos) {
+            this.ipTos = ipTos;
+        }
+
+        /**
+         * get isAllowHalfClosure.
+         *
+         * @return isAllowHalfClosure
+         */
+        public Boolean isAllowHalfClosure() {
+            return allowHalfClosure;
+        }
+
+        /**
+         * set allowHalfClosure.
+         *
+         * @param allowHalfClosure ALLOW_HALF_CLOSURE
+         */
+        public void setAllowHalfClosure(final Boolean allowHalfClosure) {
+            this.allowHalfClosure = allowHalfClosure;
+        }
     }
 }

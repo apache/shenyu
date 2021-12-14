@@ -87,6 +87,13 @@ public interface RuleService {
     List<RuleData> findBySelectorId(String selectorId);
 
     /**
+     * Find by a list of selector ids.
+     * @param selectorIdList a list of selector ids
+     * @return the list of RuleDatas
+     */
+    List<RuleData> findBySelectorIdList(List<String> selectorIdList);
+
+    /**
      * Find rule by name.
      *
      * @param name rule's name.

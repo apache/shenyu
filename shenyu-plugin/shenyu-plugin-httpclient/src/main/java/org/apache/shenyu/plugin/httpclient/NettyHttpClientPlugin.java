@@ -83,7 +83,7 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
         String acceptEncoding = httpHeaders.get(HttpHeaders.ACCEPT_ENCODING);
         if (StringUtils.isNotBlank(acceptEncoding)) {
             List<String> acceptEncodings = Stream.of(acceptEncoding.trim().split(",")).collect(Collectors.toList());
-            acceptEncodings.remove("gzip");
+            acceptEncodings.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
             httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncodings));
         }
         URI uri = exchange.getAttribute(Constants.HTTP_URI);

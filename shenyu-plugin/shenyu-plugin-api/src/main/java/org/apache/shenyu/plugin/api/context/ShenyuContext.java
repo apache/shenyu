@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.api.context;
 
+import org.apache.shenyu.common.enums.DataFormatEnum;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -81,6 +83,11 @@ public class ShenyuContext implements Serializable {
      * startDateTime.
      */
     private LocalDateTime startDateTime;
+
+    /**
+     * format.
+     */
+    private DataFormatEnum format;
 
     /**
      * Gets module.
@@ -278,5 +285,23 @@ public class ShenyuContext implements Serializable {
      */
     public void setStartDateTime(final LocalDateTime startDateTime) {
         this.startDateTime = startDateTime;
+    }
+
+    /**
+     * Gets the format.
+     *
+     * @return the format
+     */
+    public DataFormatEnum getFormat() {
+        return format;
+    }
+
+    /**
+     * Sets the format.
+     *
+     * @param format the format
+     */
+    public void setFormat(final DataFormatEnum format) {
+        this.format = format;
     }
 }

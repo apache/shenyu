@@ -37,52 +37,52 @@ public class MultiParamServiceImpl implements DubboMultiParamService {
     
     @Override
     @ShenyuDubboClient(path = "/findByIdsAndName", desc = "findByIdsAndName")
-    public DubboTest findByIdsAndName(List<Integer> ids, String name) {
+    public DubboTest findByIdsAndName(final List<Integer> ids, final String name) {
         return new DubboTest(ids.toString(), "hello world shenyu apache dubbo param findByIdsAndName ：" + name);
     }
     
     @Override
     @ShenyuDubboClient(path = "/findByArrayIdsAndName", desc = "findByArrayIdsAndName")
-    public DubboTest findByArrayIdsAndName(Integer[] ids, String name) {
+    public DubboTest findByArrayIdsAndName(final Integer[] ids, final String name) {
         return new DubboTest(Arrays.toString(ids), "hello world shenyu apache dubbo param findByArrayIdsAndName ：" + name);
     }
     
     @Override
     @ShenyuDubboClient(path = "/findByStringArray", desc = "findByStringArray")
-    public DubboTest findByStringArray(String[] ids) {
+    public DubboTest findByStringArray(final String[] ids) {
         return new DubboTest(Arrays.toString(ids), "hello world shenyu apache dubbo param findByStringArray");
     }
     
     @Override
     @ShenyuDubboClient(path = "/findByListId", desc = "findByListId")
-    public DubboTest findByListId(List<String> ids) {
+    public DubboTest findByListId(final List<String> ids) {
         return new DubboTest(ids.toString(), "hello world shenyu apache dubbo param findByListId");
     }
     
     @Override
     @ShenyuDubboClient(path = "/batchSave", desc = "batchSave")
-    public DubboTest batchSave(List<DubboTest> dubboTestList) {
+    public DubboTest batchSave(final List<DubboTest> dubboTestList) {
         return new DubboTest(join(dubboTestList, DubboTest::getId),
                 "hello world shenyu apache dubbo param batchSave :" + join(dubboTestList, DubboTest::getName));
     }
     
     @Override
     @ShenyuDubboClient(path = "/batchSaveAndNameAndId", desc = "batchSaveAndNameAndId")
-    public DubboTest batchSaveAndNameAndId(List<DubboTest> dubboTestList, String id, String name) {
+    public DubboTest batchSaveAndNameAndId(final List<DubboTest> dubboTestList, final String id, final String name) {
         return new DubboTest(id, "hello world shenyu apache dubbo param batchSaveAndNameAndId :"
                 + name + ":" + join(dubboTestList, DubboTest::getName));
     }
     
     @Override
     @ShenyuDubboClient(path = "/saveComplexBeanTest", desc = "saveComplexBeanTest")
-    public DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest) {
+    public DubboTest saveComplexBeanTest(final ComplexBeanTest complexBeanTest) {
         return new DubboTest(complexBeanTest.getIdLists().toString(),
                 "hello world shenyu apache dubbo param saveComplexBeanTest :" + complexBeanTest.getDubboTest().getName());
     }
     
     @Override
     @ShenyuDubboClient(path = "/saveComplexBeanTestAndName", desc = "saveComplexBeanTestAndName")
-    public DubboTest saveComplexBeanTestAndName(ComplexBeanTest complexBeanTest, String name) {
+    public DubboTest saveComplexBeanTestAndName(final ComplexBeanTest complexBeanTest, final String name) {
         return new DubboTest(complexBeanTest.getIdLists().toString(),
                 "hello world shenyu alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
     }

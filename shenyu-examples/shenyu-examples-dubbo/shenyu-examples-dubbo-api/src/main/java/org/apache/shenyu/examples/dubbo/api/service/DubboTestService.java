@@ -50,5 +50,10 @@ public interface DubboTestService {
      */
     DubboTest insert(DubboTest dubboTest);
 
+    /**
+     * findList.
+     *
+     * @return {@linkplain ListResp}
+     */
     ListResp findList();
 }

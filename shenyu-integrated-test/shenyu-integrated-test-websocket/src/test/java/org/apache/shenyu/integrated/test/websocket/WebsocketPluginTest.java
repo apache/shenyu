@@ -90,7 +90,7 @@ public class WebsocketPluginTest extends AbstractPluginDataInit {
 
     private static String buildSelectorHandler() {
         WebSocketUpstream upstream = WebSocketUpstream.builder()
-                .upstreamUrl("shenyu-examples-websocket:8848")
+                .upstreamUrl("shenyu-examples-websocket:8868")
                 .protocol("ws://")
                 .weight(50)
                 .timestamp(0)

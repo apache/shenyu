@@ -209,6 +209,20 @@ public final class RuleServiceTest {
         assertEquals(ruleDOList.size(), dataList.size());
     }
 
+    @Test
+    public void testFindBySelectorIdList() {
+        publishEvent();
+        RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
+        RuleConditionDO ruleCondition = buildRuleConditionDO();
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
+        RuleDO ruleDO = buildRuleDO("123");
+        List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
+        given(this.ruleMapper.findBySelectorIds(Collections.singletonList("456"))).willReturn(ruleDOList);
+        List<RuleData> dataList = this.ruleService.findBySelectorIdList(Collections.singletonList("456"));
+        assertNotNull(dataList);
+        assertEquals(ruleDOList.size(), dataList.size());
+    }
+
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         SelectorDO selectorDO = buildSelectorDO();
