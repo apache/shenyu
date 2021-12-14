@@ -98,8 +98,6 @@ public final class SyncDataServiceTest {
         given(this.pluginService.findById(pluginVO.getId())).willReturn(pluginVO);
         SelectorData selectorData = buildSelectorData();
         given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Collections.singletonList(selectorData));
-        RuleData ruleData = buildRuleData();
-        given(this.ruleService.findBySelectorId(pluginVO.getId())).willReturn(Collections.singletonList(ruleData));
 
         assertThat(syncDataService.syncPluginData(pluginVO.getId()), greaterThan(false));
     }
