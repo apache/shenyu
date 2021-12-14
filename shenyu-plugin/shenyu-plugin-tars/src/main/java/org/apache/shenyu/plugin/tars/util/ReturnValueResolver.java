@@ -59,7 +59,7 @@ public final class ReturnValueResolver {
     @SuppressWarnings("all")
     public static <T> Type getCallBackType(final Class<T> clazz) {
         return new TypeToken<CompletableFuture<T>>() { }
-                .where(new TypeParameter<T>() {}, TypeToken.of(WRAPPER_TYPE_MAP.getOrDefault(clazz, clazz)))
+                .where(new TypeParameter<T>() { }, TypeToken.of(WRAPPER_TYPE_MAP.getOrDefault(clazz, clazz)))
                 .getType();
     }
     

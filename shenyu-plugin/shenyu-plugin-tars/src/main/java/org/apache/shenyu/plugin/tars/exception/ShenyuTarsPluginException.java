@@ -24,15 +24,15 @@ import org.apache.shenyu.common.exception.ShenyuException;
  */
 public class ShenyuTarsPluginException extends ShenyuException {
     
-    public ShenyuTarsPluginException(Throwable e) {
+    public ShenyuTarsPluginException(final Throwable e) {
         super(e);
     }
     
-    public ShenyuTarsPluginException(String message) {
+    public ShenyuTarsPluginException(final String message) {
         super(message);
     }
     
-    public ShenyuTarsPluginException(String message, Throwable throwable) {
+    public ShenyuTarsPluginException(final String message, final Throwable throwable) {
         super(message, throwable);
     }
 }

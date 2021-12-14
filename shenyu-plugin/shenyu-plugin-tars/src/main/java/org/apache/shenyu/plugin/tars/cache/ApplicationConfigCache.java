@@ -138,10 +138,10 @@ public final class ApplicationConfigCache {
      * add paths cache to {@link #ctxPathCache}.<br>
      *
      * @param metaData metaData
-     * @throws ClassNotFoundException meta data
+     * @throws ClassNotFoundException meta data class definition not found
      * @see ReentrantLock
      */
-    private void tryLockedLoadMetaData(MetaData metaData) throws ClassNotFoundException {
+    private void tryLockedLoadMetaData(final MetaData metaData) throws ClassNotFoundException {
         assert LOCK != null;
         if (LOCK.tryLock()) {
             try {
@@ -162,13 +162,13 @@ public final class ApplicationConfigCache {
     }
     
     /**
-     * build target class definition
+     * build target class definition.
      *
      * @param metaData metadata
      * @return class definition
-     * @throws ClassNotFoundException ClassNotFoundException
+     * @throws ClassNotFoundException meta data class definition not found
      */
-    private Class<?> buildClassDefinition(MetaData metaData) throws ClassNotFoundException {
+    private Class<?> buildClassDefinition(final MetaData metaData) throws ClassNotFoundException {
         String clazzName = PrxInfoUtil.getPrxName(metaData);
         DynamicType.Builder<?> classDefinition = new ByteBuddy().makeInterface().name(clazzName);
         TarsParamExtInfo tarsParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), TarsParamExtInfo.class);
@@ -280,7 +280,7 @@ public final class ApplicationConfigCache {
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
         /**
          * The Instance.
          */
