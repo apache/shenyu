@@ -25,7 +25,7 @@ public final class LoadBalanceKeyHolder {
 
     private static final ThreadLocal<LoadBalanceKey> HOLDER = new NamedThreadLocal<>(LoadBalanceKey.class.getName());
 
-    private LoadBalanceKeyHolder () {
+    private LoadBalanceKeyHolder() {
     
     }
     
