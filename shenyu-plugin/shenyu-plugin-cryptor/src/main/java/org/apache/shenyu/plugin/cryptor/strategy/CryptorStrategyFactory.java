@@ -27,7 +27,7 @@ import java.util.Base64;
 /**
  * The type Cryptor strategy factory.
  */
-public class CryptorStrategyFactory {
+public final class CryptorStrategyFactory {
 
     public static final String DECRYPT = "decrypt";
 
@@ -35,7 +35,7 @@ public class CryptorStrategyFactory {
     
     private static final Logger LOG = LoggerFactory.getLogger(CryptorStrategyFactory.class);
     
-    private CryptorStrategyFactory () {
+    private CryptorStrategyFactory() {
     
     }
 
