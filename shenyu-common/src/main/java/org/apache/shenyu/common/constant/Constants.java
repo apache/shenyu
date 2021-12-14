@@ -468,19 +468,9 @@ public interface Constants {
     int CACHE_MAX_COUNT = 1000;
 
     /**
-     * the data format.
-     */
-    String DATA_FORMAT = "Format";
-
-    /**
      * the empty json.
      */
     String EMPTY_JSON = "{}";
-
-    /**
-     * the default xml root.
-     */
-    String DEFAULT_XML_ROOT = "shenyu";
 
     /**
      * http accept encoding gzip.

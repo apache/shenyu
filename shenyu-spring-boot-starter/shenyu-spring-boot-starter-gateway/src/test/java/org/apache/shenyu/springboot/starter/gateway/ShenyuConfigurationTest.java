@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.gateway;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
@@ -156,8 +155,6 @@ public class ShenyuConfigurationTest {
         applicationContextRunner.run(context -> {
             ShenyuResult<?> shenyuResult = context.getBean(ShenyuResult.class);
             assertEquals(CustomShenyuResultConfig.CustomShenyuResult.class, shenyuResult.getClass());
-            assertEquals(Boolean.TRUE, shenyuResult.getClass().isAnnotationPresent(JacksonXmlRootElement.class));
-            assertEquals("root", shenyuResult.getClass().getAnnotation(JacksonXmlRootElement.class).localName());
         });
     }
 
@@ -169,13 +166,7 @@ public class ShenyuConfigurationTest {
             return new CustomShenyuResult();
         }
 
-        @JacksonXmlRootElement(localName = "root")
-        static class CustomShenyuResult extends ShenyuResult<Object> {
-
-            @Override
-            public Object success(final int code, final String message, final Object object) {
-                return null;
-            }
+        static class CustomShenyuResult implements ShenyuResult<Object> {
 
             @Override
             public Object error(final int code, final String message, final Object object) {

@@ -51,9 +51,10 @@ public final class ShenyuResultWrapTest {
     @Test
     public void successTest() {
         Integer result = 0;
-        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.success(result, "success", new Object());
-        Assert.assertEquals(result, shenyuResult.getCode());
-        Assert.assertEquals("success", shenyuResult.getMessage());
+        final DefaultShenyuEntity success = new DefaultShenyuEntity(result, "success", null);
+        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.success(null, success);
+        Assert.assertEquals(shenyuResult.getCode(), result);
+        Assert.assertEquals(shenyuResult.getMessage(), "success");
     }
 
     /**
