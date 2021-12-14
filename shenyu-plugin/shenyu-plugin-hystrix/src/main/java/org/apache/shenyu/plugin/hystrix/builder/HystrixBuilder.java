@@ -35,7 +35,6 @@ import java.util.Objects;
 public final class HystrixBuilder {
     
     private HystrixBuilder() {
-    
     }
 
     /**

@@ -30,6 +30,5 @@ public final class GrpcAttributeUtils {
     public static final Attributes.Key<String> APP_NAME = Attributes.Key.create("appName");
     
     private GrpcAttributeUtils() {
-    
     }
 }

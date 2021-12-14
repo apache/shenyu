@@ -42,7 +42,6 @@ public final class BodyParamUtils {
     private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
     
     private BodyParamUtils() {
-    
     }
 
     /**

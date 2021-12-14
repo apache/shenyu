@@ -81,7 +81,6 @@ public final class PrxInfoUtil {
     }
     
     private PrxInfoUtil() {
-    
     }
 
     /**

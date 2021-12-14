@@ -40,7 +40,6 @@ public final class Resilience4JRegistryFactory {
     private static final CircuitBreakerRegistry CIRCUIT_BREAKER_REGISTRY = CircuitBreakerRegistry.ofDefaults();
     
     private Resilience4JRegistryFactory() {
-    
     }
 
     /**

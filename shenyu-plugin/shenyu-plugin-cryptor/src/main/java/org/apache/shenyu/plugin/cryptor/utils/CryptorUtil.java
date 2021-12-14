@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class CryptorUtil {
     
     private CryptorUtil() {
-    
     }
 
     /**

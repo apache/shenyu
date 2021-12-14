@@ -41,7 +41,6 @@ public final class WebFluxResultUtils {
     private static final Logger LOG = LoggerFactory.getLogger(WebFluxResultUtils.class);
     
     private WebFluxResultUtils() {
-    
     }
 
     /**

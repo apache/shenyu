@@ -60,7 +60,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener((RemovalListener<Object, ReferenceConfig<GenericService>>) notification -> {
                 ReferenceConfig<GenericService> config = notification.getValue();
-                if (config != null) {
+                if (Objects.nonNull(config)) {
                     try {
                         Field field = FieldUtils.getDeclaredField(config.getClass(), "ref", true);
                         field.set(config, null);

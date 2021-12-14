@@ -46,7 +46,6 @@ public final class ReturnValueResolver {
     }
     
     private ReturnValueResolver() {
-    
     }
     
     /**

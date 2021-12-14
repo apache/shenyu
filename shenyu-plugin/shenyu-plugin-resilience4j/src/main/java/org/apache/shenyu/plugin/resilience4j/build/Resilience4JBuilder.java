@@ -35,7 +35,6 @@ import java.time.Duration;
 public final class Resilience4JBuilder {
     
     private Resilience4JBuilder() {
-    
     }
 
     /**

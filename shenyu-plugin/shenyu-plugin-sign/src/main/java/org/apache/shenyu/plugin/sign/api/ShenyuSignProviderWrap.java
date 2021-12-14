@@ -27,7 +27,6 @@ import java.util.Map;
 public final class ShenyuSignProviderWrap {
     
     private ShenyuSignProviderWrap() {
-    
     }
     
     /**

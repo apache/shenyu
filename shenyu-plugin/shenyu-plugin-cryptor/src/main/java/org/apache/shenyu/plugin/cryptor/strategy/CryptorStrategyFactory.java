@@ -36,7 +36,6 @@ public final class CryptorStrategyFactory {
     private static final Logger LOG = LoggerFactory.getLogger(CryptorStrategyFactory.class);
     
     private CryptorStrategyFactory() {
-    
     }
 
     /**

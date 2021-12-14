@@ -27,7 +27,6 @@ import java.util.Optional;
 public final class RateLimiterAlgorithmFactory {
     
     private RateLimiterAlgorithmFactory() {
-    
     }
     
     /**

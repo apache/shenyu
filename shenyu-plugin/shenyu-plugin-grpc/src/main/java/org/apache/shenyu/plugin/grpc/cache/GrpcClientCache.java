@@ -42,7 +42,6 @@ public final class GrpcClientCache {
     }
     
     private GrpcClientCache() {
-    
     }
     
     /**
