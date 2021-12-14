@@ -61,7 +61,7 @@ public class TestMotanApplication {
     }
 
     @Bean(name = "registryConfig1")
-    public RegistryConfigBean registryConfig(RegistryProperties properties) {
+    public RegistryConfigBean registryConfig(final RegistryProperties properties) {
         RegistryConfigBean config = new RegistryConfigBean();
         config.setRegProtocol(properties.getProtocol());
         config.setAddress(properties.getAddress());

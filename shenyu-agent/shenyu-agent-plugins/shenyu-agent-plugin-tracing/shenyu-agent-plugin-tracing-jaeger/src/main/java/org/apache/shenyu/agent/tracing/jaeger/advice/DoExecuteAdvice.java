@@ -37,7 +37,6 @@ public class DoExecuteAdvice {
             @Advice.This final AbstractShenyuPlugin target) {
         String pluginName = target.named();
 
-        System.out.println("doExecute enter " + pluginName);
     }
 
     /**
@@ -52,6 +51,6 @@ public class DoExecuteAdvice {
             @Advice.Thrown final Throwable throwable,
             @Advice.AllArguments final Object[] args,
             @Advice.This final Object target) {
-        System.out.println("doExecute exit " + target.toString());
+
     }
 }

@@ -42,7 +42,7 @@ public class AgentInstaller {
      *
      * @param inst the instrumentation.
      */
-    public static void installBytebuddyAgent(final Instrumentation inst) throws Exception {
+    public static void installBytebuddyAgent(final Instrumentation inst) {
         // todo start trace exporter according to traceType
         String traceType = System.getProperty("shenyu.agent.trace", "jaeger");
         PluginAdviceDef pluginAdviceDef = ExtensionLoader.getExtensionLoader(PluginAdviceDef.class).getJoin(traceType);

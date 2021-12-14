@@ -35,7 +35,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
      */
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("hello, im extend plugin dataHandler" );
+        LOG.info("hello, im extend plugin dataHandler");
     }
 
     /**

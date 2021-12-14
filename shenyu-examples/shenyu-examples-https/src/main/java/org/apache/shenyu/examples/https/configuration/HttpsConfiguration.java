@@ -40,9 +40,9 @@ public class HttpsConfiguration {
      */
     @Bean
     public ConfigurableServletWebServerFactory servletContainer() {
-        TomcatServletWebServerFactory factory =  new TomcatServletWebServerFactory() {
+        TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory() {
             @Override
-            protected void postProcessContext(Context context) {
+            protected void postProcessContext(final Context context) {
                 SecurityConstraint securityConstraint = new SecurityConstraint();
                 securityConstraint.setUserConstraint("CONFIDENTIAL");
                 SecurityCollection collection = new SecurityCollection();

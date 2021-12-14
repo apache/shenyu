@@ -35,11 +35,10 @@ import org.springframework.stereotype.Service;
 public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {
     
     private static final Logger LOG = LoggerFactory.getLogger(EchoServiceImpl.class);
-    
-    
+
     @Override
     @ShenyuGrpcClient(path = "/echo", desc = "echo")
-    public void echo(EchoRequest request, StreamObserver<EchoResponse> responseObserver) {
+    public void echo(final EchoRequest request, final StreamObserver<EchoResponse> responseObserver) {
         LOG.info("Received: {}", request.getMessage());
         EchoResponse.Builder response = EchoResponse.newBuilder()
                 .setMessage("ReceivedHELLO")
