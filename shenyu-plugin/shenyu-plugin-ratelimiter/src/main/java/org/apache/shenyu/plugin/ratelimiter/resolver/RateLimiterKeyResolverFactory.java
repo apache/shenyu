@@ -22,7 +22,10 @@ import org.apache.shenyu.spi.ExtensionLoader;
 /**
  * The type rate limiter key resolver factory.
  */
-public class RateLimiterKeyResolverFactory {
+public final class RateLimiterKeyResolverFactory {
+    
+    private RateLimiterKeyResolverFactory() {
+    }
 
     /**
      * New instance rate limiter key resolver.

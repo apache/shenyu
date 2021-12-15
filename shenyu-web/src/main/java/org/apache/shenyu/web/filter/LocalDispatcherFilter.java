@@ -24,6 +24,8 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nonnull;
+
 /**
  * The type Local dispatcher filter.
  */
@@ -51,7 +53,8 @@ public class LocalDispatcherFilter implements WebFilter {
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     @Override
-    public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
+    @Nonnull
+    public Mono<Void> filter(@Nonnull final ServerWebExchange exchange, @Nonnull final WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
         if (PathMatchUtils.match(DISPATCHER_PATH, path)) {
             return dispatcherHandler.handle(exchange);

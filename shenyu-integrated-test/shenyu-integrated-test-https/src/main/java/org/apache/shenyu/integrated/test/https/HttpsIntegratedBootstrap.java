@@ -15,15 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.enums;
+package org.apache.shenyu.integrated.test.https;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * TraceTypes.
+ * The type Https integrated bootstrap.
  */
-public enum TraceTypes {
-    OPENTELEMETRY,
-    OPENTRACING,
-    SKYWALKING,
-    ZIPKIN,
-    JAEGER
+@SpringBootApplication
+public class HttpsIntegratedBootstrap {
+    
+    /**
+     * main method of App.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(HttpsIntegratedBootstrap.class);
+    }
 }

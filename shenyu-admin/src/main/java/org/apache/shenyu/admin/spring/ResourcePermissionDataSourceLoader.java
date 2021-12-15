@@ -17,29 +17,36 @@
 
 package org.apache.shenyu.admin.spring;
 
+import com.alibaba.nacos.common.utils.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.ResourceDTO;
+import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
+import org.apache.shenyu.admin.model.entity.ResourceDO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.ResourceService;
+import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.AdminResourceEnum;
+import org.apache.shenyu.common.utils.UUIDUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.stream.Collectors;
 
-import com.alibaba.nacos.common.utils.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.ResourceDTO;
-import org.apache.shenyu.admin.model.vo.ResourceVO;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.ResourceService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.AdminResourceEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.stereotype.Component;
-
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DESC;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DICTCODE;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DICTNAME;
+import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_TYPE;
 import static org.apache.shenyu.common.constant.AdminConstants.PLUGIN_RULE_ADD;
 import static org.apache.shenyu.common.constant.AdminConstants.PLUGIN_RULE_DELETE;
 import static org.apache.shenyu.common.constant.AdminConstants.PLUGIN_RULE_EDIT;
@@ -65,98 +72,103 @@ import static org.apache.shenyu.common.constant.AdminConstants.RESOURCE_PLUGIN_U
  * Admin Resource Permission Processor.
  */
 @Component
-public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner {
+public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ResourceAndPermissionDataSourceLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ResourcePermissionDataSourceLoader.class);
 
-    private static final List<String> ICONLIST = Arrays.asList("border-bottom", "stop", "redo", "highlight", "database",
+    private static final List<String> ICONS = Arrays.asList("border-bottom", "stop", "redo", "highlight", "database",
             "pause", "align-left", "camera", "pic-center", "pic-left", "retweet", "fire", "block", "thunderbolt", "safety", "key");
 
     private static final Integer ROUTE = 0;
 
     private static final Integer STATUS = 1;
 
-    private final Random rand = new Random();
+    private final Random rand = new SecureRandom();
 
     private final PluginService pluginService;
 
     private final ResourceService resourceService;
 
-    public ResourceAndPermissionDataSourceLoader(final PluginService pluginService, final ResourceService resourceService) {
+    private final ShenyuDictService shenyuDictService;
+
+    public ResourcePermissionDataSourceLoader(final PluginService pluginService,
+                                              final ResourceService resourceService,
+                                              final ShenyuDictService shenyuDictService) {
         this.pluginService = pluginService;
         this.resourceService = resourceService;
+        this.shenyuDictService = shenyuDictService;
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void run(final ApplicationArguments args) throws Exception {
-        init();
-    }
-
-    /**
-     * init resource table.
-     */
-    public void init() {
-        List<PluginData> pluginDataList = pluginService.listAll();
-        if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            pluginDataList.stream().filter(pluginData -> getResource(pluginData.getName())).collect(Collectors.toList())
-                    .forEach(item -> insertResource(item.getName(), Integer.parseInt(item.getId())));
-        } else {
-            LOG.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
+        ShenyuDictVO shenyuInitData = shenyuDictService
+                .findByDictCodeName(AdminConstants.DICT_TABLE_FLAG_DICTCODE,
+                        AdminConstants.DICT_TABLE_FLAG_DICTNAME);
+        String id = null;
+        if (Objects.nonNull(shenyuInitData)) {
+            if (Boolean.TRUE.toString().equals(shenyuInitData.getDictValue())) {
+                return;
+            }
+            // for reset (update)
+            id = shenyuInitData.getId();
         }
+        List<PluginData> pluginDataList = pluginService.listAllNotInResource();
+        if (CollectionUtils.isEmpty(pluginDataList)) {
+            LOG.info("All plugin are permissioned.");
+            return;
+        }
+        // fixme loop db call
+        pluginDataList.forEach(item -> insertResource(item.getName()));
+        // reset (create or update) status
+        resetTableDictStatus(id);
     }
-
-    /**
-     * get resource info by plugin title.
-     * @param pluginTitle plugin title
-     * @return {@link Boolean}
-     */
-    private Boolean getResource(final String pluginTitle) {
-        return Objects.isNull(resourceService.findByTitle(pluginTitle));
-    }
-
+    
     /**
      * insert Resource for pluginName.
      * @param pluginName plugin name
      */
-    private void insertResource(final String pluginName, final Integer sortId) {
-        Integer sort = 0;
-        ResourceDTO pluginMenuResourceDTO = ResourceDTO.builder()
+    private void insertResource(final String pluginName) {
+        ResourceDTO resource = ResourceDTO.builder()
                 .parentId(RESOURCE_PLUGIN_ID)
+                .id(UUIDUtils.getInstance().generateShortUuid())
                 .title(pluginName)
                 .name(pluginName)
                 .url(RESOURCE_PLUGIN_URL_PREFIX + pluginName)
                 .component(pluginName)
                 .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
-                .sort(sortId)
-                .icon(ICONLIST.get(rand.nextInt(ICONLIST.size())))
+                .sort(0)
+                .icon(ICONS.get(rand.nextInt(ICONS.size())))
                 .isLeaf(false)
                 .isRoute(ROUTE)
                 .perms(StringUtils.EMPTY)
                 .status(STATUS)
                 .build();
-        resourceService.createOrUpdate(pluginMenuResourceDTO);
-        ResourceVO resourceVO = resourceService.findByTitle(pluginName);
-        if (ObjectUtils.notEqual(resourceVO, null)) {
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SELECTOR_DELETE, pluginName, PLUGIN_TYPE_SELECTOR_DELETE, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_ADD, pluginName, PLUGIN_TYPE_RULE_ADD, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_QUERY, pluginName, PLUGIN_TYPE_RULE_QUERY, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_EDIT, pluginName, PLUGIN_TYPE_RULE_EDIT, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_RULE_DELETE, pluginName, PLUGIN_TYPE_RULE_DELETE, sort++);
-            insertPerms(resourceVO.getId(), PLUGIN_SYNCHRONIZE, pluginName, PLUGIN_TYPE_SYNCHRONIZE, sort);
-        }
+        resourceService.createResource(ResourceDO.buildResourceDO(resource));
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD);
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY);
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT);
+        insertPerms(resource.getId(), PLUGIN_SELECTOR_DELETE, pluginName, PLUGIN_TYPE_SELECTOR_DELETE);
+        insertPerms(resource.getId(), PLUGIN_RULE_ADD, pluginName, PLUGIN_TYPE_RULE_ADD);
+        insertPerms(resource.getId(), PLUGIN_RULE_QUERY, pluginName, PLUGIN_TYPE_RULE_QUERY);
+        insertPerms(resource.getId(), PLUGIN_RULE_EDIT, pluginName, PLUGIN_TYPE_RULE_EDIT);
+        insertPerms(resource.getId(), PLUGIN_RULE_DELETE, pluginName, PLUGIN_TYPE_RULE_DELETE);
+        insertPerms(resource.getId(), PLUGIN_SYNCHRONIZE, pluginName, PLUGIN_TYPE_SYNCHRONIZE);
     }
 
     /**
      * insert resource perms.
+     *
+     * @param parentId  parent id
      * @param title resource title
+     * @param pluginName plugin name
      * @param type resource type
      */
-    private void insertPerms(final String parentId, final String title, final String pluginName, final String type,
-            final Integer sort) {
-        if (StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(type)) {
+    private void insertPerms(final String parentId,
+                             final String title,
+                             final String pluginName,
+                             final String type) {
+        if (StringUtils.isNoneBlank(title, type)) {
             ResourceDTO resourceDTO = ResourceDTO.builder()
                     .parentId(parentId)
                     .name(StringUtils.EMPTY)
@@ -164,7 +176,7 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
                     .url(StringUtils.EMPTY)
                     .component(StringUtils.EMPTY)
                     .resourceType(AdminResourceEnum.THREE_MENU.getCode())
-                    .sort(sort)
+                    .sort(0)
                     .icon(StringUtils.EMPTY)
                     .isLeaf(true)
                     .isRoute(ROUTE)
@@ -173,5 +185,16 @@ public class ResourceAndPermissionDataSourceLoader implements ApplicationRunner 
                     .build();
             resourceService.createOrUpdate(resourceDTO);
         }
+    }
+
+    /**
+     * reset table dict status to 'true'.
+     * @param id dict id
+     */
+    private void resetTableDictStatus(final String id) {
+        shenyuDictService.createOrUpdate(new ShenyuDictDTO(
+                id, DICT_TABLE_FLAG_TYPE, DICT_TABLE_FLAG_DICTCODE,
+                DICT_TABLE_FLAG_DICTNAME, Boolean.TRUE.toString(),
+                DICT_TABLE_FLAG_DESC, 0, false));
     }
 }

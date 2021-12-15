@@ -15,14 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.exception;
+package org.apache.shenyu.plugin.tars.exception;
+
+import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
- * Agent exception.
+ * ShenyuTarsPluginException.
  */
-public final class AgentException extends RuntimeException {
+public class ShenyuTarsPluginException extends ShenyuException {
     
-    public AgentException(final String errorMessage, final Object... args) {
-        super(String.format(errorMessage, args));
+    public ShenyuTarsPluginException(final Throwable e) {
+        super(e);
+    }
+    
+    public ShenyuTarsPluginException(final String message) {
+        super(message);
+    }
+    
+    public ShenyuTarsPluginException(final String message, final Throwable throwable) {
+        super(message, throwable);
     }
 }

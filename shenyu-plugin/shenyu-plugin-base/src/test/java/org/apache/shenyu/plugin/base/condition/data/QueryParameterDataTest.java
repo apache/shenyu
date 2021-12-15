@@ -46,6 +46,6 @@ public final class QueryParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals(this.queryParameterData.builder("key", this.exchange), "value");
+        Assert.assertEquals("value", this.queryParameterData.builder("key", this.exchange));
     }
 }

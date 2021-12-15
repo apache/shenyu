@@ -36,6 +36,7 @@ public class DoExecuteAdvice {
             @Advice.AllArguments final Object[] args,
             @Advice.This final AbstractShenyuPlugin target) {
         String pluginName = target.named();
+
     }
 
     /**
@@ -50,5 +51,6 @@ public class DoExecuteAdvice {
             @Advice.Thrown final Throwable throwable,
             @Advice.AllArguments final Object[] args,
             @Advice.This final Object target) {
+
     }
 }

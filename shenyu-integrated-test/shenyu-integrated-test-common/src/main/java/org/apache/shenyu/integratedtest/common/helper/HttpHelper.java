@@ -17,22 +17,20 @@
 
 package org.apache.shenyu.integratedtest.common.helper;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.Objects;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-
 import com.google.gson.Gson;
-
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Http helper.
@@ -79,7 +77,11 @@ public class HttpHelper {
         Response response = client.newCall(request).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("postGateway({}) resp({})", path, respBody);
-        return GSON.fromJson(respBody, respType);
+        try {
+            return GSON.fromJson(respBody, respType);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
     }
 
     /**
@@ -115,7 +117,11 @@ public class HttpHelper {
         Response response = client.newCall(request).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("postGateway({}) resp({})", path, respBody);
-        return GSON.fromJson(respBody, respType);
+        try {
+            return GSON.fromJson(respBody, respType);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
     }
 
     /**

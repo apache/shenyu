@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.matcher;
+package org.apache.shenyu.agent.core.matcher;
 
 import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.type.TypeDescription;

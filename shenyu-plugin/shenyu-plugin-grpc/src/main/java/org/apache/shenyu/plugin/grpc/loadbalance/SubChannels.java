@@ -37,7 +37,6 @@ public final class SubChannels {
     private static final Attributes.Key<Ref<String>> STATSU_KEY = Attributes.Key.create("status");
     
     private SubChannels() {
-    
     }
     
     /**

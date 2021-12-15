@@ -87,7 +87,7 @@ public final class ContextPathPluginTest {
         CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingRuleHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingRuleHandle));
         contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
-        Assert.assertEquals(shenyuContext.getRealUrl(), "/order/findById");
+        Assert.assertEquals("/order/findById", shenyuContext.getRealUrl());
     }
 
     /**

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.response.strategy;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
@@ -53,7 +54,7 @@ public class RPCMessageWriterTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setApplicationContext(applicationContext);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());

@@ -15,25 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
-
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.spi.Join;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+package org.apache.shenyu.agent.core.exception;
 
 /**
- * SpEL predicate judge.
+ * The Shenyu AgentBootstrapFailException.
  */
-@Join
-public class SpELPredicateJudge implements PredicateJudge {
-    
-    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
-    
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        Expression expression = EXPRESSION_PARSER.parseExpression(conditionData.getParamValue().replace('#' + conditionData.getParamName(), realData));
-        return expression.getValue(Boolean.class);
+public class AgentBootstrapFailException extends Exception {
+
+    public AgentBootstrapFailException(final String s) {
+        super(s);
     }
 }

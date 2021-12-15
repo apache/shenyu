@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * json util.
  */
-public class JsonUtil {
+public final class JsonUtil {
+    
+    private JsonUtil() {
+    }
 
     /**
      * parser JSON.
@@ -87,7 +91,7 @@ public class JsonUtil {
                                               final AtomicInteger initDeep,
                                               final String value,
                                               final List<String> deepKey) {
-        if (deepKey.size() == 0) {
+        if (CollectionUtils.isEmpty(deepKey)) {
             return jsonElement;
         }
         if (jsonElement.isJsonPrimitive()) {

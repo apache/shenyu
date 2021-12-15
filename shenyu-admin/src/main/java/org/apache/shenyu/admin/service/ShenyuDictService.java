@@ -53,6 +53,15 @@ public interface ShenyuDictService {
     ShenyuDictVO findById(String id);
 
     /**
+     * find shenyu dict by dict code and dict name.
+     *
+     * @param dictCode shenyu dict code.
+     * @param dictName shenyu dict name.
+     * @return {@linkplain ShenyuDictVO}
+     */
+    ShenyuDictVO findByDictCodeName(String dictCode, String dictName);
+
+    /**
      * find shenyu dict list by dict type.
      *
      * @param type the shenyu dict type.

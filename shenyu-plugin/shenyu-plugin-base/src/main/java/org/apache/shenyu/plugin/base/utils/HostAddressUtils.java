@@ -27,7 +27,6 @@ import org.springframework.web.server.ServerWebExchange;
 public final class HostAddressUtils {
     
     private HostAddressUtils() {
-    
     }
     
     /**

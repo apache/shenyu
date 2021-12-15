@@ -51,12 +51,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -196,18 +197,14 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-        List<PluginDO> plugins = new ArrayList<>(ids.size());
-        for (String id : ids) {
-            PluginDO pluginDO = pluginMapper.selectById(id);
-            if (Objects.isNull(pluginDO)) {
-                return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
-            }
-            pluginDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-            pluginDO.setEnabled(enabled);
-            pluginMapper.updateEnable(pluginDO);
-            plugins.add(pluginDO);
-        }
 
+        List<PluginDO> plugins = Optional.ofNullable(pluginMapper.selectByIds(ids)).orElseGet(ArrayList::new);
+        Set<String> idSet = new HashSet<>(Optional.ofNullable(ids).orElseGet(ArrayList::new));
+        if (idSet.size() > plugins.size()) {
+            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+        }
+        plugins.forEach(pluginDO -> pluginDO.setEnabled(enabled));
+        pluginMapper.updateEnableByIdSet(idSet, enabled);
         // publish change event.
         if (CollectionUtils.isNotEmpty(plugins)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
@@ -236,8 +233,8 @@ public class PluginServiceImpl implements PluginService {
     @Override
     @Pageable
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
-        return PageResultUtils.result(pluginQuery.getPageParameter(),
-            () -> pluginMapper.selectByQuery(pluginQuery).stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
+        return PageResultUtils.result(pluginQuery.getPageParameter(), () -> pluginMapper.selectByQuery(pluginQuery)
+                .stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
     }
 
     /**
@@ -248,6 +245,13 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public List<PluginData> listAll() {
         return pluginMapper.selectAll().stream()
+                .map(PluginTransfer.INSTANCE::mapToData)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PluginData> listAllNotInResource() {
+        return pluginMapper.listAllNotInResource().stream()
                 .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }
@@ -330,13 +334,13 @@ public class PluginServiceImpl implements PluginService {
     /**
      * insert Plugin Selector Button Resource.
      *
-     * @param parentId parent menu id
-     * @param pluginName plugin name
-     * @param configGroupEnum {@linkplain ConfigGroupEnum}
+     * @param parentId               parent menu id
+     * @param pluginName             plugin name
+     * @param configGroupEnum        {@linkplain ConfigGroupEnum}
      * @param adminPluginOperateEnum {@linkplain AdminPluginOperateEnum}
      */
     private void insertPluginButtonResource(final String parentId, final String pluginName,
-                                           final ConfigGroupEnum configGroupEnum, final AdminPluginOperateEnum adminPluginOperateEnum) {
+                                            final ConfigGroupEnum configGroupEnum, final AdminPluginOperateEnum adminPluginOperateEnum) {
         ResourceDO resourceDO = ResourceDO.buildResourceDO(ResourceDTO.builder()
                 .parentId(parentId)
                 .name(StringUtils.EMPTY).url(StringUtils.EMPTY).component(StringUtils.EMPTY)

@@ -15,20 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
-
-import org.apache.shenyu.common.dto.ConditionData;
-import groovy.util.Eval;
-import org.apache.shenyu.spi.Join;
+package org.apache.shenyu.protocol.mqtt.agent;
 
 /**
- * Groovy predicate judge.
+ * Information Agency.
  */
-@Join
-public class GroovyPredicateJudge implements PredicateJudge {
-    
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return (Boolean) Eval.me(conditionData.getParamName(), realData, conditionData.getParamValue());
-    }
+public interface MessageAgent {
+
 }
