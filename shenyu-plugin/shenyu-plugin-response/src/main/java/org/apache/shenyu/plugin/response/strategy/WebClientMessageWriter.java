@@ -30,7 +30,6 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -57,7 +56,7 @@ public class WebClientMessageWriter implements MessageWriter {
             response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
             clientResponse = ResponseUtils.buildClientResponse(exchange.getResponse(), clientResponse.body(BodyExtractors.toDataBuffers()));
             return clientResponse.bodyToMono(byte[].class)
-                    .flatMap(originData -> WebFluxResultUtils.result(exchange, new String(originData, StandardCharsets.UTF_8)))
+                    .flatMap(originData -> WebFluxResultUtils.result(exchange, originData))
                     .doOnCancel(() -> clean(exchange));
         }));
     }
