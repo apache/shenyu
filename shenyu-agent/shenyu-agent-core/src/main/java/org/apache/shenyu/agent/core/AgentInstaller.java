@@ -41,6 +41,7 @@ public class AgentInstaller {
      * start to install agent.
      *
      * @param inst the instrumentation.
+     * @param classLoader custom classloader
      */
     public static void installBytebuddyAgent(final Instrumentation inst, final ClassLoader classLoader) {
         // todo start trace exporter according to traceType
