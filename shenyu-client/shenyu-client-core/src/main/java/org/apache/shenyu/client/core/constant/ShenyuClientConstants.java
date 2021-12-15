@@ -66,4 +66,9 @@ public final class ShenyuClientConstants {
      * the constant of SERVICE_NAME.
      */
     public static final String SERVICE_NAME = "SERVICE_NAME";
+
+    /**
+     * the constant of IS_MVC.
+     */
+    public static final String IS_MVC = "isMvc";
 }

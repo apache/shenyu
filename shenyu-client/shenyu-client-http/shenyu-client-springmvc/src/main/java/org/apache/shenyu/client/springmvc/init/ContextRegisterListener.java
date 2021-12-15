@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -31,9 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
-
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
@@ -49,7 +48,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private String contextPath;
 
     private final String appName;
-    
+
     private final String protocol;
 
     private final String host;
@@ -59,18 +58,24 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private final Boolean isFull;
 
     /**
+     * if mvc project, wait two seconds for metadata to register first, so that selector info is created in db, and uri can register success.
+     */
+    private final Boolean isMvc;
+
+    /**
      * Instantiates a new Context register listener.
      *
      * @param clientConfig the client config
      */
     public ContextRegisterListener(final PropertiesConfig clientConfig) {
-        Properties props = clientConfig.getProps();
+        final Properties props = clientConfig.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
-        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        this.isMvc = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_MVC, Boolean.FALSE.toString()));
+        final String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.contextPath = contextPath;
         if (isFull) {
             if (StringUtils.isBlank(contextPath)) {
-                String errorMsg = "http register param must config the contextPath";
+                final String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
@@ -90,11 +95,21 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (isFull) {
             publisher.publishEvent(buildMetaDataDTO());
         }
+        // if mvc project, wait two seconds for metadata to register first,
+        // so that selector info is created in db, and uri can register success
+        if (isMvc) {
+            try {
+                LOG.info("onApplicationEvent spring mvc project, sleep 2s wait metadata register first.");
+                Thread.sleep(2000L);
+            } catch (final InterruptedException e) {
+                LOG.error("Thread.sleep error.", e);
+            }
+        }
         publisher.publishEvent(buildURIRegisterDTO());
     }
 
     private URIRegisterDTO buildURIRegisterDTO() {
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+        final String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(appName)
@@ -106,15 +121,15 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
-        String contextPath = this.contextPath;
-        String appName = this.appName;
+        final String contextPath = this.contextPath;
+        final String appName = this.appName;
         return MetaDataRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
-                .path(contextPath)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .enabled(true)
-                .ruleName(contextPath)
-                .build();
+            .contextPath(contextPath)
+            .appName(appName)
+            .path(contextPath)
+            .rpcType(RpcTypeEnum.HTTP.getName())
+            .enabled(true)
+            .ruleName(contextPath)
+            .build();
     }
 }
