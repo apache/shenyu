@@ -42,7 +42,7 @@ public class AgentInstaller {
      *
      * @param inst the instrumentation.
      */
-    public static void installBytebuddyAgent(final Instrumentation inst) {
+    public static void installBytebuddyAgent(final Instrumentation inst, final ClassLoader classLoader) {
         // todo start trace exporter according to traceType
         String traceType = System.getProperty("shenyu.agent.trace", "jaeger");
         PluginAdviceDef pluginAdviceDef = ExtensionLoader.getExtensionLoader(PluginAdviceDef.class).getJoin(traceType);
@@ -51,22 +51,15 @@ public class AgentInstaller {
                 .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                 .with(AgentBuilder.DescriptionStrategy.Default.POOL_ONLY);
 
-//        agent.type(hasParentType(ElementMatchers.named(ABSTRACT_PLUGIN)))
-//                .transform((builder, typeDescription, classLoader, module) -> builder
-//                        .method(ElementMatchers.named("doExecute"))
-//                        .intercept(Advice.to(DoExecuteAdvice.class)))
-//                .installOn(inst);
-        agent.type(hasParentType(ElementMatchers.named(ABSTRACT_PLUGIN)))
-                .transform(new AgentBuilder.Transformer.ForAdvice()
-                        .include(Thread.currentThread().getContextClassLoader())
-                        .advice(ElementMatchers.isMethod().and(ElementMatchers.named("doExecute")), pluginAdviceDef.getDoExecuteAdvice()));
         agent = agent.type(hasParentType(ElementMatchers.named(ABSTRACT_PLUGIN)))
                 .transform(new AgentBuilder.Transformer.ForAdvice()
-                        .include(Thread.currentThread().getContextClassLoader())
-                        .advice(ElementMatchers.isMethod().and(ElementMatchers.named("execute")), pluginAdviceDef.getExecuteAdvice()));
+                        .include(classLoader)
+                        .with(AgentBuilder.LocationStrategy.NoOp.INSTANCE)
+                        .advice(ElementMatchers.isMethod().and(ElementMatchers.named("execute")), pluginAdviceDef.getExecuteAdvice())
+                        .advice(ElementMatchers.isMethod().and(ElementMatchers.named("doExecute")), pluginAdviceDef.getDoExecuteAdvice()));
         agent = agent.type(ElementMatchers.named(WEB_HANDLER))
                 .transform(new AgentBuilder.Transformer.ForAdvice()
-                        .include(Thread.currentThread().getContextClassLoader())
+                        .include(classLoader)
                         .advice(ElementMatchers.isMethod().and(ElementMatchers.named("handle")), pluginAdviceDef.getHandlerAdvice()));
         agent.installOn(inst);
     }
