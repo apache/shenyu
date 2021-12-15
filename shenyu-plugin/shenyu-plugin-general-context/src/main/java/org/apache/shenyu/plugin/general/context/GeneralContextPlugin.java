@@ -52,6 +52,9 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
                 return;
             }
             v.forEach(each -> {
+                if (StringUtils.isBlank(each.getGeneralContextType()) || StringUtils.isBlank(each.getGeneralContextKey())){
+                    return;
+                }
                 switch (each.getGeneralContextType()) {
                     case Constants.ADD_GENERAL_CONTEXT_TYPE:
                         generalContextMapWithRpcType.put(each.getGeneralContextKey(), each.getGeneralContextValue());
