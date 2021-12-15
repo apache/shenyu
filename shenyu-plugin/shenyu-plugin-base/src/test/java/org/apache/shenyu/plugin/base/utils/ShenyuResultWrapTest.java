@@ -64,7 +64,7 @@ public final class ShenyuResultWrapTest {
     public void errorTest() {
         Integer result = 1;
         DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.error(result, "error", new Object());
-        Assert.assertEquals(shenyuResult.getCode(), result);
-        Assert.assertEquals(shenyuResult.getMessage(), "error");
+        Assert.assertEquals(result, shenyuResult.getCode());
+        Assert.assertEquals("error", shenyuResult.getMessage());
     }
 }

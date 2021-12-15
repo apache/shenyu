@@ -27,7 +27,10 @@ import java.util.Objects;
 /**
  * Predicate judge factory.
  */
-public class PredicateJudgeFactory {
+public final class PredicateJudgeFactory {
+    
+    private PredicateJudgeFactory() {
+    }
     
     /**
      * New instance predicate judge.

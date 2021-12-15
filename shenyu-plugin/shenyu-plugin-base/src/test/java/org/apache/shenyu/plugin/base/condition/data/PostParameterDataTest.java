@@ -53,7 +53,7 @@ public final class PostParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals(this.postParameterData.builder("httpMethod", this.exchange), "post");
-        Assert.assertEquals(this.postParameterData.builder("rpcType", this.exchange), "http");
+        Assert.assertEquals("post", this.postParameterData.builder("httpMethod", this.exchange));
+        Assert.assertEquals("http", this.postParameterData.builder("rpcType", this.exchange));
     }
 }

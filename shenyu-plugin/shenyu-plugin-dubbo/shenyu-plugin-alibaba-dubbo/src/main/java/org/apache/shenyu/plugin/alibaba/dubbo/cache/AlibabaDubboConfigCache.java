@@ -26,6 +26,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
@@ -47,26 +48,24 @@ import java.util.concurrent.ExecutionException;
  * The type Application config cache.
  */
 public final class AlibabaDubboConfigCache extends DubboConfigCache {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(AlibabaDubboConfigCache.class);
-
+    
     private ApplicationConfig applicationConfig;
-
+    
     private RegistryConfig registryConfig;
-
+    
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener((RemovalListener<Object, ReferenceConfig<GenericService>>) notification -> {
                 ReferenceConfig<GenericService> config = notification.getValue();
-                if (config != null) {
+                if (Objects.nonNull(config)) {
                     try {
-                        Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("ref");
-                        field.setAccessible(true);
+                        Field field = FieldUtils.getDeclaredField(config.getClass(), "ref", true);
+                        field.set(config, null);
                         // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
-                        field.set(config, null);
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                    } catch (NullPointerException | IllegalAccessException e) {
                         LOG.error("modify ref have exception", e);
                     }
                 }
@@ -78,10 +77,10 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
                     return new ReferenceConfig<>();
                 }
             });
-
+    
     private AlibabaDubboConfigCache() {
     }
-
+    
     /**
      * Gets instance.
      *
@@ -90,7 +89,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
     public static AlibabaDubboConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-
+    
     /**
      * Init.
      *
@@ -110,7 +109,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
             registryConfig = registryConfigTemp;
         }
     }
-
+    
     private boolean needUpdateRegistryConfig(final DubboRegisterConfig dubboRegisterConfig) {
         if (Objects.isNull(registryConfig)) {
             return true;
@@ -119,7 +118,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
                 || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress())
                 || !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol());
     }
-
+    
     /**
      * Init ref reference config.
      *
@@ -137,7 +136,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
         }
         return build(metaData);
     }
-
+    
     /**
      * Build reference config.
      *
@@ -157,11 +156,11 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
         reference.setAsync(true);
         reference.setCheck(false);
         reference.setLoadbalance("gray");
-
+        
         Map<String, String> parameters = new HashMap<>(2);
         parameters.put("dispatcher", "direct");
         reference.setParameters(parameters);
-
+        
         String rpcExt = metaData.getRpcExt();
         DubboParam dubboParam = this.parserToDubboParam(rpcExt);
         if (Objects.nonNull(dubboParam)) {
@@ -189,7 +188,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
         }
         return reference;
     }
-
+    
     /**
      * Get reference config.
      *
@@ -203,7 +202,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-
+    
     /**
      * Invalidate.
      *
@@ -212,21 +211,25 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
     public void invalidate(final String path) {
         cache.invalidate(path);
     }
-
+    
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-
+    
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
         /**
          * The Instance.
          */
         static final AlibabaDubboConfigCache INSTANCE = new AlibabaDubboConfigCache();
+        
+        private ApplicationConfigCacheInstance() {
+        
+        }
     }
 }

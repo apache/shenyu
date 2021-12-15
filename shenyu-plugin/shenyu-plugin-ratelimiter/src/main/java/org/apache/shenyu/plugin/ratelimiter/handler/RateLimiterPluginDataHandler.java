@@ -62,7 +62,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             //init redis
             RateLimiterConfig rateLimiterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RateLimiterConfig.class);
             //spring data redisTemplate

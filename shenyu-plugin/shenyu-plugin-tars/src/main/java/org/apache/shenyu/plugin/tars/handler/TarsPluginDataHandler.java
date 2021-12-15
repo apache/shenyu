@@ -29,16 +29,17 @@ import java.util.Objects;
  * The type tars plugin data handler.
  */
 public class TarsPluginDataHandler implements PluginDataHandler {
-
+    
     @Override
     public void handlerPlugin(final PluginData pluginData) {
+        pluginData.setName(pluginData.getName() + " tested");
     }
-
+    
     @Override
     public String pluginNamed() {
         return PluginEnum.TARS.getName();
     }
-
+    
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData.getName())) {
@@ -46,7 +47,7 @@ public class TarsPluginDataHandler implements PluginDataHandler {
         }
         ApplicationConfigCache.getInstance().initPrxClass(selectorData);
     }
-
+    
     @Override
     public void removeSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData.getName())) {

@@ -45,7 +45,6 @@ public final class ResponseUtils {
     private static final String CHUNKED = "chunked";
     
     private ResponseUtils() {
-    
     }
     
     /**

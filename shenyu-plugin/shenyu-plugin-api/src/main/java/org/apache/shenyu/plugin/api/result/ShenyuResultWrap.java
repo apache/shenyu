@@ -25,6 +25,9 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public final class ShenyuResultWrap {
     
+    private ShenyuResultWrap() {
+    }
+    
     /**
      * Success object.
      *

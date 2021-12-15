@@ -45,9 +45,8 @@ public final class ParameterDataFactoryTest {
 
     @Test
     public void testNewInstance() {
-
-        @SuppressWarnings("rawtypes")
-        Map<String, Class> parameterInstance = new HashMap<>();
+        
+        Map<String, Class<?>> parameterInstance = new HashMap<>();
         parameterInstance.put("header", HeaderParameterData.class);
         parameterInstance.put("cookie", CookieParameterData.class);
         parameterInstance.put("ip", IpParameterData.class);
@@ -66,7 +65,7 @@ public final class ParameterDataFactoryTest {
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .header("shenyu", "shenyuHeader")
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("header", "shenyu", exchange), "shenyuHeader");
+        Assert.assertEquals("shenyuHeader", ParameterDataFactory.builderData("header", "shenyu", exchange));
     }
 
     @Test
@@ -75,7 +74,7 @@ public final class ParameterDataFactoryTest {
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .cookie(new HttpCookie("cookie-name", "cookie-value"))
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("cookie", "cookie-name", exchange), "cookie-value");
+        Assert.assertEquals("cookie-value", ParameterDataFactory.builderData("cookie", "cookie-name", exchange));
     }
 
     @Test
@@ -89,7 +88,7 @@ public final class ParameterDataFactoryTest {
                 .build());
         when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
 
-        Assert.assertEquals(ParameterDataFactory.builderData("host", null, exchange), "localhost");
+        Assert.assertEquals("localhost", ParameterDataFactory.builderData("host", null, exchange));
     }
 
     @Test
@@ -103,7 +102,7 @@ public final class ParameterDataFactoryTest {
                 .build());
         when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
 
-        Assert.assertEquals(ParameterDataFactory.builderData("ip", null, exchange), "127.0.0.1");
+        Assert.assertEquals("127.0.0.1", ParameterDataFactory.builderData("ip", null, exchange));
     }
 
     @Test
@@ -111,7 +110,7 @@ public final class ParameterDataFactoryTest {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/uri/path")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("uri", null, exchange), "/uri/path");
+        Assert.assertEquals("/uri/path", ParameterDataFactory.builderData("uri", null, exchange));
     }
 
     @Test
@@ -120,7 +119,7 @@ public final class ParameterDataFactoryTest {
                 .queryParam("key", "value")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("query", "key", exchange), "value");
+        Assert.assertEquals("value", ParameterDataFactory.builderData("query", "key", exchange));
     }
 
     @Test
@@ -133,8 +132,8 @@ public final class ParameterDataFactoryTest {
         context.setHttpMethod(HttpMethodEnum.POST.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
 
-        Assert.assertEquals(ParameterDataFactory.builderData("post", "httpMethod", exchange), "post");
-        Assert.assertEquals(ParameterDataFactory.builderData("post", "rpcType", exchange), "http");
+        Assert.assertEquals("post", ParameterDataFactory.builderData("post", "httpMethod", exchange));
+        Assert.assertEquals("http", ParameterDataFactory.builderData("post", "rpcType", exchange));
     }
 
     @Test
@@ -143,6 +142,6 @@ public final class ParameterDataFactoryTest {
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
 
-        Assert.assertEquals(ParameterDataFactory.builderData("req_method", null, exchange), "GET");
+        Assert.assertEquals("GET", ParameterDataFactory.builderData("req_method", null, exchange));
     }
 }

@@ -34,11 +34,14 @@ import java.util.Objects;
  * The type Shenyu result utils.
  */
 public final class WebFluxResultUtils {
-
+    
     /**
      * result utils log.
      */
     private static final Logger LOG = LoggerFactory.getLogger(WebFluxResultUtils.class);
+    
+    private WebFluxResultUtils() {
+    }
 
     /**
      * Response result.
