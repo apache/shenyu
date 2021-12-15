@@ -71,9 +71,10 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer deleteShenyuDicts(final List<String> ids) {
+
         int affectedRows = 0;
-        for (String id : ids) {
-            affectedRows += shenyuDictMapper.delete(id);
+        if (CollectionUtils.isNotEmpty(ids)) {
+            affectedRows = shenyuDictMapper.deleteByIdList(ids);
         }
         return affectedRows;
     }

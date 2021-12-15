@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -91,9 +92,27 @@ public final class ShenyuDictServiceTest {
 
     @Test
     public void testDeleteShenyuDicts() {
-        given(this.shenyuDictMapper.delete(eq("123"))).willReturn(1);
-        int count = shenyuDictService.deleteShenyuDicts(Collections.singletonList("123"));
+
+        List idList = Collections.singletonList("123");
+        given(shenyuDictMapper.deleteByIdList(idList)).willReturn(1);
+        int count = shenyuDictService.deleteShenyuDicts(idList);
         assertThat(count, greaterThan(0));
+    }
+
+    private ShenyuDictDO buildSaveShenyuDictDO() {
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        String id = UUIDUtils.getInstance().generateShortUuid();
+        return ShenyuDictDO.builder()
+                .id(id)
+                .sort(1)
+                .desc("test")
+                .dictCode("t_dict_" + Math.random())
+                .dictName("t_d_v")
+                .enabled(false)
+                .type("rule")
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 
     @Test
