@@ -25,7 +25,7 @@ import org.apache.shenyu.spi.Join;
  * Exclude predicate judge.
  */
 @Join
-public class ExcludeOperatorJudge implements PredicateJudge {
+public class ExcludePredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
