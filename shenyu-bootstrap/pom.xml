@@ -167,6 +167,14 @@
         </dependency>
         <!--shenyu cryptor end-->
 
+        <!--shenyu general context plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-general-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu general context plugin end-->
+
         <!--shenyu websocket plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
