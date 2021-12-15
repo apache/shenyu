@@ -32,7 +32,10 @@ import java.time.Duration;
 /**
  * Resilience4j builder.
  */
-public class Resilience4JBuilder {
+public final class Resilience4JBuilder {
+    
+    private Resilience4JBuilder() {
+    }
 
     /**
      * build.

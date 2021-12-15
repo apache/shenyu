@@ -50,7 +50,7 @@ public interface Operator {
      * @return mono
      */
     default Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
-        if (outputMessage.getCache()) {
+        if (Boolean.TRUE.equals(outputMessage.getCache())) {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
         return Mono.error(throwable);

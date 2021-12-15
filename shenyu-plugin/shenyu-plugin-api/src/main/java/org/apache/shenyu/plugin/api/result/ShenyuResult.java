@@ -17,26 +17,53 @@
 
 package org.apache.shenyu.plugin.api.result;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ObjectTypeUtils;
+import org.springframework.http.MediaType;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * The interface shenyu result.
  */
-public abstract class ShenyuResult<T> extends ConcurrentHashMap<String, Object> {
+public interface ShenyuResult<T> {
 
     /**
-     * Success t.
+     * The response result.
      *
-     * @param code    the code
-     * @param message the message
-     * @param object  the object
-     * @return the t
+     * @param exchange the exchange
+     * @param formatted the formatted object
+     * @return the result object
      */
-    public abstract T success(int code, String message, Object object);
+    default Object result(ServerWebExchange exchange, Object formatted) {
+        return formatted;
+    }
+
+    /**
+     * format the origin, default is json format.
+     *
+     * @param exchange the exchange
+     * @param origin the origin
+     * @return format origin
+     */
+    default Object format(ServerWebExchange exchange, Object origin) {
+        // basic data
+        if (ObjectTypeUtils.isBasicType(origin)) {
+            return origin;
+        }
+        // error result or rpc origin result.
+        return JsonUtils.toJson(origin);
+    }
+
+    /**
+     * the response context type, default is application/json.
+     *
+     * @param exchange the exchange
+     * @param formatted the formatted data that is origin data or byte[] convert string
+     * @return the context type
+     */
+    default MediaType contentType(ServerWebExchange exchange, Object formatted) {
+        return MediaType.APPLICATION_JSON;
+    }
 
     /**
      * Error t.
@@ -46,22 +73,5 @@ public abstract class ShenyuResult<T> extends ConcurrentHashMap<String, Object> 
      * @param object  the object
      * @return the t
      */
-    public abstract T error(int code, String message, Object object);
-
-    /**
-     * put all data and skip the null data.
-     *
-     * @param m the putting data
-     */
-    @Override
-    public void putAll(final Map<? extends String, ?> m) {
-        Optional.ofNullable(m).ifPresent(map -> {
-            final Object[] value = {new AtomicReference<>()};
-            map.keySet().stream().filter(Objects::nonNull).forEach(key -> {
-                if (Objects.nonNull(value[0] = m.get(key))) {
-                    put(key, value[0]);
-                }
-            });
-        });
-    }
+    T error(int code, String message, Object object);
 }

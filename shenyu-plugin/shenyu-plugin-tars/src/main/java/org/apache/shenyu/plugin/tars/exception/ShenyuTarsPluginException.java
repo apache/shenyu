@@ -15,20 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
+package org.apache.shenyu.plugin.tars.exception;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.utils.PathMatchUtils;
-import org.apache.shenyu.spi.Join;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
- * Exclude predicate judge.
+ * ShenyuTarsPluginException.
  */
-@Join
-public class ExcludeOperatorJudge implements PredicateJudge {
-
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return !PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
+public class ShenyuTarsPluginException extends ShenyuException {
+    
+    public ShenyuTarsPluginException(final Throwable e) {
+        super(e);
+    }
+    
+    public ShenyuTarsPluginException(final String message) {
+        super(message);
+    }
+    
+    public ShenyuTarsPluginException(final String message, final Throwable throwable) {
+        super(message, throwable);
     }
 }

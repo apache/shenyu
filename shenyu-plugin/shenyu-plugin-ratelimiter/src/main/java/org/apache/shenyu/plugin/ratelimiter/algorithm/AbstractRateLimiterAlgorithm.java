@@ -36,7 +36,7 @@ public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorit
     private final RedisScript<List<Long>> script;
     
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public AbstractRateLimiterAlgorithm(final String scriptName) {
+    protected AbstractRateLimiterAlgorithm(final String scriptName) {
         DefaultRedisScript redisScript = new DefaultRedisScript<>();
         String scriptPath = Constants.SCRIPT_PATH + scriptName;
         redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));

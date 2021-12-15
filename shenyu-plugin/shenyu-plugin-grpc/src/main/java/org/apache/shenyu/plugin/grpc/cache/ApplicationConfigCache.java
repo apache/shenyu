@@ -56,7 +56,6 @@ public final class ApplicationConfigCache {
     private final Map<String, Consumer<Object>> listener = new ConcurrentHashMap<>();
     
     private ApplicationConfigCache() {
-    
     }
     
     /**

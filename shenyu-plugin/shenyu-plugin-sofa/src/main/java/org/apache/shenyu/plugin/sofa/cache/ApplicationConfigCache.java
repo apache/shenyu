@@ -78,7 +78,6 @@ public final class ApplicationConfigCache {
             });
     
     private ApplicationConfigCache() {
-    
     }
     
     /**

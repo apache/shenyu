@@ -53,7 +53,7 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
             DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
             if (Objects.isNull(dubboRegisterConfig)) {
@@ -75,7 +75,7 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
         }
         List<DubboUpstream> graySelectorHandle = new ArrayList<>();
         for (DubboUpstream each : dubboUpstreams) {
-            if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && each.isGray()) {
+            if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && Boolean.TRUE.equals(each.isGray())) {
                 graySelectorHandle.add(each);
             }
         }

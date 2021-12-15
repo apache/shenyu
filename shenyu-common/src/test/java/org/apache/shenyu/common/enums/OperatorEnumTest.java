@@ -17,14 +17,13 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test Cases for OperatorEnum.
@@ -54,29 +53,5 @@ public final class OperatorEnumTest {
         assertEquals(OperatorEnum.EQ, OperatorEnum.getOperatorEnumByAlias("="));
         assertEquals(OperatorEnum.REGEX, OperatorEnum.getOperatorEnumByAlias("regex"));
         assertEquals(OperatorEnum.CONTAINS, OperatorEnum.getOperatorEnumByAlias("contains"));
-    }
-
-    /**
-     * test getOperatorEnumByAlias method with GT exception.
-     */
-    @Test(expected = ShenyuException.class)
-    public void testAcquireByNameInvalidWithGTException() {
-        OperatorEnum.getOperatorEnumByAlias(">");
-    }
-
-    /**
-     * test getOperatorEnumByAlias method with LT exception.
-     */
-    @Test(expected = ShenyuException.class)
-    public void testAcquireByNameInvalidWithLTException() {
-        OperatorEnum.getOperatorEnumByAlias("<");
-    }
-
-    /**
-     * test getOperatorEnumByAlias method with misspelling exception.
-     */
-    @Test(expected = ShenyuException.class)
-    public void testAcquireByNameInvalidWithMisspellingException() {
-        OperatorEnum.getOperatorEnumByAlias("nike");
     }
 }

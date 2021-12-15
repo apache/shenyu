@@ -15,27 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
+package org.apache.shenyu.plugin.base.condition.judge;
 
-import org.apache.shenyu.spi.ExtensionLoader;
-
-import java.util.Optional;
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.spi.Join;
 
 /**
- * The type Rate limiter algorithm factory.
+ * Exclude predicate judge.
  */
-public final class RateLimiterAlgorithmFactory {
-    
-    private RateLimiterAlgorithmFactory() {
-    }
-    
-    /**
-     * New instance rate limiter algorithm.
-     *
-     * @param name the name
-     * @return the rate limiter algorithm
-     */
-    public static RateLimiterAlgorithm<?> newInstance(final String name) {
-        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterAlgorithm.class).getJoin(name)).orElseGet(TokenBucketRateLimiterAlgorithm::new);
+@Join
+public class ExcludePredicateJudge implements PredicateJudge {
+
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return !PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
     }
 }

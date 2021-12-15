@@ -51,7 +51,7 @@ public final class MetaDataCacheTest {
     public void testMetaDataCache() {
         assertNull(metaDataCache.obtain("/test"));
         metaDataCache.cache(this.metaData);
-        assertEquals(metaDataCache.obtain("/home").getPath(), "/home");
+        assertEquals("/home", metaDataCache.obtain("/home").getPath());
         metaDataCache.remove(this.metaData);
         assertNull(metaDataCache.obtain("/home"));
     }

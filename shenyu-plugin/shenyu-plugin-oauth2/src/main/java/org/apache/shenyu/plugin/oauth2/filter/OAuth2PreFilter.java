@@ -66,7 +66,7 @@ public class OAuth2PreFilter implements WebFilter {
     }
 
     private void processPathMatchers(final ServerWebExchange serverWebExchange) {
-        if ((Boolean) serverWebExchange.getAttributes().get("enable")) {
+        if (Boolean.TRUE.equals(serverWebExchange.getAttributes().get("enable"))) {
             this.buildPathMatchers(serverWebExchange);
         } else {
             this.refreshPathMatchers();
