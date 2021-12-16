@@ -53,8 +53,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test cases for RoleController.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class RoleControllerTest {
+
+    private static final String SUPER = "super";
 
     private MockMvc mockMvc;
 
@@ -118,6 +120,14 @@ public class RoleControllerTest {
             .content(GsonUtils.getInstance().toJson(roleDTO)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+            .andReturn();
+        roleDTO.setRoleName(SUPER);
+        given(roleService.createOrUpdate(roleDTO)).willReturn(1);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/role")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(GsonUtils.getInstance().toJson(roleDTO)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ROLE_CREATE_ERROR)))
             .andReturn();
     }
 
