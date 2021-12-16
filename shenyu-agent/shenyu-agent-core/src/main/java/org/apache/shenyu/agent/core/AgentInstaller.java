@@ -18,15 +18,15 @@
 package org.apache.shenyu.agent.core;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.matcher.ElementMatcher;
-import net.bytebuddy.matcher.ElementMatchers;
-import org.apache.shenyu.agent.core.matcher.HasParentTypeMatcher;
-import org.apache.shenyu.agent.core.matcher.SafeErasureMatcher;
+import org.apache.shenyu.agent.core.bytebuddy.TransformListener;
 import org.apache.shenyu.agent.spi.PluginAdviceDef;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 import java.lang.instrument.Instrumentation;
+
+import static net.bytebuddy.matcher.ElementMatchers.isMethod;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static org.apache.shenyu.agent.core.bytebuddy.HasParentTypeMatcher.hasParentType;
 
 /**
  * AgentInstaller.
@@ -50,30 +50,19 @@ public class AgentInstaller {
 
         AgentBuilder agent = new AgentBuilder.Default()
                 .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                .with(AgentBuilder.DescriptionStrategy.Default.POOL_ONLY);
+                .with(AgentBuilder.DescriptionStrategy.Default.POOL_ONLY)
+                .with(new TransformListener());
 
-        agent = agent.type(hasParentType(ElementMatchers.named(ABSTRACT_PLUGIN)))
+        agent = agent.type(hasParentType(named(ABSTRACT_PLUGIN)))
                 .transform(new AgentBuilder.Transformer.ForAdvice()
                         .include(classLoader)
                         .with(AgentBuilder.LocationStrategy.NoOp.INSTANCE)
-                        .advice(ElementMatchers.isMethod().and(ElementMatchers.named("execute")), pluginAdviceDef.getExecuteAdvice())
-                        .advice(ElementMatchers.isMethod().and(ElementMatchers.named("doExecute")), pluginAdviceDef.getDoExecuteAdvice()));
-        agent = agent.type(ElementMatchers.named(WEB_HANDLER))
+                        .advice(isMethod().and(named("execute")), pluginAdviceDef.getExecuteAdvice())
+                        .advice(isMethod().and(named("doExecute")), pluginAdviceDef.getDoExecuteAdvice()));
+        agent = agent.type(named(WEB_HANDLER))
                 .transform(new AgentBuilder.Transformer.ForAdvice()
                         .include(classLoader)
-                        .advice(ElementMatchers.isMethod().and(ElementMatchers.named("handle")), pluginAdviceDef.getHandlerAdvice()));
+                        .advice(isMethod().and(named("handle")), pluginAdviceDef.getHandlerAdvice()));
         agent.installOn(inst);
     }
-
-    /**
-     * has parent class matcher.
-     *
-     * @param matcher the Matcher.
-     * @return ElementMatcher.Junction.
-     */
-    public static ElementMatcher.Junction<TypeDescription> hasParentType(
-            final ElementMatcher<TypeDescription> matcher) {
-        return new HasParentTypeMatcher(new SafeErasureMatcher<>(matcher), false);
-    }
-
 }
