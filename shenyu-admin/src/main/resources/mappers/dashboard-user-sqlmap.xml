@@ -60,9 +60,7 @@
         <include refid="Base_Column_List"/>
         from dashboard_user
         <where>
-            <if test="userName != null">
-                user_name = #{userName,jdbcType=VARCHAR}
-            </if>
+            <include refid="likeUser"/>
         </where>
     </select>
 
@@ -71,11 +69,16 @@
         select count(1)
         from dashboard_user
         <where>
-            <if test="userName != null">
-                user_name = #{userName,jdbcType=VARCHAR}
-            </if>
+            <include refid="likeUser"/>
         </where>
     </select>
+
+    <sql id="likeUser">
+        <if test="userName != null and userName != ''">
+            <bind name="nameLike" value="('%' + userName + '%')"/>
+            user_name like #{nameLike,jdbcType=VARCHAR}
+        </if>
+    </sql>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
         insert into dashboard_user (id, date_created, date_updated,
@@ -170,5 +173,14 @@
     <delete id="delete" parameterType="java.lang.String">
         delete from dashboard_user
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIdSet">
+        delete from dashboard_user
+        where id in
+        <foreach collection="idSet" index="index" item="id"
+                 open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>

@@ -363,15 +363,6 @@ The text of each license is the standard Apache 2.0 license.
     zookeeper-jute 3.5.6: https://github.com/apache/zookeeper, Apache 2.0
 
 ========================================================================
-Apache 2.0 licenses
-========================================================================
-
-The following components are provided under the Apache License. See project link for details.
-The text of each license is also included at licenses/LICENSE-[project].txt.
-
-    groovy 2.5.14-indy: https://github.com/apache/groovy, Apache 2.0
-    
-========================================================================
 BSD licenses
 ========================================================================
 

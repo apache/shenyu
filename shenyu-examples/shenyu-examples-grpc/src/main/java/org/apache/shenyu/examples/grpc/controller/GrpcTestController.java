@@ -35,6 +35,11 @@ public class GrpcTestController {
 
     private final Channel channel = channel();
 
+    /**
+     * test grpc.
+     *
+     * @return hello world
+     */
     @GetMapping("/hello")
     public String hello() {
         EchoServiceGrpc.EchoServiceBlockingStub stub = EchoServiceGrpc.newBlockingStub(channel);

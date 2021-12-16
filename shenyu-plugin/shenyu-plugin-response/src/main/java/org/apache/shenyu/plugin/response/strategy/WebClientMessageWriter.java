@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyExtractors;
@@ -53,7 +54,10 @@ public class WebClientMessageWriter implements MessageWriter {
             }
             response.getCookies().putAll(clientResponse.cookies());
             response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
-            return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers())).doOnCancel(() -> clean(exchange));
+            clientResponse = ResponseUtils.buildClientResponse(exchange.getResponse(), clientResponse.body(BodyExtractors.toDataBuffers()));
+            return clientResponse.bodyToMono(byte[].class)
+                    .flatMap(originData -> WebFluxResultUtils.result(exchange, originData))
+                    .doOnCancel(() -> clean(exchange));
         }));
     }
 

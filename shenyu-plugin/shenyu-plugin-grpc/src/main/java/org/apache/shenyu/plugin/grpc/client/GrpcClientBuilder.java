@@ -38,7 +38,6 @@ public final class GrpcClientBuilder {
     }
     
     private GrpcClientBuilder() {
-    
     }
     
     /**

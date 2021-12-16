@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The shenyu dict mapper.
@@ -39,12 +40,28 @@ public interface ShenyuDictMapper {
     ShenyuDictDO selectById(@Param("id") String id);
 
     /**
+     * Select shenyu dict by dict code and dict name.
+     *
+     * @param dictCode the dict code.
+     * @param dictName the dict name.
+     * @return the shenyu dict do.
+     */
+    ShenyuDictDO selectByDictCodeAndDictName(@Param("dictCode") String dictCode, @Param("dictName") String dictName);
+
+    /**
      * find shenyu dict do list by dict type.
      *
      * @param type the dict type.
      * @return the list
      */
     List<ShenyuDictDO> findByType(@Param("type") String type);
+
+    /**
+     * find shenyu dict do list by a set of types.
+     * @param typeSet a set of types
+     * @return the list
+     */
+    List<ShenyuDictDO> findByTypeBatch(@Param("typeSet") Set<String> typeSet);
 
     /**
      * insert shenyu dict.
@@ -101,6 +118,13 @@ public interface ShenyuDictMapper {
      * @return affected rows
      */
     int delete(String id);
+
+    /**
+     * delete by ids.
+     * @param idList a list of ids
+     * @return the count of deleted
+     */
+    int deleteByIdList(@Param("idList") List<String> idList);
 
     /**
      * batch enabled.

@@ -199,6 +199,11 @@ public enum ShenyuResultEnum {
     CANNOT_FIND_HEALTHY_UPSTREAM_URL(-119, "Can not find healthy upstream url, please check your configuration!"),
 
     /**
+     * the xml data is invalid.
+     */
+    INVALID_XML_DATA(-120, "the xml data is invalid."),
+
+    /**
      * Request Header Fields Too Large.
      */
     REQUEST_HEADER_TOO_LARGE(431, "Request Header Fields Too Large"),

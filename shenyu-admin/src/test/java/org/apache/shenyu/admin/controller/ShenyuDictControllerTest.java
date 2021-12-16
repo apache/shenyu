@@ -40,6 +40,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
@@ -144,10 +145,17 @@ public final class ShenyuDictControllerTest {
 
     @Test
     public void testDeleteShenyuDicts() throws Exception {
-        given(this.shenyuDictService.deleteShenyuDicts(Collections.singletonList("123"))).willReturn(1);
+
+        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
+        shenyuDictDTO.setId(UUID.randomUUID().toString());
+        shenyuDictDTO.setType("mode");
+        shenyuDictDTO.setDictName("test");
+        shenyuDictDTO.setDictValue("v");
+        shenyuDictDTO.setSort(1);
+        given(this.shenyuDictService.deleteShenyuDicts(Collections.singletonList(shenyuDictDTO.getId()))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/shenyu-dict/batch")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("[\"123\"]"))
+                .content("[\"" + shenyuDictDTO.getId() + "\"]"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();

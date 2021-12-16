@@ -18,10 +18,8 @@
 equals=org.apache.shenyu.plugin.base.condition.judge.EqualsPredicateJudge
 
 contains=org.apache.shenyu.plugin.base.condition.judge.ContainsPredicateJudge
-Groovy=org.apache.shenyu.plugin.base.condition.judge.GroovyPredicateJudge
 match=org.apache.shenyu.plugin.base.condition.judge.MatchPredicateJudge
 regex=org.apache.shenyu.plugin.base.condition.judge.RegexPredicateJudge
-SpEL=org.apache.shenyu.plugin.base.condition.judge.SpELPredicateJudge
 TimeAfter=org.apache.shenyu.plugin.base.condition.judge.TimerAfterPredicateJudge
 TimeBefore=org.apache.shenyu.plugin.base.condition.judge.TimerBeforePredicateJudge
-exclude=org.apache.shenyu.plugin.base.condition.judge.ExcludeOperatorJudge
+exclude=org.apache.shenyu.plugin.base.condition.judge.ExcludePredicateJudge

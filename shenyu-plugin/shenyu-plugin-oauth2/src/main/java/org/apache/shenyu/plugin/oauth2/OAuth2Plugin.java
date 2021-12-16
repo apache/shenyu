@@ -48,9 +48,9 @@ public class OAuth2Plugin implements ShenyuPlugin {
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         Boolean skip = Objects.requireNonNull(exchange.<Boolean>getAttribute("skip"));
-        return skip ? chain.execute(exchange)
+        return Boolean.TRUE.equals(skip) ? chain.execute(exchange)
             : exchange.getPrincipal()
-            .filter(t -> t instanceof OAuth2AuthenticationToken)
+            .filter(OAuth2AuthenticationToken.class::isInstance)
             .cast(OAuth2AuthenticationToken.class)
             .flatMap(token ->
                 authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())

@@ -37,9 +37,12 @@ import java.util.regex.Pattern;
 /**
  * Common rpc parameter builder utils.
  */
-public class BodyParamUtils {
+public final class BodyParamUtils {
 
     private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
+    
+    private BodyParamUtils() {
+    }
 
     /**
      * buildBodyParams.

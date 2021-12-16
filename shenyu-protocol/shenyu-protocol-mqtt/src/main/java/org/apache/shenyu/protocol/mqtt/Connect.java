@@ -23,6 +23,7 @@ import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 
 /**
@@ -49,14 +50,13 @@ public class Connect extends MessageType {
         }
 
         // record connect
-        ChannelRepository.getInstance().add(ctx.channel(), clientId);
-
+        Singleton.INST.get(ChannelRepository.class).add(ctx.channel(), clientId);
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()
                 .returnCode(MqttConnectReturnCode.CONNECTION_ACCEPTED)
                 .sessionPresent(true)
                 .build();
         ctx.writeAndFlush(ackMessage);
-
+        setConnected(true);
     }
 
     private MqttConnAckMessage wrong(final MqttConnectReturnCode returnCode) {

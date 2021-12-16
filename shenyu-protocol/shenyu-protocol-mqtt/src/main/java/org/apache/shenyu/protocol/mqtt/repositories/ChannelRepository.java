@@ -20,6 +20,7 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -31,7 +32,7 @@ public class ChannelRepository implements BaseRepository<Channel, String> {
 
     @Override
     public void add(final Channel channel, final String clientId) {
-        CHANNEL_FACTORY.put(channel, clientId);
+        CompletableFuture.runAsync(() -> CHANNEL_FACTORY.put(channel, clientId));
     }
 
     @Override
@@ -44,11 +45,4 @@ public class ChannelRepository implements BaseRepository<Channel, String> {
         return CHANNEL_FACTORY.get(channel);
     }
 
-    /**
-     * get instance.
-     * @return ChannelRepository
-     */
-    public static ChannelRepository getInstance() {
-        return new ChannelRepository();
-    }
 }

@@ -19,9 +19,17 @@ package org.apache.shenyu.register.client.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.LogUtils;
@@ -34,15 +42,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.Objects;
-
-import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
-import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
-
 @Join
 public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
 
@@ -54,10 +53,21 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     private NewService service;
 
+    public ConsulClientRegisterRepository() { }
+
+    public ConsulClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
+
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         final Properties properties = config.getProps();
-        consulClient = new ConsulClient(config.getServerLists());
+        final String serverList = config.getServerLists();
+        if (StringUtils.isBlank(serverList)) {
+            throw new ShenyuException("serverList can not be null.");
+        }
+        final String[] addresses = splitAndCheckAddress(serverList);
+        consulClient = new ConsulClient(addresses[0], Integer.parseInt(addresses[1]));
         service = new NewService();
         service.setMeta(new HashMap<>());
 
@@ -65,7 +75,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         service.setName(normalizeForDns(appName));
         final String instanceId = properties.getProperty("instanceId");
         service.setId(normalizeForDns(instanceId));
-        final Boolean preferAgentAddress = Boolean.valueOf(properties.getProperty("preferAgentAddress", "false"));
+        final boolean preferAgentAddress = Boolean.parseBoolean(properties.getProperty("preferAgentAddress", "false"));
         if (!preferAgentAddress) {
             service.setAddress(properties.getProperty("hostName"));
         }
@@ -79,6 +89,14 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (StringUtils.isNotBlank(port)) {
             service.setPort(Integer.parseInt(port));
         }
+    }
+
+    private String[] splitAndCheckAddress(final String serverList) {
+        final String[] addresses = serverList.split(":");
+        if (addresses.length != 2) {
+            throw new ShenyuException("serverList formatter is not incorrect.");
+        }
+        return addresses;
     }
 
     private String normalizeForDns(final String s) {

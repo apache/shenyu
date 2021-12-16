@@ -28,10 +28,11 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The tars return value type resolver.
  */
-public class ReturnValueResolver {
-
+public final class ReturnValueResolver {
+    
+    @SuppressWarnings("rawtypes")
     private static final Map<Class, Class> WRAPPER_TYPE_MAP;
-
+    
     static {
         WRAPPER_TYPE_MAP = new HashMap<>();
         WRAPPER_TYPE_MAP.put(int.class, Integer.class);
@@ -43,7 +44,10 @@ public class ReturnValueResolver {
         WRAPPER_TYPE_MAP.put(long.class, Long.class);
         WRAPPER_TYPE_MAP.put(short.class, Short.class);
     }
-
+    
+    private ReturnValueResolver() {
+    }
+    
     /**
      * Get return type.
      *
@@ -51,10 +55,11 @@ public class ReturnValueResolver {
      * @param clazz clazz
      * @return the type
      */
+    @SuppressWarnings("all")
     public static <T> Type getCallBackType(final Class<T> clazz) {
         return new TypeToken<CompletableFuture<T>>() { }
                 .where(new TypeParameter<T>() { }, TypeToken.of(WRAPPER_TYPE_MAP.getOrDefault(clazz, clazz)))
                 .getType();
     }
-
+    
 }

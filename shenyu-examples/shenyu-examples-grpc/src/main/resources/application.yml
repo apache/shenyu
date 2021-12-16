@@ -16,7 +16,7 @@
 server:
   port: 55222
   servlet:
-    context-path: /
+    context-path: /grpc
   address: 0.0.0.0
 
 spring:
@@ -34,8 +34,8 @@ shenyu:
       props:
         contextPath: /grpc
         appName: grpc
-        ipAndPort: 127.0.0.1:8080
-        port: 8080
+        ipAndPort: 127.0.0.1:38080
+        port: 38080
 
 logging:
   level:

@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.ShenyuException;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,17 +55,7 @@ public enum OperatorEnum {
      * Contains operator enum.
      */
     CONTAINS("contains", true),
-
-    /**
-     * SpEL enum.
-     */
-    SPEL("SpEL", true),
-
-    /**
-     * Groovy enum.
-     */
-    GROOVY("Groovy", true),
-
+    
     /**
      * Time before operator enum.
      */
@@ -133,6 +121,6 @@ public enum OperatorEnum {
     public static OperatorEnum getOperatorEnumByAlias(final String alias) {
         return Arrays.stream(OperatorEnum.values())
                 .filter(e -> e.getAlias().equals(alias) && e.support).findFirst()
-                .orElseThrow(() -> new ShenyuException(String.format(" this  operator can not support %s ", alias)));
+                .orElse(null);
     }
 }

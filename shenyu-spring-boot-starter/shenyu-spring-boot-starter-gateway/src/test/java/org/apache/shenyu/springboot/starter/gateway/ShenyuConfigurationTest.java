@@ -17,34 +17,27 @@
 
 package org.apache.shenyu.springboot.starter.gateway;
 
-import io.netty.channel.ChannelOption;
-import io.netty.channel.WriteBufferWaterMark;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.springboot.starter.netty.NettyTcpProperties;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
-import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.WebFilter;
-import reactor.netty.http.server.HttpServer;
-import reactor.netty.resources.LoopResources;
 
-import java.util.Optional;
-
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -157,51 +150,27 @@ public class ShenyuConfigurationTest {
         });
     }
 
+    @Test
+    public void testClass() {
+        applicationContextRunner.run(context -> {
+            ShenyuResult<?> shenyuResult = context.getBean(ShenyuResult.class);
+            assertEquals(CustomShenyuResultConfig.CustomShenyuResult.class, shenyuResult.getClass());
+        });
+    }
+
     @Configuration
-    static class CustomNettyConfig {
-        /**
-         * Netty reactive web server factory netty reactive web server factory.
-         *
-         * @param properties the properties
-         * @return the netty reactive web server factory
-         */
+    static class CustomShenyuResultConfig {
+
         @Bean
-        public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpProperties> properties) {
-            NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
-            NettyTcpProperties nettyTcpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyTcpProperties());
-            webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpProperties));
-            return webServerFactory;
+        public ShenyuResult<?> shenyuResult() {
+            return new CustomShenyuResult();
         }
 
-        private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
-
-            private final NettyTcpProperties nettyTcpProperties;
-
-            /**
-             * Instantiates a new Event loop netty customizer.
-             *
-             * @param nettyTcpProperties the netty tcp config
-             */
-            EventLoopNettyCustomizer(final NettyTcpProperties nettyTcpProperties) {
-                this.nettyTcpProperties = nettyTcpProperties;
-            }
+        static class CustomShenyuResult implements ShenyuResult<Object> {
 
             @Override
-            public HttpServer apply(final HttpServer httpServer) {
-                return httpServer
-                        .tcpConfiguration(tcpServer -> tcpServer
-                                .runOn(LoopResources.create("shenyu-netty", nettyTcpProperties.getSelectCount(), nettyTcpProperties.getWorkerCount(), true))
-                                .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpProperties.getSoBacklog())
-                                .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpProperties.isSoReuseaddr())
-                                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpProperties.getConnectTimeoutMillis())
-                                .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpProperties.getWriteBufferLowWaterMark(),
-                                        nettyTcpProperties.getWriteBufferHighWaterMark()))
-                                .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpProperties.getWriteSpinCount())
-                                .option(ChannelOption.AUTO_READ, nettyTcpProperties.isAutoRead())
-                                .option(ChannelOption.TCP_NODELAY, nettyTcpProperties.isTcpNodelay())
-                                .option(ChannelOption.SO_KEEPALIVE, nettyTcpProperties.isSoKeepalive())
-                                .option(ChannelOption.SO_REUSEADDR, nettyTcpProperties.isSoReuseaddr())
-                                .option(ChannelOption.SO_LINGER, nettyTcpProperties.getSoLinger()));
+            public Object error(final int code, final String message, final Object object) {
+                return null;
             }
         }
     }

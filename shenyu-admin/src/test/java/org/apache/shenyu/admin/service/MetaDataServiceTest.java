@@ -45,8 +45,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -133,10 +136,10 @@ public final class MetaDataServiceTest {
     @Test
     public void testEnabled() {
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
-        when(metaDataMapper.selectById(anyString()))
-                .thenReturn(MetaDataDO.builder().build())
-                .thenReturn(null)
-                .thenReturn(MetaDataDO.builder().build());
+        Set<String> idSet = new HashSet<>(ids);
+        when(metaDataMapper.selectByIdSet(idSet))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
         String msg = metaDataService.enabled(ids, true);
         assertEquals(AdminConstants.ID_NOT_EXIST, msg);
 
@@ -334,11 +337,10 @@ public final class MetaDataServiceTest {
      * Cases where get a not empty id list.
      */
     private void testDeleteForNotEmptyIds() {
-        List<String> ids = Lists.newArrayList("id1", "id2", "id3");
-        when(metaDataMapper.selectById("id1")).thenReturn(MetaDataDO.builder().build());
-        when(metaDataMapper.selectById("id3")).thenReturn(MetaDataDO.builder().build());
-        when(metaDataMapper.delete("id1")).thenReturn(1);
-        when(metaDataMapper.delete("id3")).thenReturn(1);
+        List<String> ids = Lists.newArrayList("id1", "id1", "id3");
+        Set<String> idSet = new HashSet<>(ids);
+        when(metaDataMapper.selectByIdSet(idSet)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+        when(metaDataMapper.deleteByIdSet(idSet)).thenReturn(2);
         int count = metaDataService.delete(ids);
         Assert.assertEquals("The count of delete should be 2.",
                 2, count);

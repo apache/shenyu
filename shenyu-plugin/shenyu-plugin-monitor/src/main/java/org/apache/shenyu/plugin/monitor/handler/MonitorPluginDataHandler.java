@@ -34,7 +34,7 @@ public class MonitorPluginDataHandler implements PluginDataHandler {
     
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             MetricsConfig monitorConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MetricsConfig.class);
             if (!checkConfig(monitorConfig)) {
                 return;

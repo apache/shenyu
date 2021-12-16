@@ -59,8 +59,6 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
     private final SynchronizationContext syncContext;
 
-    private final List<ShenyuServiceInstance> keep = null;
-
     private List<ShenyuServiceInstance> instanceList = Lists.newArrayList();
 
     private final SharedResourceHolder.Resource<Executor> executorResource;
@@ -146,7 +144,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
                 ShenyuNameResolver.this.syncContext.execute(() -> {
                     ShenyuNameResolver.this.resolving = false;
                     final List<ShenyuServiceInstance> newInstanceList = resultContainer.get();
-                    if (newInstanceList != keep && ShenyuNameResolver.this.listener != null) {
+                    if (Objects.nonNull(newInstanceList) && ShenyuNameResolver.this.listener != null) {
                         ShenyuNameResolver.this.instanceList = newInstanceList;
                     }
                 });

@@ -21,10 +21,13 @@ import org.springframework.core.NamedThreadLocal;
 
 import java.util.Objects;
 
-public class LoadBalanceKeyHolder {
+public final class LoadBalanceKeyHolder {
 
     private static final ThreadLocal<LoadBalanceKey> HOLDER = new NamedThreadLocal<>(LoadBalanceKey.class.getName());
 
+    private LoadBalanceKeyHolder() {
+    }
+    
     /**
      * Reset the LoadBalanceKey for the current thread.
      */

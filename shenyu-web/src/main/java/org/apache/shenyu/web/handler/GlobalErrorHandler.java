@@ -17,92 +17,57 @@
 
 package org.apache.shenyu.web.handler;
 
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.ThreadShare;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.web.ErrorProperties;
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
-import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
-import org.springframework.boot.web.reactive.error.ErrorAttributes;
-import org.springframework.context.ApplicationContext;
+import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.reactive.function.server.RequestPredicates;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Map;
-import java.util.Objects;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
  * GlobalErrorHandler.
  */
-public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
+public class GlobalErrorHandler implements ErrorWebExceptionHandler {
+
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(GlobalErrorHandler.class);
 
     /**
-     * the http status holder.
+     * handler error.
+     *
+     * @param exchange the exchange
+     * @param throwable the throwable
+     * @return error result
      */
-    private static final ThreadShare<Integer> HTTP_STATUS_HOLDER = new ThreadShare<>();
+    @Override
+    @NonNull
+    public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
+        LOG.error(exchange.getLogPrefix() + formatError(throwable, exchange.getRequest()));
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        if (throwable instanceof ResponseStatusException) {
+            httpStatus = ((ResponseStatusException) throwable).getStatus();
+        }
+        exchange.getResponse().setStatusCode(httpStatus);
+        Object error = ShenyuResultWrap.error(httpStatus.value(), httpStatus.getReasonPhrase(), throwable.getMessage());
+        return WebFluxResultUtils.result(exchange, error);
+    }
 
     /**
-     * Instantiates a new Global error handler.
+     * log error info.
      *
-     * @param errorAttributes    the error attributes
-     * @param resourceProperties the resource properties
-     * @param errorProperties    the error properties
-     * @param applicationContext the application context
+     * @param throwable the throwable
+     * @param request the request
      */
-    public GlobalErrorHandler(final ErrorAttributes errorAttributes,
-                              final ResourceProperties resourceProperties,
-                              final ErrorProperties errorProperties,
-                              final ApplicationContext applicationContext) {
-        super(errorAttributes, resourceProperties, errorProperties, applicationContext);
-    }
-
-    @Override
-    protected Map<String, Object> getErrorAttributes(final ServerRequest request, final boolean includeStackTrace) {
-        logError(request);
-        return response(request);
-    }
-
-    @Override
-    protected RouterFunction<ServerResponse> getRoutingFunction(final ErrorAttributes errorAttributes) {
-        return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse);
-    }
-
-    @Override
-    protected int getHttpStatus(final Map<String, Object> errorAttributes) {
-        Integer status = HTTP_STATUS_HOLDER.getRemove();
-        return Objects.nonNull(status) ? status : HttpStatus.INTERNAL_SERVER_ERROR.value();
-    }
-
-    private Map<String, Object> response(final ServerRequest request) {
-        Throwable ex = getError(request);
-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        if (ex instanceof ResponseStatusException) {
-            httpStatus = ((ResponseStatusException) ex).getStatus();
-        }
-        HTTP_STATUS_HOLDER.set(httpStatus.value());
-        Object error = ShenyuResultWrap.error(httpStatus.value(), httpStatus.getReasonPhrase(), ex.getMessage());
-        return JsonUtils.toMap(error);
-    }
-
-    private void logError(final ServerRequest request) {
-        Throwable ex = getError(request);
-        LOG.error(request.exchange().getLogPrefix() + formatError(ex, request));
-    }
-
-    private String formatError(final Throwable ex, final ServerRequest request) {
-        String reason = ex.getClass().getSimpleName() + ": " + ex.getMessage();
-        return "Resolved [" + reason + "] for HTTP " + request.methodName() + " " + request.path();
+    private String formatError(final Throwable throwable, final ServerHttpRequest request) {
+        String reason = throwable.getClass().getSimpleName() + ": " + throwable.getMessage();
+        return "Resolved [" + reason + "] for HTTP " + request.getMethod() + " " + request.getPath();
     }
 }
 

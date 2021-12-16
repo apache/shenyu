@@ -76,26 +76,26 @@ public class URIPluginTest {
         when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost:8090?queryParam=Hello,World");
-        /**
-         * test realUrl
-         */
+        assertEquals("http://localhost:8090?queryParam=Hello,World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        // test https
+        when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("https://localhost");
+        when(shenyuContext.getRealUrl()).thenReturn("/test");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        assertEquals("https://localhost/test?queryParam=Hello,World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        // test realUrl
         when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost");
         when(shenyuContext.getRealUrl()).thenReturn("/test");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost/test?queryParam=Hello,World");
-        /**
-         * test rewrite
-         */
+        assertEquals("http://localhost/test?queryParam=Hello,World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        // test rewrite
         when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090");
         exchange.getAttributes().put(Constants.REWRITE_URI, "/rewrite");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost:8090/rewrite?queryParam=Hello,World");
-        /**
-         * test contains % in the row query
-         */
+        assertEquals("http://localhost:8090/rewrite?queryParam=Hello,World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        // test contains % in the row query
         request = MockServerHttpRequest
                 .get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
@@ -107,7 +107,7 @@ public class URIPluginTest {
         when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/query");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals(exchange.getAttributes().get(Constants.HTTP_URI).toString(), "http://localhost:8090/query?queryParam=Hello,%20World");
+        assertEquals("http://localhost:8090/query?queryParam=Hello,%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
     }
 
     @Test
@@ -126,5 +126,7 @@ public class URIPluginTest {
         Assert.assertFalse(uriPlugin.skip(exchange));
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
         Assert.assertFalse(uriPlugin.skip(exchange));
+        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
+        Assert.assertTrue(uriPlugin.skip(exchange));
     }
 }

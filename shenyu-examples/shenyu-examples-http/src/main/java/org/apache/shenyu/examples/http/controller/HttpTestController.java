@@ -65,7 +65,7 @@ public class HttpTestController {
      */
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
-        return buildUser(userId,"hello world");
+        return buildUser(userId, "hello world");
     }
 
     /**
@@ -78,7 +78,7 @@ public class HttpTestController {
      */
     @GetMapping("/findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
-        return buildUser(keyword,"hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
+        return buildUser(keyword, "hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
     }
 
     /**
@@ -102,7 +102,7 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
-        return buildUser(id,"hello world");
+        return buildUser(id, "hello world");
     }
 
 
@@ -229,7 +229,7 @@ public class HttpTestController {
         return Mono.just(GsonUtils.getInstance().toJson(body));
     }
 
-    private UserDTO buildUser(String id, String name) {
+    private UserDTO buildUser(final String id, final String name) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(id);
         userDTO.setUserName(name);

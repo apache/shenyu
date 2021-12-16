@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.register.client.etcd;
 
+import java.util.Objects;
+import java.util.Properties;
 import org.apache.shenyu.common.constant.Constants;
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -31,12 +35,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-import java.util.Properties;
-
-import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
-import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
-
 
 /**
  * etcd register repository.
@@ -47,6 +45,12 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClientRegisterRepository.class);
 
     private EtcdClient client;
+
+    public EtcdClientRegisterRepository() { }
+
+    public EtcdClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {

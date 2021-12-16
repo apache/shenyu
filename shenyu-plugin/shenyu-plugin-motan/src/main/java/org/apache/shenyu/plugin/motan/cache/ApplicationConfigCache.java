@@ -26,6 +26,7 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonHandler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
@@ -35,6 +36,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.motan.util.PrxInfoUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -47,45 +49,44 @@ import java.util.concurrent.ExecutionException;
  * The cache info.
  */
 public final class ApplicationConfigCache {
-
+    
     /**
      * The constant PARAM_MAP.
      */
     public static final ConcurrentMap<String, MotanParamInfo> PARAM_MAP = new ConcurrentHashMap<>();
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
-
+    
     private RegistryConfig registryConfig;
-
+    
     private ProtocolConfig protocolConfig;
-
+    
     private final LoadingCache<String, RefererConfig<CommonHandler>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
                 RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
                 if (Objects.nonNull(config)) {
                     try {
-                        Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("ref");
-                        field.setAccessible(true);
+                        Field field = FieldUtils.getDeclaredField(config.getClass(), "ref", true);
                         field.set(config, null);
                         // After the configuration change, motan destroys the instance, but does not empty it. If it is not handled,
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                    } catch (NullPointerException | IllegalAccessException e) {
                         LOG.error("modify ref have exception", e);
                     }
                 }
             })
             .build(new CacheLoader<String, RefererConfig<CommonHandler>>() {
                 @Override
-                public RefererConfig<CommonHandler> load(final String key) {
+                @NonNull
+                public RefererConfig<CommonHandler> load(@NonNull final String key) {
                     return new RefererConfig<>();
                 }
             });
-
+    
     private ApplicationConfigCache() {
     }
-
+    
     /**
      * Gets instance.
      *
@@ -94,7 +95,7 @@ public final class ApplicationConfigCache {
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-
+    
     /**
      * Init.
      *
@@ -114,7 +115,7 @@ public final class ApplicationConfigCache {
             protocolConfig.setName("motan2");
         }
     }
-
+    
     /**
      * Get reference config.
      *
@@ -130,7 +131,7 @@ public final class ApplicationConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-
+    
     /**
      * Init ref reference config.
      *
@@ -147,9 +148,9 @@ public final class ApplicationConfigCache {
             LOG.error("init motan ref ex:{}", e.getMessage());
         }
         return build(metaData);
-
+        
     }
-
+    
     /**
      * Build reference config.
      *
@@ -194,7 +195,7 @@ public final class ApplicationConfigCache {
         }
         return reference;
     }
-
+    
     /**
      * Invalidate.
      *
@@ -203,35 +204,38 @@ public final class ApplicationConfigCache {
     public void invalidate(final String path) {
         cache.invalidate(path);
     }
-
+    
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-
+    
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
-
-//        private ApplicationConfigCacheInstance() {}
+    static final class ApplicationConfigCacheInstance {
+        
         /**
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
+        
+        private ApplicationConfigCacheInstance() {
+        
+        }
     }
-
+    
     /**
      * The type Motan param ext info.
      */
     static class MethodInfo {
-
+        
         private String methodName;
-
+        
         private List<Pair<String, String>> params;
-
+        
         /**
          * Gets method name.
          *
@@ -240,7 +244,7 @@ public final class ApplicationConfigCache {
         public String getMethodName() {
             return methodName;
         }
-
+        
         /**
          * Sets method name.
          *
@@ -249,7 +253,7 @@ public final class ApplicationConfigCache {
         public void setMethodName(final String methodName) {
             this.methodName = methodName;
         }
-
+        
         /**
          * Gets params.
          *
@@ -258,7 +262,7 @@ public final class ApplicationConfigCache {
         public List<Pair<String, String>> getParams() {
             return params;
         }
-
+        
         /**
          * Sets params.
          *
@@ -268,16 +272,16 @@ public final class ApplicationConfigCache {
             this.params = params;
         }
     }
-
+    
     /**
      * The type Motan param ext info.
      */
     static class MotanParamExtInfo {
-
+        
         private List<MethodInfo> methodInfo;
-
+        
         private String group;
-
+        
         /**
          * Gets method info.
          *
@@ -286,7 +290,7 @@ public final class ApplicationConfigCache {
         public List<MethodInfo> getMethodInfo() {
             return methodInfo;
         }
-
+        
         /**
          * Sets method info.
          *
@@ -295,7 +299,7 @@ public final class ApplicationConfigCache {
         public void setMethodInfo(final List<MethodInfo> methodInfo) {
             this.methodInfo = methodInfo;
         }
-
+        
         /**
          * Gets group.
          *
@@ -304,7 +308,7 @@ public final class ApplicationConfigCache {
         public String getGroup() {
             return group;
         }
-
+        
         /**
          * Sets group.
          *
@@ -314,16 +318,16 @@ public final class ApplicationConfigCache {
             this.group = group;
         }
     }
-
+    
     /**
      * The type Motan param ext info.
      */
     public static class MotanParamInfo {
-
+        
         private Class<?>[] paramTypes;
-
+        
         private String[] paramNames;
-
+        
         /**
          * Instantiates a new Motan param info.
          *
@@ -334,7 +338,7 @@ public final class ApplicationConfigCache {
             this.paramTypes = paramTypes;
             this.paramNames = paramNames;
         }
-
+        
         /**
          * Get param types class [ ].
          *
@@ -343,7 +347,7 @@ public final class ApplicationConfigCache {
         public Class<?>[] getParamTypes() {
             return paramTypes;
         }
-
+        
         /**
          * Sets param types.
          *
@@ -352,7 +356,7 @@ public final class ApplicationConfigCache {
         public void setParamTypes(final Class<?>[] paramTypes) {
             this.paramTypes = paramTypes;
         }
-
+        
         /**
          * Get param names string [ ].
          *
@@ -361,7 +365,7 @@ public final class ApplicationConfigCache {
         public String[] getParamNames() {
             return paramNames;
         }
-
+        
         /**
          * Sets param names.
          *
