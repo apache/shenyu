@@ -23,11 +23,18 @@ import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Before;
 import org.junit.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -35,10 +42,11 @@ import static org.junit.Assert.assertThat;
  * Test case for SelectorConditionMapper.
  */
 public final class SelectorConditionMapperTest extends AbstractSpringIntegrationTest {
-    @Resource
-    private SelectorConditionMapper selectorConditionMapper;
 
     private final SelectorConditionDO record = buildSelectorConditionDO();
+
+    @Resource
+    private SelectorConditionMapper selectorConditionMapper;
 
     @Before
     public void before() {
@@ -60,6 +68,21 @@ public final class SelectorConditionMapperTest extends AbstractSpringIntegration
 
         List<SelectorConditionDO> selectorWithoutSelectorId = selectorConditionMapper.selectByQuery(null);
         assertThat(selectorWithoutSelectorId.size(), greaterThan(0));
+    }
+
+    @Test
+    public void testSelectBySelectorIds() {
+
+        SelectorConditionDO record = buildSelectorConditionDO();
+        assertThat(selectorConditionMapper.insert(record), equalTo(1));
+
+        SelectorConditionDO record1 = buildSelectorConditionDO();
+        assertThat(selectorConditionMapper.insert(record1), equalTo(1));
+
+        Set<String> selectorIds = Stream.of(record.getSelectorId(), record1.getSelectorId()).collect(Collectors.toSet());
+        List<SelectorConditionDO> selectorConditionDOList = selectorConditionMapper.selectBySelectorIds(selectorIds);
+
+        assertThat(selectorConditionDOList, hasItems(record, record1));
     }
 
     @Test
