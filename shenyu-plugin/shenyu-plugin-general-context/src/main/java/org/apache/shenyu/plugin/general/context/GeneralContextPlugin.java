@@ -52,7 +52,7 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
                 return;
             }
             v.forEach(each -> {
-                if (StringUtils.isBlank(each.getGeneralContextType()) || StringUtils.isBlank(each.getGeneralContextKey())){
+                if (StringUtils.isBlank(each.getGeneralContextType()) || StringUtils.isBlank(each.getGeneralContextKey())) {
                     return;
                 }
                 switch (each.getGeneralContextType()) {
