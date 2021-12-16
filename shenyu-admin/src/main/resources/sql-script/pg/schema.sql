@@ -331,16 +331,6 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1357977912126177281' || ''', ''' || '1346358560427216896' || ''', ''' || '1357977912126177280' || ''', ''' || '2021-02-06 17:02:19' || ''', ''' || '2021-02-06 17:02:19' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1357977971827900417' || ''', ''' || '1346358560427216896' || ''', ''' || '1357977971827900416' || ''', ''' || '2021-02-06 17:02:33' || ''', ''' || '2021-02-06 17:02:33' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1386680049203195905' || ''', ''' || '1346358560427216896' || ''', ''' || '1386680049203195904' || ''', ''' || '2021-04-26 21:54:22' || ''', ''' || '2021-04-26 21:54:21' || ''');');
-    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875010' || ''', ''' || '1346358560427216896' || ''', ''' || '1347028169120821252' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875011' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875009' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875012' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875010' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875013' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875011' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875014' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875012' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875015' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875013' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875016' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875014' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875017' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875015' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875018' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875016' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "permission" VALUES (''' || '1431222367768875019' || ''', ''' || '1346358560427216896' || ''', ''' || '1431222367768875017' || ''', ''' || '2021-11-24 19:49:38' || ''', ''' || '2021-11-24 19:49:37' || ''');');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -403,7 +393,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '7' || ''', ''' || 'monitor' || ''', ''' || '{"metricsName":"prometheus","host":"localhost","port":"9190","async":"true"}' || ''', ''' || 'Monitor' || ''', 170, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '8' || ''', ''' || 'springCloud' || ''', NULL, ''' || 'Proxy' || ''', 200, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '9' || ''', ''' || 'hystrix' || ''', NULL, ''' || 'FaultTolerance' || ''', 130, 0, ''' || '2020-01-15 10:19:10' || ''', ''' || '2020-01-15 10:19:10' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '27' || ''', ''' || 'generalContext' || ''', ''' || '{"multiRuleHandle":"1"}' || ''', ''' || 'Common' || ''', 125, 0, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
+	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '27' || ''', ''' || 'generalContext' || ''', NULL, ''' || 'Common' || ''', 125, 0, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -573,7 +563,6 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'headerMaxSize' || ''', ''' || 'headerMaxSize' || ''', 1, 2, 3, ''' || '{"defaultValue":"10240","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'requestMaxSize' || ''', ''' || 'requestMaxSize' || ''', 1, 2, 4, ''' || '{"defaultValue":"102400","rule":""}' || ''');');
 
-
     /*insert "plugin_handle" data for tars*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '13' || ''', ''' || 'upstreamHost' || ''', ''' || 'host' || ''', 2, 1, 0, null);');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '13' || ''', ''' || 'protocol' || ''', ''' || 'protocol' || ''', 2, 1, 2, ''' || '{"defaultValue":"","rule":""}' || ''');');
@@ -647,12 +636,6 @@ ELSE
 
     /*insert "plugin_handle" data for plugin motan*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'register' || ''', ''' || 'register' || ''', 2, 3, 0, null);');
-
-    /*insert "plugin_handle" data for plugin generalContext*/
-    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '127' || ''', ''' || '27' || ''', ''' || 'multiRuleHandle' || ''', ''' || 'multiRuleHandle' || ''', 3, 3, 0, NULL, ''' || '2021-11-24 13:18:44' || ''', ''' || '2021-11-24 13:18:44' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '124' || ''', ''' || '27' || ''', ''' || 'generalContextType' || ''', ''' || 'generalContextType' || ''', 3, 2, 1, ''' || '{"required":"1","defaultValue":"addGeneralContext","rule":""}' || ''', ''' || '2021-07-18 22:52:20' || ''', ''' || '2021-07-18 22:59:57' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '125' || ''', ''' || '27' || ''', ''' || 'generalContextKey' || ''', ''' || 'generalContextKey' || ''', 2, 2, 1, ''' || '{"required":"1","defaultValue":"","rule":""}' || ''', ''' || '2021-07-18 22:52:20' || ''', ''' || '2021-07-18 22:59:57' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '126' || ''', ''' || '27' || ''', ''' || 'generalContextValue' || ''', ''' || 'generalContextValue' || ''', 2, 2, 1, ''' || '{"required":"0","defaultValue":"","rule":""}' || ''', ''' || '2021-07-18 22:52:20' || ''', ''' || '2021-07-18 22:59:57' || ''');');
 
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 
@@ -763,16 +746,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1357977912126177280' || ''', ''' || '1355163372527050752' || ''', ''' || 'SHENYU.SYSTEM.EDITOR' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 5, ''' || '' || ''', 1, 0, ''' || 'system:resource:editButton' || ''', 1, ''' || '2021-02-06 17:02:19' || ''', ''' || '2021-02-06 17:23:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1357977971827900416' || ''', ''' || '1355163372527050752' || ''', ''' || 'SHENYU.SYSTEM.DELETEDATA' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 6, ''' || '' || ''', 1, 0, ''' || 'system:resource:deleteButton' || ''', 1, ''' || '2021-02-06 17:02:33' || ''', ''' || '2021-02-06 17:25:28' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1386680049203195904' || ''', ''' || '1346777157943259136' || ''', ''' || 'SHENYU.BUTTON.DATA.PERMISSION.CONFIG' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'system:manager:configureDataPermission' || ''', 1, ''' || '2021-04-26 21:54:22' || ''', ''' || '2021-04-26 21:59:56' || ''');');
-    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1347028169120821252' || ''', ''' || '1346775491550474240' || ''', ''' || 'generalContext' || ''', ''' || 'generalContext' || ''', ''' || '/plug/generalContext' || ''', ''' || 'generalContext' || ''', 1, 19, ''' || 'vertical-align-bottom' || ''', 0, 0, ''' || '' || ''', 1, ''' || '2021-11-24 21:00:00' || ''', ''' || '2021-11-24 21:00:00' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875009' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextSelector:add' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875010' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextSelector:delete' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875011' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextSelector:edit' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875012' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextSelector:query' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875013' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.RULE.ADD' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextRule:add' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875014' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.RULE.DELETE' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextRule:delete' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875015' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.RULE.EDIT' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextRule:edit' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875016' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.RULE.QUERY' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextRule:query' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1431222367768875017' || ''', ''' || '1347028169120821252' || ''', ''' || 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'plugin:generalContextRule:modify' || ''', 1, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
+
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -1079,10 +1053,6 @@ ELSE
 
     /* insert dict for init resource,permission table */
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'table'|| ''', ''' || 'INIT_FLAG' || ''', ''' || 'status' || ''',''' ||  'false' ||''',''' || 'table(resource,permission) init status' ||''',''' || '0' || ''',''' || '1' || ''');');;
-
-    /*insert dict for generalContext plugin*/
-    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "shenyu_dict" ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'generalContextType' || ''', ''' || 'GENERAL_CONTEXT_TYPE' || ''', ''' || 'addGeneralContext' || ''', ''' || 'addGeneralContext' || ''', ''' || 'addGeneralContext' || ''', 1, 1, ''' || '2021-11-24 14:21:58' || ''', ''' || '2021-11-24 14:21:58' || ''');');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "shenyu_dict" ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES ( ''' || 'generalContextType' || ''', ''' || 'GENERAL_CONTEXT_TYPE' || ''', ''' || 'transmitHeaderToGeneralContext' || ''', ''' || 'transmitHeaderToGeneralContext' || ''', ''' || 'transmitHeaderToGeneralContext' || ''', 0, 1, ''' || '2021-11-24 14:21:32' || ''', ''' || '2021-11-24 14:21:32' || ''');');
 
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;

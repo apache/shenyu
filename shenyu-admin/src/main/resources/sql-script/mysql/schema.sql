@@ -338,10 +338,6 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 /* insert dict for init resource,permission table */
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('table', 'INIT_FLAG', 'status', 'false', 'table(resource,permission) init status', '0', '1');;
 
-/*insert dict for generalContext plugin*/
-INSERT IGNORE INTO shenyu_dict (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('generalContextType', 'GENERAL_CONTEXT_TYPE', 'addGeneralContext', 'addGeneralContext', 'addGeneralContext', '1', '1');;
-INSERT IGNORE INTO shenyu_dict (`type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('generalContextType', 'GENERAL_CONTEXT_TYPE', 'transmitHeaderToGeneralContext', 'transmitHeaderToGeneralContext', 'transmitHeaderToGeneralContext', '0', '1');;
-
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1','sign','Authentication',  20, '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('2','waf', 'Authentication', 50,'{"model":"black"}','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');;
@@ -369,7 +365,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('24', 'cryptorRequest', 'Cryptor', 100, '1', '2021-08-06 13:55:21', '2021-08-17 16:35:41');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('25', 'cryptorResponse', 'Cryptor', 410, '1', '2021-08-06 13:55:30', '2021-08-13 16:03:40');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('26', 'websocket', 'Proxy', 200, '{"multiSelectorHandle":"1"}', '1', '2021-08-27 13:55:30', '2021-08-27 16:03:40');;
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('27', 'generalContext', 'Common', 125, '{"multiRuleHandle":"1"}', '1', '2021-11-24 21:38:48', '2021-11-24 11:47:01');;
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('27', 'generalContext', 'Common', 125, '1', '2021-11-24 21:38:48', '2021-11-24 11:47:01');;
 
 /*insert plugin_handle data for sentinel*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('10' ,'flowRuleGrade','flowRuleGrade','3', 2, 8, '{"required":"1","defaultValue":"1","rule":""}');;
@@ -529,12 +525,6 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`
 /*insert plugin_handle data for plugin motan*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('17', 'register', 'register', 2, 3, 0, null);;
 
-/*insert plugin_handle data for plugin generalContext*/
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'multiRuleHandle', 'multiRuleHandle', '3', '3', '0', NULL);;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'generalContextType', 'generalContextType', '3', '2', '1', '{\"required\":\"1\",\"defaultValue\":\"addGeneralContext\",\"rule\":\"\"}');;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'generalContextKey', 'generalContextKey', '2', '2', '1', '{\"required\":\"1\",\"defaultValue\":\"\",\"rule\":\"\"}');;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('27', 'generalContextValue', 'generalContextValue', '2', '2', '1', '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}');;
-
 /** insert resource for resource */
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1346775491550474240','','SHENYU.MENU.PLUGIN.LIST','plug','/plug','PluginList','0','0','dashboard','0','0','','1','2021-01-06 05:07:54','2021-01-07 18:34:11');;
 
@@ -600,17 +590,6 @@ INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `compo
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357977912126177280','1355163372527050752','SHENYU.SYSTEM.EDITOR','','','','2','5','','1','0','system:resource:editButton','1','2021-02-06 17:02:19','2021-02-06 17:23:57');;
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357977971827900416','1355163372527050752','SHENYU.SYSTEM.DELETEDATA','','','','2','6','','1','0','system:resource:deleteButton','1','2021-02-06 17:02:33','2021-02-06 17:25:28');;
 
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1347028169120821252', '1346775491550474240', 'generalContext', 'generalContext', '/plug/generalContext', 'generalContext', '1', '19', 'vertical-align-bottom', '0', '0', '', '1', '2021-11-24 21:00:00', '2021-11-24 21:00:00');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875009', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextSelector:add', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875010', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextSelector:delete', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875011', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextSelector:edit', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875012', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextSelector:query', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875013', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextRule:add', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875014', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextRule:delete', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875015', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextRule:edit', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875016', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContextRule:query', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1431222367768875017', '1347028169120821252', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', '2', '0', '', '1', '0', 'plugin:generalContext:modify', '1', '2021-11-24 21:38:48', '2021-11-24 21:38:47');;
-
 /* default permission */
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1351007708572688384', '1346358560427216896', '1346775491550474240', '2021-01-18 11:25:13', '2021-01-18 11:25:12');;
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357956838021890049', '1346358560427216896', '1357956838021890048', '2021-02-06 15:38:34', '2021-02-06 15:38:34');;
@@ -667,13 +646,3 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977745893326848', '1346358560427216896', '1357977745889132544', '2021-02-06 17:01:39', '2021-02-06 17:01:39');;
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977912126177281', '1346358560427216896', '1357977912126177280', '2021-02-06 17:02:19', '2021-02-06 17:02:19');;
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900417', '1346358560427216896', '1357977971827900416', '2021-02-06 17:02:33', '2021-02-06 17:02:33');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875010', '1346358560427216896', '1347028169120821252', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875011', '1346358560427216896', '1431222367768875009', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875012', '1346358560427216896', '1431222367768875010', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875013', '1346358560427216896', '1431222367768875011', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875014', '1346358560427216896', '1431222367768875012', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875015', '1346358560427216896', '1431222367768875013', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875016', '1346358560427216896', '1431222367768875014', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875017', '1346358560427216896', '1431222367768875015', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875018', '1346358560427216896', '1431222367768875016', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
-INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1431222367768875019', '1346358560427216896', '1431222367768875017', '2021-11-24 19:49:38', '2021-11-24 19:49:37');;
