@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.motan;
 
+import com.weibo.api.motan.rpc.RpcContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -37,7 +38,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Motan plugin.
@@ -78,6 +81,11 @@ public class MotanPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         final Mono<Object> result = motanProxyService.genericInvoker(param, metaData, exchange);
+        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
+        Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.MOTAN.getName())).ifPresent(context -> {
+            RpcContext motanRpcContext = RpcContext.getContext();
+            context.forEach((k, v) -> motanRpcContext.setRpcAttachment(k, v));
+        });
         return result.then(chain.execute(exchange));
     }
 
