@@ -146,10 +146,21 @@
         <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
         <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
+        <log4j.version>2.16.0</log4j.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <groupId>org.apache.logging.log4j</groupId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
             <dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
