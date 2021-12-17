@@ -60,10 +60,11 @@ public class WebClientMessageWriter implements MessageWriter {
                 if (media.contains(Constants.IMAGE_MEDIA)
                         || media.contains(Constants.STREAM_MEDIA)
                         || media.contains(Constants.PDF_MEDIA)) {
-                    return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
+                    return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
+                            .doOnCancel(() -> clean(exchange));
                 }
             }
-            clientResponse = ResponseUtils.buildClientResponse(exchange.getResponse(), clientResponse.body(BodyExtractors.toDataBuffers()));
+            clientResponse = ResponseUtils.buildClientResponse(response, clientResponse.body(BodyExtractors.toDataBuffers()));
             return clientResponse.bodyToMono(byte[].class)
                     .flatMap(originData -> WebFluxResultUtils.result(exchange, originData))
                     .doOnCancel(() -> clean(exchange));
