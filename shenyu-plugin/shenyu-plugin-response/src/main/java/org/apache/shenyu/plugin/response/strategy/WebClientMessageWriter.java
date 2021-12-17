@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -50,6 +51,18 @@ public class WebClientMessageWriter implements MessageWriter {
             }
             if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
                 Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+                return WebFluxResultUtils.result(exchange, error);
+            }
+            HttpStatus status = HttpStatus.resolve(clientResponse.statusCode().value());
+            if (!Objects.isNull(status)) {
+                response.setStatusCode(status);
+            } else if (response instanceof AbstractServerHttpResponse) {
+                /**
+                 * https://jira.spring.io/browse/SPR-16748
+                 */
+                ((AbstractServerHttpResponse) response).setStatusCodeValue(clientResponse.statusCode().value());
+            } else {
+                Object error = ShenyuResultWrap.error(ShenyuResultEnum.RESPONSE_ERROR.getCode(), ShenyuResultEnum.RESPONSE_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             response.getCookies().putAll(clientResponse.cookies());
