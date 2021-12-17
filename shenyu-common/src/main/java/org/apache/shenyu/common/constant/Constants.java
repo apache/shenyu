@@ -48,6 +48,21 @@ public interface Constants {
     String META_DATA = "metaData";
 
     /**
+     * image media.
+     */
+    String IMAGE_MEDIA = "image";
+
+    /**
+     * stream media.
+     */
+    String STREAM_MEDIA = "stream";
+
+    /**
+     * pdf media.
+     */
+    String PDF_MEDIA = "pdf";
+
+    /**
      * The constant CLIENT_RESPONSE_ATTR.
      */
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
