@@ -19,8 +19,11 @@ package org.apache.shenyu.disruptor.consumer;
 
 import com.lmax.disruptor.WorkHandler;
 import org.apache.shenyu.disruptor.event.DataEvent;
+import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
+import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
+import org.springframework.util.StringUtils;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * The type Queue consumer.
@@ -28,30 +31,39 @@ import java.util.concurrent.ExecutorService;
  * @param <T> the type parameter
  */
 public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
-    
-    private final ExecutorService executor;
-    
+
+    private final OrderlyExecutor executor;
+
     private final QueueConsumerFactory<T> factory;
-    
+
     /**
      * Instantiates a new Queue consumer.
      *
      * @param executor the executor
-     * @param factory the factory
+     * @param factory  the factory
      */
-    public QueueConsumer(final ExecutorService executor, final QueueConsumerFactory<T> factory) {
+    public QueueConsumer(final OrderlyExecutor executor, final QueueConsumerFactory<T> factory) {
         this.executor = executor;
         this.factory = factory;
     }
 
     @Override
-    public void onEvent(final DataEvent<T> t) {
+    public void onEvent(final DataEvent<T> t) throws Exception {
         if (t != null) {
+            ThreadPoolExecutor orderly = orderly(t);
             QueueConsumerExecutor<T> queueConsumerExecutor = factory.create();
             queueConsumerExecutor.setData(t.getData());
+            orderly.execute(queueConsumerExecutor);
             // help gc
             t.setData(null);
-            executor.execute(queueConsumerExecutor);
+        }
+    }
+
+    private ThreadPoolExecutor orderly(DataEvent<T> t) {
+        if (t instanceof OrderlyDataEvent && !StringUtils.isEmpty(((OrderlyDataEvent<T>) t).getHash())) {
+            return executor.select(((OrderlyDataEvent<T>) t).getHash());
+        } else {
+            return executor;
         }
     }
 }

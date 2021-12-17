@@ -28,7 +28,7 @@ import java.util.Objects;
  * The type URI register dto.
  */
 public class URIRegisterDTO implements DataTypeParent {
-    
+
     private String protocol;
 
     private String appName;
@@ -42,17 +42,17 @@ public class URIRegisterDTO implements DataTypeParent {
     private Integer port;
 
     private EventType eventType;
-    
+
     /**
      * Instantiates a new Uri register dto.
      *
-     * @param protocol the protocol
-     * @param appName the app name
+     * @param protocol    the protocol
+     * @param appName     the app name
      * @param contextPath the context path
-     * @param rpcType the rpc type
-     * @param host the host
-     * @param port the port
-     * @param eventType the event type
+     * @param rpcType     the rpc type
+     * @param host        the host
+     * @param port        the port
+     * @param eventType   the event type
      */
     public URIRegisterDTO(final String protocol, final String appName, final String contextPath,
                           final String rpcType, final String host,
@@ -65,7 +65,7 @@ public class URIRegisterDTO implements DataTypeParent {
         this.port = port;
         this.eventType = eventType;
     }
-    
+
     /**
      * Instantiates a new Uri register dto.
      */
@@ -81,7 +81,7 @@ public class URIRegisterDTO implements DataTypeParent {
         port = builder.port;
         eventType = builder.eventType;
     }
-    
+
     /**
      * Trans form uri register dto.
      *
@@ -94,9 +94,10 @@ public class URIRegisterDTO implements DataTypeParent {
                 .contextPath(metaDataRegisterDTO.getContextPath())
                 .rpcType(metaDataRegisterDTO.getRpcType())
                 .host(metaDataRegisterDTO.getHost())
-                .port(metaDataRegisterDTO.getPort()).build();
+                .port(metaDataRegisterDTO.getPort())
+                .build();
     }
-    
+
     /**
      * return builder.
      *
@@ -115,7 +116,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public DataType getType() {
         return DataType.URI;
     }
-    
+
     /**
      * Gets protocol.
      *
@@ -124,7 +125,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public String getProtocol() {
         return protocol;
     }
-    
+
     /**
      * Sets protocol.
      *
@@ -133,7 +134,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public void setProtocol(final String protocol) {
         this.protocol = protocol;
     }
-    
+
     /**
      * getAppName.
      *
@@ -142,7 +143,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public String getAppName() {
         return appName;
     }
-    
+
     /**
      * setAppName.
      *
@@ -151,7 +152,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public void setAppName(final String appName) {
         this.appName = appName;
     }
-    
+
     /**
      * getContextPath.
      *
@@ -160,7 +161,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public String getContextPath() {
         return contextPath;
     }
-    
+
     /**
      * setContextPath.
      *
@@ -169,7 +170,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-    
+
     /**
      * getRpcType.
      *
@@ -178,7 +179,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public String getRpcType() {
         return rpcType;
     }
-    
+
     /**
      * setRpcType.
      *
@@ -187,7 +188,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public void setRpcType(final String rpcType) {
         this.rpcType = rpcType;
     }
-    
+
     /**
      * getHost.
      *
@@ -196,7 +197,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public String getHost() {
         return host;
     }
-    
+
     /**
      * setHost.
      *
@@ -205,7 +206,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public void setHost(final String host) {
         this.host = host;
     }
-    
+
     /**
      * getPort.
      *
@@ -214,7 +215,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public Integer getPort() {
         return port;
     }
-    
+
     /**
      * setPort.
      *
@@ -223,7 +224,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public void setPort(final Integer port) {
         this.port = port;
     }
-    
+
     /**
      * getEventType.
      *
@@ -232,7 +233,7 @@ public class URIRegisterDTO implements DataTypeParent {
     public EventType getEventType() {
         return eventType;
     }
-    
+
     /**
      * setEventType.
      *
@@ -287,12 +288,12 @@ public class URIRegisterDTO implements DataTypeParent {
                 + '}';
 
     }
-    
+
     /**
      * The type Builder.
      */
     public static final class Builder {
-    
+
         private String protocol;
 
         private String appName;
@@ -309,7 +310,7 @@ public class URIRegisterDTO implements DataTypeParent {
 
         private Builder() {
         }
-    
+
         /**
          * protocol.
          *
@@ -320,7 +321,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.protocol = protocol;
             return this;
         }
-    
+
         /**
          * appName.
          *
@@ -331,7 +332,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.appName = appName;
             return this;
         }
-    
+
         /**
          * contextPath.
          *
@@ -342,7 +343,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.contextPath = contextPath;
             return this;
         }
-    
+
         /**
          * rpcType.
          *
@@ -353,7 +354,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.rpcType = rpcType;
             return this;
         }
-    
+
         /**
          * host.
          *
@@ -364,7 +365,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.host = host;
             return this;
         }
-    
+
         /**
          * port.
          *
@@ -375,7 +376,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.port = port;
             return this;
         }
-    
+
         /**
          * eventType.
          *
@@ -386,7 +387,7 @@ public class URIRegisterDTO implements DataTypeParent {
             this.eventType = eventType;
             return this;
         }
-    
+        
         /**
          * build.
          *

@@ -13,19 +13,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.disruptor.event;
 
 /**
- * The interface Data type parent.
+ * OrderlyDataEvent .
+ *
+ * @param <T> the type parameter
+ * @author sixh chenbin
  */
-public interface DataTypeParent {
+public class OrderlyDataEvent<T> extends DataEvent<T> {
 
-    /**
-     * Gets type.
-     *
-     * @return the type
-     */
-    DataType getType();
+    private String hash;
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(final String hash) {
+        this.hash = hash;
+    }
 }

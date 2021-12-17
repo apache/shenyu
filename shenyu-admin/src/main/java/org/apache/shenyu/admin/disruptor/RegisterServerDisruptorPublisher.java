@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
-import org.apache.shenyu.disruptor.provider.DisruptorProvider;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 
 import java.util.Map;
@@ -36,9 +35,9 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
     private static final RegisterServerDisruptorPublisher INSTANCE = new RegisterServerDisruptorPublisher();
 
     private DisruptorProviderManage providerManage;
-    
+
     private RegisterServerExecutorFactory factory;
-    
+
     /**
      * Gets instance.
      *
@@ -47,7 +46,7 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
     public static RegisterServerDisruptorPublisher getInstance() {
         return INSTANCE;
     }
-    
+
     /**
      * start.
      *
@@ -60,13 +59,16 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
         providerManage = new DisruptorProviderManage(factory);
         providerManage.startup();
     }
-    
+
     @Override
     public <T> void publish(final T data) {
-        DisruptorProvider<Object> provider = providerManage.getProvider();
-        provider.onData(f -> f.setData(data));
+        providerManage.getProvider().onData(data);
     }
-    
+
+    private String hash(String host, int port) {
+        return host + ":" + port;
+    }
+
     @Override
     public void close() {
         providerManage.getProvider().shutdown();

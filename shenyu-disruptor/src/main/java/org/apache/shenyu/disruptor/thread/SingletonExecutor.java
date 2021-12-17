@@ -13,19 +13,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.disruptor.thread;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
- * The interface Data type parent.
+ * SingletonExecutor .
+ *
+ * @author sixh chenbin
  */
-public interface DataTypeParent {
+public class SingletonExecutor extends ThreadPoolExecutor {
 
-    /**
-     * Gets type.
-     *
-     * @return the type
-     */
-    DataType getType();
+    private String name;
+
+    public SingletonExecutor(ThreadFactory factory) {
+        super(1, 1, 0L,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(), factory);
+    }
 }

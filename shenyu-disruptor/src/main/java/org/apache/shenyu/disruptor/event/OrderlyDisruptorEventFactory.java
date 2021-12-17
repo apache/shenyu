@@ -13,19 +13,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.disruptor.event;
+
+import com.lmax.disruptor.EventFactory;
 
 /**
- * The interface Data type parent.
+ * OrderlyDisruptorEventFactory .
+ *
+ * @param <T> the type parameter
+ * @author sixh chenbin
  */
-public interface DataTypeParent {
+public class OrderlyDisruptorEventFactory<T> implements EventFactory<OrderlyDataEvent<T>> {
 
-    /**
-     * Gets type.
-     *
-     * @return the type
-     */
-    DataType getType();
+    @Override
+    public OrderlyDataEvent<T> newInstance() {
+        return new OrderlyDataEvent<>();
+    }
 }
