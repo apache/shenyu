@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class SingletonExecutor extends ThreadPoolExecutor {
 
-    public SingletonExecutor(ThreadFactory factory) {
+    public SingletonExecutor(final ThreadFactory factory) {
         super(1, 1, 0L,
                 TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), factory);

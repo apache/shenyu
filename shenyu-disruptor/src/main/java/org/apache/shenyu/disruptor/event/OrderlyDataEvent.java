@@ -28,10 +28,20 @@ public class OrderlyDataEvent<T> extends DataEvent<T> {
 
     private String hash;
 
+    /**
+     * Gets hash.
+     *
+     * @return the hash
+     */
     public String getHash() {
         return hash;
     }
 
+    /**
+     * Sets hash.
+     *
+     * @param hash the hash
+     */
     public void setHash(final String hash) {
         this.hash = hash;
     }

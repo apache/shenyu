@@ -113,7 +113,7 @@ public class DisruptorProviderManage<T> {
      * @param orderly the orderly Whether to execute sequentially.
      */
     @SuppressWarnings("all")
-    public void startup(boolean orderly) {
+    public void startup(final boolean orderly) {
         int newConsumerSize = this.consumerSize;
         EventFactory eventFactory;
         if (orderly) {

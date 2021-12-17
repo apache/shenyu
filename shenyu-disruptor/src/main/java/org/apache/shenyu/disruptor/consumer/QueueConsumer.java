@@ -59,7 +59,7 @@ public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
         }
     }
 
-    private ThreadPoolExecutor orderly(DataEvent<T> t) {
+    private ThreadPoolExecutor orderly(final DataEvent<T> t) {
         if (t instanceof OrderlyDataEvent && !StringUtils.isEmpty(((OrderlyDataEvent<T>) t).getHash())) {
             return executor.select(((OrderlyDataEvent<T>) t).getHash());
         } else {

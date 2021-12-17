@@ -22,8 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
  */
 public class OrderlyExecutor extends ThreadPoolExecutor {
 
-    private final TreeMap<Long, SingletonExecutor> virtualExecutors = new TreeMap<>();
+    private final ConcurrentSkipListMap<Long, SingletonExecutor> virtualExecutors = new ConcurrentSkipListMap<>();
 
     private final ThreadSelector threadSelector = new ThreadSelector();
 
@@ -60,7 +60,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
                            final ThreadFactory threadFactory,
                            final RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
-        IntStream.range(0, corePoolSize).forEach((index) -> {
+        IntStream.range(0, corePoolSize).forEach(index -> {
             SingletonExecutor singletonExecutor = new SingletonExecutor(threadFactory);
             String hash = singletonExecutor.hashCode() + ":" + index;
             byte[] bytes = threadSelector.md5(hash);
@@ -76,7 +76,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
      * @param hash the hash code
      * @return the singleton executor
      */
-    public SingletonExecutor select(String hash) {
+    public SingletonExecutor select(final String hash) {
         long select = threadSelector.select(hash);
         if (!virtualExecutors.containsKey(select)) {
             SortedMap<Long, SingletonExecutor> tailMap = virtualExecutors.tailMap(select);
@@ -92,13 +92,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
     /**
      * The type Thread selector.
      */
-    final static class ThreadSelector {
-
-        /**
-         * Instantiates a new Thread selector.
-         */
-        public ThreadSelector() {
-        }
+    private static final class ThreadSelector {
 
         /**
          * Select long.
@@ -106,7 +100,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
          * @param hash the hash
          * @return the long
          */
-        public long select(String hash) {
+        public long select(final String hash) {
             byte[] digest = md5(hash);
             return hash(digest, 0);
         }
@@ -114,7 +108,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
         /**
          * ketame  hash.
          */
-        private long hash(byte[] digest, int number) {
+        private long hash(final byte[] digest, final int number) {
             return (((long) (digest[3 + number * 4] & 0xFF) << 24)
                     | ((long) (digest[2 + number * 4] & 0xFF) << 16)
                     | ((long) (digest[1 + number * 4] & 0xFF) << 8)
@@ -122,7 +116,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
                     & 0xFFFFFFFFL;
         }
 
-        private byte[] md5(String hash) {
+        private byte[] md5(final String hash) {
             MessageDigest md5;
             try {
                 md5 = MessageDigest.getInstance("MD5");

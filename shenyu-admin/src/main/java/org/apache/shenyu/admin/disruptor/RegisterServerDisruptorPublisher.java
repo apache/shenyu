@@ -65,10 +65,6 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
         providerManage.getProvider().onData(data);
     }
 
-    private String hash(String host, int port) {
-        return host + ":" + port;
-    }
-
     @Override
     public void close() {
         providerManage.getProvider().shutdown();
