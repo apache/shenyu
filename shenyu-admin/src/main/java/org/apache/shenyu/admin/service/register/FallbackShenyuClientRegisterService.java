@@ -42,35 +42,6 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
 
     private final Logger logger = LoggerFactory.getLogger(FallbackShenyuClientRegisterService.class);
 
-    private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("shenyu-client-register-fallback", false));
-
-    private final Map<String, FallHolder> fallsRegisters = new ConcurrentHashMap<>();
-
-    /**
-     * Instantiates a new Fallback shenyu client register service.
-     */
-    public FallbackShenyuClientRegisterService() {
-        executorService.scheduleAtFixedRate(() -> {
-            try {
-                retry();
-            } catch (Exception ex) {
-                logger.warn("retry register failure...");
-            }
-        }, 0, 5, TimeUnit.SECONDS);
-    }
-
-    private void retry() {
-        if (!fallsRegisters.isEmpty()) {
-            Map<String, FallHolder> failed = new HashMap<>(fallsRegisters);
-            if (failed.size() > 0) {
-                fallsRegisters.forEach((k, v) -> {
-                    logger.info("retry register {}", v);
-                    this.registerURI(v.getSelectorName(), v.getUriList());
-                });
-            }
-        }
-    }
-
     /**
      * Register uri string.
      *
@@ -83,9 +54,9 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         String result = ShenyuResultMessage.SUCCESS;
         try {
             String key = key(selectorName);
-            fallsRegisters.remove(key);
+            ScheduledThread.remove(key);
             result = this.registerURI0(selectorName, uriList);
-            if (!fallsRegisters.containsKey(key)) {
+            if (!ScheduledThread.exist(key)) {
                 logger.info("register success: {},{}", selectorName, uriList);
             }
         } catch (Exception ex) {
@@ -103,7 +74,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     void recover(final String selectorName, final List<URIRegisterDTO> uriList) {
         if (uriList != null && !uriList.isEmpty()) {
             String key = key(selectorName);
-            fallsRegisters.put(key, new FallHolder(selectorName, uriList));
+            ScheduledThread.put(key, new FallHolder(this, selectorName, uriList));
             logger.info("register recovering wait retry: {},{}", selectorName, uriList);
         }
     }
@@ -124,19 +95,23 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     /**
      * The type Fall holder.
      */
-    static class FallHolder {
+    private static class FallHolder {
 
         private final String selectorName;
 
         private final List<URIRegisterDTO> uriList;
 
+        private final FallbackShenyuClientRegisterService registerService;
+
         /**
          * Instantiates a new Fall holder.
          *
-         * @param selectorName the selector name
-         * @param uriList      the uri list
+         * @param registerService the register service
+         * @param selectorName    the selector name
+         * @param uriList         the uri list
          */
-        public FallHolder(final String selectorName, final List<URIRegisterDTO> uriList) {
+        public FallHolder(final FallbackShenyuClientRegisterService registerService, final String selectorName, final List<URIRegisterDTO> uriList) {
+            this.registerService = registerService;
             this.selectorName = selectorName;
             this.uriList = uriList;
         }
@@ -157,6 +132,109 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          */
         public List<URIRegisterDTO> getUriList() {
             return uriList;
+        }
+
+        /**
+         * Gets register service.
+         *
+         * @return the register service
+         */
+        public FallbackShenyuClientRegisterService getRegisterService() {
+            return registerService;
+        }
+    }
+
+    /**
+     * The type Scheduled thread.
+     */
+    static class ScheduledThread {
+
+        private final Logger logger = LoggerFactory.getLogger(ScheduledThread.class);
+
+        private static final ScheduledThread INST = new ScheduledThread();
+
+        private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("shenyu-client-register-fallback", false));
+
+        private final Map<String, FallHolder> fallsRegisters = new ConcurrentHashMap<>();
+
+        private ScheduledThread() {
+            executorService.scheduleAtFixedRate(() -> {
+                try {
+                    retry();
+                } catch (Exception ex) {
+                    logger.warn("retry register failure...");
+                }
+            }, 0, 5, TimeUnit.SECONDS);
+        }
+
+        private void retry() {
+            if (!fallsRegisters.isEmpty()) {
+                Map<String, FallHolder> failed = new HashMap<>(fallsRegisters);
+                if (failed.size() > 0) {
+                    fallsRegisters.forEach((k, v) -> {
+                        logger.info("retry register {}", v);
+                        v.getRegisterService().registerURI(v.getSelectorName(), v.getUriList());
+                    });
+                }
+            }
+        }
+
+        /**
+         * Put.
+         *
+         * @param key        the key
+         * @param fallHolder the fall holder
+         */
+        public void put0(String key, FallHolder fallHolder) {
+            this.fallsRegisters.put(key, fallHolder);
+        }
+
+        /**
+         * Put.
+         *
+         * @param key        the key
+         * @param fallHolder the fall holder
+         */
+        public static void put(String key, FallHolder fallHolder) {
+            INST.put0(key, fallHolder);
+        }
+
+        /**
+         * Remove.
+         *
+         * @param key the key
+         */
+        public static void remove(String key) {
+            INST.remove0(key);
+        }
+
+        /**
+         * Remove 0.
+         *
+         * @param key the key
+         */
+        public void remove0(String key) {
+            this.fallsRegisters.remove(key);
+        }
+
+        /**
+         * Exist boolean.
+         *
+         * @param key the key
+         * @return the boolean
+         */
+        public static boolean exist(String key) {
+            return INST.exist0(key);
+        }
+
+        /**
+         * Exist 0 boolean.
+         *
+         * @param key the key
+         * @return the boolean
+         */
+        public boolean exist0(String key) {
+            return this.fallsRegisters.containsKey(key);
         }
     }
 }

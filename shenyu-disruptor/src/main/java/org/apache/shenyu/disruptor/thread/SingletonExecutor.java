@@ -30,8 +30,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class SingletonExecutor extends ThreadPoolExecutor {
 
-    private String name;
-
     public SingletonExecutor(ThreadFactory factory) {
         super(1, 1, 0L,
                 TimeUnit.MILLISECONDS,
