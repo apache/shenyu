@@ -54,10 +54,12 @@ public class WebClientMessageWriter implements MessageWriter {
             }
             response.getCookies().putAll(clientResponse.cookies());
             response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
-            // image and stream does not do format processing.
+            // image, pdf or stream does not do format processing.
             if (clientResponse.headers().contentType().isPresent()) {
                 final String media = clientResponse.headers().contentType().get().toString().toLowerCase();
-                if (media.contains(Constants.IMAGE_MEDIA) || media.contains(Constants.STREAM_MEDIA)) {
+                if (media.contains(Constants.IMAGE_MEDIA)
+                        || media.contains(Constants.STREAM_MEDIA)
+                        || media.contains(Constants.PDF_MEDIA)) {
                     return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
                 }
             }

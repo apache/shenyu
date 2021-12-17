@@ -58,6 +58,11 @@ public interface Constants {
     String STREAM_MEDIA = "stream";
 
     /**
+     * pdf media.
+     */
+    String PDF_MEDIA = "pdf";
+
+    /**
      * The constant CLIENT_RESPONSE_ATTR.
      */
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
