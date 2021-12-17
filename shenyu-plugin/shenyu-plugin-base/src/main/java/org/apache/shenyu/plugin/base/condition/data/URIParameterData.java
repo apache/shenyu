@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
 
