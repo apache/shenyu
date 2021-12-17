@@ -13,6 +13,158 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+server:
+  port: 9195
+  address: 0.0.0.0
+
 spring:
-  profiles:
-    active: local
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: shenyu-bootstrap
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+    discovery:
+      enabled: false
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
+        enabled: false
+
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          <your client-registration-id>:
+#            client-id: <your client-id>
+#            client-secret: <your client-secret>
+#        provider:
+#          <your client-registration-id>:
+#            authorization-uri: <your authorization-uri>
+#            token-uri: <your access-token-uri>
+#            user-info-uri: <your user-info-uri>
+#            jwk-set-uri: <your jwk-set-uri>
+
+management:
+  health:
+    defaults:
+      enabled: false
+
+shenyu:
+  netty:
+    tcp:
+      # set to false, user can custom the netty tcp server config.
+      webServerFactoryEnabled: true
+      selectCount: 1
+      workerCount: 4
+      serverSocketChannel:
+        soRcvBuf: 87380
+        soBackLog: 128
+        soReuseAddr: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
+      socketChannel:
+        soKeepAlive: false
+        soReuseAddr: false
+        soLinger: -1
+        tcpNoDelay: true
+        soRcvBuf: 87380
+        soSndBuf: 16384
+        ipTos: 0
+        allowHalfClosure: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
+  instance:
+    enabled: false
+    registerType: zookeeper #etcd #consul
+    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
+  cross:
+    enabled: true
+    allowedHeaders:
+    allowedMethods: "*"
+    allowedOrigin: "*"
+    allowedExpose: "*"
+    maxAge: "18000"
+    allowCredentials: true
+  switchConfig:
+    local: true
+  file:
+    enabled: true
+    maxSize : 10
+  sync:
+    websocket:
+      urls: ws://localhost:9095/websocket
+  #    zookeeper:
+  #      url: localhost:2181
+  #      sessionTimeout: 5000
+  #      connectionTimeout: 2000
+  #    http:
+  #      url: http://localhost:9095
+  #    nacos:
+  #      url: localhost:8848
+  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+  #      username:
+  #      password:
+  #      acm:
+  #        enabled: false
+  #        endpoint: acm.aliyun.com
+  #        namespace:
+  #        accessKey:
+  #        secretKey:
+  #    etcd:
+  #      url: http://localhost:2379
+  #    consul:
+  #      url: http://localhost:8500
+  #      waitTime: 1000
+  #      watchDelay: 1000
+  exclude:
+    enabled: false
+    paths:
+      - /favicon.ico
+  extPlugin:
+    path:
+    enabled: true
+    threads: 1
+    scheduleTime: 300
+    scheduleDelay: 30
+  scheduler:
+    enabled: false
+    type: fixed
+    threads: 16
+  upstreamCheck:
+    enabled: false
+    timeout: 3000
+    healthyThreshold: 1
+    unhealthyThreshold: 1
+    interval: 5000
+    printEnabled: true
+    printInterval: 60000
+
+eureka:
+  client:
+    enabled: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+
+logging:
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.apache.shenyu.bonuspoint: info
+    org.apache.shenyu.lottery: info
+    org.apache.shenyu: info
