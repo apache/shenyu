@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.spi.SPI;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -25,15 +26,28 @@ import org.springframework.web.server.ServerWebExchange;
  */
 @SPI
 public interface ParameterData {
-    
+
     /**
      * Builder string.
      *
      * @param paramName the param name
-     * @param exchange the exchange
+     * @param exchange  the exchange
      * @return the string
      */
     default String builder(final String paramName, final ServerWebExchange exchange) {
         return "";
+    }
+
+
+    /**
+     * Judge type for contains,
+     * different Param Type have own comparison method.
+     *
+     * @param conditionData the rule conditionData
+     * @param realData      the request's realData
+     * @return {@link Boolean}
+     */
+    default Boolean containsJudge(final ConditionData conditionData, final String realData) {
+        return conditionData.getParamValue().trim().contains(realData);
     }
 }

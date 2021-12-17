@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
 import org.apache.shenyu.spi.Join;
 
 /**
@@ -28,6 +30,6 @@ public class ContainsPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return conditionData.getParamValue().trim().contains(realData);
+        return ParameterDataFactory.containsJudge(conditionData.getParamType(), conditionData, realData);
     }
 }

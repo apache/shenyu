@@ -17,17 +17,31 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The type URI parameter data.
  */
 @Join
 public class URIParameterData implements ParameterData {
-    
+
     @Override
     public String builder(final String paramName, final ServerWebExchange exchange) {
         return exchange.getRequest().getURI().getPath();
+    }
+
+    @Override
+    public Boolean containsJudge(ConditionData conditionData, String realData) {
+        String regex = ",";
+        String[] conditionUriRules = conditionData.getParamValue().trim().split(regex);
+        List<String> fitRules = Arrays.stream(conditionUriRules).filter(conditionUriRule -> realData.contains(conditionUriRule.trim())).collect(Collectors.toList());
+        return CollectionUtils.isNotEmpty(fitRules);
     }
 }

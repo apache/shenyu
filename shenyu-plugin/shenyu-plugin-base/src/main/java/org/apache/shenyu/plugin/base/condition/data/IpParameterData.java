@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
@@ -31,4 +32,5 @@ public class IpParameterData implements ParameterData {
     public String builder(final String paramName, final ServerWebExchange exchange) {
         return HostAddressUtils.acquireIp(exchange);
     }
+
 }

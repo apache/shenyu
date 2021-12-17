@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -24,7 +25,7 @@ import org.springframework.web.server.ServerWebExchange;
  * The type Parameter data factory.
  */
 public class ParameterDataFactory {
-    
+
     /**
      * New instance parameter data.
      *
@@ -34,16 +35,30 @@ public class ParameterDataFactory {
     public static ParameterData newInstance(final String paramType) {
         return ExtensionLoader.getExtensionLoader(ParameterData.class).getJoin(paramType);
     }
-    
+
     /**
      * Builder data string.
      *
      * @param paramType the param type
      * @param paramName the param name
-     * @param exchange the exchange
+     * @param exchange  the exchange
      * @return the string
      */
     public static String builderData(final String paramType, final String paramName, final ServerWebExchange exchange) {
         return newInstance(paramType).builder(paramName, exchange);
+    }
+
+    /**
+     * Judge type for contains,
+     * different Param Type have own comparison method.
+     *
+     * @param paramType     the param type
+     * @param conditionData the rule conditionData
+     * @param realData      the request's realData
+     * @return {@link Boolean}
+     */
+    public static Boolean containsJudge(final String paramType, final ConditionData conditionData, final String realData) {
+        return newInstance(paramType).containsJudge(conditionData, realData);
+
     }
 }
