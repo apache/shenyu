@@ -46,6 +46,14 @@ public interface PermissionMapper {
     List<PermissionDO> findByObjectId(String objectId);
 
     /**
+     * find by Object id.
+     *
+     * @param objectIds role ids
+     * @return {@linkplain List}
+     */
+    List<PermissionDO> findByObjectIds(List<String> objectIds);
+
+    /**
      * insert permission.
      *
      * @param userRoleDO {@linkplain PermissionDO}

@@ -47,7 +47,7 @@ public class RandomLoadBalancerProviderTest {
 
     @Test
     public void testGetPriority() {
-        assertEquals(randomLoadBalancerProvider.getPriority(), 6);
+        assertEquals(6, randomLoadBalancerProvider.getPriority());
     }
 
     @Test

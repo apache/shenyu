@@ -57,8 +57,6 @@ public final class ModifyResponsePluginTest {
 
     private SelectorData selectorData;
 
-    private ShenyuContext shenyuContext;
-
     @Before
     public void setUp() {
         this.modifyResponsePlugin = new ModifyResponsePlugin();
@@ -72,16 +70,12 @@ public final class ModifyResponsePluginTest {
                 .queryParam("queryParam", "Hello,World")
                 .build();
         this.exchange = spy(MockServerWebExchange.from(request));
-        shenyuContext = mock(ShenyuContext.class);
+        ShenyuContext shenyuContext = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
     }
 
     @Test
     public void testDoExecute() {
-        ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
-        when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ModifyResponsePlugin.ModifyServerHttpResponse.class))).thenReturn(builder);
-        when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         Mono<Void> result = modifyResponsePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();

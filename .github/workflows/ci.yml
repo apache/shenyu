@@ -62,7 +62,7 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install
+        run: ./mvnw -B clean install -Prelease
       - uses: codecov/codecov-action@v1
         if: env.SKIP_CI != 'true'
 

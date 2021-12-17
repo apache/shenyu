@@ -32,7 +32,10 @@ import java.util.Objects;
 /**
  * the hystrix builder.
  */
-public class HystrixBuilder {
+public final class HystrixBuilder {
+    
+    private HystrixBuilder() {
+    }
 
     /**
      * this is build HystrixObservableCommand.Setter.

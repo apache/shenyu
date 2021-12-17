@@ -51,13 +51,6 @@ public @interface ShenyuSpringCloudClient {
     String desc() default "";
     
     /**
-     * Rpc type string.
-     *
-     * @return the string
-     */
-    String rpcType() default "springCloud";
-    
-    /**
      * Enabled boolean.
      *
      * @return the boolean

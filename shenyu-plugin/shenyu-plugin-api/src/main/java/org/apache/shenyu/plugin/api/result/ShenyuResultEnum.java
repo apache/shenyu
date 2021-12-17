@@ -194,6 +194,16 @@ public enum ShenyuResultEnum {
     ENCRYPTION_ERROR(-118, "Encryption failed, please check the parameters or key, or the data length is too long"),
 
     /**
+     * cannot find healthy upstream url error.
+     */
+    CANNOT_FIND_HEALTHY_UPSTREAM_URL(-119, "Can not find healthy upstream url, please check your configuration!"),
+
+    /**
+     * the xml data is invalid.
+     */
+    INVALID_XML_DATA(-120, "the xml data is invalid."),
+
+    /**
      * Request Header Fields Too Large.
      */
     REQUEST_HEADER_TOO_LARGE(431, "Request Header Fields Too Large"),

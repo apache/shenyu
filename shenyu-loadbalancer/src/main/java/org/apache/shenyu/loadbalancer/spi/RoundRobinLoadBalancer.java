@@ -21,6 +21,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,7 +43,7 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
         String key = upstreamList.get(0).getUrl();
         ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.get(key);
-        if (map == null) {
+        if (Objects.isNull(map)) {
             methodWeightMap.putIfAbsent(key, new ConcurrentHashMap<>(16));
             map = methodWeightMap.get(key);
         }
@@ -55,13 +56,15 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
             String rKey = upstream.getUrl();
             WeightedRoundRobin weightedRoundRobin = map.get(rKey);
             int weight = getWeight(upstream);
-            if (weightedRoundRobin == null) {
+            if (Objects.isNull(weightedRoundRobin)) {
                 weightedRoundRobin = new WeightedRoundRobin();
                 weightedRoundRobin.setWeight(weight);
                 map.putIfAbsent(rKey, weightedRoundRobin);
             }
             if (weight != weightedRoundRobin.getWeight()) {
-                //weight changed
+                /**
+                 * weight changed.
+                 */
                 weightedRoundRobin.setWeight(weight);
             }
             long cur = weightedRoundRobin.increaseCurrent();
@@ -75,7 +78,9 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
         }
         if (!updateLock.get() && upstreamList.size() != map.size() && updateLock.compareAndSet(false, true)) {
             try {
-                // copy -> modify -> update reference
+                /**
+                 * copy -> modify -> update reference.
+                 */
                 ConcurrentMap<String, WeightedRoundRobin> newMap = new ConcurrentHashMap<>(map);
                 newMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
                 methodWeightMap.put(key, newMap);
@@ -83,11 +88,13 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
                 updateLock.set(false);
             }
         }
-        if (selectedInvoker != null) {
+        if (Objects.nonNull(selectedInvoker)) {
             selectedWRR.sel(totalWeight);
             return selectedInvoker;
         }
-        // should not happen here
+        /**
+         * should not happen here.
+         */
         return upstreamList.get(0);
     }
 

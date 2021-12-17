@@ -65,25 +65,32 @@ public class HttpTestController {
      */
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(userId);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(userId, "hello world");
+    }
+
+    /**
+     * Find by page user dto.
+     *
+     * @param keyword the keyword
+     * @param page the page
+     * @param pageSize the page size
+     * @return the user dto
+     */
+    @GetMapping("/findByPage")
+    public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
+        return buildUser(keyword, "hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
     }
 
     /**
      * Gets path variable.
      *
-     * @param id   the id
+     * @param id the id
      * @param name the name
      * @return the path variable
      */
     @GetMapping("/path/{id}")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(id);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(id, name);
     }
 
 
@@ -95,17 +102,14 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(id);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(id, "hello world");
     }
 
 
     /**
      * Put path variable and body string.
      *
-     * @param id      the id
+     * @param id the id
      * @param userDTO the user dto
      * @return the string
      */
@@ -119,8 +123,7 @@ public class HttpTestController {
     /**
      * the waf pass.
      *
-     * @return response.
-     * @return the string
+     * @return response. result bean
      */
     @PostMapping("/waf/pass")
     public ResultBean pass() {
@@ -133,7 +136,7 @@ public class HttpTestController {
     /**
      * the waf deny.
      *
-     * @return response.
+     * @return response. result bean
      */
     @PostMapping("/waf/deny")
     public ResultBean deny() {
@@ -145,8 +148,9 @@ public class HttpTestController {
 
     /**
      * request Pass.
+     *
      * @param requestParameter the requestParameter.
-     * @return ResultBean
+     * @return ResultBean result bean
      */
     @GetMapping("/request/parameter/pass")
     public ResultBean requestParameter(@RequestParam("requestParameter") final String requestParameter) {
@@ -162,8 +166,9 @@ public class HttpTestController {
 
     /**
      * request Pass.
-     * @param requestHeader    the requestHeader.
-     * @return ResultBean
+     *
+     * @param requestHeader the requestHeader.
+     * @return ResultBean result bean
      */
     @GetMapping("/request/header/pass")
     public ResultBean requestHeader(@RequestHeader("requestHeader") final String requestHeader) {
@@ -179,8 +184,9 @@ public class HttpTestController {
 
     /**
      * request Pass.
-     * @param cookie           the cookie.
-     * @return ResultBean
+     *
+     * @param cookie the cookie.
+     * @return ResultBean result bean
      */
     @GetMapping("/request/cookie/pass")
     public ResultBean requestCookie(@CookieValue("cookie") final String cookie) {
@@ -196,20 +202,19 @@ public class HttpTestController {
 
     /**
      * post sentinel.
-     * @return response.
+     *
+     * @return response. result bean
      */
     @PostMapping("/sentinel/pass")
     public ResultBean sentinelPass() {
-        ResultBean response = new ResultBean();
-        response.setCode(200);
-        response.setMsg("pass");
-        return response;
+        return pass();
     }
 
     /**
      * modify response.
+     *
      * @param exchange exchange
-     * @return response
+     * @return response mono
      */
     @GetMapping(path = "/modifyResponse")
     public Mono<String> modifyResponse(final ServerWebExchange exchange) {
@@ -222,5 +227,12 @@ public class HttpTestController {
                 .put("removeBodyKeys", true)
                 .build();
         return Mono.just(GsonUtils.getInstance().toJson(body));
+    }
+
+    private UserDTO buildUser(final String id, final String name) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(id);
+        userDTO.setUserName(name);
+        return userDTO;
     }
 }

@@ -37,13 +37,15 @@ eureka:
     prefer-ip-address: true
 
 shenyu:
-  client:
+  register:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      contextPath: /springcloud
-      port: 8884
-      nacosNameSpace: ShenyuRegisterCenter
+  client:
+    springCloud:
+      props:
+        contextPath: /springcloud
+        port: 8884
 
 logging:
   level:

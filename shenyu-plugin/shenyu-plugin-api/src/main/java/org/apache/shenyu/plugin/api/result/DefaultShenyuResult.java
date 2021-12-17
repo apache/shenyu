@@ -23,11 +23,6 @@ package org.apache.shenyu.plugin.api.result;
 public class DefaultShenyuResult implements ShenyuResult<DefaultShenyuEntity> {
 
     @Override
-    public DefaultShenyuEntity success(final int code, final String message, final Object object) {
-        return DefaultShenyuEntity.success(code, message, object);
-    }
-
-    @Override
     public DefaultShenyuEntity error(final int code, final String message, final Object object) {
         return DefaultShenyuEntity.error(code, message, object);
     }

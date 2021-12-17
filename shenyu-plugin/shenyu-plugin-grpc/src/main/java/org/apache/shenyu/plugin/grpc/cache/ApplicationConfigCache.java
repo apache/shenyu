@@ -20,18 +20,20 @@ package org.apache.shenyu.plugin.grpc.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstanceLists;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -40,23 +42,22 @@ import java.util.stream.Collectors;
  * Grpc config cache.
  */
 public final class ApplicationConfigCache {
-
-    private final int maxCount = 1000;
-
+    
     private final LoadingCache<String, ShenyuServiceInstanceLists> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
                 @Override
-                public ShenyuServiceInstanceLists load(final String key) {
-                    return new ShenyuServiceInstanceLists(new CopyOnWriteArrayList<>(), key);
+                @NonNull
+                public ShenyuServiceInstanceLists load(@NonNull final String key) {
+                    return new ShenyuServiceInstanceLists(key);
                 }
             });
-
+    
     private final Map<String, Consumer<Object>> listener = new ConcurrentHashMap<>();
-
+    
     private ApplicationConfigCache() {
     }
-
+    
     /**
      * Get shenyuServiceInstanceList.
      *
@@ -70,7 +71,7 @@ public final class ApplicationConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-
+    
     /**
      * Init prx.
      *
@@ -78,8 +79,8 @@ public final class ApplicationConfigCache {
      */
     public void initPrx(final SelectorData selectorData) {
         try {
-            final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
-            if (null == upstreamList || upstreamList.size() == 0) {
+            final List<GrpcUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), GrpcUpstream.class);
+            if (CollectionUtils.isEmpty(upstreamList)) {
                 invalidate(selectorData.getName());
                 return;
             }
@@ -95,7 +96,7 @@ public final class ApplicationConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-
+    
     /**
      * invalidate client.
      *
@@ -106,7 +107,7 @@ public final class ApplicationConfigCache {
         listener.remove(contextPath);
         GrpcClientCache.removeClient(contextPath);
     }
-
+    
     /**
      * Refresh.
      *
@@ -116,7 +117,7 @@ public final class ApplicationConfigCache {
     public void watch(final String key, final Consumer<Object> consumer) {
         listener.put(key, consumer);
     }
-
+    
     /**
      * Gets instance.
      *
@@ -125,22 +126,26 @@ public final class ApplicationConfigCache {
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-
-    private ShenyuServiceInstance build(final DivideUpstream divideUpstream) {
-        String[] ipAndPort = divideUpstream.getUpstreamUrl().split(":");
+    
+    private ShenyuServiceInstance build(final GrpcUpstream grpcUpstream) {
+        String[] ipAndPort = grpcUpstream.getUpstreamUrl().split(":");
         ShenyuServiceInstance instance = new ShenyuServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
-        instance.setWeight(divideUpstream.getWeight());
-        instance.setStatus(divideUpstream.isStatus());
+        instance.setWeight(grpcUpstream.getWeight());
+        instance.setStatus(grpcUpstream.isStatus());
         return instance;
     }
-
+    
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
         /**
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
+        
+        private ApplicationConfigCacheInstance() {
+        
+        }
     }
 }

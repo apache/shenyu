@@ -53,8 +53,8 @@ import java.util.stream.Collectors;
 /**
  * add test case for {@link NacosCacheHandler}.
  */
-@SuppressWarnings("all")
 public final class NacosCacheHandlerTest {
+
     private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
 
     private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
@@ -316,22 +316,16 @@ public final class NacosCacheHandlerTest {
                 AppAuthData.builder().appKey(mockAppKey2).appSecret(mockAppSecret).enabled(true).build();
 
         changeAuthData(ImmutableList.of(appAuthData, appAuthData2));
-        String appAuthDataParam = GsonUtils.getInstance()
-                .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData));
         final CountDownLatch latch = new CountDownLatch(2);
-        final List<AppAuthData> subscribeList = new ArrayList<>();
-        final List<AppAuthData> unsubscribeList = new ArrayList<>();
 
         AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
             @Override
             public void onSubscribe(final AppAuthData appAuthData) {
-                subscribeList.add(appAuthData);
                 latch.countDown();
             }
 
             @Override
             public void unSubscribe(final AppAuthData appAuthData) {
-                unsubscribeList.add(appAuthData);
                 latch.countDown();
             }
         };

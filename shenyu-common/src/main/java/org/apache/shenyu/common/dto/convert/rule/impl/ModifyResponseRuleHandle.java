@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
-import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -29,8 +28,6 @@ import java.util.Set;
  * The type ModifyResponse rule handle.
  */
 public class ModifyResponseRuleHandle implements RuleHandle {
-
-    private static final long serialVersionUID = -3863724068338111444L;
 
     /**
      * add header map.
@@ -61,27 +58,18 @@ public class ModifyResponseRuleHandle implements RuleHandle {
     /**
      * add body List.
      */
-    private List<ParamMappingHandle.ParamMapInfo> addBodyKeys;
+    private List<ParamMappingRuleHandle.ParamMapInfo> addBodyKeys;
 
     /**
      * replace body List.
      */
-    private List<ParamMappingHandle.ParamMapInfo> replaceBodyKeys;
+    private List<ParamMappingRuleHandle.ParamMapInfo> replaceBodyKeys;
 
     /**
      * remove body List.
      */
     private Set<String> removeBodyKeys;
-
-    /**
-     * get serialVersionUID.
-     *
-     * @return serialVersionUID
-     */
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
-
+    
     /**
      * get addHeaders.
      *
@@ -177,7 +165,7 @@ public class ModifyResponseRuleHandle implements RuleHandle {
      *
      * @return addBodyKeys
      */
-    public List<ParamMappingHandle.ParamMapInfo> getAddBodyKeys() {
+    public List<ParamMappingRuleHandle.ParamMapInfo> getAddBodyKeys() {
         return addBodyKeys;
     }
 
@@ -186,7 +174,7 @@ public class ModifyResponseRuleHandle implements RuleHandle {
      *
      * @param addBodyKeys addBodyKeys
      */
-    public void setAddBodyKeys(final List<ParamMappingHandle.ParamMapInfo> addBodyKeys) {
+    public void setAddBodyKeys(final List<ParamMappingRuleHandle.ParamMapInfo> addBodyKeys) {
         this.addBodyKeys = addBodyKeys;
     }
 
@@ -195,7 +183,7 @@ public class ModifyResponseRuleHandle implements RuleHandle {
      *
      * @return replaceBodyKeys
      */
-    public List<ParamMappingHandle.ParamMapInfo> getReplaceBodyKeys() {
+    public List<ParamMappingRuleHandle.ParamMapInfo> getReplaceBodyKeys() {
         return replaceBodyKeys;
     }
 
@@ -204,7 +192,7 @@ public class ModifyResponseRuleHandle implements RuleHandle {
      *
      * @param replaceBodyKeys replaceBodyKeys
      */
-    public void setReplaceBodyKeys(final List<ParamMappingHandle.ParamMapInfo> replaceBodyKeys) {
+    public void setReplaceBodyKeys(final List<ParamMappingRuleHandle.ParamMapInfo> replaceBodyKeys) {
         this.replaceBodyKeys = replaceBodyKeys;
     }
 
@@ -266,11 +254,5 @@ public class ModifyResponseRuleHandle implements RuleHandle {
                 + ", removeBodyKeys="
                 + removeBodyKeys
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        this.statusCode = HttpStatus.OK.value();
-        return this;
     }
 }

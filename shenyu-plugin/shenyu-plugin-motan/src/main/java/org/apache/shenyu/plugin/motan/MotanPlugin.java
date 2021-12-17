@@ -58,6 +58,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
+    @SuppressWarnings("all")
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
@@ -98,9 +99,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.MOTAN.getName());
+        return skipExcept(exchange, RpcTypeEnum.MOTAN);
     }
 
     @Override
@@ -109,6 +108,6 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     }
 
     private boolean checkMetaData(final MetaData metaData) {
-        return null != metaData && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+        return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
     }
 }

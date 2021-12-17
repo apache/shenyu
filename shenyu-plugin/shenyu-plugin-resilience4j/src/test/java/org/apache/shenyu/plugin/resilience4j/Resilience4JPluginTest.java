@@ -98,6 +98,7 @@ public final class Resilience4JPluginTest {
     }
 
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void rateLimiterTest() {
         RuleData data = mock(RuleData.class);
         data.setSelectorId("SHENYU");
@@ -114,6 +115,7 @@ public final class Resilience4JPluginTest {
     }
 
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void circuitBreakerTest() {
         RuleData data = mock(RuleData.class);
         data.setSelectorId("SHENYU");
@@ -123,7 +125,7 @@ public final class Resilience4JPluginTest {
         CombinedExecutor combinedExecutor = new CombinedExecutor();
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(CallNotPermittedException.createCallNotPermittedException(circuitBreaker)).onErrorResume(throwable -> {
-            if (CallNotPermittedException.class.isInstance(throwable)) {
+            if (throwable instanceof CallNotPermittedException) {
                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             }
             return Mono.error(throwable);
@@ -138,6 +140,6 @@ public final class Resilience4JPluginTest {
                 .expectSubscription()
                 .expectError()
                 .verify();
-        Assert.assertEquals(exchange.getResponse().getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        Assert.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
     }
 }

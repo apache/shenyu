@@ -45,7 +45,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
             if (null != labelNames) {
                 builder.labelNames(labelNames);
             }
-            COUNTER_MAP.put(name, builder.register());
+            COUNTER_MAP.putIfAbsent(name, builder.register());
         }
     }
     
@@ -56,7 +56,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
             if (null != labelNames) {
                 builder.labelNames(labelNames);
             }
-            GAUGE_MAP.put(name, builder.register());
+            GAUGE_MAP.putIfAbsent(name, builder.register());
         }
     }
     
@@ -67,7 +67,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
             if (null != labelNames) {
                 builder.labelNames(labelNames);
             }
-            HISTOGRAM_MAP.put(name, builder.register());
+            HISTOGRAM_MAP.putIfAbsent(name, builder.register());
         }
     }
     

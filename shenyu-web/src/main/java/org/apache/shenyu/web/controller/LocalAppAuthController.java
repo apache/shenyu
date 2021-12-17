@@ -17,17 +17,19 @@
 
 package org.apache.shenyu.web.controller;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
@@ -38,7 +40,7 @@ import java.util.List;
  * The type AppAuth controller.
  */
 @RestController
-@RequestMapping("/shenyu")
+@RequestMapping(value = "/shenyu", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class LocalAppAuthController {
     
     private static final Logger LOG = LoggerFactory.getLogger(LocalAppAuthController.class);
@@ -55,19 +57,18 @@ public class LocalAppAuthController {
     }
     
     /**
-     * Clean AppAuth data by appKey.
+     * Clean mono.
      *
-     * @param appKey the appKey
+     * @param appKey the app key
      * @return the mono
      */
     @GetMapping("/auth/delete")
-    public Mono<String> clean(final String appKey) {
+    public Mono<String> clean(@RequestParam("appKey") final String appKey) {
         if (CollectionUtils.isEmpty(subscribers)) {
             return Mono.just(Constants.SUCCESS);
         }
         LOG.info("delete apache shenyu local AppAuth data");
-        AppAuthData appAuthData = new AppAuthData();
-        appAuthData.setAppKey(appKey);
+        AppAuthData appAuthData = AppAuthData.builder().appKey(appKey).build();
         subscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData));
         return Mono.just(Constants.SUCCESS);
     }

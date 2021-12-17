@@ -25,7 +25,8 @@ spring:
 #  cloud:
 #    nacos:
 #      discovery:
-#        server-addr: 127.0.0.1:8848
+#        server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
+
 #  security:
 #    oauth2:
 #      client:
@@ -46,6 +47,42 @@ management:
       enabled: false
 
 shenyu:
+  netty:
+    tcp:
+      # set to false, user can custom the netty tcp server config.
+      webServerFactoryEnabled: true
+      selectCount: 1
+      workerCount: 4
+      serverSocketChannel:
+        soRcvBuf: 87380
+        soBackLog: 128
+        soReuseAddr: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
+      socketChannel:
+        soKeepAlive: false
+        soReuseAddr: false
+        soLinger: -1
+        tcpNoDelay: true
+        soRcvBuf: 87380
+        soSndBuf: 16384
+        ipTos: 0
+        allowHalfClosure: false
+        connectTimeoutMillis: 10000
+        writeBufferHighWaterMark: 65536
+        writeBufferLowWaterMark: 32768
+        writeSpinCount: 16
+        autoRead: true
+        allocType: "pooled"
+  instance:
+    enabled: false
+    registerType: zookeeper #etcd #consul
+    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
   cross:
     enabled: true
     allowedHeaders:
@@ -124,4 +161,3 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
-

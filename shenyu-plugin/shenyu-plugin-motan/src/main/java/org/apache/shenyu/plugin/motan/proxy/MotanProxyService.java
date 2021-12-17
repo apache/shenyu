@@ -52,7 +52,7 @@ public class MotanProxyService {
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-
+    @SuppressWarnings("all")
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         RefererConfig<CommonHandler> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
@@ -62,7 +62,7 @@ public class MotanProxyService {
         CommonHandler commonHandler = reference.getRef();
         ApplicationConfigCache.MotanParamInfo motanParamInfo = ApplicationConfigCache.PARAM_MAP.get(metaData.getMethodName());
         Object[] params;
-        if (motanParamInfo == null) {
+        if (Objects.isNull(motanParamInfo)) {
             params = new Object[0];
         } else {
             int num = motanParamInfo.getParamTypes().length;

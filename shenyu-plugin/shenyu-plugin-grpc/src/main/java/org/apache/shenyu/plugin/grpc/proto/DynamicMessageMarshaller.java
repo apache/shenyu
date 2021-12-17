@@ -21,6 +21,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistryLite;
 import io.grpc.MethodDescriptor.Marshaller;
+import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +44,7 @@ public class DynamicMessageMarshaller implements Marshaller<DynamicMessage> {
                     .mergeFrom(inputStream, ExtensionRegistryLite.getEmptyRegistry())
                     .build();
         } catch (IOException e) {
-            throw new RuntimeException("Unable to merge from the supplied input stream", e);
+            throw new ShenyuGrpcException("Unable to merge from the supplied input stream", e);
         }
     }
 

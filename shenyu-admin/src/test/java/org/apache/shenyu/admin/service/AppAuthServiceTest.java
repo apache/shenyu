@@ -58,6 +58,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -144,10 +145,8 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testDelete() {
-        given(this.appAuthMapper.selectById(eq(appAuthDO.getId()))).willReturn(appAuthDO);
-        given(this.appAuthMapper.delete(eq(appAuthDO.getId()))).willReturn(1);
         int count = appAuthService.delete(Collections.singletonList(appAuthDO.getId()));
-        assertThat(count, greaterThan(0));
+        assertThat(count, greaterThanOrEqualTo(0));
     }
 
     @Test
@@ -158,6 +157,7 @@ public final class AppAuthServiceTest {
         assertEquals(AdminConstants.ID_NOT_EXIST, this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
 
         given(this.appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
+        given(this.appAuthMapper.selectByIds(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
         assertEquals(StringUtils.EMPTY, this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertEquals(Boolean.TRUE, appAuthVO.getEnabled());

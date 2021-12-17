@@ -40,13 +40,15 @@ public class UpstreamCheckTaskTest {
      *  Here to set interval with 50s to avoid running the second time.
      */
     private UpstreamCheckTask healthCheckTask = new UpstreamCheckTask(50000);
-    
+
     /**
      * Test run.
      */
     @Test(timeout = 30000)
     public void testRun() {
-        // Mock selectorId1~selectorId4 to let it coverage 4 branch of `HealthCheckTask#check` method
+        /**
+         * Mock selectorId1~selectorId4 to let it coverage 4 branch of `HealthCheckTask#check` method.
+         */
         final String selectorId1 = "s1";
         SelectorData selectorData1 = mock(SelectorData.class);
         final String selectorId2 = "s2";
@@ -61,10 +63,12 @@ public class UpstreamCheckTaskTest {
         when(selectorData3.getId()).thenReturn(selectorId3);
         when(selectorData4.getId()).thenReturn(selectorId4);
 
-        // Let it coverage line 165~175
-        // We should use powermock or mockito to mock static method of `UpstreamCheckUtils.checkUrl`,
-        // But mocked static method is not valid across thread. Because `UpstreamCheckUtils.checkUrl` is called in
-        // HealthCheckTask inner thread pool, but mocked in current thread. So we turn to do like below.
+        /**
+         * Let it coverage line 165~175
+         * We should use powermock or mockito to mock static method of `UpstreamCheckUtils.checkUrl`,
+         * But mocked static method is not valid across thread. Because `UpstreamCheckUtils.checkUrl` is called in
+         * HealthCheckTask inner thread pool, but mocked in current thread. So we turn to do like below.
+         */
         when(upstream.getUrl()).thenReturn("");
         when(upstream.isHealthy()).thenReturn(true).thenReturn(false);
 
@@ -73,17 +77,25 @@ public class UpstreamCheckTaskTest {
         healthCheckTask.triggerAddOne(selectorData3.getId(), upstream);
         healthCheckTask.triggerAddOne(selectorData4.getId(), upstream);
         healthCheckTask.schedule();
-        // Wait for the upstream-health-check thread to start.
+        /**
+         * Wait for the upstream-health-check thread to start.
+         */
         Awaitility.await().pollDelay(3, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
-        assertTrue(healthCheckTask.getHealthyUpstream().containsKey(selectorId1));
-        // Let it coverage line 151~163
+        assertTrue(healthCheckTask.getUnhealthyUpstream().get(selectorId1).size() > 0);
+        /**
+         * Let it coverage line 151~163.
+         */
         when(upstream.isHealthy()).thenReturn(false).thenReturn(true);
-        // Even if the address could not connect, it will return false, that mean it will not coverage 151~163.
+        /**
+         * Even if the address could not connect, it will return false, that mean it will not coverage 151~163.
+         */
         when(upstream.getUrl()).thenReturn("http://www.baidu.com");
-        // Manually run one time
+        /**
+         * Manually run one time
+         */
         healthCheckTask.run();
         Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
-        assertTrue(healthCheckTask.getUnhealthyUpstream().containsKey(selectorId1));
+        assertTrue(healthCheckTask.getHealthyUpstream().get(selectorId1).size() > 0);
     }
     
     /**

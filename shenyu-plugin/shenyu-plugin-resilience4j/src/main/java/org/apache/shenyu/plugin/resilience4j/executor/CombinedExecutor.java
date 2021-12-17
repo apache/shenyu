@@ -22,6 +22,7 @@ import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 import org.apache.shenyu.plugin.resilience4j.factory.Resilience4JRegistryFactory;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -46,7 +47,7 @@ public class CombinedExecutor implements Executor {
                         resilience4JConf.getTimeLimiterConfig().getTimeoutDuration().toMillis(),
                         TimeUnit.MILLISECONDS,
                         t));
-        if (fallback != null) {
+        if (Objects.nonNull(fallback)) {
             to = to.onErrorResume(fallback);
         }
         return to;

@@ -19,6 +19,11 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.RuleConditionMapper;
+import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
@@ -27,20 +32,15 @@ import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.mapper.RuleConditionMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
-import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
-import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -58,25 +58,24 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Arrays;
 import java.util.Random;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for SelectorService.
@@ -220,11 +219,7 @@ public final class SelectorServiceTest {
 
         // Test the situation where the selector cannot be found based on the contextPath.
         given(pluginMapper.selectByName("test")).willReturn(buildPluginDO());
-        assertNotNull(selectorService.handlerSelectorNeedUpstreamCheck(buildMetaDataRegisterDTO(), "test"));
-
-        // Test the situation where the selector can be found based on the contextPath.
-        given(selectorMapper.selectByName("/test")).willReturn(buildSelectorDO());
-        assertThat(selectorService.handlerSelectorNeedUpstreamCheck(buildMetaDataRegisterDTO(), "test"), is("456"));
+        assertNotNull(selectorService.registerDefault(buildMetaDataRegisterDTO(), "test", ""));
     }
 
     private void testUpdate() {
@@ -248,14 +243,14 @@ public final class SelectorServiceTest {
     private void testRegisterCreate() {
         SelectorDTO selectorDTO = buildSelectorDTO("");
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        String selectorId = this.selectorService.register(selectorDTO);
+        String selectorId = this.selectorService.registerDefault(selectorDTO);
         assertNotNull(selectorId);
         assertEquals(selectorId.length(), selectorDO.getId().length());
     }
 
     private void testRegisterUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
-        String selectorId = this.selectorService.register(selectorDTO);
+        String selectorId = this.selectorService.registerDefault(selectorDTO);
         assertNotNull(selectorId);
         assertEquals(selectorId, selectorDTO.getId());
     }
@@ -331,6 +326,7 @@ public final class SelectorServiceTest {
 
     private MetaDataRegisterDTO buildMetaDataRegisterDTO() {
         MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
+        metaDataRegisterDTO.setAppName("test");
         metaDataRegisterDTO.setPath("/test");
         metaDataRegisterDTO.setHost("127.0.0.1");
         metaDataRegisterDTO.setPort(13307);

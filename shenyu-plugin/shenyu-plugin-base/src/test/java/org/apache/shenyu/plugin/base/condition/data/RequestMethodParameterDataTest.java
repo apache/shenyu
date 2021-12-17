@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 /**
  * Test cases for {@link RequestMethodParameterData}.
  */
-public class RequestMethodParameterDataTest {
+public final class RequestMethodParameterDataTest {
 
     private ServerWebExchange exchange;
 
@@ -45,6 +45,6 @@ public class RequestMethodParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals(this.requestMethodParameterData.builder(null, this.exchange), "GET");
+        Assert.assertEquals("GET", this.requestMethodParameterData.builder(null, this.exchange));
     }
 }

@@ -28,7 +28,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,  auth_id, app_name,app_param,date_created, date_updated
+        id, auth_id, app_name,app_param,date_created, date_updated
     </sql>
 
     <select id="findByAuthId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -36,6 +36,17 @@
         <include refid="Base_Column_List"/>
         from auth_param
         where auth_id = #{authId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByAuthIdList" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from auth_param
+        where auth_id in
+        <foreach collection="authIdSet" index="index" item="authId"
+                 open="(" separator="," close=")" >
+            #{authId,jdbcType=VARCHAR}
+        </foreach>
     </select>
 
     <select id="findByAuthIdAndAppName"  resultMap="BaseResultMap">
@@ -104,5 +115,14 @@
         delete from auth_param
         where auth_id = #{authId,jdbcType=VARCHAR}
     </delete>
+
+    <delete id="deleteByAuthIds" parameterType="java.util.List">
+        delete from auth_param
+        where auth_id in
+        <foreach item="authId" collection="list" open="(" separator="," close=")">
+            #{authId,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
 
 </mapper>

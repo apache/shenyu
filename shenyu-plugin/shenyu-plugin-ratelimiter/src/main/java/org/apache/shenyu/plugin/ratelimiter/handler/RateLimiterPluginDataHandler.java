@@ -58,11 +58,11 @@ import java.util.function.Supplier;
  */
 public class RateLimiterPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, RateLimiterHandle>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, RateLimiterHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             //init redis
             RateLimiterConfig rateLimiterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RateLimiterConfig.class);
             //spring data redisTemplate

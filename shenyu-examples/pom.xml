@@ -30,16 +30,19 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.2.2.RELEASE</version>
+        <relativePath/>
     </parent>
 
     <properties>
-        <shenyu.version>2.4.1-SNAPSHOT</shenyu.version>
+        <shenyu.version>2.4.2-SNAPSHOT</shenyu.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
+        <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
     </properties>
 
     <modules>
         <module>shenyu-examples-http</module>
+        <module>shenyu-examples-https</module>
         <module>shenyu-examples-dubbo</module>
         <module>shenyu-examples-springcloud</module>
         <module>shenyu-examples-eureka</module>

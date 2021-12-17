@@ -15,31 +15,12 @@
 # limitations under the License.
 version: "3.9"
 services:
-  shenyu-zk:
-    container_name: shenyu-zk
-    image: zookeeper:3.5
-    restart: always
-    networks:
-      - shenyu
-  shenyu-redis:
-    image: redis:6.0-alpine
-    container_name: shenyu-redis
-    restart: always
-    command: redis-server --requirepass abc
-    networks:
-      - shenyu
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:
       - shenyu
-    depends_on:
-      shenyu-redis:
-        condition: service_healthy
     ports:
       - 9095:9095
     environment:
@@ -60,7 +41,7 @@ services:
     image: shenyu-examples-grpc:latest
     restart: always
     environment:
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://localhost:55290/test/grpc/hello | grep UP || exit 1" ]
       timeout: 2s

@@ -86,6 +86,14 @@ public interface SelectorConditionMapper {
     int delete(String id);
 
     /**
+     * delete selector condition by id.
+     *
+     * @param selectorIds the selector ids
+     * @return rows
+     */
+    int deleteBySelectorIds(List<String> selectorIds);
+
+    /**
      * delete selector condition by query.
      *
      * @param selectorConditionQuery {@linkplain SelectorConditionDO}

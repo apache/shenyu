@@ -18,10 +18,9 @@ FROM java:openjdk-8-jre-alpine
         
 ARG APP_NAME
 
-ARG SPRING_PROFILES_ACTIVE
-ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-h2}
-
 ENV LOCAL_PATH /opt/shenyu-admin
+
+RUN apk --no-cache add procps
 
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}

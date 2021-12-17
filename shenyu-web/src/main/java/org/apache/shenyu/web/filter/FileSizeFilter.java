@@ -62,6 +62,7 @@ public class FileSizeFilter implements WebFilter {
     }
 
     @Override
+    @NonNull
     public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
         MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
         if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(mediaType)) {

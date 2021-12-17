@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.agent.bootstrap;
 
+import org.apache.shenyu.agent.bootstrap.classloader.AgentClassLoader;
+
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Method;
 
 /**
  * The type Shenyu agent bootstrap.
@@ -29,10 +32,19 @@ public class ShenyuAgentBootstrap {
      *
      * @param arguments arguments
      * @param instrumentation instrumentation
+     * @throws Exception the exception
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
+    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
+        AgentClassLoader agentClassLoader = AgentClassLoader.createAgentClassloader();
+        Class<?> agentInstallerClass = agentClassLoader.loadClass("org.apache.shenyu.agent.core.AgentInstaller");
+        Method agentInstallerMethod = agentInstallerClass.getMethod("installBytebuddyAgent", Instrumentation.class, ClassLoader.class);
+
+        ClassLoader originClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(agentClassLoader);
+        try {
+            agentInstallerMethod.invoke(null, instrumentation, agentClassLoader);
+        } finally {
+            Thread.currentThread().setContextClassLoader(originClassLoader);
+        }
     }
 }

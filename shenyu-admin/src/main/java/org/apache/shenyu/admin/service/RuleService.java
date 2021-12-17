@@ -35,11 +35,9 @@ public interface RuleService {
      * Register string.
      *
      * @param ruleDTO        the rule dto
-     * @param name           the rule's name
-     * @param metaDataIsExist if meta data is exist
      * @return the string
      */
-    String register(RuleDTO ruleDTO, String name, boolean metaDataIsExist);
+    String registerDefault(RuleDTO ruleDTO);
 
     /**
      * create or update rule.
@@ -87,6 +85,13 @@ public interface RuleService {
      * @return the list
      */
     List<RuleData> findBySelectorId(String selectorId);
+
+    /**
+     * Find by a list of selector ids.
+     * @param selectorIdList a list of selector ids
+     * @return the list of RuleDatas
+     */
+    List<RuleData> findBySelectorIdList(List<String> selectorIdList);
 
     /**
      * Find rule by name.

@@ -122,7 +122,7 @@
                     <plugin>
                         <groupId>com.spotify</groupId>
                         <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>1.4.6</version>
+                        <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>shenyu-examples-grpc</id>

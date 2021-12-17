@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * CacheKeyUtilsTest test.
  */
-public class CacheKeyUtilsTest {
+public final class CacheKeyUtilsTest {
 
     private static final String MOCK_SELECTOR_ID = "mockSelectorId";
 

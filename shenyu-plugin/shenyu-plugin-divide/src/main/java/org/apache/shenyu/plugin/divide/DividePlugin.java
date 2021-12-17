@@ -76,20 +76,19 @@ public class DividePlugin extends AbstractShenyuPlugin {
         List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             LOG.error("divide upstream configuration error： {}", rule);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
         String domain = buildDomain(upstream);
-        String realURL = buildRealURL(domain, shenyuContext, exchange);
-        exchange.getAttributes().put(Constants.HTTP_URL, realURL);
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
@@ -103,8 +102,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        return !Objects.equals(Objects.requireNonNull(shenyuContext).getRpcType(), RpcTypeEnum.HTTP.getName());
+        return skipExcept(exchange, RpcTypeEnum.HTTP);
     }
 
     @Override
@@ -128,23 +126,5 @@ public class DividePlugin extends AbstractShenyuPlugin {
             protocol = "http://";
         }
         return protocol + upstream.getUrl().trim();
-    }
-
-    private String buildRealURL(final String domain, final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
-        String path = domain;
-        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        if (StringUtils.isNoneBlank(rewriteURI)) {
-            path = path + rewriteURI;
-        } else {
-            final String realUrl = shenyuContext.getRealUrl();
-            if (StringUtils.isNoneBlank(realUrl)) {
-                path = path + realUrl;
-            }
-        }
-        String query = exchange.getRequest().getURI().getQuery();
-        if (StringUtils.isNoneBlank(query)) {
-            return path + "?" + query;
-        }
-        return path;
     }
 }

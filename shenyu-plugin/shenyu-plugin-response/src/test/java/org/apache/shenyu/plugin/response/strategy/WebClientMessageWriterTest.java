@@ -66,6 +66,7 @@ public class WebClientMessageWriterTest {
     @Test
     public void testWriteWith() {
         ServerWebExchange exchangeNormal = generateServerWebExchange(true);
+        exchangeNormal.getResponse().setStatusCode(HttpStatus.OK);
         reset(chain);
         when(chain.execute(exchangeNormal)).thenReturn(Mono.empty());
         Mono<Void> monoSuccess = webClientMessageWriter.writeWith(exchangeNormal, chain);
@@ -113,7 +114,7 @@ public class WebClientMessageWriterTest {
                 .from(MockServerHttpRequest.get("/test").build());
 
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+        exchange.getAttributes().put(Constants.HTTP_URI, "/test");
         if (haveResponse) {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, mockResponse);
         }

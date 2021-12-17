@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.cryptor.decorator.ResponseDecorator;
+import org.apache.shenyu.plugin.cryptor.decorator.CryptorResponseDecorator;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,7 +98,7 @@ public class CryptorResponsePluginTest {
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
         when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
+        when(builder.response(any(CryptorResponseDecorator.class))).thenReturn(builder);
         when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         cryptorResponsePluginDataHandler.handlerRule(ruleData);
@@ -129,7 +129,7 @@ public class CryptorResponsePluginTest {
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
         when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
+        when(builder.response(any(CryptorResponseDecorator.class))).thenReturn(builder);
         when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         cryptorResponsePluginDataHandler.handlerRule(ruleData);
@@ -159,7 +159,7 @@ public class CryptorResponsePluginTest {
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
         when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
+        when(builder.response(any(CryptorResponseDecorator.class))).thenReturn(builder);
         when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         cryptorResponsePluginDataHandler.handlerRule(ruleData);
@@ -190,7 +190,7 @@ public class CryptorResponsePluginTest {
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
         when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
+        when(builder.response(any(CryptorResponseDecorator.class))).thenReturn(builder);
         when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         cryptorResponsePluginDataHandler.handlerRule(ruleData);

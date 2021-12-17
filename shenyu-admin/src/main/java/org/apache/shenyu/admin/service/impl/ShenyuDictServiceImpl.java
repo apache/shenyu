@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
@@ -70,16 +71,17 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer deleteShenyuDicts(final List<String> ids) {
+
         int affectedRows = 0;
-        for (String id : ids) {
-            affectedRows += shenyuDictMapper.delete(id);
+        if (CollectionUtils.isNotEmpty(ids)) {
+            affectedRows = shenyuDictMapper.deleteByIdList(ids);
         }
         return affectedRows;
     }
 
     @Override
     public Integer enabled(final List<String> ids, final Boolean enabled) {
-        if (ids == null || ids.isEmpty()) {
+        if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
         return shenyuDictMapper.enabled(ids, enabled);
@@ -88,6 +90,11 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     @Override
     public ShenyuDictVO findById(final String id) {
         return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectById(id));
+    }
+
+    @Override
+    public ShenyuDictVO findByDictCodeName(final String dictCode, final String dictName) {
+        return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectByDictCodeAndDictName(dictCode, dictName));
     }
 
     @Override

@@ -42,13 +42,11 @@ public final class HostAddressUtilsTest {
 
     private ServerWebExchange exchange;
 
-    private RemoteAddressResolver remoteAddressResolver;
-
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        this.remoteAddressResolver = new RemoteAddressResolver() {
+        RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
@@ -61,7 +59,7 @@ public final class HostAddressUtilsTest {
      */
     @Test
     public void acquireHostTest() {
-        Assert.assertEquals(HostAddressUtils.acquireHost(exchange), "0.0.0.0");
+        Assert.assertEquals("0.0.0.0", HostAddressUtils.acquireHost(exchange));
     }
 
     /**
@@ -69,6 +67,6 @@ public final class HostAddressUtilsTest {
      */
     @Test
     public void acquireIpTest() {
-        Assert.assertEquals(HostAddressUtils.acquireIp(exchange), "0.0.0.0");
+        Assert.assertEquals("0.0.0.0", HostAddressUtils.acquireIp(exchange));
     }
 }

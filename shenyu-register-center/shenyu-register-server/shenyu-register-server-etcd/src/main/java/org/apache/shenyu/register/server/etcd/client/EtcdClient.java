@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -70,7 +71,7 @@ public class EtcdClient {
                         .setDaemon(true)
                         .build());
 
-        this.client = Client.builder().endpoints(urls).build();
+        this.client = Client.builder().endpoints(urls.split(",")).build();
 
         try {
             initLease();
@@ -88,6 +89,7 @@ public class EtcdClient {
 
     /**
      * read data.
+     *
      * @param key key
      * @return string of data
      */
@@ -95,14 +97,17 @@ public class EtcdClient {
         KV kv = client.getKVClient();
         ByteSequence storeKey = Optional.ofNullable(key).map(ByteSequence::fromString).orElse(null);
         GetResponse response = null;
+
         try {
             response = kv.get(storeKey).get();
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("read(key:{}) error.", key, e);
         }
-        if (response == null) {
+
+        if (Objects.isNull(response)) {
             return null;
         }
+
         LOGGER.debug(String.valueOf(response.getHeader()));
         Node info = response.getKvs().stream().map(EtcdClient::kv2NodeInfo).findFirst().orElse(null);
         assert info != null;
@@ -111,6 +116,7 @@ public class EtcdClient {
 
     /**
      * get children of path.
+     *
      * @param path path
      * @return list of children
      */
@@ -136,7 +142,8 @@ public class EtcdClient {
 
     /**
      * subscribe children change.
-     * @param key key
+     *
+     * @param key     key
      * @param handler event handler
      */
     public void subscribeChildChanges(final String key, final EtcdListenHandler handler) {
@@ -163,7 +170,7 @@ public class EtcdClient {
                 response.getEvents().forEach(watchEvent -> {
                     KeyValue keyValue = watchEvent.getKeyValue();
                     Node info = kv2NodeInfo(keyValue);
-                    // 跳过根节点的变化
+                    // skip root node change
                     if (watchEvent.getKeyValue().getKey().equals(storeKey)) {
                         return;
                     }

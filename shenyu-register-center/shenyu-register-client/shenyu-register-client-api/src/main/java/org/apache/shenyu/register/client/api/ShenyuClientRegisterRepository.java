@@ -19,24 +19,15 @@ package org.apache.shenyu.register.client.api;
 
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.SPI;
 
 /**
- *  Shenyu client register repository.
+ * Shenyu client register repository.
  */
 @SPI
 public interface ShenyuClientRegisterRepository {
-    
-    /**
-     * Path separator.
-     */
-    String PATH_SEPARATOR = "/";
-    
-    /**
-     * Dot separator.
-     */
-    String DOT_SEPARATOR = ".";
-    
+
     /**
      * Init.
      *
@@ -44,13 +35,21 @@ public interface ShenyuClientRegisterRepository {
      */
     default void init(ShenyuRegisterCenterConfig config) {
     }
-
+    
     /**
      * Persist metadata.
      *
-     * @param metadata  metadata
+     * @param metadata metadata
      */
     void persistInterface(MetaDataRegisterDTO metadata);
+    
+    /**
+     * Persist uri.
+     *
+     * @param registerDTO the register dto
+     */
+    default void persistURI(URIRegisterDTO registerDTO) {
+    }
     
     /**
      * Close.

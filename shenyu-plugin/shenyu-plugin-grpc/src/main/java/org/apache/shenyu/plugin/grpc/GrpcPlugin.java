@@ -57,31 +57,35 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
+        final String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
+
         if (!checkMetaData(metaData)) {
-            assert metaData != null;
             LOG.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        assert metaData != null;
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.GRPC_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.GRPC_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+
         final ShenyuGrpcClient client = GrpcClientCache.getGrpcClient(selector.getName());
         if (Objects.isNull(client)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.GRPC_CLIENT_NULL.getCode(), ShenyuResultEnum.GRPC_CLIENT_NULL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+
         GrpcExtInfo extInfo = GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);
         CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.methodType);
+
         return Mono.fromFuture(result.thenApply(ret -> {
             exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
@@ -107,9 +111,7 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.GRPC.getName());
+        return skipExcept(exchange, RpcTypeEnum.GRPC);
     }
 
     @Override
@@ -118,7 +120,9 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
     }
 
     private boolean checkMetaData(final MetaData metaData) {
-        return null != metaData && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+        return Objects.nonNull(metaData)
+                && !StringUtils.isBlank(metaData.getMethodName())
+                && !StringUtils.isBlank(metaData.getServiceName());
     }
 
     /**

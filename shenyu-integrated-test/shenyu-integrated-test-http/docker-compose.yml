@@ -40,7 +40,7 @@ services:
     image: shenyu-examples-http:latest
     restart: always
     environment:
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
       timeout: 2s
@@ -54,7 +54,7 @@ services:
       - shenyu
 
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:
@@ -81,9 +81,10 @@ services:
       resources:
         limits:
           memory: 2048M
+    environment:
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket          
     depends_on:
-      shenyu-admin:
-        condition: service_healthy
+      - shenyu-admin
     ports:
       - 9195:9195
     networks:

@@ -16,7 +16,7 @@
 version: "3.9"
 services:
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:
@@ -60,7 +60,7 @@ services:
     image: shenyu-examples-springcloud:latest
     restart: always
     environment:
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
       - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8884/actuator/health | grep UP || exit 1"]

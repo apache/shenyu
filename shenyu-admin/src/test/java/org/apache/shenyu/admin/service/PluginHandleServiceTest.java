@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.service.impl.PluginHandleServiceImpl;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +38,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -140,10 +143,11 @@ public final class PluginHandleServiceTest {
 
     @Test
     public void testDeletePluginHandles() {
-        final List<String> ids = Collections.singletonList("1211");
-        given(this.pluginHandleMapper.delete(any())).willReturn(1);
+        final List<String> ids = Lists.list("1", "2", "3");
+        final Set<String> idSet = new HashSet<>(ids);
+        given(this.pluginHandleMapper.deleteByIdSet(idSet)).willReturn(3);
         final Integer result = this.pluginHandleService.deletePluginHandles(ids);
-        assertThat(result, equalTo(1));
+        assertThat(result, equalTo(idSet.size()));
     }
 
     @Test
@@ -185,7 +189,9 @@ public final class PluginHandleServiceTest {
     @Test
     public void testList() {
         final List<PluginHandleDO> pluginHandleDOs = buildPluginHandleDOList();
+        final List<ShenyuDictDO> shenyuDictDOList = buildShenyuDictDOs();
         given(this.pluginHandleMapper.selectByQuery(any())).willReturn(pluginHandleDOs);
+        given(this.shenyuDictMapper.findByTypeBatch(any())).willReturn(shenyuDictDOList);
         final List<PluginHandleVO> result = pluginHandleService.list("4", 2);
         assertThat(result, notNullValue());
         assertEquals(pluginHandleDOs.size(), result.size());

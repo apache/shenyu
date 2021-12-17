@@ -24,7 +24,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.plugin.base.utils.UriUtils;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.resilience4j.Resilience4JPlugin;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
 import org.springframework.http.HttpStatus;

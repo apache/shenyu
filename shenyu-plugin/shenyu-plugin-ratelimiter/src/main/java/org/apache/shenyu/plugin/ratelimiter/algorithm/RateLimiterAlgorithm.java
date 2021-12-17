@@ -29,14 +29,21 @@ import java.util.List;
  */
 @SPI
 public interface RateLimiterAlgorithm<T> {
-    
+
+    /**
+     * Gets script name.
+     *
+     * @return the script name
+     */
+    String getScriptName();
+
     /**
      * Gets script.
      *
      * @return the script
      */
     RedisScript<T> getScript();
-    
+
     /**
      * Gets keys.
      *
@@ -44,12 +51,12 @@ public interface RateLimiterAlgorithm<T> {
      * @return the keys
      */
     List<String> getKeys(String id);
-    
+
     /**
      * Callback string.
      *
-     * @param script the script
-     * @param keys the keys
+     * @param script     the script
+     * @param keys       the keys
      * @param scriptArgs the script args
      */
     default void callback(final RedisScript<?> script, final List<String> keys, final List<String> scriptArgs) {

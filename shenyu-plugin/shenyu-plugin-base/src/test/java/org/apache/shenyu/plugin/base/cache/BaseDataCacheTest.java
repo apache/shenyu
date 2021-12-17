@@ -236,6 +236,7 @@ public final class BaseDataCacheTest {
         Assert.assertEquals(Lists.newArrayList(ruleData), ruleDataList);
     }
 
+    @SuppressWarnings("rawtypes")
     private ConcurrentHashMap getFieldByName(final String name) throws NoSuchFieldException, IllegalAccessException {
         BaseDataCache baseDataCache = BaseDataCache.getInstance();
         Field pluginMapField = baseDataCache.getClass().getDeclaredField(name);

@@ -70,7 +70,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(selector.getId());
         final SpringCloudRuleHandle ruleHandle = SpringCloudPluginDataHandler.RULE_CACHED.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         String serviceId = springCloudSelectorHandle.getServiceId();
-        if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
+        if (StringUtils.isBlank(serviceId)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(),
                     ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
@@ -89,11 +89,8 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
                     .error(ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getCode(), ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(shenyuContext.getRealUrl()));
-
-        String realURL = buildRealURL(uri, exchange, exchange.getRequest().getURI().getQuery());
-
-        exchange.getAttributes().put(Constants.HTTP_URL, realURL);
+        URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(shenyuContext.getRealUrl()));
+        setDomain(uri, exchange);
         //set time out.
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         return chain.execute(exchange);
@@ -117,8 +114,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
+        return skipExcept(exchange, RpcTypeEnum.SPRING_CLOUD);
     }
 
     @Override
@@ -131,15 +127,8 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
 
-    private String buildRealURL(final URI uri, final ServerWebExchange exchange, final String query) {
-        String url = uri.toASCIIString();
-        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        if (StringUtils.isNotBlank(rewriteURI)) {
-            url = url.replace(uri.getPath(), rewriteURI);
-        }
-        if (StringUtils.isNotBlank(query)) {
-            return url + "?" + query;
-        }
-        return url;
+    private void setDomain(final URI uri, final ServerWebExchange exchange) {
+        String domain = uri.getScheme() + "://" + uri.getAuthority();
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
     }
 }

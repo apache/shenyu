@@ -27,10 +27,10 @@ import java.util.function.Function;
 /**
  * Proxy info util.
  */
-public class PrxInfoUtil {
-
+public final class PrxInfoUtil {
+    
     private static final Map<String, PrimitiveType> PRIMITIVE_TYPE;
-
+    
     static {
         PRIMITIVE_TYPE = new HashMap<>();
         PRIMITIVE_TYPE.put("int", new PrimitiveType(int.class, o -> {
@@ -82,7 +82,10 @@ public class PrxInfoUtil {
             return ((Double) o).floatValue();
         }));
     }
-
+    
+    private PrxInfoUtil() {
+    }
+    
     /**
      * Get class type by name.
      *
@@ -97,7 +100,7 @@ public class PrxInfoUtil {
             return Class.forName(className);
         }
     }
-
+    
     /**
      * Get proxy class name to get tars proxy.
      *
@@ -107,7 +110,7 @@ public class PrxInfoUtil {
     public static String getPrxName(final MetaData metaData) {
         return metaData.getPath().replace("/", "") + metaData.getMethodName() + "Prx";
     }
-
+    
     /**
      * Get methodName to get tars proxy.
      *
@@ -117,7 +120,7 @@ public class PrxInfoUtil {
     public static String getMethodName(final String methodName) {
         return "promise_" + methodName;
     }
-
+    
     /**
      * Get objectName to get tars proxy.
      *
@@ -129,13 +132,13 @@ public class PrxInfoUtil {
         String[] ipAndPort = upstreamUrl.split(":");
         return serviceName + "@tcp -h " + ipAndPort[0] + " -p " + ipAndPort[1];
     }
-
+    
     /**
      * Get param to invoke tars server.
      *
      * @param paramTypes paramTypes
      * @param paramNames paramNames
-     * @param body body
+     * @param body       body
      * @return the param to invoke
      */
     public static Object[] getParamArray(final Class<?>[] paramTypes, final String[] paramNames, final String body) {
@@ -152,22 +155,22 @@ public class PrxInfoUtil {
         }
         return param;
     }
-
+    
     static class PrimitiveType {
         
         private final Class<?> clazz;
-
+        
         private final Function<Object, Object> func;
-
+        
         PrimitiveType(final Class<?> clazz, final Function<Object, Object> func) {
             this.clazz = clazz;
             this.func = func;
         }
-
+        
         public Class<?> getClazz() {
             return clazz;
         }
-
+        
         public Function<Object, Object> getFunc() {
             return func;
         }
