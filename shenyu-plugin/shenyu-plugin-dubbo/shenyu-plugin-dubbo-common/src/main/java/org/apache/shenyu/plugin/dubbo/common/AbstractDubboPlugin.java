@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -62,6 +63,13 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
                                                  RuleData rule,
                                                  MetaData metaData,
                                                  String param);
+
+    /**
+     * transmit rpc context when user rpc call.
+     *
+     * @param rpcContext rpc context map.
+     */
+    protected abstract void transmitRpcContext(Map<String, String> rpcContext);
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -92,6 +100,7 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        this.rpcContext(exchange);
         return this.doDubboInvoker(exchange, chain, selector, rule, metaData, param);
     }
 
@@ -128,6 +137,13 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
     @Override
     public boolean skip(final ServerWebExchange exchange) {
         return skipExcept(exchange, RpcTypeEnum.DUBBO);
+    }
+
+    private void rpcContext(final ServerWebExchange exchange) {
+        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
+        if (Objects.nonNull(rpcContext) && Objects.nonNull(rpcContext.get(PluginEnum.DUBBO.getName()))) {
+            this.transmitRpcContext(rpcContext.get(PluginEnum.DUBBO.getName()));
+        }
     }
 
     private boolean checkMetaData(final MetaData metaData) {

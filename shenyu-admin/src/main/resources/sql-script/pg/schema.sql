@@ -393,6 +393,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '7' || ''', ''' || 'monitor' || ''', ''' || '{"metricsName":"prometheus","host":"localhost","port":"9190","async":"true"}' || ''', ''' || 'Monitor' || ''', 170, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '8' || ''', ''' || 'springCloud' || ''', NULL, ''' || 'Proxy' || ''', 200, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '9' || ''', ''' || 'hystrix' || ''', NULL, ''' || 'FaultTolerance' || ''', 130, 0, ''' || '2020-01-15 10:19:10' || ''', ''' || '2020-01-15 10:19:10' || ''');');
+	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '27' || ''', ''' || 'generalContext' || ''', NULL, ''' || 'Common' || ''', 125, 0, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
@@ -562,7 +563,6 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'headerMaxSize' || ''', ''' || 'headerMaxSize' || ''', 1, 2, 3, ''' || '{"defaultValue":"10240","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'requestMaxSize' || ''', ''' || 'requestMaxSize' || ''', 1, 2, 4, ''' || '{"defaultValue":"102400","rule":""}' || ''');');
 
-
     /*insert "plugin_handle" data for tars*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '13' || ''', ''' || 'upstreamHost' || ''', ''' || 'host' || ''', 2, 1, 0, null);');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '13' || ''', ''' || 'protocol' || ''', ''' || 'protocol' || ''', 2, 1, 2, ''' || '{"defaultValue":"","rule":""}' || ''');');
@@ -636,6 +636,7 @@ ELSE
 
     /*insert "plugin_handle" data for plugin motan*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'register' || ''', ''' || 'register' || ''', 2, 3, 0, null);');
+
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 
 END IF;
@@ -745,6 +746,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1357977912126177280' || ''', ''' || '1355163372527050752' || ''', ''' || 'SHENYU.SYSTEM.EDITOR' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 5, ''' || '' || ''', 1, 0, ''' || 'system:resource:editButton' || ''', 1, ''' || '2021-02-06 17:02:19' || ''', ''' || '2021-02-06 17:23:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1357977971827900416' || ''', ''' || '1355163372527050752' || ''', ''' || 'SHENYU.SYSTEM.DELETEDATA' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 6, ''' || '' || ''', 1, 0, ''' || 'system:resource:deleteButton' || ''', 1, ''' || '2021-02-06 17:02:33' || ''', ''' || '2021-02-06 17:25:28' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "resource" VALUES (''' || '1386680049203195904' || ''', ''' || '1346777157943259136' || ''', ''' || 'SHENYU.BUTTON.DATA.PERMISSION.CONFIG' || ''', ''' || '' || ''', ''' || '' || ''', ''' || '' || ''', 2, 0, ''' || '' || ''', 1, 0, ''' || 'system:manager:configureDataPermission' || ''', 1, ''' || '2021-04-26 21:54:22' || ''', ''' || '2021-04-26 21:59:56' || ''');');
+
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
