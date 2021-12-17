@@ -22,6 +22,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The interface Auth param mapper.
@@ -62,6 +63,14 @@ public interface AuthParamMapper {
     List<AuthParamDO> findByAuthId(String authId);
 
     /**
+     * Find all the {@link AuthParamDO} by authIdList.
+     *
+     * @param authIdSet  batch auth id
+     * @return the list
+     */
+    List<AuthParamDO> findByAuthIdList(@Param("authIdSet") Set<String> authIdSet);
+
+    /**
      * Find by auth id and app name auth param do.
      *
      * @param authId  the auth id
@@ -77,4 +86,12 @@ public interface AuthParamMapper {
      * @return the int
      */
     int deleteByAuthId(String authId);
+
+    /**
+     * Delete by auth id int.
+     *
+     * @param authIds the auth ids
+     * @return the int
+     */
+    int deleteByAuthIds(List<String> authIds);
 }

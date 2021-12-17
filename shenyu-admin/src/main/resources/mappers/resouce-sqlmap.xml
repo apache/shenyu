@@ -37,7 +37,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status
+        id, date_created, date_updated, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf,
+        is_route, perms, status
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -47,6 +48,16 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIdsBatch" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where id in
+        <foreach item="id" collection="resourceIds" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="selectByParentId" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -54,7 +65,8 @@
         where parent_id = #{parentId,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
+            resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from resource
@@ -74,7 +86,28 @@
         </if>
     </select>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery" resultType="java.lang.Integer">
+    <select id="selectByTitles" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where status = 1
+        <if test="list != null">
+            and title in
+            <foreach item="title" collection="list" open="(" separator="," close=")">
+                #{title,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectByResourceType" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where resource_type = #{resourceType,jdbcType=INTEGER}
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from resource
         where status = 1

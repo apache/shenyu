@@ -17,14 +17,19 @@
 
 package org.apache.shenyu.plugin.grpc.cache;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.List;
+
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,11 +38,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApplicationConfigCacheTest {
-
+    
     private ApplicationConfigCache applicationConfigCache;
-
+    
     private SelectorData selector;
-
+    
     @Before
     public void setUp() {
         applicationConfigCache = ApplicationConfigCache.getInstance();
@@ -45,29 +50,30 @@ public class ApplicationConfigCacheTest {
         when(selector.getName()).thenReturn("/grpc");
         when(selector.getHandle()).thenReturn("[{\"upstreamUrl\":\"localhost:8080\",\"weight\":50,\"status\":true}]");
     }
-
+    
     @Test
     public void getInstance() {
         assertNotNull(this.applicationConfigCache);
     }
-
+    
     @Test
     public void testInitPrx() {
         this.applicationConfigCache.initPrx(selector);
         assertNotNull(applicationConfigCache.get(selector.getName()));
     }
-
+    
     @Test
     public void testGet() {
         assertNotNull(this.applicationConfigCache.get("/test"));
     }
-
+    
     @Test
     public void testInvalidate() {
         this.applicationConfigCache.invalidate(selector.getName());
-        assert this.applicationConfigCache.get(selector.getName()).getShenyuServiceInstances().size() == 0;
+        final List<ShenyuServiceInstance> shenyuServiceInstances = this.applicationConfigCache.get(selector.getName()).getShenyuServiceInstances();
+        assertTrue("shenyuServiceInstances mast is empty", CollectionUtils.isEmpty(shenyuServiceInstances));
     }
-
+    
     @Test
     public void testWatch() {
         this.applicationConfigCache.watch(selector.getName(), Assert::assertNotNull);

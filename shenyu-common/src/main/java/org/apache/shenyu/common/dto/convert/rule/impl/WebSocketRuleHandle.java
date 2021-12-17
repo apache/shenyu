@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
@@ -33,7 +32,7 @@ public class WebSocketRuleHandle implements RuleHandle {
      * loadBalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadBalance;
+    private String loadBalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * http retry.
@@ -43,7 +42,7 @@ public class WebSocketRuleHandle implements RuleHandle {
     /**
      * timeout is required.
      */
-    private long timeout;
+    private long timeout = Constants.TIME_OUT;
     
 
     /**
@@ -128,13 +127,5 @@ public class WebSocketRuleHandle implements RuleHandle {
                 + ", timeout="
                 + timeout
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
-        this.retry = RuleHandleConstants.DEFAULT_RETRY;
-        this.timeout = Constants.TIME_OUT;
-        return this;
     }
 }

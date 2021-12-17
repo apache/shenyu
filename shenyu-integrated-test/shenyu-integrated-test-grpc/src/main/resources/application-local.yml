@@ -29,6 +29,20 @@ management:
       enabled: false
 
 shenyu:
+  netty:
+    tcp:
+      selectCount: 1
+      workerCount: 4
+      connectTimeoutMillis: 10000
+      writeBufferHighWaterMark: 65536
+      writeBufferLowWaterMark: 32768
+      writeSpinCount: 16
+      autoRead: true
+      tcpNodelay: true
+      soKeepalive: false
+      soReuseaddr: false
+      soLinger: -1
+      soBacklog: 128
   switchConfig:
     local: true
   cross:

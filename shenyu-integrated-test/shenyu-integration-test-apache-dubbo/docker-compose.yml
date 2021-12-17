@@ -24,7 +24,7 @@ services:
     ports:
       - "2181:2181"
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:
@@ -62,7 +62,7 @@ services:
         condition: service_healthy
     environment:
       - dubbo.registry.address=zookeeper://shenyu-zk:2181
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
   shenyu-integration-test-apache-dubbo:
     container_name: shenyu-integration-test-apache-dubbo
     image: apache/shenyu-integration-test-apache-dubbo:latest

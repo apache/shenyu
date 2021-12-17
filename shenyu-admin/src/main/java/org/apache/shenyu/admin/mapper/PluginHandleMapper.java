@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The interface Plugin handle mapper.
@@ -92,4 +93,18 @@ public interface PluginHandleMapper {
      * @return affected rows
      */
     int delete(String id);
+
+    /**
+     * bach delete by idSet.
+     * @param idSet a set of ids
+     * @return the count of deleted
+     */
+    int deleteByIdSet(@Param("idSet") Set<String> idSet);
+
+    /**
+     * delete string id.
+     * @param pluginIds plugin ids
+     * @return affected rows
+     */
+    int deleteByPluginIds(List<String> pluginIds);
 }

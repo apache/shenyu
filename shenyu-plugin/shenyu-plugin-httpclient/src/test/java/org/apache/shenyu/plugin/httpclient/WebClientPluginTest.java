@@ -43,6 +43,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
+
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -93,7 +95,7 @@ public final class WebClientPluginTest {
         ServerWebExchange exchangePostTest = MockServerWebExchange
                 .from(MockServerHttpRequest.post("/test123?param=1").build());
         exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchangePostTest.getAttributes().put(Constants.HTTP_URL, "/test123?param=1");
+        exchangePostTest.getAttributes().put(Constants.HTTP_URI, URI.create("/test123?param=1"));
         WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest);
         Mono<Void> monoPostTest = webClientPluginPostTest.execute(exchangePostTest, chainPostTest);
         StepVerifier.create(monoPostTest).expectSubscription().verifyError();
@@ -149,7 +151,7 @@ public final class WebClientPluginTest {
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create("/test"));
         return exchange;
     }
 

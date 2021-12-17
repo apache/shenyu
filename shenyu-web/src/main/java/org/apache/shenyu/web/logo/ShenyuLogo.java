@@ -48,11 +48,11 @@ public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPre
         + "                           __/ |      \n"
         + "                          |___/       ";
 
-    private final AtomicBoolean alreadyLog = new AtomicBoolean(false);
+    private static final AtomicBoolean ALREADY_LOG = new AtomicBoolean(false);
 
     @Override
     public void onApplicationEvent(final ApplicationEnvironmentPreparedEvent event) {
-        if (!alreadyLog.compareAndSet(false, true)) {
+        if (!ALREADY_LOG.compareAndSet(false, true)) {
             return;
         }
         LOG.info(buildBannerText());

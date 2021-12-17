@@ -74,7 +74,7 @@ public final class SignUtils {
      * @param sign    sign
      * @param params  params
      * @param signKey signKey
-     * @return boolean boolean
+     * @return boolean
      */
     public boolean isValid(final String sign, final Map<String, String> params, final String signKey) {
         return Objects.equals(sign, generateSign(signKey, params));

@@ -46,7 +46,9 @@ public class ShenyuServiceInstance {
      * @param port     the port
      * @param metadata the metadata
      */
-    public ShenyuServiceInstance(final String host, final int port, final Map<String, String> metadata) {
+    public ShenyuServiceInstance(final String host,
+                                 final int port,
+                                 final Map<String, String> metadata) {
         this.host = host;
         this.port = port;
         this.metadata = metadata;
@@ -135,8 +137,7 @@ public class ShenyuServiceInstance {
      * @return String status
      */
     public String getStatus() {
-        final String status = metadata.get("status");
-        return status;
+        return metadata.get("status");
     }
 
     /**

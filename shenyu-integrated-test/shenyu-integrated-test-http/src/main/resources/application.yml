@@ -13,6 +13,71 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+server:
+  port: 9195
+  address: 0.0.0.0
+
 spring:
-  profiles:
-    active: local
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: shenyu-bootstrap
+#  cloud:
+#    nacos:
+#      discovery:
+#        server-addr: 127.0.0.1:8848
+
+management:
+  health:
+    defaults:
+      enabled: false
+
+shenyu:
+  switchConfig:
+    local: true
+  cross:
+    enabled: true
+  sync:
+    websocket:
+      urls: ws://localhost:9095/websocket
+  #    zookeeper:
+  #      url: localhost:2181
+  #      sessionTimeout: 5000
+  #      connectionTimeout: 2000
+  #    http:
+  #      url: http://localhost:9095
+  #    nacos:
+  #      url: localhost:8848
+  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+  #      username:
+  #      password:
+  #      acm:
+  #        enabled: false
+  #        endpoint: acm.aliyun.com
+  #        namespace:
+  #        accessKey:
+  #        secretKey:
+  exclude:
+    enabled: true
+    paths:
+      - /favicon.ico
+      - /actuator/health
+
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost:8761/eureka/
+#  instance:
+#    prefer-ip-address: true
+
+
+logging:
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.apache.shenyu.bonuspoint: info
+    org.apache.shenyu.lottery: info
+    org.apache.shenyu: info
+
+

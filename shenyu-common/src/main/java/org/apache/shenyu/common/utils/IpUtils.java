@@ -23,6 +23,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.net.SocketException;
 import java.net.NetworkInterface;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
@@ -45,6 +46,16 @@ public final class IpUtils {
      * net card pattern.
      */
     private static final Pattern NET_CARD_PATTERN = Pattern.compile("(\\d+)$");
+
+    /**
+     * System env docker host ip.
+     */
+    private static final String SYSTEM_ENV_DOCKER_HOST_IP = "docker_host_ip";
+
+    /**
+     * Localhost.
+     */
+    private static final String LOCALHOST = "127.0.0.1";
 
     private IpUtils() {
     }
@@ -76,7 +87,7 @@ public final class IpUtils {
 
         // if the progress works under docker environment
         // return the host ip about this docker located from environment value
-        String dockerHostIp = System.getenv("docker_host_ip");
+        String dockerHostIp = System.getenv(SYSTEM_ENV_DOCKER_HOST_IP);
         if (dockerHostIp != null && !"".equals(dockerHostIp)) {
             return dockerHostIp;
         }
@@ -113,33 +124,25 @@ public final class IpUtils {
             String priority = System.getProperty("networkInterface.priority", "enp<eth<bond");
             List<String> preferList = new ArrayList<>(Arrays.asList(priority.split("<")));
             // sort ip
-            Comparator<NetCard> byName = new Comparator<NetCard>() {
-                @Override
-                public int compare(final NetCard card1, final NetCard card2) {
-                    int card1Score = -1;
-                    int card2Score = -1;
-                    for (String pre : preferList) {
-                        if (card1.getName().contains(pre)) {
-                            card1Score = preferList.indexOf(pre);
-                            break;
-                        }
+            Comparator<NetCard> byName = (card1, card2) -> {
+                int card1Score = -1;
+                int card2Score = -1;
+                for (String pre : preferList) {
+                    if (card1.getName().contains(pre)) {
+                        card1Score = preferList.indexOf(pre);
+                        break;
                     }
-                    for (String pre : preferList) {
-                        if (card2.getName().contains(pre)) {
-                            card2Score = preferList.indexOf(pre);
-                            break;
-                        }
-                    }
-                    return card2Score - card1Score;
                 }
+                for (String pre : preferList) {
+                    if (card2.getName().contains(pre)) {
+                        card2Score = preferList.indexOf(pre);
+                        break;
+                    }
+                }
+                return card2Score - card1Score;
             };
             Comparator<NetCard> byNamePostfix = Comparator.comparing(NetCard::getNamePostfix);
-            Comparator<NetCard> byIpv4Postfix = new Comparator<NetCard>() {
-                @Override
-                public int compare(final NetCard card1, final NetCard card2) {
-                    return card2.getIpv4Postfix() - card1.getIpv4Postfix();
-                }
-            };
+            Comparator<NetCard> byIpv4Postfix = (card1, card2) -> card2.getIpv4Postfix() - card1.getIpv4Postfix();
             ipv4Result.sort(byName.thenComparing(byNamePostfix).thenComparing(byIpv4Postfix));
             ipv6Result.sort(byName.thenComparing(byNamePostfix));
             // prefer ipv4
@@ -158,17 +161,17 @@ public final class IpUtils {
                 hostIp = ipv6Result.get(0).getIp();
             }
             // If failed to find,fall back to localhost
-            if (hostIp == null) {
+            if (Objects.isNull(hostIp)) {
                 hostIp = InetAddress.getLocalHost().getHostAddress();
             }
         } catch (SocketException | UnknownHostException ignore) {
-            hostIp = "127.0.0.1";
+            hostIp = LOCALHOST;
         }
         return hostIp;
     }
 
     /**
-     * Judge whether 'host'"' is complete.
+     * Judge whether host is complete.
      *
      * @param host host ip
      * @return boolean
@@ -249,9 +252,6 @@ public final class IpUtils {
 
         private Integer ipv4Postfix;
 
-        NetCard() {
-        }
-
         NetCard(final String ip, final String name, final Integer namePostfix) {
             this.ip = ip;
             this.name = name;
@@ -293,8 +293,5 @@ public final class IpUtils {
             this.namePostfix = namePostfix;
         }
 
-        public void setIpv4Postfix(final Integer ipv4Postfix) {
-            this.ipv4Postfix = ipv4Postfix;
-        }
     }
 }

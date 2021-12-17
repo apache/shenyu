@@ -82,27 +82,13 @@ public class RegisterPathConstants {
     }
     
     /**
-     * Build uri read node string.
+     * Build instance parent path string.
+     * build child path of "/shenyu/register/instance/
      *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @param nodeName the node name
      * @return the string
      */
-    public static String buildURIReadNode(final String rpcType, final String contextPath, final String nodeName) {
-        return buildRealNode(buildURIParentPath(rpcType, contextPath), nodeName);
-    }
-    
-    /**
-     * Build meta data child path string.
-     *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @param nodeName the node name
-     * @return the string
-     */
-    public static String buildMetaDataReadNode(final String rpcType, final String contextPath, final String nodeName) {
-        return buildRealNode(buildMetaDataParentPath(rpcType, contextPath), nodeName);
+    public static String buildInstanceParentPath() {
+        return String.join(SEPARATOR, ROOT_PATH, "instance");
     }
     
     /**
@@ -115,7 +101,7 @@ public class RegisterPathConstants {
     public static String buildRealNode(final String nodePath, final String nodeName) {
         return String.join(SEPARATOR, nodePath, nodeName);
     }
-
+    
     /**
      * Build nacos instance service path string.
      * build child path of "shenyu.register.service.{rpcType}".
@@ -125,9 +111,9 @@ public class RegisterPathConstants {
      */
     public static String buildServiceInstancePath(final String rpcType) {
         return String.join(SEPARATOR, ROOT_PATH, "service", rpcType)
-                .replace("/", ".").substring(1);
+                .replace("/", DOT_SEPARATOR).substring(1);
     }
-
+    
     /**
      * Build nacos config service path string.
      * build child path of "shenyu.register.service.{rpcType}.{contextPath}".
@@ -137,10 +123,15 @@ public class RegisterPathConstants {
      * @return the string
      */
     public static String buildServiceConfigPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, "service", rpcType, contextPath)
-                .replace("/", ".").substring(1);
+        final String serviceConfigPathOrigin = String.join(SEPARATOR, ROOT_PATH, "service", rpcType, contextPath)
+                .replace("/", DOT_SEPARATOR).replace("*", "");
+        final String serviceConfigPathAfterSubstring = serviceConfigPathOrigin.substring(1);
+        if (serviceConfigPathAfterSubstring.endsWith(".")) {
+            return serviceConfigPathAfterSubstring.substring(0, serviceConfigPathAfterSubstring.length() - 1);
+        }
+        return serviceConfigPathAfterSubstring;
     }
-
+    
     /**
      * Build node name by DOT_SEPARATOR.
      *

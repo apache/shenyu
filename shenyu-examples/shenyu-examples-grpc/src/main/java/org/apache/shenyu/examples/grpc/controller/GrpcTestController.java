@@ -33,8 +33,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test/grpc")
 public class GrpcTestController {
 
-    private Channel channel = channel();
+    private final Channel channel = channel();
 
+    /**
+     * test grpc.
+     *
+     * @return hello world
+     */
     @GetMapping("/hello")
     public String hello() {
         EchoServiceGrpc.EchoServiceBlockingStub stub = EchoServiceGrpc.newBlockingStub(channel);

@@ -35,10 +35,11 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -151,7 +152,7 @@ public class NacosCacheHandler {
         } catch (NacosException e) {
             LOG.error(e.getMessage(), e);
         }
-        if (config == null) {
+        if (Objects.isNull(config)) {
             config = "{}";
         }
         return config;

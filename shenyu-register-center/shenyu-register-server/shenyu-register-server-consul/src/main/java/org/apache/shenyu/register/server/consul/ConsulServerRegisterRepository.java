@@ -17,10 +17,14 @@
 
 package org.apache.shenyu.register.server.consul;
 
+import com.ecwid.consul.v1.ConsulClient;
+import com.ecwid.consul.v1.Response;
+import com.ecwid.consul.v1.agent.model.Service;
 import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -30,24 +34,20 @@ import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.consul.discovery.ConsulDiscoveryClient;
 import org.springframework.context.event.EventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Join
 public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsulServerRegisterRepository.class);
 
-    @Autowired
-    private ConsulDiscoveryClient discoveryClient;
+    private ConsulClient consulClient;
 
     private long index;
 
@@ -58,8 +58,10 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
     private final Map<String, Long> indexMap = new HashMap<>();
 
     @Override
-    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher,
+                     final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
+        consulClient = new ConsulClient(config.getServerLists());
     }
 
     /**
@@ -68,17 +70,13 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
      * @param event the service instances change event
      */
     @EventListener
-    public void onInstanceChange(final HeartbeatEvent event) {
-        long i = Long.parseLong(event.getValue().toString());
-        if (i > index) {
-            index = i;
-            Map<String, List<URIRegisterDTO>> uriMap = fetchInstancesMap();
-            MapDifference<String, List<URIRegisterDTO>> difference = Maps.difference(uriMap, uriRegisterDTOMap);
-            difference.entriesOnlyOnLeft().forEach(this::publishRegisterURI);
-            difference.entriesOnlyOnRight().keySet().forEach(contextPath -> publishRegisterURI(contextPath, new ArrayList<>()));
-            difference.entriesDiffering().forEach((contextPath, listValueDifference) -> publishRegisterURI(contextPath, listValueDifference.leftValue()));
-            uriRegisterDTOMap = uriMap;
-        }
+    public void onInstanceChange(final ConsulConfigChangedEvent event) {
+        Map<String, List<URIRegisterDTO>> uriMap = fetchInstancesMap();
+        MapDifference<String, List<URIRegisterDTO>> difference = Maps.difference(uriMap, uriRegisterDTOMap);
+        difference.entriesOnlyOnLeft().forEach(this::publishRegisterURI);
+        difference.entriesOnlyOnRight().keySet().forEach(contextPath -> publishRegisterURI(contextPath, new ArrayList<>()));
+        difference.entriesDiffering().forEach((contextPath, listValueDifference) -> publishRegisterURI(contextPath, listValueDifference.leftValue()));
+        uriRegisterDTOMap = uriMap;
     }
 
     /**
@@ -111,27 +109,28 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
 
     private Map<String, List<URIRegisterDTO>> fetchInstancesMap() {
         Map<String, List<URIRegisterDTO>> map = new HashMap<>();
-        List<ServiceInstance> instances = discoveryClient.getAllInstances();
-        instances.forEach(serviceInstance -> {
-            String data = serviceInstance.getMetadata().get("uri");
-            if (null != data) {
+        Response<Map<String, Service>> agentServices = consulClient.getAgentServices();
+        Map<String, Service> agentServicesValue = agentServices.getValue();
+        agentServicesValue.forEach((k, v) -> {
+            String data = v.getMeta().get(Constants.URI);
+            if (Objects.nonNull(data)) {
                 URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(data, URIRegisterDTO.class);
                 String contextPath = uriRegisterDTO.getContextPath();
                 map.putIfAbsent(contextPath, new ArrayList<>());
                 map.get(contextPath).add(uriRegisterDTO);
             } else {
-                LOGGER.debug("maybe not shenyu client, ignore service instance: {}", serviceInstance);
+                LOGGER.debug("maybe not shenyu client, ignore service instance: {}", v);
             }
         });
         return map;
     }
 
     private boolean metadataChanged(final String path, final long index) {
-        boolean result = !indexMap.containsKey(path) || indexMap.get(path) < index;
-        if (result) {
+        boolean hasResult = !indexMap.containsKey(path) || indexMap.get(path) < index;
+        if (hasResult) {
             indexMap.put(path, index);
         }
-        return result;
+        return hasResult;
     }
 
 }

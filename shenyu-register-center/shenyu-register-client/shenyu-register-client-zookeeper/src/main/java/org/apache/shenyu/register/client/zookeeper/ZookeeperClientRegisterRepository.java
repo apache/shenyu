@@ -17,10 +17,16 @@
 
 package org.apache.shenyu.register.client.zookeeper;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.zookeeper.Watcher;
+import org.apache.shenyu.common.constant.Constants;
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -28,13 +34,9 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
+import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 
 /**
  * The type Zookeeper client register repository.
@@ -48,6 +50,12 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
+    public ZookeeperClientRegisterRepository() { }
+
+    public ZookeeperClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
+
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         Properties props = config.getProps();
@@ -60,21 +68,31 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
-        String contextPath = metadata.getContextPath().substring(1);
+        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         registerMetadata(rpcType, contextPath, metadata);
-        Optional.of(RpcTypeEnum.acquireSupportURIs().stream().filter(rpcTypeEnum -> rpcType.equals(rpcTypeEnum.getName())).findFirst())
-                .ifPresent(rpcTypeEnum -> {
-                    registerURI(rpcType, contextPath, metadata);
-                });
         LOGGER.info("{} zookeeper client register success: {}", rpcType, metadata);
     }
-
+    
+    /**
+     * Persist uri.
+     *
+     * @param registerDTO the register dto
+     */
+    @Override
+    public void persistURI(final URIRegisterDTO registerDTO) {
+        String rpcType = registerDTO.getRpcType();
+        String contextPath = ContextPathUtils.buildRealNode(registerDTO.getContextPath(), registerDTO.getAppName());
+        registerURI(rpcType, contextPath, registerDTO);
+    }
+    
     @Override
     public void close() {
         zkClient.close();
     }
 
-    private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
+    private void registerMetadata(final String rpcType,
+                                  final String contextPath,
+                                  final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         if (!zkClient.exists(metaDataPath)) {
@@ -84,39 +102,44 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         if (zkClient.exists(realNode)) {
             zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         } else {
-            zkClient.createPersistent(realNode, GsonUtils.getInstance().toJson(metadata));
+            // if contextPath has two /, in zk means two folder, we need to create parent folder first, or else it will throw no node exception
+            zkClient.createPersistent(realNode, true);
+            zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         }
     }
-
-    private synchronized void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
-        String uriNodeName = buildURINodeName(metadata);
+    
+    private synchronized void registerURI(final String rpcType, final String contextPath, final URIRegisterDTO registerDTO) {
+        String uriNodeName = buildURINodeName(registerDTO);
         String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         if (!zkClient.exists(uriPath)) {
             zkClient.createPersistent(uriPath, true);
         }
         String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
         if (!zkClient.exists(realNode)) {
-            String nodeData = GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata));
+            String nodeData = GsonUtils.getInstance().toJson(registerDTO);
             nodeDataMap.put(realNode, nodeData);
             zkClient.createEphemeral(realNode, nodeData);
         }
     }
 
-    private String buildURINodeName(final MetaDataRegisterDTO metadata) {
-        String host = metadata.getHost();
-        int port = metadata.getPort();
-        return String.join(":", host, Integer.toString(port));
+    private String buildURINodeName(final URIRegisterDTO registerDTO) {
+        String host = registerDTO.getHost();
+        int port = registerDTO.getPort();
+        return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
+        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
+                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
+            nodeName = String.join(DefaultPathConstants.SELECTOR_JOIN_RULE,
+                    metadata.getContextPath(),
+                    metadata.getRuleName().replace(PATH_SEPARATOR, DefaultPathConstants.SELECTOR_JOIN_RULE));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
+        return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
     }
 
     private class ZkStateListener implements IZkStateListener {

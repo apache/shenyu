@@ -37,6 +37,8 @@ public class OAuth2Plugin implements ShenyuPlugin {
 
     private static final String BEARER = "Bearer ";
 
+    private static final String OAUTH2_ENABLE = "enable";
+
     private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 
     public OAuth2Plugin(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
@@ -46,14 +48,14 @@ public class OAuth2Plugin implements ShenyuPlugin {
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         Boolean skip = Objects.requireNonNull(exchange.<Boolean>getAttribute("skip"));
-        return skip ? chain.execute(exchange)
+        return Boolean.TRUE.equals(skip) ? chain.execute(exchange)
             : exchange.getPrincipal()
-            .filter(t -> t instanceof OAuth2AuthenticationToken)
+            .filter(OAuth2AuthenticationToken.class::isInstance)
             .cast(OAuth2AuthenticationToken.class)
             .flatMap(token ->
-                authorizedClientService.<OAuth2AuthorizedClient>loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
+                authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
             )
-            .flatMap(client -> chain.execute(this.handleToken(exchange, client)));
+            .flatMap(client -> chain.execute(this.handleToken(exchange, (OAuth2AuthorizedClient) client)));
     }
 
     @Override
@@ -68,7 +70,8 @@ public class OAuth2Plugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        return !Objects.requireNonNull(exchange.<Boolean>getAttribute("enable"));
+        Boolean skipStatus = exchange.<Boolean>getAttribute(OAUTH2_ENABLE);
+        return skipStatus == null || skipStatus;
     }
 
     private ServerWebExchange handleToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {

@@ -51,11 +51,13 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -116,34 +118,43 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         }
+
         if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
             userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
         }
+
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
+
         return dashboardUserMapper.updateSelective(dashboardUserDO);
     }
 
     /**
      * delete dashboard users.
      *
-     * @param ids primary key.
-     * @return rows
+     * @param ids primary key of dashboard_user.
+     * @return the count of deleted dashboard users
      */
     @Override
     public int delete(final List<String> ids) {
-        int dashboardUserCount = 0;
-        for (String id : ids) {
-            DashboardUserDO dashboardUserDO = dashboardUserMapper.selectById(id);
-            if (!ObjectUtils.isEmpty(dashboardUserDO) && AdminConstants.ADMIN_NAME.equals(dashboardUserDO.getUserName())) {
-                continue;
+
+        int ret = 0;
+        if (CollectionUtils.isNotEmpty(ids)) {
+            Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>()).stream()
+                    .filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
+            DashboardUserDO dashboardUserDO = dashboardUserMapper.selectByUserName(AdminConstants.ADMIN_NAME);
+            if (Objects.nonNull(dashboardUserDO)) {
+                idSet.remove(dashboardUserDO.getId());
             }
-            dashboardUserCount += dashboardUserMapper.delete(id);
-            userRoleMapper.deleteByUserId(id);
-            dataPermissionMapper.deleteByUserId(id);
+            if (idSet.size() > 0) {
+                ret = dashboardUserMapper.deleteByIdSet(idSet);
+                userRoleMapper.deleteByUserIdSet(idSet);
+                dataPermissionMapper.deleteByUserIdSet(idSet);
+            }
         }
-        return dashboardUserCount;
+
+        return ret;
     }
 
     /**
@@ -154,10 +165,20 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public DashboardUserEditVO findById(final String id) {
-        return DashboardUserEditVO.buildDashboardUserEditVO(DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id)),
-                userRoleMapper.findByUserId(id).stream()
-                        .map(item -> RoleVO.buildRoleVO(roleMapper.selectById(item.getRoleId()))).filter(Objects::nonNull).collect(Collectors.toList()),
-                roleMapper.selectAll().stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
+
+        DashboardUserVO dashboardUserVO = DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
+
+        Set<String> roleIdSet = Optional.ofNullable(userRoleMapper.findByUserId(id)).orElseGet(() -> new ArrayList<>())
+                .stream().map(userRoleDO -> userRoleDO.getRoleId()).collect(Collectors.toSet());
+
+        List<RoleDO> allRoleDOList = Optional.ofNullable(roleMapper.selectAll()).orElseGet(() -> new ArrayList<>());
+        List<RoleVO> allRoles = allRoleDOList.stream().map(RoleVO::buildRoleVO).collect(Collectors.toList());
+
+        List<RoleDO> roleDOList = allRoleDOList.stream().filter(roleDO -> roleIdSet.contains(roleDO.getId())).collect(Collectors.toList());
+        List<RoleVO> roles = Optional.ofNullable(roleDOList).orElseGet(() -> new ArrayList<>()).stream()
+                .map(roleDO -> RoleVO.buildRoleVO(roleDO)).filter(Objects::nonNull).collect(Collectors.toList());
+
+        return DashboardUserEditVO.buildDashboardUserEditVO(dashboardUserVO, roles, allRoles);
     }
 
     /**
@@ -213,9 +234,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, password);
         }
+
         if (Objects.isNull(dashboardUserVO)) {
             dashboardUserVO = loginByDatabase(userName, password);
         }
+
         return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO)
                 .setToken(JwtUtils.generateToken(dashboardUserVO.getUserName(), dashboardUserVO.getPassword(),
                         jwtProperties.getExpiredSeconds()));
@@ -256,8 +279,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         String key = secretProperties.getKey();
         String iv = secretProperties.getIv();
-        DashboardUserVO dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
-        return dashboardUserVO;
+        return findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
     }
 
     /**
@@ -267,6 +289,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param roleIds role ids.
      */
     private void bindUserRole(final String userId, final List<String> roleIds) {
-        roleIds.forEach(item -> userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(item).build())));
+
+        List<UserRoleDO> userRoleDOList = Optional.ofNullable(roleIds).orElseGet(() -> new ArrayList<>())
+                        .stream().map(roleId -> UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(roleId).build()))
+                        .collect(Collectors.toList());
+        userRoleMapper.insertBatch(userRoleDOList);
     }
 }

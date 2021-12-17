@@ -18,6 +18,8 @@
 package org.apache.shenyu.register.server.etcd;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -32,10 +34,10 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.ArrayList;
 
 
 /**
@@ -98,35 +100,33 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
         String rpcPath = RegisterPathConstants.buildURIContextPathParent(rpcType);
         Set<String> contextList = new HashSet<>();
         client.getChildren(rpcPath).forEach(dataPath -> {
-            String context = dataPath.split("/")[4];
+            String context = dataPath.split(Constants.PATH_SEPARATOR)[4];
             contextList.add(context);
         });
-
         contextList.forEach(context -> registerUriChildrenList(rpcPath, context));
-
         LOGGER.info("subscribe uri change: {}", rpcPath);
         client.subscribeChildChanges(rpcPath, new EtcdListenHandler() {
 
             @Override
             public void updateHandler(final String path, final String value) {
-                String[] paths = path.split("/");
+                String[] paths = path.split(Constants.PATH_SEPARATOR);
                 registerUriChildrenList(rpcPath, paths[4]);
             }
 
             @Override
             public void deleteHandler(final String path, final String value) {
-                String[] paths = path.split("/");
+                String[] paths = path.split(Constants.PATH_SEPARATOR);
                 registerUriChildrenList(rpcPath, paths[4]);
             }
         });
     }
 
     private void registerUriChildrenList(final String rpcPath, final String context) {
-        String contextPath = String.join("/", rpcPath, context);
-        List<URIRegisterDTO> uriRegisterDTOList = new ArrayList<>();
+        String contextPath = String.join(Constants.PATH_SEPARATOR, rpcPath, context);
+        List<URIRegisterDTO> uriRegisterDTOList = new LinkedList<>();
         client.getChildren(contextPath).forEach(path -> uriRegisterDTOList.add(GsonUtils.getInstance().fromJson(client.read(path), URIRegisterDTO.class)));
-        if (uriRegisterDTOList.isEmpty()) {
-            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + context).build();
+        if (CollectionUtils.isEmpty(uriRegisterDTOList)) {
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + context).build();
             uriRegisterDTOList.add(uriRegisterDTO);
         }
         publishURI(uriRegisterDTOList);

@@ -19,14 +19,14 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
-import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -38,19 +38,21 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -61,7 +63,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for MetaDataService.
  */
-@RunWith(PowerMockRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 @PrepareForTest(MetaDataServiceImpl.class)
 public final class MetaDataServiceTest {
 
@@ -111,7 +113,6 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testCreateOrUpdate() {
-        doNothing().when(loggerSpy).error(anyString(), isA(MetaDataDTO.class));
         testCreateOrUpdateForParamsError();
         testCreateOrUpdateForPathExist();
         testCreateOrUpdateForInsert();
@@ -135,10 +136,10 @@ public final class MetaDataServiceTest {
     @Test
     public void testEnabled() {
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
-        when(metaDataMapper.selectById(anyString()))
-                .thenReturn(MetaDataDO.builder().build())
-                .thenReturn(null)
-                .thenReturn(MetaDataDO.builder().build());
+        Set<String> idSet = new HashSet<>(ids);
+        when(metaDataMapper.selectByIdSet(idSet))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
         String msg = metaDataService.enabled(ids, true);
         assertEquals(AdminConstants.ID_NOT_EXIST, msg);
 
@@ -336,11 +337,10 @@ public final class MetaDataServiceTest {
      * Cases where get a not empty id list.
      */
     private void testDeleteForNotEmptyIds() {
-        List<String> ids = Lists.newArrayList("id1", "id2", "id3");
-        when(metaDataMapper.selectById("id1")).thenReturn(MetaDataDO.builder().build());
-        when(metaDataMapper.selectById("id3")).thenReturn(MetaDataDO.builder().build());
-        when(metaDataMapper.delete("id1")).thenReturn(1);
-        when(metaDataMapper.delete("id3")).thenReturn(1);
+        List<String> ids = Lists.newArrayList("id1", "id1", "id3");
+        Set<String> idSet = new HashSet<>(ids);
+        when(metaDataMapper.selectByIdSet(idSet)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+        when(metaDataMapper.deleteByIdSet(idSet)).thenReturn(2);
         int count = metaDataService.delete(ids);
         Assert.assertEquals("The count of delete should be 2.",
                 2, count);

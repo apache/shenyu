@@ -45,6 +45,17 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIdSet" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where id in
+        <foreach collection="idSet" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -52,7 +63,16 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery" resultMap="BaseResultMap">
+    <select id="findByNameAndPluginId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where name = #{name,jdbcType=VARCHAR}
+        and plugin_id = #{pluginId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
+            resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from selector
@@ -61,7 +81,8 @@
                 plugin_id = #{pluginId,jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                and name like #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 and id in
@@ -77,11 +98,20 @@
         <include refid="Base_Column_List"/>
         from selector
         where plugin_id = #{pluginId,jdbcType=VARCHAR}
-
     </select>
 
+    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where plugin_id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from selector
         <where>
@@ -114,7 +144,7 @@
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
         #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT},
-        #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
+        #{loged,jdbcType=TINYINT}, #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
@@ -256,9 +286,16 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByIds" parameterType="java.util.List">
+        delete from selector
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <delete id="deleteByPluginId" parameterType="java.lang.String">
         delete from selector
         where plugin_id = #{pluginId,jdbcType=VARCHAR}
-
     </delete>
 </mapper>

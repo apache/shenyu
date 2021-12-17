@@ -17,79 +17,47 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.dto.convert.rule.impl.SofaRuleHandle;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
  * sofa service register.
  */
-@Service("sofa")
+@Service
 public class ShenyuClientRegisterSofaServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-
-    private final MetaDataService metaDataService;
-
-    private final SelectorService selectorService;
-
-    private final RuleService ruleService;
-
-    private final PluginService pluginService;
-
-    public ShenyuClientRegisterSofaServiceImpl(final MetaDataService metaDataService,
-                                               final SelectorService selectorService,
-                                               final RuleService ruleService,
-                                               final PluginService pluginService) {
-        this.metaDataService = metaDataService;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
-        this.pluginService = pluginService;
-    }
-
+    
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String register(final MetaDataRegisterDTO dto) {
-        MetaDataDO metaDataDO = metaDataService.findByPath(dto.getPath());
-        if (checkPathExist(metaDataDO, dto)) {
-            return "you path already exist!";
-        }
-        final MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(dto.getServiceName(), dto.getMethodName());
-        saveOrUpdateMetaData(exist, dto);
-        String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, exist);
-        return ShenyuResultMessage.SUCCESS;
+    public String rpcType() {
+        return RpcTypeEnum.SOFA.getName();
     }
-
+    
     @Override
-    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
+    protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
+        return "";
+    }
+    
+    @Override
+    protected String ruleHandler() {
+        return new SofaRuleHandle().toJson();
+    }
+    
+    @Override
+    protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataService metaDataService = getMetaDataService();
+        MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
-
+    
     @Override
-    public String handlerSelector(final MetaDataRegisterDTO metaDataDTO) {
-        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
-        if (Objects.nonNull(selectorDO)) {
-            return selectorDO.getId();
-        }
-        SelectorDTO selectorDTO = registerSelector(metaDataDTO.getContextPath(), pluginService.selectIdByName(PluginEnum.SOFA.getName()));
-        selectorDTO.setHandle(metaDataDTO.getAppName());
-        return selectorService.register(selectorDTO);
-    }
-
-    @Override
-    public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.SOFA.getName()),
-                metaDataDTO.getPath(),
-                Objects.nonNull(exist));
+    protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
+        return "";
     }
 }

@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
-import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -31,16 +32,12 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -85,13 +82,6 @@ public final class SpringCloudClientBeanPostProcessorTest {
             mocked.when(() -> RegisterUtils.doRegister(any(), any(), any()))
                     .thenAnswer((Answer<Void>) invocation -> null);
             SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
-            ReflectionTestUtils.setField(springCloudClientBeanPostProcessor, "executorService", new ThreadPoolExecutor(1,
-                    1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>()) {
-                @Override
-                public void execute(final Runnable command) {
-                    command.run();
-                }
-            });
             assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "normalBean")));
         }
     }
@@ -102,11 +92,12 @@ public final class SpringCloudClientBeanPostProcessorTest {
         properties.setProperty("isFull", full + "");
         properties.setProperty("ip", "127.0.0.1");
         properties.setProperty("port", "8081");
+        PropertiesConfig config = new PropertiesConfig();
+        config.setProps(properties);
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");
-        mockRegisterCenter.setProps(properties);
-        return new SpringCloudClientBeanPostProcessor(mockRegisterCenter, env, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        return new SpringCloudClientBeanPostProcessor(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
 
     @RestController

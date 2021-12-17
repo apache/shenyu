@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
@@ -35,13 +35,12 @@ import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -82,21 +81,24 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PermissionMenuVO getPermissionMenu(final String token) {
         UserInfo userInfo = JwtUtils.getUserInfo();
-        if (!ObjectUtils.isEmpty(userInfo)) {
-            List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
-            if (CollectionUtils.isNotEmpty(resourceVOList)) {
-                List<MenuInfo> menuInfoList = new ArrayList<>();
-                resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
-                return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
-            }
+        if (Objects.isNull(userInfo)) {
+            return null;
         }
-        return null;
+
+        List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
+        if (CollectionUtils.isEmpty(resourceVOList)) {
+            return null;
+        }
+
+        List<MenuInfo> menuInfoList = new ArrayList<>();
+        resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
+        return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
     }
 
     /**
-     * get Auth perm by user name for shiro.
+     * get Auth perm by username for shiro.
      *
-     * @param userName user name.
+     * @param userName username.
      * @return {@linkplain Set}
      */
     @Override
@@ -111,25 +113,26 @@ public class PermissionServiceImpl implements PermissionService {
     /**
      * get resource by username.
      *
-     * @param userName user name
+     * @param userName username
      * @return {@linkplain List}
      */
     private List<ResourceVO> getResourceListByUserName(final String userName) {
-        Map<String, Integer> resourceMap = new HashMap<>();
         List<UserRoleDO> userRoleDOList = userRoleMapper.findByUserId(dashboardUserMapper.selectByUserName(userName).getId());
-        for (UserRoleDO userRoleDO : userRoleDOList) {
-            permissionMapper.findByObjectId(userRoleDO.getRoleId())
-                    .stream()
-                    .map(PermissionDO::getResourceId)
-                    .collect(Collectors.toList())
-                    .forEach(resource -> resourceMap.put(resource, 1));
+        List<String> roleIds = userRoleDOList.stream().filter(Objects::nonNull)
+                .map(UserRoleDO::getRoleId)
+                .collect(Collectors.toList());
+
+        Set<String> resourceIds = permissionMapper.findByObjectIds(roleIds).stream()
+                .map(PermissionDO::getResourceId)
+                .filter(StringUtils::isNoneBlank)
+                .collect(Collectors.toSet());
+
+        if (CollectionUtils.isEmpty(resourceIds)) {
+            return Collections.emptyList();
         }
-        if (MapUtils.isNotEmpty(resourceMap)) {
-            return new ArrayList<>(resourceMap.keySet()).stream()
-                    .map(resource -> ResourceVO.buildResourceVO(resourceMapper.selectById(resource)))
-                    .collect(Collectors.toList());
-        }
-        return Collections.emptyList();
+
+        return Optional.ofNullable(resourceMapper.selectByIdsBatch(resourceIds)).orElseGet(() -> new ArrayList<>())
+                .stream().map(resource -> ResourceVO.buildResourceVO(resource)).collect(Collectors.toList());
     }
 
     /**
@@ -151,8 +154,9 @@ public class PermissionServiceImpl implements PermissionService {
      * @return {@linkplain List}
      */
     private List<AuthPerm> getAllAuthPerms() {
-        return resourceMapper.selectAll().stream()
-               .filter(item -> item.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2))
-               .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item))).collect(Collectors.toList());
+
+        return resourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2).stream()
+                .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
+                .collect(Collectors.toList());
     }
 }

@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * this is resource mapper.
@@ -37,6 +38,13 @@ public interface ResourceMapper {
      * @return {@linkplain ResourceDO}
      */
     ResourceDO selectById(String id);
+
+    /**
+     * select resource by id batch.
+     * @param resourceIds resourceId is the primary key
+     * @return {@link ResourceDO} list
+     */
+    List<ResourceDO> selectByIdsBatch(@Param("resourceIds") Set<String> resourceIds);
 
     /**
      * select resource by parentId.
@@ -61,6 +69,21 @@ public interface ResourceMapper {
      * @return {@linkplain List}
      */
     ResourceDO selectByTitle(@Param("title") String title);
+
+    /**
+     * select resource by title.
+     *
+     * @param titles resource titles
+     * @return {@linkplain List}
+     */
+    List<ResourceDO> selectByTitles(List<String> titles);
+
+    /**
+     * select the resources by resourceType.
+     * @param resourceType  type of the resource
+     * @return {@link ResourceDO} list
+     */
+    List<ResourceDO> selectByResourceType(@Param("resourceType") Integer resourceType);
 
     /**
      * count resource by query.

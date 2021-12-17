@@ -20,8 +20,11 @@ package org.apache.shenyu.springboot.starter.plugin.httpclient;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
@@ -33,7 +36,6 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -68,7 +70,7 @@ public class HttpClientPluginConfiguration {
      */
     @Bean
     public HttpClient httpClient(final HttpClientProperties properties) {
-        // configure pool resources
+        // configure pool resources.
         HttpClientProperties.Pool pool = properties.getPool();
         ConnectionProvider connectionProvider;
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
@@ -81,14 +83,11 @@ public class HttpClientPluginConfiguration {
         }
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .tcpConfiguration(tcpClient -> {
-                    if (properties.getConnectTimeout() != null) {
-                        tcpClient = tcpClient.option(
-                                ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                                properties.getConnectTimeout());
+                    if (Objects.nonNull(properties.getConnectTimeout())) {
+                        tcpClient = tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
                     }
-                    // configure proxy if proxy host is set.
                     HttpClientProperties.Proxy proxy = properties.getProxy();
-                    if (StringUtils.hasText(proxy.getHost())) {
+                    if (StringUtils.isNotEmpty(proxy.getHost())) {
                         tcpClient = tcpClient.proxy(proxySpec -> {
                             ProxyProvider.Builder builder = proxySpec
                                     .type(ProxyProvider.Proxy.HTTP)
@@ -104,26 +103,28 @@ public class HttpClientPluginConfiguration {
                         });
                     }
                     // The write and read timeouts are serving as generic socket idle state handlers.
-                    tcpClient = tcpClient.doOnConnected(c -> {
-                        c.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
-                        c.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+                    tcpClient = tcpClient.doOnConnected(connection -> {
+                        connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
+                        connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
+                        connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
                     });
                     return tcpClient;
                 });
         HttpClientProperties.Ssl ssl = properties.getSsl();
-        if (ssl.getTrustedX509CertificatesForTrustManager().length > 0
+        if (StringUtils.isNotEmpty(ssl.getKeyStorePath()) 
+                || ArrayUtils.isNotEmpty(ssl.getTrustedX509CertificatesForTrustManager())
                 || ssl.isUseInsecureTrustManager()) {
             httpClient = httpClient.secure(sslContextSpec -> {
-                // configure ssl
+                // configure ssl.
                 SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
                 X509Certificate[] trustedX509Certificates = ssl
                         .getTrustedX509CertificatesForTrustManager();
-                if (trustedX509Certificates.length > 0) {
+                if (ArrayUtils.isNotEmpty(trustedX509Certificates)) {
                     sslContextBuilder.trustManager(trustedX509Certificates);
                 } else if (ssl.isUseInsecureTrustManager()) {
-                    sslContextBuilder
-                            .trustManager(InsecureTrustManagerFactory.INSTANCE);
+                    sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
                 }
+                sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
                 sslContextSpec.sslContext(sslContextBuilder)
                         .defaultConfiguration(ssl.getDefaultConfigurationType())
                         .handshakeTimeout(ssl.getHandshakeTimeout())

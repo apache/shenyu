@@ -21,13 +21,16 @@ import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,17 +68,17 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final String port;
 
-    public SofaServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String appName = props.getProperty("appName");
+    public SofaServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isEmpty(contextPath)) {
-            throw new RuntimeException("sofa client must config the contextPath");
+            throw new ShenyuClientIllegalArgumentException("sofa client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;
-        this.host = props.getProperty("host");
-        this.port = props.getProperty("port");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        this.port = props.getProperty(ShenyuClientConstants.PORT);
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-sofa-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
@@ -143,7 +146,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcType("sofa")
+                .rpcType(RpcTypeEnum.SOFA.getName())
                 .rpcExt(buildRpcExt(shenyuSofaClient))
                 .enabled(shenyuSofaClient.enabled())
                 .build();

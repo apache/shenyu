@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 8848
+  port: 8868
   address: 0.0.0.0
 
 logging:

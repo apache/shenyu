@@ -24,7 +24,7 @@ import okhttp3.Headers;
 import okhttp3.Response;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -57,7 +57,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * ModifyResponsePluginTest.
  */
-public class ModifyResponsePluginTest extends AbstractPluginDataInit {
+public final class ModifyResponsePluginTest extends AbstractPluginDataInit {
 
     private static final String ADD_HEADER = "addHeader";
 
@@ -110,13 +110,13 @@ public class ModifyResponsePluginTest extends AbstractPluginDataInit {
         modifyResponseRuleHandle.setStatusCode(EXCEPT_STATUS_CODE);
         modifyResponseRuleHandle.setRemoveBodyKeys(ImmutableSet.<String>builder().add(REMOVE_BODY_KEYS).build());
 
-        final ParamMappingHandle.ParamMapInfo addBodyKeysHandler = new ParamMappingHandle.ParamMapInfo();
+        final ParamMappingRuleHandle.ParamMapInfo addBodyKeysHandler = new ParamMappingRuleHandle.ParamMapInfo();
         addBodyKeysHandler.setPath("$");
         addBodyKeysHandler.setKey(ADD_BODY_KEYS);
         addBodyKeysHandler.setValue("true");
         modifyResponseRuleHandle.setAddBodyKeys(Collections.singletonList(addBodyKeysHandler));
 
-        final ParamMappingHandle.ParamMapInfo replaceBodyKeysHandler = new ParamMappingHandle.ParamMapInfo();
+        final ParamMappingRuleHandle.ParamMapInfo replaceBodyKeysHandler = new ParamMappingRuleHandle.ParamMapInfo();
         replaceBodyKeysHandler.setPath("$");
         replaceBodyKeysHandler.setKey(ORIGIN_REPLACE_BODY_KEYS);
         replaceBodyKeysHandler.setValue(REPLACE_BODY_KEYS);

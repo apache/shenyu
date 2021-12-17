@@ -50,6 +50,15 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
+    <select id="findBySelectorIdAndName" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule
+        where 1=1
+        and name = #{name,jdbcType=VARCHAR}
+        and selector_id = #{selectorId,jdbcType=VARCHAR}
+    </select>
+
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -59,7 +68,8 @@
                 selector_id = #{selectorId,jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                and name like #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 and id in
@@ -76,7 +86,17 @@
         from rule where selector_id = #{selectorId,jdbcType=VARCHAR}
     </select>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery" resultType="java.lang.Integer">
+    <select id="findBySelectorIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule where selector_id in
+        <foreach item="selectId" collection="list" open="(" separator="," close=")">
+            #{selectId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from rule
         <where>
@@ -227,5 +247,13 @@
     <delete id="delete" parameterType="java.lang.String">
         delete from rule
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        delete from rule
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>

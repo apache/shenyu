@@ -53,7 +53,8 @@
         from role where role_name = #{roleName,jdbcType=VARCHAR}
     </select>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RoleQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RoleQuery"
+            resultType="java.lang.Integer">
         select count(1)
         from role
         where role_name != 'super'

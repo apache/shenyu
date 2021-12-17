@@ -89,30 +89,7 @@ public final class PredicateJudgeFactoryTest {
         Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
     }
-
-    @Test
-    public void testSpELJudge() {
-        conditionData.setOperator(OperatorEnum.SPEL.getAlias());
-        conditionData.setParamType(ParamTypeEnum.HEADER.getName());
-        conditionData.setParamName("userId");
-        conditionData.setParamValue("#userId % 3 == 0");
-        Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "3"));
-        Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, "4"));
-    }
-
-    @Test
-    public void testGroovyJudge() {
-        conditionData.setOperator(OperatorEnum.GROOVY.getAlias());
-        conditionData.setParamType(ParamTypeEnum.HEADER.getName());
-        conditionData.setParamName("userId");
-        conditionData.setParamValue("Integer.valueOf(userId) % 3 == 0");
-        Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "3"));
-        Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, "4"));
-        conditionData.setParamValue("userId.hashCode() % 3 == 0");
-        Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "3"));
-        Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, "4"));
-    }
-
+    
     @Test
     public void testTimerBeforeJudge() {
         conditionData.setOperator(OperatorEnum.TIME_BEFORE.getAlias());
@@ -134,6 +111,14 @@ public final class PredicateJudgeFactoryTest {
         Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, FIRST_TIME));
         conditionData.setParamValue(MAX_TIME);
         Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, FIRST_TIME));
+    }
+
+    @Test
+    public void testExcludeJudge() {
+        conditionData.setOperator(OperatorEnum.EXCLUDE.getAlias());
+        conditionData.setParamValue("/http/test");
+        Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, "/http/test"));
+        Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
     }
 
 }

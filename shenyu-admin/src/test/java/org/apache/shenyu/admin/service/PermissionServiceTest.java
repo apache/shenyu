@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.apache.shiro.SecurityUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -110,14 +113,17 @@ public final class PermissionServiceTest {
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1347053375029653504").build();
+        final Set<String> resourceIds = Stream.of("1346775491550474240", "1346776175553376256", "1346777157943259136", "1347053375029653504").collect(Collectors.toSet());
         when(mockDashboardUserMapper.selectByUserName("admin")).thenReturn(dashboardUserDO);
         when(mockUserRoleMapper.findByUserId("1")).thenReturn(Collections.singletonList(userRoleDO));
-        when(mockPermissionMapper.findByObjectId("1346358560427216896")).thenReturn(permissionDOS);
-        when(mockResourceMapper.selectById("1346775491550474240")).thenReturn(resourceDO1);
-        when(mockResourceMapper.selectById("1346776175553376256")).thenReturn(resourceDO2);
-        when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);
-        when(mockResourceMapper.selectById("1347053375029653504")).thenReturn(resourceDO4);
-        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
+        when(mockPermissionMapper.findByObjectIds(Collections.singletonList("1346358560427216896"))).thenReturn(permissionDOS);
+//        when(mockResourceMapper.selectById("1346775491550474240")).thenReturn(resourceDO1);
+//        when(mockResourceMapper.selectById("1346776175553376256")).thenReturn(resourceDO2);
+//        when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);
+//        when(mockResourceMapper.selectById("1347053375029653504")).thenReturn(resourceDO4);
+//        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
+        when(mockResourceMapper.selectByIdsBatch(resourceIds)).thenReturn(Arrays.asList(resourceDO2, resourceDO3, resourceDO1, resourceDO4));
+        when(mockResourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)).thenReturn(Collections.singletonList(resourceDO4));
         ResourceService resourceService = new ResourceServiceImpl(mockResourceMapper, mockPermissionMapper);
         permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper, resourceService);
     }

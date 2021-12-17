@@ -69,6 +69,6 @@ public class ParamMappingPluginDataTest {
 
     @Test
     public void testPluginNamed() {
-        assertEquals(this.paramMappingPluginDataHandler.pluginNamed(), "param_mapping");
+        assertEquals(this.paramMappingPluginDataHandler.pluginNamed(), "paramMapping");
     }
 }

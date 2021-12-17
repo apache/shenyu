@@ -17,62 +17,82 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * grpc service register.
  */
-@Service("grpc")
+@Service
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
-    private final MetaDataService metaDataService;
-
-    private final SelectorService selectorService;
-
-    private final RuleService ruleService;
-
-    public ShenyuClientRegisterGrpcServiceImpl(final MetaDataService metaDataService,
-                                               final SelectorService selectorService,
-                                               final RuleService ruleService) {
-        this.metaDataService = metaDataService;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
+    @Override
+    public String rpcType() {
+        return RpcTypeEnum.GRPC.getName();
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String register(final MetaDataRegisterDTO dto) {
-        MetaDataDO exist = metaDataService.findByPath(dto.getPath());
-        saveOrUpdateMetaData(exist, dto);
-        String selectorId = handlerSelector(dto);
-        handlerRule(selectorId, dto, exist);
-        return ShenyuResultMessage.SUCCESS;
+    protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
+        return "";
     }
 
     @Override
-    public void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
+    protected String ruleHandler() {
+        return "";
+    }
+
+    @Override
+    protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
+        MetaDataService metaDataService = getMetaDataService();
+        MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
 
+    /**
+     * Build handle string.
+     *
+     * @param uriList    the uri list
+     * @param selectorDO the selector do
+     * @return the string
+     */
     @Override
-    public String handlerSelector(final MetaDataRegisterDTO dto) {
-        return selectorService.handlerSelectorNeedUpstreamCheck(dto, PluginEnum.GRPC.getName());
+    protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
+        String handleAdd;
+        List<GrpcUpstream> addList = buildGrpcUpstreamList(uriList);
+        List<GrpcUpstream> canAddList = new CopyOnWriteArrayList<>();
+        if (StringUtils.isBlank(selectorDO.getHandle())) {
+            handleAdd = GsonUtils.getInstance().toJson(addList);
+            canAddList = addList;
+        } else {
+            List<GrpcUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), GrpcUpstream.class);
+            List<GrpcUpstream> diffList = addList.stream().filter(grpcUpstream -> !existList.contains(grpcUpstream)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffList)) {
+                canAddList.addAll(diffList);
+                existList.addAll(diffList);
+            }
+            handleAdd = GsonUtils.getInstance().toJson(existList);
+        }
+        doSubmit(selectorDO.getId(), canAddList);
+        return handleAdd;
     }
 
-    @Override
-    public void handlerRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
-        ruleService.register(registerRule(selectorId, metaDataDTO, PluginEnum.GRPC.getName()),
-                metaDataDTO.getPath(),
-                Objects.nonNull(exist));
+    private List<GrpcUpstream> buildGrpcUpstreamList(final List<URIRegisterDTO> uriList) {
+        return uriList.stream()
+                .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort()))
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }

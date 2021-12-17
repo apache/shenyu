@@ -33,7 +33,7 @@
 
     <delete id="deleteByUniqueKey">
         delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
-            and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
     </delete>
 
     <delete id="deleteByDataIdsAndUserId" parameterType="java.util.List">
@@ -48,6 +48,16 @@
         delete from data_permission where user_id = #{userId,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByUserIdSet">
+        delete from data_permission
+        where user_id in
+        <foreach collection="userIdSet" index="index" item="userId"
+                 open="(" separator="," close=")">
+            #{userId,jdbcType=VARCHAR}
+        </foreach>
+
+    </delete>
+
     <delete id="deleteByDataId">
         delete from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
     </delete>
@@ -57,7 +67,8 @@
     </select>
 
     <select id="selectDataIds" resultType="java.lang.String">
-        select data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        select data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR} and data_type =
+        #{dataType,jdbcType=INTEGER}
         and data_id in
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
@@ -65,8 +76,10 @@
     </select>
 
     <select id="findOneByUniqueKey" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/> from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
-            and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        select
+        <include refid="Base_Column_List"/>
+        from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
+        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
     </select>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DataPermissionDO">
@@ -109,5 +122,17 @@
         </trim>
     </insert>
 
+    <insert id="insertBatch">
+        insert into data_permission (id, user_id, data_id, data_type)
+        values
+        <foreach collection="dataPermissionList" item="dataPermission" separator=",">
+            (
+            #{dataPermission.id,jdbcType=VARCHAR},
+            #{dataPermission.userId,jdbcType=VARCHAR},
+            #{dataPermission.dataId,jdbcType=VARCHAR},
+            #{dataPermission.dataType,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
 
 </mapper>

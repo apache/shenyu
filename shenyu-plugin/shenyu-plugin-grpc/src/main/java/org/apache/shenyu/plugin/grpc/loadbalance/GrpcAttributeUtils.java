@@ -22,19 +22,13 @@ import io.grpc.Attributes;
 /**
  * GrpcAttributeUtils.
  */
-public class GrpcAttributeUtils {
-
+public final class GrpcAttributeUtils {
+    
     /**
      * The instance appName.
      */
-    private static Attributes.Key appName = Attributes.Key.create("appName");
-
-    /**
-     * AppName.
-     *
-     * @return key
-     */
-    public static Attributes.Key appName() {
-        return appName;
+    public static final Attributes.Key<String> APP_NAME = Attributes.Key.create("appName");
+    
+    private GrpcAttributeUtils() {
     }
 }

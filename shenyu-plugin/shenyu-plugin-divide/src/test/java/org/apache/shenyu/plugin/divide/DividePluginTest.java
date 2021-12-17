@@ -21,7 +21,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -97,6 +96,7 @@ public final class DividePluginTest {
         // mock static
         mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
         mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+        initMockInfo();
     }
 
     @After
@@ -109,7 +109,6 @@ public final class DividePluginTest {
      */
     @Test
     public void doExecuteTest() {
-        initMockInfo();
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
@@ -120,7 +119,6 @@ public final class DividePluginTest {
      */
     @Test
     public void doPostExecuteTest() {
-        initMockInfo();
         when(chain.execute(postExchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(postExchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
@@ -131,7 +129,6 @@ public final class DividePluginTest {
      */
     @Test
     public void skip() {
-        initMockInfo();
         Assert.assertTrue(dividePlugin.skip(exchange));
     }
 
@@ -157,14 +154,13 @@ public final class DividePluginTest {
     private void initMockInfo() { 
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "", "");
+        DivideRuleHandle handle = new DivideRuleHandle();
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
         dividePluginDataHandler.handlerSelector(selectorData);
-        when(context.getRealUrl()).thenReturn("mock-real");
         exchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         postExchange.getAttributes().put(Constants.CONTEXT, context);

@@ -22,6 +22,8 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Data change event.
@@ -45,7 +47,7 @@ public class DataChangedEvent extends ApplicationEvent {
      * @param source   the source
      */
     public DataChangedEvent(final ConfigGroupEnum groupKey, final DataEventTypeEnum type, final List<?> source) {
-        super(source);
+        super(source.stream().filter(Objects::nonNull).collect(Collectors.toList()));
         this.eventType = type;
         this.groupKey = groupKey;
     }

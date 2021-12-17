@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +56,8 @@ public class ResourceServiceImpl implements ResourceService {
 
     private final PermissionMapper permissionMapper;
 
-    public ResourceServiceImpl(final ResourceMapper resourceMapper, final PermissionMapper permissionMapper) {
+    public ResourceServiceImpl(final ResourceMapper resourceMapper,
+                               final PermissionMapper permissionMapper) {
         this.resourceMapper = resourceMapper;
         this.permissionMapper = permissionMapper;
     }
@@ -71,7 +73,7 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
-     *  create or update resource.
+     * create or update resource.
      *
      * @param resourceDTO {@linkplain ResourceDTO}
      * @return rows int
@@ -127,6 +129,22 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
+     * find by title.
+     *
+     * @param titles resource titles
+     * @return {@linkplain ResourceVO}
+     */
+    @Override
+    public List<ResourceVO> listByTitles(final List<String> titles) {
+        final List<ResourceDO> resources = this.resourceMapper.selectByTitles(titles);
+        if (CollectionUtils.isEmpty(resources)) {
+            return Collections.emptyList();
+        }
+        return resources.stream().map(ResourceVO::buildResourceVO)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    /**
      * find page of role by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
@@ -135,11 +153,10 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     @Pageable
     public CommonPager<ResourceVO> listByPage(final ResourceQuery resourceQuery) {
-        return PageResultUtils.result(resourceQuery.getPageParameter(),
-            () -> resourceMapper.selectByQuery(resourceQuery)
-                            .stream()
-                            .map(ResourceVO::buildResourceVO)
-                            .collect(Collectors.toList()));
+        return PageResultUtils.result(resourceQuery.getPageParameter(), () -> resourceMapper.selectByQuery(resourceQuery)
+                .stream()
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -150,12 +167,13 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public List<MenuInfo> getMenuTree() {
         List<ResourceVO> resourceVOList = resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(resourceVOList)) {
-            List<MenuInfo> menuInfoList = new ArrayList<>();
-            getMenuInfo(menuInfoList, resourceVOList, null);
-            return menuInfoList;
+        if (CollectionUtils.isEmpty(resourceVOList)) {
+            return null;
         }
-        return null;
+
+        List<MenuInfo> menuInfoList = new ArrayList<>();
+        getMenuInfo(menuInfoList, resourceVOList, null);
+        return menuInfoList;
     }
 
     /**
@@ -175,17 +193,20 @@ public class ResourceServiceImpl implements ResourceService {
      * get Menu Info.
      *
      * @param menuInfoList {@linkplain List} menu info.
-     * @param metaList {@linkplain List} resource list
-     * @param menuInfo {@linkplain MenuInfo}
+     * @param metaList     {@linkplain List} resource list
+     * @param menuInfo     {@linkplain MenuInfo}
      */
     @Override
-    public void getMenuInfo(final List<MenuInfo> menuInfoList, final List<ResourceVO> metaList, final MenuInfo menuInfo) {
+    public void getMenuInfo(final List<MenuInfo> menuInfoList,
+                            final List<ResourceVO> metaList,
+                            final MenuInfo menuInfo) {
         for (ResourceVO resourceVO : metaList) {
             String parentId = resourceVO.getParentId();
             MenuInfo tempMenuInfo = MenuInfo.buildMenuInfo(resourceVO);
             if (ObjectUtils.isEmpty(tempMenuInfo)) {
                 continue;
             }
+
             if (ObjectUtils.isEmpty(menuInfo) && reactor.util.StringUtils.isEmpty(parentId)) {
                 menuInfoList.add(tempMenuInfo);
                 if (Objects.equals(resourceVO.getIsLeaf(), Boolean.FALSE)) {
@@ -204,7 +225,7 @@ public class ResourceServiceImpl implements ResourceService {
      * get delete resource ids.
      *
      * @param resourceIds resource ids
-     * @param metaList all resource object
+     * @param metaList    all resource object
      */
     private void getDeleteResourceIds(final Map<String, String> deleteResourceIds, final List<String> resourceIds,
                                       final List<ResourceVO> metaList) {

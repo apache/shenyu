@@ -26,6 +26,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
@@ -33,6 +35,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -43,42 +46,40 @@ import java.util.concurrent.ExecutionException;
  * The type Application config cache.
  */
 public final class ApplicationConfigCache {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
-
+    
     private ApplicationConfig applicationConfig;
-
+    
     private RegistryConfig registryConfig;
-
-    private final int maxCount = 1000;
-
+    
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
-            .maximumSize(maxCount)
+            .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
-                ConsumerConfig<GenericService> config = (ConsumerConfig<GenericService>) notification.getValue();
-                if (config != null) {
+                if (notification.getValue() != null) {
                     try {
-                        Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("consumerBootstrap");
-                        field.setAccessible(true);
-                        field.set(config, null);
+                        Class<?> cz = notification.getValue().getClass();
+                        final Field field = FieldUtils.getDeclaredField(cz, "consumerBootstrap", true);
+                        FieldUtils.writeField(field, notification.getValue(), null);
                         // After the configuration change, sofa destroys the instance, but does not empty it. If it is not handled,
                         // it will get NULL when reinitializing and cause a NULL pointer problem.
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                    } catch (IllegalAccessException e) {
                         LOG.error("modify ref have exception", e);
                     }
                 }
             })
             .build(new CacheLoader<String, ConsumerConfig<GenericService>>() {
+                
                 @Override
-                public ConsumerConfig<GenericService> load(final String key) {
+                @NonNull
+                public ConsumerConfig<GenericService> load(@NonNull final String key) {
                     return new ConsumerConfig<>();
                 }
             });
-
+    
     private ApplicationConfigCache() {
     }
-
+    
     /**
      * Gets instance.
      *
@@ -87,27 +88,28 @@ public final class ApplicationConfigCache {
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-
+    
     /**
      * Init.
      *
      * @param sofaRegisterConfig the sofa register config
      */
     public void init(final SofaRegisterConfig sofaRegisterConfig) {
+        final String shenyuProxy = "shenyu_proxy";
         if (applicationConfig == null) {
             applicationConfig = new ApplicationConfig();
-            applicationConfig.setAppId("shenyu_proxy");
-            applicationConfig.setAppName("shenyu_proxy");
+            applicationConfig.setAppId(shenyuProxy);
+            applicationConfig.setAppName(shenyuProxy);
         }
         if (registryConfig == null) {
             registryConfig = new RegistryConfig();
             registryConfig.setProtocol(sofaRegisterConfig.getProtocol());
-            registryConfig.setId("shenyu_proxy");
+            registryConfig.setId(shenyuProxy);
             registryConfig.setRegister(false);
             registryConfig.setAddress(sofaRegisterConfig.getRegister());
         }
     }
-
+    
     /**
      * Init ref reference config.
      *
@@ -124,9 +126,9 @@ public final class ApplicationConfigCache {
             LOG.error("init sofa ref ex:{}", e.getMessage());
         }
         return build(metaData);
-
+        
     }
-
+    
     /**
      * Build reference config.
      *
@@ -134,6 +136,9 @@ public final class ApplicationConfigCache {
      * @return the reference config
      */
     public ConsumerConfig<GenericService> build(final MetaData metaData) {
+        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
+            return new ConsumerConfig<>();
+        }
         ConsumerConfig<GenericService> reference = new ConsumerConfig<>();
         reference.setGeneric(true);
         reference.setApplication(applicationConfig);
@@ -152,14 +157,19 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(sofaParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(sofaParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
-        Object obj = reference.refer();
-        if (obj != null) {
-            LOG.info("init sofa reference success there meteData is :{}", metaData);
-            cache.put(metaData.getPath(), reference);
+        try {
+            Object obj = reference.refer();
+            if (obj != null) {
+                LOG.info("init sofa reference success there meteData is :{}", metaData);
+                cache.put(metaData.getPath(), reference);
+            }
+        } catch (Exception e) {
+            LOG.error("init sofa reference exception", e);
+            e.printStackTrace();
         }
         return reference;
     }
-
+    
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("consistenthash", loadBalance)) {
             return "consistentHash";
@@ -169,22 +179,21 @@ public final class ApplicationConfigCache {
         }
         return loadBalance;
     }
-
+    
     /**
      * Get reference config.
      *
-     * @param <T>         the type parameter
-     * @param path        path
+     * @param path path
      * @return the reference config
      */
-    public <T> ConsumerConfig<T> get(final String path) {
+    public ConsumerConfig<GenericService> get(final String path) {
         try {
-            return (ConsumerConfig<T>) cache.get(path);
+            return cache.get(path);
         } catch (ExecutionException e) {
             throw new ShenyuException(e.getCause());
         }
     }
-
+    
     /**
      * Invalidate.
      *
@@ -193,55 +202,61 @@ public final class ApplicationConfigCache {
     public void invalidate(final String path) {
         cache.invalidate(path);
     }
-
+    
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-
+    
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
+        
         /**
          * The Instance.
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
+        
+        private ApplicationConfigCacheInstance() {
+        
+        }
+        
     }
-
+    
     /**
      * The type Sofa param ext info.
      */
     static class SofaParamExtInfo {
-
+        
         private String loadbalance;
-
+        
         private Integer retries;
-
+        
         private Integer timeout;
-
+        
         public String getLoadbalance() {
             return loadbalance;
         }
-
+        
         public void setLoadbalance(final String loadbalance) {
             this.loadbalance = loadbalance;
         }
-
+        
         public Integer getRetries() {
             return retries;
         }
-
+        
         public void setRetries(final Integer retries) {
             this.retries = retries;
         }
-
+        
         public Integer getTimeout() {
             return timeout;
         }
-
+        
         public void setTimeout(final Integer timeout) {
             this.timeout = timeout;
         }

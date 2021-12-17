@@ -49,14 +49,7 @@ public @interface ShenyuSpringMvcClient {
      * @return String string
      */
     String desc() default "";
-    
-    /**
-     * Rpc type string.
-     *
-     * @return the string
-     */
-    String rpcType() default "http";
-    
+
     /**
      * Enabled boolean.
      *

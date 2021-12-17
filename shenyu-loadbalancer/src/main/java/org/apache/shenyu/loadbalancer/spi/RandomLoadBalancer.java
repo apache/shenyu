@@ -20,8 +20,8 @@ package org.apache.shenyu.loadbalancer.spi;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
 
 /**
  * random algorithm impl.
@@ -29,7 +29,7 @@ import java.util.Random;
 @Join
 public class RandomLoadBalancer extends AbstractLoadBalancer {
 
-    private static final Random RANDOM = new Random();
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
@@ -38,7 +38,9 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         if (totalWeight > 0 && !sameWeight) {
             return random(totalWeight, upstreamList);
         }
-        // If the weights are the same or the weights are 0 then random
+        /**
+         * If the weights are the same or the weights are 0 then random.
+         */
         return random(upstreamList);
     }
 
@@ -48,7 +50,9 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         for (int i = 0; i < length; i++) {
             int weight = getWeight(upstreamList.get(i));
             if (i > 0 && weight != getWeight(upstreamList.get(i - 1))) {
-                // Calculate whether the weight of ownership is the same
+                /**
+                 * Calculate whether the weight of ownership is the same.
+                 */
                 sameWeight = false;
                 break;
             }
@@ -57,20 +61,28 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
     }
 
     private int calculateTotalWeight(final List<Upstream> upstreamList) {
-        // total weight
+        /**
+         * total weight.
+         */
         int totalWeight = 0;
         for (Upstream divideUpstream : upstreamList) {
             int weight = getWeight(divideUpstream);
-            // Cumulative total weight
+            /**
+             * Cumulative total weight.
+             */
             totalWeight += weight;
         }
         return totalWeight;
     }
 
     private Upstream random(final int totalWeight, final List<Upstream> upstreamList) {
-        // If the weights are not the same and the weights are greater than 0, then random by the total number of weights
+        /**
+         * If the weights are not the same and the weights are greater than 0, then random by the total number of weights.
+         */
         int offset = RANDOM.nextInt(totalWeight);
-        // Determine which segment the random value falls on
+        /**
+         * Determine which segment the random value falls on
+         */
         for (Upstream divideUpstream : upstreamList) {
             offset -= getWeight(divideUpstream);
             if (offset < 0) {

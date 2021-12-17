@@ -34,6 +34,8 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -67,11 +69,10 @@ public class WebsocketCollector {
         if (MapUtils.isEmpty(userProperties)) {
             return StringUtils.EMPTY;
         }
-        Object ipObject = userProperties.get(WebsocketListener.CLIENT_IP_NAME);
-        if (null == ipObject) {
-            return StringUtils.EMPTY;
-        }
-        return ipObject.toString();
+
+        return Optional.ofNullable(userProperties.get(WebsocketListener.CLIENT_IP_NAME))
+                .map(Object::toString)
+                .orElse(StringUtils.EMPTY);
     }
 
     /**
@@ -82,14 +83,17 @@ public class WebsocketCollector {
      */
     @OnMessage
     public void onMessage(final String message, final Session session) {
-        if (message.equals(DataEventTypeEnum.MYSELF.name())) {
-            try {
-                ThreadLocalUtils.put(SESSION_KEY, session);
-                SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
-            } finally {
-                ThreadLocalUtils.clear();
-            }
+        if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
+            return;
         }
+
+        try {
+            ThreadLocalUtils.put(SESSION_KEY, session);
+            SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
+        } finally {
+            ThreadLocalUtils.clear();
+        }
+
     }
 
     /**
@@ -124,19 +128,22 @@ public class WebsocketCollector {
      * @param type    the type
      */
     public static void send(final String message, final DataEventTypeEnum type) {
-        if (StringUtils.isNotBlank(message)) {
-            if (DataEventTypeEnum.MYSELF == type) {
-                Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
-                if (session != null) {
-                    sendMessageBySession(session, message);
-                }
-            } else {
-                SESSION_SET.forEach(session -> sendMessageBySession(session, message));
-            }
+        if (StringUtils.isBlank(message)) {
+            return;
         }
+
+        if (DataEventTypeEnum.MYSELF == type) {
+            Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
+            if (Objects.nonNull(session)) {
+                sendMessageBySession(session, message);
+            }
+        } else {
+            SESSION_SET.forEach(session -> sendMessageBySession(session, message));
+        }
+
     }
 
-    private static void sendMessageBySession(final Session session, final String message) {
+    private static synchronized void sendMessageBySession(final Session session, final String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {

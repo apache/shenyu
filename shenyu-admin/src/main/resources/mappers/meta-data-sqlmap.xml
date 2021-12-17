@@ -44,6 +44,17 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIdSet" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from meta_data
+        where id in
+        <foreach collection="idSet" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="findByPath" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -72,8 +83,9 @@
         select
         <include refid="Base_Column_List"/>
         from meta_data
-        <if test="appName != null">
-            where app_name = #{appName,jdbcType=VARCHAR}
+        <if test="appName != null and appName != ''">
+            <bind name="appNameLike" value="('%' + appName + '%')"/>
+            where app_name LIKE #{appNameLike,jdbcType=VARCHAR}
         </if>
     </select>
 
@@ -108,7 +120,7 @@
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.MetaDataDO">
         update meta_data
-        set  app_name = #{appName,jdbcType=VARCHAR},
+        set app_name = #{appName,jdbcType=VARCHAR},
         path = #{path,jdbcType=VARCHAR},
         path_desc = #{pathDesc,jdbcType=VARCHAR},
         rpc_type = #{rpcType,jdbcType=VARCHAR},
@@ -121,12 +133,31 @@
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         update meta_data
-        set  enabled = #{enabled,jdbcType=TINYINT}
+        set enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateEnableBatch">
+        update meta_data
+        set enabled = #{enabled,jdbcType=TINYINT}
+        where id in
+        <foreach collection="idSet" index="index" item="id"
+                 open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
         delete from meta_data
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIdSet" parameterType="java.lang.String">
+        delete from meta_data
+        where id in
+        <foreach collection="idSet" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>

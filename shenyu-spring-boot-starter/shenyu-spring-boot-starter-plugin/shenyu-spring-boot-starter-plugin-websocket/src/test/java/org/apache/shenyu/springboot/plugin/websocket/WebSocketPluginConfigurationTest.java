@@ -18,41 +18,81 @@
 package org.apache.shenyu.springboot.plugin.websocket;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.websocket.WebSocketPlugin;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for {@link WebSocketPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class WebSocketPluginConfigurationTest {
+
+    private ApplicationContextRunner applicationContextRunner;
+
+    @Before
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(WebSocketPluginConfiguration.class))
+            .withBean(WebSocketPluginConfigurationTest.class)
+            .withPropertyValues("debug=true");
+    }
+
+    @Test
+    public void testWebSocketPluginDataHandler() {
+        applicationContextRunner.run(context -> {
+                PluginDataHandler handler = context.getBean("websocketPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            }
+        );
+    }
 
     @Test
     public void testWebSocketPlugin() {
-        new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                        WebSocketPluginConfiguration.class
-                ))
-            .withBean(DefaultServerCodecConfigurer.class)
-            .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(PluginDataHandler.class);
-                    assertThat(context).hasSingleBean(WebSocketPlugin.class);
-                    assertThat(context).hasSingleBean(ReactorNettyWebSocketClient.class);
-                    assertThat(context).hasSingleBean(WebSocketService.class);
-                    ShenyuPlugin plugin = context.getBean("webSocketPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.WEB_SOCKET.getName());
-                }
-            );
+        applicationContextRunner.run(context -> {
+                WebSocketPlugin plugin = context.getBean("webSocketPlugin", WebSocketPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.WEB_SOCKET.getName());
+            }
+        );
+    }
+
+    @Test
+    public void testReactorNettyWebSocketClient() {
+        applicationContextRunner.run(context -> {
+                ReactorNettyWebSocketClient client = context.getBean("reactorNettyWebSocketClient", ReactorNettyWebSocketClient.class);
+                assertNotNull(client);
+            }
+        );
+    }
+
+    @Test
+    public void testHandshakeWebSocketService() {
+        applicationContextRunner.run(context -> {
+                WebSocketService service = context.getBean("webSocketService", WebSocketService.class);
+                assertNotNull(service);
+            }
+        );
+    }
+
+    @Test
+    public void testWebSocketShenyuContextDecorator() {
+        applicationContextRunner.run(context -> {
+                ShenyuContextDecorator decorator = context.getBean("webSocketShenyuContextDecorator", ShenyuContextDecorator.class);
+                assertNotNull(decorator);
+            }
+        );
     }
 }

@@ -27,10 +27,10 @@ import java.util.Objects;
 /**
  * The Grpc client cache.
  */
-public class GrpcClientCache {
-
+public final class GrpcClientCache {
+    
     private static final Map<String, ShenyuGrpcClient> CLIENT_CACHE = Maps.newConcurrentMap();
-
+    
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             for (Map.Entry<String, ShenyuGrpcClient> entry : CLIENT_CACHE.entrySet()) {
@@ -40,7 +40,10 @@ public class GrpcClientCache {
             CLIENT_CACHE.clear();
         }));
     }
-
+    
+    private GrpcClientCache() {
+    }
+    
     /**
      * Init client.
      *
@@ -49,7 +52,7 @@ public class GrpcClientCache {
     public static void initGrpcClient(final String contextPath) {
         CLIENT_CACHE.computeIfAbsent(contextPath, s -> GrpcClientBuilder.buildClient(contextPath));
     }
-
+    
     /**
      * Get the client.
      *
@@ -59,7 +62,7 @@ public class GrpcClientCache {
     public static ShenyuGrpcClient getGrpcClient(final String contextPath) {
         return CLIENT_CACHE.get(contextPath);
     }
-
+    
     /**
      * Remove client.
      *

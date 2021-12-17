@@ -24,9 +24,6 @@ public class MotanDTO {
 
     private String name;
 
-    public MotanDTO() {
-    }
-
     public MotanDTO(final String name) {
         this.name = name;
     }

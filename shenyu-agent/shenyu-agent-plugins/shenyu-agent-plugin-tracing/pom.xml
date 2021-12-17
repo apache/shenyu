@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-agent-plugins</artifactId>
-        <version>2.4.1-SNAPSHOT</version>
+        <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-agent-plugin-tracing</artifactId>
@@ -37,11 +37,8 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-shade-plugin</artifactId>
                 <configuration>
-                    <outputFile>${project.basedir}/../target/plugins/${project.build.finalName}</outputFile>
+                    <outputDirectory>${project.basedir}/../../../target/plugins</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

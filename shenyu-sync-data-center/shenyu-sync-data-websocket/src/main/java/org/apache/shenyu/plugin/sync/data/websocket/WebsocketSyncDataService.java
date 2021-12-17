@@ -65,6 +65,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                                     final List<AuthDataSubscriber> authDataSubscribers) {
         String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
         executor = new ScheduledThreadPoolExecutor(urls.length, ShenyuThreadFactory.create("websocket-connect", true));
+
         for (String url : urls) {
             try {
                 clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
@@ -72,6 +73,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                 LOG.error("websocket url({}) is error", url, e);
             }
         }
+
         try {
             for (WebSocketClient client : clients) {
                 boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
@@ -80,6 +82,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                 } else {
                     LOG.error("websocket connection is error.....");
                 }
+
                 executor.scheduleAtFixedRate(() -> {
                     try {
                         if (client.isClosed()) {
@@ -98,7 +101,6 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                     }
                 }, 10, 10, TimeUnit.SECONDS);
             }
-            /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
         } catch (InterruptedException e) {
             LOG.info("websocket connection...exception....", e);
         }

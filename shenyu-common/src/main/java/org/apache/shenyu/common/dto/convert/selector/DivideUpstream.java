@@ -22,22 +22,7 @@ import java.util.Objects;
 /**
  * this is divide upstream.
  */
-public class DivideUpstream {
-    
-    /**
-     * this is http protocol.
-     */
-    private String protocol;
-
-    /**
-     * host.
-     */
-    private String upstreamHost;
-
-    /**
-     * url.
-     */
-    private String upstreamUrl;
+public class DivideUpstream extends CommonUpstream {
 
     /**
      * weight.
@@ -45,34 +30,9 @@ public class DivideUpstream {
     private int weight;
 
     /**
-     * false close/ true open.
-     */
-    private boolean status = true;
-
-    /**
-     * startup time.
-     */
-    private long timestamp;
-
-    /**
      * warmup.
      */
     private int warmup;
-
-    /**
-     * health status.
-     */
-    private boolean healthy;
-
-    /**
-     * the last healthy time.
-     */
-    private long lastHealthTimestamp;
-
-    /**
-     * the last unhealthy time.
-     */
-    private long lastUnhealthyTimestamp;
 
     /**
      * no args constructor.
@@ -88,18 +48,15 @@ public class DivideUpstream {
     private DivideUpstream(final Builder builder) {
         boolean statusValue = builder.statusValue;
         if (!builder.statusSet) {
-            statusValue = DivideUpstream.defaultStatus();
+            statusValue = defaultStatus();
         }
-        this.upstreamHost = builder.upstreamHost;
-        this.protocol = builder.protocol;
-        this.upstreamUrl = builder.upstreamUrl;
+        setUpstreamHost(builder.upstreamHost);
+        setProtocol(builder.protocol);
+        setUpstreamUrl(builder.upstreamUrl); 
         this.weight = builder.weight;
-        this.status = statusValue;
-        this.timestamp = builder.timestamp;
+        setStatus(statusValue);
+        setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
-        this.healthy = builder.healthy;
-        this.lastHealthTimestamp = builder.lastHealthTimestamp;
-        this.lastUnhealthyTimestamp = builder.lastUnhealthyTimestamp;
     }
 
     /**
@@ -110,61 +67,7 @@ public class DivideUpstream {
     public static Builder builder() {
         return new Builder();
     }
-
-    /**
-     * get upstreamHost.
-     *
-     * @return upstreamHost
-     */
-    public String getUpstreamHost() {
-        return upstreamHost;
-    }
-
-    /**
-     * set upstreamHost.
-     *
-     * @param upstreamHost upstreamHost
-     */
-    public void setUpstreamHost(final String upstreamHost) {
-        this.upstreamHost = upstreamHost;
-    }
-
-    /**
-     * get protocol.
-     *
-     * @return protocol
-     */
-    public String getProtocol() {
-        return protocol;
-    }
-
-    /**
-     * set protocol.
-     *
-     * @param protocol protocol
-     */
-    public void setProtocol(final String protocol) {
-        this.protocol = protocol;
-    }
-
-    /**
-     * get upstreamUrl.
-     *
-     * @return upstreamUrl
-     */
-    public String getUpstreamUrl() {
-        return upstreamUrl;
-    }
-
-    /**
-     * set upstreamUrl.
-     *
-     * @param upstreamUrl upstreamUrl
-     */
-    public void setUpstreamUrl(final String upstreamUrl) {
-        this.upstreamUrl = upstreamUrl;
-    }
-
+    
     /**
      * get weight.
      *
@@ -182,43 +85,7 @@ public class DivideUpstream {
     public void setWeight(final int weight) {
         this.weight = weight;
     }
-
-    /**
-     * get status.
-     *
-     * @return status
-     */
-    public boolean isStatus() {
-        return status;
-    }
-
-    /**
-     * set status.
-     *
-     * @param status status
-     */
-    public void setStatus(final boolean status) {
-        this.status = status;
-    }
-
-    /**
-     * get timestamp.
-     *
-     * @return timestamp
-     */
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    /**
-     * set timestamp.
-     *
-     * @param timestamp timestamp
-     */
-    public void setTimestamp(final long timestamp) {
-        this.timestamp = timestamp;
-    }
-
+    
     /**
      * get warmup.
      *
@@ -237,60 +104,6 @@ public class DivideUpstream {
         this.warmup = warmup;
     }
 
-    /**
-     * get healthy.
-     *
-     * @return healthy
-     */
-    public boolean isHealthy() {
-        return healthy;
-    }
-
-    /**
-     * set healthy.
-     *
-     * @param healthy healthy
-     */
-    public void setHealthy(final boolean healthy) {
-        this.healthy = healthy;
-    }
-
-    /**
-     * get lastHealthTimestamp.
-     *
-     * @return lastHealthTimestamp
-     */
-    public long getLastHealthTimestamp() {
-        return lastHealthTimestamp;
-    }
-
-    /**
-     * set lastHealthTimestamp.
-     *
-     * @param lastHealthTimestamp lastHealthTimestamp
-     */
-    public void setLastHealthTimestamp(final long lastHealthTimestamp) {
-        this.lastHealthTimestamp = lastHealthTimestamp;
-    }
-
-    /**
-     * get lastUnhealthyTimestamp.
-     *
-     * @return lastUnhealthyTimestamp
-     */
-    public long getLastUnhealthyTimestamp() {
-        return lastUnhealthyTimestamp;
-    }
-
-    /**
-     * set lastUnhealthyTimestamp.
-     *
-     * @param lastUnhealthyTimestamp lastUnhealthyTimestamp
-     */
-    public void setLastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
-        this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -300,50 +113,35 @@ public class DivideUpstream {
             return false;
         }
         DivideUpstream that = (DivideUpstream) o;
-        return Objects.equals(upstreamHost, that.upstreamHost) && Objects.equals(protocol, that.protocol) && Objects.equals(upstreamUrl, that.upstreamUrl);
+        return Objects.equals(getUpstreamHost(), that.getUpstreamHost()) && Objects.equals(getProtocol(), that.getProtocol()) && Objects.equals(getUpstreamUrl(), that.getUpstreamUrl());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upstreamHost, protocol, upstreamUrl);
+        return Objects.hash(getUpstreamHost(), getProtocol(), getUpstreamUrl());
     }
 
     @Override
     public String toString() {
         return "DivideUpstream{"
                 + "upstreamHost='"
-                + upstreamHost
+                + getUpstreamHost()
                 + '\''
                 + ", protocol='"
-                + protocol
+                + getProtocol()
                 + '\''
                 + ", upstreamUrl='"
-                + upstreamUrl
+                + getUpstreamUrl()
                 + '\''
                 + ", weight="
                 + weight
                 + ", status="
-                + status
+                + isStatus()
                 + ", timestamp="
-                + timestamp
+                + getTimestamp()
                 + ", warmup="
                 + warmup
-                + ", healthy="
-                + healthy
-                + ", lastHealthTimestamp="
-                + lastHealthTimestamp
-                + ", lastUnhealthyTimestamp="
-                + lastUnhealthyTimestamp
                 + '}';
-    }
-
-    /**
-     * default value for builder.
-     *
-     * @return status default value
-     */
-    private static boolean defaultStatus() {
-        return true;
     }
 
     /**
@@ -390,27 +188,7 @@ public class DivideUpstream {
          * warmup.
          */
         private int warmup;
-
-        /**
-         * healthy.
-         */
-        private boolean healthy;
-
-        /**
-         * lastHealthTimestamp.
-         */
-        private long lastHealthTimestamp;
-
-        /**
-         * lastUnhealthyTimestamp.
-         */
-        private long lastUnhealthyTimestamp;
-
-        /**
-         * gray.
-         */
-        private boolean gray;
-
+        
         /**
          * no args constructor.
          */
@@ -501,39 +279,6 @@ public class DivideUpstream {
          */
         public Builder warmup(final int warmup) {
             this.warmup = warmup;
-            return this;
-        }
-
-        /**
-         * build healthy.
-         *
-         * @param healthy healthy
-         * @return this
-         */
-        public Builder healthy(final boolean healthy) {
-            this.healthy = healthy;
-            return this;
-        }
-
-        /**
-         * build lastHealthTimestamp.
-         *
-         * @param lastHealthTimestamp lastHealthTimestamp
-         * @return this
-         */
-        public Builder lastHealthTimestamp(final long lastHealthTimestamp) {
-            this.lastHealthTimestamp = lastHealthTimestamp;
-            return this;
-        }
-
-        /**
-         * build lastUnhealthyTimestamp.
-         *
-         * @param lastUnhealthyTimestamp lastUnhealthyTimestamp
-         * @return this
-         */
-        public Builder lastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
-            this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
             return this;
         }
     }

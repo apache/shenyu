@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class RequestPluginHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, RequestHandle>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, RequestHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {

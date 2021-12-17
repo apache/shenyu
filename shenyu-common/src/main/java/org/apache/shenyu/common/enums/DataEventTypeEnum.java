@@ -61,6 +61,7 @@ public enum DataEventTypeEnum {
     public static DataEventTypeEnum acquireByName(final String name) {
         return Arrays.stream(DataEventTypeEnum.values())
                 .filter(e -> Objects.equals(e.name(), name))
-                .findFirst().orElseThrow(() -> new ShenyuException(String.format(" this DataEventTypeEnum can not support %s", name)));
+                .findFirst()
+                .orElseThrow(() -> new ShenyuException(String.format(" this DataEventTypeEnum can not support %s", name)));
     }
 }

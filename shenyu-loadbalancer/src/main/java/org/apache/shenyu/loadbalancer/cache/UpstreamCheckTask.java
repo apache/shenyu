@@ -19,8 +19,8 @@ package org.apache.shenyu.loadbalancer.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -129,8 +130,10 @@ public final class UpstreamCheckTask implements Runnable {
 
     private void healthCheck() {
         try {
-            // If there is no synchronized. when check is done and all upstream check result is in the futures list.
-            // In the same time, triggerRemoveAll() called before waitFinish(), there will be dirty data stay in map.
+            /**
+             * If there is no synchronized. when check is done and all upstream check result is in the futures list.
+             * In the same time, triggerRemoveAll() called before waitFinish(), there will be dirty data stay in map.
+             */
             synchronized (lock) {
                 if (tryStartHealthCheck()) {
                     doHealthCheck();
@@ -229,7 +232,7 @@ public final class UpstreamCheckTask implements Runnable {
     public void triggerAddOne(final String selectorId, final Upstream upstream) {
         putToMap(healthyUpstream, selectorId, upstream);
     }
-    
+
     /**
      * Remove a specific upstream via selectorId.
      *
@@ -276,7 +279,7 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public void printHealthyUpstream() {
         healthyUpstream.forEach((k, v) -> {
-            if (v != null) {
+            if (Objects.nonNull(v)) {
                 List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
                 LOG.info("[Health Check] currently healthy upstream: {}", GsonUtils.getInstance().toJson(list));
             }
@@ -288,7 +291,7 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public void printUnhealthyUpstream() {
         unhealthyUpstream.forEach((k, v) -> {
-            if (v != null) {
+            if (Objects.nonNull(v)) {
                 List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
                 LOG.info("[Health Check] currently unhealthy upstream: {}", GsonUtils.getInstance().toJson(list));
             }

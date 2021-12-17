@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.PluginDTO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.vo.PluginVO;
@@ -29,7 +30,7 @@ import java.util.List;
  * this is plugin service.
  */
 public interface PluginService {
-
+    
     /**
      * Create or update string.
      *
@@ -37,7 +38,7 @@ public interface PluginService {
      * @return the string
      */
     String createOrUpdate(PluginDTO pluginDTO);
-
+    
     /**
      * Delete string.
      *
@@ -45,7 +46,7 @@ public interface PluginService {
      * @return the string
      */
     String delete(List<String> ids);
-
+    
     /**
      * find plugin by id.
      *
@@ -53,7 +54,7 @@ public interface PluginService {
      * @return {@linkplain PluginVO}
      */
     PluginVO findById(String id);
-
+    
     /**
      * find page of plugin by query.
      *
@@ -61,8 +62,7 @@ public interface PluginService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
-
-
+    
     /**
      * List all list.
      *
@@ -71,14 +71,21 @@ public interface PluginService {
     List<PluginData> listAll();
 
     /**
+     * list all not in resource.
+     *
+     * @return the list
+     */
+    List<PluginData> listAllNotInResource();
+    
+    /**
      * Enabled string.
      *
-     * @param ids     the ids
+     * @param ids the ids
      * @param enabled the enable
      * @return the string
      */
     String enabled(List<String> ids, Boolean enabled);
-
+    
     /**
      * select Plugin's id by name.
      *
@@ -86,4 +93,12 @@ public interface PluginService {
      * @return the id of Plugin.
      */
     String selectIdByName(String name);
+    
+    /**
+     * Find by name plugin do.
+     *
+     * @param name the name
+     * @return the plugin do
+     */
+    PluginDO findByName(String name);
 }
