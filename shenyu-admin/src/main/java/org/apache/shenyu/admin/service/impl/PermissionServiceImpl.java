@@ -90,8 +90,7 @@ public class PermissionServiceImpl implements PermissionService {
             return null;
         }
 
-        List<MenuInfo> menuInfoList = new ArrayList<>();
-        resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
+        List<MenuInfo> menuInfoList = resourceService.getMenuInfo(resourceVOList);
         return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
     }
 

@@ -104,9 +104,8 @@ public interface ResourceService {
     /**
      * get Menu Info.
      *
-     * @param menuInfoList {@linkplain List} menu info.
      * @param metaList {@linkplain List} resource list
-     * @param menuInfo {@linkplain MenuInfo}
+     * @return {@linkplain List} menu infos.
      */
-    void getMenuInfo(List<MenuInfo> menuInfoList, List<ResourceVO> metaList, MenuInfo menuInfo);
+    List<MenuInfo> getMenuInfo(List<ResourceVO> metaList);
 }
