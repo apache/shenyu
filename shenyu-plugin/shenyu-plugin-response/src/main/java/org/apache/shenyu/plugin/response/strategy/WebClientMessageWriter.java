@@ -30,12 +30,46 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
 
 /**
  * The type Web client message writer.
  */
 public class WebClientMessageWriter implements MessageWriter {
+
+    static {
+        // https://www.iana.org/assignments/media-types/media-types.xhtml
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+        // https://en.wikipedia.org/wiki/Media_type
+        Set<String> commonBinaryTypes = new HashSet<String>() {
+            {
+                add("image"); // .png .jpg .jpeg .gif .webp
+                add("audio"); // .mp2 .mp3
+                add("video"); // .avi .mp4
+                add("ogg"); // application/ogg
+                add("zip"); // .zip .tar .gz
+                add("rar"); // .rar
+                add("word"); // .doc
+                add("excel"); // .xls
+                add("csv"); // .csv
+                add("powerpoint"); // .ppt
+                add("openxmlformats-officedocument"); // .pptx .xlsx .docx
+                add("binary"); // .bin
+                add("pdf"); // .pdf
+            }
+        };
+        StringJoiner regexBuilder = new StringJoiner("|");
+        commonBinaryTypes.forEach(t -> regexBuilder.add(String.format(".*%s.*", t)));
+        COMMON_BIN_MEDIA_TYPE_REGEX = regexBuilder.toString();
+    }
+
+    /**
+     * the common binary media type regex.
+     */
+    private static final String COMMON_BIN_MEDIA_TYPE_REGEX;
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -57,9 +91,7 @@ public class WebClientMessageWriter implements MessageWriter {
             // image, pdf or stream does not do format processing.
             if (clientResponse.headers().contentType().isPresent()) {
                 final String media = clientResponse.headers().contentType().get().toString().toLowerCase();
-                if (media.contains(Constants.IMAGE_MEDIA)
-                        || media.contains(Constants.STREAM_MEDIA)
-                        || media.contains(Constants.PDF_MEDIA)) {
+                if (media.matches(COMMON_BIN_MEDIA_TYPE_REGEX)) {
                     return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
                             .doOnCancel(() -> clean(exchange));
                 }
