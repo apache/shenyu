@@ -35,8 +35,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * FallbackShenyuClientRegisterService .
- *
- * @author sixh chenbin
  */
 public abstract class FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
 
@@ -55,7 +53,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         try {
             String key = key(selectorName);
             ScheduledThread.remove(key);
-            result = this.registerURI0(selectorName, uriList);
+            result = this.doRegisterURI(selectorName, uriList);
             if (!ScheduledThread.exist(key)) {
                 logger.info("register success: {},{}", selectorName, uriList);
             }
@@ -74,7 +72,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     void recover(final String selectorName, final List<URIRegisterDTO> uriList) {
         if (uriList != null && !uriList.isEmpty()) {
             String key = key(selectorName);
-            ScheduledThread.put(key, new FallHolder(this, selectorName, uriList));
+            ScheduledThread.put(key, new FallbackHolder(this, selectorName, uriList));
             logger.info("register recovering wait retry: {},{}", selectorName, uriList);
         }
     }
@@ -90,12 +88,12 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @param uriList      the uri list
      * @return the string
      */
-    abstract String registerURI0(String selectorName, List<URIRegisterDTO> uriList);
+    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList);
 
     /**
      * The type Fall holder.
      */
-    private static final class FallHolder {
+    private static final class FallbackHolder {
 
         private final String selectorName;
 
@@ -110,7 +108,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          * @param selectorName    the selector name
          * @param uriList         the uri list
          */
-        FallHolder(final FallbackShenyuClientRegisterService registerService, final String selectorName, final List<URIRegisterDTO> uriList) {
+        FallbackHolder(final FallbackShenyuClientRegisterService registerService, final String selectorName, final List<URIRegisterDTO> uriList) {
             this.registerService = registerService;
             this.selectorName = selectorName;
             this.uriList = uriList;
@@ -155,7 +153,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
 
         private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("shenyu-client-register-fallback", false));
 
-        private final Map<String, FallHolder> fallsRegisters = new ConcurrentHashMap<>();
+        private final Map<String, FallbackHolder> fallsRegisters = new ConcurrentHashMap<>();
 
         private ScheduledThread() {
             executorService.scheduleAtFixedRate(() -> {
@@ -169,7 +167,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
 
         private void retry() {
             if (!fallsRegisters.isEmpty()) {
-                Map<String, FallHolder> failed = new HashMap<>(fallsRegisters);
+                Map<String, FallbackHolder> failed = new HashMap<>(fallsRegisters);
                 if (failed.size() > 0) {
                     fallsRegisters.forEach((k, v) -> {
                         logger.info("retry register {}", v);
@@ -185,8 +183,8 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          * @param key        the key
          * @param fallHolder the fall holder
          */
-        public void put0(final String key, final FallHolder fallHolder) {
-            this.fallsRegisters.put(key, fallHolder);
+        public static void put(final String key, final FallbackHolder fallHolder) {
+            INST.doPut(key, fallHolder);
         }
 
         /**
@@ -195,8 +193,8 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          * @param key        the key
          * @param fallHolder the fall holder
          */
-        public static void put(final String key, final FallHolder fallHolder) {
-            INST.put0(key, fallHolder);
+        public void doPut(final String key, final FallbackHolder fallHolder) {
+            this.fallsRegisters.put(key, fallHolder);
         }
 
         /**
@@ -205,7 +203,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          * @param key the key
          */
         public static void remove(final String key) {
-            INST.remove0(key);
+            INST.doRemove(key);
         }
 
         /**
@@ -213,7 +211,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          *
          * @param key the key
          */
-        public void remove0(final String key) {
+        public void doRemove(final String key) {
             this.fallsRegisters.remove(key);
         }
 
@@ -224,7 +222,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          * @return the boolean
          */
         public static boolean exist(final String key) {
-            return INST.exist0(key);
+            return INST.doExist(key);
         }
 
         /**
@@ -233,7 +231,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          * @param key the key
          * @return the boolean
          */
-        public boolean exist0(final String key) {
+        public boolean doExist(final String key) {
             return this.fallsRegisters.containsKey(key);
         }
     }

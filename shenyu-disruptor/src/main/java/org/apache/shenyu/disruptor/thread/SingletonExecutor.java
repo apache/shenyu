@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * SingletonExecutor .
  *
- * @author sixh chenbin
  */
 public class SingletonExecutor extends ThreadPoolExecutor {
 

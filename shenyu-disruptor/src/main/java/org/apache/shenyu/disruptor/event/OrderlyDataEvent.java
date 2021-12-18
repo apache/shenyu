@@ -22,7 +22,6 @@ package org.apache.shenyu.disruptor.event;
  * OrderlyDataEvent .
  *
  * @param <T> the type parameter
- * @author sixh chenbin
  */
 public class OrderlyDataEvent<T> extends DataEvent<T> {
 

@@ -32,8 +32,6 @@ import java.util.stream.IntStream;
 
 /**
  * OrderlyExecutor .
- *
- * @author sixh chenbin
  */
 public class OrderlyExecutor extends ThreadPoolExecutor {
 

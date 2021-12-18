@@ -24,7 +24,6 @@ import com.lmax.disruptor.EventFactory;
  * OrderlyDisruptorEventFactory .
  *
  * @param <T> the type parameter
- * @author sixh chenbin
  */
 public class OrderlyDisruptorEventFactory<T> implements EventFactory<OrderlyDataEvent<T>> {
 

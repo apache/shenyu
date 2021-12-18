@@ -139,7 +139,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      * @return the string
      */
     @Override
-    public String registerURI0(final String selectorName, final List<URIRegisterDTO> uriList) {
+    public String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
