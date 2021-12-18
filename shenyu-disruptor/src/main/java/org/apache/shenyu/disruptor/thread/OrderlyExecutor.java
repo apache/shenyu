@@ -18,9 +18,9 @@
 
 package org.apache.shenyu.disruptor.thread;
 
+import com.google.common.hash.Hashing;
+
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.SortedMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -61,7 +61,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
         IntStream.range(0, corePoolSize).forEach(index -> {
             SingletonExecutor singletonExecutor = new SingletonExecutor(threadFactory);
             String hash = singletonExecutor.hashCode() + ":" + index;
-            byte[] bytes = threadSelector.md5(hash);
+            byte[] bytes = threadSelector.sha(hash);
             for (int i = 0; i < 4; i++) {
                 this.virtualExecutors.put(threadSelector.hash(bytes, i), singletonExecutor);
             }
@@ -99,7 +99,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
          * @return the long
          */
         public long select(final String hash) {
-            byte[] digest = md5(hash);
+            byte[] digest = sha(hash);
             return hash(digest, 0);
         }
 
@@ -114,18 +114,13 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
                     & 0xFFFFFFFFL;
         }
 
-        private byte[] md5(final String hash) {
-            MessageDigest md5;
-            try {
-                md5 = MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                throw new IllegalStateException(e.getMessage(), e);
-            }
-            md5.reset();
-            byte[] bytes;
-            bytes = hash.getBytes(StandardCharsets.UTF_8);
-            md5.update(bytes);
-            return md5.digest();
+        private byte[] sha(final String hash) {
+            byte[] bytes = hash.getBytes(StandardCharsets.UTF_8);
+            return Hashing
+                    .sha256()
+                    .newHasher()
+                    .putBytes(bytes)
+                    .hash().asBytes();
         }
     }
 }
