@@ -59,8 +59,7 @@ public class MotanProxyService {
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.MOTAN.getName())).ifPresent(context -> {
-            RpcContext motanRpcContext = RpcContext.getContext();
-            context.forEach((k, v) -> motanRpcContext.setRpcAttachment(k, v));
+            context.forEach((k, v) -> RpcContext.getContext().setRpcAttachment(k, v));
         });
         RefererConfig<CommonHandler> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
