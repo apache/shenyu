@@ -93,7 +93,8 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      * @throws IllegalAccessException the illegal access exception
      */
     public List<ShenyuLoaderResult> loadExtendPlugins(final String path) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        File[] jarFiles = ShenyuPluginPathBuilder.getPluginPath(path).listFiles(file -> file.getName().endsWith(".jar"));
+        File pathFile = ShenyuPluginPathBuilder.getPluginPath(path);
+        File[] jarFiles = pathFile.listFiles(file -> file.getName().endsWith(".jar"));
         if (null == jarFiles) {
             return Collections.emptyList();
         }
@@ -184,7 +185,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
     
     @SuppressWarnings("unchecked")
-    private <T> T getOrCreateInstance(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    protected <T> T getOrCreateInstance(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (objectPool.containsKey(className)) {
             return (T) objectPool.get(className);
         }
