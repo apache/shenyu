@@ -46,11 +46,11 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
         Map<String, List<GeneralContextHandle>> generalContextHandleMap = GeneralContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         Map<String, Map<String, String>> generalContextMap = new HashMap<>();
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        generalContextHandleMap.forEach((k, v) -> {
-            Map<String, String> generalContextMapWithRpcType = new HashMap<>();
+        generalContextHandleMap.forEach((rpcType, v) -> {
             if (CollectionUtils.isEmpty(v)) {
                 return;
             }
+            Map<String, String> generalContextMapWithRpcType = new HashMap<>();
             v.forEach(each -> {
                 if (StringUtils.isBlank(each.getGeneralContextType()) || StringUtils.isBlank(each.getGeneralContextKey())) {
                     return;
@@ -67,7 +67,7 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
                         break;
                 }
             });
-            generalContextMap.put(k, generalContextMapWithRpcType);
+            generalContextMap.put(rpcType, generalContextMapWithRpcType);
         });
         exchange.getAttributes().put(Constants.GENERAL_CONTEXT, generalContextMap);
         return chain.execute(exchange);

@@ -106,7 +106,6 @@ public class AlibabaDubboPlugin extends AbstractDubboPlugin {
 
     @Override
     protected void transmitRpcContext(final Map<String, String> rpcContext) {
-        RpcContext context = RpcContext.getContext();
-        rpcContext.forEach((k, v) -> context.setAttachment(k, v));
+        rpcContext.forEach(RpcContext.getContext()::setAttachment);
     }
 }

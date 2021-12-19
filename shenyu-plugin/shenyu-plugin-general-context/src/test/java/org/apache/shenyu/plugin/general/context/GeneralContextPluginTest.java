@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -103,6 +104,8 @@ public class GeneralContextPluginTest {
 
         assertEquals(shenyuGeneralContext.get("addGeneralContextKey"), "addGeneralContextValue");
         assertEquals(shenyuGeneralContext.get("shenyuTestHeaderNewKey"), "shenyuTestHeaderValue");
+        shenyuGeneralContext = ((Map<String, Map<String, String>>) newExchange.getValue().getAttributes().get(Constants.GENERAL_CONTEXT)).get(PluginEnum.SOFA.getName());
+        assertNull(shenyuGeneralContext);
     }
 
     @Test
