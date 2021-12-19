@@ -227,11 +227,11 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     /**
      * Splicing path: splicing multiple paths into one path.<br>
      * eg:
-     * <ur>
+     * <ul>
      * <li> /http, hello, xxx => /http/hello/xxx</li>
      * <li> http, hello, xxx => /http/hello/xxx</li>
      * <li> http, /hello, xxx => /http/hello/xxx</li>
-     * </ur>
+     * </ul>
      *
      * @param path path list
      * @return json path
