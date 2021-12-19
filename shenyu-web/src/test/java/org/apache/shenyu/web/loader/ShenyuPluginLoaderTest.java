@@ -39,7 +39,6 @@ import static org.mockito.Mockito.spy;
 /**
  * Test for  ShenyuPluginLoader.
  */
-
 public class ShenyuPluginLoaderTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
