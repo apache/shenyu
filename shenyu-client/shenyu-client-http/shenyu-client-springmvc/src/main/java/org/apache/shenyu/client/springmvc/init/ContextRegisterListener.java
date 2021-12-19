@@ -66,9 +66,8 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     public ContextRegisterListener(final PropertiesConfig clientConfig) {
         Properties props = clientConfig.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
-        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
-        this.contextPath = contextPath;
-        if (isFull) {
+        this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        if (Boolean.TRUE.equals(isFull)) {
             if (StringUtils.isBlank(contextPath)) {
                 String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
@@ -87,27 +86,24 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        if (isFull) {
+        if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
         publisher.publishEvent(buildURIRegisterDTO());
     }
 
     private URIRegisterDTO buildURIRegisterDTO() {
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(appName)
                 .protocol(protocol)
-                .host(host)
+                .host(IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host))
                 .port(port)
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .build();
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
-        String contextPath = this.contextPath;
-        String appName = this.appName;
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)

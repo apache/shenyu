@@ -15,41 +15,41 @@
 # limitations under the License.
 #
 
-# Use gateway proxy
+# Not practical gateway, start it separately
 # if you used IDEA, start example project. click green button.Quick access！
 
-### shengyu getway proxy hello
-POST http://localhost:9195/http/shenyu/client/hello
+### example local orderSave
+POST http://localhost:8189/hello
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy hi
-POST http://localhost:9195/http/shenyu/client/hi?name=Tom
+### example local orderSave
+POST http://localhost:8189/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy hi
-POST http://localhost:9195/http/shenyu/client/post/hi?name=Tom
+### example local orderSave
+POST http://localhost:8189/post/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy hello
-POST http://localhost:9195/http/hello
+### example local orderSave
+POST http://localhost:8189/shenyu/client/hello
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy hi
-POST http://localhost:9195/http/hi?name=Tom
+### example local orderSave
+POST http://localhost:8189/shenyu/client/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy hi
-POST http://localhost:9195/http/post/hi?name=Tom
+### example local orderSave
+POST http://localhost:8189/shenyu/client/post/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy orderSave
-POST http://localhost:9195/http/order/save
+### example local orderSave
+POST http://localhost:8189/order/save
 Accept: application/json
 Content-Type: application/json
 
@@ -57,29 +57,29 @@ Content-Type: application/json
   "id": 123,
   "name": "order"
 }
-### shengyu getway proxy orderSave
-GET http://localhost:9195/http/order/findById?id=123
+### example local orderSave
+GET http://localhost:8189/order/findById?id=123
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/http/order/path/123/hahah
+### example local path
+GET http://localhost:8189/order/path/123/hahah
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/http/order/path/123/name
+### example local path
+GET http://localhost:8189/order/path/123/name
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy oauth2
-GET http://localhost:9195/http/order/oauth2/test
+### example local oauth2
+GET http://localhost:8189/order/oauth2/test
 Accept: application/json
 Content-Type: application/json
 Authorization:AuthorizationContext
 
-### shengyu getway proxy payment
-POST http://localhost:9195/http/test/payment
+### example local payment
+POST http://localhost:8189/test/payment
 Accept: application/json
 Content-Type: application/json
 
@@ -87,32 +87,33 @@ Content-Type: application/json
   "userId": 123,
   "userName": "name"
 }
-### shengyu getway proxy findByUserId
-GET http://localhost:9195/http/test/findByUserId?userId=123
+
+### example local findByUserId
+GET http://localhost:8189/test/findByUserId?userId=123
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/http/test/path/123?name=haha
+### example local path
+GET http://localhost:8189/test/path/123?name=haha
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/http/test/path/123/name
+### example local path
+GET http://localhost:8189/test/path/123/name
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy waf pass
-POST http://localhost:9195/http/test/waf/pass
+### example local waf pass
+POST http://localhost:8189/test/waf/pass
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy waf deny
-POST http://localhost:9195/http/test/waf/deny
+### example local waf deny
+POST http://localhost:8189/test/waf/deny
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy request parameter pass
-GET http://localhost:9195/http/test/request/parameter/pass?requestParameter=test
+### example local request parameter pass
+GET http://localhost:8189/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
