@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * ShenyuClientPathController
  */
 @RestController
-public class ShenyuClientPathController {
+public class ShenyuClientPathController { // 客户端支持mvc注解中的path，并向后兼容
     
     private static final String HELLO_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
     

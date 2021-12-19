@@ -51,7 +51,7 @@ import java.util.Properties;
 public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     
     /**
-     * api path separator
+     * api path separator.
      */
     private static final String PATH_SEPARATOR = "/";
     
@@ -191,11 +191,11 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         for (String s : pathAttributeName) {
             final Object value = AnnotationUtils.getValue(annotation, s);
-            if (value instanceof String && StringUtils.isNotBlank(((String) value))) {
-                return ((String) value);
+            if (value instanceof String && StringUtils.isNotBlank((String) value)) {
+                return (String) value;
             }
             // Only the first path is supported temporarily
-            if (value instanceof String[] && ArrayUtils.isNotEmpty(((String[]) value)) && StringUtils.isNotBlank(((String[]) value)[0])) {
+            if (value instanceof String[] && ArrayUtils.isNotEmpty((String[]) value) && StringUtils.isNotBlank(((String[]) value)[0])) {
                 return ((String[]) value)[0];
             }
         }
@@ -248,7 +248,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     }
     
     /**
-     * build api metadata
+     * build api metadata.
      *
      * @param shenyuSpringMvcClient api metadata resource
      * @param path                  api path
