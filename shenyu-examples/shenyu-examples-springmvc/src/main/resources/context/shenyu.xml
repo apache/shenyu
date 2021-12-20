@@ -31,15 +31,6 @@
         <property name="serverLists" value="http://localhost:9095"/>
     </bean>
 
-    <!-- ShenyuClientConfig -->
-    <bean id="shenyuClientConfig" class="org.apache.shenyu.register.common.config.ShenyuClientConfig">
-        <property name="client">
-            <map>
-                <entry key="http" value-ref="clientPropertiesConfig"/>
-            </map>
-        </property>
-    </bean>
-
     <!-- ClientPropertiesConfig -->
     <bean id="clientPropertiesConfig"
           class="org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig">
