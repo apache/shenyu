@@ -62,6 +62,13 @@
         delete from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByDataIdList">
+        delete from data_permission where data_id in
+        <foreach item="dataId" collection="dataIdList" open="(" separator="," close=")">
+            #{dataId,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <select id="listByUserId" resultMap="BaseResultMap">
         select id, user_id, data_type, data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR}
     </select>

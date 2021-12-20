@@ -15,20 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
+package org.apache.shenyu.admin.model.query;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.utils.PathMatchUtils;
-import org.apache.shenyu.spi.Join;
+import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Exclude predicate judge.
+ * Test cases for {@link DataPermissionQuery}.
  */
-@Join
-public class ExcludeOperatorJudge implements PredicateJudge {
-
+public class DataPermissionQueryTest extends AbstractReflectGetterSetterTest {
+    
     @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return !PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
+    protected Class<?> getTargetClass() {
+        return DataPermissionQuery.class;
     }
 }

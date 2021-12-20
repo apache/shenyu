@@ -72,6 +72,13 @@ public interface DataPermissionMapper {
     int deleteByDataId(String dataId);
 
     /**
+     * deleteSelector data permission by data ids.
+     * @param dataIdList data ids
+     * @return int
+     */
+    int deleteByDataIdList(@Param("dataIdList") List<String> dataIdList);
+
+    /**
      * deleteSelector by list of data ids and user id.
      * @param dataIdsList data ids list
      * @param userId user id

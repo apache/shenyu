@@ -22,7 +22,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -78,7 +77,7 @@ public class UpstreamCheckUtils {
     private static boolean isHostConnector(final String host, final int port, final int timeout) {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port), timeout);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error("socket connect is error.", e);
             return false;
         }

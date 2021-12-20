@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.core.matcher;
+package org.apache.shenyu.agent.core.bytebuddy;
 
 import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.type.TypeDescription;
@@ -26,7 +26,6 @@ import net.bytebuddy.matcher.ElementMatcher;
  */
 public class SafeErasureMatcher<T extends TypeDefinition> extends ElementMatcher.Junction.AbstractBase<T> {
 
-    /** The matcher to apply to the raw type of the matched element. */
     private final ElementMatcher<TypeDescription> matcher;
 
     /**
@@ -44,7 +43,6 @@ public class SafeErasureMatcher<T extends TypeDefinition> extends ElementMatcher
         if (erasure == null) {
             return false;
         } else {
-            // We would like matcher exceptions to propagate
             return matcher.matches(erasure);
         }
     }

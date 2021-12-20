@@ -31,36 +31,37 @@ public interface ShenyuResult<T> {
      * The response result.
      *
      * @param exchange the exchange
-     * @param object  the object
+     * @param formatted the formatted object
      * @return the result object
      */
-    default Object result(ServerWebExchange exchange, Object object) {
-        return object;
+    default Object result(ServerWebExchange exchange, Object formatted) {
+        return formatted;
     }
 
     /**
-     * format the object, default is json format.
+     * format the origin, default is json format.
      *
      * @param exchange the exchange
-     * @param object the object
-     * @return format object
+     * @param origin the origin
+     * @return format origin
      */
-    default Object format(ServerWebExchange exchange, Object object) {
+    default Object format(ServerWebExchange exchange, Object origin) {
         // basic data
-        if (ObjectTypeUtils.isBasicType(object)) {
-            return object;
+        if (ObjectTypeUtils.isBasicType(origin)) {
+            return origin;
         }
-        // error result or rpc object result.
-        return JsonUtils.toJson(object);
+        // error result or rpc origin result.
+        return JsonUtils.toJson(origin);
     }
 
     /**
      * the response context type, default is application/json.
      *
      * @param exchange the exchange
+     * @param formatted the formatted data that is origin data or byte[] convert string
      * @return the context type
      */
-    default MediaType contentType(ServerWebExchange exchange) {
+    default MediaType contentType(ServerWebExchange exchange, Object formatted) {
         return MediaType.APPLICATION_JSON;
     }
 

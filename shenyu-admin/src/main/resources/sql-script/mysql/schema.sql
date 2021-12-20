@@ -365,6 +365,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('24', 'cryptorRequest', 'Cryptor', 100, '1', '2021-08-06 13:55:21', '2021-08-17 16:35:41');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('25', 'cryptorResponse', 'Cryptor', 410, '1', '2021-08-06 13:55:30', '2021-08-13 16:03:40');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('26', 'websocket', 'Proxy', 200, '{"multiSelectorHandle":"1"}', '1', '2021-08-27 13:55:30', '2021-08-27 16:03:40');;
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('27', 'generalContext', 'Common', 125, '1', '2021-11-24 21:38:48', '2021-11-24 11:47:01');;
 
 /*insert plugin_handle data for sentinel*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('10' ,'flowRuleGrade','flowRuleGrade','3', 2, 8, '{"required":"1","defaultValue":"1","rule":""}');;
@@ -429,6 +430,7 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `t
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('7', 'host', 'host', 2, 3, 2, NULL);;
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('7', 'port', 'port', 2, 3, 3, '{"rule":"/^[0-9]*$/"}');;
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('7', 'async', 'async', 2, 3, 4, NULL);;
+
 /*insert plugin_handle data for plugin rateLimiter*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('4' ,'algorithmName','algorithmName','3', 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}');;
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('4' ,'keyResolverName','keyResolverName','3', 2, 4, '{"required":"1","defaultValue":"WHOLE_KEY_RESOLVER","rule":""}');;
@@ -448,7 +450,6 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('5', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null);;
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('5', 'headerMaxSize', 'headerMaxSize', 1, 2, 3, '{"defaultValue":"10240","rule":""}');;
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4, '{"defaultValue":"102400","rule":""}');;
-
 
 /*insert plugin_handle data for tars*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('13', 'upstreamHost', 'host', 2, 1, 0, null);;

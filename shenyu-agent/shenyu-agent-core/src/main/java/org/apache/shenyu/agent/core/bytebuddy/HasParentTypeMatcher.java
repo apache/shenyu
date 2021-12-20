@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.core.matcher;
+package org.apache.shenyu.agent.core.bytebuddy;
 
 import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.type.TypeDescription;
@@ -43,6 +43,17 @@ public class HasParentTypeMatcher extends ElementMatcher.Junction.AbstractBase<T
             final ElementMatcher<TypeDescription.Generic> matcher, final boolean interfacesOnly) {
         this.matcher = matcher;
         this.interfacesOnly = interfacesOnly;
+    }
+
+    /**
+     * has parent class matcher.
+     *
+     * @param matcher the Matcher.
+     * @return ElementMatcher.Junction.
+     */
+    public static ElementMatcher.Junction<TypeDescription> hasParentType(
+            final ElementMatcher<TypeDescription> matcher) {
+        return new HasParentTypeMatcher(new SafeErasureMatcher<>(matcher), false);
     }
 
     @Override
