@@ -21,7 +21,6 @@ import com.lmax.disruptor.WorkHandler;
 import org.apache.shenyu.disruptor.event.DataEvent;
 import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
-import org.springframework.util.StringUtils;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -60,10 +59,14 @@ public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
     }
 
     private ThreadPoolExecutor orderly(final DataEvent<T> t) {
-        if (t instanceof OrderlyDataEvent && !StringUtils.isEmpty(((OrderlyDataEvent<T>) t).getHash())) {
+        if (t instanceof OrderlyDataEvent && !isEmpty(((OrderlyDataEvent<T>) t).getHash())) {
             return executor.select(((OrderlyDataEvent<T>) t).getHash());
         } else {
             return executor;
         }
+    }
+
+    private boolean isEmpty(final String t) {
+        return t == null || t.isEmpty();
     }
 }
