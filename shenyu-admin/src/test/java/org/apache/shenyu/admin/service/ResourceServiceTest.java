@@ -36,7 +36,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -168,6 +167,7 @@ public class ResourceServiceTest {
         parentResource.setId("mock parent resource id");
         parentResource.setParentId("mock resource parent id");
         parentResource.setTitle("mock parent resource title");
+        parentResource.setIsLeaf(false);
         parentResource.setResourceType(ResourceTypeConstants.MENU_TYPE_2);
         parentResource.setDateCreated(new Timestamp(System.currentTimeMillis()));
         parentResource.setDateUpdated(new Timestamp(System.currentTimeMillis()));
@@ -175,6 +175,7 @@ public class ResourceServiceTest {
         childResource1.setId("mock child resource1 id");
         childResource1.setParentId("mock parent resource id");
         childResource1.setTitle("mock parent resource1 title");
+        childResource1.setIsLeaf(true);
         childResource1.setResourceType(ResourceTypeConstants.MENU_TYPE_2);
         childResource1.setDateCreated(new Timestamp(System.currentTimeMillis()));
         childResource1.setDateUpdated(new Timestamp(System.currentTimeMillis()));
@@ -182,6 +183,7 @@ public class ResourceServiceTest {
         childResource2.setId("mock child resource2 id");
         childResource2.setParentId("mock parent resource id");
         childResource2.setTitle("mock parent resource2 title");
+        childResource2.setIsLeaf(true);
         childResource2.setResourceType(ResourceTypeConstants.MENU_TYPE_2);
         childResource2.setDateCreated(new Timestamp(System.currentTimeMillis()));
         childResource2.setDateUpdated(new Timestamp(System.currentTimeMillis()));
@@ -190,8 +192,7 @@ public class ResourceServiceTest {
         reset(resourceMapper);
         when(resourceMapper.selectAll()).thenReturn(mockSelectAllResult);
 
-        List<PermissionMenuVO.MenuInfo> menuInfoList = new ArrayList<>();
-        resourceService.getMenuInfo(menuInfoList, mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()), null);
+        List<PermissionMenuVO.MenuInfo> menuInfoList = resourceService.getMenuInfo(mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
         assertThat(resourceService.getMenuTree(), equalTo(menuInfoList));
     }
 
@@ -220,8 +221,7 @@ public class ResourceServiceTest {
 
     @Test
     public void testGetMenuInfoWithGivingEmptyOrJustContainsNullResourceVoListItShouldNotAppendMenuInfoIntoResult() {
-        final List<PermissionMenuVO.MenuInfo> expect = newArrayList();
-        resourceService.getMenuInfo(expect, Collections.emptyList(), null);
+        final List<PermissionMenuVO.MenuInfo> expect = resourceService.getMenuInfo(Collections.emptyList());
         assertThat(expect, equalTo(newArrayList()));
     }
 
@@ -248,9 +248,8 @@ public class ResourceServiceTest {
         mockThirdLevelResource.setResourceType(AdminResourceEnum.SECOND_MENU.getCode());
         mockThirdLevelResource.setIsLeaf(true);
 
-        final List<PermissionMenuVO.MenuInfo> actual = newArrayList();
         final List<ResourceVO> resourceParam = newArrayList(nullMenuInfoResource, mockParentResource, mockSecondLevelResource, mockThirdLevelResource);
-        resourceService.getMenuInfo(actual, resourceParam, null);
+        final List<PermissionMenuVO.MenuInfo> actual = resourceService.getMenuInfo(resourceParam);
 
         PermissionMenuVO.MenuInfo parentMenuInfo = PermissionMenuVO.MenuInfo.buildMenuInfo(mockParentResource);
         PermissionMenuVO.MenuInfo secondMenuInfo = PermissionMenuVO.MenuInfo.buildMenuInfo(mockSecondLevelResource);
