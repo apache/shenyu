@@ -131,28 +131,10 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         return bean;
     }
     
-    /**
-     * has target annotation.
-     *
-     * @param clazz          class
-     * @param annotationType target annotation type
-     * @param <A>            annotation type
-     * @return has annotation
-     */
     private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
         return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
     }
     
-    /**
-     * Build api path.<br>
-     * If has {@link ShenyuSpringMvcClient#path()} used. <br>
-     * Else if has {@link RequestMapping#path()} used. <br>
-     * Build api path.<br>
-     *
-     * @param method    api method
-     * @param superPath class metadata ptah
-     * @return api path
-     */
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
         ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
@@ -165,12 +147,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         return pathJoin(contextPath, superPath);
     }
     
-    /**
-     * Get the value of the missing path in the annotation.
-     *
-     * @param method annotation nullable
-     * @return path value
-     */
     private String getPathByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
             final String pathByAnnotation = getPathByAnnotation(AnnotationUtils.findAnnotation(method, mapping), pathAttributeNames);
@@ -181,14 +157,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         return null;
     }
     
-    
-    /**
-     * Get the value of the missing path in the annotation.
-     *
-     * @param annotation        annotation nullable
-     * @param pathAttributeName path attribute name
-     * @return path value
-     */
     private String getPathByAnnotation(@Nullable final Annotation annotation, @NonNull final String... pathAttributeName) {
         if (Objects.isNull(annotation)) {
             return null;
@@ -206,15 +174,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         return null;
     }
     
-    /**
-     * Build api super path.<br>
-     * If has {@link ShenyuSpringMvcClient#path()} used. <br>
-     * Else if has {@link RequestMapping#path()} used. <br>
-     * Build api path.<br>
-     *
-     * @param method api method
-     * @return super api path
-     */
     private String buildApiSuperPath(@NonNull final Class<?> method) {
         ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
@@ -228,18 +187,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         return "";
     }
     
-    /**
-     * Splicing path: splicing multiple paths into one path.<br>
-     * eg:
-     * <ul>
-     * <li> /http, hello, xxx => /http/hello/xxx</li>
-     * <li> http, hello, xxx => /http/hello/xxx</li>
-     * <li> http, /hello, xxx => /http/hello/xxx</li>
-     * </ul>
-     *
-     * @param path path list
-     * @return json path
-     */
     private String pathJoin(@NonNull final String... path) {
         StringBuilder result = new StringBuilder(PATH_SEPARATOR);
         for (String p : path) {
@@ -251,13 +198,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         return result.toString();
     }
     
-    /**
-     * build api metadata.
-     *
-     * @param shenyuSpringMvcClient api metadata resource
-     * @param path                  api path
-     * @return MetaDataRegisterDTO
-     */
     private MetaDataRegisterDTO buildMetaDataDTO(@NonNull final ShenyuSpringMvcClient shenyuSpringMvcClient, final String path) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)

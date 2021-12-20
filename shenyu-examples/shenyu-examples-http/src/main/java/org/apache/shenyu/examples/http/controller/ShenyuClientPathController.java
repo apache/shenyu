@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
+
 package org.apache.shenyu.examples.http.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * ShenyuClientPathController
  */
 @RestController
-public class ShenyuClientPathController { // 客户端支持mvc注解中的path，并向后兼容
+public class ShenyuClientPathController {
     
     private static final String HELLO_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
     
@@ -38,20 +38,20 @@ public class ShenyuClientPathController { // 客户端支持mvc注解中的path�
      */
     @RequestMapping("shenyu/client/hello")
     @ShenyuSpringMvcClient(path = "shenyu/client/hello", desc = "shenyu client annotation register")
-    public ResponseEntity<String> hello() {
-        return ResponseEntity.ok("hello! " + HELLO_SUFFIX);
+    public String hello() {
+        return "hello! " + HELLO_SUFFIX;
     }
     
     /**
-     * hello. <br>
+     * hello. br
      * no support gateway.
      *
      * @param name say hello user name
      * @return result
      */
     @RequestMapping("shenyu/client/hi")
-    public ResponseEntity<String> hello(final String name) {
-        return ResponseEntity.ok("hi! " + name + "! " + HELLO_SUFFIX);
+    public String hello(final String name) {
+        return "hi! " + name + "! " + HELLO_SUFFIX;
     }
     
     /**
@@ -62,7 +62,7 @@ public class ShenyuClientPathController { // 客户端支持mvc注解中的path�
      */
     @PostMapping("shenyu/client/post/hi")
     @ShenyuSpringMvcClient(path = "shenyu/client/post/hi", desc = "shenyu client annotation register")
-    public ResponseEntity<String> post(final String name) {
-        return ResponseEntity.ok("[post method result]:hi! " + name + "! " + HELLO_SUFFIX);
+    public String post(final String name) {
+        return "[post method result]:hi! " + name + "! " + HELLO_SUFFIX;
     }
 }
