@@ -18,15 +18,12 @@
 package org.apache.shenyu.admin.config;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
+import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -36,14 +33,14 @@ import static org.junit.Assert.assertNotNull;
  */
 public final class ZookeeperConfigurationTest extends AbstractConfigurationTest {
 
-    private final String[] inlinedProperties = new String[]{
-            "shenyu.sync.zookeeper.url=127.0.0.1:21810",
-            "shenyu.sync.zookeeper.sessionTimeout=5000",
-            "shenyu.sync.zookeeper.connectionTimeout=2000",
-            "shenyu.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
-    };
+    private static final ZkClient ZK_CLIENT = Mockito.mock(ZkClient.class);
 
-    private static final ZkClient zkClient = Mockito.mock(ZkClient.class);
+    private final String[] inlinedProperties = new String[]{
+        "shenyu.sync.zookeeper.url=127.0.0.1:21810",
+        "shenyu.sync.zookeeper.sessionTimeout=5000",
+        "shenyu.sync.zookeeper.connectionTimeout=2000",
+        "shenyu.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
+    };
 
     @Test
     public void testOnMissingBean() {
@@ -75,7 +72,7 @@ public final class ZookeeperConfigurationTest extends AbstractConfigurationTest 
          */
         @Override
         public ZkClient zkClient(final ZookeeperProperties zookeeperProp) {
-            return zkClient;
+            return ZK_CLIENT;
         }
     }
 
@@ -84,7 +81,7 @@ public final class ZookeeperConfigurationTest extends AbstractConfigurationTest 
 
         @Bean
         public ZkClient customZkClient(final ZookeeperProperties zookeeperProp) {
-            return zkClient;
+            return ZK_CLIENT;
         }
     }
 }
