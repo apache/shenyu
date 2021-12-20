@@ -1,4 +1,4 @@
-package com.apache.shenyu.springmvc.controller;
+package org.apache.shenyu.examples.springmvc.controller;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,11 +17,11 @@ package com.apache.shenyu.springmvc.controller;
  * limitations under the License.
  */
 
-import com.apache.shenyu.springmvc.dto.UserDTO;
-import com.apache.shenyu.springmvc.result.ResultBean;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.examples.springmvc.dto.UserDTO;
+import org.apache.shenyu.examples.springmvc.result.ResultBean;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/test")
-@ShenyuSpringMvcClient(path = "/shenyu_examples_springmvc_war_exploded/test/**")
+@ShenyuSpringMvcClient(path = "/test/**")
 public class HttpTestController {
 
     /**
@@ -122,7 +122,7 @@ public class HttpTestController {
      */
     @PostMapping("/waf/pass")
     public ResultBean pass() {
-        ResultBean response = new ResultBean();
+        final ResultBean response = new ResultBean();
         response.setCode(200);
         response.setMsg("pass");
         return response;
@@ -135,7 +135,7 @@ public class HttpTestController {
      */
     @PostMapping("/waf/deny")
     public ResultBean deny() {
-        ResultBean response = new ResultBean();
+        final ResultBean response = new ResultBean();
         response.setCode(403);
         response.setMsg("deny");
         return response;
@@ -149,11 +149,11 @@ public class HttpTestController {
      */
     @GetMapping("/request/parameter/pass")
     public ResultBean requestParameter(@RequestParam("requestParameter") final String requestParameter) {
-        ResultBean response = new ResultBean();
+        final ResultBean response = new ResultBean();
         response.setCode(200);
         response.setMsg("pass");
 
-        Map<String, Object> param = new HashMap<>();
+        final Map<String, Object> param = new HashMap<>();
         param.put("requestParameter", requestParameter);
         response.setData(param);
         return response;
@@ -167,11 +167,11 @@ public class HttpTestController {
      */
     @GetMapping("/request/header/pass")
     public ResultBean requestHeader(@RequestHeader("requestHeader") final String requestHeader) {
-        ResultBean response = new ResultBean();
+        final ResultBean response = new ResultBean();
         response.setCode(200);
         response.setMsg("pass");
 
-        Map<String, Object> param = new HashMap<>();
+        final Map<String, Object> param = new HashMap<>();
         param.put("requestHeader", requestHeader);
         response.setData(param);
         return response;
@@ -185,11 +185,11 @@ public class HttpTestController {
      */
     @GetMapping("/request/cookie/pass")
     public ResultBean requestCookie(@CookieValue("cookie") final String cookie) {
-        ResultBean response = new ResultBean();
+        final ResultBean response = new ResultBean();
         response.setCode(200);
         response.setMsg("pass");
 
-        Map<String, Object> param = new HashMap<>();
+        final Map<String, Object> param = new HashMap<>();
         param.put("cookie", cookie);
         response.setData(param);
         return response;
@@ -205,8 +205,8 @@ public class HttpTestController {
         return pass();
     }
 
-    private UserDTO buildUser(String id, String name) {
-        UserDTO userDTO = new UserDTO();
+    private UserDTO buildUser(final String id, final String name) {
+        final UserDTO userDTO = new UserDTO();
         userDTO.setUserId(id);
         userDTO.setUserName(name);
         return userDTO;

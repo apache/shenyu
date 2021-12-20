@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package com.apache.shenyu.springmvc.controller;
+package org.apache.shenyu.examples.springmvc.controller;
 
-import com.apache.shenyu.springmvc.dto.OAuth2DTO;
-import com.apache.shenyu.springmvc.dto.OrderDTO;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.examples.springmvc.dto.OAuth2DTO;
+import org.apache.shenyu.examples.springmvc.dto.OrderDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/order")
-@ShenyuSpringMvcClient(path = "/shenyu_examples_springmvc_war_exploded/order")
+@ShenyuSpringMvcClient(path = "/order")
 public class OrderController {
 
     /**
@@ -90,15 +90,15 @@ public class OrderController {
 
     @GetMapping("/oauth2/test")
     @ShenyuSpringMvcClient(path = "/oauth2/test")
-    public OAuth2DTO testRestFul(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        OAuth2DTO oAuth2DTO = new OAuth2DTO();
+    public OAuth2DTO testRestFul(final HttpServletRequest request) {
+        final String token = request.getHeader("Authorization");
+        final OAuth2DTO oAuth2DTO = new OAuth2DTO();
         oAuth2DTO.setToken(Objects.isNull(token) ? "no authorization" : token);
         return oAuth2DTO;
     }
 
-    private OrderDTO build(String id, String name) {
-        OrderDTO orderDTO = new OrderDTO();
+    private OrderDTO build(final String id, final String name) {
+        final OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
         orderDTO.setName(name);
         return orderDTO;

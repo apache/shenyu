@@ -15,62 +15,68 @@
  * limitations under the License.
  */
 
-package com.apache.shenyu.springmvc.dto;
+package org.apache.shenyu.examples.springmvc.dto;
 
-import java.io.Serializable;
 import java.util.StringJoiner;
 
 /**
- * The type Order dto.
+ * The type User dto.
  */
-public class OrderDTO implements Serializable {
-
-    private String id;
-
-    private String name;
+public class UserDTO {
 
     /**
-     * Get id.
-     *
-     * @return id
+     * user id
      */
-    public String getId() {
-        return id;
+    private String userId;
+
+    /**
+     * username
+     */
+    private String userName;
+
+    /**
+     * Get userId.
+     *
+     * @return userId
+     */
+    public String getUserId() {
+        return userId;
     }
 
     /**
-     * Set id.
+     * Set userId.
      *
-     * @param id id
+     * @param userId userId
      */
-    public void setId(final String id) {
-        this.id = id;
+    public void setUserId(final String userId) {
+        this.userId = userId;
     }
 
     /**
-     * Get name.
+     * Get userName.
      *
-     * @return name
+     * @return userName
      */
-    public String getName() {
-        return name;
+    public String getUserName() {
+        return userName;
     }
 
     /**
-     * Set name.
+     * Set userName.
      *
-     * @param name name
+     * @param userName userName
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setUserName(final String userName) {
+        this.userName = userName;
     }
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", OrderDTO.class.getSimpleName() + "[", "]")
-                .add("id='" + id + "'")
-                .add("name='" + name + "'")
+        return new StringJoiner(", ", UserDTO.class.getSimpleName() + "[", "]")
+                .add("userId='" + userId + "'")
+                .add("userName='" + userName + "'")
                 .toString();
     }
+
 
 }

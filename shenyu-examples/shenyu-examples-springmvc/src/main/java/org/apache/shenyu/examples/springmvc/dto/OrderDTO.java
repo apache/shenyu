@@ -15,39 +15,64 @@
  * limitations under the License.
  */
 
-package com.apache.shenyu.springmvc.dto;
+package org.apache.shenyu.examples.springmvc.dto;
+
+import java.io.Serializable;
+import java.util.StringJoiner;
 
 /**
- * The type OAuth Authorization dto
+ * The type Order dto.
  */
-public class OAuth2DTO {
+public class OrderDTO implements Serializable {
+
+    private static final long serialVersionUID = 852118216655025857L;
+
+    private String id;
+
+    private String name;
 
     /**
-     * oauth token
-     */
-    private String token;
-
-    /**
-     * Get token.
+     * Get id.
      *
-     * @return token
+     * @return id
      */
-    public String getToken() {
-        return token;
+    public String getId() {
+        return id;
     }
 
     /**
-     * Set token.
+     * Set id.
      *
-     * @param token token
+     * @param id id
      */
-    public void setToken(final String token) {
-        this.token = token;
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * Get name.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Set name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
     }
 
     @Override
     public String toString() {
-        return "OAuth2DTO{" + "token='" + token + '\'' + '}';
+        return new StringJoiner(", ", OrderDTO.class.getSimpleName() + "[", "]")
+                .add("id='" + id + "'")
+                .add("name='" + name + "'")
+                .toString();
     }
 
 }

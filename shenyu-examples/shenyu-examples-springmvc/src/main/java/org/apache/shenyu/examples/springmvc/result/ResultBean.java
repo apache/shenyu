@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.shenyu.springmvc.result;
+package org.apache.shenyu.examples.springmvc.result;
 
 /**
  * ResultBean.

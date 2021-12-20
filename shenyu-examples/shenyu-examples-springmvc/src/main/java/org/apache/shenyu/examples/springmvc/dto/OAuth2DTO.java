@@ -1,5 +1,3 @@
-package com.apache.shenyu.springmvc;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -17,31 +15,39 @@ package com.apache.shenyu.springmvc;
  * limitations under the License.
  */
 
-import java.io.*;
-import javax.servlet.http.*;
-import javax.servlet.annotation.*;
+package org.apache.shenyu.examples.springmvc.dto;
 
-@WebServlet(name = "helloServlet", value = "/hello-servlet")
-public class HelloServlet extends HttpServlet {
-    private String message;
+/**
+ * The type OAuth Authorization dto
+ */
+public class OAuth2DTO {
 
-    @Override
-    public void init() {
-        message = "Hello ShenYu!";
+    /**
+     * oauth token
+     */
+    private String token;
+
+    /**
+     * Get token.
+     *
+     * @return token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Set token.
+     *
+     * @param token token
+     */
+    public void setToken(final String token) {
+        this.token = token;
     }
 
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/html");
-
-        // Hello
-        PrintWriter out = response.getWriter();
-        out.println("<html><body>");
-        out.println("<h1>" + message + "</h1>");
-        out.println("</body></html>");
+    public String toString() {
+        return "OAuth2DTO{" + "token='" + token + '\'' + '}';
     }
 
-    @Override
-    public void destroy() {
-    }
 }

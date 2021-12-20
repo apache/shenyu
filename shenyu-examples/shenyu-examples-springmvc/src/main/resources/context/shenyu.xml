@@ -46,10 +46,9 @@
         <property name="props">
             <map>
                 <entry key="contextPath" value="/mvc"/>
-                <entry key="appName" value="/shenyu_examples_springmvc_war_exploded"/>
-                <entry key="port" value="8080"/>
+                <entry key="appName" value="springmvc"/>
+                <entry key="port" value="8289"/>
                 <entry key="isFull" value="false"/>
-                <entry key="isMvc" value="true"/>
             </map>
         </property>
     </bean>

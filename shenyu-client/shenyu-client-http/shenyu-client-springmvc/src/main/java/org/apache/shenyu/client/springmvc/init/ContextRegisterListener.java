@@ -58,11 +58,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private final Boolean isFull;
 
     /**
-     * if mvc project, wait two seconds for metadata to register first, so that selector info is created in db, and uri can register success.
-     */
-    private final Boolean isMvc;
-
-    /**
      * Instantiates a new Context register listener.
      *
      * @param clientConfig the client config
@@ -70,7 +65,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     public ContextRegisterListener(final PropertiesConfig clientConfig) {
         final Properties props = clientConfig.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
-        this.isMvc = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_MVC, Boolean.FALSE.toString()));
         final String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.contextPath = contextPath;
         if (isFull) {
@@ -94,16 +88,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         }
         if (isFull) {
             publisher.publishEvent(buildMetaDataDTO());
-        }
-        // if mvc project, wait two seconds for metadata to register first,
-        // so that selector info is created in db, and uri can register success
-        if (isMvc) {
-            try {
-                LOG.info("onApplicationEvent spring mvc project, sleep 2s wait metadata register first.");
-                Thread.sleep(2000L);
-            } catch (final InterruptedException e) {
-                LOG.error("Thread.sleep error.", e);
-            }
         }
         publisher.publishEvent(buildURIRegisterDTO());
     }
