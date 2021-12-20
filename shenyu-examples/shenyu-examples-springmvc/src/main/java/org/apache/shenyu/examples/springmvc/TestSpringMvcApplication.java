@@ -25,7 +25,7 @@ import org.springframework.context.annotation.ImportResource;
  * TestSpringMvcApplication.
  */
 @SpringBootApplication
-@ImportResource(locations = {"classpath:context/mvc.xml", "classpath:context/shenyu.xml"})
+@ImportResource(locations = {"classpath:context/shenyu.xml"})
 public class TestSpringMvcApplication {
 
     /**

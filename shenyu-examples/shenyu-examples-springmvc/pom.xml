@@ -31,8 +31,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
-        <junit.version>5.7.1</junit.version>
-        <spring.verion>5.3.13</spring.verion>
     </properties>
 
     <dependencies>
