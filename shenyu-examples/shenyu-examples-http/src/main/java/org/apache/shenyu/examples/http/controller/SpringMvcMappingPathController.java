@@ -18,7 +18,6 @@
 package org.apache.shenyu.examples.http.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,8 +37,8 @@ public class SpringMvcMappingPathController {
      * @return result
      */
     @RequestMapping("hello")
-    public ResponseEntity<String> hello() {
-        return ResponseEntity.ok("hello! " + HELLO_SUFFIX);
+    public String hello() {
+        return "hello! " + HELLO_SUFFIX;
     }
     
     /**
@@ -49,8 +48,8 @@ public class SpringMvcMappingPathController {
      * @return result
      */
     @RequestMapping("hi")
-    public ResponseEntity<String> hello(final String name) {
-        return ResponseEntity.ok("hi! " + name + "! " + HELLO_SUFFIX);
+    public String hello(final String name) {
+        return "hi! " + name + "! " + HELLO_SUFFIX;
     }
     
     /**
@@ -60,7 +59,7 @@ public class SpringMvcMappingPathController {
      * @return result
      */
     @PostMapping("post/hi")
-    public ResponseEntity<String> post(final String name) {
-        return ResponseEntity.ok("[post method result]:hi! " + name + "! " + HELLO_SUFFIX);
+    public String post(final String name) {
+        return "[post method result]:hi! " + name + "! " + HELLO_SUFFIX;
     }
 }

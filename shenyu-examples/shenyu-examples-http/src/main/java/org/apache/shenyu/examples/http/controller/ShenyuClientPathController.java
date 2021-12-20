@@ -61,7 +61,7 @@ public class ShenyuClientPathController {
      * @return result
      */
     @PostMapping("shenyu/client/post/hi")
-    @ShenyuSpringMvcClient(path = "shenyu/client/post/hi", desc = "shenyu client annotation register")
+    @ShenyuSpringMvcClient(desc = "shenyu client annotation register")
     public String post(final String name) {
         return "[post method result]:hi! " + name + "! " + HELLO_SUFFIX;
     }
