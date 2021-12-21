@@ -66,6 +66,6 @@ public class ShenyuClientRegisterEventPublisher {
      */
     public <T> void publishEvent(final T data) {
         DisruptorProvider<Object> provider = providerManage.getProvider();
-        provider.onData(f -> f.setData(data));
+        provider.onData(data);
     }
 }

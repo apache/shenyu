@@ -64,7 +64,7 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
     @Override
     public <T> void publish(final T data) {
         DisruptorProvider<Object> provider = providerManage.getProvider();
-        provider.onData(f -> f.setData(data));
+        provider.onData(data);
     }
     
     @Override
