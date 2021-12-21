@@ -239,7 +239,16 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             dashboardUserVO = loginByDatabase(userName, password);
         }
 
-        return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO)
+        final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
+        if (Objects.isNull(loginDashboardUserVO)) {
+            return null;
+        }
+
+        if (Boolean.FALSE.equals(dashboardUserVO.getEnabled())) {
+            return loginDashboardUserVO;
+        }
+
+        return loginDashboardUserVO
                 .setToken(JwtUtils.generateToken(dashboardUserVO.getUserName(), dashboardUserVO.getPassword(),
                         jwtProperties.getExpiredSeconds()));
     }
