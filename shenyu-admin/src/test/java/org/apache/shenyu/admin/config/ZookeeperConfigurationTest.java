@@ -18,15 +18,12 @@
 package org.apache.shenyu.admin.config;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
+import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -39,10 +36,10 @@ public final class ZookeeperConfigurationTest extends AbstractConfigurationTest 
     private static final ZkClient ZK_CLIENT = Mockito.mock(ZkClient.class);
     
     private final String[] inlinedProperties = new String[]{
-            "shenyu.sync.zookeeper.url=127.0.0.1:21810",
-            "shenyu.sync.zookeeper.sessionTimeout=5000",
-            "shenyu.sync.zookeeper.connectionTimeout=2000",
-            "shenyu.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
+        "shenyu.sync.zookeeper.url=127.0.0.1:21810",
+        "shenyu.sync.zookeeper.sessionTimeout=5000",
+        "shenyu.sync.zookeeper.connectionTimeout=2000",
+        "shenyu.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
     };
     
     @Test
