@@ -27,13 +27,13 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 /**
@@ -48,7 +48,7 @@ public class ShenyuPluginLoaderTest {
     private String path;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, NoSuchFieldException, IllegalAccessException {
         shenyuPluginLoader = ShenyuPluginLoader.getInstance();
         File jar = folder.newFile("plugin.jar");
         path = jar.getParent();
@@ -60,6 +60,12 @@ public class ShenyuPluginLoaderTest {
             jos.write(pluginClz.getBytes());
             jos.closeEntry();
         }
+
+        Field objectPool = shenyuPluginLoader.getClass().getDeclaredField("objectPool");
+        objectPool.setAccessible(true);
+        ConcurrentHashMap<String, Object> objectPoolMap = new ConcurrentHashMap<>();
+        objectPoolMap.put("org.apache.shenyu.plugin.DividePlugin", new Object());
+        objectPool.set(shenyuPluginLoader, objectPoolMap);
     }
 
     @Test
@@ -76,9 +82,6 @@ public class ShenyuPluginLoaderTest {
     @Test
     public void testGetPluginPathWithJar() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         ShenyuPluginLoader loader = spy(shenyuPluginLoader);
-
-        doReturn(new Object()).when(loader).getOrCreateInstance(anyString());
-
         List<ShenyuLoaderResult> pluginList = loader.loadExtendPlugins(path);
         Assert.assertThat(pluginList.size(), is(1));
     }

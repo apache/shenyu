@@ -184,7 +184,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
     
     @SuppressWarnings("unchecked")
-    protected <T> T getOrCreateInstance(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private <T> T getOrCreateInstance(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (objectPool.containsKey(className)) {
             return (T) objectPool.get(className);
         }
