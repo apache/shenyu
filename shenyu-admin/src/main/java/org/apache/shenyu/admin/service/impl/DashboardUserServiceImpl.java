@@ -240,17 +240,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         }
 
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
-        if (Objects.isNull(loginDashboardUserVO)) {
-            return null;
-        }
-
-        if (Boolean.FALSE.equals(dashboardUserVO.getEnabled())) {
-            return loginDashboardUserVO;
-        }
-
-        return loginDashboardUserVO
-                .setToken(JwtUtils.generateToken(dashboardUserVO.getUserName(), dashboardUserVO.getPassword(),
-                        jwtProperties.getExpiredSeconds()));
+        final DashboardUserVO finalDashboardUserVO = dashboardUserVO;
+        return Optional.ofNullable(loginDashboardUserVO).map(loginUser ->  {
+            if (Boolean.FALSE.equals(loginUser.getEnabled())) {
+                return loginUser;
+            }
+            return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), finalDashboardUserVO.getPassword(),
+                    jwtProperties.getExpiredSeconds()));
+        }).orElse(null);
     }
 
     private DashboardUserVO loginByLdap(final String userName, final String password) {
