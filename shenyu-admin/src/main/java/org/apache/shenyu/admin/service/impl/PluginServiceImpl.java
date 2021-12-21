@@ -198,6 +198,9 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
 
+        if (CollectionUtils.isEmpty(ids)) {
+            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+        }
         List<PluginDO> plugins = Optional.ofNullable(pluginMapper.selectByIds(ids)).orElseGet(ArrayList::new);
         Set<String> idSet = new HashSet<>(Optional.ofNullable(ids).orElseGet(ArrayList::new));
         if (idSet.size() > plugins.size()) {
