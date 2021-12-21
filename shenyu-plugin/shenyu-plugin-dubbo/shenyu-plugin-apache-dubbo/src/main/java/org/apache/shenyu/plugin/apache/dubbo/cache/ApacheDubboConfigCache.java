@@ -174,6 +174,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             if (StringUtils.isNoneBlank(dubboParam.getUrl())) {
                 reference.setUrl(dubboParam.getUrl());
             }
+            if (StringUtils.isNoneBlank(dubboParam.getCluster())) {
+                reference.setCluster(dubboParam.getCluster());
+            }
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);
             Optional.ofNullable(dubboParam.getSent()).ifPresent(reference::setSent);
