@@ -241,7 +241,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
         final DashboardUserVO finalDashboardUserVO = dashboardUserVO;
-        return Optional.ofNullable(loginDashboardUserVO).map(loginUser ->  {
+        return Optional.ofNullable(loginDashboardUserVO).map(loginUser -> {
             if (Boolean.FALSE.equals(loginUser.getEnabled())) {
                 return loginUser;
             }
