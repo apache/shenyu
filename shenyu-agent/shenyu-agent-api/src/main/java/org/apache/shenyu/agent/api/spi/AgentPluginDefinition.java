@@ -15,22 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.api.spi;
 
-import java.lang.instrument.Instrumentation;
+import org.apache.shenyu.spi.SPI;
 
 /**
- * The type Shenyu agent bootstrap.
+ * AgentPluginDefinition.
  */
-public class ShenyuAgentBootstrap {
-    
-    /**
-     * Premain for instrumentation.
-     *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     * @throws Exception the exception
-     */
-    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
-    }
+@SPI
+public interface AgentPluginDefinition {
 }

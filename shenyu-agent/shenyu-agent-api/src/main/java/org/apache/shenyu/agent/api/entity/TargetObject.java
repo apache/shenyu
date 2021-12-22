@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
-
-import java.lang.instrument.Instrumentation;
+package org.apache.shenyu.agent.api.entity;
 
 /**
- * The type Shenyu agent bootstrap.
+ * The interface Target object.
  */
-public class ShenyuAgentBootstrap {
+public interface TargetObject {
     
     /**
-     * Premain for instrumentation.
+     * Gets context.
      *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     * @throws Exception the exception
+     * @return the context
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
-    }
+    Object getContext();
+    
+    /**
+     * Sets context.
+     *
+     * @param context the context
+     */
+    void setContext(Object context);
 }

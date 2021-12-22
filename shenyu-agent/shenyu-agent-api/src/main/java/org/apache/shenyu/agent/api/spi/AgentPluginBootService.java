@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.api.spi;
 
-import java.lang.instrument.Instrumentation;
+import org.apache.shenyu.agent.api.config.AgentPluginConfig;
+import org.apache.shenyu.spi.SPI;
 
 /**
- * The type Shenyu agent bootstrap.
+ * Agent Plugin boot service that the lifecycle is from the agent start to shutdown.
  */
-public class ShenyuAgentBootstrap {
+@SPI
+public interface AgentPluginBootService extends AutoCloseable {
     
     /**
-     * Premain for instrumentation.
+     * Start.
      *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     * @throws Exception the exception
+     * @param agentPluginConfig the agent plugin config
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
-    }
+    void start(AgentPluginConfig agentPluginConfig);
 }
