@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -31,9 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
-
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
@@ -49,7 +48,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private String contextPath;
 
     private final String appName;
-    
+
     private final String protocol;
 
     private final String host;
@@ -64,12 +63,12 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param clientConfig the client config
      */
     public ContextRegisterListener(final PropertiesConfig clientConfig) {
-        Properties props = clientConfig.getProps();
+        final Properties props = clientConfig.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         if (Boolean.TRUE.equals(isFull)) {
             if (StringUtils.isBlank(contextPath)) {
-                String errorMsg = "http register param must config the contextPath";
+                final String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
@@ -94,23 +93,23 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private URIRegisterDTO buildURIRegisterDTO() {
         return URIRegisterDTO.builder()
-                .contextPath(this.contextPath)
-                .appName(appName)
-                .protocol(protocol)
-                .host(IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host))
-                .port(port)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .build();
+            .contextPath(this.contextPath)
+            .appName(appName)
+            .protocol(protocol)
+            .host(IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host))
+            .port(port)
+            .rpcType(RpcTypeEnum.HTTP.getName())
+            .build();
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
         return MetaDataRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
-                .path(contextPath)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .enabled(true)
-                .ruleName(contextPath)
-                .build();
+            .contextPath(contextPath)
+            .appName(appName)
+            .path(contextPath)
+            .rpcType(RpcTypeEnum.HTTP.getName())
+            .enabled(true)
+            .ruleName(contextPath)
+            .build();
     }
 }
