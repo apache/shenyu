@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-agent</artifactId>
-        <version>2.4.1-SNAPSHOT</version>
+        <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-agent-bootstrap</artifactId>
@@ -48,7 +48,6 @@
     </dependencies>
 
     <build>
-        <finalName>shenyu-agent</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -59,6 +58,8 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <finalName>shenyu-agent-bootstrap</finalName>
+                            <outputDirectory>${project.basedir}/../target</outputDirectory>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <createDependencyReducedPom>true</createDependencyReducedPom>
                             <createSourcesJar>true</createSourcesJar>

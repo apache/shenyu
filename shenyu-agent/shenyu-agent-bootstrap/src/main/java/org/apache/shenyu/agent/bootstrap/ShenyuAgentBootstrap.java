@@ -29,10 +29,8 @@ public class ShenyuAgentBootstrap {
      *
      * @param arguments arguments
      * @param instrumentation instrumentation
+     * @throws Exception the exception
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) {
-        // todo create agent classloader and switch to it
-        // todo use reflect invoke AgentInstaller's method installBytebuddyAgent
-        // todo turn back to prev classloader back
+    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
     }
 }

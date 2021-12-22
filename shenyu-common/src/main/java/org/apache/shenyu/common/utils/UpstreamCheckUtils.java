@@ -19,8 +19,9 @@ package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -34,6 +35,11 @@ public class UpstreamCheckUtils {
     private static final String HTTPS = "https";
 
     private static final int DEFAULT_TIMEOUT = 3000;
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtils.class);
 
     /**
      * Check url boolean.
@@ -64,14 +70,15 @@ public class UpstreamCheckUtils {
             hostPort = StringUtils.split(url, Constants.COLONS);
         }
         final boolean isHttps = url.startsWith(HTTPS);
-        final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1]) : isHttps ? 443 : 80;
-        return isHostConnector(hostPort[0], port, timeout);
+        final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1].trim()) : isHttps ? 443 : 80;
+        return isHostConnector(hostPort[0].trim(), port, timeout);
     }
 
     private static boolean isHostConnector(final String host, final int port, final int timeout) {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port), timeout);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            LOG.error("socket connect is error.", e);
             return false;
         }
         return true;

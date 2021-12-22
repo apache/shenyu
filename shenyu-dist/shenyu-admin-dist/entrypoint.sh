@@ -18,7 +18,4 @@
 
 [[ -d ./conf-ext ]] && cp -f ./conf-ext/* ./conf
 
-mkdir -p ${LOCAL_PATH}/logs
-touch ${LOCAL_PATH}/logs/shenyu-admin.log
-
 /bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/shenyu-admin.log

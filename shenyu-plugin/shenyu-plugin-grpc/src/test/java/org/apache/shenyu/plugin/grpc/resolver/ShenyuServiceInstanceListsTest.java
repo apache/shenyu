@@ -24,8 +24,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -33,34 +37,37 @@ import static org.mockito.Mockito.mock;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ShenyuServiceInstanceListsTest {
-
+    
+    private final String appName = "shenyu";
+    
     private ShenyuServiceInstanceLists shenyuServiceInstanceLists;
-
+    
     private CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances;
-
+    
     @Before
     public void setUp() {
         shenyuServiceInstances = new CopyOnWriteArrayList<>();
         shenyuServiceInstances.add(mock(ShenyuServiceInstance.class));
-        shenyuServiceInstanceLists = new ShenyuServiceInstanceLists(shenyuServiceInstances, "shenyu");
+        shenyuServiceInstanceLists = new ShenyuServiceInstanceLists(shenyuServiceInstances, appName);
     }
-
+    
     @Test
     public void noArgsConstructor() {
         shenyuServiceInstanceLists = new ShenyuServiceInstanceLists();
+        assertNotNull(shenyuServiceInstanceLists.getShenyuServiceInstances());
     }
-
+    
     @Test
     public void testSet() {
         shenyuServiceInstanceLists.setAppName("shenyu");
-        shenyuServiceInstanceLists.setShenyuServiceInstances(shenyuServiceInstances);
-        assertEquals(shenyuServiceInstanceLists.getAppName(), "shenyu");
-        assertEquals(shenyuServiceInstanceLists.getShenyuServiceInstances(), shenyuServiceInstances);
+        shenyuServiceInstanceLists.addShenyuServiceInstances(Stream.of(mock(ShenyuServiceInstance.class)).collect(Collectors.toList()));
+        assertEquals(shenyuServiceInstanceLists.getAppName(), appName);
+        assertTrue(shenyuServiceInstanceLists.getShenyuServiceInstances().containsAll(shenyuServiceInstances));
     }
-
+    
     @Test
     public void getCopyInstances() {
         List<ShenyuServiceInstance> list = shenyuServiceInstanceLists.getCopyInstances();
-        assert list.size() == 1;
+        assertEquals(1, list.size());
     }
 }

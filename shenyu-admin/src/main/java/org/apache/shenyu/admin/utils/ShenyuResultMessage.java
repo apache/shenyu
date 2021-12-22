@@ -26,8 +26,6 @@ public final class ShenyuResultMessage {
 
     public static final String CREATE_SUCCESS = "create success";
 
-    public static final String CREATE_FAILED = "create failed";
-
     public static final String DELETE_SUCCESS = "delete success";
 
     public static final String UPDATE_SUCCESS = "update success";
@@ -55,6 +53,8 @@ public final class ShenyuResultMessage {
     public static final String PLATFORM_LOGIN_SUCCESS = "login dashboard user success";
 
     public static final String PLATFORM_LOGIN_ERROR = " username or password error";
+
+    public static final String LOGIN_USER_DISABLE_ERROR = " the user has already disabled.";
 
     public static final String PARAMETER_ERROR = "parameter error";
 

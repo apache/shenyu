@@ -24,6 +24,10 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -38,11 +42,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * nacos register center client.
  */
@@ -50,6 +49,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class NacosClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosClientRegisterRepository.class);
+
+    private static final String NAMESPACE = "nacosNameSpace";
+
+    private static final String URI_META_DATA = "uriMetadata";
     
     private ConfigService configService;
     
@@ -59,14 +62,20 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
 
     private boolean registerService;
 
+    public NacosClientRegisterRepository() { }
+
+    public NacosClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
+
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         String serverAddr = config.getServerLists();
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
-        String nameSpace = "nacosNameSpace";
-        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(nameSpace));
+
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(NAMESPACE));
         // the nacos authentication username
         nacosProperties.put(PropertyKeyConst.USERNAME, properties.getProperty(PropertyKeyConst.USERNAME, ""));
         // the nacos authentication password
@@ -114,8 +123,11 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         registerService(rpcType, contextPath, host, port, registerDTO);
     }
 
-    private synchronized void registerService(final String rpcType, final String contextPath, final String host,
-                                              final int port, final URIRegisterDTO registerDTO) {
+    private synchronized void registerService(final String rpcType,
+                                              final String contextPath,
+                                              final String host,
+                                              final int port,
+                                              final URIRegisterDTO registerDTO) {
         if (registerService) {
             return;
         }
@@ -126,8 +138,9 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         instance.setPort(port);
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(Constants.CONTEXT_PATH, contextPath);
-        metadataMap.put("uriMetadata", GsonUtils.getInstance().toJson(registerDTO));
+        metadataMap.put(URI_META_DATA, GsonUtils.getInstance().toJson(registerDTO));
         instance.setMetadata(metadataMap);
+
         String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcType);
         try {
             namingService.registerInstance(serviceName, instance);
@@ -137,7 +150,8 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         LOGGER.info("register service uri success: {}", serviceName);
     }
 
-    private synchronized void registerConfig(final String rpcType, final String contextPath,
+    private synchronized void registerConfig(final String rpcType,
+                                             final String contextPath,
                                              final MetaDataRegisterDTO metadata) {
         metadataCache.add(GsonUtils.getInstance().toJson(metadata));
         String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);

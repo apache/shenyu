@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 /**
  * Test cases for {@link QueryParameterData}.
  */
-public class QueryParameterDataTest {
+public final class QueryParameterDataTest {
 
     private ServerWebExchange exchange;
 
@@ -46,6 +46,6 @@ public class QueryParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals(this.queryParameterData.builder("key", this.exchange), "value");
+        Assert.assertEquals("value", this.queryParameterData.builder("key", this.exchange));
     }
 }

@@ -26,9 +26,6 @@ public class OrderDTO {
 
     private String name;
 
-    public OrderDTO() {
-    }
-
     public OrderDTO(final String id, final String name) {
         this.id = id;
         this.name = name;

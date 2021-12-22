@@ -42,7 +42,7 @@ import static org.mockito.Mockito.verify;
  * Test cases for {@link LocalMetadataController}.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class LocalMetadataControllerTest {
+public final class LocalMetadataControllerTest {
 
     private MockMvc mockMvc;
 

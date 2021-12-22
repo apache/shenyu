@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 /**
@@ -38,9 +38,9 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     public void onSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
-            if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(metaData.getPath()))) {
+            if (Objects.isNull(exist) || Objects.isNull(ApacheDubboConfigCache.getInstance().get(metaData.getPath()))) {
                 // The first initialization
-                ApplicationConfigCache.getInstance().initRef(metaData);
+                ApacheDubboConfigCache.getInstance().initRef(metaData);
             } else {
                 // There are updates, which only support the update of four properties of serviceName rpcExt parameterTypes methodName,
                 // because these four properties will affect the call of Dubbo;
@@ -48,7 +48,7 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
                         || !Objects.equals(metaData.getRpcExt(), exist.getRpcExt())
                         || !Objects.equals(metaData.getParameterTypes(), exist.getParameterTypes())
                         || !Objects.equals(metaData.getMethodName(), exist.getMethodName())) {
-                    ApplicationConfigCache.getInstance().build(metaData);
+                    ApacheDubboConfigCache.getInstance().build(metaData);
                 }
             }
             META_DATA.put(metaData.getPath(), metaData);
@@ -58,7 +58,7 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     @Override
     public void unSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
-            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
+            ApacheDubboConfigCache.getInstance().invalidate(metaData.getPath());
             META_DATA.remove(metaData.getPath());
         }
     }

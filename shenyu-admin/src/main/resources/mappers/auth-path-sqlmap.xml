@@ -39,6 +39,17 @@
         where auth_id = #{authId,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByAuthIdList" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from auth_path
+        where auth_id in
+        <foreach collection="authIdSet" index="index" item="authId"
+                 open="(" separator="," close=")" >
+            #{authId,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="findByAuthIdAndAppName" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -58,14 +69,14 @@
         date_created,
         date_updated)
         values
-         (
-         #{id,jdbcType=VARCHAR},
-         #{authId,jdbcType=VARCHAR},
-         #{appName,jdbcType=VARCHAR},
-         #{path,jdbcType=VARCHAR},
-         #{enabled,jdbcType=TINYINT},
-         #{dateCreated,jdbcType=TIMESTAMP},
-         #{dateUpdated,jdbcType=TIMESTAMP})
+        (
+        #{id,jdbcType=VARCHAR},
+        #{authId,jdbcType=VARCHAR},
+        #{appName,jdbcType=VARCHAR},
+        #{path,jdbcType=VARCHAR},
+        #{enabled,jdbcType=TINYINT},
+        #{dateCreated,jdbcType=TIMESTAMP},
+        #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
 
 
@@ -107,5 +118,13 @@
     <delete id="deleteByAuthId" parameterType="java.lang.String">
         delete from auth_path
         where auth_id = #{authId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByAuthIds" parameterType="java.lang.String">
+        delete from auth_path
+        where auth_id in
+        <foreach item="authId" collection="list" open="(" separator="," close=")">
+            #{authId,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>

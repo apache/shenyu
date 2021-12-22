@@ -40,7 +40,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * The TestCase for HttpLongPoolingDataChangedListener.
+ * The TestCase for {@link HttpLongPollingDataChangedListener}.
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class HttpLongPollingDataChangedListenerTest {
@@ -90,7 +90,6 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     /**
      * test getRemoteIp.
-     *
      */
     @Test
     public void testGetRemoteIp() {
@@ -105,7 +104,6 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     /**
      * test CompareChangedGroup.
-     *
      */
     @Test
     public void testCompareChangedGroup() {

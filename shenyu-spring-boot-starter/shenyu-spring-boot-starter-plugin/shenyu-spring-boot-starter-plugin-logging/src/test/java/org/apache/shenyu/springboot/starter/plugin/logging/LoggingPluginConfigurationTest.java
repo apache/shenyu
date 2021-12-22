@@ -21,30 +21,30 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Test case for {@link LoggingPluginConfiguration}..
+ * Test case for {@link LoggingPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class LoggingPluginConfigurationTest {
 
     @Test
     public void testLoggingPlugin() {
         new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                    LoggingPluginConfiguration.class
-                ))
-            .withBean(DefaultServerCodecConfigurer.class)
+            .withConfiguration(AutoConfigurations.of(LoggingPluginConfiguration.class))
+            .withBean(LoggingPluginConfigurationTest.class)
             .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    ShenyuPlugin plugin = context.getBean("loggingPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.LOGGING.getName());
-                }
-            );
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("loggingPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.LOGGING.getName());
+            });
     }
 }

@@ -24,7 +24,6 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
 import org.apache.shenyu.web.controller.LocalPluginController.SelectorRulesData;
 
 import java.io.IOException;
@@ -71,28 +70,7 @@ public class AbstractPluginDataInit extends AbstractTest {
         selectorRulesData.setRuleDataList(ruleDataList);
         return HttpHelper.INSTANCE.postGateway("/shenyu/plugin/selectorAndRules", selectorRulesData, String.class);
     }
-    
-    /**
-     * Init selector and rule string.
-     *
-     * @param pluginName the plugin name
-     * @param selectorHandler the selector handler
-     * @param ruleHandler the rule handler
-     * @param conditionDataList the condition data list
-     * @return the string
-     * @throws IOException the io exception
-     */
-    public static String initSelectorAndRule(final String pluginName, final String selectorHandler,
-                                       final String ruleHandler,
-                                       final List<ConditionData> conditionDataList) throws IOException {
-        SelectorRuleData selectorRuleData = new SelectorRuleData();
-        selectorRuleData.setPluginName(pluginName);
-        selectorRuleData.setSelectorHandler(selectorHandler);
-        selectorRuleData.setRuleHandler(ruleHandler);
-        selectorRuleData.setConditionDataList(conditionDataList);
-        return HttpHelper.INSTANCE.postGateway("/shenyu/plugin/selectorAndRule", selectorRuleData, String.class);
-    }
-    
+
     /**
      * Clean plugin data string.
      *
@@ -131,10 +109,9 @@ public class AbstractPluginDataInit extends AbstractTest {
      * Clean auth data.
      *
      * @param appKey the appKey
-     * @return the response string
      * @throws IOException the io exception
      */
-    public static String cleanAuthData(final String appKey) throws IOException {
-        return HttpHelper.INSTANCE.getFromGateway("/shenyu/auth/delete?appKey=" + appKey, String.class);
+    public static void cleanAuthData(final String appKey) throws IOException {
+        HttpHelper.INSTANCE.getFromGateway("/shenyu/auth/delete?appKey=" + appKey, String.class);
     }
 }

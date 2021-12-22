@@ -1,0 +1,27 @@
+version: "3"
+services:
+  shenyu-bootstrap:
+    image: apache/shenyu-bootstrap:latest
+    container_name: shenyu-bootstrap
+    ports:
+    - "9195:9195"
+    volumes:
+    - ./shenyu-bootstrap/logs/:/opt/shenyu-bootstrap/logs
+    - ./shenyu-bootstrap/conf/:/opt/shenyu-bootstrap/conf
+    links:
+      - shenyu-admin:admin
+    depends_on:
+      - shenyu-admin
+    environment:
+      - shenyu.sync.websocket.urls=ws://admin:9095/websocket
+  shenyu-admin:
+    image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
+    environment:
+      - spring.profiles.active=mysql
+    volumes:
+    - ./shenyu-admin/logs/:/opt/shenyu-admin/logs
+    - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
+    - ./shenyu-admin/ext-lib/:/opt/shenyu-admin/ext-lib
+    ports:
+    - "9095:9095"

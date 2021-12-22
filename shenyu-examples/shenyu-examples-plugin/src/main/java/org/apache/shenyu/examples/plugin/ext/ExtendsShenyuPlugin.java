@@ -31,7 +31,6 @@ public class ExtendsShenyuPlugin extends AbstractShenyuPlugin {
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        System.out.println("hello world im is my ext Shenyu plugin");
         return chain.execute(exchange);
     }
     

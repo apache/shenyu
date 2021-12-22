@@ -23,11 +23,11 @@ import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.cluster.LoadBalance;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
@@ -43,7 +43,6 @@ public class AlibabaDubboGrayLoadBalance implements LoadBalance {
 
     @Override
     public <T> Invoker<T> select(final List<Invoker<T>> invokers, final URL url, final Invocation invocation) throws RpcException {
-
         String shenyuSelectorId = invocation.getAttachment(Constants.DUBBO_SELECTOR_ID);
         String shenyuRuleId = invocation.getAttachment(Constants.DUBBO_RULE_ID);
         String remoteAddressIp = invocation.getAttachment(Constants.DUBBO_REMOTE_ADDRESS);

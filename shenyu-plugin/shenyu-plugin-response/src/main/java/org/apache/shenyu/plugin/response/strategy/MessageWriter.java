@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
  * The interface Message writer.
  */
 public interface MessageWriter {
-    
+
     /**
      * Write with exchange and shenyu plugin chain.
      *

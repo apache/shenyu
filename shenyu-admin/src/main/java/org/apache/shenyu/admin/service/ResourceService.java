@@ -71,6 +71,14 @@ public interface ResourceService {
     ResourceVO findByTitle(String title);
 
     /**
+     * find by title.
+     *
+     * @param titles resource titles
+     * @return {@linkplain ResourceVO}
+     */
+    List<ResourceVO> listByTitles(List<String> titles);
+
+    /**
      * find page of resource by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
@@ -96,9 +104,8 @@ public interface ResourceService {
     /**
      * get Menu Info.
      *
-     * @param menuInfoList {@linkplain List} menu info.
      * @param metaList {@linkplain List} resource list
-     * @param menuInfo {@linkplain MenuInfo}
+     * @return {@linkplain List} menu infos.
      */
-    void getMenuInfo(List<MenuInfo> menuInfoList, List<ResourceVO> metaList, MenuInfo menuInfo);
+    List<MenuInfo> getMenuInfo(List<ResourceVO> metaList);
 }

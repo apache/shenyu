@@ -52,33 +52,33 @@ import static io.grpc.ConnectivityState.READY;
  * LoadBalancer.
  */
 public abstract class AbstractLoadBalancer extends LoadBalancer {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLoadBalancer.class);
-
+    
     private static final Status EMPTY_OK = Status.OK.withDescription("no subchannels ready");
-
+    
     private final Helper helper;
-
+    
     private final AtomicReference<String> serviceName = new AtomicReference<>();
-
+    
     private final Map<EquivalentAddressGroup, Subchannel> subchannels = new ConcurrentHashMap<>();
-
+    
     private ConnectivityState currentState;
-
+    
     private AbstractPicker currentPicker = new EmptyPicker(EMPTY_OK);
-
-    public AbstractLoadBalancer(final Helper helper) {
+    
+    protected AbstractLoadBalancer(final Helper helper) {
         this.helper = checkNotNull(helper, "helper");
     }
-
+    
     private String getServiceName() {
         return serviceName.get();
     }
-
+    
     private void setAttribute(final Attributes attributes) {
-        this.serviceName.compareAndSet(null, attributes.get(GrpcAttributeUtils.appName()).toString());
+        this.serviceName.compareAndSet(null, attributes.get(GrpcAttributeUtils.APP_NAME));
     }
-
+    
     @Override
     public void handleResolvedAddresses(final ResolvedAddresses resolvedAddresses) {
         setAttribute(resolvedAddresses.getAttributes());
@@ -109,7 +109,7 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
             shutdownSubchannel(removedSubchannel);
         }
     }
-
+    
     private void processSubchannelState(final Subchannel subchannel, final ConnectivityStateInfo stateInfo) {
         if (subchannels.get(stripAttrs(subchannel.getAddresses())) != subchannel) {
             return;
@@ -119,15 +119,13 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
             LOG.info("AbstractLoadBalancer.handleSubchannelState, current state:IDLE, subchannel.requestConnection().");
         }
         final ConnectivityStateInfo originStateInfo = SubChannels.getStateInfo(subchannel);
-        if (originStateInfo.getState().equals(TRANSIENT_FAILURE)) {
-            if (stateInfo.getState().equals(CONNECTING) || stateInfo.getState().equals(IDLE)) {
-                return;
-            }
+        if (originStateInfo.getState().equals(TRANSIENT_FAILURE) && (stateInfo.getState().equals(CONNECTING) || stateInfo.getState().equals(IDLE))) {
+            return;
         }
         SubChannels.setStateInfo(subchannel, stateInfo);
         updateBalancingState();
     }
-
+    
     private Map<EquivalentAddressGroup, EquivalentAddressGroup> stripAttrs(final List<EquivalentAddressGroup> groupList) {
         Map<EquivalentAddressGroup, EquivalentAddressGroup> addrs = new HashMap<>(groupList.size() * 2);
         for (EquivalentAddressGroup group : groupList) {
@@ -135,35 +133,35 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
         }
         return addrs;
     }
-
+    
     private static EquivalentAddressGroup stripAttrs(final EquivalentAddressGroup eag) {
         return new EquivalentAddressGroup(eag.getAddresses());
     }
-
+    
     private <T> Set<T> setsDifference(final Set<T> a, final Set<T> b) {
         Set<T> aCopy = new HashSet<>(a);
         aCopy.removeAll(b);
         return aCopy;
     }
-
+    
     @Override
     public void shutdown() {
         for (Subchannel subchannel : subchannels.values()) {
             shutdownSubchannel(subchannel);
         }
     }
-
+    
     private void shutdownSubchannel(final Subchannel subchannel) {
         subchannel.shutdown();
         SubChannels.setStateInfo(subchannel, ConnectivityStateInfo.forNonError(SHUTDOWN));
     }
-
+    
     @Override
     public void handleNameResolutionError(final Status error) {
         updateBalancingState(TRANSIENT_FAILURE,
                 currentPicker instanceof AbstractReadyPicker ? currentPicker : new EmptyPicker(error));
     }
-
+    
     /**
      * Updates picker with the list of active subchannels (state == READY).
      */
@@ -190,7 +188,7 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
             updateBalancingState(READY, newPicker(new ArrayList<>(subchannels.values())));
         }
     }
-
+    
     private void updateBalancingState(final ConnectivityState state, final AbstractPicker picker) {
         if (state == currentState && picker.isEquivalentTo(currentPicker)) {
             return;
@@ -200,11 +198,11 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
         currentPicker = picker;
         LOG.info("AbstractPicker update, serviceName:{}, all subchannels:{}, state:{}", serviceName, picker.getSubchannelsInfo(), state);
     }
-
+    
     private Collection<Subchannel> getSubchannels() {
         return subchannels.values();
     }
-
+    
     /**
      * Create new picker.
      *

@@ -33,7 +33,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -69,8 +69,8 @@ public class JsonOperatorTest {
         replace.setValue("realName");
         this.paramMappingRuleHandle = new ParamMappingRuleHandle();
         this.paramMappingRuleHandle.setRemoveParameterKeys(remove);
-        this.paramMappingRuleHandle.setAddParameterKeys(Arrays.asList(add));
-        this.paramMappingRuleHandle.setReplaceParameterKeys(Arrays.asList(replace));
+        this.paramMappingRuleHandle.setAddParameterKeys(Collections.singletonList(add));
+        this.paramMappingRuleHandle.setReplaceParameterKeys(Collections.singletonList(replace));
         this.jsonOperator = new JsonOperator();
         final String body = "{\"name\":\"shenyu\",\"age\":\"18\"}";
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.POST, "localhost")

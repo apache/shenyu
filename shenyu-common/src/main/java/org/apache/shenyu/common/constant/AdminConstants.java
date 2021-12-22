@@ -50,7 +50,7 @@ public final class AdminConstants {
     /**
      * The constant SYS_PLUGIN_ID_NOT_EXIST.
      */
-    public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin id does not exist！";
+    public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin(s) does not exist！";
 
     /**
      * The constant DATA_PATH_IS_EXIST.
@@ -107,4 +107,118 @@ public final class AdminConstants {
      */
     public static final Integer RULE_DATA_TYPE = 1;
 
+    /**
+     * the constant selector add.
+     */
+    public static final String PLUGIN_SELECTOR_ADD = "SHENYU.BUTTON.PLUGIN.SELECTOR.ADD";
+
+    /**
+     * the constant selector type add.
+     */
+    public static final String PLUGIN_TYPE_SELECTOR_ADD = "Selector:add";
+
+    /**
+     * the constant selector query.
+     */
+    public static final String PLUGIN_SELECTOR_QUERY = "SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY";
+
+    /**
+     * the constant selector type query.
+     */
+    public static final String PLUGIN_TYPE_SELECTOR_QUERY = "Selector:query";
+
+    /**
+     * the constant selector edit.
+     */
+    public static final String PLUGIN_SELECTOR_EDIT = "SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT";
+
+    /**
+     * the constant selector type edit.
+     */
+    public static final String PLUGIN_TYPE_SELECTOR_EDIT = "Selector:edit";
+
+    /**
+     * the constant selector delete.
+     */
+    public static final String PLUGIN_SELECTOR_DELETE = "SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE";
+
+    /**
+     * the constant selector type delete.
+     */
+    public static final String PLUGIN_TYPE_SELECTOR_DELETE = "Selector:delete";
+
+    /**
+     * the constant rule add.
+     */
+    public static final String PLUGIN_RULE_ADD = "SHENYU.BUTTON.PLUGIN.RULE.ADD";
+
+    /**
+     * the constant rule type add.
+     */
+    public static final String PLUGIN_TYPE_RULE_ADD = "Rule:add";
+
+    /**
+     * the constant rule query.
+     */
+    public static final String PLUGIN_RULE_QUERY = "SHENYU.BUTTON.PLUGIN.RULE.QUERY";
+
+    /**
+     * the constant rule type query.
+     */
+    public static final String PLUGIN_TYPE_RULE_QUERY = "Rule:query";
+
+    /**
+     * the constant rule edit.
+     */
+    public static final String PLUGIN_RULE_EDIT = "SHENYU.BUTTON.PLUGIN.RULE.EDIT";
+
+    /**
+     * the constant rule type edit.
+     */
+    public static final String PLUGIN_TYPE_RULE_EDIT = "Rule:edit";
+
+    /**
+     * the constant rule delete.
+     */
+    public static final String PLUGIN_RULE_DELETE = "SHENYU.BUTTON.PLUGIN.RULE.DELETE";
+
+    /**
+     * the constant rule type delete.
+     */
+    public static final String PLUGIN_TYPE_RULE_DELETE = "Rule:delete";
+
+    /**
+     * the constant plugin synchronize.
+     */
+    public static final String PLUGIN_SYNCHRONIZE = "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE";
+
+    /**
+     * the constant plugin type modify.
+     */
+    public static final String PLUGIN_TYPE_SYNCHRONIZE = ":modify";
+
+    /**
+     * the constant table init dict type.
+     */
+    public static final String DICT_TABLE_FLAG_TYPE = "table";
+
+    /**
+     * the constant table init dict code.
+     */
+    public static final String DICT_TABLE_FLAG_DICTCODE = "INIT_FLAG";
+
+    /**
+     * the constant table init dict name.
+     */
+    public static final String DICT_TABLE_FLAG_DICTNAME = "status";
+
+    /**
+     * the constant table init dict desc.
+     */
+    public static final String DICT_TABLE_FLAG_DESC = "table(resource,permission) init status";
+
+    /**
+     * the constant table init dict sort.
+     */
+    public static final Integer DICT_TABLE_FLAG_SORT = 0;
 }

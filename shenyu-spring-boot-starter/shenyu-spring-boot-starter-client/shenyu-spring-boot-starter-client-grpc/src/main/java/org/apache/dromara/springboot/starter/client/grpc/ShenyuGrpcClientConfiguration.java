@@ -22,8 +22,9 @@ import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
 import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -39,27 +40,26 @@ public class ShenyuGrpcClientConfiguration {
     /**
      * Grpc service bean post processor grpc client bean post processor.
      *
-     * @param registerCenterConfig the register center config
-     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
+     * @param clientConfig the client config
+     * @param shenyuClientRegisterRepository the shenyu client register repository
      * @return the grpc client bean post processor
      */
     @Bean
-    public GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor(final ShenyuRegisterCenterConfig registerCenterConfig,
+    public GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor(final ShenyuClientConfig clientConfig,
                                                                     final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new GrpcClientBeanPostProcessor(registerCenterConfig, shenyuClientRegisterRepository);
+        return new GrpcClientBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
     }
     
     /**
      * Grpc context refreshed event listener grpc context refreshed event listener.
      *
-     * @param registerCenterConfig the register center config
+     * @param clientConfig the client config
      * @return the grpc context refreshed event listener
      */
     @Bean
-    public GrpcContextRefreshedEventListener grpcContextRefreshedEventListener(final ShenyuRegisterCenterConfig registerCenterConfig) {
-        return new GrpcContextRefreshedEventListener(registerCenterConfig);
+    public GrpcContextRefreshedEventListener grpcContextRefreshedEventListener(final ShenyuClientConfig clientConfig) {
+        return new GrpcContextRefreshedEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()));
     }
-    
     
     /**
      * Grpc Server.

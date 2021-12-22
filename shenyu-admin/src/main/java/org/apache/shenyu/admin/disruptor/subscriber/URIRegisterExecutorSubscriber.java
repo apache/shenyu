@@ -18,9 +18,9 @@
 package org.apache.shenyu.admin.disruptor.subscriber;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;

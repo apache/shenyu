@@ -18,10 +18,12 @@
 package org.apache.shenyu.client.springcloud.init;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -41,7 +43,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
@@ -49,13 +51,11 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     
     private final String host;
 
-    private Environment env;
-
     private String contextPath;
     
-    private String appName;
+    private final String appName;
     
-    private Integer port;
+    private final Integer port;
 
     /**
      * Instantiates a new Context register listener.
@@ -63,22 +63,22 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param config the config
      * @param env    the env
      */
-    public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env) {
+    public ContextRegisterListener(final PropertiesConfig config, final Environment env) {
         Properties props = config.getProps();
-        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        String contextPath = props.getProperty("contextPath");
+        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.contextPath = contextPath;
-        if (isFull) {
+        if (Boolean.TRUE.equals(isFull)) {
             if (StringUtils.isBlank(contextPath)) {
                 String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
-                throw new RuntimeException(errorMsg);
+                throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
             this.contextPath = contextPath + "/**";
         }
-        int port = Integer.parseInt(props.getProperty("port"));
+        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
         this.appName = env.getProperty("spring.application.name");
-        this.host = props.getProperty("host");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = port;
     }
 
@@ -87,7 +87,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        if (isFull) {
+        if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
         publisher.publishEvent(buildURIRegisterDTO());
@@ -107,15 +107,13 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
         String contextPath = this.contextPath;
-        String appName = env.getProperty("spring.application.name");
-        String path = contextPath + "/**";
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
-                .path(path)
+                .path(contextPath)
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(true)
-                .ruleName(path)
+                .ruleName(contextPath)
                 .build();
     }
 }

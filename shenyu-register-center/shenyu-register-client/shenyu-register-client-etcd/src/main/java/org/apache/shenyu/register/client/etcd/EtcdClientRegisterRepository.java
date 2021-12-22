@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.register.client.etcd;
 
+import java.util.Objects;
+import java.util.Properties;
+import org.apache.shenyu.common.constant.Constants;
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -30,7 +35,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
 
 /**
  * etcd register repository.
@@ -41,6 +45,12 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClientRegisterRepository.class);
 
     private EtcdClient client;
+
+    public EtcdClientRegisterRepository() { }
+
+    public EtcdClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
@@ -76,18 +86,24 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
         LogUtils.info(LOGGER, "{} etcd client register uri success: {}", rpcType, registerDTO);
     }
     
-    private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
+    private void registerMetadata(final String rpcType,
+                                  final String contextPath,
+                                  final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
         LOGGER.info("register metadata success: {}", realNode);
     }
 
-    private void registerURI(final String rpcType, final String contextPath, final URIRegisterDTO registerDTO) {
+    private void registerURI(final String rpcType,
+                             final String contextPath,
+                             final URIRegisterDTO registerDTO) {
         String uriNodeName = buildURINodeName(registerDTO);
         String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
+
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(registerDTO));
         LOGGER.info("register uri data success: {}", realNode);
     }
@@ -95,18 +111,20 @@ public class EtcdClientRegisterRepository implements ShenyuClientRegisterReposit
     private String buildURINodeName(final URIRegisterDTO registerDTO) {
         String host = registerDTO.getHost();
         int port = registerDTO.getPort();
-        return String.join(":", host, Integer.toString(port));
+        return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
+        if (Objects.equals(RpcTypeEnum.HTTP.getName(), rpcType)
+                || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), rpcType)) {
+            nodeName = String.join(SELECTOR_JOIN_RULE, metadata.getContextPath(),
+                    metadata.getRuleName().replace(PATH_SEPARATOR, SELECTOR_JOIN_RULE));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
+        return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
     }
 
 }

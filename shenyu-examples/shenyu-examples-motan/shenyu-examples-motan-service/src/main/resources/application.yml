@@ -24,15 +24,17 @@ spring:
     name: motan-exmaples
 
 shenyu:
-  client:
+  register:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      contextPath: /motan
-      ipAndPort: motan
-      appName: motan
-      port: 8081
-      nacosNameSpace: ShenyuRegisterCenter
+  client:
+    motan:
+      props:
+        contextPath: /motan
+        ipAndPort: motan
+        appName: motan
+        port: 8081
 
 motan:
   registry:

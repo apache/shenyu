@@ -20,9 +20,11 @@ package org.apache.shenyu.plugin.motan.proxy;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.proxy.CommonHandler;
 import com.weibo.api.motan.rpc.ResponseFuture;
+import com.weibo.api.motan.rpc.RpcContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -34,6 +36,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -52,8 +55,12 @@ public class MotanProxyService {
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-
+    @SuppressWarnings("all")
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
+        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
+        Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.MOTAN.getName())).ifPresent(context -> {
+            context.forEach((k, v) -> RpcContext.getContext().setRpcAttachment(k, v));
+        });
         RefererConfig<CommonHandler> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
@@ -62,7 +69,7 @@ public class MotanProxyService {
         CommonHandler commonHandler = reference.getRef();
         ApplicationConfigCache.MotanParamInfo motanParamInfo = ApplicationConfigCache.PARAM_MAP.get(metaData.getMethodName());
         Object[] params;
-        if (motanParamInfo == null) {
+        if (Objects.isNull(motanParamInfo)) {
             params = new Object[0];
         } else {
             int num = motanParamInfo.getParamTypes().length;

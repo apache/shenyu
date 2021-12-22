@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.4.1-SNAPSHOT</version>
+    <version>2.4.2-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -42,8 +42,10 @@
         <module>shenyu-disruptor</module>
         <module>shenyu-protocol</module>
         <module>shenyu-dist</module>
-<!--        <module>shenyu-agent</module>-->
+        <module>shenyu-agent</module>
         <module>shenyu-loadbalancer</module>
+        <module>shenyu-examples</module>
+        <module>shenyu-integrated-test</module>
     </modules>
 
     <licenses>
@@ -121,8 +123,8 @@
         <awaitility.version>4.0.3</awaitility.version>
         <powermock.version>2.0.9</powermock.version>
         <nacos-client.version>2.0.0</nacos-client.version>
-        <groovy.version>2.5.14</groovy.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
+        <grpc.version>1.33.1</grpc.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -143,6 +145,7 @@
         <jaxb.api.version>2.3.0</jaxb.api.version>
         <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
         <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
+        <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -396,12 +399,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy</artifactId>
-                <version>${groovy.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
                 <version>${netflix-ribbon.version}</version>
@@ -474,48 +471,8 @@
             <artifactId>jaxb-api</artifactId>
             <version>${jaxb.api.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>release</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>git submodule update</id>
-                                <phase>initialize</phase>
-                                <inherited>false</inherited>
-                                <configuration>
-                                    <executable>git</executable>
-                                    <arguments>
-                                        <argument>submodule</argument>
-                                        <argument>update</argument>
-                                        <argument>--init</argument>
-                                        <argument>--recursive</argument>
-                                    </arguments>
-                                </configuration>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
     <build>
         <plugins>
             <plugin>

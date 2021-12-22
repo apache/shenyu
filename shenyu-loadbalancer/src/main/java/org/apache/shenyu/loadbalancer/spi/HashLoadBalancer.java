@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.stream.IntStream;
 
 /**
  * hash algorithm impl.
@@ -38,13 +39,13 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
         final ConcurrentSkipListMap<Long, Upstream> treeMap = new ConcurrentSkipListMap<>();
-        for (Upstream upstream : upstreamList) {
-            for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
+        upstreamList.stream().forEach(upstream -> {
+            IntStream.range(0, VIRTUAL_NODE_NUM).forEach(i -> {
                 long addressHash = hash("SHENYU-" + upstream.getUrl() + "-HASH-" + i);
                 treeMap.put(addressHash, upstream);
-            }
-        }
-        long hash = hash(String.valueOf(ip));
+            });
+        });
+        long hash = hash(ip);
         SortedMap<Long, Upstream> lastRing = treeMap.tailMap(hash);
         if (!lastRing.isEmpty()) {
             return lastRing.get(lastRing.firstKey());

@@ -38,6 +38,10 @@ public class DubboRpcExt implements Serializable {
 
     private String url;
 
+    private Boolean sent;
+
+    private String cluster;
+
     /**
      * constructor without parameter.
      */
@@ -53,14 +57,25 @@ public class DubboRpcExt implements Serializable {
      * @param retries retries
      * @param timeout timeout
      * @param url url
+     * @param sent sent
+     * @param cluster cluster
      */
-    public DubboRpcExt(final String group, final String version, final String loadbalance, final Integer retries, final Integer timeout, final String url) {
+    public DubboRpcExt(final String group,
+                       final String version,
+                       final String loadbalance,
+                       final Integer retries,
+                       final Integer timeout,
+                       final String url,
+                       final Boolean sent,
+                       final String cluster) {
         this.group = group;
         this.version = version;
         this.loadbalance = loadbalance;
         this.retries = retries;
         this.timeout = timeout;
         this.url = url;
+        this.sent = sent;
+        this.cluster = cluster;
     }
 
     /**
@@ -171,6 +186,42 @@ public class DubboRpcExt implements Serializable {
         this.url = url;
     }
 
+    /**
+     * get sent.
+     *
+     * @return sent
+     */
+    public Boolean getSent() {
+        return sent;
+    }
+
+    /**
+     * set sent.
+     *
+     * @param sent sent
+     */
+    public void setSent(final Boolean sent) {
+        this.sent = sent;
+    }
+
+    /**
+     * get cluster.
+     *
+     * @return cluster
+     */
+    public String getCluster() {
+        return cluster;
+    }
+
+    /**
+     * set cluster.
+     *
+     * @param cluster cluster
+     */
+    public void setCluster(final String cluster) {
+        this.cluster = cluster;
+    }
+
     @Override
     public String toString() {
         return "DubboRpcExt{"
@@ -180,6 +231,8 @@ public class DubboRpcExt implements Serializable {
                 + ", retries=" + retries
                 + ", timeout=" + timeout
                 + ", url='" + url + '\''
+                + ", sent=" + sent
+                + ", cluster='" + cluster + '\''
                 + '}';
     }
 
@@ -208,6 +261,10 @@ public class DubboRpcExt implements Serializable {
         private Integer timeout;
 
         private String url;
+
+        private Boolean sent;
+
+        private String cluster;
 
         /**
          * constructor without parameter.
@@ -282,6 +339,28 @@ public class DubboRpcExt implements Serializable {
         }
 
         /**
+         * set sent.
+         *
+         * @param sent sent
+         * @return Builder
+         */
+        public Builder sent(final Boolean sent) {
+            this.sent = sent;
+            return this;
+        }
+
+        /**
+         * set cluster.
+         *
+         * @param cluster cluster
+         * @return Builder
+         */
+        public Builder cluster(final String cluster) {
+            this.cluster = cluster;
+            return this;
+        }
+
+        /**
          * build DubboRpcExt.
          *
          * @return DubboRpcExt
@@ -294,6 +373,8 @@ public class DubboRpcExt implements Serializable {
             dubboRpcExt.setRetries(retries);
             dubboRpcExt.setTimeout(timeout);
             dubboRpcExt.setUrl(url);
+            dubboRpcExt.setSent(sent);
+            dubboRpcExt.setCluster(cluster);
             return dubboRpcExt;
         }
     }

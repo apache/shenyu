@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.websocket;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -59,15 +60,15 @@ import java.util.stream.Collectors;
  * The type Web socket plugin.
  */
 public class WebSocketPlugin extends AbstractShenyuPlugin {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketPlugin.class);
-
+    
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
-
+    
     private final WebSocketClient webSocketClient;
-
+    
     private final WebSocketService webSocketService;
-
+    
     /**
      * Instantiates a new Web socket plugin.
      *
@@ -78,13 +79,13 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         this.webSocketClient = webSocketClient;
         this.webSocketService = webSocketService;
     }
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(shenyuContext)) {
-            LOG.error("websocket upstream configuration error：{}", rule.toString());
+            LOG.error("websocket upstream configuration error：{}", rule);
             return chain.execute(exchange);
         }
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
@@ -92,7 +93,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("websocket has no upstream");
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(upstream, shenyuContext))).build().toUri();
@@ -101,7 +102,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
     }
-
+    
     private String buildWsRealPath(final Upstream upstream, final ShenyuContext shenyuContext) {
         String protocol = upstream.getProtocol();
         if (StringUtils.isEmpty(protocol)) {
@@ -109,17 +110,18 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         }
         return protocol + upstream.getUrl() + shenyuContext.getMethod();
     }
-
+    
     private List<String> buildWsProtocols(final HttpHeaders headers) {
         List<String> protocols = headers.get(SEC_WEB_SOCKET_PROTOCOL);
-        if (CollectionUtils.isNotEmpty(protocols)) {
-            protocols = protocols
-                    .stream().flatMap(header -> Arrays.stream(StringUtils.commaDelimitedListToStringArray(header)))
-                    .map(String::trim).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(protocols)) {
+            return protocols;
         }
-        return protocols;
+        return protocols.stream()
+                .flatMap(header -> Arrays.stream(StringUtils.commaDelimitedListToStringArray(header)))
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
-
+    
     private HttpHeaders filterHeaders(final HttpHeaders headers) {
         HttpHeaders filtered = new HttpHeaders();
         headers.entrySet().stream()
@@ -129,12 +131,12 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                         header.getValue()));
         return filtered;
     }
-
+    
     @Override
     public String named() {
         return PluginEnum.WEB_SOCKET.getName();
     }
-
+    
     /**
      * plugin is execute.
      *
@@ -142,25 +144,24 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.WEB_SOCKET.getName());
+        return skipExcept(exchange, RpcTypeEnum.WEB_SOCKET);
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.WEB_SOCKET.getCode();
     }
-
+    
     private static class ShenyuWebSocketHandler implements WebSocketHandler {
-
+        
         private final WebSocketClient client;
-
+        
         private final URI url;
-
+        
         private final HttpHeaders headers;
-
+        
         private final List<String> subProtocols;
-
+        
         /**
          * Instantiates a new shenyu web socket handler.
          *
@@ -175,25 +176,21 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             this.client = client;
             this.url = url;
             this.headers = headers;
-            if (protocols != null) {
-                this.subProtocols = protocols;
-            } else {
-                this.subProtocols = Collections.emptyList();
-            }
+            this.subProtocols = ObjectUtils.defaultIfNull(protocols, Collections.emptyList());
         }
-
+        
         @NonNull
         @Override
         public List<String> getSubProtocols() {
             return this.subProtocols;
         }
-
+        
         @NonNull
         @Override
         public Mono<Void> handle(@NonNull final WebSocketSession session) {
             // pass headers along so custom headers can be sent through
             return client.execute(url, this.headers, new WebSocketHandler() {
-
+                
                 @NonNull
                 @Override
                 public Mono<Void> handle(@NonNull final WebSocketSession webSocketSession) {
@@ -204,7 +201,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                             webSocketSession.receive().doOnNext(WebSocketMessage::retain));
                     return Mono.zip(sessionSend, serverSessionSend).then();
                 }
-
+                
                 @NonNull
                 @Override
                 public List<String> getSubProtocols() {

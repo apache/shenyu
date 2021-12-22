@@ -33,19 +33,13 @@ public class SofaSingleParamServiceImpl implements SofaSingleParamService {
     @Override
     @ShenyuSofaClient(path = "/findById", desc = "Find by Id")
     public SofaSimpleTypeBean findById(final String id) {
-        SofaSimpleTypeBean sofaSimpleTypeBean = new SofaSimpleTypeBean();
-        sofaSimpleTypeBean.setId(id);
-        sofaSimpleTypeBean.setName("hello world shenyu Sofa, findById");
-        return sofaSimpleTypeBean;
+        return new SofaSimpleTypeBean(id, "hello world shenyu Sofa, findById");
     }
 
     @Override
     @ShenyuSofaClient(path = "/findAll", desc = "Get all data")
     public SofaSimpleTypeBean findAll() {
-        SofaSimpleTypeBean sofaSimpleTypeBean = new SofaSimpleTypeBean();
-        sofaSimpleTypeBean.setName("hello world shenyu Sofa , findAll");
-        sofaSimpleTypeBean.setId(String.valueOf(new Random().nextInt()));
-        return sofaSimpleTypeBean;
+        return new SofaSimpleTypeBean(String.valueOf(new Random().nextInt()), "hello world shenyu Sofa , findAll");
     }
 
     @Override

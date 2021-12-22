@@ -53,17 +53,17 @@ public enum PluginEnum {
     /**
      * Rate limiter plugin enum.
      */
-    RATE_LIMITER(60, 0, "rate_limiter"),
+    RATE_LIMITER(60, 0, "rateLimiter"),
     
     /**
      * Param mapping plugin enum.
      */
-    PARAM_MAPPING(70, 0, "param_mapping"),
+    PARAM_MAPPING(70, 0, "paramMapping"),
     
     /**
      * Context path plugin enum.
      */
-    CONTEXT_PATH(80, 0, "context_path"),
+    CONTEXT_PATH(80, 0, "contextPath"),
     
     /**
      * Rewrite plugin enum.
@@ -73,7 +73,7 @@ public enum PluginEnum {
     /**
      * Cryptor request plugin enum.
      */
-    CRYPTOR_REQUEST(100, 0, "cryptor_request"),
+    CRYPTOR_REQUEST(100, 0, "cryptorRequest"),
     
     /**
      * Redirect plugin enum.
@@ -84,6 +84,11 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
+
+    /**
+     * GeneralContext plugin enum.
+     */
+    GENERAL_CONTEXT(125, 0, "generalContext"),
     
     /**
      * Hystrix plugin enum.
@@ -126,6 +131,11 @@ public enum PluginEnum {
     WEB_SOCKET(200, 0, "websocket"),
     
     /**
+     * Uri plugin enum.
+     */
+    URI(205, 0, "uri"),
+    
+    /**
      * Web client plugin enum.
      */
     WEB_CLIENT(210, 0, "webClient"),
@@ -134,7 +144,7 @@ public enum PluginEnum {
      * Netty http client plugin enum.
      */
     NETTY_HTTP_CLIENT(210, 0, "nettyHttpClient"),
-
+    
     /**
      * ModifyResponse plugin enum.
      */
@@ -173,7 +183,7 @@ public enum PluginEnum {
     /**
      * Cryptor response plugin enum.
      */
-    CRYPTOR_RESPONSE(410, 0, "cryptor_response"),
+    CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
     
     /**
      * Response plugin enum.

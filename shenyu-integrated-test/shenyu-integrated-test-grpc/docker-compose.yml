@@ -16,16 +16,16 @@
 version: "3.9"
 services:
   shenyu-admin:
-    image: apache/shenyu-admin:2.4.1-SNAPSHOT
+    image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:
       - shenyu
     ports:
-      - 9095:9095
+      - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
-      - "shenyu.database.init_script=sql-script/h2/schema.sql"
+      - shenyu.database.init_script=sql-script/h2/schema.sql
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s
@@ -41,15 +41,15 @@ services:
     image: shenyu-examples-grpc:latest
     restart: always
     environment:
-      - shenyu.client.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://localhost:55290/test/grpc/hello | grep UP || exit 1" ]
       timeout: 2s
       retries: 3
       start_period: 5s
     ports:
-      - 55290:55290
-      - 8080:8080
+      - "55290:55290"
+      - "8080:8080"
     networks:
       - shenyu
     depends_on:
@@ -70,7 +70,7 @@ services:
       shenyu-admin:
         condition: service_healthy
     ports:
-      - 9195:9195
+      - "9195:9195"
     healthcheck:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-grpc:9195/actuator/health" ]
       timeout: 2s

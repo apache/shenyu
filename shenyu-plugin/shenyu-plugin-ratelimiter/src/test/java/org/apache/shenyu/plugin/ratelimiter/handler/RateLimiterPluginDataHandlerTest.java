@@ -100,6 +100,7 @@ public final class RateLimiterPluginDataHandlerTest {
     public void redisStandaloneConfigurationPropertiesTest() {
         RedisStandaloneConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration",
                 generateRateLimiterConfig(generateDefaultUrl()));
+        Assert.assertNotNull(configuration);
         Assert.assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
         Assert.assertEquals(LOCALHOST, configuration.getHostName());
         Assert.assertEquals(PORT_TEST_VALUE_1, configuration.getPort());
@@ -113,6 +114,7 @@ public final class RateLimiterPluginDataHandlerTest {
     public void redisRedisClusterConfigurationPropertiesTest() {
         RedisClusterConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisClusterConfiguration",
                 generateRateLimiterConfig("localhost:2181;localhost:2182"));
+        Assert.assertNotNull(configuration);
         Assert.assertEquals(RedisPassword.of(PASSWORD_TEST_VALUE), configuration.getPassword());
         Assert.assertEquals(Collections.unmodifiableSet(Sets.newHashSet(generateRedisNode(PORT_TEST_VALUE_1),
                 generateRedisNode(PORT_TEST_VALUE_2))), configuration.getClusterNodes());
@@ -126,8 +128,9 @@ public final class RateLimiterPluginDataHandlerTest {
         Duration duration = Duration.ofHours(1);
         RateLimiterConfig rateLimiterConfig = new RateLimiterConfig();
         rateLimiterConfig.setMaxWait(duration);
-        GenericObjectPoolConfig poolConfig = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler,
+        GenericObjectPoolConfig<RateLimiterConfig> poolConfig = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler,
                 "getPoolConfig", rateLimiterConfig);
+        Assert.assertNotNull(poolConfig);
         Assert.assertEquals(DEFAULT_MAX_IDLE, poolConfig.getMaxIdle());
         Assert.assertEquals(DEFAULT_MAX_ACTIVE, poolConfig.getMaxTotal());
         Assert.assertEquals(DEFAULT_MIN_IDLE, poolConfig.getMinIdle());
@@ -141,6 +144,7 @@ public final class RateLimiterPluginDataHandlerTest {
     public void redisSentinelConfigurationPropertyTest() {
         RedisSentinelConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisSentinelConfiguration",
                 generateRateLimiterConfig("localhost:2181;localhost:2182"));
+        Assert.assertNotNull(configuration);
         Assert.assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
         Assert.assertEquals(RedisPassword.of(PASSWORD_TEST_VALUE), configuration.getPassword());
         Assert.assertEquals(Collections.unmodifiableSet(Sets.newHashSet(generateRedisNode(PORT_TEST_VALUE_1),

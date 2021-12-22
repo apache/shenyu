@@ -22,13 +22,16 @@ import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.client.motan.common.dto.MotanRpcExt;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -53,6 +56,8 @@ import java.util.stream.Collectors;
  */
 public class MotanServiceBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
 
+    private static final String BASE_SERVICE_CONFIG = "baseServiceConfig";
+
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
@@ -71,17 +76,17 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
 
     private String group;
 
-    public MotanServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String appName = props.getProperty("appName");
+    public MotanServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isEmpty(contextPath)) {
-            throw new RuntimeException("motan client must config the contextPath");
+            throw new ShenyuClientIllegalArgumentException("motan client must config the contextPath");
         }
         this.contextPath = contextPath;
         this.appName = appName;
-        this.host = props.getProperty("host");
-        this.port = props.getProperty("port");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        this.port = props.getProperty(ShenyuClientConstants.PORT);
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-motan-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
@@ -101,7 +106,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
 
     private void handler(final Object bean) {
         if (group == null) {
-            group = ((BasicServiceConfigBean) applicationContext.getBean("baseServiceConfig")).getGroup();
+            group = ((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getGroup();
         }
         Class<?> clazz = bean.getClass();
         if (AopUtils.isAopProxy(bean)) {
@@ -136,7 +141,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
             if (clazz.getInterfaces().length > 0) {
                 serviceName = clazz.getInterfaces()[0].getName();
             } else {
-                throw new IllegalStateException("Failed to export remote service class " + clazz.getName()
+                throw new ShenyuClientIllegalArgumentException("Failed to export remote service class " + clazz.getName()
                         + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
             }
         } else {
@@ -153,7 +158,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcType("motan")
+                .rpcType(RpcTypeEnum.MOTAN.getName())
                 .rpcExt(rpcExt)
                 .enabled(shenyuMotanClient.enabled())
                 .build();

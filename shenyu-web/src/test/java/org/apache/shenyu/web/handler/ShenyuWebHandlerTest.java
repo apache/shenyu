@@ -39,7 +39,7 @@ import static org.mockito.Mockito.mock;
  * test for ShenyuWebHandler.
  *
  */
-public class ShenyuWebHandlerTest {
+public final class ShenyuWebHandlerTest {
 
     private ShenyuWebHandler shenyuWebHandler;
     

@@ -39,13 +39,11 @@ import static org.mockito.Mockito.when;
  * unit test for {@link HostParameterData}.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class HostParameterDataTest {
+public final class HostParameterDataTest {
 
     private ServerWebExchange exchange;
 
     private HostParameterData hostParameterData;
-
-    private RemoteAddressResolver remoteAddressResolver;
 
     private final String testhost = "192.168.0.121";
 
@@ -53,7 +51,7 @@ public class HostParameterDataTest {
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        this.remoteAddressResolver = new RemoteAddressResolver() {
+        RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress(testhost, 8085))

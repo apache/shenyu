@@ -18,11 +18,10 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -41,9 +40,13 @@ import reactor.core.publisher.Mono;
 import reactor.retry.Backoff;
 import reactor.retry.Retry;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Web client plugin.
@@ -67,16 +70,16 @@ public class WebClientPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        String urlPath = exchange.getAttribute(Constants.HTTP_URL);
-        if (StringUtils.isEmpty(urlPath)) {
+        URI uri = exchange.getAttribute(Constants.HTTP_URI);
+        if (Objects.isNull(uri)) {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
-        LOG.info("The request urlPath is {}, retryTimes is {}", urlPath, retryTimes);
+        LOG.info("The request urlPath is {}, retryTimes is {}", uri.toASCIIString(), retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
-        WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
+        WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(uri);
         return handleRequestBody(requestBodySpec, exchange, timeout, retryTimes, chain);
     }
 
@@ -92,10 +95,7 @@ public class WebClientPlugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
+        return skipExceptHttpLike(exchange);
     }
 
     private Mono<Void> handleRequestBody(final WebClient.RequestBodySpec requestBodySpec,
@@ -105,6 +105,13 @@ public class WebClientPlugin implements ShenyuPlugin {
                                          final ShenyuPluginChain chain) {
         return requestBodySpec.headers(httpHeaders -> {
             httpHeaders.addAll(exchange.getRequest().getHeaders());
+            // remove gzip
+            List<String> acceptEncoding = httpHeaders.get(HttpHeaders.ACCEPT_ENCODING);
+            if (CollectionUtils.isNotEmpty(acceptEncoding)) {
+                acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
+                acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
+                httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
+            }
             httpHeaders.remove(HttpHeaders.HOST);
         })
                 .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
@@ -115,7 +122,6 @@ public class WebClientPlugin implements ShenyuPlugin {
                         .retryMax(retryTimes)
                         .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
-
     }
 
     private Mono<Void> doNext(final ClientResponse res, final ServerWebExchange exchange, final ShenyuPluginChain chain) {

@@ -21,6 +21,9 @@ import com.google.common.collect.Lists;
 import io.grpc.BindableService;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
@@ -29,7 +32,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +40,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -69,20 +71,20 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     /**
      * Instantiates a new Shenyu client bean post processor.
      *
-     * @param config the shenyu grpc config
+     * @param clientConfig the shenyu grpc client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public GrpcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String ipAndPort = props.getProperty("ipAndPort");
-        String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("grpc client must config the contextPath, ipAndPort");
+    public GrpcClientBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        String ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
+        String port = props.getProperty(ShenyuClientConstants.PORT);
+        if (StringUtils.isAnyBlank(contextPath, ipAndPort, port)) {
+            throw new ShenyuClientIllegalArgumentException("grpc client must config the contextPath, ipAndPort");
         }
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;
-        this.host = props.getProperty("host");
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = Integer.parseInt(port);
         publisher.start(shenyuClientRegisterRepository);
     }
@@ -101,19 +103,19 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         try {
             clazz = serviceBean.getClass();
         } catch (Exception e) {
-            LOG.error("failed to get grpc target class");
+            LOG.error("failed to get grpc target class", e);
             return;
         }
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
         String packageName;
         try {
-            String serviceName = "SERVICE_NAME";
+            String serviceName = ShenyuClientConstants.SERVICE_NAME;
             Field field = classes.getField(serviceName);
             field.setAccessible(true);
             packageName = field.get(null).toString();
         } catch (Exception e) {
-            LOG.error(String.format("SERVICE_NAME field not found: %s", classes));
+            LOG.error(String.format("SERVICE_NAME field not found: %s", classes), e);
             return;
         }
         if (StringUtils.isEmpty(packageName)) {
@@ -134,7 +136,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         String desc = shenyuGrpcClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuGrpcClient.ruleName();
-        String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
+        String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)

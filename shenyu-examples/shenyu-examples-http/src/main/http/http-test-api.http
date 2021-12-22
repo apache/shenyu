@@ -15,6 +15,38 @@
 # limitations under the License.
 #
 
+# Use gateway proxy
+# if you used IDEA, start example project. click green button.Quick access！
+
+### shengyu getway proxy hello
+POST http://localhost:9195/http/shenyu/client/hello
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/shenyu/client/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/shenyu/client/post/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hello
+POST http://localhost:9195/http/hello
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/post/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
 
 ### shengyu getway proxy orderSave
 POST http://localhost:9195/http/order/save

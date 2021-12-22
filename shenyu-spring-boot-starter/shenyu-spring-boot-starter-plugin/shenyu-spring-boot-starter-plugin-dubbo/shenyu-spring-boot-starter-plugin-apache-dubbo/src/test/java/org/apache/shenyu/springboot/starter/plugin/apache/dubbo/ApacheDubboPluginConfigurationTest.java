@@ -18,15 +18,15 @@
 package org.apache.shenyu.springboot.starter.plugin.apache.dubbo;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
-import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
-import org.apache.shenyu.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -35,41 +35,47 @@ import static org.junit.Assert.assertThat;
 /**
  * Test case for {@link ApacheDubboPluginConfiguration}.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-        classes = {
-                ApacheDubboPluginConfiguration.class,
-                ApacheDubboPluginConfigurationTest.class
-        },
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-@EnableAutoConfiguration
-public final class ApacheDubboPluginConfigurationTest {
+@Configuration
+@EnableConfigurationProperties
+public class ApacheDubboPluginConfigurationTest {
 
-    @Autowired(required = false)
-    private ApacheDubboPlugin apacheDubboPlugin;
-    
-    @Autowired(required = false)
-    private ApacheDubboPluginDataHandler apacheDubboPluginDataHandler;
-    
-    @Autowired(required = false)
-    private ApacheDubboMetaDataSubscriber apacheDubboMetaDataSubscriber;
+    private ApplicationContextRunner applicationContextRunner;
 
-    @Test
-    public void testApacheDubboPluginConfiguration() {
-        assertNotNull(apacheDubboPlugin);
-        assertThat(apacheDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
-        assertThat(apacheDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
+    @Before
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ApacheDubboPluginConfiguration.class))
+            .withBean(ApacheDubboPluginConfigurationTest.class)
+            .withPropertyValues("debug=true");
     }
 
     @Test
-    public void testApacheDubboPluginDataHandlerConfiguration() {
-        assertNotNull(apacheDubboPluginDataHandler);
-        assertThat(apacheDubboPluginDataHandler.pluginNamed(), is(PluginEnum.DUBBO.getName()));
+    public void testApacheDubboPlugin() {
+        applicationContextRunner.run(context -> {
+                ShenyuPlugin plugin = context.getBean("apacheDubboPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named(), is(PluginEnum.DUBBO.getName()));
+                assertThat(plugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
+            }
+        );
     }
 
     @Test
-    public void testApacheDubboMetaDataSubscriberConfiguration() {
-        assertNotNull(apacheDubboMetaDataSubscriber);
+    public void testApacheAbstractDubboPluginDataHandler() {
+        applicationContextRunner.run(context -> {
+                PluginDataHandler handler = context.getBean("apacheDubboPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+                assertThat(handler.pluginNamed(), is(PluginEnum.DUBBO.getName()));
+            }
+        );
+    }
+
+    @Test
+    public void testApacheDubboMetaDataSubscriber() {
+        applicationContextRunner.run(context -> {
+                MetaDataSubscriber subscriber = context.getBean("apacheDubboMetaDataSubscriber", MetaDataSubscriber.class);
+                assertNotNull(subscriber);
+            }
+        );
     }
 }

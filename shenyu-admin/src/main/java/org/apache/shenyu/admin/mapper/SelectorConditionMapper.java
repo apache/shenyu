@@ -18,10 +18,12 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * SelectorConditionMapper.
@@ -44,6 +46,13 @@ public interface SelectorConditionMapper {
      * @return {@linkplain List}
      */
     List<SelectorConditionDO> selectByQuery(SelectorConditionQuery selectorConditionQuery);
+
+    /**
+     * select selector by a set of selector ids.
+     * @param selectorIds a set of selector ids
+     * @return a list of {@linkplain SelectorConditionDO}
+     */
+    List<SelectorConditionDO> selectBySelectorIds(@Param("selectorIds") Set<String> selectorIds);
 
     /**
      * insert selector condition.
@@ -84,6 +93,14 @@ public interface SelectorConditionMapper {
      * @return rows
      */
     int delete(String id);
+
+    /**
+     * delete selector condition by id.
+     *
+     * @param selectorIds the selector ids
+     * @return rows
+     */
+    int deleteBySelectorIds(List<String> selectorIds);
 
     /**
      * delete selector condition by query.

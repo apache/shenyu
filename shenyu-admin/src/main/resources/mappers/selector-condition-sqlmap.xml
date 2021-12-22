@@ -51,6 +51,18 @@
         </if>
     </select>
 
+    <select id="selectBySelectorIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector_condition
+        where selector_id in
+        <foreach collection="selectorIds" item="selectorId" index="index"
+                 open="(" separator="," close=")">
+            #{selectorId,jdbcType=VARCHAR}
+        </foreach>
+
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorConditionDO">
         insert into selector_condition (id, date_created, date_updated,
         selector_id, param_type, operator, param_name, param_value)
@@ -154,6 +166,14 @@
     <delete id="delete" parameterType="java.lang.String">
         delete from selector_condition
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteBySelectorIds" parameterType="java.util.List">
+        delete from selector_condition
+        where selector_id in
+        <foreach item="selectorId" collection="list" open="(" separator="," close=")">
+            #{selectorId,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 
     <delete id="deleteByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorConditionQuery">

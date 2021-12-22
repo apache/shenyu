@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.4.1-SNAPSHOT</version>
+        <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -57,5 +57,7 @@
         <module>shenyu-plugin-cryptor</module>
         <module>shenyu-plugin-websocket</module>
         <module>shenyu-plugin-dubbo</module>
+        <module>shenyu-plugin-uri</module>
+        <module>shenyu-plugin-general-context</module>
     </modules>
 </project>

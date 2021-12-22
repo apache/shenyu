@@ -17,6 +17,18 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.WafHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -31,20 +43,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-
 public final class WafPluginTest extends AbstractPluginDataInit {
-    
+
     @BeforeClass
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.WAF.getName(), "{\"model\":\"black\"}");
@@ -55,14 +55,14 @@ public final class WafPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void test() throws IOException {
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway("/http/test/waf/pass", "", Map.class);
+        Map<String, Object> result = HttpHelper.INSTANCE.postGateway("/http/test/waf/pass", Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
-        result = HttpHelper.INSTANCE.postGateway("/http/test/waf/deny", "", Map.class);
+        result = HttpHelper.INSTANCE.postGateway("/http/test/waf/deny", Map.class);
         assertNotNull(result);
         assertThat(String.valueOf(result.get("message")), containsString("You are forbidden to visit"));
     }
-    
+
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -70,14 +70,14 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         conditionData.setParamValue("/http/test/waf/**");
         return Collections.singletonList(conditionData);
     }
-    
+
     private static List<RuleLocalData> buildRuleLocalDataList() {
         List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
         ruleLocalDataList.add(buildRuleLocalData(WafEnum.ALLOW.getName(), "200", "/http/test/waf/pass"));
         ruleLocalDataList.add(buildRuleLocalData(WafEnum.REJECT.getName(), "403", "/http/test/waf/deny"));
         return ruleLocalDataList;
     }
-    
+
     private static RuleLocalData buildRuleLocalData(final String permission, final String statusCode, final String paramValue) {
         RuleLocalData ruleLocalData = new RuleLocalData();
         WafHandle wafHandle = new WafHandle();
@@ -91,7 +91,7 @@ public final class WafPluginTest extends AbstractPluginDataInit {
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
         return ruleLocalData;
     }
-    
+
     @AfterClass
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.WAF.getName());

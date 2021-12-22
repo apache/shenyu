@@ -25,6 +25,7 @@ import io.grpc.Status;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.SynchronizationContext;
 import io.grpc.internal.SharedResourceHolder;
+import java.util.Collections;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.grpc.loadbalance.GrpcAttributeUtils;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
@@ -58,17 +59,17 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
     private final SynchronizationContext syncContext;
 
-    private final List<ShenyuServiceInstance> keep = null;
-
     private List<ShenyuServiceInstance> instanceList = Lists.newArrayList();
 
     private final SharedResourceHolder.Resource<Executor> executorResource;
 
-    public ShenyuNameResolver(final String appName, final Args args, final SharedResourceHolder.Resource<Executor> executorResource) {
+    public ShenyuNameResolver(final String appName,
+                              final Args args,
+                              final SharedResourceHolder.Resource<Executor> executorResource) {
         this.appName = appName;
         this.executor = args.getOffloadExecutor();
         this.executorResource = executorResource;
-        this.attributes = Attributes.newBuilder().set(GrpcAttributeUtils.appName(), appName).build();
+        this.attributes = Attributes.newBuilder().set(GrpcAttributeUtils.APP_NAME, appName).build();
         this.syncContext = Objects.requireNonNull(args.getSynchronizationContext(), "syncContext");
     }
 
@@ -84,7 +85,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
     @Override
     public void accept(final Object o) {
         syncContext.execute(() -> {
-            if (this.listener != null) {
+            if (Objects.nonNull(this.listener)) {
                 resolve();
             }
         });
@@ -113,7 +114,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
     @Override
     public void shutdown() {
         this.listener = null;
-        if (this.executor != null) {
+        if (Objects.nonNull(this.executor)) {
             this.executor = SharedResourceHolder.release(this.executorResource, this.executor);
         }
         this.instanceList = Lists.newArrayList();
@@ -143,7 +144,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
                 ShenyuNameResolver.this.syncContext.execute(() -> {
                     ShenyuNameResolver.this.resolving = false;
                     final List<ShenyuServiceInstance> newInstanceList = resultContainer.get();
-                    if (newInstanceList != keep && ShenyuNameResolver.this.listener != null) {
+                    if (Objects.nonNull(newInstanceList) && ShenyuNameResolver.this.listener != null) {
                         ShenyuNameResolver.this.instanceList = newInstanceList;
                     }
                 });
@@ -155,33 +156,39 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
             ShenyuServiceInstanceLists shenyuServiceInstanceLists = ApplicationConfigCache.getInstance().get(name);
             List<ShenyuServiceInstance> newInstanceList = shenyuServiceInstanceLists.getCopyInstances();
             LOG.info("Got {} candidate servers for {}", newInstanceList.size(), name);
+
             if (CollectionUtils.isEmpty(newInstanceList)) {
                 LOG.info("No servers found for {}", name);
                 this.savedListener.onError(Status.UNAVAILABLE.withDescription("No servers found for " + name));
                 return Lists.newArrayList();
             }
+
             if (!needsToUpdateConnections(newInstanceList)) {
                 LOG.info("Nothing has changed... skipping update for {}", name);
-                return null;
+                return Collections.emptyList();
             }
+
             LOG.info("Ready to update server list for {}", name);
             final List<EquivalentAddressGroup> targets = newInstanceList.stream()
                     .map(instance -> {
                         LOG.info("Found gRPC server {}:{} for {}", instance.getHost(), instance.getPort(), name);
                         return ShenyuResolverHelper.convertToEquivalentAddressGroup(instance);
                     }).collect(Collectors.toList());
+
             this.savedListener.onResult(ResolutionResult.newBuilder()
                     .setAddresses(targets)
                     .setAttributes(attributes)
                     .build());
             LOG.info("Done updating server list for {}", name);
+
             return newInstanceList;
         }
 
         private boolean needsToUpdateConnections(final List<ShenyuServiceInstance> newInstanceList) {
-            if (this.savedInstanceList.size() != newInstanceList.size()) {
+            if (!Objects.equals(this.savedInstanceList.size(), newInstanceList.size())) {
                 return true;
             }
+
             for (final ShenyuServiceInstance instance : this.savedInstanceList) {
                 final String host = instance.getHost();
                 final int port = instance.getPort();
@@ -195,7 +202,8 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
             return false;
         }
 
-        private boolean isMetadataEquals(final Map<String, String> metadata, final Map<String, String> newMetadata) {
+        private boolean isMetadataEquals(final Map<String, String> metadata,
+                                         final Map<String, String> newMetadata) {
             final String[] keys = {"weight", "status"};
             for (String key : keys) {
                 final String value = metadata.get(key);

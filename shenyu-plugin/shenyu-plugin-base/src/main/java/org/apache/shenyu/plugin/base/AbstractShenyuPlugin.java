@@ -128,13 +128,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
-        if (selectorData.getLogged()) {
+        if (Boolean.TRUE.equals(selectorData.getLogged())) {
             LOG.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
         }
     }
 
     private void ruleLog(final RuleData ruleData, final String pluginName) {
-        if (ruleData.getLoged()) {
+        if (Boolean.TRUE.equals(ruleData.getLoged())) {
             LOG.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
         }
     }
