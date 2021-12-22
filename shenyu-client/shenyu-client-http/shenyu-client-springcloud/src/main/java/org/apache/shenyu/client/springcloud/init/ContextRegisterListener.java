@@ -68,7 +68,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.contextPath = contextPath;
-        if (isFull) {
+        if (Boolean.TRUE.equals(isFull)) {
             if (StringUtils.isBlank(contextPath)) {
                 String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
@@ -87,7 +87,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        if (isFull) {
+        if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
         publisher.publishEvent(buildURIRegisterDTO());

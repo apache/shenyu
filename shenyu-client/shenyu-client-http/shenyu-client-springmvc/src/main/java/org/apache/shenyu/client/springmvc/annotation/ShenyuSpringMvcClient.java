@@ -34,7 +34,7 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the string
      */
-    String path();
+    String path() default "";
     
     /**
      * Rule name string.
