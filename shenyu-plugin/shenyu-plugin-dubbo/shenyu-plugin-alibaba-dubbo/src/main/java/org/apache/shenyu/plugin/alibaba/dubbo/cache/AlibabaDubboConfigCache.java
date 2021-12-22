@@ -26,7 +26,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
@@ -37,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -60,14 +58,9 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
             .removalListener((RemovalListener<Object, ReferenceConfig<GenericService>>) notification -> {
                 ReferenceConfig<GenericService> config = notification.getValue();
                 if (Objects.nonNull(config)) {
-                    try {
-                        Field field = FieldUtils.getDeclaredField(config.getClass(), "ref", true);
-                        field.set(config, null);
-                        // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
-                        // it will get NULL when reinitializing and cause a NULL pointer problem.
-                    } catch (NullPointerException | IllegalAccessException e) {
-                        LOG.error("modify ref have exception", e);
-                    }
+                    // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
+                    // it will get NULL when reinitializing and cause a NULL pointer problem.
+                    config.destroy();
                 }
             })
             .build(new CacheLoader<String, ReferenceConfig<GenericService>>() {
@@ -172,6 +165,9 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
             }
             if (StringUtils.isNoneBlank(dubboParam.getUrl())) {
                 reference.setUrl(dubboParam.getUrl());
+            }
+            if (StringUtils.isNoneBlank(dubboParam.getCluster())) {
+                reference.setCluster(dubboParam.getCluster());
             }
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);

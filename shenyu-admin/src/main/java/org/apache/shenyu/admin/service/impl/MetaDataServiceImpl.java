@@ -124,15 +124,17 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
 
+        int count = 0;
         Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>())
                 .stream().filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
+        if (CollectionUtils.isNotEmpty(idSet)) {
+            List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdSet(idSet);
+            List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(() -> new ArrayList<>())
+                    .stream().map(metaDataDO -> MetaDataTransfer.INSTANCE.mapToData(metaDataDO)).collect(Collectors.toList());
 
-        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdSet(idSet);
-        List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(() -> new ArrayList<>())
-                .stream().map(metaDataDO -> MetaDataTransfer.INSTANCE.mapToData(metaDataDO)).collect(Collectors.toList());
-
-        int count = metaDataMapper.deleteByIdSet(idSet);
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
+            count = metaDataMapper.deleteByIdSet(idSet);
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
+        }
 
         return count;
     }
@@ -142,6 +144,9 @@ public class MetaDataServiceImpl implements MetaDataService {
 
         Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>())
                 .stream().filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(idSet)) {
+            return AdminConstants.ID_NOT_EXIST;
+        }
         List<MetaDataDO> metaDataDoList = Optional.ofNullable(metaDataMapper.selectByIdSet(idSet)).orElseGet(() -> new ArrayList<>());
         if (idSet.size() != metaDataDoList.size()) {
             return AdminConstants.ID_NOT_EXIST;

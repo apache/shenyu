@@ -49,7 +49,7 @@ import java.util.Objects;
 /**
  * Abstract strategy.
  */
-public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuClientRegisterService {
+public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
     
     /**
      * The Event publisher.
@@ -100,7 +100,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     /**
      * Build handle string.
      *
-     * @param uriList the uri list
+     * @param uriList    the uri list
      * @param selectorDO the selector do
      * @return the string
      */
@@ -135,16 +135,17 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
      * Register uri string.
      *
      * @param selectorName the selector name
-     * @param uriList the uri list
+     * @param uriList      the uri list
      * @return the string
      */
     @Override
-    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+    public String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
         SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
         if (Objects.isNull(selectorDO)) {
+            this.recover(selectorName, uriList);
             return "";
         }
         // fetch UPSTREAM_MAP data from db
@@ -191,7 +192,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     /**
      * Do submit.
      *
-     * @param selectorId the selector id
+     * @param selectorId   the selector id
      * @param upstreamList the upstream list
      */
     protected void doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
@@ -202,7 +203,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     /**
      * Build context path default rule dto rule dto.
      *
-     * @param selectorId the selector id
+     * @param selectorId  the selector id
      * @param metaDataDTO the meta data dto
      * @param ruleHandler the rule handler
      * @return the rule dto

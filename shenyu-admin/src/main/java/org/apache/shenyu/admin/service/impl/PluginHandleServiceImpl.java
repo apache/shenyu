@@ -88,9 +88,12 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     @Transactional(rollbackFor = Exception.class)
     public Integer deletePluginHandles(final List<String> ids) {
 
+        int ret = 0;
         Set<String> idSet = new HashSet<>(Optional.ofNullable(ids).orElseGet(ArrayList::new));
-
-        return pluginHandleMapper.deleteByIdSet(idSet);
+        if (CollectionUtils.isNotEmpty(idSet)) {
+            ret = pluginHandleMapper.deleteByIdSet(idSet);
+        }
+        return ret;
     }
 
     @Override
