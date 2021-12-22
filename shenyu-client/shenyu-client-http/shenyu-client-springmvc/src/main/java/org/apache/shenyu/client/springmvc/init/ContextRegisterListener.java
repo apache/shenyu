@@ -97,9 +97,9 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             .appName(appName)
             .protocol(protocol)
             .host(IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host))
-                .port(port)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .build();
+            .port(port)
+            .rpcType(RpcTypeEnum.HTTP.getName())
+            .build();
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
