@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.agent.core.yaml;
 
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -28,6 +29,12 @@ import java.io.InputStreamReader;
  * The type Shenyu yaml engine.
  */
 public final class ShenyuYamlEngine {
+    
+    private static final DumperOptions DUMPER_OPTIONS = new DumperOptions();
+
+    static {
+        DUMPER_OPTIONS.setLineBreak(DumperOptions.LineBreak.getPlatformLineBreak());
+    }
     
     /**
      * Unmarshal t.
@@ -43,7 +50,7 @@ public final class ShenyuYamlEngine {
                 FileInputStream fileInputStream = new FileInputStream(yamlFile);
                 InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream)
         ) {
-            return new Yaml().loadAs(inputStreamReader, classType);
+            return new Yaml(DUMPER_OPTIONS).loadAs(inputStreamReader, classType);
         }
     }
 }
