@@ -15,22 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.api.handler;
 
-import java.lang.instrument.Instrumentation;
+import org.apache.shenyu.agent.api.entity.TargetObject;
 
 /**
- * The type Shenyu agent bootstrap.
+ * The interface Class constructor handler.
  */
-public class ShenyuAgentBootstrap {
+public interface ConstructorHandler {
     
     /**
-     * Premain for instrumentation.
+     * On constructor.
      *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     * @throws Exception the exception
+     * @param target the target
+     * @param args the args
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
-    }
+    void onConstructor(TargetObject target, Object[] args);
 }

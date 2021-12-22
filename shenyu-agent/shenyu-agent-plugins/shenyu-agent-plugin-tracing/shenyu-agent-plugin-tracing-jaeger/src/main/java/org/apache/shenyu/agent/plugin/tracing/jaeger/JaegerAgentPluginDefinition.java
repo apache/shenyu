@@ -15,22 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.plugin.tracing.jaeger;
 
-import java.lang.instrument.Instrumentation;
+import org.apache.shenyu.agent.api.spi.AgentPluginDefinition;
+import org.apache.shenyu.spi.Join;
 
 /**
- * The type Shenyu agent bootstrap.
+ * JaegerAgentPluginDefinition.
  */
-public class ShenyuAgentBootstrap {
+@Join
+public class JaegerAgentPluginDefinition implements AgentPluginDefinition {
     
-    /**
-     * Premain for instrumentation.
-     *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     * @throws Exception the exception
-     */
-    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
-    }
 }

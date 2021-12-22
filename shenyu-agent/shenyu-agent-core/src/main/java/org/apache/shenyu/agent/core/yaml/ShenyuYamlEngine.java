@@ -15,22 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.core.yaml;
 
-import java.lang.instrument.Instrumentation;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
- * The type Shenyu agent bootstrap.
+ * The type Shenyu yaml engine.
  */
-public class ShenyuAgentBootstrap {
+public final class ShenyuYamlEngine {
     
     /**
-     * Premain for instrumentation.
+     * Unmarshal t.
      *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     * @throws Exception the exception
+     * @param <T> the type parameter
+     * @param yamlFile the yaml file
+     * @param classType the class type
+     * @return the t
+     * @throws IOException the io exception
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
+    public static <T> T unmarshal(final File yamlFile, final Class<T> classType) throws IOException {
+        try (
+                FileInputStream fileInputStream = new FileInputStream(yamlFile);
+                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream)
+        ) {
+            return new Yaml().loadAs(inputStreamReader, classType);
+        }
     }
 }

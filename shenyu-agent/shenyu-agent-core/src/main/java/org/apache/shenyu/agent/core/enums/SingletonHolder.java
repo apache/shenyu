@@ -15,22 +15,41 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.bootstrap;
+package org.apache.shenyu.agent.core.enums;
 
-import java.lang.instrument.Instrumentation;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The type Shenyu agent bootstrap.
+ * The enum Singleton holder.
  */
-public class ShenyuAgentBootstrap {
+public enum SingletonHolder {
     
     /**
-     * Premain for instrumentation.
-     *
-     * @param arguments arguments
-     * @param instrumentation instrumentation
-     * @throws Exception the exception
+     * Instance singleton.
      */
-    public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
+    INSTANCE;
+    
+    private static final Map<String, Object> SINGLES = new ConcurrentHashMap<>();
+    
+    /**
+     * Put entity object.
+     *
+     * @param entity entity object
+     */
+    public void put(final Object entity) {
+        SINGLES.put(entity.getClass().getName(), entity);
+    }
+    
+    /**
+     * Get object.
+     *
+     * @param <T> type parameter
+     * @param clazz clazz
+     * @return object t
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get(final Class<T> clazz) {
+        return (T) SINGLES.get(clazz.getName());
     }
 }
