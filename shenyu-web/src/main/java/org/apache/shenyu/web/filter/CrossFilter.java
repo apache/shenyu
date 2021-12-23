@@ -58,8 +58,13 @@ public class CrossFilter implements WebFilter {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
             // "Access-Control-Allow-Origin"
-            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-                    this.filterConfig.getAllowedOrigin());
+            // if the allowed origin is empty use the request 's origin
+            if (StringUtils.isBlank(this.filterConfig.getAllowedOrigin())) {
+                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.getHeaders().getOrigin());
+            } else {
+                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                        this.filterConfig.getAllowedOrigin());
+            }
             // "Access-Control-Allow-Methods"
             this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
                     this.filterConfig.getAllowedMethods());
