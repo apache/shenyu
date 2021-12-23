@@ -24,61 +24,70 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * The type Extension loader.
  * This is done by loading the properties file.
  *
+ * @param <T> the type parameter
  * @see <a href="https://github.com/apache/dubbo/blob/master/dubbo-common/src/main/java/org/apache/dubbo/common/extension/ExtensionLoader.java">ExtensionLoader</a>
  */
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ExtensionLoader.class);
-
+    
     private static final String SHENYU_DIRECTORY = "META-INF/shenyu/";
-
+    
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
-
+    
     private final Class<T> clazz;
-
+    
+    private final ClassLoader classLoader;
+    
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
-
+    
     private final Map<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<>();
-
+    
     private final Map<Class<?>, Object> joinInstances = new ConcurrentHashMap<>();
-
+    
     private String cachedDefaultName;
-
+    
     /**
      * Instantiates a new Extension loader.
      *
      * @param clazz the clazz.
      */
-    private ExtensionLoader(final Class<T> clazz) {
+    private ExtensionLoader(final Class<T> clazz, final ClassLoader cl) {
         this.clazz = clazz;
+        this.classLoader = cl;
         if (!Objects.equals(clazz, ExtensionFactory.class)) {
             ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getExtensionClasses();
         }
     }
-
+    
     /**
      * Gets extension loader.
      *
      * @param <T>   the type parameter
      * @param clazz the clazz
+     * @param cl    the cl
      * @return the extension loader.
      */
-    public static <T> ExtensionLoader<T> getExtensionLoader(final Class<T> clazz) {
-
+    public static <T> ExtensionLoader<T> getExtensionLoader(final Class<T> clazz, final ClassLoader cl) {
+        
         Objects.requireNonNull(clazz, "extension clazz is null");
-
+        
         if (!clazz.isInterface()) {
             throw new IllegalArgumentException("extension clazz (" + clazz + ") is not interface!");
         }
@@ -89,10 +98,21 @@ public final class ExtensionLoader<T> {
         if (Objects.nonNull(extensionLoader)) {
             return extensionLoader;
         }
-        LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz));
+        LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz, cl));
         return (ExtensionLoader<T>) LOADERS.get(clazz);
     }
-
+    
+    /**
+     * Gets extension loader.
+     *
+     * @param <T>   the type parameter
+     * @param clazz the clazz
+     * @return the extension loader
+     */
+    public static <T> ExtensionLoader<T> getExtensionLoader(final Class<T> clazz) {
+        return getExtensionLoader(clazz, ExtensionLoader.class.getClassLoader());
+    }
+    
     /**
      * Gets default join.
      *
@@ -105,7 +125,7 @@ public final class ExtensionLoader<T> {
         }
         return getJoin(cachedDefaultName);
     }
-
+    
     /**
      * Gets join.
      *
@@ -133,7 +153,30 @@ public final class ExtensionLoader<T> {
         }
         return (T) value;
     }
-
+    
+    /**
+     * get all join spi.
+     *
+     * @return list. joins
+     */
+    public List<T> getJoins() {
+        Map<String, Class<?>> extensionClasses = this.getExtensionClasses();
+        if (extensionClasses.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (Objects.equals(extensionClasses.size(), cachedInstances.size())) {
+            return (List<T>) this.cachedInstances.values().stream().map(e -> {
+                return e.getValue();
+            }).collect(Collectors.toList());
+        }
+        List<T> joins = new ArrayList<>();
+        extensionClasses.forEach((name, v) -> {
+            T join = this.getJoin(name);
+            joins.add(join);
+        });
+        return joins;
+    }
+    
     @SuppressWarnings("unchecked")
     private T createExtension(final String name) {
         Class<?> aClass = getExtensionClasses().get(name);
@@ -148,12 +191,12 @@ public final class ExtensionLoader<T> {
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new IllegalStateException("Extension instance(name: " + name + ", class: "
                         + aClass + ")  could not be instantiated: " + e.getMessage(), e);
-
+                
             }
         }
         return (T) o;
     }
-
+    
     /**
      * Gets extension classes.
      *
@@ -172,7 +215,7 @@ public final class ExtensionLoader<T> {
         }
         return classes;
     }
-
+    
     private Map<String, Class<?>> loadExtensionClass() {
         SPI annotation = clazz.getAnnotation(SPI.class);
         if (Objects.nonNull(annotation)) {
@@ -185,15 +228,14 @@ public final class ExtensionLoader<T> {
         loadDirectory(classes);
         return classes;
     }
-
+    
     /**
      * Load files under SHENYU_DIRECTORY.
      */
     private void loadDirectory(final Map<String, Class<?>> classes) {
         String fileName = SHENYU_DIRECTORY + clazz.getName();
         try {
-            ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
-            Enumeration<URL> urls = Objects.nonNull(classLoader) ? classLoader.getResources(fileName)
+            Enumeration<URL> urls = Objects.nonNull(this.classLoader) ? classLoader.getResources(fileName)
                     : ClassLoader.getSystemResources(fileName);
             if (Objects.nonNull(urls)) {
                 while (urls.hasMoreElements()) {
@@ -205,7 +247,7 @@ public final class ExtensionLoader<T> {
             LOG.error("load extension class error {}", fileName, t);
         }
     }
-
+    
     private void loadResources(final Map<String, Class<?>> classes, final URL url) throws IOException {
         try (InputStream inputStream = url.openStream()) {
             Properties properties = new Properties();
@@ -225,7 +267,7 @@ public final class ExtensionLoader<T> {
             throw new IllegalStateException("load extension resources error", e);
         }
     }
-
+    
     private void loadClass(final Map<String, Class<?>> classes,
                            final String name, final String classPath) throws ClassNotFoundException {
         Class<?> subClass = Class.forName(classPath);
@@ -243,16 +285,16 @@ public final class ExtensionLoader<T> {
             throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + " name " + name + " on " + oldClass.getName() + " or " + subClass.getName());
         }
     }
-
+    
     /**
      * The type Holder.
      *
      * @param <T> the type parameter.
      */
     public static class Holder<T> {
-
+        
         private volatile T value;
-
+        
         /**
          * Gets value.
          *
@@ -261,7 +303,7 @@ public final class ExtensionLoader<T> {
         public T getValue() {
             return value;
         }
-
+        
         /**
          * Sets value.
          *
