@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,6 +64,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @PostMapping("/apply")
+    @RequiresPermissions("system:authen:add")
     public ShenyuAdminResult apply(@RequestBody final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isNoneBlank(authApplyDTO.getAppKey())) {
             return appAuthService.applyUpdate(authApplyDTO);
@@ -92,6 +94,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @GetMapping("/findPageByQuery")
+    @RequiresPermissions("system:authen:list")
     public ShenyuAdminResult findPageByQuery(final String appKey, final String phone, final Integer currentPage, final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
@@ -108,6 +111,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @GetMapping("/detail")
+    @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detail(@RequestParam("id") final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
@@ -119,6 +123,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @PostMapping("/updateDetail")
+    @RequiresPermissions("system:authen:edit")
     public ShenyuAdminResult updateDetail(@RequestBody final AppAuthDTO appAuthDTO) {
         return appAuthService.updateDetail(appAuthDTO);
     }
@@ -130,6 +135,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @GetMapping("/detailPath")
+    @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detailPath(@RequestParam("id") final @NotBlank String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(id));
     }
@@ -141,6 +147,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @PostMapping("/updateDetailPath")
+    @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult updateDetailPath(@RequestBody final AuthPathWarpDTO authPathWarpDTO) {
         return appAuthService.updateDetailPath(authPathWarpDTO);
     }
@@ -152,6 +159,7 @@ public class AppAuthController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/batchDelete")
+    @RequiresPermissions("system:authen:delete")
     public ShenyuAdminResult batchDelete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = appAuthService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
@@ -164,6 +172,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @PostMapping("/batchEnabled")
+    @RequiresPermissions("system:authen:disable")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         final String result = appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
@@ -178,6 +187,7 @@ public class AppAuthController {
      * @return the shenyu result
      */
     @PostMapping("/syncData")
+    @RequiresPermissions("system:authen:modify")
     public ShenyuAdminResult syncData() {
         return appAuthService.syncData();
     }
