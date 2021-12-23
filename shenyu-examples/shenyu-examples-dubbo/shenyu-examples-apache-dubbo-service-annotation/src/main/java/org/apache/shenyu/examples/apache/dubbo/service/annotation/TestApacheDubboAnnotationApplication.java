@@ -27,7 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @EnableDubbo
 public class TestApacheDubboAnnotationApplication {
-
+    
     /**
      * Main Entrance.
      *
