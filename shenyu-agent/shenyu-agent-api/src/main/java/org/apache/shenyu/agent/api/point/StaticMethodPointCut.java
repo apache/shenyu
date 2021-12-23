@@ -21,6 +21,8 @@ package org.apache.shenyu.agent.api.point;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
+import java.util.List;
+
 /**
  * The type Class static method point cut.
  */
@@ -28,17 +30,17 @@ public final class StaticMethodPointCut {
     
     private final ElementMatcher<? super MethodDescription> matcher;
     
-    private final String handler;
+    private final List<String> handlers;
     
     /**
      * Instantiates a new Class static method point cut.
      *
      * @param matcher the matcher
-     * @param handler the handler
+     * @param handlers the handlers
      */
-    public StaticMethodPointCut(final ElementMatcher<? super MethodDescription> matcher, final String handler) {
+    public StaticMethodPointCut(final ElementMatcher<? super MethodDescription> matcher, final List<String> handlers) {
         this.matcher = matcher;
-        this.handler = handler;
+        this.handlers = handlers;
     }
     
     /**
@@ -51,11 +53,11 @@ public final class StaticMethodPointCut {
     }
     
     /**
-     * Gets handler.
+     * Gets handlers.
      *
-     * @return the handler
+     * @return the handlers
      */
-    public String getHandler() {
-        return handler;
+    public List<String> getHandlers() {
+        return handlers;
     }
 }

@@ -168,7 +168,7 @@ public final class ShenyuAgentJoinPoint {
             
             private final JoinPointBuilder builder;
             
-            private String classTarget;
+            private List<String> handlers;
             
             private final ElementMatcher<? super MethodDescription> matcher;
             
@@ -178,13 +178,13 @@ public final class ShenyuAgentJoinPoint {
             }
     
             /**
-             * Handler instance method point builder.
+             * Handlers instance method point builder.
              *
-             * @param classTarget the class target
+             * @param handlers the handlers
              * @return the instance method point builder
              */
-            public InstanceMethodPointBuilder handler(final String classTarget) {
-                this.classTarget = classTarget;
+            public InstanceMethodPointBuilder handlers(final List<String> handlers) {
+                this.handlers = handlers;
                 return this;
             }
     
@@ -194,7 +194,7 @@ public final class ShenyuAgentJoinPoint {
              * @return the join point builder
              */
             public JoinPointBuilder build() {
-                builder.instanceMethodPoints.add(new InstanceMethodPointCut(matcher, classTarget));
+                builder.instanceMethodPoints.add(new InstanceMethodPointCut(matcher, handlers));
                 return builder;
             }
         }
@@ -206,7 +206,7 @@ public final class ShenyuAgentJoinPoint {
             
             private final JoinPointBuilder builder;
             
-            private String classTarget;
+            private List<String> handlers;
             
             private final ElementMatcher<? super MethodDescription> matcher;
             
@@ -216,13 +216,13 @@ public final class ShenyuAgentJoinPoint {
             }
     
             /**
-             * Handler static method point builder.
+             * Handlers static method point builder.
              *
-             * @param classTarget the class target
+             * @param handlers the handlers
              * @return the static method point builder
              */
-            public StaticMethodPointBuilder handler(final String classTarget) {
-                this.classTarget = classTarget;
+            public StaticMethodPointBuilder handlers(final List<String> handlers) {
+                this.handlers = handlers;
                 return this;
             }
     
@@ -232,7 +232,7 @@ public final class ShenyuAgentJoinPoint {
              * @return the join point builder
              */
             public JoinPointBuilder build() {
-                builder.classStaticMethodPoints.add(new StaticMethodPointCut(matcher, classTarget));
+                builder.classStaticMethodPoints.add(new StaticMethodPointCut(matcher, handlers));
                 return builder;
             }
         }
@@ -246,7 +246,7 @@ public final class ShenyuAgentJoinPoint {
             
             private final ElementMatcher<? super MethodDescription> matcher;
 
-            private String classTarget;
+            private List<String> handlers;
             
             private ConstructorPointBuilder(final JoinPointBuilder builder, final ElementMatcher<? super MethodDescription> matcher) {
                 this.builder = builder;
@@ -254,13 +254,13 @@ public final class ShenyuAgentJoinPoint {
             }
     
             /**
-             * Handler constructor point builder.
+             * Handlers constructor point builder.
              *
-             * @param classTarget the class target
+             * @param handlers the handlers
              * @return the constructor point builder
              */
-            public ConstructorPointBuilder handler(final String classTarget) {
-                this.classTarget = classTarget;
+            public ConstructorPointBuilder handlers(final List<String> handlers) {
+                this.handlers = handlers;
                 return this;
             }
     
@@ -270,7 +270,7 @@ public final class ShenyuAgentJoinPoint {
              * @return the join point builder
              */
             public JoinPointBuilder build() {
-                builder.constructorPoints.add(new ConstructorPointCut(matcher, classTarget));
+                builder.constructorPoints.add(new ConstructorPointCut(matcher, handlers));
                 return builder;
             }
         }
