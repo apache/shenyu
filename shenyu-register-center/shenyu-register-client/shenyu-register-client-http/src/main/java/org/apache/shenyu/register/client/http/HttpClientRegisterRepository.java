@@ -48,6 +48,12 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
 
     private List<String> serverList;
 
+    public HttpClientRegisterRepository() { }
+
+    public HttpClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
+
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
@@ -74,7 +80,7 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
                 RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), server + path, type);
                 return;
             } catch (Exception e) {
-                LOGGER.error("register admin url :{} is fail, will retry", server);
+                LOGGER.error("register admin url :{} is fail, will retry, ex is :{}", server, e);
             }
         }
     }

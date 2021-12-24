@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sofa;
 
+import com.alipay.sofa.rpc.context.RpcInvokeContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -36,6 +37,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * The sofa plugin.
@@ -73,6 +77,8 @@ public class SofaPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.SOFA_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.SOFA_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
+        Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.SOFA.getName())).ifPresent(context -> RpcInvokeContext.getContext().putAllRequestBaggage(context));
         final Mono<Object> result = sofaProxyService.genericInvoker(param, metaData, exchange);
         return result.then(chain.execute(exchange));
     }

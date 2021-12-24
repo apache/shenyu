@@ -50,7 +50,7 @@ public interface Operator {
      * @return mono
      */
     default Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
-        if (outputMessage.getCache()) {
+        if (Boolean.TRUE.equals(outputMessage.getCache())) {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
         return Mono.error(throwable);
@@ -67,14 +67,10 @@ public interface Operator {
         DocumentContext context = JsonPath.parse(jsonValue);
         operation(context, paramMappingRuleHandle);
         if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getReplaceParameterKeys())) {
-            paramMappingRuleHandle.getReplaceParameterKeys().forEach(info -> {
-                context.renameKey(info.getPath(), info.getKey(), info.getValue());
-            });
+            paramMappingRuleHandle.getReplaceParameterKeys().forEach(info -> context.renameKey(info.getPath(), info.getKey(), info.getValue()));
         }
         if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getRemoveParameterKeys())) {
-            paramMappingRuleHandle.getRemoveParameterKeys().forEach(info -> {
-                context.delete(info);
-            });
+            paramMappingRuleHandle.getRemoveParameterKeys().forEach(context::delete);
         }
         return context.jsonString();
     }
@@ -87,9 +83,7 @@ public interface Operator {
      */
     default void operation(final DocumentContext context, final ParamMappingRuleHandle paramMappingRuleHandle) {
         if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys())) {
-            paramMappingRuleHandle.getAddParameterKeys().forEach(info -> {
-                context.put(info.getPath(), info.getKey(), info.getValue());
-            });
+            paramMappingRuleHandle.getAddParameterKeys().forEach(info -> context.put(info.getPath(), info.getKey(), info.getValue()));
         }
     }
 }

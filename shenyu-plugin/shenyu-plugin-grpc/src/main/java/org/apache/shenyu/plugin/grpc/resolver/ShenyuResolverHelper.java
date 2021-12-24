@@ -29,7 +29,6 @@ import java.net.InetSocketAddress;
 public final class ShenyuResolverHelper {
     
     private ShenyuResolverHelper() {
-    
     }
     
     /**

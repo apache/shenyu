@@ -24,6 +24,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
@@ -35,7 +36,6 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -84,13 +84,10 @@ public class HttpClientPluginConfiguration {
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .tcpConfiguration(tcpClient -> {
                     if (Objects.nonNull(properties.getConnectTimeout())) {
-                        tcpClient = tcpClient.option(
-                                ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                                properties.getConnectTimeout());
+                        tcpClient = tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
                     }
-                    // configure proxy if proxy host is set.
                     HttpClientProperties.Proxy proxy = properties.getProxy();
-                    if (StringUtils.hasText(proxy.getHost())) {
+                    if (StringUtils.isNotEmpty(proxy.getHost())) {
                         tcpClient = tcpClient.proxy(proxySpec -> {
                             ProxyProvider.Builder builder = proxySpec
                                     .type(ProxyProvider.Proxy.HTTP)
@@ -114,7 +111,8 @@ public class HttpClientPluginConfiguration {
                     return tcpClient;
                 });
         HttpClientProperties.Ssl ssl = properties.getSsl();
-        if (ArrayUtils.isNotEmpty(ssl.getTrustedX509CertificatesForTrustManager())
+        if (StringUtils.isNotEmpty(ssl.getKeyStorePath()) 
+                || ArrayUtils.isNotEmpty(ssl.getTrustedX509CertificatesForTrustManager())
                 || ssl.isUseInsecureTrustManager()) {
             httpClient = httpClient.secure(sslContextSpec -> {
                 // configure ssl.
@@ -124,9 +122,9 @@ public class HttpClientPluginConfiguration {
                 if (ArrayUtils.isNotEmpty(trustedX509Certificates)) {
                     sslContextBuilder.trustManager(trustedX509Certificates);
                 } else if (ssl.isUseInsecureTrustManager()) {
-                    sslContextBuilder
-                            .trustManager(InsecureTrustManagerFactory.INSTANCE);
+                    sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
                 }
+                sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
                 sslContextSpec.sslContext(sslContextBuilder)
                         .defaultConfiguration(ssl.getDefaultConfigurationType())
                         .handshakeTimeout(ssl.getHandshakeTimeout())

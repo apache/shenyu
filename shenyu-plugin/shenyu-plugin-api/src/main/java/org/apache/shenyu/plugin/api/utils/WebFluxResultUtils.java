@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.plugin.api.utils;
 
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ObjectTypeUtils;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.slf4j.Logger;
@@ -26,27 +27,49 @@ import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
  * The type Shenyu result utils.
  */
 public final class WebFluxResultUtils {
-
+    
+    /**
+     * result utils log.
+     */
     private static final Logger LOG = LoggerFactory.getLogger(WebFluxResultUtils.class);
+    
+    private WebFluxResultUtils() {
+    }
 
     /**
-     * Error mono.
+     * Response result.
      *
      * @param exchange the exchange
      * @param result    the result
-     * @return the mono
+     * @return the result
      */
     public static Mono<Void> result(final ServerWebExchange exchange, final Object result) {
-        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        if (Objects.isNull(result)) {
+            return Mono.empty();
+        }
+        final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
+        Object resultData = result;
+        // WebClientMessageWriter provide byte[] data, convert to string
+        if (result instanceof byte[]) {
+            resultData = new String((byte[]) result, StandardCharsets.UTF_8);
+        }
+        resultData = shenyuResult.format(exchange, resultData);
+        // basic data use text/plain
+        MediaType mediaType = MediaType.TEXT_PLAIN;
+        if (!ObjectTypeUtils.isBasicType(result)) {
+            mediaType = shenyuResult.contentType(exchange, resultData);
+        }
+        exchange.getResponse().getHeaders().setContentType(mediaType);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                // TODO this is a risk for error charset coding with getBytes
-                .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(result)).getBytes())));
+                        .bufferFactory().wrap(Objects.requireNonNull(shenyuResult.result(exchange, resultData)).toString().getBytes(StandardCharsets.UTF_8)))
+                .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
     }
 
     /**

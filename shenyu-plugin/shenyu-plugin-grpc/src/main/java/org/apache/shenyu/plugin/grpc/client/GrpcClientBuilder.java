@@ -21,6 +21,7 @@ import io.grpc.LoadBalancerRegistry;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.NameResolverRegistry;
+import org.apache.shenyu.plugin.grpc.intercept.ContextClientInterceptor;
 import org.apache.shenyu.plugin.grpc.loadbalance.LoadBalancerStrategy;
 import org.apache.shenyu.plugin.grpc.loadbalance.RandomLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.loadbalance.RoundRobinLoadBalancerProvider;
@@ -38,7 +39,6 @@ public final class GrpcClientBuilder {
     }
     
     private GrpcClientBuilder() {
-    
     }
     
     /**
@@ -49,6 +49,7 @@ public final class GrpcClientBuilder {
      */
     public static ShenyuGrpcClient buildClient(final String contextPath) {
         ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(contextPath)
+                .intercept(new ContextClientInterceptor())
                 .defaultLoadBalancingPolicy(LoadBalancerStrategy.RANDOM.getStrategy())
                 .usePlaintext()
                 .maxInboundMessageSize(100 * 1024 * 1024)

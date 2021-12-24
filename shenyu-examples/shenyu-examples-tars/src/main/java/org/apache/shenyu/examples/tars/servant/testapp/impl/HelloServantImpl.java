@@ -25,15 +25,16 @@ import org.apache.shenyu.examples.tars.servant.testapp.HelloServant;
 @TarsServant("HelloObj")
 @ShenyuTarsService(serviceName = "ShenyuExampleServer.ShenyuExampleApp.HelloObj")
 public class HelloServantImpl implements HelloServant {
+
     @Override
     @ShenyuTarsClient(path = "/hello", desc = "hello")
-    public String hello(int no, String name) {
+    public String hello(final int no, final String name) {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
 
     @Override
     @ShenyuTarsClient(path = "/helloInt", desc = "helloInt")
-    public int helloInt(int no, String name) {
+    public int helloInt(final int no, final String name) {
         return 1;
     }
 }

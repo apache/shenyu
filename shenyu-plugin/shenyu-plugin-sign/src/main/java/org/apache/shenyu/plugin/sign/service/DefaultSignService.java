@@ -83,11 +83,11 @@ public class DefaultSignService implements SignService {
      */
     private Pair<Boolean, String> sign(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
         final AppAuthData appAuthData = SignAuthDataCache.getInstance().obtainAuthData(shenyuContext.getAppKey());
-        if (Objects.isNull(appAuthData) || !appAuthData.getEnabled()) {
+        if (Objects.isNull(appAuthData) || Boolean.FALSE.equals(appAuthData.getEnabled())) {
             LOG.error("sign APP_kEY does not exist or has been disabled,{}", shenyuContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
-        if (appAuthData.getOpen()) {
+        if (Boolean.TRUE.equals(appAuthData.getOpen())) {
             List<AuthPathData> pathDataList = appAuthData.getPathDataList();
             if (CollectionUtils.isEmpty(pathDataList)) {
                 LOG.error("You have not configured the sign path:{}", shenyuContext.getAppKey());

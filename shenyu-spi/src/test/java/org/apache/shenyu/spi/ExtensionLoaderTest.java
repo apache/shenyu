@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.spi;
 
+import org.apache.shenyu.spi.fixture.ArrayListSPI;
+import org.apache.shenyu.spi.fixture.EmptySPI;
 import org.apache.shenyu.spi.fixture.HasDefaultSPI;
 import org.apache.shenyu.spi.fixture.JdbcSPI;
+import org.apache.shenyu.spi.fixture.LinkedListSPI;
+import org.apache.shenyu.spi.fixture.ListSPI;
 import org.apache.shenyu.spi.fixture.MysqlSPI;
 import org.apache.shenyu.spi.fixture.NoClassMatchSPI;
 import org.apache.shenyu.spi.fixture.NoJoinSPI;
@@ -32,20 +36,48 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+/**
+ * The type Extension loader test.
+ */
 public final class ExtensionLoaderTest {
     
+    /**
+     * Test spi.
+     */
     @Test
     public void testSPI() {
         JdbcSPI jdbcSPI = ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("mysql");
         assertThat(jdbcSPI.getClass().getName(), is(MysqlSPI.class.getName()));
+    }
+    
+    /**
+     * Test spi list.
+     */
+    @Test
+    public void testSPIList() {
+        List<ListSPI> joins = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoins();
+        assertEquals(joins.size(), 2);
+        assertThat(joins.get(0).getClass().getName(), is(ArrayListSPI.class.getName()));
+        assertThat(joins.get(1).getClass().getName(), is(LinkedListSPI.class.getName()));
+    }
+    
+    /**
+     * Test spi empty spi.
+     */
+    @Test
+    public void testSPIEmptySPI() {
+        List<EmptySPI> joins = ExtensionLoader.getExtensionLoader(EmptySPI.class).getJoins();
+        assertEquals(joins.size(), 0);
     }
     
     /**
@@ -173,7 +205,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("load extension resources error,class org.apache.shenyu.spi.fixture.SubNoJoinSPI with Join annotation"));
         }
     }
-
+    
     /**
      * test ExtensionLoader.getJoin() param SPI class can not instantiated case.
      */
@@ -190,6 +222,10 @@ public final class ExtensionLoaderTest {
     
     /**
      * test loadClass duplicate class case.
+     *
+     * @throws NoSuchMethodException     the no such method exception
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
      */
     @Test
     public void testLoadClassDuplicateKey() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -209,6 +245,10 @@ public final class ExtensionLoaderTest {
     
     /**
      * test loadResources url IO Exception case.
+     *
+     * @throws NoSuchMethodException  the no such method exception
+     * @throws MalformedURLException  the malformed url exception
+     * @throws IllegalAccessException the illegal access exception
      */
     @Test
     public void loadResourcesIOException()

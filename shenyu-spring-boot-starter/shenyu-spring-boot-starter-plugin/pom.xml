@@ -56,5 +56,6 @@
         <module>shenyu-spring-boot-starter-plugin-websocket</module>
         <module>shenyu-spring-boot-starter-plugin-dubbo</module>
         <module>shenyu-spring-boot-starter-plugin-uri</module>
+        <module>shenyu-spring-boot-starter-plugin-general-context</module>
     </modules>
 </project>

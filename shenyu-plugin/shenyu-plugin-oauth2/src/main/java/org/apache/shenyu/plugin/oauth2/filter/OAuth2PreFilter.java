@@ -53,9 +53,9 @@ public class OAuth2PreFilter implements WebFilter {
         this.matchers = matchers;
     }
 
-    @Nonnull
     @Override
-    public Mono<Void> filter(final ServerWebExchange serverWebExchange, @Nonnull final WebFilterChain webFilterChain) {
+    @Nonnull
+    public Mono<Void> filter(@Nonnull final ServerWebExchange serverWebExchange, @Nonnull final WebFilterChain webFilterChain) {
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.OAUTH2.getName());
         boolean enable = Objects.nonNull(pluginData) && pluginData.getEnabled();
         serverWebExchange.getAttributes().put("enable", enable);
@@ -66,7 +66,7 @@ public class OAuth2PreFilter implements WebFilter {
     }
 
     private void processPathMatchers(final ServerWebExchange serverWebExchange) {
-        if ((Boolean) serverWebExchange.getAttributes().get("enable")) {
+        if (Boolean.TRUE.equals(serverWebExchange.getAttributes().get("enable"))) {
             this.buildPathMatchers(serverWebExchange);
         } else {
             this.refreshPathMatchers();

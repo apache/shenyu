@@ -17,8 +17,25 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttPubAckMessage;
+import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static io.netty.handler.codec.mqtt.MqttMessageType.PUBACK;
 
 /**
  * Publish message.
@@ -27,6 +44,69 @@ public class Publish extends MessageType {
 
     @Override
     public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
+        if (isConnected()) {
+            return;
+        }
+        String topic = msg.variableHeader().topicName();
+        ByteBuf payload = msg.payload();
+        String message = byteBufToString(payload);
 
+        //// todo qos
+        MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
+        if (mqttQoS.value() > 0) {
+            Singleton.INST.get(TopicRepository.class).add(topic, message);
+        }
+        int packetId = msg.variableHeader().packetId();
+        CompletableFuture.runAsync(() -> send(topic, payload, packetId));
+
+        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttMessageIdVariableHeader mqttMsgIdVariableHeader = MqttMessageIdVariableHeader.from(packetId);
+        MqttPubAckMessage mqttPubAckMessage = new MqttPubAckMessage(mqttFixedHeader, mqttMsgIdVariableHeader);
+        ctx.writeAndFlush(mqttPubAckMessage);
+
+    }
+
+    /**
+     * todo qos0.
+     */
+    private void qos0() {
+
+    }
+
+    /**
+     * todo qos1.
+     */
+    private void qos1() {
+
+    }
+
+    /**
+     * todo qos2.
+     */
+    private void qos2() {
+
+    }
+
+    private String byteBufToString(final ByteBuf byteBuf) {
+        if (byteBuf.hasArray()) {
+            return new String(byteBuf.array(), byteBuf.arrayOffset() + byteBuf.readerIndex(), byteBuf.readableBytes());
+        } else {
+            byte[] bytes = new byte[byteBuf.readableBytes()];
+            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
+            return new String(bytes, 0, byteBuf.readableBytes());
+        }
+    }
+
+    private void send(final String topic, final ByteBuf payload, final int packetId) {
+        List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).get(topic);
+        //// todo thread pool
+        channels.parallelStream().forEach(channel -> {
+            if (channel.isActive()) {
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
+                MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(topic, packetId);
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, Unpooled.wrappedBuffer(payload));
+                channel.writeAndFlush(mqttPublishMessage);
+            }
+        });
     }
 }

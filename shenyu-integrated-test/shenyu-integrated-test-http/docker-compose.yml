@@ -46,7 +46,7 @@ services:
       timeout: 2s
       retries: 30
     ports:
-      - 8189:8189
+      - "8189:8189"
     depends_on:
       shenyu-integrated-test-http:
         condition: service_healthy
@@ -63,29 +63,30 @@ services:
       shenyu-redis:
         condition: service_healthy
     ports:
-      - 9095:9095
+      - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
-      - "shenyu.database.init_script=sql-script/h2/schema.sql"
+      - shenyu.database.init_script=sql-script/h2/schema.sql
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s
       retries: 30
-# from http plugin dockerfile
+
   shenyu-integrated-test-http:
     container_name: shenyu-integrated-test-http
     image: apache/shenyu-integrated-test-http:latest
-#    image: apache/shenyu-bootstrap:2.4.0-SNAPSHOT
     restart: always
     deploy:
       resources:
         limits:
           memory: 2048M
+    environment:
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket          
     depends_on:
       shenyu-admin:
         condition: service_healthy
     ports:
-      - 9195:9195
+      - "9195:9195"
     networks:
       - shenyu
     healthcheck:

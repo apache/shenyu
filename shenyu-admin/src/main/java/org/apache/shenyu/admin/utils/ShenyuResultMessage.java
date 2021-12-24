@@ -54,6 +54,8 @@ public final class ShenyuResultMessage {
 
     public static final String PLATFORM_LOGIN_ERROR = " username or password error";
 
+    public static final String LOGIN_USER_DISABLE_ERROR = " the user has already disabled.";
+
     public static final String PARAMETER_ERROR = "parameter error";
 
     public static final String UNIQUE_INDEX_CONFLICT_ERROR = "unique index conflict, please enter again";

@@ -42,15 +42,41 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByDictCodeAndDictName" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from shenyu_dict
+        where dict_code = #{dictCode,jdbcType=VARCHAR} and dict_name = #{dictName,jdbcType=VARCHAR}
+    </select>
+
     <select id="findByType" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from shenyu_dict where `type` = #{type,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByTypeBatch" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from shenyu_dict where `type` in
+        <foreach collection="typeSet" item="type"
+                 open="(" separator="," close=")">
+            #{type,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <delete id="delete" parameterType="java.lang.String">
         delete from shenyu_dict
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIdList">
+        delete from shenyu_dict
+        where id in
+        <foreach collection="idList" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">

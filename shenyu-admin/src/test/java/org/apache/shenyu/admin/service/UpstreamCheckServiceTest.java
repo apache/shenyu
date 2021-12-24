@@ -227,7 +227,7 @@ public final class UpstreamCheckServiceTest {
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
-        when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
+        when(selectorMapper.findByPluginIds(anyList())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
         upstreamCheckService.fetchUpstreamData();
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));

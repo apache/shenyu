@@ -88,7 +88,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort()))
+                .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }

@@ -78,7 +78,7 @@ public final class HystrixCommandOnThreadTest {
 
     @Test
     public void testGetCallBackUri() {
-        assertEquals(hystrixCommandOnThread.getCallBackUri().getHost(), "callback");
+        assertEquals("callback", hystrixCommandOnThread.getCallBackUri().getHost());
     }
 
     @Test(expected = NullPointerException.class)

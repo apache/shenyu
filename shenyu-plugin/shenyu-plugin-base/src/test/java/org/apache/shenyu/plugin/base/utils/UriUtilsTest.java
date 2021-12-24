@@ -35,7 +35,7 @@ public final class UriUtilsTest {
     @Test
     public void createUriTest() {
         URI uri = UriUtils.createUri("/SHENYU/TEST");
-        Assert.assertEquals(Objects.requireNonNull(uri).getPath(), "/SHENYU/TEST");
+        Assert.assertEquals("/SHENYU/TEST", Objects.requireNonNull(uri).getPath());
         Assert.assertNull(UriUtils.createUri(""));
     }
 }

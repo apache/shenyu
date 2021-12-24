@@ -43,9 +43,9 @@ import java.util.Objects;
  * ContextPath Plugin.
  */
 public class ContextPathPlugin extends AbstractShenyuPlugin {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ContextPathPlugin.class);
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -56,28 +56,26 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         String contextPath = contextMappingRuleHandle.getContextPath();
-        if (StringUtils.isNoneBlank(contextPath)) {
-            if (!shenyuContext.getPath().startsWith(contextPath)) {
-                LOG.error("the context path '{}' is invalid.", contextPath);
-                Object error = ShenyuResultWrap.error(ShenyuResultEnum.CONTEXT_PATH_ERROR.getCode(),
-                        String.format("%s [invalid context path:'%s']", ShenyuResultEnum.CONTEXT_PATH_ERROR.getMsg(), contextPath), null);
-                return WebFluxResultUtils.result(exchange, error);
-            }
+        if (StringUtils.isNoneBlank(contextPath) && !shenyuContext.getPath().startsWith(contextPath)) {
+            LOG.error("the context path '{}' is invalid.", contextPath);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CONTEXT_PATH_ERROR.getCode(),
+                    String.format("%s [invalid context path:'%s']", ShenyuResultEnum.CONTEXT_PATH_ERROR.getMsg(), contextPath), null);
+            return WebFluxResultUtils.result(exchange, error);
         }
         buildContextPath(shenyuContext, contextMappingRuleHandle);
         return chain.execute(exchange);
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.CONTEXT_PATH.getCode();
     }
-
+    
     @Override
     public String named() {
         return PluginEnum.CONTEXT_PATH.getName();
     }
-
+    
     @Override
     public boolean skip(final ServerWebExchange exchange) {
         return skip(exchange,
@@ -87,7 +85,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
                 RpcTypeEnum.MOTAN,
                 RpcTypeEnum.SOFA);
     }
-
+    
     /**
      * Build the context path and realUrl.
      *

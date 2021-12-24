@@ -109,7 +109,7 @@ public class WebClientPlugin implements ShenyuPlugin {
             List<String> acceptEncoding = httpHeaders.get(HttpHeaders.ACCEPT_ENCODING);
             if (CollectionUtils.isNotEmpty(acceptEncoding)) {
                 acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
-                acceptEncoding.remove("gzip");
+                acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
                 httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
             }
             httpHeaders.remove(HttpHeaders.HOST);

@@ -25,6 +25,10 @@ import org.junit.Test;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
@@ -187,6 +191,22 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    public void updateEnableByIdSet() {
+
+        final PluginDO pluginDO1 = PluginDO.buildPluginDO(buildPluginDTO());
+        int insertResult1 = pluginMapper.insert(pluginDO1);
+        assertThat(insertResult1, equalTo(1));
+
+        final PluginDO pluginDO = PluginDO.buildPluginDO(buildPluginDTO());
+        int insertResult = pluginMapper.insert(pluginDO);
+        assertThat(insertResult, equalTo(1));
+
+        Set<String> idSet = Stream.of(pluginDO1.getId(), pluginDO.getId()).collect(Collectors.toSet());
+        int count = pluginMapper.updateEnableByIdSet(idSet, !pluginDO.getEnabled());
+        assertThat(idSet.size(), equalTo(count));
+    }
+
+    @Test
     public void updateSelective() {
         final PluginDTO pluginDTO = buildPluginDTO();
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
@@ -220,7 +240,7 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
         pluginDTO.setEnabled(true);
         pluginDTO.setConfig("test-config");
         pluginDTO.setRole("1");
-        pluginDTO.setName("test-name");
+        pluginDTO.setName("test-name" + System.currentTimeMillis());
         return pluginDTO;
     }
 }
