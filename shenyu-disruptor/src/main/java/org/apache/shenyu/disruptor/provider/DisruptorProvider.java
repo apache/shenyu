@@ -61,6 +61,7 @@ public class DisruptorProvider<T> {
      *
      * @param ringBuffer the ring buffer
      * @param disruptor  the disruptor
+     * @param isOrderly  the orderly Whether to execute sequentially.
      */
     public DisruptorProvider(final RingBuffer<DataEvent<T>> ringBuffer, final Disruptor<DataEvent<T>> disruptor, final boolean isOrderly) {
         this.ringBuffer = ringBuffer;
