@@ -16,12 +16,34 @@
 #
 
 applicationName: shenyu-agent
-ignoredPluginNames:
+supports:
+  tracing:
+    - jaeger
+  metrics:
+    - promtheus
+  logging:
+    - elasticSearch
+  
 plugins:
-  Jaeger:
-    host: "localhost"
-    port: 5775
-    props:
-      SERVICE_NAME: "shenyu-agent"
-      JAEGER_SAMPLER_TYPE: "const"
-      JAEGER_SAMPLER_PARAM: "1"
+  tracing:
+    jaeger:
+      host: "localhost"
+      port: 5775
+      props:
+        SERVICE_NAME: "shenyu-agent"
+        JAEGER_SAMPLER_TYPE: "const"
+        JAEGER_SAMPLER_PARAM: "1"
+  metrics:
+    prometheus:
+      host: "localhost"
+      port: 8081
+      props:
+  logging:
+    elasticSearch:
+      host: "localhost"
+      port: 8082
+      props:
+    kafka:
+      host: "localhost"
+      port: 8082
+      props:

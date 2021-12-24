@@ -88,24 +88,25 @@ public final class ShenyuAgentTypeMatcher extends ElementMatcher.Junction.Abstra
      * Gets or create instance.
      *
      * @param <T> the type parameter
-     * @param adviceClassName the advice class name
+     * @param className the handler class name
      * @return the or create instance
      */
-    public <T> T getOrCreateInstance(final String adviceClassName) {
-        if (objectPool.containsKey(adviceClassName)) {
-            return (T) objectPool.get(adviceClassName);
+    @SuppressWarnings("unchecked")
+    public <T> T getOrCreateInstance(final String className) {
+        if (objectPool.containsKey(className)) {
+            return (T) objectPool.get(className);
         }
         lock.lock();
         try {
-            Object inst = objectPool.get(adviceClassName);
+            Object inst = objectPool.get(className);
             if (Objects.isNull(inst)) {
                 try {
-                    inst = Class.forName(adviceClassName, true, ShenyuAgentPluginLoader.getInstance()).newInstance();
+                    inst = Class.forName(className, true, ShenyuAgentPluginLoader.getInstance()).newInstance();
                 } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-                    LOG.error("class for name have exception ", ex);
+                    LOG.error("can not class for name to {}, exception is {} ", className, ex.getMessage());
                     return null;
                 }
-                objectPool.put(adviceClassName, inst);
+                objectPool.put(className, inst);
             }
             return (T) inst;
         } finally {
