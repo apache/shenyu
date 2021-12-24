@@ -17,6 +17,18 @@
 
 package org.apache.shenyu.agent.bootstrap;
 
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.dynamic.scaffold.TypeValidation;
+import net.bytebuddy.matcher.ElementMatchers;
+import org.apache.shenyu.agent.core.bytebuddy.listener.TransformListener;
+import org.apache.shenyu.agent.core.bytebuddy.matcher.ShenyuAgentTypeMatcher;
+import org.apache.shenyu.agent.core.bytebuddy.transformer.ShenyuAgentTransformer;
+import org.apache.shenyu.agent.core.loader.ShenyuAgentConfigLoader;
+import org.apache.shenyu.agent.core.loader.ShenyuAgentPluginLoader;
+import org.apache.shenyu.agent.core.plugin.PluginLifecycleManager;
+import org.apache.shenyu.agent.core.utils.ShenyuAgentConfigUtils;
+
 import java.lang.instrument.Instrumentation;
 
 /**
@@ -32,5 +44,17 @@ public class ShenyuAgentBootstrap {
      * @throws Exception the exception
      */
     public static void premain(final String arguments, final Instrumentation instrumentation) throws Exception {
+        ShenyuAgentConfigUtils.setConfig(ShenyuAgentConfigLoader.load());
+        ShenyuAgentPluginLoader.getInstance().loadAllPlugins();
+        AgentBuilder agentBuilder = new AgentBuilder.Default().with(new ByteBuddy().with(TypeValidation.ENABLED))
+                .ignore(ElementMatchers.isSynthetic())
+                .or(ElementMatchers.nameStartsWith("org.apache.shenyu.agent."));
+        agentBuilder.type(ShenyuAgentTypeMatcher.getInstance())
+                .transform(new ShenyuAgentTransformer())
+                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                .with(new TransformListener()).installOn(instrumentation);
+        PluginLifecycleManager lifecycleManager = new PluginLifecycleManager();
+        lifecycleManager.startup(ShenyuAgentConfigUtils.getPluginConfigMap());
+        Runtime.getRuntime().addShutdownHook(new Thread(lifecycleManager::close));
     }
 }
