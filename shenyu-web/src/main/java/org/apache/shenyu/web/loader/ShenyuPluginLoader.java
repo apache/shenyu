@@ -143,7 +143,6 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
     
     @Override
-
     protected Enumeration<URL> findResources(final String name) {
         List<URL> resources = Lists.newArrayList();
         for (PluginJar each : jars) {
