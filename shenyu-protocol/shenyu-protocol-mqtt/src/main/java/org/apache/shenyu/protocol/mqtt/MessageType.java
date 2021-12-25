@@ -28,7 +28,7 @@ import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
  */
 public class MessageType implements AbstractMessageType {
 
-    private boolean connected;
+    private volatile boolean connected;
 
     /**
      * isConnected.
