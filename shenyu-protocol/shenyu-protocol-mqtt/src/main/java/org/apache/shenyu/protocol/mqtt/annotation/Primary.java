@@ -15,17 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.protocol.mqtt;
+package org.apache.shenyu.protocol.mqtt.annotation;
 
-import io.netty.channel.ChannelHandlerContext;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Publish acknowledgment.
+ * Polymorphism of mqtt flag.
  */
-public class PubAck extends MessageType {
-
-    @Override
-    public void pubAck(final ChannelHandlerContext ctx) {
-
-    }
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Primary {
 }
