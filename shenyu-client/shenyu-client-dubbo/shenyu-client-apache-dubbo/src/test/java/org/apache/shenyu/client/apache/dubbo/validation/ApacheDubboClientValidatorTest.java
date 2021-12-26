@@ -21,8 +21,16 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.validation.Validator;
 import org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.ValidationException;
 import java.util.Collections;
@@ -30,15 +38,35 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+
 /**
  * Test case for {@link ApacheDubboClientValidator}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ApacheDubboClientValidator.class)
 public final class ApacheDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL =
             "mock://localhost:28000/org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidatorTarget";
 
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
     private ApacheDubboClientValidator apacheDubboClientValidatorUnderTest;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ApacheDubboClientValidator.class))
+                .thenReturn(mock(Logger.class));
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
+
 
     /**
      * test method {@link ApacheDubboClientValidator#validate(java.lang.String, java.lang.Class[], java.lang.Object[])}.

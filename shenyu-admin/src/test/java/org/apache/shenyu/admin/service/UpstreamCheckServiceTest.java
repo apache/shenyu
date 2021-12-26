@@ -42,8 +42,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,13 +65,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for UpstreamCheckService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
 @PrepareForTest(UpstreamCheckService.class)
 public final class UpstreamCheckServiceTest {
 
@@ -82,8 +82,6 @@ public final class UpstreamCheckServiceTest {
     private static final String MOCK_SELECTOR_NAME_OTHER = "mockSelectorNameOther";
 
     private static final String MOCK_PLUGIN_ID = "mockPluginId";
-
-    private static Logger loggerSpy;
 
     private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
@@ -111,10 +109,11 @@ public final class UpstreamCheckServiceTest {
 
     @BeforeClass
     public static void beforeClass() {
-        loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
+        final Logger loggerMock = mock(Logger.class);
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckService.class)).thenReturn(loggerSpy);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckService.class)).thenReturn(loggerMock);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckUtils.class)).thenReturn(loggerMock);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerMock);
     }
 
     @AfterClass

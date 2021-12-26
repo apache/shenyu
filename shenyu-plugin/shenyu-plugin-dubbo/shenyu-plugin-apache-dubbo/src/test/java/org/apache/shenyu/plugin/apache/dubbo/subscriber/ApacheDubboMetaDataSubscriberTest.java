@@ -19,24 +19,49 @@ package org.apache.shenyu.plugin.apache.dubbo.subscriber;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockedStatic;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * The Test Case For ApacheDubboMetaDataSubscriber.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ApacheDubboConfigCache.class)
+@PowerMockIgnore("org.apache.dubbo.*")
 public final class ApacheDubboMetaDataSubscriberTest {
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
     private ApacheDubboMetaDataSubscriber apacheDubboMetaDataSubscriber;
 
     private MetaData metaData;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ApacheDubboConfigCache.class))
+                .thenReturn(mock(Logger.class));
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
     public void setUp() {

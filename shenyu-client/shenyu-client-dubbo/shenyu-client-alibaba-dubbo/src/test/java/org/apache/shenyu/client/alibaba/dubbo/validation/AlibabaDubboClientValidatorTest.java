@@ -19,7 +19,15 @@ package org.apache.shenyu.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidationParameter;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.ValidationException;
 import java.util.Collections;
@@ -27,13 +35,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+
 /**
  * Test case for {@link AlibabaDubboClientValidation}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AlibabaDubboClientValidator.class)
 public final class AlibabaDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL =
             "mock://test:28000/org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidatorTarget";
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(AlibabaDubboClientValidator.class))
+                .thenReturn(mock(Logger.class));
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Test(expected = NoSuchMethodException.class)
     public void testItWithNonExistMethod() throws Exception {

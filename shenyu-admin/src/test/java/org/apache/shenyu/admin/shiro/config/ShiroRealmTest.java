@@ -22,22 +22,30 @@ import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.shiro.bean.StatelessToken;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-    
+import org.mockito.MockedStatic;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashSet;
 import java.util.Set;
-    
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -45,26 +53,43 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test cases for {@link ShiroRealm}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(JwtUtils.class)
+@PowerMockIgnore("javax.crypto.*")
 public final class ShiroRealmTest {
     
     private static final String PASSWORD = "123456";
-    
+
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
     @Rule
     public final ExpectedException exception = ExpectedException.none();
-    
+
     @InjectMocks
     private ShiroRealm shiroRealm;
     
     @Mock
     private PermissionService permissionService;
-    
+
     @Mock
     private DashboardUserService dashboardUserService;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(JwtUtils.class))
+                .thenReturn(mock(Logger.class));
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Test
     public void testSupports() {

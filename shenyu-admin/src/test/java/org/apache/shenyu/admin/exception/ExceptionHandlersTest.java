@@ -28,8 +28,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -48,19 +48,17 @@ import java.util.Set;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link ExceptionHandlers}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
 @PrepareForTest(ExceptionHandlers.class)
 public final class ExceptionHandlersTest {
-
-    private static Logger loggerSpy;
 
     private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
 
@@ -68,9 +66,9 @@ public final class ExceptionHandlersTest {
 
     @BeforeClass
     public static void beforeClass() {
-        loggerSpy = spy(LoggerFactory.getLogger(ExceptionHandlers.class));
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ExceptionHandlers.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger((Class<?>) any()))
+                .thenReturn(mock(Logger.class));
     }
 
     @AfterClass

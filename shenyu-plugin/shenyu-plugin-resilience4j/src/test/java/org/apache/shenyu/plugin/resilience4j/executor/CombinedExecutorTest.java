@@ -21,23 +21,44 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockedStatic;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.any;
 
 /**
  * CombinedExecutor test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
 public final class CombinedExecutorTest {
 
+    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
+
     private CombinedExecutor combinedExecutor;
+
+    @BeforeClass
+    public static void beforeClass() {
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger((Class<?>) any()))
+                .thenReturn(mock(Logger.class));
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        loggerFactoryMockedStatic.close();
+    }
 
     @Before
     public void setUp() {

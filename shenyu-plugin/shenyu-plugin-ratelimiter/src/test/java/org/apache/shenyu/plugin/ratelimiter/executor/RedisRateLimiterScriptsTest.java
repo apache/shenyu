@@ -29,6 +29,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import reactor.core.publisher.Flux;
@@ -56,8 +58,8 @@ public class RedisRateLimiterScriptsTest {
                 .setting("maxmemory 64m")
                 .build();
         redisServer.start();
-        RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
-        RateLimiterConfig config = new RateLimiterConfig();
+        final RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
+        final RateLimiterConfig config = new RateLimiterConfig();
         config.setUrl("127.0.0.1:63792");
         PluginData pluginData = PluginData.builder()
                 .enabled(true)
@@ -132,7 +134,20 @@ public class RedisRateLimiterScriptsTest {
     }
 
     @AfterClass
-    public static void end() {
+    public static void end() throws Exception {
         redisServer.stop();
+        disposeConnection();
+    }
+
+    private static void disposeConnection() throws Exception {
+        final ReactiveRedisTemplate template = Singleton.INST.get(ReactiveRedisTemplate.class);
+        if (template == null) {
+            return;
+        }
+        // release LettuceConnectionFactory resource
+        final ReactiveRedisConnectionFactory connectionFactory = template.getConnectionFactory();
+        if (connectionFactory instanceof DisposableBean) {
+            ((DisposableBean) connectionFactory).destroy();
+        }
     }
 }
