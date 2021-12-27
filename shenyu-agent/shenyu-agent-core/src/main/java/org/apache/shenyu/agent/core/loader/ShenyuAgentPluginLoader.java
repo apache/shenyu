@@ -20,7 +20,6 @@ package org.apache.shenyu.agent.core.loader;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint;
-import org.apache.shenyu.agent.api.spi.AbstractAgentPluginDefinition;
 import org.apache.shenyu.agent.api.spi.AgentPluginDefinition;
 import org.apache.shenyu.agent.core.bytebuddy.matcher.ShenyuAgentTypeMatcher;
 import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
@@ -163,20 +162,17 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
     
     private void loadAgentPluginDefinition(final Map<String, ShenyuAgentJoinPoint> pointMap) {
         SPILoader.loadList(AgentPluginDefinition.class)
-                .forEach(each -> {
-                    AbstractAgentPluginDefinition definition = (AbstractAgentPluginDefinition) each;
-                    definition.collector().forEach(def -> {
-                        String classTarget = def.getClassTarget();
-                        if (pointMap.containsKey(classTarget)) {
-                            ShenyuAgentJoinPoint pluginInterceptorPoint = pointMap.get(classTarget);
-                            pluginInterceptorPoint.getConstructorPoints().addAll(def.getConstructorPoints());
-                            pluginInterceptorPoint.getInstanceMethodPoints().addAll(def.getInstanceMethodPoints());
-                            pluginInterceptorPoint.getStaticMethodPoints().addAll(def.getStaticMethodPoints());
-                        } else {
-                            pointMap.put(classTarget, def);
-                        }
-                    });
-                });
+                .forEach(each -> each.collector().forEach(def -> {
+                    String classTarget = def.getClassTarget();
+                    if (pointMap.containsKey(classTarget)) {
+                        ShenyuAgentJoinPoint pluginInterceptorPoint = pointMap.get(classTarget);
+                        pluginInterceptorPoint.getConstructorPoints().addAll(def.getConstructorPoints());
+                        pluginInterceptorPoint.getInstanceMethodPoints().addAll(def.getInstanceMethodPoints());
+                        pluginInterceptorPoint.getStaticMethodPoints().addAll(def.getStaticMethodPoints());
+                    } else {
+                        pointMap.put(classTarget, def);
+                    }
+                }));
     }
     
     private String classNameToPath(final String className) {

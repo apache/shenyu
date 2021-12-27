@@ -21,46 +21,25 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-agent-plugins</artifactId>
+        <artifactId>shenyu-agent-plugin-tracing</artifactId>
         <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-agent-plugin-tracing</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>shenyu-agent-plugin-tracing-jaeger</module>
-        <module>shenyu-agent-plugin-tracing-common</module>
-    </modules>
-
-    <properties>
-        <tracing.target.directory>${project.basedir}/../target/plugins</tracing.target.directory>
-        <jaeger-client.version>0.31.0</jaeger-client.version>
-        <opentracing.version>0.31.0</opentracing.version>
-    </properties>
-
+    <artifactId>shenyu-agent-plugin-tracing-common</artifactId>
+    
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-agent-api</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-agent-core</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <configuration>
-                    <outputFile>${tracing.target.directory}/${project.build.finalName}</outputFile>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>
