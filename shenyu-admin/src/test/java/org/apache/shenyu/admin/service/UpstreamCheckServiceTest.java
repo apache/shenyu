@@ -42,6 +42,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -73,6 +74,7 @@ import static org.mockito.Mockito.mock;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UpstreamCheckService.class)
+@PowerMockIgnore({"java.lang.*", "java.util.*"})
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
