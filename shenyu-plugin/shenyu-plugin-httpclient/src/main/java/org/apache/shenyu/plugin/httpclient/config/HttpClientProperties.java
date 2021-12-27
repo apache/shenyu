@@ -322,7 +322,13 @@ public class HttpClientProperties {
          * Only for type FIXED, the maximum time in millis to wait for aquiring.
          */
         private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
-    
+
+        /**
+         * Time in millis after which the channel will be closed,
+         * if NULL there is no max idle time. the default is 30s.
+         */
+        private Long maxIdleTime = 30000L;
+
         /**
          * Gets type.
          *
@@ -394,7 +400,26 @@ public class HttpClientProperties {
         public void setAcquireTimeout(final Long acquireTimeout) {
             this.acquireTimeout = acquireTimeout;
         }
-    
+
+        /**
+         * Gets maxIdleTime timeout.
+         *
+         * @return the maxIdleTime timeout
+         */
+        public Duration getMaxIdleTime() {
+            return Optional.ofNullable(maxIdleTime)
+                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(null);
+        }
+
+        /**
+         * Sets maxIdleTime timeout.
+         *
+         * @param maxIdleTime the maxIdleTime timeout
+         */
+        public void setMaxIdleTime(Long maxIdleTime) {
+            this.maxIdleTime = maxIdleTime;
+        }
+
         /**
          * The enum Pool type.
          */
