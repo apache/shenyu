@@ -60,10 +60,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
      */
     private static final String PATH_SEPARATOR = "/";
     
-    private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
-    
-    private final String[] pathAttributeNames = new String[]{"path", "value"};
-    
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientBeanPostProcessor.class);
     
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
@@ -75,6 +71,10 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final Environment env;
     
     private final String servletContextPath;
+    
+    private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
+    
+    private final String[] pathAttributeNames = new String[]{"path", "value"};
     
     /**
      * Instantiates a new Spring cloud client bean post processor.
@@ -112,7 +112,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         if (Boolean.TRUE.equals(isFull) || !hasAnnotation(bean.getClass(), Controller.class)) {
             return bean;
         }
-    
+        
         final ShenyuSpringCloudClient beanShenyuClient = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringCloudClient.class);
         final String superPath = buildApiSuperPath(bean.getClass());
         // Compatible with previous versions
@@ -134,6 +134,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
         return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
     }
+    
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
         ShenyuSpringCloudClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
