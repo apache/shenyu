@@ -26,7 +26,6 @@ Content-Type: application/json
   "name": "order"
 }
 
-
 ### example local orderSave
 GET http://localhost:8884/order/findById?id=123
 Accept: application/json
@@ -42,16 +41,55 @@ GET http://localhost:8884/order/path/123/name
 Accept: application/json
 Content-Type: application/json
 
-### example local oauth2
-GET http://localhost:8884/order/oauth2/test
-Accept: application/json
-Content-Type: application/json
-Authorization:AuthorizationContext
-
-
 ### example local findByUserId
 GET http://localhost:8884/test/findByUserId?userId=123
 Accept: application/json
 Content-Type: application/json
 
 
+### example local not support
+POST http://localhost:8884/new/feature/gateway/not
+Accept: application/json
+Content-Type: application/json
+
+## must is success
+
+### example local used requst mapping path
+POST http://localhost:8884/new/feature/requst/mapping/path
+Accept: application/json
+Content-Type: application/json
+
+### example local used requst mapping path
+GET http://localhost:8884/new/feature/requst/mapping/path
+Accept: application/json
+Content-Type: application/json
+
+### example local used get mapping path
+GET http://localhost:8884/new/feature/get/mapping/path
+Accept: application/json
+Content-Type: application/json
+
+### example local used post mapping path
+POST http://localhost:8884/new/feature/post/mapping/path
+Accept: application/json
+Content-Type: application/json
+
+### example local used put mapping path
+PUT http://localhost:8884/new/feature/put/mapping/path
+Accept: application/json
+Content-Type: application/json
+
+### example local used delete mapping path
+DELETE http://localhost:8884/new/feature/delete/mapping/path
+Accept: application/json
+Content-Type: application/json
+
+### example local used get mapping path [class annotation]
+GET http://localhost:8884/class/annotation/get
+Accept: application/json
+Content-Type: application/json
+
+### example local used post mapping path [class annotation]
+POST http://localhost:8884/class/annotation/post
+Accept: application/json
+Content-Type: application/json
