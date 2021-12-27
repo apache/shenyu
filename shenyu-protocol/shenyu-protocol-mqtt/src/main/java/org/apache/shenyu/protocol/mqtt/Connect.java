@@ -35,7 +35,6 @@ public class Connect extends MessageType {
     public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
 
         String clientId = msg.payload().clientIdentifier();
-
         if (StringUtils.isEmpty(clientId)) {
             ctx.writeAndFlush(wrong(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED));
             return;
