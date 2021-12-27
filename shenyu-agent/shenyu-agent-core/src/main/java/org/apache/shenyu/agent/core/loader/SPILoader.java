@@ -15,38 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.protocol.mqtt.utils;
+package org.apache.shenyu.agent.core.loader;
 
-import org.springframework.util.DigestUtils;
-import java.nio.charset.StandardCharsets;
+import org.apache.shenyu.spi.ExtensionLoader;
+
+import java.util.Collection;
 
 /**
- * encrypt util.
+ * The type Spi loader.
  */
-public class EncryptUtil {
-
+public final class SPILoader {
+    
     /**
-     * choose encrypt mode.
-     * @param encryptMode encryptMode
-     * @param password password
-     * @return encrypt password.
+     * Load list collection.
+     *
+     * @param <T> the type parameter
+     * @param clazz the clazz
+     * @return the collection
      */
-    public static String choose(final String encryptMode, final String password) {
-
-        switch (encryptMode) {
-            case "MD5":
-                return md5(password);
-            default:
-                return password;
-        }
+    public static <T> Collection<T> loadList(final Class<T> clazz) {
+        return ExtensionLoader.getExtensionLoader(clazz, ShenyuAgentPluginLoader.getInstance()).getJoins();
     }
-
+    
     /**
-     * md5 encrypt.
-     * @param password password
-     * @return encrypt password
+     * Load t.
+     *
+     * @param <T> the type parameter
+     * @param clazz the clazz
+     * @param name the name
+     * @return the t
      */
-    private static String md5(final String password) {
-        return DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
+    public static <T> T load(final Class<T> clazz, final String name) {
+        return ExtensionLoader.getExtensionLoader(clazz, ShenyuAgentPluginLoader.getInstance()).getJoin(name);
     }
 }
