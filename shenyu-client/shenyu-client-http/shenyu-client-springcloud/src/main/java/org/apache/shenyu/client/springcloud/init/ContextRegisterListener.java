@@ -88,10 +88,10 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
-        publisher.publishEvent(buildURIRegisterDTO());
+        publisher.publishEvent(buildUriRegisterDTO());
     }
     
-    private URIRegisterDTO buildURIRegisterDTO() {
+    private URIRegisterDTO buildUriRegisterDTO() {
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(appName)
