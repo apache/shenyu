@@ -165,7 +165,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>shenyu-examples-apache-dubbo-service-xml/repository>
+                            <repository>shenyu-examples-apache-dubbo-service-xml</repository>
                             <tag>latest</tag>
                             <buildArgs>
                                 <APP_NAME>shenyu-examples-apache-dubbo-service-xml</APP_NAME>
