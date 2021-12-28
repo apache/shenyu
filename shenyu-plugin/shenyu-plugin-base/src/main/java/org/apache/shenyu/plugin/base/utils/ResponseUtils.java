@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.reactivestreams.Publisher;
@@ -25,6 +26,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ReactiveHttpOutputMessage;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -34,6 +36,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -69,8 +72,7 @@ public final class ResponseUtils {
      */
     public static ClientResponse buildClientResponse(final ServerHttpResponse response,
                                                      final Publisher<? extends DataBuffer> body) {
-        ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(response.getStatusCode()),
-                ServerCodecConfigurer.create().getReaders());
+        ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(response.getStatusCode()), getReaders());
         return builder
                 .headers(headers -> headers.putAll(response.getHeaders()))
                 .cookies(cookies -> response.getCookies())
@@ -139,6 +141,14 @@ public final class ResponseUtils {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
             return exchange.getResponse().writeWith(messageBody);
         })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+    }
+
+    /**
+     * Gets reads from ServerCodecConfigurer with custom the codec.
+     * @return ServerCodecConfigurer readers
+     */
+    private static List<HttpMessageReader<?>> getReaders() {
+        return SpringBeanUtils.getInstance().getBean(ServerCodecConfigurer.class).getReaders();
     }
     
     /**
