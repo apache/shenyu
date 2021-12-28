@@ -31,5 +31,6 @@
         <module>shenyu-admin-dist</module>
         <module>shenyu-bootstrap-dist</module>
         <module>shenyu-docker-compose-dist</module>
+        <module>shenyu-agent-dist</module>
     </modules>
 </project>

@@ -67,6 +67,12 @@
             </includes>
             <outputDirectory>/</outputDirectory>
         </fileSet>
+        <fileSet>
+            <outputDirectory>ext-lib</outputDirectory>
+            <excludes>
+                <exclude>**/*</exclude>
+            </excludes>
+        </fileSet>
 
         <!--agent-->
         <fileSet>
@@ -77,9 +83,9 @@
             <outputDirectory>agent</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/../../shenyu-agent/shenyu-agent-bootstrap/src/main/resources</directory>
+            <directory>${project.basedir}/../shenyu-agent-dist/src/main/resources/conf</directory>
             <includes>
-                <include>*.yml</include>
+                <include>*.yaml</include>
             </includes>
             <outputDirectory>agent/conf</outputDirectory>
         </fileSet>
