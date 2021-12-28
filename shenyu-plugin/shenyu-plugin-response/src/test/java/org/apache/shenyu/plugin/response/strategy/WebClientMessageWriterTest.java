@@ -30,6 +30,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.LinkedMultiValueMap;
@@ -39,10 +41,10 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  * The test case for {@link WebClientMessageWriter}.
@@ -59,6 +61,7 @@ public class WebClientMessageWriterTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
+        when(context.getBean(ServerCodecConfigurer.class)).thenReturn(new DefaultServerCodecConfigurer());
         chain = mock(ShenyuPluginChain.class);
         webClientMessageWriter = new WebClientMessageWriter();
     }
