@@ -1,0 +1,191 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+### shengyu getway proxy orderSave
+POST http://localhost:9195/dubbo/findById
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": "123"
+}
+
+### shengyu getway proxy findAll
+GET http://localhost:9195/dubbo/findAll
+Accept: application/json
+
+
+### shengyu getway proxy insert
+POST http://localhost:9195/dubbo/insert
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": "123",
+  "name": "test"
+}
+
+### shengyu getway proxy findList
+GET http://localhost:9195/dubbo/findList
+Accept: application/json
+
+### shengyu getway proxy findByIdsAndName
+GET http://localhost:9195/dubbo/findByIdsAndName
+Accept: application/json
+Content-Type: application/json
+
+{
+  "ids": [
+    123,
+    124,
+    125
+  ],
+  "name": "test"
+}
+
+### shengyu getway proxy findByArrayIdsAndName
+GET http://localhost:9195/dubbo/findByArrayIdsAndName
+Accept: application/json
+Content-Type: application/json
+
+{
+  "ids": [
+    123,
+    124,
+    125
+  ],
+  "name": "test"
+}
+
+### shengyu getway proxy findByStringArray
+GET http://localhost:9195/dubbo/findByStringArray
+Accept: application/json
+Content-Type: application/json
+
+{
+  "ids": [
+    "123",
+    "124",
+    "125"
+  ]
+}
+
+### shengyu getway proxy findByListId
+GET http://localhost:9195/dubbo/findByListId
+Accept: application/json
+Content-Type: application/json
+
+{
+  "ids": [
+    123,
+    124,
+    125
+  ]
+}
+
+### shengyu getway proxy batchSave
+PUT http://localhost:9195/dubbo/batchSave
+Accept: application/json
+Content-Type: application/json
+
+{
+  "sofaTestList": [
+    {
+      "id": "123",
+      "name": "test"
+    },
+    {
+      "id": "123",
+      "name": "test"
+    },
+    {
+      "id": "123",
+      "name": "test"
+    }
+  ]
+}
+
+### shengyu getway proxy batchSaveAndNameAndId
+PUT http://localhost:9195/dubbo/batchSaveAndNameAndId
+Accept: application/json
+Content-Type: application/json
+
+{
+  "sofaTestList": [
+    {
+      "id": "123",
+      "name": "test"
+    },
+    {
+      "id": "123",
+      "name": "test"
+    },
+    {
+      "id": "123",
+      "name": "test"
+    }
+  ],
+  "id": "123",
+  "name": "test"
+}
+
+### shengyu getway proxy saveComplexBeanTest
+PUT http://localhost:9195/dubbo/saveComplexBeanTest
+Accept: application/json
+Content-Type: application/json
+
+{
+  "dubboTest": {
+    "id": "123",
+    "name": "test"
+  },
+  "idLists": [
+    "123",
+    "124"
+  ],
+  "idMaps": {
+    "abc": "abc",
+    "cbd": "cbd"
+  }
+}
+
+### shengyu getway proxy saveComplexBeanTestAndName
+PUT http://localhost:9195/dubbo/saveComplexBeanTestAndName
+Accept: application/json
+Content-Type: application/json
+
+## The order of the parameters is important
+{
+  "complexBeanTest": {
+    "dubboTest": {
+      "id": "123",
+      "name": "test"
+    },
+    "idLists": [
+      "123",
+      "124"
+    ],
+    "idMaps": {
+      "abc": "abc",
+      "cbd": "cbd"
+    }
+  },
+  "name": "name"
+}
+
+
+
