@@ -99,7 +99,10 @@ public class HttpClientProperties {
      */
     private boolean wiretap;
 
-    private boolean keepAlive = false;
+    /**
+     * set to false, fix java.io.IOException: Connection reset by peer, see https://github.com/reactor/reactor-netty/issues/388.
+     */
+    private boolean keepAlive;
     
     /**
      * Gets connect timeout.
