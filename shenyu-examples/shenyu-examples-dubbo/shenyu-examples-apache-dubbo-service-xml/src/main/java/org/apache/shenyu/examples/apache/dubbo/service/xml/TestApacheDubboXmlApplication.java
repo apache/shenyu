@@ -25,10 +25,10 @@ import org.springframework.context.annotation.ImportResource;
  */
 @SpringBootApplication
 @ImportResource({"classpath:spring-dubbo.xml","classpath:shenyu.xml"})
-public class TestApacheDubboClientApplication {
+public class TestApacheDubboXmlApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(TestApacheDubboClientApplication.class, args);
+        SpringApplication.run(TestApacheDubboXmlApplication.class, args);
     }
 
 }
