@@ -131,7 +131,7 @@
     </dependencies>
 
     <build>
-        <finalName>shenyu-examples-apache-dubbo-service-client</finalName>
+        <finalName>shenyu-examples-apache-dubbo-service-xml</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -158,17 +158,17 @@
                         <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>shenyu-examples-apache-dubbo-service-client</id>
+                                <id>shenyu-examples-apache-dubbo-service-xml</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>shenyu-examples-apache-dubbo-service-client</repository>
+                            <repository>shenyu-examples-apache-dubbo-service-xml/repository>
                             <tag>latest</tag>
                             <buildArgs>
-                                <APP_NAME>shenyu-examples-apache-dubbo-service-client</APP_NAME>
+                                <APP_NAME>shenyu-examples-apache-dubbo-service-xml</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>
