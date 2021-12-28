@@ -37,7 +37,7 @@ public class RPCMessageWriter implements MessageWriter {
         return chain.execute(exchange).then(Mono.defer(() -> {
             Object result = exchange.getAttribute(Constants.RPC_RESULT);
             if (Objects.isNull(result)) {
-                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(),
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(),
                         ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }

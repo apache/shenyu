@@ -54,7 +54,7 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
         }
         Pair<Boolean, String> pair = JsonUtil.checkParam(ruleHandle);
         if (Boolean.TRUE.equals(pair.getLeft())) {
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getCode(),
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getMsg() + "[" + pair.getRight() + "]", null);
             return WebFluxResultUtils.result(exchange, error);
         }
