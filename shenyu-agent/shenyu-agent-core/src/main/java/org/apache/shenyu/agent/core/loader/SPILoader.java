@@ -46,6 +46,12 @@ public final class SPILoader {
      * @return the t
      */
     public static <T> T load(final Class<T> clazz, final String name) {
-        return ExtensionLoader.getExtensionLoader(clazz, ShenyuAgentPluginLoader.getInstance()).getJoin(name);
+        try {
+            return ExtensionLoader.getExtensionLoader(clazz, ShenyuAgentPluginLoader.getInstance()).getJoin(name);
+            // CHECKSTYLE:OFF
+        } catch (Exception ignore) {
+            // CHECKSTYLE:ON
+            return null;
+        }
     }
 }

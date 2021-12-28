@@ -270,7 +270,7 @@ public final class ExtensionLoader<T> {
     
     private void loadClass(final Map<String, Class<?>> classes,
                            final String name, final String classPath) throws ClassNotFoundException {
-        Class<?> subClass = Objects.nonNull(this.classLoader) ? classLoader.loadClass(classPath) : Class.forName(classPath);
+        Class<?> subClass = Objects.nonNull(this.classLoader) ? Class.forName(classPath, true, this.classLoader) : Class.forName(classPath);
         if (!clazz.isAssignableFrom(subClass)) {
             throw new IllegalStateException("load extension resources error," + subClass + " subtype is not of " + clazz);
         }

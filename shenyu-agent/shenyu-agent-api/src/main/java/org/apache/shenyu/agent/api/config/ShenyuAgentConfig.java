@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.agent.api.config;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,9 +28,9 @@ public final class ShenyuAgentConfig {
     
     private String appName = "shenyu-agent";
     
-    private Map<String, List<String>> supports = new HashMap<>();
+    private Map<String, List<String>> supports = new LinkedHashMap<>();
     
-    private Map<String, Map<String, AgentPluginConfig>> plugins = new HashMap<>();
+    private Map<String, Map<String, AgentPluginConfig>> plugins = new LinkedHashMap<>();
     
     /**
      * Instantiates a new Shenyu agent config.

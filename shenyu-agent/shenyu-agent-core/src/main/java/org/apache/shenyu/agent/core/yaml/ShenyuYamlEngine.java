@@ -17,13 +17,19 @@
 
 package org.apache.shenyu.agent.core.yaml;
 
+import org.apache.shenyu.agent.api.config.AgentPluginConfig;
+import org.apache.shenyu.agent.api.config.ShenyuAgentConfig;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 /**
  * The type Shenyu yaml engine.
@@ -51,6 +57,26 @@ public final class ShenyuYamlEngine {
                 InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream)
         ) {
             return new Yaml(DUMPER_OPTIONS).loadAs(inputStreamReader, classType);
+        }
+    }
+    
+    /**
+     * Agent config shenyu agent config.
+     *
+     * @param yamlFile the yaml file
+     * @return the shenyu agent config
+     * @throws IOException the io exception
+     */
+    public static ShenyuAgentConfig agentConfig(final File yamlFile) throws IOException {
+        try (
+                FileInputStream fileInputStream = new FileInputStream(yamlFile);
+                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream)
+        ) {
+            Constructor constructor = new Constructor(ShenyuAgentConfig.class);
+            TypeDescription customTypeDescription = new TypeDescription(AgentPluginConfig.class);
+            customTypeDescription.addPropertyParameters("plugins", Map.class);
+            constructor.addTypeDescription(customTypeDescription);
+            return new Yaml(constructor, new Representer(DUMPER_OPTIONS)).loadAs(inputStreamReader, ShenyuAgentConfig.class);
         }
     }
 }

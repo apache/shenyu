@@ -32,6 +32,9 @@ public final class AgentPluginConfig {
     
     private Properties props;
     
+    public AgentPluginConfig() {
+    }
+    
     /**
      * Instantiates a new Agent plugin config.
      *
