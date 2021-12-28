@@ -86,7 +86,5 @@ public interface ShenyuResult<T> {
      * @param object  the object
      * @return the t
      */
-    default T error(int code, String message, Object object) {
-        return null;
-    }
+    T error(int code, String message, Object object);
 }
