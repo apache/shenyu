@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
+import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.reset;
@@ -73,6 +75,24 @@ public class ResourceServiceTest {
         when(resourceMapper.insertSelective(resourceDO)).thenReturn(1);
 
         resourceService.createResource(resourceDO);
+    }
+
+    @Test
+    public void testCreateResourceBatch() {
+
+        final ResourceDO resourceDO1 = new ResourceDO();
+        resourceDO1.setId("mock resource id1");
+
+        final ResourceDO resourceDO2 = new ResourceDO();
+        resourceDO2.setId("mock resource id2");
+
+        List<ResourceDO> dataList = Lists.list(resourceDO1, resourceDO2);
+
+        reset(resourceMapper);
+        reset(permissionMapper);
+        when(resourceMapper.insertBatch(dataList)).thenReturn(dataList.size());
+
+        assertEquals(resourceService.createResourceBatch(dataList), dataList.size());
     }
 
     @Test

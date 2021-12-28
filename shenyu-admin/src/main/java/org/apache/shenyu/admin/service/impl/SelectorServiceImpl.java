@@ -202,7 +202,7 @@ public class SelectorServiceImpl implements SelectorService {
     public int delete(final List<String> ids) {
 
         if (CollectionUtils.isEmpty(ids)) {
-            return ids.size();
+            return 0;
         }
         Set<String> idSet = new HashSet<>(ids);
         List<SelectorDO> selectorDOList = selectorMapper.selectByIdSet(idSet);

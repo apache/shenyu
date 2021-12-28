@@ -94,6 +94,23 @@
         </trim>
     </insert>
 
+    <insert id="insertBatch">
+        INSERT INTO permission
+        (
+        id,
+        object_id,
+        resource_id
+        )
+        VALUES
+        <foreach collection="permissionDOList" item="permissionDO" separator=",">
+            (
+            #{permissionDO.id,jdbcType=VARCHAR},
+            #{permissionDO.objectId,jdbcType=VARCHAR},
+            #{permissionDO.resourceId,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
     <delete id="delete" parameterType="java.lang.String">
         delete from permission
         where id = #{id,jdbcType=VARCHAR}

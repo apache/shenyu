@@ -76,6 +76,17 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
+     * create Resources.
+     *
+     * @param resourceDOList list of {@linkplain ResourceDO}
+     * @return rows int
+     */
+    @Override
+    public int createResourceBatch(final List<ResourceDO> resourceDOList) {
+        return this.insertResourceBatch(resourceDOList);
+    }
+
+    /**
      * create or update resource.
      *
      * @param resourceDTO {@linkplain ResourceDTO}
@@ -299,5 +310,26 @@ public class ResourceServiceImpl implements ResourceService {
                 .objectId(AdminConstants.ROLE_SUPER_ID)
                 .resourceId(resourceDO.getId()).build()));
         return resourceMapper.insertSelective(resourceDO);
+    }
+
+
+    /**
+     * insert Resources.
+     *
+     * @param resourceDOList list of {@linkplain ResourceDO}
+     * @return row int
+     */
+    private int insertResourceBatch(final List<ResourceDO> resourceDOList) {
+
+        if (CollectionUtils.isEmpty(resourceDOList)) {
+            return 0;
+        }
+        List<PermissionDO> permissionDOList = resourceDOList.stream().filter(Objects::nonNull).map(resourceDO -> PermissionDO.buildPermissionDO(PermissionDTO.builder()
+                .objectId(AdminConstants.ROLE_SUPER_ID)
+                .resourceId(resourceDO.getId()).build())).collect(Collectors.toList());
+
+        permissionMapper.insertBatch(permissionDOList);
+
+        return resourceMapper.insertBatch(resourceDOList);
     }
 }

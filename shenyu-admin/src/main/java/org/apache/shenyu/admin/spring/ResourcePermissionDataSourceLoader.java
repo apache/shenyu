@@ -38,10 +38,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DESC;
 import static org.apache.shenyu.common.constant.AdminConstants.DICT_TABLE_FLAG_DICTCODE;
@@ -118,73 +122,78 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
             LOG.info("All plugin are permissioned.");
             return;
         }
-        // fixme loop db call
-        pluginDataList.forEach(item -> insertResource(item.getName()));
+        List<String> pluginNameList = pluginDataList.stream().filter(Objects::nonNull)
+                .map(PluginData::getName).collect(Collectors.toList());
+        this.insertResourceBatch(pluginNameList);
         // reset (create or update) status
         resetTableDictStatus(id);
     }
-    
+
     /**
      * insert Resource for pluginName.
-     * @param pluginName plugin name
+     * @param pluginNameList list of pluginNames
      */
-    private void insertResource(final String pluginName) {
-        ResourceDTO resource = ResourceDTO.builder()
-                .parentId(RESOURCE_PLUGIN_ID)
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .title(pluginName)
-                .name(pluginName)
-                .url(RESOURCE_PLUGIN_URL_PREFIX + pluginName)
-                .component(pluginName)
-                .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
-                .sort(0)
-                .icon(ICONS.get(rand.nextInt(ICONS.size())))
-                .isLeaf(false)
-                .isRoute(ROUTE)
-                .perms(StringUtils.EMPTY)
-                .status(STATUS)
-                .build();
-        resourceService.createResource(ResourceDO.buildResourceDO(resource));
-        insertPerms(resource.getId(), PLUGIN_SELECTOR_ADD, pluginName, PLUGIN_TYPE_SELECTOR_ADD);
-        insertPerms(resource.getId(), PLUGIN_SELECTOR_QUERY, pluginName, PLUGIN_TYPE_SELECTOR_QUERY);
-        insertPerms(resource.getId(), PLUGIN_SELECTOR_EDIT, pluginName, PLUGIN_TYPE_SELECTOR_EDIT);
-        insertPerms(resource.getId(), PLUGIN_SELECTOR_DELETE, pluginName, PLUGIN_TYPE_SELECTOR_DELETE);
-        insertPerms(resource.getId(), PLUGIN_RULE_ADD, pluginName, PLUGIN_TYPE_RULE_ADD);
-        insertPerms(resource.getId(), PLUGIN_RULE_QUERY, pluginName, PLUGIN_TYPE_RULE_QUERY);
-        insertPerms(resource.getId(), PLUGIN_RULE_EDIT, pluginName, PLUGIN_TYPE_RULE_EDIT);
-        insertPerms(resource.getId(), PLUGIN_RULE_DELETE, pluginName, PLUGIN_TYPE_RULE_DELETE);
-        insertPerms(resource.getId(), PLUGIN_SYNCHRONIZE, pluginName, PLUGIN_TYPE_SYNCHRONIZE);
+    private void insertResourceBatch(final List<String> pluginNameList) {
+
+        if (CollectionUtils.isEmpty(pluginNameList)) {
+            return;
+        }
+        List<ResourceDO> resourceList = pluginNameList.stream().filter(StringUtils::isNotEmpty)
+                .map(pluginName -> ResourceDTO.builder()
+                        .parentId(RESOURCE_PLUGIN_ID)
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .title(pluginName)
+                        .name(pluginName)
+                        .url(RESOURCE_PLUGIN_URL_PREFIX + pluginName)
+                        .component(pluginName)
+                        .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
+                        .sort(0)
+                        .icon(ICONS.get(rand.nextInt(ICONS.size())))
+                        .isLeaf(false)
+                        .isRoute(ROUTE)
+                        .perms(StringUtils.EMPTY)
+                        .status(STATUS)
+                        .build())
+                .map(ResourceDO::buildResourceDO).collect(Collectors.toList());
+        resourceService.createResourceBatch(resourceList);
+        List<ResourceDO> resourceChildren = resourceList.stream().filter(resourceDO -> Objects.nonNull(resourceDO) && StringUtils.isNotEmpty(resourceDO.getId()))
+                .map(resourceDO -> this.prepareChildrenResource(resourceDO.getId(), resourceDO.getTitle()))
+                .flatMap(Collection::stream).collect(Collectors.toList());
+        resourceService.createResourceBatch(resourceChildren);
     }
 
     /**
      * insert resource perms.
      *
      * @param parentId  parent id
-     * @param title resource title
      * @param pluginName plugin name
-     * @param type resource type
+     * @return list of {@linkplain ResourceDO}
      */
-    private void insertPerms(final String parentId,
-                             final String title,
-                             final String pluginName,
-                             final String type) {
-        if (StringUtils.isNoneBlank(title, type)) {
-            ResourceDTO resourceDTO = ResourceDTO.builder()
-                    .parentId(parentId)
-                    .name(StringUtils.EMPTY)
-                    .title(PLUGIN_SELECTOR_ADD)
-                    .url(StringUtils.EMPTY)
-                    .component(StringUtils.EMPTY)
-                    .resourceType(AdminResourceEnum.THREE_MENU.getCode())
-                    .sort(0)
-                    .icon(StringUtils.EMPTY)
-                    .isLeaf(true)
-                    .isRoute(ROUTE)
-                    .perms("plugin:" + pluginName + type)
-                    .status(STATUS)
-                    .build();
-            resourceService.createOrUpdate(resourceDTO);
-        }
+    private List<ResourceDO> prepareChildrenResource(final String parentId, final String pluginName) {
+        return Stream.of(new AbstractMap.SimpleEntry<>(PLUGIN_SELECTOR_ADD, PLUGIN_TYPE_SELECTOR_ADD),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_SELECTOR_QUERY, PLUGIN_TYPE_SELECTOR_QUERY),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_SELECTOR_EDIT, PLUGIN_TYPE_SELECTOR_EDIT),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_SELECTOR_DELETE, PLUGIN_TYPE_SELECTOR_DELETE),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_RULE_ADD, PLUGIN_TYPE_RULE_ADD),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_RULE_QUERY, PLUGIN_TYPE_RULE_QUERY),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_RULE_EDIT, PLUGIN_TYPE_RULE_EDIT),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_RULE_DELETE, PLUGIN_TYPE_RULE_DELETE),
+                        new AbstractMap.SimpleEntry<>(PLUGIN_SYNCHRONIZE, PLUGIN_TYPE_SYNCHRONIZE))
+                .map(simpleEntry -> ResourceDO.buildResourceDO(ResourceDTO.builder()
+                        .parentId(parentId)
+                        .name(StringUtils.EMPTY)
+                        .title(simpleEntry.getKey())
+                        .url(StringUtils.EMPTY)
+                        .component(StringUtils.EMPTY)
+                        .resourceType(AdminResourceEnum.THREE_MENU.getCode())
+                        .sort(0)
+                        .icon(StringUtils.EMPTY)
+                        .isLeaf(true)
+                        .isRoute(ROUTE)
+                        .perms("plugin:" + pluginName + simpleEntry.getValue())
+                        .status(STATUS)
+                        .build())).collect(Collectors.toList());
+
     }
 
     /**
