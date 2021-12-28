@@ -92,12 +92,12 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
         if (!checkMetaData(metaData)) {
             LOG.error(" path is : {}, meta data have error : {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (Objects.nonNull(metaData) && StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         this.rpcContext(exchange);

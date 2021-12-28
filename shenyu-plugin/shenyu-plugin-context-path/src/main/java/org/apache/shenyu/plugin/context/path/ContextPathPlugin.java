@@ -58,7 +58,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         String contextPath = contextMappingRuleHandle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath) && !shenyuContext.getPath().startsWith(contextPath)) {
             LOG.error("the context path '{}' is invalid.", contextPath);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CONTEXT_PATH_ERROR.getCode(),
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CONTEXT_PATH_ERROR.getCode(),
                     String.format("%s [invalid context path:'%s']", ShenyuResultEnum.CONTEXT_PATH_ERROR.getMsg(), contextPath), null);
             return WebFluxResultUtils.result(exchange, error);
         }

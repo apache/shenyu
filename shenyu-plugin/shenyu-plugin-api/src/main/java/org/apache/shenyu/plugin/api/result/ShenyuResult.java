@@ -68,10 +68,25 @@ public interface ShenyuResult<T> {
     /**
      * Error t.
      *
+     * @param exchange the exchange
      * @param code    the code
      * @param message the message
      * @param object  the object
      * @return the t
      */
-    T error(int code, String message, Object object);
+    default T error(ServerWebExchange exchange, int code, String message, Object object) {
+        return error(code, message, object);
+    }
+
+    /**
+     * Error t.
+     *
+     * @param code    the code
+     * @param message the message
+     * @param object  the object
+     * @return the t
+     */
+    default T error(int code, String message, Object object) {
+        return null;
+    }
 }

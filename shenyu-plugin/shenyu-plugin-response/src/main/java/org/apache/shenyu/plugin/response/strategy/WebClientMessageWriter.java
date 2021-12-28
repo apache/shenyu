@@ -53,11 +53,11 @@ public class WebClientMessageWriter implements MessageWriter {
             if (Objects.isNull(clientResponse)
                     || response.getStatusCode() == HttpStatus.BAD_GATEWAY
                     || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
-                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             response.getCookies().putAll(clientResponse.cookies());
