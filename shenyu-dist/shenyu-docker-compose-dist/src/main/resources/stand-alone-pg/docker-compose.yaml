@@ -39,5 +39,8 @@ services:
     - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
     environment:
       - spring.profiles.active=pg
+      - spring.datasource.url=<your_url>
+      - spring.datasource.username=<your_username>
+      - spring.datasource.password=<your_password>
     ports:
     - "9095:9095"
