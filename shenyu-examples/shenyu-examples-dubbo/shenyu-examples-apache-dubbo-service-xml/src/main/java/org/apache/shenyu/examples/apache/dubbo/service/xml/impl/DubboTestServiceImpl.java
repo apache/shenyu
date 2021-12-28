@@ -14,7 +14,7 @@
  *
  */
 
-package org.apache.shenyu.examples.apache.dubbo.service.client.impl;
+package org.apache.shenyu.examples.apache.dubbo.service.xml.impl;
 
 import java.util.Collections;
 import java.util.Random;

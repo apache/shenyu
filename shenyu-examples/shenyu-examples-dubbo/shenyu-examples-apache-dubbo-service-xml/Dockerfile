@@ -16,7 +16,7 @@
 
 FROM java:openjdk-8-jre-alpine
 
-ENV APP_NAME shenyu-examples-apache-dubbo-service-client
+ENV APP_NAME shenyu-examples-apache-dubbo-service-xml
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}

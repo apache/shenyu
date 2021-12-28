@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.apache.dubbo.service.client.impl;
+package org.apache.shenyu.examples.apache.dubbo.service.xml.impl;
 
 import java.util.Arrays;
 import java.util.List;

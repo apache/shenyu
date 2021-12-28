@@ -24,7 +24,7 @@
         <version>2.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-examples-apache-dubbo-service-client</artifactId>
+    <artifactId>shenyu-examples-apache-dubbo-service-xml</artifactId>
 
     <properties>
         <curator.version>4.0.1</curator.version>
@@ -137,7 +137,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.apache.shenyu.examples.apache.dubbo.service.client.TestApacheDubboClientApplication</mainClass>
+                    <mainClass>org.apache.shenyu.examples.apache.dubbo.service.xml.TestApacheDubboClientApplication</mainClass>
                     <executable>true</executable>
                 </configuration>
             </plugin>

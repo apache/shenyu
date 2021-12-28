@@ -14,7 +14,7 @@
  *
  */
 
-package org.apache.shenyu.examples.apache.dubbo.service.client;
+package org.apache.shenyu.examples.apache.dubbo.service.xml;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
