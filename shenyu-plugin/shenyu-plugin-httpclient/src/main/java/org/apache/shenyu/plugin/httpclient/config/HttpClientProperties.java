@@ -98,6 +98,8 @@ public class HttpClientProperties {
      * Enables wiretap debugging for Netty HttpClient.
      */
     private boolean wiretap;
+
+    private boolean keepAlive = false;
     
     /**
      * Gets connect timeout.
@@ -296,7 +298,25 @@ public class HttpClientProperties {
     public void setWiretap(final boolean wiretap) {
         this.wiretap = wiretap;
     }
-    
+
+    /**
+     * Is keepAlive boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isKeepAlive() {
+        return keepAlive;
+    }
+
+    /**
+     * Sets keepAlive.
+     *
+     * @param keepAlive the keepAlive
+     */
+    public void setKeepAlive(final boolean keepAlive) {
+        this.keepAlive = keepAlive;
+    }
+
     /**
      * The type Pool.
      */
@@ -416,7 +436,7 @@ public class HttpClientProperties {
          *
          * @param maxIdleTime the maxIdleTime timeout
          */
-        public void setMaxIdleTime(Long maxIdleTime) {
+        public void setMaxIdleTime(final Long maxIdleTime) {
             this.maxIdleTime = maxIdleTime;
         }
 
