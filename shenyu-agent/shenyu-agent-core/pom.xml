@@ -60,16 +60,13 @@
                                     <exclude>org.checkerframework:checker-qual:jar:</exclude>
                                     <exclude>com.google.guava:listenablefuture:jar:*</exclude>
                                     <exclude>com.google.j2objc:j2objc-annotations:jar:*</exclude>
+                                    <exclude>org.apache.commons:logging:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <relocations>
                                 <relocation>
                                     <pattern>org.yaml</pattern>
                                     <shadedPattern>${shade.package}.org.yaml</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.commons</pattern>
-                                    <shadedPattern>${shade.package}.org.apache.commons</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

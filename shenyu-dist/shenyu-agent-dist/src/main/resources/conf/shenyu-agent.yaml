@@ -15,14 +15,14 @@
 # limitations under the License.
 #
 
-applicationName: shenyu-agent
+appName: shenyu-agent
 supports:
   tracing:
     - jaeger
   metrics:
-    - promtheus
+    - 
   logging:
-    - elasticSearch
+    - 
   
 plugins:
   tracing:
