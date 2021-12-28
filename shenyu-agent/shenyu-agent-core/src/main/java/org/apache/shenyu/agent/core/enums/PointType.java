@@ -15,15 +15,39 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.tracing.jaeger;
-
-import org.apache.shenyu.agent.api.spi.AgentPluginDefinition;
-import org.apache.shenyu.spi.Join;
+package org.apache.shenyu.agent.core.enums;
 
 /**
- * JaegerAgentPluginDefinition.
+ * The enum Point type.
  */
-@Join
-public class JaegerAgentPluginDefinition implements AgentPluginDefinition {
+public enum PointType {
+    /**
+     * Constructor point type.
+     */
+    CONSTRUCTOR("constructor"),
     
+    /**
+     * Instance method point type.
+     */
+    INSTANCE_METHOD("instanceMethod"),
+    
+    /**
+     * Static method point type.
+     */
+    STATIC_METHOD("staticMethod");
+    
+    private final String name;
+    
+    PointType(final String name) {
+        this.name = name;
+    }
+    
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
 }

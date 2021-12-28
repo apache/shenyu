@@ -21,8 +21,6 @@ import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint;
 import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint.JoinPointBuilder;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -31,22 +29,18 @@ import java.util.stream.Collectors;
 public abstract class AbstractAgentPluginDefinition implements AgentPluginDefinition {
     
     /**
-     * The constant BUILDER_MAP.
+     * Define join point builder.
      */
-    public static final Map<String, JoinPointBuilder> BUILDER_MAP = new HashMap<>();
-    
-    /**
-     * Define join point.
-     */
-    public abstract void defineJoinPoint();
+    protected abstract Collection<JoinPointBuilder> joinPointBuilder();
     
     /**
      * Collector collection.
      *
      * @return the collection
      */
+    @Override
     public final Collection<ShenyuAgentJoinPoint> collector() {
-        defineJoinPoint();
-        return BUILDER_MAP.values().stream().map(JoinPointBuilder::install).collect(Collectors.toList());
+        Collection<JoinPointBuilder> joinPointBuilders = joinPointBuilder();
+        return joinPointBuilders.stream().map(JoinPointBuilder::install).collect(Collectors.toList());
     }
 }

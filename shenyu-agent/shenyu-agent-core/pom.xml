@@ -34,12 +34,10 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-agent-plugin-tracing-jaeger</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
         </dependency>
     </dependencies>
 
@@ -54,7 +52,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/../target/libs</outputDirectory>
                             <artifactSet>
                                 <excludes>
                                     <exclude>net.bytebuddy:*</exclude>
@@ -66,6 +63,10 @@
                                 </excludes>
                             </artifactSet>
                             <relocations>
+                                <relocation>
+                                    <pattern>org.yaml</pattern>
+                                    <shadedPattern>${shade.package}.org.yaml</shadedPattern>
+                                </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons</pattern>
                                     <shadedPattern>${shade.package}.org.apache.commons</shadedPattern>

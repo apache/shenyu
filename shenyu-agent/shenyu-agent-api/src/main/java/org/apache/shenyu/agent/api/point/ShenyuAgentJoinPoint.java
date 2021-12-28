@@ -133,7 +133,7 @@ public final class ShenyuAgentJoinPoint {
         }
     
         /**
-         * Around instance method instance method point builder.
+         * Around instance method point builder.
          *
          * @param matcher the matcher
          * @return the instance method point builder
@@ -143,12 +143,12 @@ public final class ShenyuAgentJoinPoint {
         }
     
         /**
-         * Around class static method static method point builder.
+         * Around class static method point builder.
          *
          * @param matcher the matcher
          * @return the static method point builder
          */
-        public StaticMethodPointBuilder aroundClassStaticMethod(final ElementMatcher<? super MethodDescription> matcher) {
+        public StaticMethodPointBuilder aroundStaticMethod(final ElementMatcher<? super MethodDescription> matcher) {
             return new StaticMethodPointBuilder(this, matcher);
         }
     
