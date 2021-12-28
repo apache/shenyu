@@ -35,6 +35,5 @@ public final class ShenyuYamlEngineTest {
     public void testAgentConfig() throws URISyntaxException, IOException {
         File file = new File(Objects.requireNonNull(this.getClass().getResource("/shenyu-agent.yaml")).toURI());
         ShenyuAgentConfig shenyuAgentConfig = ShenyuYamlEngine.agentConfig(file);
-        System.out.println(shenyuAgentConfig);
     }
 }

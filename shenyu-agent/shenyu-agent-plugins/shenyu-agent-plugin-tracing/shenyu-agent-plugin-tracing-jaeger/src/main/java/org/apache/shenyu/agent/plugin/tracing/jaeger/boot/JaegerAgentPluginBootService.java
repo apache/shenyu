@@ -37,7 +37,7 @@ public class JaegerAgentPluginBootService implements AgentPluginBootService {
     
     @Override
     public void start(final AgentPluginConfig agentPluginConfig) {
-        if (StringUtils.isNotEmpty(agentPluginConfig.getHost()) && agentPluginConfig.getPort() > 0) {
+        if (StringUtils.isEmpty(agentPluginConfig.getHost()) || agentPluginConfig.getPort() < 0) {
             throw new ShenyuAgentException("jaeger config error, host can not config or port is %s", agentPluginConfig.getPort());
         }
         agentPluginConfig.getProps().forEach((key, value) -> System.setProperty(String.valueOf(key), String.valueOf(value)));
