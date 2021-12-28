@@ -15,45 +15,41 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springcloud.annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.apache.shenyu.examples.springcloud.dto;
 
 /**
- * The interface shenyu spring cloud client.
+ * EntityResult.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
-public @interface ShenyuSpringCloudClient {
+public class EntityResult {
     
     /**
-     * Path string.
-     *
-     * @return the string
+     * code.
      */
-    String path() default "";
-    
+    private int code;
     /**
-     * Rule name string.
-     *
-     * @return the string
+     * message.
      */
-    String ruleName() default "";
+    private String message;
     
-    /**
-     * Desc string.
-     *
-     * @return String string
-     */
-    String desc() default "";
     
-    /**
-     * Enabled boolean.
-     *
-     * @return the boolean
-     */
-    boolean enabled() default true;
+    public EntityResult(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+    
+    public int getCode() {
+        return code;
+    }
+    
+    public void setCode(int code) {
+        this.code = code;
+    }
+    
+    public String getMessage() {
+        return message;
+    }
+    
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

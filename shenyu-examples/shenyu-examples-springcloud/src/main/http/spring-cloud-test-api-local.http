@@ -16,8 +16,8 @@
 #
 
 
-### shengyu getway proxy orderSave
-POST http://localhost:9195/springcloud/order/save
+### example local orderSave
+POST http://localhost:8884/order/save
 Accept: application/json
 Content-Type: application/json
 
@@ -26,72 +26,70 @@ Content-Type: application/json
   "name": "order"
 }
 
-
-### shengyu getway proxy orderSave
-GET http://localhost:9195/springcloud/order/findById?id=123
+### example local orderSave
+GET http://localhost:8884/order/findById?id=123
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/springcloud/order/path/123/hahah
+### example local path
+GET http://localhost:8884/order/path/123/hahah
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/springcloud/order/path/123/name
+### example local path
+GET http://localhost:8884/order/path/123/name
+Accept: application/json
+Content-Type: application/json
+
+### example local findByUserId
+GET http://localhost:8884/test/findByUserId?userId=123
 Accept: application/json
 Content-Type: application/json
 
 
-### shengyu getway proxy findByUserId
-GET http://localhost:9195/springcloud/test/findByUserId?userId=123
+### example local not support
+POST http://localhost:8884/new/feature/gateway/not
 Accept: application/json
 Content-Type: application/json
 
+## must is success
 
-### shengyu getway proxy not support
-POST http://localhost:9195/springcloud/new/feature/gateway/not
+### example local used requst mapping path
+POST http://localhost:8884/new/feature/requst/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-## must is fail
-
-### shengyu getway proxy used requst mapping path
-POST http://localhost:9195/springcloud/new/feature/requst/mapping/path
+### example local used requst mapping path
+GET http://localhost:8884/new/feature/requst/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy used requst mapping path
-GET http://localhost:9195/springcloud/new/feature/requst/mapping/path
+### example local used get mapping path
+GET http://localhost:8884/new/feature/get/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy used get mapping path
-GET http://localhost:9195/springcloud/new/feature/get/mapping/path
+### example local used post mapping path
+POST http://localhost:8884/new/feature/post/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy used post mapping path
-POST http://localhost:9195/springcloud/new/feature/post/mapping/path
+### example local used put mapping path
+PUT http://localhost:8884/new/feature/put/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy used put mapping path
-PUT http://localhost:9195/springcloud/new/feature/put/mapping/path
+### example local used delete mapping path
+DELETE http://localhost:8884/new/feature/delete/mapping/path
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy used delete mapping path
-DELETE http://localhost:9195/springcloud/new/feature/delete/mapping/path
+### example local used get mapping path [class annotation]
+GET http://localhost:8884/class/annotation/get
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy used get mapping path [class annotation]
-GET http://localhost:9195/springcloud/class/annotation/get
-Accept: application/json
-Content-Type: application/json
-
-### shengyu getway proxy used post mapping path [class annotation]
-POST http://localhost:9195/springcloud/class/annotation/post
+### example local used post mapping path [class annotation]
+POST http://localhost:8884/class/annotation/post
 Accept: application/json
 Content-Type: application/json
