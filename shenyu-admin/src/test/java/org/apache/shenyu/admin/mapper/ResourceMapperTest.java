@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +34,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
@@ -110,6 +112,22 @@ public class ResourceMapperTest extends AbstractSpringIntegrationTest {
         resourceDO.setDateUpdated(new Timestamp(bootstrapTimestampMills));
         assertThat(resourceMapper.insertSelective(resourceDO), equalTo(1));
         assertThat(resourceMapper.selectById(mockResourceId), equalTo(resourceDO));
+    }
+
+    @Test
+    public void testInsertBatch() {
+
+        String id = UUID.randomUUID().toString();
+        ResourceDO resourceDO = this.buildTestResource();
+        resourceDO.setId(id);
+
+        String id1 = UUID.randomUUID().toString();
+        ResourceDO resourceDO1 = this.buildTestResource();
+        resourceDO1.setId(id1);
+
+        List<ResourceDO> resourceDOList = Lists.list(resourceDO, resourceDO1);
+        assertThat(resourceMapper.insertBatch(resourceDOList), equalTo(resourceDOList.size()));
+
     }
 
     @Test

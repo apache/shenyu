@@ -225,6 +225,43 @@
         </trim>
     </insert>
 
+    <insert id = "insertBatch">
+        INSERT INTO resource
+        (
+        id,
+        parent_id,
+        title,
+        name,
+        url,
+        component,
+        resource_type,
+        sort,
+        icon,
+        is_leaf,
+        is_route,
+        perms,
+        status
+        )
+        VALUES
+        <foreach collection="resourceDOList" item="resourceDO" separator=",">
+            (
+            #{resourceDO.id,jdbcType=VARCHAR},
+            #{resourceDO.parentId,jdbcType=VARCHAR},
+            #{resourceDO.title,jdbcType=VARCHAR},
+            #{resourceDO.name,jdbcType=VARCHAR},
+            #{resourceDO.url,jdbcType=VARCHAR},
+            #{resourceDO.component,jdbcType=VARCHAR},
+            #{resourceDO.resourceType,jdbcType=INTEGER},
+            #{resourceDO.sort,jdbcType=INTEGER},
+            #{resourceDO.icon,jdbcType=VARCHAR},
+            #{resourceDO.isLeaf,jdbcType=BOOLEAN},
+            #{resourceDO.isRoute,jdbcType=INTEGER},
+            #{resourceDO.perms,jdbcType=VARCHAR},
+            #{resourceDO.status,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ResourceDO">
         update resource
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
