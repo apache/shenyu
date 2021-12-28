@@ -60,6 +60,7 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
+                                    <exclude>org.slf4j:*</exclude>
                                     <exclude>net.bytebuddy:*</exclude>
                                     <exclude>com.google.errorprone:error_prone_annotations:jar:</exclude>
                                     <exclude>com.google.code.findbugs:jsr305:jar:</exclude>
@@ -73,6 +74,10 @@
                                 <relocation>
                                     <pattern>org.yaml</pattern>
                                     <shadedPattern>${shade.package}.org.yaml</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>${shade.package}.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
