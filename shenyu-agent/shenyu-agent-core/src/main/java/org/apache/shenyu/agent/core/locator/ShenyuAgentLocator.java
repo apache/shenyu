@@ -51,6 +51,16 @@ public final class ShenyuAgentLocator {
         return new File(String.join("", locatorAgent().getPath(), "/plugins"));
     }
     
+    /**
+     * Locator conf file.
+     *
+     * @param fileName the file name
+     * @return the file
+     */
+    public static File locatorConf(final String fileName) {
+        return new File(String.join("/", locatorAgent().getPath(), "conf", fileName));
+    }
+    
     private static File getFileInResource(final String url, final String classResourcePath) {
         int prefixLength = "file:".length();
         String classLocation = url.substring(prefixLength, url.length() - classResourcePath.length());

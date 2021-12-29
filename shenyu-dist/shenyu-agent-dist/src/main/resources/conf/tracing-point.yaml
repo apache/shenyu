@@ -18,14 +18,14 @@
 pointCuts:
   - targetClass: org.apache.shenyu.plugin.global.GlobalPlugin
     points:
-      - type: method
+      - type: instanceMethod
         name: execute
     handlers:
         jaeger:
            - org.apache.shenyu.agent.plugin.tracing.jaeger.handler.JaegerGlobalPluginHandler
   - targetClass: org.apache.shenyu.plugin.response.ResponsePlugin
     points:
-      - type: method
+      - type: instanceMethod
         name: execute
     handlers:
         jaeger:

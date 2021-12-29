@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.agent.api.config;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,11 +26,11 @@ import java.util.Map;
  */
 public final class ShenyuAgentConfig {
     
-    private String applicationName = "shenyu-agent";
+    private String appName = "shenyu-agent";
     
-    private Map<String, List<String>> supports = new HashMap<>();
+    private Map<String, List<String>> supports = new LinkedHashMap<>();
     
-    private Map<String, Map<String, AgentPluginConfig>> plugins = new HashMap<>();
+    private Map<String, Map<String, AgentPluginConfig>> plugins = new LinkedHashMap<>();
     
     /**
      * Instantiates a new Shenyu agent config.
@@ -41,35 +41,33 @@ public final class ShenyuAgentConfig {
     /**
      * Instantiates a new Shenyu agent config.
      *
-     * @param applicationName the application name
+     * @param appName the application name
      * @param supports the supports
      * @param plugins the plugins
      */
-    public ShenyuAgentConfig(final String applicationName, final Map<String, List<String>> supports, 
+    public ShenyuAgentConfig(final String appName, final Map<String, List<String>> supports, 
                              final Map<String, Map<String, AgentPluginConfig>> plugins) {
-        this.applicationName = applicationName;
+        this.appName = appName;
         this.supports = supports;
         this.plugins = plugins;
     }
     
     /**
-     * Gets application name.
+     * Gets app name.
      *
-     * @return the application name
+     * @return the app name
      */
-    public String getApplicationName() {
-        return applicationName;
+    public String getAppName() {
+        return appName;
     }
     
     /**
-     * Sets application name.
+     * Sets app name.
      *
-     * @param applicationName the application name
-     * @return the application name
+     * @param appName the app name
      */
-    public ShenyuAgentConfig setApplicationName(final String applicationName) {
-        this.applicationName = applicationName;
-        return this;
+    public void setAppName(final String appName) {
+        this.appName = appName;
     }
     
     /**
@@ -85,11 +83,9 @@ public final class ShenyuAgentConfig {
      * Sets supports.
      *
      * @param supports the supports
-     * @return the supports
      */
-    public ShenyuAgentConfig setSupports(final Map<String, List<String>> supports) {
+    public void setSupports(final Map<String, List<String>> supports) {
         this.supports = supports;
-        return this;
     }
     
     /**
@@ -105,10 +101,8 @@ public final class ShenyuAgentConfig {
      * Sets plugins.
      *
      * @param plugins the plugins
-     * @return the plugins
      */
-    public ShenyuAgentConfig setPlugins(final Map<String, Map<String, AgentPluginConfig>> plugins) {
+    public void setPlugins(final Map<String, Map<String, AgentPluginConfig>> plugins) {
         this.plugins = plugins;
-        return this;
     }
 }

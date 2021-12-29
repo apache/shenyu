@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.agent.core.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.agent.api.config.AgentPluginConfig;
 import org.apache.shenyu.agent.api.config.ShenyuAgentConfig;
 import org.apache.shenyu.agent.core.enums.SingletonHolder;
@@ -40,7 +41,7 @@ public final class ShenyuAgentConfigUtils {
      */
     public static Set<String> getSupports() {
         Map<String, List<String>> supports = getConfig().getSupports();
-        return supports.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        return supports.values().stream().flatMap(Collection::stream).filter(StringUtils::isNoneEmpty).collect(Collectors.toSet());
     }
     
     /**
@@ -51,7 +52,8 @@ public final class ShenyuAgentConfigUtils {
     public static Map<String, AgentPluginConfig> getPluginConfigMap() {
         return getConfig().getPlugins().values().stream()
                 .map(Map::entrySet).flatMap(Set::stream)
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+                .collect(Collectors.toMap(Entry::getKey, entry -> GsonUtils.getInstance()
+                        .fromJson(GsonUtils.getInstance().toJson(entry.getValue()), AgentPluginConfig.class)));
     }
     
     /**

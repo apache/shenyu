@@ -15,32 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.core.loader;
+package org.apache.shenyu.agent.core;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.agent.api.config.ShenyuAgentConfig;
-import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
+import org.apache.shenyu.agent.api.entity.PointCutConfig;
 import org.apache.shenyu.agent.core.yaml.ShenyuYamlEngine;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Objects;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
- * The type Shenyu agent config loader.
+ * The type Shenyu yaml engine test.
  */
-public final class ShenyuAgentConfigLoader {
+public final class ShenyuYamlEngineTest {
     
-    private static final String CONFIG_PATH = "config-path";
-    
-    /**
-     * Load shenyu agent config.
-     *
-     * @return the shenyu agent config
-     * @throws IOException the io exception
-     */
-    public static ShenyuAgentConfig load() throws IOException {
-        String configPath = System.getProperty(CONFIG_PATH);
-        File configFile = StringUtils.isEmpty(configPath) ? ShenyuAgentLocator.locatorConf("shenyu-agent.yaml") : new File(configPath);
-        return ShenyuYamlEngine.agentConfig(configFile);
+    @Test
+    public void testAgentConfig() throws URISyntaxException, IOException {
+        File file = new File(Objects.requireNonNull(this.getClass().getResource("/shenyu-agent-test.yaml")).toURI());
+        ShenyuAgentConfig shenyuAgentConfig = ShenyuYamlEngine.agentConfig(file);
+        assertNotNull(shenyuAgentConfig);
+        File tracing = new File(Objects.requireNonNull(this.getClass().getResource("/tracing-point-test.yaml")).toURI());
+        PointCutConfig cutConfig = ShenyuYamlEngine.unmarshal(tracing, PointCutConfig.class);
+        assertNotNull(cutConfig);
     }
 }

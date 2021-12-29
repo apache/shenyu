@@ -39,6 +39,12 @@
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyaml.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -54,12 +60,14 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
+                                    <exclude>org.slf4j:*</exclude>
                                     <exclude>net.bytebuddy:*</exclude>
                                     <exclude>com.google.errorprone:error_prone_annotations:jar:</exclude>
                                     <exclude>com.google.code.findbugs:jsr305:jar:</exclude>
                                     <exclude>org.checkerframework:checker-qual:jar:</exclude>
                                     <exclude>com.google.guava:listenablefuture:jar:*</exclude>
                                     <exclude>com.google.j2objc:j2objc-annotations:jar:*</exclude>
+                                    <exclude>org.apache.commons:logging:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <relocations>
@@ -68,8 +76,8 @@
                                     <shadedPattern>${shade.package}.org.yaml</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.apache.commons</pattern>
-                                    <shadedPattern>${shade.package}.org.apache.commons</shadedPattern>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>${shade.package}.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
