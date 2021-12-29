@@ -78,7 +78,7 @@
                             <shadeSourcesContent>true</shadeSourcesContent>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>io.opentracing:jar:</exclude>
+                                    <exclude>io.opentracing:jar</exclude>
                                 </excludes>
                             </artifactSet>
                             <relocations>
