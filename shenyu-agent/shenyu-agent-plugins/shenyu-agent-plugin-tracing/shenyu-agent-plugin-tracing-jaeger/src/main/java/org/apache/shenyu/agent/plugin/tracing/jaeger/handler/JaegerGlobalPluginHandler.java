@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.agent.plugin.tracing.jaeger.handler;
 
-import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 import org.apache.shenyu.agent.api.entity.MethodResult;
@@ -35,14 +35,14 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
     
     @Override
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
-        Scope scope = GlobalTracer.get().buildSpan(JaegerConstants.ROOT_SPAN)
-                .withTag(Tags.COMPONENT.getKey(), JaegerConstants.NAME).startActive(true);
+        Span scope = GlobalTracer.get().buildSpan(JaegerConstants.ROOT_SPAN)
+                .withTag(Tags.COMPONENT.getKey(), JaegerConstants.NAME).start();
         target.setContext(scope);
     }
     
     @Override
     public void after(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
-        ((Scope) target.getContext()).close();
+        ((Span) target.getContext()).finish();
     }
     
     @Override
