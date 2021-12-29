@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version: "3"
+version: "2.1"
 services:
   shenyu-bootstrap:
     image: apache/shenyu-bootstrap:latest
@@ -39,8 +39,27 @@ services:
     - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
     environment:
       - spring.profiles.active=pg
-      - spring.datasource.url=<your_url>
-      - spring.datasource.username=<your_username>
-      - spring.datasource.password=<your_password>
+      - spring.datasource.url=jdbc:postgresql://db:5432/shenyu
+      - spring.datasource.username=postgres
+      - spring.datasource.password=123456
     ports:
     - "9095:9095"
+    links:
+      - db:db
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres
+    container_name: db
+    environment:
+      POSTGRES_DB: shenyu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 6s
+      timeout: 5s
+      retries: 10
