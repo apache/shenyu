@@ -32,7 +32,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,8 +48,8 @@ public final class TracingAgentPluginDefinition extends AbstractAgentPluginDefin
     @Override
     protected Collection<JoinPointBuilder> joinPointBuilder() {
         PointCutConfig config = null;
-        File configFile = new File(ShenyuAgentLocator.locatorAgent(), "conf/tracing-point.yaml"); try {
-            config = ShenyuYamlEngine.unmarshal(configFile, PointCutConfig.class);
+        try {
+            config = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("tracing-point.yaml"), PointCutConfig.class);
         } catch (IOException e) {
             LOG.error("Exception loader tracing point config is", e);
         } 
@@ -59,13 +58,13 @@ public final class TracingAgentPluginDefinition extends AbstractAgentPluginDefin
         }
         return config.getPointCuts().stream()
                 .filter(pointCut -> StringUtils.isNotEmpty(pointCut.getTargetClass()) 
-                        && pointCut.getPoints().isEmpty() && !pointCut.getHandlers().isEmpty())
+                        && !pointCut.getPoints().isEmpty() && !pointCut.getHandlers().isEmpty())
                 .map(pointCut -> {
                     JoinPointBuilder builder = ShenyuAgentJoinPoint.interceptClass(pointCut.getTargetClass());
                     Set<String> supports = ShenyuAgentConfigUtils.getSupports();
                     List<String> handlers = pointCut.getHandlers().entrySet().stream()
                             .filter(entry -> supports.contains(entry.getKey()))
-                            .flatMap(entry -> entry.getValue().getNames().stream())
+                            .flatMap(entry -> entry.getValue().stream())
                             .collect(Collectors.toList());
                     String[] instanceMethods = pointCut
                             .getPoints()

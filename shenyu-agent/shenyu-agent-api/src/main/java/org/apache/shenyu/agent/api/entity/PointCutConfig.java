@@ -54,7 +54,7 @@ public final class PointCutConfig {
     
         private List<Point> points;
     
-        private Map<String, Handler> handlers;
+        private Map<String, List<String>> handlers;
     
         /**
          * Gets target class.
@@ -97,7 +97,7 @@ public final class PointCutConfig {
          *
          * @return the handlers
          */
-        public Map<String, Handler> getHandlers() {
+        public Map<String, List<String>> getHandlers() {
             return handlers;
         }
     
@@ -106,7 +106,7 @@ public final class PointCutConfig {
          *
          * @param handlers the handlers
          */
-        public void setHandlers(final Map<String, Handler> handlers) {
+        public void setHandlers(final Map<String, List<String>> handlers) {
             this.handlers = handlers;
         }
     }
@@ -154,32 +154,6 @@ public final class PointCutConfig {
          */
         public void setName(final String name) {
             this.name = name;
-        }
-    }
-    
-    /**
-     * The type Handler.
-     */
-    public static final class Handler {
-        
-        private List<String> names;
-    
-        /**
-         * Gets names.
-         *
-         * @return the names
-         */
-        public List<String> getNames() {
-            return names;
-        }
-    
-        /**
-         * Sets names.
-         *
-         * @param names the names
-         */
-        public void setNames(final List<String> names) {
-            this.names = names;
         }
     }
 }

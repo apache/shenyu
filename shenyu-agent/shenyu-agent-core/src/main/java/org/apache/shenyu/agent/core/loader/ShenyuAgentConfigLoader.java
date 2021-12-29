@@ -30,8 +30,6 @@ import java.io.IOException;
  */
 public final class ShenyuAgentConfigLoader {
     
-    private static final String DEFAULT_CONFIG_PATH = "/conf/shenyu-agent.yaml";
-    
     private static final String CONFIG_PATH = "config-path";
     
     /**
@@ -42,7 +40,7 @@ public final class ShenyuAgentConfigLoader {
      */
     public static ShenyuAgentConfig load() throws IOException {
         String configPath = System.getProperty(CONFIG_PATH);
-        File configFile = StringUtils.isEmpty(configPath) ? new File(ShenyuAgentLocator.locatorAgent(), DEFAULT_CONFIG_PATH) : new File(configPath);
+        File configFile = StringUtils.isEmpty(configPath) ? ShenyuAgentLocator.locatorConf("shenyu-agent.yaml") : new File(configPath);
         return ShenyuYamlEngine.agentConfig(configFile);
     }
 }

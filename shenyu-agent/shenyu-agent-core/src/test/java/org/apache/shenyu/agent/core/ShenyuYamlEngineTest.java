@@ -18,6 +18,7 @@
 package org.apache.shenyu.agent.core;
 
 import org.apache.shenyu.agent.api.config.ShenyuAgentConfig;
+import org.apache.shenyu.agent.api.entity.PointCutConfig;
 import org.apache.shenyu.agent.core.yaml.ShenyuYamlEngine;
 import org.junit.Test;
 
@@ -35,8 +36,11 @@ public final class ShenyuYamlEngineTest {
     
     @Test
     public void testAgentConfig() throws URISyntaxException, IOException {
-        File file = new File(Objects.requireNonNull(this.getClass().getResource("/shenyu-agent.yaml")).toURI());
+        File file = new File(Objects.requireNonNull(this.getClass().getResource("/shenyu-agent-test.yaml")).toURI());
         ShenyuAgentConfig shenyuAgentConfig = ShenyuYamlEngine.agentConfig(file);
         assertNotNull(shenyuAgentConfig);
+        File tracing = new File(Objects.requireNonNull(this.getClass().getResource("/tracing-point-test.yaml")).toURI());
+        PointCutConfig cutConfig = ShenyuYamlEngine.unmarshal(tracing, PointCutConfig.class);
+        assertNotNull(cutConfig);
     }
 }
