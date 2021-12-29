@@ -37,7 +37,7 @@ public class EncryptUtil {
             case "MD5":
                 return md5(password);
             default:
-                return null;
+                return password;
         }
     }
 

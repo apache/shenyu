@@ -17,9 +17,79 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 /**
- * Test cases for ShenyuHttpRegistryController.
+ * Test cases for {@link ShenyuHttpRegistryController}.
  */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class ShenyuHttpRegistryControllerTest {
-    
+
+    private MockMvc mockMvc;
+
+    @Mock
+    private ShenyuServerRegisterPublisher publisher;
+
+    @InjectMocks
+    private ShenyuHttpRegistryController shenyuHttpRegistryController;
+
+    @Before
+    public void setUp() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuHttpRegistryController).build();
+    }
+
+    @Test
+    public void testRegisterMetadata() throws Exception {
+        MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder()
+                .appName("app")
+                .enabled(true)
+                .rpcType(RpcTypeEnum.DUBBO.getName())
+                .host("127.0.0.1")
+                .port(8080)
+                .path("/register")
+                .build();
+        doNothing().when(publisher).publish(metaDataRegisterDTO);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/register-metadata")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(metaDataRegisterDTO)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ShenyuResultMessage.SUCCESS))
+                .andReturn();
+    }
+
+    @Test
+    public void testRegisterURI() throws Exception {
+        URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
+                .appName("app")
+                .host("127.0.0.1")
+                .port(8080)
+                .rpcType(RpcTypeEnum.DUBBO.getName())
+                .build();
+        doNothing().when(publisher).publish(uriRegisterDTO);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/register-uri")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(uriRegisterDTO)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ShenyuResultMessage.SUCCESS))
+                .andReturn();
+    }
 }

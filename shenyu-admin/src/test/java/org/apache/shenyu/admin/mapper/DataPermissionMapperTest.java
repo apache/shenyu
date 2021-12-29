@@ -62,4 +62,20 @@ public class DataPermissionMapperTest extends AbstractSpringIntegrationTest {
                 .id(id)
                 .dataType(dataType).build();
     }
+
+    @Test
+    public void deleteByDataIdList() {
+
+        DataPermissionDO dataPermissionDO1 = buildDataPermissionDO();
+        DataPermissionDO dataPermissionDO2 = buildDataPermissionDO();
+        DataPermissionDO dataPermissionDO3 = buildDataPermissionDO();
+        List<DataPermissionDO> dataList = Lists.list(dataPermissionDO1, dataPermissionDO2, dataPermissionDO3);
+        int ret1 = dataPermissionMapper.insertBatch(dataList);
+        assertEquals(dataList.size(), ret1);
+
+        List<String> dataIdList = Lists.list(dataPermissionDO1.getDataId(), dataPermissionDO2.getDataId(), dataPermissionDO3.getDataId());
+        int ret2 = dataPermissionMapper.deleteByDataIdList(dataIdList);
+        assertEquals(dataList.size(), ret2);
+    }
+
 }

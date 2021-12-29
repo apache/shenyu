@@ -26,16 +26,14 @@ import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 /**
  * Command messages.
  */
-public abstract class AbstractMessageType {
-
-    private volatile boolean connected;
+public interface AbstractMessageType {
 
     /**
      * Client request to connect to Server.
      * @param ctx ChannelHandlerContext
      * @param msg msg
      */
-    public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
+    default void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
 
     }
 
@@ -44,15 +42,7 @@ public abstract class AbstractMessageType {
      * @param ctx ctx
      * @param msg msg
      */
-    public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
-
-    }
-
-    /**
-     * Publish Acknowledgment.
-     * @param ctx ctx
-     */
-    public void pubAck(final ChannelHandlerContext ctx) {
+    default void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
 
     }
 
@@ -61,7 +51,7 @@ public abstract class AbstractMessageType {
      * @param ctx ctx
      * @param msg msg
      */
-    public void subscribe(final ChannelHandlerContext ctx, final MqttSubscribeMessage msg) {
+    default void subscribe(final ChannelHandlerContext ctx, final MqttSubscribeMessage msg) {
 
     }
 
@@ -70,7 +60,7 @@ public abstract class AbstractMessageType {
      * @param ctx ctx
      * @param msg msg
      */
-    public void unsubscribe(final ChannelHandlerContext ctx, final MqttUnsubscribeMessage msg) {
+    default void unsubscribe(final ChannelHandlerContext ctx, final MqttUnsubscribeMessage msg) {
 
     }
 
@@ -78,7 +68,7 @@ public abstract class AbstractMessageType {
      * PING Request.
      * @param ctx ctx
      */
-    public void pingReq(final ChannelHandlerContext ctx) {
+    default void pingReq(final ChannelHandlerContext ctx) {
 
     }
 
@@ -86,7 +76,7 @@ public abstract class AbstractMessageType {
      * PING Response.
      * @param ctx ctx
      */
-    public void pingResp(final ChannelHandlerContext ctx) {
+    default void pingResp(final ChannelHandlerContext ctx) {
 
     }
 
@@ -94,23 +84,8 @@ public abstract class AbstractMessageType {
      * Client is Disconnecting.
      * @param ctx ctx
      */
-    public void disconnect(final ChannelHandlerContext ctx) {
+    default void disconnect(final ChannelHandlerContext ctx) {
 
     }
 
-    /**
-     * isConnected.
-     * @return connected
-     */
-    public boolean isConnected() {
-        return connected;
-    }
-
-    /**
-     * set connected.
-     * @param connected connected
-     */
-    public void setConnected(final boolean connected) {
-        this.connected = connected;
-    }
 }

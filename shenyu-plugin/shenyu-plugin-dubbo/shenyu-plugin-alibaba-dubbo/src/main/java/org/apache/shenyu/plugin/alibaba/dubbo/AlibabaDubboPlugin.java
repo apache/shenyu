@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -101,5 +102,10 @@ public class AlibabaDubboPlugin extends AbstractDubboPlugin {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return chain.execute(exchange);
         });
+    }
+
+    @Override
+    protected void transmitRpcContext(final Map<String, String> rpcContext) {
+        rpcContext.forEach(RpcContext.getContext()::setAttachment);
     }
 }

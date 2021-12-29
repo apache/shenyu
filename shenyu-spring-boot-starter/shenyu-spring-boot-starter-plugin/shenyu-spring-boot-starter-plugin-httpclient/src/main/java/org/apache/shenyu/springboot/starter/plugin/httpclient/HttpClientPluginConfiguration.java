@@ -77,9 +77,9 @@ public class HttpClientPluginConfiguration {
             connectionProvider = ConnectionProvider.newConnection();
         } else if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
             connectionProvider = ConnectionProvider.fixed(pool.getName(),
-                    pool.getMaxConnections(), pool.getAcquireTimeout());
+                    pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
         } else {
-            connectionProvider = ConnectionProvider.elastic(pool.getName());
+            connectionProvider = ConnectionProvider.elastic(pool.getName(), pool.getMaxIdleTime());
         }
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .tcpConfiguration(tcpClient -> {
@@ -135,7 +135,9 @@ public class HttpClientPluginConfiguration {
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-        return httpClient;
+        // set to false, fix java.io.IOException: Connection reset by peer
+        // see https://github.com/reactor/reactor-netty/issues/388
+        return httpClient.keepAlive(properties.isKeepAlive());
     }
 
     /**

@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.dubbo.common.AbstractDubboPlugin;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -67,5 +68,10 @@ public class ApacheDubboPlugin extends AbstractDubboPlugin {
         RpcContext.getContext().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
         final Mono<Object> result = dubboProxyService.genericInvoker(param, metaData, exchange);
         return result.then(chain.execute(exchange));
+    }
+
+    @Override
+    protected void transmitRpcContext(final Map<String, String> rpcContext) {
+        RpcContext.getContext().setAttachments(rpcContext);
     }
 }

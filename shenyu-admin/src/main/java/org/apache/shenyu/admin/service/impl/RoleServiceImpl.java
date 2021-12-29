@@ -40,12 +40,16 @@ import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.RoleService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -163,8 +167,7 @@ public class RoleServiceImpl implements RoleService {
                 .collect(Collectors.toList());
         List<String> permissionIds = resourceVOList.stream().map(ResourceVO::getId).collect(Collectors.toList());
 
-        List<ResourceInfo> treeList = new ArrayList<>();
-        getTreeModelList(treeList, resourceVOList, null);
+        List<ResourceInfo> treeList = getTreeModelList(resourceVOList);
         return PermissionInfo.builder().treeList(treeList).permissionIds(permissionIds).build();
     }
 
@@ -184,29 +187,46 @@ public class RoleServiceImpl implements RoleService {
     /**
      * get menu list.
      *
-     * @param treeList     {@linkplain ResourceInfo}
-     * @param metaList     {@linkplain ResourceDTO}
-     * @param resourceInfo {@linkplain ResourceInfo}
+     * @param metaList {@linkplain ResourceDTO}
+     * @return list of {@linkplain ResourceInfo}
      */
-    private void getTreeModelList(final List<ResourceInfo> treeList,
-                                  final List<ResourceVO> metaList,
-                                  final ResourceInfo resourceInfo) {
-        for (ResourceVO resourceVO : metaList) {
-            String parentId = resourceVO.getParentId();
-            ResourceInfo resourceInfoItem = ResourceInfo.buildResourceInfo(resourceVO);
-            if (ObjectUtils.isEmpty(resourceInfo) && StringUtils.isEmpty(parentId)) {
-                treeList.add(resourceInfoItem);
-                if (resourceInfoItem.getIsLeaf().equals(Boolean.FALSE)) {
-                    getTreeModelList(treeList, metaList, resourceInfoItem);
-                }
-            } else if (!ObjectUtils.isEmpty(resourceInfo) && StringUtils.isNotEmpty(parentId) && parentId.equals(resourceInfo.getId())) {
-                resourceInfo.getChildren().add(resourceInfoItem);
-                if (resourceInfoItem.getIsLeaf().equals(Boolean.FALSE)) {
-                    getTreeModelList(treeList, metaList, resourceInfoItem);
-                }
-            }
+    private List<ResourceInfo> getTreeModelList(final List<ResourceVO> metaList) {
 
+        List<ResourceInfo> retList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(metaList)) {
+            return retList;
         }
+        Map<String, ResourceInfo> resourceInfoMap = metaList.stream().map(ResourceInfo::buildResourceInfo)
+                .filter(resourceInfo -> Objects.nonNull(resourceInfo) && StringUtils.isNotEmpty(resourceInfo.getId()))
+                .collect(Collectors.toMap(ResourceInfo::getId, Function.identity(), (value1, value2) -> value1));
+        Map<String, Set<String>> metaChildrenMap = metaList.stream().filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
+                .collect(Collectors.toMap(ResourceVO::getParentId,
+                    resourceVO -> {
+                        Set<String> idSet = new LinkedHashSet<>();
+                        idSet.add(resourceVO.getId());
+                        return idSet;
+                    }, (set1, set2) -> {
+                        set1.addAll(set2);
+                        return set1;
+                    }, LinkedHashMap::new));
+        metaChildrenMap.forEach((parent, children) -> {
+            ResourceInfo resourceInfo = resourceInfoMap.get(parent);
+            if (CollectionUtils.isNotEmpty(children)) {
+                List<ResourceInfo> targetList;
+                if (Objects.isNull(resourceInfo)) {
+                    targetList = retList;
+                } else {
+                    targetList = resourceInfo.getChildren();
+                }
+                children.forEach(child -> {
+                    ResourceInfo data = resourceInfoMap.get(child);
+                    if (Objects.nonNull(data)) {
+                        targetList.add(data);
+                    }
+                });
+            }
+        });
+        return retList;
     }
 
     /**

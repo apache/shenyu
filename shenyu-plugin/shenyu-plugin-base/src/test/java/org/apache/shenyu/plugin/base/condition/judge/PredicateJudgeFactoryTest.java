@@ -75,14 +75,6 @@ public final class PredicateJudgeFactoryTest {
     }
 
     @Test
-    public void testContainsJudge() {
-        conditionData.setOperator(OperatorEnum.CONTAINS.getAlias());
-        Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
-        Assert.assertTrue(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
-        Assert.assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
-    }
-
-    @Test
     public void testRegexJudge() {
         conditionData.setOperator(OperatorEnum.REGEX.getAlias());
         conditionData.setParamValue("[/a-zA-Z0-9]+");

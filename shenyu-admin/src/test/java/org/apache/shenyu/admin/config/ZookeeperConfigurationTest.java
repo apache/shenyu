@@ -18,14 +18,13 @@
 package org.apache.shenyu.admin.config;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
+import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
@@ -33,52 +32,56 @@ import static org.junit.Assert.assertNotNull;
  * Test case for ZookeeperConfiguration.
  */
 public final class ZookeeperConfigurationTest extends AbstractConfigurationTest {
-
-    private static TestingServer zkServer;
-
+    
+    private static final ZkClient ZK_CLIENT = Mockito.mock(ZkClient.class);
+    
     private final String[] inlinedProperties = new String[]{
         "shenyu.sync.zookeeper.url=127.0.0.1:21810",
         "shenyu.sync.zookeeper.sessionTimeout=5000",
         "shenyu.sync.zookeeper.connectionTimeout=2000",
         "shenyu.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
     };
-
-    @BeforeClass
-    public static void setUpBefore() throws Exception {
-        zkServer = new TestingServer(21810, true);
-    }
-
+    
     @Test
     public void testOnMissingBean() {
         // init zkClient by ZookeeperConfiguration
-        load(ZookeeperConfiguration.class, inlinedProperties);
+        load(MockZookeeperConfiguration.class, inlinedProperties);
         ZkClient zkClient = (ZkClient) getContext().getBean("zkClient");
         assertNotNull(zkClient);
     }
-
+    
     @Test
     public void testOnExistBean() {
         // verify zkClient by ZookeeperConfiguration
         load(CustomZkClientConfiguration.class, inlinedProperties);
         boolean isExistZkClient = getContext().containsBean("zkClient");
         assertFalse(isExistZkClient);
-
+        
         // get customZkClient
         ZkClient customZkClient = (ZkClient) getContext().getBean("customZkClient");
         assertNotNull(customZkClient);
     }
-
-    @AfterClass
-    public static void tearDown() throws Exception {
-        zkServer.stop();
+    
+    @EnableConfigurationProperties(ZookeeperProperties.class)
+    static class MockZookeeperConfiguration extends ZookeeperConfiguration {
+        /**
+         * register zkClient in spring ioc.
+         *
+         * @param zookeeperProp the zookeeper configuration
+         * @return ZkClient {@linkplain ZkClient}
+         */
+        @Override
+        public ZkClient zkClient(final ZookeeperProperties zookeeperProp) {
+            return ZK_CLIENT;
+        }
     }
-
+    
     @EnableConfigurationProperties(ZookeeperProperties.class)
     static class CustomZkClientConfiguration {
-
+        
         @Bean
         public ZkClient customZkClient(final ZookeeperProperties zookeeperProp) {
-            return new ZkClient(zookeeperProp.getUrl(), zookeeperProp.getSessionTimeout(), zookeeperProp.getConnectionTimeout());
+            return ZK_CLIENT;
         }
     }
 }

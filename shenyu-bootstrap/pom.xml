@@ -167,6 +167,14 @@
         </dependency>
         <!--shenyu cryptor end-->
 
+        <!--shenyu general context plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-general-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu general context plugin end-->
+
         <!--shenyu websocket plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -218,36 +226,36 @@
         <!--shenyu sofa plugin end-->
 
         <!--shenyu springCloud plugin start-->
-<!--       <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-plugin-springcloud</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+       <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-springcloud</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-commons</artifactId>-->
-<!--            <version>2.2.0.RELEASE</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>-->
-<!--            <version>2.2.0.RELEASE</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-commons</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
 
         <!-- springCloud if you config register center is nacos please dependency this-->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>-->
-<!--            <version>2.1.0.RELEASE</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <version>2.1.0.RELEASE</version>
+        </dependency>
 
         <!-- springCloud if you config register center is eureka please dependency end-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
-<!--            <version>2.2.0.RELEASE</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
         <!--shenyu springCloud plugin start end-->
         <!--shenyu  apache dubbo plugin start-->
          <dependency>

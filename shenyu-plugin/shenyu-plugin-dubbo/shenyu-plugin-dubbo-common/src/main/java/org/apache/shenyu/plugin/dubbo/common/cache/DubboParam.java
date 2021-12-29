@@ -58,6 +58,11 @@ public class DubboParam {
     private Boolean sent;
 
     /**
+     * the cluster.
+     */
+    private String cluster;
+
+    /**
      * Gets group.
      *
      * @return the group
@@ -181,5 +186,23 @@ public class DubboParam {
      */
     public void setSent(final Boolean sent) {
         this.sent = sent;
+    }
+
+    /**
+     * Gets cluster.
+     *
+     * @return the cluster
+     */
+    public String getCluster() {
+        return cluster;
+    }
+
+    /**
+     * Sets cluster.
+     *
+     * @param cluster the cluster
+     */
+    public void setCluster(final String cluster) {
+        this.cluster = cluster;
     }
 }

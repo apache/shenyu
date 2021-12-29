@@ -58,5 +58,6 @@
         <module>shenyu-plugin-websocket</module>
         <module>shenyu-plugin-dubbo</module>
         <module>shenyu-plugin-uri</module>
+        <module>shenyu-plugin-general-context</module>
     </modules>
 </project>

@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.api.result;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.Objects;
+
 /**
  * The type shenyu result warp.
  */
@@ -42,13 +44,17 @@ public final class ShenyuResultWrap {
     /**
      * Error object.
      *
+     * @param exchange the exchange
      * @param code    the code
      * @param message the message
      * @param object  the object
      * @return the object
      */
-    public static Object error(final int code, final String message, final Object object) {
-        return shenyuResult().error(code, message, object);
+    public static Object error(final ServerWebExchange exchange, final int code, final String message, final Object object) {
+        if (Objects.isNull(exchange)) {
+            return shenyuResult().error(code, message, object);
+        }
+        return shenyuResult().error(exchange, code, message, object);
     }
 
     /**

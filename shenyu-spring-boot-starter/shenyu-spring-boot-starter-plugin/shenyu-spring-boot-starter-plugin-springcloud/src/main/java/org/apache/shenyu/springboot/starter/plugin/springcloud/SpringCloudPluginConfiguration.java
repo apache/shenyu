@@ -76,11 +76,11 @@ public class SpringCloudPluginConfiguration {
      */
     @Bean
     public RibbonClientSpecification ribbonClientSpecification() {
-        Class[] classes = new Class[]{SpringCloudClientConfiguration.class};
+        Class<?>[] classes = new Class[]{SpringCloudClientConfiguration.class};
         return new RibbonClientSpecification(String.join(".", Constants.DEFAULT.toLowerCase(), RibbonClientSpecification.class.getName()), classes);
     }
 
-    class SpringCloudClientConfiguration {
+    static class SpringCloudClientConfiguration {
         @Bean
         public IRule ribbonRule() {
             return new LoadBalanceRule();
