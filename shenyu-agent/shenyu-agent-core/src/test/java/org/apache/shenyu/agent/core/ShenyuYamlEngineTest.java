@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Objects;
 
+import static org.junit.Assert.assertNotNull;
+
 /**
  * The type Shenyu yaml engine test.
  */
@@ -35,5 +37,6 @@ public final class ShenyuYamlEngineTest {
     public void testAgentConfig() throws URISyntaxException, IOException {
         File file = new File(Objects.requireNonNull(this.getClass().getResource("/shenyu-agent.yaml")).toURI());
         ShenyuAgentConfig shenyuAgentConfig = ShenyuYamlEngine.agentConfig(file);
+        assertNotNull(shenyuAgentConfig);
     }
 }
