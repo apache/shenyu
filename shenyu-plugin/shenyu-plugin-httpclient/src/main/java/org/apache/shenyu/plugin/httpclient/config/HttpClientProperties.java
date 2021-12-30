@@ -45,6 +45,11 @@ import java.util.Optional;
 public class HttpClientProperties {
 
     /**
+     * the http client strategy.
+     */
+    private String strategy;
+
+    /**
      * The connect timeout in millis, the default is 45s.
      */
     private Integer connectTimeout = 45000;
@@ -103,11 +108,29 @@ public class HttpClientProperties {
      * set to false, fix java.io.IOException: Connection reset by peer, see https://github.com/reactor/reactor-netty/issues/388.
      */
     private boolean keepAlive;
-    
+
+    /**
+     * Gets strategy.
+     *
+     * @return to strategy
+     */
+    public String getStrategy() {
+        return strategy;
+    }
+
+    /**
+     * Sets strategy.
+     *
+     * @param strategy to strategy
+     */
+    public void setStrategy(final String strategy) {
+        this.strategy = strategy;
+    }
+
     /**
      * Gets connect timeout.
      *
-     * @return the connect timeout
+     * @return to connect timeout
      */
     public Integer getConnectTimeout() {
         return connectTimeout;
@@ -116,7 +139,7 @@ public class HttpClientProperties {
     /**
      * Sets connect timeout.
      *
-     * @param connectTimeout the connect timeout
+     * @param connectTimeout to connect timeout
      */
     public void setConnectTimeout(final Integer connectTimeout) {
         this.connectTimeout = connectTimeout;
@@ -348,9 +371,9 @@ public class HttpClientProperties {
 
         /**
          * Time in millis after which the channel will be closed,
-         * if NULL there is no max idle time. the default is 30s.
+         * if NULL there is no max idle time.
          */
-        private Long maxIdleTime = 30000L;
+        private Long maxIdleTime;
 
         /**
          * Gets type.
