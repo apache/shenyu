@@ -29,9 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.BeanUtils;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -46,9 +44,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -107,7 +103,6 @@ public final class ConsulSyncDataServiceTest {
         watchConfigKeyValues.setAccessible(true);
         watchConfigKeyValues.invoke(consulSyncDataService);
 
-
         Object target = ReflectUtils.getFieldValue(consulSyncDataService, "consulIndexes");
 
         consulIndexes = typeConversionMap(target);
@@ -115,11 +110,10 @@ public final class ConsulSyncDataServiceTest {
         Assert.assertEquals(index, consulIndexes.get(ConsulConstants.SYNC_PRE_FIX));
     }
 
-
-    private  Map<String, Long> typeConversionMap(Object obj) {
+    private Map<String, Long> typeConversionMap(final Object obj) {
         Map<String, Long> result = new HashMap<>();
         if (obj instanceof Map<?, ?>) {
-            Map<?, ?> map = (Map<?, ?>) (obj);
+            Map<?, ?> map = (Map<?, ?>) obj;
             for (Map.Entry<?, ?> entry : map.entrySet()) {
                 result.put((String) entry.getKey(), (Long) entry.getValue());
             }
