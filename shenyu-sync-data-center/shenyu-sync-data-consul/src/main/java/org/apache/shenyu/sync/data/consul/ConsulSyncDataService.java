@@ -139,8 +139,7 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
                     }
                     this.consulIndexes.put(context, newIndex);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    //LOG.warn("Error querying consul Key/Values for context '" + context + "'. Message: " + e.getMessage());
+                    LOG.warn("Error querying consul Key/Values for context '" + context + "'. Message: " + e.getMessage());
                 }
             }
         }
