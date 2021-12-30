@@ -23,19 +23,32 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.BeanUtils;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,38 +60,46 @@ public final class ConsulSyncDataServiceTest {
 
     private ConsulSyncDataService consulSyncDataService;
 
+    @Mock
+    private Response<List<GetValue>> response;
+
+    @Mock
+    private Map<String, Long> consulIndexes;
+
+    private AutoCloseable autoCloseable;
+
     @Before
     public void setup() {
-        consulClient = mock(ConsulClient.class);
+        consulClient = spy(ConsulClient.class);
         ConsulConfig consulConfig = new ConsulConfig();
         consulConfig.setWaitTime(1000);
         consulConfig.setWatchDelay(1000);
         consulSyncDataService = new ConsulSyncDataService(consulClient, consulConfig, null,
                 Collections.emptyList(), Collections.emptyList());
+        AtomicBoolean running = (AtomicBoolean) ReflectUtils.getFieldValue(consulSyncDataService, "running");
+        assertTrue(Objects.requireNonNull(running).get());
+        autoCloseable = MockitoAnnotations.openMocks(this);
     }
 
-    @Test
-    public void testStart() {
-        consulSyncDataService.start();
-    }
-
-    @Test
-    public void testClose() {
+    @After
+    public void after() throws Exception {
         consulSyncDataService.close();
+        AtomicBoolean running = (AtomicBoolean) ReflectUtils.getFieldValue(consulSyncDataService, "running");
+        assertFalse(Objects.requireNonNull(running).get());
+        autoCloseable.close();
     }
 
     @Test
     public void testWatch() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Long index = 1L;
         final List<GetValue> list = new ArrayList<>();
-        GetValue getValue = mock(GetValue.class);
-        when(getValue.getModifyIndex()).thenReturn(index);
-        when(getValue.getKey()).thenReturn(ConsulConstants.PLUGIN_DATA);
-        when(getValue.getDecodedValue()).thenReturn("{}");
+        GetValue getValue = spy(GetValue.class);
+        doReturn(index).when(getValue).getModifyIndex();
+        doReturn(ConsulConstants.PLUGIN_DATA).when(getValue).getKey();
+        doReturn("{}").when(getValue).getDecodedValue();
         list.add(getValue);
-        Response response = mock(Response.class);
-        when(consulClient.getKVValues(any(), any(), any()))
-                .thenReturn(response);
+
+        doReturn(response).when(consulClient).getKVValues(any(), any(), any());
         when(response.getValue()).thenReturn(list);
         when(response.getConsulIndex()).thenReturn(1L);
 
@@ -86,7 +107,23 @@ public final class ConsulSyncDataServiceTest {
         watchConfigKeyValues.setAccessible(true);
         watchConfigKeyValues.invoke(consulSyncDataService);
 
-        Map<String, Long> consulIndexes = (Map<String, Long>) ReflectUtils.getFieldValue(consulSyncDataService, "consulIndexes");
+
+        Object target = ReflectUtils.getFieldValue(consulSyncDataService, "consulIndexes");
+
+        consulIndexes = typeConversionMap(target);
+
         Assert.assertEquals(index, consulIndexes.get(ConsulConstants.SYNC_PRE_FIX));
+    }
+
+
+    private  Map<String, Long> typeConversionMap(Object obj) {
+        Map<String, Long> result = new HashMap<>();
+        if (obj instanceof Map<?, ?>) {
+            Map<?, ?> map = (Map<?, ?>) (obj);
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                result.put((String) entry.getKey(), (Long) entry.getValue());
+            }
+        }
+        return result;
     }
 }
