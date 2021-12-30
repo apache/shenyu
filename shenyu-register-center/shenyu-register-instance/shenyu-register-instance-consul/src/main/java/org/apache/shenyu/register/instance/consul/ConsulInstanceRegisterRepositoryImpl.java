@@ -64,7 +64,8 @@ public class ConsulInstanceRegisterRepositoryImpl implements ShenyuInstanceRegis
         String instancePath = RegisterPathConstants.buildInstanceParentPath();
         String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
-        consulClient.setKVValue(realNode, nodeData);
+        this.service.getMeta().put(realNode, nodeData);
+        consulClient.agentServiceRegister(this.service);
 
         LOGGER.info("consul client register success: {}", nodeData);
     }
