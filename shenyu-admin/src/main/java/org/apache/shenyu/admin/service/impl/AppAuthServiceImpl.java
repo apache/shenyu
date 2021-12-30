@@ -32,6 +32,7 @@ import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
+import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
@@ -227,7 +228,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public ShenyuAdminResult syncData() {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
         if (CollectionUtils.isNotEmpty(appAuthDOList)) {
-            Set<String> idSet = appAuthDOList.stream().map(appAuthDO -> appAuthDO.getId()).collect(Collectors.toSet());
+            Set<String> idSet = appAuthDOList.stream().map(BaseDO::getId).collect(Collectors.toSet());
             Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idSet);
             Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idSet);
 
@@ -398,17 +399,20 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AppAuthData> listAll() {
-
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
-        Set<String> idSet = appAuthDOList.stream().map(appAuthDO -> appAuthDO.getId()).collect(Collectors.toSet());
-        Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idSet);
-        Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idSet);
 
-        return Optional.ofNullable(appAuthDOList).orElseGet(() -> new ArrayList<>())
-                .stream().map(appAuthDO -> {
-                    String id = appAuthDO.getId();
-                    return buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
-                }).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(appAuthDOList)) {
+            Set<String> idSet = appAuthDOList.stream().map(BaseDO::getId).collect(Collectors.toSet());
+            Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idSet);
+            Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idSet);
+
+            return appAuthDOList.stream().map(appAuthDO -> {
+                String id = appAuthDO.getId();
+                return buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
+            }).collect(Collectors.toList());
+        }
+
+        return new ArrayList<>();
     }
 
     @Override
@@ -466,7 +470,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         List<AuthParamDO> authPathDOList = authParamMapper.findByAuthIdList(authIds);
 
-        return Optional.ofNullable(authPathDOList).orElseGet(() -> new ArrayList<AuthParamDO>())
+        return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
                     data -> {
                         List<AuthParamData> dataList = new ArrayList<>();
@@ -486,7 +490,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     private Map<String, List<AuthPathData>> prepareAuthPathData(final Set<String> authIds) {
 
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
-        Map<String, List<AuthPathData>> retMap = Optional.ofNullable(authPathDOList).orElseGet(() -> new ArrayList<AuthPathDO>())
+        return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
                     data -> {
                         List<AuthPathData> dataList = new ArrayList<>();
@@ -496,7 +500,6 @@ public class AppAuthServiceImpl implements AppAuthService {
                         dataList1.addAll(dataList2);
                         return dataList1;
                     }));
-        return retMap;
     }
 
 }
