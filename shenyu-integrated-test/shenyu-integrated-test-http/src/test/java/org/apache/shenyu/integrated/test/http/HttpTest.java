@@ -1,0 +1,144 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.integrated.test.http;
+
+import okhttp3.Response;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.UserDTO;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.apache.shenyu.integratedtest.common.result.ResultBean;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class HttpTest extends AbstractTest {
+    
+    @Test
+    public void testPayment() throws IOException {
+        UserDTO user = new UserDTO("1", "http-test");
+        user = HttpHelper.INSTANCE.postGateway("/http/payment", user, UserDTO.class);
+        assertEquals("1", user.getUserId());
+        assertEquals("http-test", user.getUserName());
+    }
+    
+    @Test
+    public void testFindByUserId() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/findByUserId?userId=1", UserDTO.class);
+        assertEquals("1", user.getUserId());
+        assertEquals("hello world", user.getUserName());
+    }
+    
+    @Test
+    public void testFindByPage() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/findByPage?keyword=http-test&page=1&pageSize=10", UserDTO.class);
+        assertEquals("http-test", user.getUserId());
+        assertEquals("hello world keyword is test page is 1 pageSize is 10", user.getUserName());
+    }
+    
+    @Test
+    public void testGetPathVariable() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/path/1?name=http-test", UserDTO.class);
+        assertEquals("1", user.getUserId());
+        assertEquals("http-test", user.getUserName());
+    }
+    
+    @Test
+    public void testRestFul() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/path/1/name", UserDTO.class);
+        assertEquals("1", user.getUserId());
+        assertEquals("hello world", user.getUserName());
+    }
+    
+    @Test
+    public void testPutPathVariableAndBody() throws IOException {
+        UserDTO userDTO = new UserDTO();
+        UserDTO user = HttpHelper.INSTANCE.putGateway("/http/putPathBody/1", userDTO, UserDTO.class);
+        assertEquals("1", user.getUserId());
+        assertEquals("hello world", user.getUserName());
+    }
+    
+    @Test
+    public void testPass() throws IOException {
+        ResultBean response = HttpHelper.INSTANCE.postGateway("/http/waf/pass", ResultBean.class);
+        assertEquals(Integer.valueOf(200), response.getCode());
+        assertEquals("pass", response.getMsg());
+    }
+    
+    @Test
+    public void testDeny() throws IOException {
+        ResultBean response = HttpHelper.INSTANCE.postGateway("/http/waf/deny", ResultBean.class);
+        assertEquals(Integer.valueOf(403), response.getCode());
+        assertEquals("deny", response.getMsg());
+    }
+    
+    @Test
+    public void testRequestParameter() throws IOException {
+        ResultBean response = HttpHelper.INSTANCE.getFromGateway("/http/request/parameter/pass?requestParameter=http-test", ResultBean.class);
+        assertEquals(Integer.valueOf(200), response.getCode());
+        assertEquals("pass", response.getMsg());
+        assertEquals("http-test", ((Map<?, ?>) response.getData()).get("requestParameter"));
+    }
+    
+    @Test
+    public void testRequestHeader() throws IOException {
+        Map<String, Object> headers = new HashMap<>(2, 1);
+        headers.put("requestHeader", "http-test");
+        ResultBean response = HttpHelper.INSTANCE.getFromGateway("/http/request/header/pass", headers, ResultBean.class);
+        assertEquals(Integer.valueOf(200), response.getCode());
+        assertEquals("pass", response.getMsg());
+        assertEquals("http-test", ((Map<?, ?>) response.getData()).get("requestHeader"));
+    }
+    
+    @Test
+    public void testRequestCookie() throws IOException {
+        Map<String, Object> headers = new HashMap<>(2, 1);
+        headers.put("cookie", "http-test");
+        ResultBean response = HttpHelper.INSTANCE.getFromGateway("/http/request/cookie/pass", headers, ResultBean.class);
+        assertEquals(Integer.valueOf(200), response.getCode());
+        assertEquals("pass", response.getMsg());
+        assertTrue(response.getData() instanceof Map);
+        assertEquals("http-test", ((Map<?, ?>) response.getData()).get("cookie"));
+    }
+    
+    @Test
+    public void testSentinelPass() throws IOException {
+        ResultBean response = HttpHelper.INSTANCE.getFromGateway("/http/sentinel/pass", ResultBean.class);
+        assertEquals(Integer.valueOf(200), response.getCode());
+        assertEquals("pass", response.getMsg());
+    }
+    
+    @Test
+    public void testModifyResponse() throws IOException {
+        Map<String, Object> headers = new HashMap<>();
+        Response response = HttpHelper.INSTANCE.getResponseFromGateway("/http/modifyResponse", headers);
+        assertEquals("true", response.header("useByModifyResponse"));
+        assertEquals("true", response.header("setHeadersExist"));
+        assertEquals("true", response.header("replaceHeaderKeys"));
+        assertEquals("true", response.header("removeHeaderKeys"));
+        Map<String, Object> result = GsonUtils.getInstance().toObjectMap(Objects.requireNonNull(response.body()).string());
+        assertEquals("true", result.get("originReplaceBodyKeys"));
+        assertEquals("true", result.get("removeBodyKeys"));
+    }
+}
