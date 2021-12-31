@@ -52,18 +52,18 @@ public final class ConsulSyncDataServiceTest {
     private static final int WATCH_DELAY = 1000;
 
     private static final long INDEX = 1L;
-    
+
     @Mock
     private ConsulClient consulClient;
-    
+
     @Mock
     private ConsulConfig consulConfig;
 
     private ConsulSyncDataService consulSyncDataService;
-    
+
     @Mock
     private GetValue getValue;
-    
+
     @Mock
     private Response response;
 
@@ -83,11 +83,11 @@ public final class ConsulSyncDataServiceTest {
         consulSyncDataService = new ConsulSyncDataService(consulClient, consulConfig, null,
                 Collections.emptyList(), Collections.emptyList());
     }
-    
+
     @Test
     public void testStart() throws Exception {
         TimeUnit.SECONDS.sleep(2);
-        verify(consulClient, atLeast(1)).getKVValues(eq(ConsulConstants.SYNC_PRE_FIX), 
+        verify(consulClient, atLeast(1)).getKVValues(eq(ConsulConstants.SYNC_PRE_FIX),
                 eq(null), any(QueryParams.class));
         verify(getValue, atLeast(1)).getModifyIndex();
         verify(getValue, atLeast(1)).getDecodedValue();
