@@ -28,14 +28,7 @@
 
     <artifactId>shenyu-agent-plugin-tracing-zipkin</artifactId>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-    </properties>
-
     <dependencies>
-
-
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-base</artifactId>
