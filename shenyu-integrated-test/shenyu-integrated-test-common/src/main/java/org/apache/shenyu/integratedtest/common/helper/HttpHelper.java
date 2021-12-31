@@ -123,6 +123,32 @@ public class HttpHelper {
             return (S) respBody;
         }
     }
+    
+    /**
+     * Send a put http request to shenyu gateway.
+     *
+     * @param <S> type of response object
+     * @param <Q> type of request object
+     * @param path path
+     * @param req request body as an object
+     * @param respType response type passed to {@link Gson#fromJson(String, Class)}
+     * @return response s
+     * @throws IOException IO exception
+     */
+    public <S, Q> S putGateway(final String path, final Q req, final Class<S> respType) throws IOException {
+        Request request = new Request.Builder()
+                .put(RequestBody.create(GSON.toJson(req), JSON))
+                .url(GATEWAY_END_POINT + path)
+                .build();
+        Response response = client.newCall(request).execute();
+        String respBody = Objects.requireNonNull(response.body()).string();
+        LOG.info("postGateway({}) resp({})", path, respBody);
+        try {
+            return GSON.fromJson(respBody, respType);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
+    }
 
     /**
      * Send a get http request to shenyu gateway without headers.
