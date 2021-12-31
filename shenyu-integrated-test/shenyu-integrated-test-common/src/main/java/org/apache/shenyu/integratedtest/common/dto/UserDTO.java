@@ -26,8 +26,7 @@ public class UserDTO {
 
     private String userName;
     
-    public UserDTO () {
-        
+    public UserDTO() {
     }
     
     public UserDTO(final String userId, final String userName) {
