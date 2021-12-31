@@ -52,14 +52,18 @@ public final class ConsulSyncDataServiceTest {
     private static final int WATCH_DELAY = 1000;
 
     private static final long INDEX = 1L;
+    
     @Mock
     private ConsulClient consulClient;
+    
     @Mock
     private ConsulConfig consulConfig;
 
     private ConsulSyncDataService consulSyncDataService;
+    
     @Mock
     private GetValue getValue;
+    
     @Mock
     private Response response;
 
