@@ -61,7 +61,6 @@ public final class OrderControllerTest extends AbstractTest {
     
     @Test
     public void testRestFulOauth2NoAuthorization() throws IOException {
-        Map<String, Object> headers = new HashMap<>(2, 1);
         OAuth2DTO oAuth2DTO = HttpHelper.INSTANCE.getFromGateway("/http/order/oauth2/test", OAuth2DTO.class);
         assertEquals("no authorization", oAuth2DTO.getToken());
     }
