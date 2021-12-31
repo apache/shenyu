@@ -57,7 +57,7 @@ public class HttpClientProperties {
     /**
      * The response timeout.
      */
-    private Duration responseTimeout = Duration.ofMillis(3000);
+    private Long responseTimeout = 3000L;
 
     /**
      * readerIdleTime, the default is 3s.
@@ -151,7 +151,8 @@ public class HttpClientProperties {
      * @return the response timeout
      */
     public Duration getResponseTimeout() {
-        return responseTimeout;
+        return Optional.ofNullable(responseTimeout)
+                .map(it -> Duration.ofMillis(responseTimeout)).orElse(Duration.ofMillis(3000));
     }
     
     /**
@@ -159,7 +160,7 @@ public class HttpClientProperties {
      *
      * @param responseTimeout the response timeout
      */
-    public void setResponseTimeout(final Duration responseTimeout) {
+    public void setResponseTimeout(final Long responseTimeout) {
         this.responseTimeout = responseTimeout;
     }
     
