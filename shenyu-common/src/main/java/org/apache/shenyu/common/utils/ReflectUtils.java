@@ -17,18 +17,18 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The type Reflect utils.
@@ -199,6 +199,6 @@ public class ReflectUtils {
      */
     public static boolean isPrimitive(final Class<?> cls) {
         return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
-                || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
+            || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls) || List.class.isAssignableFrom(cls);
     }
 }
