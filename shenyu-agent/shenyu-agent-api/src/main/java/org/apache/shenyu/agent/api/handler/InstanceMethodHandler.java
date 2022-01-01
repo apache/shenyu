@@ -46,7 +46,8 @@ public interface InstanceMethodHandler {
      * @param args the args
      * @param result the result
      */
-    default void after(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
+    default Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, Object result) {
+        return result;
     }
     
     /**

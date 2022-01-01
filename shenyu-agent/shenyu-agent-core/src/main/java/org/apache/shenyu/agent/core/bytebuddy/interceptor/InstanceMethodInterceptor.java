@@ -89,7 +89,7 @@ public class InstanceMethodInterceptor {
                 }
             } finally {
                 try {
-                    handler.after(instance, method, args, methodResult);
+                    result = handler.after(instance, method, args, methodResult, result);
                     // CHECKSTYLE:OFF
                 } catch (final Throwable ex) {
                     // CHECKSTYLE:ON

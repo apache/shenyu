@@ -24,18 +24,18 @@ import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
 import org.apache.shenyu.agent.plugin.tracing.jaeger.constant.JaegerConstants;
 import org.apache.shenyu.agent.plugin.tracing.jaeger.span.JaegerSpanManager;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
- * The type Jaeger global plugin handler.
+ * The type Jaeger for shenyu plugins' common handler.
  */
-public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
+public final class JaegerPluginCommonHandler implements InstanceMethodHandler {
 
     @Override
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
@@ -43,13 +43,14 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
         final JaegerSpanManager jaegerSpanManager = (JaegerSpanManager) exchange.getAttributes()
                 .getOrDefault(JaegerConstants.ROOT_SPAN, new JaegerSpanManager());
 
-        Map<String, String> tagMap = new HashMap<>(1);
+        Map<String, String> tagMap = new HashMap<>(2);
         tagMap.put(Tags.COMPONENT.getKey(), JaegerConstants.NAME);
-        tagMap.put(Tags.HTTP_URL.getKey(), exchange.getRequest().getURI().toString());
-        Optional.ofNullable(exchange.getRequest().getMethod())
-                        .ifPresent(v -> tagMap.put(Tags.HTTP_STATUS.getKey(), v.toString()));
+        tagMap.put(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
+        for (int i = 2; i < args.length; i++) {
+            tagMap.put(args[i].getClass().getName(), GsonUtils.getGson().toJson(args[i]));
+        }
 
-        Span span = jaegerSpanManager.add(JaegerConstants.ROOT_SPAN, tagMap);
+        Span span = jaegerSpanManager.add(method.getDeclaringClass().getSimpleName(), tagMap);
         exchange.getAttributes().put(JaegerConstants.RESPONSE_SPAN, jaegerSpanManager);
         target.setContext(span);
     }
