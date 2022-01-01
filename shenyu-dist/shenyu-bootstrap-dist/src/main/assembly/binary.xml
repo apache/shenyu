@@ -28,45 +28,6 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/../../shenyu-agent/target</directory>
-            <includes>
-                <include>shenyu-agent-bootstrap.jar</include>
-            </includes>
-            <outputDirectory>agent</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>${project.basedir}/../../shenyu-spi/target</directory>
-            <includes>
-                <include>*.jar</include>
-            </includes>
-            <outputDirectory>agent/libs</outputDirectory>
-            <fileMode>0755</fileMode>
-        </fileSet>
-        <fileSet>
-            <directory>${project.basedir}/../../shenyu-agent/target/libs</directory>
-            <includes>
-                <include>*.jar</include>
-            </includes>
-            <outputDirectory>agent/libs</outputDirectory>
-            <fileMode>0755</fileMode>
-        </fileSet>
-        <fileSet>
-            <directory>${project.basedir}/../../shenyu-agent/libs</directory>
-            <includes>
-                <include>*.jar</include>
-            </includes>
-            <outputDirectory>agent/libs</outputDirectory>
-            <fileMode>0755</fileMode>
-        </fileSet>
-        <fileSet>
-            <directory>${project.basedir}/../../shenyu-agent/target/plugins</directory>
-            <includes>
-                <include>*.jar</include>
-            </includes>
-            <outputDirectory>agent/plugins</outputDirectory>
-            <fileMode>0755</fileMode>
-        </fileSet>
-        <fileSet>
             <directory>src/main/resources</directory>
             <lineEnding>unix</lineEnding>
             <includes>
@@ -106,7 +67,38 @@
             </includes>
             <outputDirectory>/</outputDirectory>
         </fileSet>
+        <fileSet>
+            <outputDirectory>ext-lib</outputDirectory>
+            <excludes>
+                <exclude>**/*</exclude>
+            </excludes>
+        </fileSet>
+
+        <!--agent-->
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-agent/target</directory>
+            <includes>
+                <include>shenyu-agent.jar</include>
+            </includes>
+            <outputDirectory>agent</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../shenyu-agent-dist/src/main/resources/conf</directory>
+            <includes>
+                <include>*.yaml</include>
+            </includes>
+            <outputDirectory>agent/conf</outputDirectory>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-agent/shenyu-agent-plugins/shenyu-agent-plugin-tracing/target/plugins</directory>
+            <outputDirectory>agent/plugins</outputDirectory>
+            <includes>
+                <include>**.jar</include>
+            </includes>
+        </fileSet>
     </fileSets>
+    
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>

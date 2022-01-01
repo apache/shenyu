@@ -17,21 +17,20 @@
 
 package org.apache.shenyu.agent.api.config;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The type Shenyu agent config.
  */
 public final class ShenyuAgentConfig {
     
-    private String applicationName = "shenyu-agent";
+    private String appName = "shenyu-agent";
     
-    private Set<String> ignoredPluginNames = new HashSet<>();
+    private Map<String, List<String>> supports = new LinkedHashMap<>();
     
-    private Map<String, AgentPluginConfig> plugins = new HashMap<>();
+    private Map<String, Map<String, AgentPluginConfig>> plugins = new LinkedHashMap<>();
     
     /**
      * Instantiates a new Shenyu agent config.
@@ -42,67 +41,51 @@ public final class ShenyuAgentConfig {
     /**
      * Instantiates a new Shenyu agent config.
      *
-     * @param applicationName the application name
-     * @param ignoredPluginNames the ignored plugin names
+     * @param appName the application name
+     * @param supports the supports
      * @param plugins the plugins
      */
-    public ShenyuAgentConfig(final String applicationName, 
-                             final Set<String> ignoredPluginNames, 
-                             final Map<String, AgentPluginConfig> plugins) {
-        this.applicationName = applicationName;
-        this.ignoredPluginNames = ignoredPluginNames;
+    public ShenyuAgentConfig(final String appName, final Map<String, List<String>> supports, 
+                             final Map<String, Map<String, AgentPluginConfig>> plugins) {
+        this.appName = appName;
+        this.supports = supports;
         this.plugins = plugins;
     }
     
     /**
-     * Sets application name.
+     * Gets app name.
      *
-     * @param applicationName the application name
-     * @return the application name
+     * @return the app name
      */
-    public ShenyuAgentConfig setApplicationName(final String applicationName) {
-        this.applicationName = applicationName;
-        return this;
+    public String getAppName() {
+        return appName;
     }
     
     /**
-     * Sets ignored plugin names.
+     * Sets app name.
      *
-     * @param ignoredPluginNames the ignored plugin names
-     * @return the ignored plugin names
+     * @param appName the app name
      */
-    public ShenyuAgentConfig setIgnoredPluginNames(final Set<String> ignoredPluginNames) {
-        this.ignoredPluginNames = ignoredPluginNames;
-        return this;
+    public void setAppName(final String appName) {
+        this.appName = appName;
     }
     
     /**
-     * Sets plugins.
+     * Gets supports.
      *
-     * @param plugins the plugins
-     * @return the plugins
+     * @return the supports
      */
-    public ShenyuAgentConfig setPlugins(final Map<String, AgentPluginConfig> plugins) {
-        this.plugins = plugins;
-        return this;
+    public Map<String, List<String>> getSupports() {
+        return supports;
     }
     
     /**
-     * Gets application name.
+     * Sets supports.
      *
-     * @return the application name
+     * @param supports the supports
      */
-    public String getApplicationName() {
-        return applicationName;
-    }
-    
-    /**
-     * Gets ignored plugin names.
-     *
-     * @return the ignored plugin names
-     */
-    public Set<String> getIgnoredPluginNames() {
-        return ignoredPluginNames;
+    public void setSupports(final Map<String, List<String>> supports) {
+        this.supports = supports;
     }
     
     /**
@@ -110,7 +93,16 @@ public final class ShenyuAgentConfig {
      *
      * @return the plugins
      */
-    public Map<String, AgentPluginConfig> getPlugins() {
+    public Map<String, Map<String, AgentPluginConfig>> getPlugins() {
         return plugins;
+    }
+    
+    /**
+     * Sets plugins.
+     *
+     * @param plugins the plugins
+     */
+    public void setPlugins(final Map<String, Map<String, AgentPluginConfig>> plugins) {
+        this.plugins = plugins;
     }
 }

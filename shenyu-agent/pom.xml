@@ -38,6 +38,9 @@
 
     <properties>
         <maven-shade-plugin.version>3.1.1</maven-shade-plugin.version>
+        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+        <snakeyaml.version>1.29</snakeyaml.version>
+        <gson.version>2.8.9</gson.version>
         <shade.package>org.apache.shenyu.dependencies</shade.package>
     </properties>
 
@@ -59,6 +62,12 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>${maven-shade-plugin.version}</version>
                 </plugin>

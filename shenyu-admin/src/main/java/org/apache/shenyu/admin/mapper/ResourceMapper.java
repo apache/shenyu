@@ -110,6 +110,14 @@ public interface ResourceMapper {
     int insertSelective(ResourceDO resourceDO);
 
     /**
+     * batch insert resources.
+     *
+     * @param resourceDOList list of {@linkplain ResourceDO}
+     * @return rows int
+     */
+    int insertBatch(@Param("resourceDOList") List<ResourceDO> resourceDOList);
+
+    /**
      * update resource.
      *
      * @param resourceDO {@linkplain ResourceDO}

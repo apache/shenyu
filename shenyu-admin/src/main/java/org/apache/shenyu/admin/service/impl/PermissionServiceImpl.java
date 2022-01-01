@@ -130,8 +130,8 @@ public class PermissionServiceImpl implements PermissionService {
             return Collections.emptyList();
         }
 
-        return Optional.ofNullable(resourceMapper.selectByIdsBatch(resourceIds)).orElseGet(() -> new ArrayList<>())
-                .stream().map(resource -> ResourceVO.buildResourceVO(resource)).collect(Collectors.toList());
+        return Optional.ofNullable(resourceMapper.selectByIdsBatch(resourceIds)).orElseGet(ArrayList::new)
+                .stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
     }
 
     /**

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.disruptor;
 
-import com.lmax.disruptor.BusySpinWaitStrategy;
+import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.IgnoreExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
@@ -97,7 +97,6 @@ public class DisruptorProviderManage<T> {
     /**
      * start disruptor.
      */
-    @SuppressWarnings("unchecked")
     public void startup() {
         this.startup(false);
     }
@@ -124,7 +123,7 @@ public class DisruptorProviderManage<T> {
                 size,
                 DisruptorThreadFactory.create("shenyu_disruptor_provider_" + consumerFactory.fixName(), false),
                 ProducerType.MULTI,
-                new BusySpinWaitStrategy());
+                new BlockingWaitStrategy());
         QueueConsumer<T>[] consumers = new QueueConsumer[newConsumerSize];
         for (int i = 0; i < newConsumerSize; i++) {
             consumers[i] = new QueueConsumer<>(executor, consumerFactory);

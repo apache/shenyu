@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-jaeger=org.apache.shenyu.agent.plugin.tracing.jaeger.JaegerAgentPluginDefinition
+tracing=org.apache.shenyu.agent.plugin.tracing.common.TracingAgentPluginDefinition

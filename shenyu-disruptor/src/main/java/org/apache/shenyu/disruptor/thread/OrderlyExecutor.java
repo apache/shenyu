@@ -48,6 +48,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
      * @param workQueue       the work queue
      * @param threadFactory   the thread factory
      * @param handler         the handler
+     * @param isOrderly the orderly Whether to execute sequentially.
      */
     public OrderlyExecutor(
             final boolean isOrderly,

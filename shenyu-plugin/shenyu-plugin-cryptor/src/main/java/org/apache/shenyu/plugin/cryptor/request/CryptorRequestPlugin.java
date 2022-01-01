@@ -71,7 +71,7 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
         }
         Pair<Boolean, String> pair = JsonUtil.checkParam(ruleHandle);
         if (Boolean.TRUE.equals(pair.getLeft())) {
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg()
                     + "[" + pair.getRight() + "]", null);
             return WebFluxResultUtils.result(exchange, error);
@@ -105,7 +105,7 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     private Mono strategyMatch(final CryptorRuleHandler ruleHandle, final String originalBody, final ServerWebExchange exchange) {
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         if (Objects.isNull(parseBody)) {
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", null);
             return WebFluxResultUtils.result(exchange, error);
         }

@@ -38,6 +38,15 @@ public interface ResourceService {
      */
     void createResource(ResourceDO resourceDO);
 
+
+    /**
+     * create Resources.
+     *
+     * @param resourceDOList list of {@linkplain ResourceDO}
+     * @return rows int
+     */
+    int createResourceBatch(List<ResourceDO> resourceDOList);
+
     /**
      * create or update resource.
      *

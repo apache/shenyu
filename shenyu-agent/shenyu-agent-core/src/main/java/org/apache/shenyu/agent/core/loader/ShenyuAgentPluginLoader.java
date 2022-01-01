@@ -19,10 +19,9 @@ package org.apache.shenyu.agent.core.loader;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
-import org.apache.shenyu.agent.api.config.ShenyuAgentConfig;
 import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint;
+import org.apache.shenyu.agent.api.spi.AgentPluginDefinition;
 import org.apache.shenyu.agent.core.bytebuddy.matcher.ShenyuAgentTypeMatcher;
-import org.apache.shenyu.agent.core.enums.SingletonHolder;
 import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -84,11 +82,10 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
      */
     public void loadAllPlugins() throws IOException {
         File[] jarFiles = ShenyuAgentLocator.locatorPlugin().listFiles(file -> file.getName().endsWith(".jar"));
-        if (null == jarFiles) {
+        if (Objects.isNull(jarFiles)) {
             return;
         }
         Map<String, ShenyuAgentJoinPoint> pointMap = new HashMap<>();
-        Set<String> ignoredPluginNames = SingletonHolder.INSTANCE.get(ShenyuAgentConfig.class).getIgnoredPluginNames();
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             for (File each : jarFiles) {
                 outputStream.reset();
@@ -96,7 +93,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
                 jars.add(new PluginJar(jar, each));
             }
         }
-        loadAgentPluginDefinition(ignoredPluginNames, pointMap);
+        loadAgentPluginDefinition(pointMap);
         Map<String, ShenyuAgentJoinPoint> joinPointMap = ImmutableMap.<String, ShenyuAgentJoinPoint>builder().putAll(pointMap).build();
         ShenyuAgentTypeMatcher.getInstance().setJoinPointMap(joinPointMap);
     }
@@ -163,7 +160,19 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
         }
     }
     
-    private void loadAgentPluginDefinition(final Set<String> ignoredPluginNames, final Map<String, ShenyuAgentJoinPoint> pointMap) {
+    private void loadAgentPluginDefinition(final Map<String, ShenyuAgentJoinPoint> pointMap) {
+        SPILoader.loadList(AgentPluginDefinition.class)
+                .forEach(each -> each.collector().forEach(def -> {
+                    String classTarget = def.getClassTarget();
+                    if (pointMap.containsKey(classTarget)) {
+                        ShenyuAgentJoinPoint pluginInterceptorPoint = pointMap.get(classTarget);
+                        pluginInterceptorPoint.getConstructorPoints().addAll(def.getConstructorPoints());
+                        pluginInterceptorPoint.getInstanceMethodPoints().addAll(def.getInstanceMethodPoints());
+                        pluginInterceptorPoint.getStaticMethodPoints().addAll(def.getStaticMethodPoints());
+                    } else {
+                        pointMap.put(classTarget, def);
+                    }
+                }));
     }
     
     private String classNameToPath(final String className) {
@@ -171,7 +180,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
     }
     
     private void definePackageInternal(final String packageName, final Manifest manifest) {
-        if (null != getPackage(packageName)) {
+        if (Objects.isNull(getPackage(packageName))) {
             return;
         }
         Attributes attributes = manifest.getMainAttributes();

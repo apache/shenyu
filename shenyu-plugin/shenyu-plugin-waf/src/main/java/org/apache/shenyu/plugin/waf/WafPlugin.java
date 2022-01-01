@@ -56,7 +56,7 @@ public class WafPlugin extends AbstractShenyuPlugin {
                 return chain.execute(exchange);
             }
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            Object error = ShenyuResultWrap.error(HttpStatus.FORBIDDEN.value(), Constants.REJECT_MSG, null);
+            Object error = ShenyuResultWrap.error(exchange, HttpStatus.FORBIDDEN.value(), Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
@@ -67,7 +67,7 @@ public class WafPlugin extends AbstractShenyuPlugin {
         }
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            Object error = ShenyuResultWrap.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
+            Object error = ShenyuResultWrap.error(exchange, Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);

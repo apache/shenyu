@@ -233,7 +233,7 @@ public final class ZookeeperSyncDataServiceTest {
         verify(zkClient).subscribeDataChanges(eq(MOCK_RULE_PATH), captor.capture());
         captor.getValue().handleDataChange(MOCK_RULE_PATH, GsonUtils.getInstance().toJson(changedRuleData));
         assertThat(subscribeList.size(), is(2));
-        Assert.assertTrue(subscribeList.get(1).getEnabled());
+        assertTrue(subscribeList.get(1).getEnabled());
     }
 
     @Test

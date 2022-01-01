@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -33,12 +34,19 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -46,6 +54,11 @@ import java.util.Properties;
  * The type Shenyu client bean post processor.
  */
 public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
+    
+    /**
+     * api path separator.
+     */
+    private static final String PATH_SEPARATOR = "/";
     
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientBeanPostProcessor.class);
     
@@ -58,6 +71,10 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final Environment env;
     
     private final String servletContextPath;
+    
+    private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
+    
+    private final String[] pathAttributeNames = new String[]{"path", "value"};
     
     /**
      * Instantiates a new Spring cloud client bean post processor.
@@ -80,42 +97,109 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         this.env = env;
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
+        mappingAnnotation.add(ShenyuSpringCloudClient.class);
+        mappingAnnotation.add(PostMapping.class);
+        mappingAnnotation.add(GetMapping.class);
+        mappingAnnotation.add(DeleteMapping.class);
+        mappingAnnotation.add(PutMapping.class);
+        mappingAnnotation.add(RequestMapping.class);
         publisher.start(shenyuClientRegisterRepository);
     }
     
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
-        if (Boolean.TRUE.equals(isFull)) {
+        // Filter out is not controller out
+        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(bean.getClass(), Controller.class)) {
             return bean;
         }
-        Controller controller = AnnotationUtils.findAnnotation(bean.getClass(), Controller.class);
-        RestController restController = AnnotationUtils.findAnnotation(bean.getClass(), RestController.class);
-        RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
-        if (controller != null || restController != null || requestMapping != null) {
-            String prePath = "";
-            ShenyuSpringCloudClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringCloudClient.class);
-            if (Objects.isNull(clazzAnnotation)) {
-                return bean;
-            }
-            if (clazzAnnotation.path().indexOf("*") > 1) {
-                publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, prePath));
-                return bean;
-            }
-            prePath = clazzAnnotation.path();
-            final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
-            for (Method method : methods) {
-                ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
-                if (Objects.nonNull(shenyuSpringCloudClient)) {
-                    publisher.publishEvent(buildMetaDataDTO(shenyuSpringCloudClient, prePath));
-                }
+        
+        final ShenyuSpringCloudClient beanShenyuClient = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringCloudClient.class);
+        final String superPath = buildApiSuperPath(bean.getClass());
+        // Compatible with previous versions
+        if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
+            publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
+            return bean;
+        }
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
+        for (Method method : methods) {
+            ShenyuSpringCloudClient methodShenyuClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+            methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
+            if (Objects.nonNull(methodShenyuClient)) {
+                publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
             }
         }
         return bean;
     }
     
-    private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient, final String prePath) {
+    private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
+        return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
+    }
+    
+    private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
+        ShenyuSpringCloudClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+        if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
+            return pathJoin(contextPath, superPath, shenyuSpringMvcClient.path());
+        }
+        final String path = getPathByMethod(method);
+        if (StringUtils.isNotBlank(path)) {
+            return pathJoin(contextPath, superPath, path);
+        }
+        return pathJoin(contextPath, superPath);
+    }
+    
+    private String getPathByMethod(@NonNull final Method method) {
+        for (Class<? extends Annotation> mapping : mappingAnnotation) {
+            final String pathByAnnotation = getPathByAnnotation(AnnotationUtils.findAnnotation(method, mapping), pathAttributeNames);
+            if (StringUtils.isNotBlank(pathByAnnotation)) {
+                return pathByAnnotation;
+            }
+        }
+        return null;
+    }
+    
+    private String getPathByAnnotation(@Nullable final Annotation annotation, @NonNull final String... pathAttributeName) {
+        if (Objects.isNull(annotation)) {
+            return null;
+        }
+        for (String s : pathAttributeName) {
+            final Object value = AnnotationUtils.getValue(annotation, s);
+            if (value instanceof String && StringUtils.isNotBlank((String) value)) {
+                return (String) value;
+            }
+            // Only the first path is supported temporarily
+            if (value instanceof String[] && ArrayUtils.isNotEmpty((String[]) value) && StringUtils.isNotBlank(((String[]) value)[0])) {
+                return ((String[]) value)[0];
+            }
+        }
+        return null;
+    }
+    
+    private String buildApiSuperPath(@NonNull final Class<?> method) {
+        ShenyuSpringCloudClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+        if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
+            return shenyuSpringMvcClient.path();
+        }
+        RequestMapping requestMapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
+        // Only the first path is supported temporarily
+        if (Objects.nonNull(requestMapping) && ArrayUtils.isNotEmpty(requestMapping.path()) && StringUtils.isNotBlank(requestMapping.path()[0])) {
+            return requestMapping.path()[0];
+        }
+        return "";
+    }
+    
+    private String pathJoin(@NonNull final String... path) {
+        StringBuilder result = new StringBuilder(PATH_SEPARATOR);
+        for (String p : path) {
+            if (!result.toString().endsWith(PATH_SEPARATOR)) {
+                result.append(PATH_SEPARATOR);
+            }
+            result.append(p.startsWith(PATH_SEPARATOR) ? p.replaceFirst(PATH_SEPARATOR, "") : p);
+        }
+        return result.toString();
+    }
+    
+    private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient, final String path) {
         String appName = env.getProperty("spring.application.name");
-        String path = contextPath + prePath + shenyuSpringCloudClient.path();
         String desc = shenyuSpringCloudClient.desc();
         String configRuleName = shenyuSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;

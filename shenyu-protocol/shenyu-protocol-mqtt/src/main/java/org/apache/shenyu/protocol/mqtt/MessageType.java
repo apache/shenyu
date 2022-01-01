@@ -17,8 +17,71 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
+
 /**
  * Command messages.
  */
-public class MessageType extends AbstractMessageType {
+public class MessageType implements AbstractMessageType {
+
+    private volatile boolean connected;
+
+    /**
+     * isConnected.
+     * @return connected
+     */
+    boolean isConnected() {
+        return connected;
+    }
+
+    /**
+     * set connected.
+     * @param connected connected
+     */
+    void setConnected(final boolean connected) {
+        this.connected = connected;
+    }
+
+    @Override
+    public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
+        //// todo polymorphism connect
+        new Connect().connect(ctx, msg);
+    }
+
+    @Override
+    public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
+        //// todo polymorphism publish
+        new Publish().publish(ctx, msg);
+    }
+
+    @Override
+    public void subscribe(final ChannelHandlerContext ctx, final MqttSubscribeMessage msg) {
+        //// todo polymorphism subscribe
+        new Subscribe().subscribe(ctx, msg);
+    }
+
+    @Override
+    public void unsubscribe(final ChannelHandlerContext ctx, final MqttUnsubscribeMessage msg) {
+        //// todo polymorphism unsubscribe
+    }
+
+    @Override
+    public void pingReq(final ChannelHandlerContext ctx) {
+        //// todo polymorphism pingReq
+    }
+
+    @Override
+    public void pingResp(final ChannelHandlerContext ctx) {
+        //// todo polymorphism pingResp
+    }
+
+    @Override
+    public void disconnect(final ChannelHandlerContext ctx) {
+        //// todo polymorphism disconnect
+        new Disconnect().disconnect(ctx);
+    }
 }

@@ -18,26 +18,78 @@
 package org.apache.shenyu.sync.data.nacos.config;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Objects;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * add test case for {@link NacosACMConfig}.
  */
 public final class NacosACMConfigTest {
 
+    private static final String ACCESS_KEY = "accessKey";
+
+    private static final boolean ENABLE = false;
+
+    private static final String ENDPOINT = "endpoint";
+
+    private static final String NAMESPACE = "namespace";
+
+    private static final String SECRE_KEY = "secreKey";
+
+    private NacosACMConfig nacosACMConfig;
+
+    private NacosACMConfig that;
+
+    @Before
+    public void setUp() {
+        nacosACMConfig = new NacosACMConfig();
+        nacosACMConfig.setAccessKey(ACCESS_KEY);
+        nacosACMConfig.setEnabled(ENABLE);
+        nacosACMConfig.setEndpoint(ENDPOINT);
+        nacosACMConfig.setNamespace(NAMESPACE);
+        nacosACMConfig.setSecretKey(SECRE_KEY);
+        that = new NacosACMConfig();
+        that.setAccessKey(ACCESS_KEY);
+        that.setEnabled(ENABLE);
+        that.setEndpoint(ENDPOINT);
+        that.setNamespace(NAMESPACE);
+        that.setSecretKey(SECRE_KEY);
+    }
+
     @Test
     public void testGetterSetter() {
         NacosACMConfig nacosACMConfig = new NacosACMConfig();
-        nacosACMConfig.setAccessKey("accessKey");
-        nacosACMConfig.setEnabled(false);
-        nacosACMConfig.setEndpoint("endpoint");
-        nacosACMConfig.setNamespace("namespace");
-        nacosACMConfig.setSecretKey("secreKey");
-        Assert.assertEquals("accessKey", nacosACMConfig.getAccessKey());
-        Assert.assertFalse(nacosACMConfig.isEnabled());
-        Assert.assertEquals("endpoint", nacosACMConfig.getEndpoint());
-        Assert.assertEquals("namespace", nacosACMConfig.getNamespace());
-        Assert.assertEquals("secreKey", nacosACMConfig.getSecretKey());
+        nacosACMConfig.setAccessKey(ACCESS_KEY);
+        nacosACMConfig.setEnabled(ENABLE);
+        nacosACMConfig.setEndpoint(ENDPOINT);
+        nacosACMConfig.setNamespace(NAMESPACE);
+        nacosACMConfig.setSecretKey(SECRE_KEY);
+        Assert.assertEquals(ACCESS_KEY, nacosACMConfig.getAccessKey());
+        Assert.assertEquals(ENABLE, nacosACMConfig.isEnabled());
+        Assert.assertEquals(ENDPOINT, nacosACMConfig.getEndpoint());
+        Assert.assertEquals(NAMESPACE, nacosACMConfig.getNamespace());
+        Assert.assertEquals(SECRE_KEY, nacosACMConfig.getSecretKey());
+    }
+
+    @Test
+    public void testEquals() {
+        assertTrue(nacosACMConfig.equals(nacosACMConfig));
+        assertTrue(nacosACMConfig.equals(that));
+        assertFalse(nacosACMConfig.equals(null));
+        assertFalse(nacosACMConfig.equals(new Object()));
+    }
+
+    @Test
+    public void testHashCode() {
+        assertEquals(Objects.hash(nacosACMConfig.isEnabled(), nacosACMConfig.getEndpoint(),
+                        nacosACMConfig.getNamespace(), nacosACMConfig.getAccessKey(), nacosACMConfig.getSecretKey()),
+                nacosACMConfig.hashCode());
     }
 }
 

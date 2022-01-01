@@ -15,15 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.core.enums;
+package org.apache.shenyu.protocol.mqtt.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * TraceTypes.
+ * Connect flag seat subclass implementation.
  */
-public enum TraceTypes {
-    OPENTELEMETRY,
-    OPENTRACING,
-    SKYWALKING,
-    ZIPKIN,
-    JAEGER
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Connect {
 }

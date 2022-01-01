@@ -15,15 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.tracing.jaeger;
+package org.apache.shenyu.protocol.mqtt.annotation;
 
-import org.apache.shenyu.agent.api.spi.AgentPluginDefinition;
-import org.apache.shenyu.spi.Join;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * JaegerAgentPluginDefinition.
+ * Polymorphism of mqtt flag.
  */
-@Join
-public class JaegerAgentPluginDefinition implements AgentPluginDefinition {
-    
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Primary {
 }

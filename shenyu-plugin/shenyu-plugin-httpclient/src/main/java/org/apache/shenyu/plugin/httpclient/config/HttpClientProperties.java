@@ -45,6 +45,11 @@ import java.util.Optional;
 public class HttpClientProperties {
 
     /**
+     * the http client strategy.
+     */
+    private String strategy;
+
+    /**
      * The connect timeout in millis, the default is 45s.
      */
     private Integer connectTimeout = 45000;
@@ -52,7 +57,7 @@ public class HttpClientProperties {
     /**
      * The response timeout.
      */
-    private Duration responseTimeout = Duration.ofMillis(3000);
+    private Long responseTimeout = 3000L;
 
     /**
      * readerIdleTime, the default is 3s.
@@ -98,11 +103,34 @@ public class HttpClientProperties {
      * Enables wiretap debugging for Netty HttpClient.
      */
     private boolean wiretap;
-    
+
+    /**
+     * set to false, fix java.io.IOException: Connection reset by peer, see https://github.com/reactor/reactor-netty/issues/388.
+     */
+    private boolean keepAlive;
+
+    /**
+     * Gets strategy.
+     *
+     * @return to strategy
+     */
+    public String getStrategy() {
+        return strategy;
+    }
+
+    /**
+     * Sets strategy.
+     *
+     * @param strategy to strategy
+     */
+    public void setStrategy(final String strategy) {
+        this.strategy = strategy;
+    }
+
     /**
      * Gets connect timeout.
      *
-     * @return the connect timeout
+     * @return to connect timeout
      */
     public Integer getConnectTimeout() {
         return connectTimeout;
@@ -111,7 +139,7 @@ public class HttpClientProperties {
     /**
      * Sets connect timeout.
      *
-     * @param connectTimeout the connect timeout
+     * @param connectTimeout to connect timeout
      */
     public void setConnectTimeout(final Integer connectTimeout) {
         this.connectTimeout = connectTimeout;
@@ -123,7 +151,8 @@ public class HttpClientProperties {
      * @return the response timeout
      */
     public Duration getResponseTimeout() {
-        return responseTimeout;
+        return Optional.ofNullable(responseTimeout)
+                .map(it -> Duration.ofMillis(responseTimeout)).orElse(Duration.ofMillis(3000));
     }
     
     /**
@@ -131,7 +160,7 @@ public class HttpClientProperties {
      *
      * @param responseTimeout the response timeout
      */
-    public void setResponseTimeout(final Duration responseTimeout) {
+    public void setResponseTimeout(final Long responseTimeout) {
         this.responseTimeout = responseTimeout;
     }
     
@@ -296,7 +325,25 @@ public class HttpClientProperties {
     public void setWiretap(final boolean wiretap) {
         this.wiretap = wiretap;
     }
-    
+
+    /**
+     * Is keepAlive boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isKeepAlive() {
+        return keepAlive;
+    }
+
+    /**
+     * Sets keepAlive.
+     *
+     * @param keepAlive the keepAlive
+     */
+    public void setKeepAlive(final boolean keepAlive) {
+        this.keepAlive = keepAlive;
+    }
+
     /**
      * The type Pool.
      */
@@ -322,7 +369,13 @@ public class HttpClientProperties {
          * Only for type FIXED, the maximum time in millis to wait for aquiring.
          */
         private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
-    
+
+        /**
+         * Time in millis after which the channel will be closed,
+         * if NULL there is no max idle time.
+         */
+        private Long maxIdleTime;
+
         /**
          * Gets type.
          *
@@ -394,7 +447,26 @@ public class HttpClientProperties {
         public void setAcquireTimeout(final Long acquireTimeout) {
             this.acquireTimeout = acquireTimeout;
         }
-    
+
+        /**
+         * Gets maxIdleTime timeout.
+         *
+         * @return the maxIdleTime timeout
+         */
+        public Duration getMaxIdleTime() {
+            return Optional.ofNullable(maxIdleTime)
+                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(null);
+        }
+
+        /**
+         * Sets maxIdleTime timeout.
+         *
+         * @param maxIdleTime the maxIdleTime timeout
+         */
+        public void setMaxIdleTime(final Long maxIdleTime) {
+            this.maxIdleTime = maxIdleTime;
+        }
+
         /**
          * The enum Pool type.
          */

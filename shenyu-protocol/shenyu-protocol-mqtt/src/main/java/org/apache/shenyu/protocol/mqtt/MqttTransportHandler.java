@@ -18,14 +18,31 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 /**
- * Publish acknowledgment.
+ * mqtt transport handler.
  */
-public class PubAck extends MessageType {
+public class MqttTransportHandler extends ChannelInboundHandlerAdapter implements GenericFutureListener<Future<? super Void>> {
 
     @Override
-    public void pubAck(final ChannelHandlerContext ctx) {
+    public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+        if (msg instanceof MqttMessage) {
+            MqttFactory mqttFactory = new MqttFactory((MqttMessage) msg, ctx);
+            mqttFactory.connect();
+        } else {
+            ctx.close();
+        }
+
+        super.channelRead(ctx, msg);
+    }
+
+    @Override
+    public void operationComplete(final Future<? super Void> future) throws Exception {
 
     }
+
 }

@@ -58,7 +58,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>shenyu-agent-bootstrap</finalName>
+                            <finalName>shenyu-agent</finalName>
                             <outputDirectory>${project.basedir}/../target</outputDirectory>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <createDependencyReducedPom>true</createDependencyReducedPom>

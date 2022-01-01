@@ -24,21 +24,23 @@ import org.apache.shenyu.protocol.mqtt.utils.EncryptUtil;
  */
 public class MqttServerConfiguration {
 
-    private int port;
+    private int port = 9500;
 
-    private int bossGroupThreadCount;
+    private int bossGroupThreadCount = 1;
 
-    private int maxPayloadSize;
+    private int maxPayloadSize = 65536;
 
-    private int workerGroupThreadCount;
+    private int workerGroupThreadCount = 12;
 
-    private String userName;
+    private String userName = "shenyu";
 
-    private String password;
+    private String password = "shenyu";
 
     private Boolean isEncryptPassword = false;
 
     private String encryptMode;
+
+    private String leakDetectorLevel = "DISABLED";
 
     /**
      * init mqtt env.
@@ -54,6 +56,7 @@ public class MqttServerConfiguration {
         env.setMaxPayloadSize(getMaxPayloadSize());
         env.setUserName(getUserName());
         env.setWorkerGroupThreadCount(getWorkerGroupThreadCount());
+        env.setLeakDetectorLevel(getLeakDetectorLevel());
     }
 
     private String encryptPassword() {
@@ -186,5 +189,21 @@ public class MqttServerConfiguration {
      */
     public void setEncryptMode(final String encryptMode) {
         this.encryptMode = encryptMode;
+    }
+
+    /**
+     * get leakDetectorLevel.
+     * @return leakDetectorLevel
+     */
+    public String getLeakDetectorLevel() {
+        return leakDetectorLevel;
+    }
+
+    /**
+     * set leakDetectorLevel.
+     * @param leakDetectorLevel leakDetectorLevel
+     */
+    public void setLeakDetectorLevel(final String leakDetectorLevel) {
+        this.leakDetectorLevel = leakDetectorLevel;
     }
 }

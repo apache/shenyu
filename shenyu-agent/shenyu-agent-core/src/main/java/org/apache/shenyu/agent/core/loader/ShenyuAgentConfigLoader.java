@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.agent.core.loader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.agent.api.config.ShenyuAgentConfig;
 import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
 import org.apache.shenyu.agent.core.yaml.ShenyuYamlEngine;
@@ -29,9 +30,7 @@ import java.io.IOException;
  */
 public final class ShenyuAgentConfigLoader {
     
-    private static final String DEFAULT_CONFIG_PATH = "/conf/shenyu-agent.yaml";
-    
-    private static final String SPECIFIED_CONFIG_PATH = "config-path";
+    private static final String CONFIG_PATH = "config-path";
     
     /**
      * Load shenyu agent config.
@@ -40,8 +39,8 @@ public final class ShenyuAgentConfigLoader {
      * @throws IOException the io exception
      */
     public static ShenyuAgentConfig load() throws IOException {
-        String specifiedConfigPath = System.getProperty(SPECIFIED_CONFIG_PATH);
-        File configFile = null == specifiedConfigPath ? new File(ShenyuAgentLocator.locatorAgent(), DEFAULT_CONFIG_PATH) : new File(specifiedConfigPath);
-        return ShenyuYamlEngine.unmarshal(configFile, ShenyuAgentConfig.class);
+        String configPath = System.getProperty(CONFIG_PATH);
+        File configFile = StringUtils.isEmpty(configPath) ? ShenyuAgentLocator.locatorConf("shenyu-agent.yaml") : new File(configPath);
+        return ShenyuYamlEngine.agentConfig(configFile);
     }
 }

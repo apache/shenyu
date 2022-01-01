@@ -17,11 +17,21 @@
 
 package org.apache.shenyu.agent.api.spi;
 
+import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint;
 import org.apache.shenyu.spi.SPI;
+
+import java.util.Collection;
 
 /**
  * AgentPluginDefinition.
  */
 @SPI
 public interface AgentPluginDefinition {
+    
+    /**
+     * Collector shenyu agent join point.
+     *
+     * @return the collection
+     */
+    Collection<ShenyuAgentJoinPoint> collector();
 }

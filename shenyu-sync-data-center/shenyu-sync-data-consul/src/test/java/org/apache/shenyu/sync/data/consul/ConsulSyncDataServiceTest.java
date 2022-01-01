@@ -18,75 +18,84 @@
 package org.apache.shenyu.sync.data.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
+import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
 import org.apache.shenyu.common.constant.ConsulConstants;
-import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
-import org.junit.Assert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * test case for {@link ConsulSyncDataService}.
  */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class ConsulSyncDataServiceTest {
 
+    private static final int WAIT_TIME = 1000;
+
+    private static final int WATCH_DELAY = 1000;
+
+    private static final long INDEX = 1L;
+
+    @Mock
     private ConsulClient consulClient;
+
+    @Mock
+    private ConsulConfig consulConfig;
 
     private ConsulSyncDataService consulSyncDataService;
 
+    @Mock
+    private GetValue getValue;
+
+    @Mock
+    private Response response;
+
     @Before
     public void setup() {
-        consulClient = mock(ConsulClient.class);
-        ConsulConfig consulConfig = new ConsulConfig();
-        consulConfig.setWaitTime(1000);
-        consulConfig.setWatchDelay(1000);
+        when(consulConfig.getWaitTime()).thenReturn(WAIT_TIME);
+        when(consulConfig.getWatchDelay()).thenReturn(WATCH_DELAY);
+        final List<GetValue> list = new ArrayList<>(1);
+        when(getValue.getModifyIndex()).thenReturn(INDEX);
+        when(getValue.getKey()).thenReturn(ConsulConstants.PLUGIN_DATA);
+        when(getValue.getDecodedValue()).thenReturn("{}");
+        list.add(getValue);
+        when(consulClient.getKVValues(any(), any(), any()))
+                .thenReturn(response);
+        when(response.getValue()).thenReturn(list);
+        when(response.getConsulIndex()).thenReturn(INDEX);
         consulSyncDataService = new ConsulSyncDataService(consulClient, consulConfig, null,
                 Collections.emptyList(), Collections.emptyList());
     }
 
     @Test
-    public void testStart() {
-        consulSyncDataService.start();
+    public void testStart() throws Exception {
+        TimeUnit.SECONDS.sleep(2);
+        verify(consulClient, atLeast(1)).getKVValues(eq(ConsulConstants.SYNC_PRE_FIX),
+                eq(null), any(QueryParams.class));
+        verify(getValue, atLeast(1)).getModifyIndex();
+        verify(getValue, atLeast(1)).getDecodedValue();
+        verify(response, atLeast(3)).getValue();
     }
 
-    @Test
-    public void testClose() {
+    @After
+    public void testStop() {
         consulSyncDataService.close();
-    }
-
-    @Test
-    public void testWatch() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        Long index = 1L;
-        final List<GetValue> list = new ArrayList<>();
-        GetValue getValue = mock(GetValue.class);
-        when(getValue.getModifyIndex()).thenReturn(index);
-        when(getValue.getKey()).thenReturn(ConsulConstants.PLUGIN_DATA);
-        when(getValue.getDecodedValue()).thenReturn("{}");
-        list.add(getValue);
-        Response response = mock(Response.class);
-        when(consulClient.getKVValues(any(), any(), any()))
-                .thenReturn(response);
-        when(response.getValue()).thenReturn(list);
-        when(response.getConsulIndex()).thenReturn(1L);
-
-        Method watchConfigKeyValues = consulSyncDataService.getClass().getDeclaredMethod("watchConfigKeyValues");
-        watchConfigKeyValues.setAccessible(true);
-        watchConfigKeyValues.invoke(consulSyncDataService);
-
-        Map<String, Long> consulIndexes = (Map<String, Long>) ReflectUtils.getFieldValue(consulSyncDataService, "consulIndexes");
-        Assert.assertEquals(index, consulIndexes.get(ConsulConstants.SYNC_PRE_FIX));
     }
 }

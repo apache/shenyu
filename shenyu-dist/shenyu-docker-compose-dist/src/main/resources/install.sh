@@ -30,6 +30,16 @@ mkdir -p {shenyu-bootstrap,shenyu-admin}/{conf,logs}
 echo "download docker-compose configuration"
 curl -sSl https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/stand-alone-${storage}/docker-compose.yaml > docker-compose.yaml
 
+if [ ! -f "./docker-compose.yaml" ];then
+    # shellcheck disable=SC2016
+    exit 0
+fi
+
+if [ "$version" != "master" ];then
+    # shellcheck disable=SC2016
+    sed -ir 's/latest/'"${version}"'/g' docker-compose.yaml
+fi
+
 if [ "$storage" = "mysql" ];then
   mkdir -p shenyu-admin/ext-lib
   echo "download mysql-connector.jar"
