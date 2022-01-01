@@ -26,9 +26,10 @@ import org.apache.shenyu.examples.motan.service.MotanDemoService;
  */
 @MotanService(export = "demoMotan:8002")
 public class MotanDemoServiceImpl implements MotanDemoService {
+
     @Override
     @ShenyuMotanClient(path = "/hello")
-    public String hello(String name) {
+    public String hello(final String name) {
         return "hello " + name;
     }
 }

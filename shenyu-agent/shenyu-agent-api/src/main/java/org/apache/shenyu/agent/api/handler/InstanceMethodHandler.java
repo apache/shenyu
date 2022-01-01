@@ -44,9 +44,11 @@ public interface InstanceMethodHandler {
      * @param target the target
      * @param method the method
      * @param args the args
+     * @param methodResult {@linkplain MethodResult}
      * @param result the result
+     * @return result
      */
-    default Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, Object result) {
+    default Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, final Object result) {
         return result;
     }
     
