@@ -78,7 +78,7 @@ public class HttpTestController {
      */
     @GetMapping("/findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
-        return buildUser(keyword, "hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
+        return buildUser(keyword, "hello world keyword is " + keyword + " page is " + page + " pageSize is " + pageSize);
     }
 
     /**

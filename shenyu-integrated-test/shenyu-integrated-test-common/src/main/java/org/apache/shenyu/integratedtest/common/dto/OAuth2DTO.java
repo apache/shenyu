@@ -17,56 +17,31 @@
 
 package org.apache.shenyu.integratedtest.common.dto;
 
-/**
- * The type User dto.
- */
-public class UserDTO {
+public class OAuth2DTO {
 
-    private String userId;
+    private String token;
 
-    private String userName;
-    
-    public UserDTO() {
-    }
-    
-    public UserDTO(final String userId, final String userName) {
-        this.userId = userId;
-        this.userName = userName;
-    }
-    
     /**
-     * Get the userId.
+     * Get token.
      *
-     * @return the userId
+     * @return token
      */
-    public String getUserId() {
-        return userId;
+    public String getToken() {
+        return token;
     }
 
     /**
-     * Set the userId.
+     * Set token.
      *
-     * @param userId userId
+     * @param token token
      */
-    public void setUserId(final String userId) {
-        this.userId = userId;
+    public void setToken(final String token) {
+        this.token = token;
     }
 
-    /**
-     * Get the userName.
-     *
-     * @return userName
-     */
-    public String getUserName() {
-        return userName;
+    @Override
+    public String toString() {
+        return "OAuth2DTO{" + "token='" + token + '\'' + '}';
     }
 
-    /**
-     * Set the userName.
-     *
-     * @param userName userName
-     */
-    public void setUserName(final String userName) {
-        this.userName = userName;
-    }
 }
