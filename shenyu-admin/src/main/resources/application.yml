@@ -89,7 +89,6 @@ shenyu:
       - /platform/login
       - /websocket
       - /configs/**
-      - /shenyu-client/**
       - /error
       - /actuator/health
       - /swagger-ui.html

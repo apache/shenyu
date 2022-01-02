@@ -79,7 +79,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
     @Test
     public void testWithShenyuClientAnnotation() {
         try (MockedStatic mocked = mockStatic(RegisterUtils.class)) {
-            mocked.when(() -> RegisterUtils.doRegister(any(), any(), any()))
+            mocked.when(() -> RegisterUtils.doRegister(any(), any(), any(),null))
                     .thenAnswer((Answer<Void>) invocation -> null);
             SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
             assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "normalBean")));
