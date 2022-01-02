@@ -43,7 +43,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
         final JaegerSpanManager jaegerSpanManager = (JaegerSpanManager) exchange.getAttributes()
                 .getOrDefault(JaegerConstants.ROOT_SPAN, new JaegerSpanManager());
 
-        Map<String, String> tagMap = new HashMap<>(1);
+        Map<String, String> tagMap = new HashMap<>(4);
         tagMap.put(Tags.COMPONENT.getKey(), JaegerConstants.NAME);
         tagMap.put(Tags.HTTP_URL.getKey(), exchange.getRequest().getURI().toString());
         Optional.ofNullable(exchange.getRequest().getMethod())
