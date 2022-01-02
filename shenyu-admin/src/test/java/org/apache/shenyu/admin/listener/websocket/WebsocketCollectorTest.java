@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -56,7 +55,6 @@ import static org.mockito.Mockito.when;
  * The TestCase for {@link WebsocketCollector}.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-@PrepareForTest(WebsocketCollector.class)
 public final class WebsocketCollectorTest {
 
     private static Logger loggerSpy;

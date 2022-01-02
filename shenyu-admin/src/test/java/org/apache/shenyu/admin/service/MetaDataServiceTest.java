@@ -39,7 +39,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -64,7 +63,6 @@ import static org.mockito.Mockito.when;
  * Test cases for MetaDataService.
  */
 @RunWith(MockitoJUnitRunner.class)
-@PrepareForTest(MetaDataServiceImpl.class)
 public final class MetaDataServiceTest {
 
     private static Logger loggerSpy;
