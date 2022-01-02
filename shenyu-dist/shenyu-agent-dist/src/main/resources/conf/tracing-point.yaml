@@ -149,6 +149,13 @@ pointCuts:
     handlers:
       jaeger:
         - org.apache.shenyu.agent.plugin.tracing.jaeger.handler.JaegerPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.response.ResponsePlugin
+    points:
+      - type: instanceMethod
+        name: execute
+    handlers:
+      jaeger:
+        - org.apache.shenyu.agent.plugin.tracing.jaeger.handler.JaegerPluginCommonHandler
   - targetClass: org.apache.shenyu.plugin.rewrite.RewritePlugin
     points:
       - type: instanceMethod
