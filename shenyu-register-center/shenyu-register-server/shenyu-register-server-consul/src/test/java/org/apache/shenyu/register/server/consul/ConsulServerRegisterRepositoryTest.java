@@ -17,15 +17,11 @@
 
 package org.apache.shenyu.register.server.consul;
 
-import com.ecwid.consul.transport.DefaultHttpTransport;
 import com.ecwid.consul.v1.ConsulClient;
-import com.ecwid.consul.v1.ConsulRawClient;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.agent.model.Service;
 import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Maps;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -35,9 +31,7 @@ import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 
@@ -48,28 +42,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({HttpClient.class, DefaultHttpTransport.class, ConsulRawClient.class, ConsulClient.class})
+/**
+ * The TestCase for {@link ConsulServerRegisterRepository}.
+ */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ConsulServerRegisterRepositoryTest {
 
     private ShenyuServerRegisterPublisher mockPublish() {
-        ShenyuServerRegisterPublisher publisher = Mockito.mock(ShenyuServerRegisterPublisher.class);
-        Mockito.doNothing().when(publisher).publish(any());
+        ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
+        doNothing().when(publisher).publish(any());
         return publisher;
     }
 
     @Bean
-    private ConsulClient mockConsulClient() throws Exception {
+    private ConsulClient mockConsulClient() {
         URIRegisterDTO mockServer = URIRegisterDTO.builder().appName("mockServer").contextPath("/mockServer").eventType(EventType.REGISTER).build();
         Service newService = new Service();
         Map<String, String> map = Maps.newHashMap();
         map.put("uri", GsonUtils.getInstance().toJson(mockServer));
         newService.setMeta(map);
-        CloseableHttpClient httpClientMock = Mockito.mock(CloseableHttpClient.class);
-        PowerMockito.whenNew(CloseableHttpClient.class).withNoArguments().thenReturn(httpClientMock);
-        PowerMockito.whenNew(DefaultHttpTransport.class).withAnyArguments().thenReturn(Mockito.mock(DefaultHttpTransport.class));
-        ConsulClient client = PowerMockito.mock(ConsulClient.class);
+        ConsulClient client = mock(ConsulClient.class);
 
         Map<String, Service> serviceHashMap = Maps.newHashMap();
         serviceHashMap.put(mockServer.getContextPath(), newService);
@@ -110,6 +105,5 @@ public class ConsulServerRegisterRepositoryTest {
                     ConsulConfigChangedEvent consulConfigChangedEvent = new ConsulConfigChangedEvent(this, 1L, mateData);
                     context.publishEvent(consulConfigChangedEvent);
                 });
-
     }
 }
