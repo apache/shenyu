@@ -94,6 +94,7 @@ public final class TracingAgentPluginDefinition extends AbstractAgentPluginDefin
                         builder.onConstructor(ElementMatchers.namedOneOf(constructorPoints)).handlers(handlers).build();
                     }
                     return builder;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -36,7 +36,7 @@ public final class JaegerErrorSpan {
      * @param cause failure cause of span
      */
     public static void setError(final Span span, final Throwable cause) {
-        span.setTag(Tags.ERROR.getKey(), true).log(System.currentTimeMillis(), getReason(cause));
+        span.setTag(Tags.ERROR.getKey(), true).log(System.currentTimeMillis() * 1000, getReason(cause));
     }
     
     private static Map<String, ?> getReason(final Throwable cause) {
