@@ -19,6 +19,7 @@ appName: shenyu-agent
 supports:
   tracing:
     - jaeger
+#    - opentelemetry
   metrics:
     - 
   logging:
@@ -33,6 +34,11 @@ plugins:
         SERVICE_NAME: "shenyu-agent"
         JAEGER_SAMPLER_TYPE: "const"
         JAEGER_SAMPLER_PARAM: "1"
+    opentelemetry:
+      props:
+        otel.traces.exporter: jaeger #zipkin #otlp
+        otel.resource.attributes: "service.name=shenyu-agent"
+        otel.exporter.jaeger.endpoint: "http://localhost:14250/api/traces"
   metrics:
     prometheus:
       host: "localhost"

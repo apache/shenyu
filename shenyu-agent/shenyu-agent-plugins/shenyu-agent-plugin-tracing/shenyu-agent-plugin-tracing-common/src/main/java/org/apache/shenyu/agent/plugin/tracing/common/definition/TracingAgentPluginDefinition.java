@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.tracing.common;
+package org.apache.shenyu.agent.plugin.tracing.common.definition;
 
 import net.bytebuddy.matcher.ElementMatchers;
 import org.apache.commons.lang3.StringUtils;
