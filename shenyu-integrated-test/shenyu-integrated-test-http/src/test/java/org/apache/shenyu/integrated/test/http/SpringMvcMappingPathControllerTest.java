@@ -30,22 +30,17 @@ public class SpringMvcMappingPathControllerTest extends AbstractTest {
     public void testHello() throws IOException {
         String res = HttpHelper.INSTANCE.postGateway("/http/hello", java.lang.String.class);
         assertEquals("hello! I'm Shenyu-Gateway System. Welcome!", res);
-        assertEquals("hello!", res);
     }
 
     @Test
     public void testHi()throws IOException {
         String res = HttpHelper.INSTANCE.postGateway("/http/hi?name=tom", java.lang.String.class);
         assertEquals("hi! tom! I'm Shenyu-Gateway System. Welcome!", res);
-        assertEquals("hello!", res);
     }
 
     @Test
     public void testPost()throws IOException {
         String res = HttpHelper.INSTANCE.postGateway("/http/post/hi?name=tom", java.lang.String.class);
         assertEquals("[post method result]:hi! tom! I'm Shenyu-Gateway System. Welcome!", res);
-        assertEquals("hello!", res);
-
     }
-
 }
