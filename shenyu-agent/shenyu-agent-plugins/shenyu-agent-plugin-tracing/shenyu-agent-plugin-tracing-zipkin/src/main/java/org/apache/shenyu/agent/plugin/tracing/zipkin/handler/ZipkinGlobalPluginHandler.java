@@ -34,8 +34,8 @@ public final class ZipkinGlobalPluginHandler implements InstanceMethodHandler {
     }
 
     @Override
-    public void after(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
-
+    public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, final Object result) {
+        return result;
     }
 
     @Override

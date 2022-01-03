@@ -15,42 +15,42 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.tracing.jaeger.handler;
+package org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler;
 
-import io.opentracing.Span;
-import io.opentracing.tag.Tags;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import org.apache.shenyu.agent.api.entity.MethodResult;
 import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
-import org.apache.shenyu.agent.plugin.tracing.jaeger.constant.JaegerConstants;
-import org.apache.shenyu.agent.plugin.tracing.jaeger.span.JaegerSpanManager;
+import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
+import org.apache.shenyu.agent.plugin.tracing.opentelemetry.span.OpenTelemetrySpanManager;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
- * The type Jaeger global plugin handler.
+ * The type OpenTelemetry common plugin handler.
  */
-public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
+public class OpenTelemetryPluginCommonHandler implements InstanceMethodHandler {
 
     @Override
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
-        final JaegerSpanManager jaegerSpanManager = (JaegerSpanManager) exchange.getAttributes()
-                .getOrDefault(JaegerConstants.ROOT_SPAN, new JaegerSpanManager());
+        final OpenTelemetrySpanManager spanManager = (OpenTelemetrySpanManager) exchange.getAttributes()
+                .getOrDefault(TracingConstants.SHENYU_AGENT, new OpenTelemetrySpanManager());
 
-        Map<String, String> tagMap = new HashMap<>(4);
-        tagMap.put(Tags.COMPONENT.getKey(), JaegerConstants.NAME);
-        tagMap.put(Tags.HTTP_URL.getKey(), exchange.getRequest().getURI().toString());
-        Optional.ofNullable(exchange.getRequest().getMethod())
-                        .ifPresent(v -> tagMap.put(Tags.HTTP_STATUS.getKey(), v.toString()));
+        Map<String, String> attributesMap = new HashMap<>(8);
+        attributesMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
+        for (int i = 2; i < args.length; i++) {
+            attributesMap.put(args[i].getClass().getName(), GsonUtils.getGson().toJson(args[i]));
+        }
 
-        Span span = jaegerSpanManager.add(JaegerConstants.ROOT_SPAN, tagMap);
-        exchange.getAttributes().put(JaegerConstants.RESPONSE_SPAN, jaegerSpanManager);
+        Span span = spanManager.startAndRecord(method.getDeclaringClass().getSimpleName(), attributesMap);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, spanManager);
         target.setContext(span);
     }
 
@@ -58,12 +58,10 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
     public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, final Object result) {
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(JaegerConstants.ROOT_SPAN);
+        OpenTelemetrySpanManager manager = (OpenTelemetrySpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
 
         if (result instanceof Mono) {
-            return ((Mono) result).doFinally(s -> {
-                manager.finish(span, exchange);
-            });
+            return ((Mono) result).doFinally(s -> manager.finish(span, exchange));
         }
 
         manager.finish(span, exchange);
@@ -73,10 +71,11 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
     @Override
     public void onThrowing(final TargetObject target, final Method method, final Object[] args, final Throwable throwable) {
         Span span = (Span) target.getContext();
+        span.setStatus(StatusCode.ERROR).recordException(throwable);
 
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(JaegerConstants.ROOT_SPAN);
+        OpenTelemetrySpanManager manager = (OpenTelemetrySpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
 
-        manager.error(span, exchange, throwable);
+        manager.finish(span, exchange);
     }
 }

@@ -51,6 +51,12 @@
             <artifactId>shenyu-agent-plugin-tracing-zipkin</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-agent-plugin-tracing-opentelemetry</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

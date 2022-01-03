@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-tracing=org.apache.shenyu.agent.plugin.tracing.common.definition.TracingAgentPluginDefinition
+opentelemetry=org.apache.shenyu.agent.plugin.tracing.opentelemetry.boot.OpenTelemetryAgentPluginBootService

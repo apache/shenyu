@@ -24,7 +24,7 @@ import org.springframework.context.annotation.ImportResource;
  * Demo show users how to use shenyu-client-apache-dubbo jar in their apache dubbo project.
  */
 @SpringBootApplication
-@ImportResource({"classpath:spring-dubbo.xml","classpath:shenyu.xml"})
+@ImportResource({"classpath:spring-dubbo.xml", "classpath:shenyu.xml"})
 public class TestApacheDubboXmlApplication {
 
     public static void main(String[] args) {
