@@ -28,9 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -49,13 +47,14 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test case for WebsocketCollector.
+ * The TestCase for {@link WebsocketCollector}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(WebsocketCollector.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class WebsocketCollectorTest {
 
     private static Logger loggerSpy;
@@ -105,7 +104,7 @@ public final class WebsocketCollectorTest {
         websocketCollector.onOpen(session);
         websocketCollector.onMessage(DataEventTypeEnum.MYSELF.name(), session);
         assertEquals(1L, getSessionSetSize());
-        Mockito.verify(syncDataService, Mockito.times(1)).syncAll(DataEventTypeEnum.MYSELF);
+        verify(syncDataService, times(1)).syncAll(DataEventTypeEnum.MYSELF);
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
     }
@@ -138,12 +137,12 @@ public final class WebsocketCollectorTest {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
-        Mockito.verify(basic, Mockito.times(0)).sendText(null);
+        verify(basic, times(0)).sendText(null);
         ThreadLocalUtils.put("sessionKey", session);
         WebsocketCollector.send("test_message_1", DataEventTypeEnum.MYSELF);
-        Mockito.verify(basic, Mockito.times(1)).sendText("test_message_1");
+        verify(basic, times(1)).sendText("test_message_1");
         WebsocketCollector.send("test_message_2", DataEventTypeEnum.CREATE);
-        Mockito.verify(basic, Mockito.times(1)).sendText("test_message_2");
+        verify(basic, times(1)).sendText("test_message_2");
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
     }

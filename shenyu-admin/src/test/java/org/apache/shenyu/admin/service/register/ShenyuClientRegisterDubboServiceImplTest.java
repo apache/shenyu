@@ -35,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
     
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -52,7 +51,6 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link ShenyuClientRegisterDubboServiceImpl}.
  */
-@PrepareForTest(ShenyuClientRegisterDubboServiceImpl.class)
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class ShenyuClientRegisterDubboServiceImplTest {
     
