@@ -23,7 +23,6 @@ import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,16 +45,32 @@ public final class RegisterUtils {
     /**
      * Do register.
      *
+     * @param json        the json
+     * @param url         the url
+     * @param type        the type
+     * @param accessToken the token
+     * @throws IOException the io exception
+     */
+    public static void doRegister(final String json, final String url, final String type, final String accessToken) throws IOException {
+        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        String result = OkHttpTools.getInstance().post(url, json, headers);
+        if (Objects.equals(SUCCESS, result)) {
+            LOGGER.info("{} client register success: {} ", type, json);
+        } else {
+            LOGGER.error("{} client register error: {} ", type, json);
+        }
+    }
+
+    /**
+     * Do register.
+     *
      * @param json the json
      * @param url  the url
      * @param type the type
      * @throws IOException the io exception
      */
-    public static void doRegister(final String json, final String url, final String type, String accessToken) throws IOException {
-        Headers headers = !StringUtils.isEmpty(accessToken)
-                ? new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build()
-                : null;
-        String result = OkHttpTools.getInstance().post(url, json, headers);
+    public static void doRegister(final String json, final String url, final String type) throws IOException {
+        String result = OkHttpTools.getInstance().post(url, json);
         if (Objects.equals(SUCCESS, result)) {
             LOGGER.info("{} client register success: {} ", type, json);
         } else {
@@ -69,8 +84,8 @@ public final class RegisterUtils {
      * @param username the username
      * @param password the password
      * @param url      the ulr
-     * @return
-     * @throws IOException
+     * @return Optional token
+     * @throws IOException the io exception
      */
     public static Optional doLogin(final String username, final String password, final String url) throws IOException {
         Map<String, Object> loginMap = new HashMap<>(2);

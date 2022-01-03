@@ -103,7 +103,7 @@ public class ShenyuClientShutdownHook {
             }
             long s = System.currentTimeMillis();
             while (System.currentTimeMillis() - s < delayOtherHooksExecTime) {
-                for (Iterator<Thread> iterator = Objects.requireNonNull(hooks).keySet().iterator(); iterator.hasNext(); ) {
+                for (Iterator<Thread> iterator = Objects.requireNonNull(hooks).keySet().iterator(); iterator.hasNext();) {
                     Thread hook = iterator.next();
                     if (hook.getName().startsWith(hookNamePrefix)) {
                         continue;
@@ -123,7 +123,7 @@ public class ShenyuClientShutdownHook {
                     iterator.remove();
                 }
 
-                for (Iterator<Thread> iterator = delayHooks.keySet().iterator(); iterator.hasNext(); ) {
+                for (Iterator<Thread> iterator = delayHooks.keySet().iterator(); iterator.hasNext();) {
                     Thread delayHook = iterator.next();
                     Runtime.getRuntime().addShutdownHook(delayHook);
                     delayedHooks.put(delayHook, delayHook);

@@ -79,12 +79,13 @@ public final class OkHttpTools {
     /**
      * Post string.
      *
-     * @param url  the url
-     * @param json the json
+     * @param url     the url
+     * @param json    the json
+     * @param headers the headers
      * @return the string
      * @throws IOException the io exception
      */
-    public String post(final String url, final String json,final Headers headers) throws IOException {
+    public String post(final String url, final String json, final Headers headers) throws IOException {
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .headers(headers)
@@ -102,7 +103,7 @@ public final class OkHttpTools {
      * @return the http result
      * @throws IOException the io exception
      */
-    public String get(final String url, Map<String, Object> query) throws IOException {
+    public String get(final String url, final Map<String, Object> query) throws IOException {
         Request.Builder reqBuild = new Request.Builder();
         HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
         query.forEach((K, V) -> urlBuilder.addQueryParameter(K, String.valueOf(V)));

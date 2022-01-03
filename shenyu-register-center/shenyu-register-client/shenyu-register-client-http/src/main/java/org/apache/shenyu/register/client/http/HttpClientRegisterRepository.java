@@ -41,6 +41,8 @@ import java.util.Optional;
 @Join
 public class HttpClientRegisterRepository implements ShenyuClientRegisterRepository {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
+
     private String username;
 
     private String password;
@@ -48,8 +50,6 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
     private List<String> serverList;
 
     private String accessToken;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
 
     public HttpClientRegisterRepository() {
     }
@@ -66,7 +66,6 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
         Assert.notNull(password, "please config the password on props !");
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
         this.getAccessToken().ifPresent(V -> this.accessToken = String.valueOf(V));
-        Assert.notNull(accessToken, "login error, please check the username and password !");
     }
 
     /**

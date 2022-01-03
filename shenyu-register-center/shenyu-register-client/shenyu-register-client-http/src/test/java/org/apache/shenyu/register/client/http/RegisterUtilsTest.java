@@ -18,9 +18,11 @@
 package org.apache.shenyu.register.client.http;
 
 import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.shenyu.register.client.http.utils.OkHttpTools;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
@@ -71,7 +73,7 @@ public final class RegisterUtilsTest {
 
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
-            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(),null);
+            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
@@ -81,7 +83,7 @@ public final class RegisterUtilsTest {
         when(okHttpTools.post(url, json)).thenReturn("Error parameter！");
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
-            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(),null);
+            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
@@ -91,7 +93,7 @@ public final class RegisterUtilsTest {
         when(okHttpTools.post(url, json)).thenThrow(IOException.class);
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
-            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(), null);
+            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
