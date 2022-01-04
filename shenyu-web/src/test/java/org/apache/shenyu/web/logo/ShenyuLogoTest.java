@@ -17,37 +17,44 @@
 
 package org.apache.shenyu.web.logo;
 
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.utils.VersionUtils;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.mock.env.MockEnvironment;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * The TestCase for ShenyuLogo.
  */
 public final class ShenyuLogoTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuLogoTest.class);
+    private final ShenyuLogo shenyuLogo = new ShenyuLogo();
 
-    private static final String SHENYU_LOGO = "\n"
-        + "   _____ _                            \n"
-        + "  / ____| |                           \n"
-        + " | (___ | |__   ___ _ __  _   _ _   _ \n"
-        + "  \\___ \\| '_ \\ / _ \\ '_ \\| | | | | | |\n"
-        + "  ____) | | | |  __/ | | | |_| | |_| |\n"
-        + " |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|\n"
-        + "                           __/ |      \n"
-        + "                          |___/       ";
-    
     @Test
-    public void buildBannerText() {
-        String buildBannerText = Constants.LINE_SEPARATOR
-                + Constants.LINE_SEPARATOR
-                + SHENYU_LOGO
-                + Constants.LINE_SEPARATOR
-                + " :: Shenyu :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
-                + Constants.LINE_SEPARATOR;
-        LOGGER.info(buildBannerText);
+    public void testBuildBannerText() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method method = shenyuLogo.getClass().getDeclaredMethod("buildBannerText", (Class<?>[]) null);
+        method.setAccessible(true);
+        Object logInfo = method.invoke(shenyuLogo);
+        assertTrue(logInfo instanceof String);
     }
+
+    @Test
+    public void testOnApplicationEvent() throws NoSuchFieldException, IllegalAccessException {
+        SpringApplication application = new SpringApplication();
+        ConfigurableEnvironment environment = new MockEnvironment();
+        ApplicationEnvironmentPreparedEvent event = new ApplicationEnvironmentPreparedEvent(application, null, environment);
+        shenyuLogo.onApplicationEvent(event);
+        Field field = shenyuLogo.getClass().getDeclaredField("ALREADY_LOG");
+        field.setAccessible(true);
+        AtomicBoolean atomicBoolean = (AtomicBoolean) field.get(shenyuLogo);
+        assertTrue(atomicBoolean.get());
+    }
+
 }

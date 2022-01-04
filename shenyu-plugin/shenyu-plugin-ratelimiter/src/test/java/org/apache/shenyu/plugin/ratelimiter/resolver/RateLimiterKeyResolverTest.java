@@ -76,12 +76,12 @@ public class RateLimiterKeyResolverTest {
     @Test
     public void wholeGetKeyResolverNameTest() {
         String keyResolverName = new WholeKeyResolver().getKeyResolverName();
-        assertEquals(keyResolverName, "WHOLE_KEY_RESOLVER");
+        assertEquals("WHOLE_KEY_RESOLVER", keyResolverName);
     }
 
     @Test
     public void remoteAddrGetKeyResolverNameTest() {
         String keyResolverName = new RemoteAddrKeyResolver().getKeyResolverName();
-        assertEquals(keyResolverName, "REMOTE_ADDRESS_KEY_RESOLVER");
+        assertEquals("REMOTE_ADDRESS_KEY_RESOLVER", keyResolverName);
     }
 }

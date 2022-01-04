@@ -44,8 +44,12 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -110,9 +114,12 @@ public final class DashboardUserServiceTest {
 
     @Test
     public void testDelete() {
-        given(dashboardUserMapper.delete(eq("1"))).willReturn(1);
-        given(dashboardUserMapper.delete(eq("2"))).willReturn(1);
-        assertEquals(2, dashboardUserService.delete(Arrays.asList("1", "2")));
+        List<String> deleteIds = Stream.of("1", "2").collect(Collectors.toList());
+        Set<String> idSet = new HashSet<>(deleteIds);
+        given(userRoleMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
+        given(dataPermissionMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
+        given(dashboardUserMapper.deleteByIdSet(idSet)).willReturn(deleteIds.size());
+        assertEquals(deleteIds.size(), dashboardUserService.delete(deleteIds));
     }
 
     @Test

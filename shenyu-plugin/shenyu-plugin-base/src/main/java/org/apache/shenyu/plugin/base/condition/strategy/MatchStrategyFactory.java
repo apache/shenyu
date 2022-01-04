@@ -27,7 +27,10 @@ import java.util.List;
 /**
  * MatchStrategyFactory.
  */
-public class MatchStrategyFactory {
+public final class MatchStrategyFactory {
+    
+    private MatchStrategyFactory() {
+    }
     
     /**
      * New instance match strategy.

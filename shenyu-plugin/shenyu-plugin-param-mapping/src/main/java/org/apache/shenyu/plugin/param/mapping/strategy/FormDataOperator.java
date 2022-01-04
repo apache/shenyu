@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.util.LinkedMultiValueMap;
@@ -44,11 +45,10 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * ApplicationFormStrategy.
@@ -73,14 +73,14 @@ public class FormDataOperator implements Operator {
                     }
                     HttpHeaders headers = exchange.getRequest().getHeaders();
                     HttpHeaders httpHeaders = new HttpHeaders();
-                    Charset charset = headers.getContentType().getCharset();
+                    Charset charset = Objects.requireNonNull(headers.getContentType()).getCharset();
                     charset = charset == null ? StandardCharsets.UTF_8 : charset;
                     LinkedMultiValueMap<String, String> modifyMap = GsonUtils.getInstance().toLinkedMultiValueMap(modify);
                     List<String> list = prepareParams(modifyMap, charset.name());
-                    String content = list.stream().collect(Collectors.joining("&"));
+                    String content = String.join("&", list);
                     byte[] bodyBytes = content.getBytes(charset);
                     int contentLength = bodyBytes.length;
-                    final BodyInserter bodyInserter = BodyInserters.fromValue(modifyMap);
+                    final BodyInserter<LinkedMultiValueMap<String, String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(modifyMap);
                     httpHeaders.putAll(headers);
                     httpHeaders.remove(HttpHeaders.CONTENT_LENGTH);
                     httpHeaders.setContentLength(contentLength);
@@ -96,23 +96,19 @@ public class FormDataOperator implements Operator {
     @Override
     public void operation(final DocumentContext context, final ParamMappingRuleHandle paramMappingRuleHandle) {
         if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys())) {
-            paramMappingRuleHandle.getAddParameterKeys().forEach(info -> {
-                context.put(info.getPath(), info.getKey(), Arrays.asList(info.getValue()));
-            });
+            paramMappingRuleHandle.getAddParameterKeys().forEach(info -> context.put(info.getPath(), info.getKey(), Collections.singletonList(info.getValue())));
         }
     }
 
     private List<String> prepareParams(final LinkedMultiValueMap<String, String> modifyMap, final String charset) {
         List<String> paramList = new ArrayList<>();
-        modifyMap.forEach((K, V) -> {
-            V.forEach(value -> {
-                try {
-                    paramList.add(String.join("=", K, URLEncoder.encode(value, charset)));
-                } catch (UnsupportedEncodingException e) {
-                    throw new ShenyuException(e);
-                }
-            });
-        });
+        modifyMap.forEach((K, V) -> V.forEach(value -> {
+            try {
+                paramList.add(String.join("=", K, URLEncoder.encode(value, charset)));
+            } catch (UnsupportedEncodingException e) {
+                throw new ShenyuException(e);
+            }
+        }));
         return paramList;
     }
 
@@ -130,6 +126,7 @@ public class FormDataOperator implements Operator {
             this.cachedBodyOutputMessage = cachedBodyOutputMessage;
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public HttpHeaders getHeaders() {
             long contentLength = headers.getContentLength();
@@ -139,6 +136,7 @@ public class FormDataOperator implements Operator {
             return headers;
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public Flux<DataBuffer> getBody() {
             return cachedBodyOutputMessage.getBody();

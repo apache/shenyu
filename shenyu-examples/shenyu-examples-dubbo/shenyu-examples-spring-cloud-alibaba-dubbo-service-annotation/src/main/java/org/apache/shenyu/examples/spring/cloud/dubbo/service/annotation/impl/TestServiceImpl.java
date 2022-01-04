@@ -17,15 +17,12 @@
 package org.apache.shenyu.examples.spring.cloud.dubbo.service.annotation.impl;
 
 import org.apache.dubbo.config.annotation.DubboService;
-import org.apache.dubbo.config.annotation.Service;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
 
 /**
@@ -33,26 +30,17 @@ import java.util.Random;
  */
 @DubboService
 public class TestServiceImpl implements DubboTestService {
-
-    private static final Logger logger = LoggerFactory.getLogger(TestServiceImpl.class);
-
+    
     @Override
     @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
     public DubboTest findById(final String id) {
-        DubboTest dubboTest = new DubboTest();
-        dubboTest.setId(id);
-        dubboTest.setName("hello world shenyu Apache, findById");
-        logger.info("==========================================接口被调用===================================");
-        return dubboTest;
+        return new DubboTest(id, "hello world shenyu Apache, findById");
     }
 
     @Override
     @ShenyuDubboClient(path = "/findAll", desc = "Get all data")
     public DubboTest findAll() {
-        DubboTest dubboTest = new DubboTest();
-        dubboTest.setName("hello world shenyu Apache, findAll");
-        dubboTest.setId(String.valueOf(new Random().nextInt()));
-        return dubboTest;
+        return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Apache, findAll");
     }
 
     @Override
@@ -65,9 +53,6 @@ public class TestServiceImpl implements DubboTestService {
     @Override
     @ShenyuDubboClient(path = "/findList", desc = "Find list")
     public ListResp findList() {
-        ListResp listResp = new ListResp();
-        listResp.setTotal(1);
-        listResp.setUsers(Arrays.asList(new DubboTest("1", "test")));
-        return listResp;
+        return new ListResp(1, Collections.singletonList(new DubboTest("1", "test")));
     }
 }

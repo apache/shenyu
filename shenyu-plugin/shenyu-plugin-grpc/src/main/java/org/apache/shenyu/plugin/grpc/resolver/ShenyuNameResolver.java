@@ -25,6 +25,7 @@ import io.grpc.Status;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.SynchronizationContext;
 import io.grpc.internal.SharedResourceHolder;
+import java.util.Collections;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.grpc.loadbalance.GrpcAttributeUtils;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
@@ -57,8 +58,6 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
     private final Attributes attributes;
 
     private final SynchronizationContext syncContext;
-
-    private final List<ShenyuServiceInstance> keep = null;
 
     private List<ShenyuServiceInstance> instanceList = Lists.newArrayList();
 
@@ -145,7 +144,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
                 ShenyuNameResolver.this.syncContext.execute(() -> {
                     ShenyuNameResolver.this.resolving = false;
                     final List<ShenyuServiceInstance> newInstanceList = resultContainer.get();
-                    if (newInstanceList != keep && ShenyuNameResolver.this.listener != null) {
+                    if (Objects.nonNull(newInstanceList) && ShenyuNameResolver.this.listener != null) {
                         ShenyuNameResolver.this.instanceList = newInstanceList;
                     }
                 });
@@ -166,7 +165,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
             if (!needsToUpdateConnections(newInstanceList)) {
                 LOG.info("Nothing has changed... skipping update for {}", name);
-                return null;
+                return Collections.emptyList();
             }
 
             LOG.info("Ready to update server list for {}", name);

@@ -17,8 +17,14 @@
 
 package org.apache.shenyu.register.client.zookeeper;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.shenyu.common.constant.Constants;
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -32,10 +38,6 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 /**
  * The type Zookeeper client register repository.
  */
@@ -47,6 +49,12 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     private ZkClient zkClient;
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
+
+    public ZookeeperClientRegisterRepository() { }
+
+    public ZookeeperClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+        init(config);
+    }
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
@@ -94,7 +102,9 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         if (zkClient.exists(realNode)) {
             zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         } else {
-            zkClient.createPersistent(realNode, GsonUtils.getInstance().toJson(metadata));
+            // if contextPath has two /, in zk means two folder, we need to create parent folder first, or else it will throw no node exception
+            zkClient.createPersistent(realNode, true);
+            zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         }
     }
     
@@ -115,7 +125,7 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
     private String buildURINodeName(final URIRegisterDTO registerDTO) {
         String host = registerDTO.getHost();
         int port = registerDTO.getPort();
-        return String.join(":", host, Integer.toString(port));
+        return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
@@ -123,11 +133,13 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         String rpcType = metadata.getRpcType();
         if (RpcTypeEnum.HTTP.getName().equals(rpcType)
                 || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
+            nodeName = String.join(DefaultPathConstants.SELECTOR_JOIN_RULE,
+                    metadata.getContextPath(),
+                    metadata.getRuleName().replace(PATH_SEPARATOR, DefaultPathConstants.SELECTOR_JOIN_RULE));
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
+        return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
     }
 
     private class ZkStateListener implements IZkStateListener {

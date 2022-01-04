@@ -32,7 +32,7 @@ import static org.junit.Assert.assertTrue;
  */
 public final class MonitorPluginDataHandlerTest {
 
-    private MonitorPluginDataHandler monitorPluginDataHandler = new MonitorPluginDataHandler();
+    private final MonitorPluginDataHandler monitorPluginDataHandler = new MonitorPluginDataHandler();
 
     @Test
     public void testHandlerPlugin() {

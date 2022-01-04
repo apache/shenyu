@@ -17,23 +17,77 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.ResourceLeakDetector;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.BaseRepository;
+import org.reflections.Reflections;
+
+import java.util.Locale;
+
 /**
  * mqtt server.
  */
 public class MqttBootstrapServer implements BootstrapServer {
 
+    private static final String REPOSITORY_PACKAGE_NAME = "org.apache.shenyu.protocol.mqtt.repositories";
+
+    private static final MqttEnv ENV = new MqttEnv();
+
+    private EventLoopGroup bossGroup;
+
+    private EventLoopGroup workerGroup;
+
+    private ChannelFuture future;
+
     @Override
     public void init() {
-
+        try {
+            initRepositories();
+        } catch (Exception e) {
+            //// todo log
+        }
     }
 
     @Override
     public void start() {
-
+        //// todo thread start mqtt server
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.valueOf(ENV.getLeakDetectorLevel().toUpperCase(Locale.ROOT)));
+        bossGroup = new NioEventLoopGroup(ENV.getBossGroupThreadCount());
+        workerGroup = new NioEventLoopGroup(ENV.getWorkerGroupThreadCount());
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new MqttTransportServerInitializer(ENV.getMaxPayloadSize()));
+        try {
+            future = bootstrap.bind(ENV.getPort()).sync();
+            //// todo log
+        } catch (InterruptedException e) {
+            //// todo log
+        }
     }
 
     @Override
     public void shutdown() {
+        try {
+            future.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            //// todo log
+        }
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
 
     }
+
+    private void initRepositories() throws IllegalAccessException, InstantiationException {
+        Reflections reflections = new Reflections(REPOSITORY_PACKAGE_NAME);
+        for (Class<? extends BaseRepository> clazz : reflections.getSubTypesOf(BaseRepository.class)) {
+            Singleton.INST.single(clazz, clazz.newInstance());
+        }
+    }
+
 }

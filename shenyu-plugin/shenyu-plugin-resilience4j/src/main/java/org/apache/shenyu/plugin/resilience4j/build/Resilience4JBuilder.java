@@ -32,7 +32,10 @@ import java.time.Duration;
 /**
  * Resilience4j builder.
  */
-public class Resilience4JBuilder {
+public final class Resilience4JBuilder {
+    
+    private Resilience4JBuilder() {
+    }
 
     /**
      * build.
@@ -61,7 +64,7 @@ public class Resilience4JBuilder {
         RateLimiterConfig rateLimiterConfig = RateLimiterConfig.custom()
                 .limitForPeriod(handle.getLimitForPeriod())
                 .timeoutDuration(Duration.ofSeconds(handle.getTimeoutDurationRate() / 1000))
-                .limitRefreshPeriod(Duration.ofNanos(handle.getLimitRefreshPeriod() * 1000000)).build();
+                .limitRefreshPeriod(Duration.ofNanos(handle.getLimitRefreshPeriod() * 1000000L)).build();
         return new Resilience4JConf(CacheKeyUtils.INST.getKey(ruleData), handle.getFallbackUri(), rateLimiterConfig, timeLimiterConfig, circuitBreakerConfig);
     }
 }

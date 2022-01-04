@@ -17,20 +17,66 @@
 
 package org.apache.shenyu.plugin.api.result;
 
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ObjectTypeUtils;
+import org.springframework.http.MediaType;
+import org.springframework.web.server.ServerWebExchange;
+
 /**
  * The interface shenyu result.
  */
 public interface ShenyuResult<T> {
 
     /**
-     * Success t.
+     * The response result.
      *
+     * @param exchange the exchange
+     * @param formatted the formatted object
+     * @return the result object
+     */
+    default Object result(ServerWebExchange exchange, Object formatted) {
+        return formatted;
+    }
+
+    /**
+     * format the origin, default is json format.
+     *
+     * @param exchange the exchange
+     * @param origin the origin
+     * @return format origin
+     */
+    default Object format(ServerWebExchange exchange, Object origin) {
+        // basic data
+        if (ObjectTypeUtils.isBasicType(origin)) {
+            return origin;
+        }
+        // error result or rpc origin result.
+        return JsonUtils.toJson(origin);
+    }
+
+    /**
+     * the response context type, default is application/json.
+     *
+     * @param exchange the exchange
+     * @param formatted the formatted data that is origin data or byte[] convert string
+     * @return the context type
+     */
+    default MediaType contentType(ServerWebExchange exchange, Object formatted) {
+        return MediaType.APPLICATION_JSON;
+    }
+
+    /**
+     * Error t.
+     *
+     * @param exchange the exchange
      * @param code    the code
      * @param message the message
      * @param object  the object
      * @return the t
      */
-    T success(int code, String message, Object object);
+    default T error(ServerWebExchange exchange, int code, String message, Object object) {
+        return error(code, message, object);
+    }
 
     /**
      * Error t.
@@ -41,5 +87,4 @@ public interface ShenyuResult<T> {
      * @return the t
      */
     T error(int code, String message, Object object);
-
 }

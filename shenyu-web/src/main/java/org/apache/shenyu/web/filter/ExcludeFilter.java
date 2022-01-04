@@ -20,6 +20,7 @@ package org.apache.shenyu.web.filter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.lang.NonNull;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -38,7 +39,7 @@ public class ExcludeFilter implements WebFilter {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    private List<String> paths;
+    private final List<String> paths;
     
     /**
      * Instantiates a new Exclude filter.
@@ -50,7 +51,8 @@ public class ExcludeFilter implements WebFilter {
     }
 
     @Override
-    public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
+    @NonNull
+    public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
         Set<String> excludedPaths = Collections.unmodifiableSet(new HashSet<>(paths));

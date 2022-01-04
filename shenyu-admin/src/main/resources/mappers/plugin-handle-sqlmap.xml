@@ -53,6 +53,15 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByIdSet">
+        delete from plugin_handle
+        where id in
+        <foreach collection="idSet" item="id"
+                 open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <delete id="deleteByPluginIds" parameterType="java.util.List">
         delete from plugin_handle
         where plugin_id in
@@ -210,7 +219,8 @@
                 and plugin_id = #{pluginId,jdbcType=VARCHAR}
             </if>
             <if test="field != null and field != ''">
-                and field = #{field,jdbcType=VARCHAR}
+                <bind name="fieldLike" value="('%' + field + '%')"/>
+                and field like #{fieldLike,jdbcType=VARCHAR}
             </if>
             <if test="type != null">
                 and type = #{type,jdbcType=INTEGER}

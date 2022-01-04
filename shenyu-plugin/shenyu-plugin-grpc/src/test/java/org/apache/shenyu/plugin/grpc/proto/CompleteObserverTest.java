@@ -23,36 +23,36 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.concurrent.ExecutionException;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * The Test Case For {@link CompleteObserver}.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CompleteObserverTest {
-
-    private CompleteObserver completeObserver;
-
+    
+    private CompleteObserver<Object> completeObserver;
+    
     @Before
     public void setUp() {
-        completeObserver = new CompleteObserver();
+        completeObserver = new CompleteObserver<>();
     }
-
+    
     @Test
-    public void onCompleted() throws ExecutionException, InterruptedException {
+    public void onCompleted() {
         completeObserver.onCompleted();
-        ListenableFuture future = completeObserver.getCompletionFuture();
-        assert future.get() == null;
+        ListenableFuture<Void> future = completeObserver.getCompletionFuture();
+        assertNotNull(future);
     }
-
+    
     @Test(expected = Throwable.class)
     public void onError() throws Exception {
         Throwable throwable = new Throwable("error");
         completeObserver.onError(throwable);
-        ListenableFuture future = completeObserver.getCompletionFuture();
+        ListenableFuture<Void> future = completeObserver.getCompletionFuture();
         future.get();
     }
-
+    
     @Test
     public void onNext() {
         completeObserver.onNext(new Object());

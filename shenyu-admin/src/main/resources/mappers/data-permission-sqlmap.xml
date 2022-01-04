@@ -48,8 +48,25 @@
         delete from data_permission where user_id = #{userId,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByUserIdSet">
+        delete from data_permission
+        where user_id in
+        <foreach collection="userIdSet" index="index" item="userId"
+                 open="(" separator="," close=")">
+            #{userId,jdbcType=VARCHAR}
+        </foreach>
+
+    </delete>
+
     <delete id="deleteByDataId">
         delete from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByDataIdList">
+        delete from data_permission where data_id in
+        <foreach item="dataId" collection="dataIdList" open="(" separator="," close=")">
+            #{dataId,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 
     <select id="listByUserId" resultMap="BaseResultMap">
@@ -112,5 +129,17 @@
         </trim>
     </insert>
 
+    <insert id="insertBatch">
+        insert into data_permission (id, user_id, data_id, data_type)
+        values
+        <foreach collection="dataPermissionList" item="dataPermission" separator=",">
+            (
+            #{dataPermission.id,jdbcType=VARCHAR},
+            #{dataPermission.userId,jdbcType=VARCHAR},
+            #{dataPermission.dataId,jdbcType=VARCHAR},
+            #{dataPermission.dataType,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
 
 </mapper>

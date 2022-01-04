@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -89,8 +90,7 @@ public class PermissionServiceImpl implements PermissionService {
             return null;
         }
 
-        List<MenuInfo> menuInfoList = new ArrayList<>();
-        resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
+        List<MenuInfo> menuInfoList = resourceService.getMenuInfo(resourceVOList);
         return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
     }
 
@@ -130,10 +130,8 @@ public class PermissionServiceImpl implements PermissionService {
             return Collections.emptyList();
         }
 
-        return new ArrayList<>(resourceIds).stream()
-                .map(resource -> ResourceVO.buildResourceVO(resourceMapper.selectById(resource)))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return Optional.ofNullable(resourceMapper.selectByIdsBatch(resourceIds)).orElseGet(ArrayList::new)
+                .stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
     }
 
     /**
@@ -155,8 +153,8 @@ public class PermissionServiceImpl implements PermissionService {
      * @return {@linkplain List}
      */
     private List<AuthPerm> getAllAuthPerms() {
-        return resourceMapper.selectAll().stream()
-                .filter(item -> item.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2))
+
+        return resourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2).stream()
                 .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
                 .collect(Collectors.toList());
     }

@@ -18,10 +18,12 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * PluginMapper.
@@ -77,6 +79,13 @@ public interface PluginMapper {
     List<PluginDO> selectAll();
 
     /**
+     * select all not in resource.
+     *
+     * @return {@linkplain List}
+     */
+    List<PluginDO> listAllNotInResource();
+
+    /**
      * count plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}
@@ -115,6 +124,14 @@ public interface PluginMapper {
      * @return the int
      */
     int updateEnable(PluginDO pluginDO);
+
+    /**
+     * enable data by a set of ids.
+     * @param idSet a set of ids
+     * @param enabled status
+     * @return the count of enabled datas
+     */
+    int updateEnableByIdSet(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
 
     /**
      * update selective plugin.

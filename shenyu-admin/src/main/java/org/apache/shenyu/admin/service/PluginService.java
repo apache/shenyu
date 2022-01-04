@@ -69,6 +69,13 @@ public interface PluginService {
      * @return the list
      */
     List<PluginData> listAll();
+
+    /**
+     * list all not in resource.
+     *
+     * @return the list
+     */
+    List<PluginData> listAllNotInResource();
     
     /**
      * Enabled string.

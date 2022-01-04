@@ -29,30 +29,6 @@
     <name>shenyu-integrated-test-motan</name>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!--shenyu gateway start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!--shenyu data sync start use websocket-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-websocket</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- apache shenyu motan plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

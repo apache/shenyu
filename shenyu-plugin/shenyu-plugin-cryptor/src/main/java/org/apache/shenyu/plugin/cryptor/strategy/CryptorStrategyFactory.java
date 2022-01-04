@@ -22,16 +22,21 @@ import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Base64;
+
 /**
  * The type Cryptor strategy factory.
  */
-public class CryptorStrategyFactory {
+public final class CryptorStrategyFactory {
 
     public static final String DECRYPT = "decrypt";
 
     public static final String ENCRYPT = "encrypt";
     
     private static final Logger LOG = LoggerFactory.getLogger(CryptorStrategyFactory.class);
+    
+    private CryptorStrategyFactory() {
+    }
 
     /**
      * New instance cryptor strategy.
@@ -88,7 +93,8 @@ public class CryptorStrategyFactory {
      */
     private static String decrypt(final String strategyName, final String key, final String encryptData) {
         try {
-            return newInstance(strategyName).decrypt(key, encryptData);
+            byte[] inputByte = Base64.getMimeDecoder().decode(encryptData);
+            return newInstance(strategyName).decrypt(key, inputByte);
         } catch (Exception e) {
             LOG.error("decrypt data error: ", e);
             return null;

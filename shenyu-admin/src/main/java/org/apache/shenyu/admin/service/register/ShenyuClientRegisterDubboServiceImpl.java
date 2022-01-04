@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -39,29 +40,29 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
-    
+
     @Override
     public String rpcType() {
         return RpcTypeEnum.DUBBO.getName();
     }
-    
+
     @Override
     protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
         return "";
     }
-    
+
     @Override
     protected String ruleHandler() {
         return new DubboRuleHandle().toJson();
     }
-    
+
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
         MetaDataDO exist = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
-    
+
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         String handleAdd;
@@ -72,20 +73,17 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
             canAddList = addList;
         } else {
             List<DubboUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DubboUpstream.class);
-            for (DubboUpstream exist : existList) {
-                for (DubboUpstream add : addList) {
-                    if (!exist.getUpstreamUrl().equals(add.getUpstreamUrl())) {
-                        existList.add(add);
-                        canAddList.add(add);
-                    }
-                }
+            List<DubboUpstream> diffList = addList.stream().filter(dubboUpstream -> !existList.contains(dubboUpstream)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffList)) {
+                canAddList.addAll(diffList);
+                existList.addAll(diffList);
             }
             handleAdd = GsonUtils.getInstance().toJson(existList);
         }
         doSubmit(selectorDO.getId(), canAddList);
         return handleAdd;
     }
-    
+
     private List<DubboUpstream> buildDubboUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
                 .map(dto -> CommonUpstreamUtils.buildDefaultDubboUpstream(dto.getHost(), dto.getPort()))

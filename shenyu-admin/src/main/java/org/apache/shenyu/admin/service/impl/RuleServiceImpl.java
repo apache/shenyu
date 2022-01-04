@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
@@ -52,9 +53,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -183,7 +189,7 @@ public class RuleServiceImpl implements RuleService {
     public RuleVO findById(final String id) {
         return RuleVO.buildRuleVO(ruleMapper.selectById(id),
                 ruleConditionMapper.selectByQuery(
-                        new RuleConditionQuery(id)).stream()
+                                new RuleConditionQuery(id)).stream()
                         .map(RuleConditionVO::buildRuleConditionVO)
                         .collect(Collectors.toList()));
     }
@@ -198,26 +204,33 @@ public class RuleServiceImpl implements RuleService {
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_RULE)
     @Pageable
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
-        return PageResultUtils.result(ruleQuery.getPageParameter(),
-            () -> ruleMapper.selectByQuery(ruleQuery).stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(ruleQuery.getPageParameter(), () -> ruleMapper.selectByQuery(ruleQuery)
+                .stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
     }
 
     @Override
     public List<RuleData> listAll() {
-        return ruleMapper.selectAll()
-                .stream()
-                .filter(Objects::nonNull)
-                .map(this::buildRuleData)
-                .collect(Collectors.toList());
+
+        List<RuleDO> ruleDOList = ruleMapper.selectAll();
+
+        return this.buildRuleDataList(ruleDOList);
     }
 
     @Override
     public List<RuleData> findBySelectorId(final String selectorId) {
-        return ruleMapper.findBySelectorId(selectorId)
-                .stream()
-                .filter(Objects::nonNull)
-                .map(this::buildRuleData)
-                .collect(Collectors.toList());
+
+        List<RuleDO> ruleDOList = ruleMapper.findBySelectorId(selectorId);
+
+        return this.buildRuleDataList(ruleDOList);
+    }
+
+    @Override
+    public List<RuleData> findBySelectorIdList(final List<String> selectorIdList) {
+
+        List<RuleDO> ruleDOList = ruleMapper.findBySelectorIds(selectorIdList)
+                .stream().filter(Objects::nonNull).collect(Collectors.toList());
+
+        return this.buildRuleDataList(ruleDOList);
     }
 
     @Override
@@ -236,24 +249,46 @@ public class RuleServiceImpl implements RuleService {
                 Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), conditionDataList))));
     }
 
-    private RuleData buildRuleData(final RuleDO ruleDO) {
-        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
-        if (Objects.isNull(selectorDO)) {
-            return null;
-        }
+    private List<RuleData> buildRuleDataList(final List<RuleDO> ruleDOList) {
 
-        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-        if (Objects.isNull(pluginDO)) {
-            return null;
+        if (CollectionUtils.isEmpty(ruleDOList)) {
+            return new ArrayList<>();
         }
+        Map<String, String> ruleDOMap = ruleDOList.stream().filter(Objects::nonNull).collect(Collectors.toMap(RuleDO::getId, RuleDO::getSelectorId, (selectorId1, selectorId2) -> selectorId1));
 
-        // query for conditions
-        List<ConditionData> conditions = ruleConditionMapper.selectByQuery(
-                        new RuleConditionQuery(ruleDO.getId()))
-                .stream()
-                .filter(Objects::nonNull)
-                .map(ConditionTransfer.INSTANCE::mapToRuleDO)
-                .collect(Collectors.toList());
-        return RuleDO.transFrom(ruleDO, pluginDO.getName(), conditions);
+        Map<String, String> pluginIdMap = Optional.ofNullable(selectorMapper.selectByIdSet(new HashSet<>(ruleDOMap.values()))).orElseGet(ArrayList::new)
+                .stream().filter(Objects::nonNull).collect(Collectors.toMap(SelectorDO::getId, SelectorDO::getPluginId, (value1, value2) -> value1));
+
+        Map<String, PluginDO> pluginDOMap = Optional.ofNullable(pluginMapper.selectByIds(new ArrayList<>(pluginIdMap.values())))
+                .orElseGet(ArrayList::new).stream().filter(Objects::nonNull).collect(Collectors.toMap(PluginDO::getId,
+                        Function.identity(), (value1, value2) -> value1));
+
+        Map<String, List<ConditionData>> conditionMap = Optional.ofNullable(ruleConditionMapper.selectByRuleIdSet(ruleDOMap.keySet()))
+                .orElseGet(ArrayList::new).stream().filter(Objects::nonNull).collect(Collectors.toMap(RuleConditionDO::getRuleId,
+                    ruleConditionDO -> {
+                        List<ConditionData> dataList = new ArrayList<>();
+                        dataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
+                        return dataList;
+                    }, (list1, list2) -> {
+                        list1.addAll(list2);
+                        return list1;
+                    }));
+
+        return Optional.ofNullable(ruleDOList).orElseGet(ArrayList::new)
+                .stream().filter(Objects::nonNull).map(ruleDO -> {
+                    String ruleId = ruleDO.getId();
+                    List<ConditionData> conditions = conditionMap.get(ruleId);
+                    if (CollectionUtils.isNotEmpty(conditions)) {
+                        String selectorId = ruleDO.getSelectorId();
+                        String pluginId = pluginIdMap.get(selectorId);
+                        if (StringUtils.isNotEmpty(pluginId)) {
+                            PluginDO pluginDO = pluginDOMap.get(pluginId);
+                            if (Objects.nonNull(pluginDO)) {
+                                return RuleDO.transFrom(ruleDO, pluginDO.getName(), conditions);
+                            }
+                        }
+                    }
+                    return null;
+                }).collect(Collectors.toList());
     }
 }

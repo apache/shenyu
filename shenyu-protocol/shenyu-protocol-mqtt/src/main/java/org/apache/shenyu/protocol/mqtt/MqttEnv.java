@@ -36,6 +36,8 @@ public class MqttEnv {
 
     private static String password;
 
+    private static String leakDetectorLevel;
+
     static {
         MqttServerConfiguration configuration = new MqttServerConfiguration();
         configuration.afterPropertiesSet();
@@ -106,6 +108,14 @@ public class MqttEnv {
     }
 
     /**
+     * get leakDetectorLevel.
+     * @return leakDetectorLevel
+     */
+    public String getLeakDetectorLevel() {
+        return leakDetectorLevel;
+    }
+
+    /**
      * set port.
      * @param port port
      */
@@ -153,4 +163,11 @@ public class MqttEnv {
         MqttEnv.password = password;
     }
 
+    /**
+     * set leakDetectorLevel.
+     * @param leakDetectorLevel leakDetectorLevel
+     */
+    public void setLeakDetectorLevel(final String leakDetectorLevel) {
+        MqttEnv.leakDetectorLevel = leakDetectorLevel;
+    }
 }

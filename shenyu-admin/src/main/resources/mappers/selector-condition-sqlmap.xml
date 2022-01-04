@@ -51,6 +51,18 @@
         </if>
     </select>
 
+    <select id="selectBySelectorIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector_condition
+        where selector_id in
+        <foreach collection="selectorIds" item="selectorId" index="index"
+                 open="(" separator="," close=")">
+            #{selectorId,jdbcType=VARCHAR}
+        </foreach>
+
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorConditionDO">
         insert into selector_condition (id, date_created, date_updated,
         selector_id, param_type, operator, param_name, param_value)

@@ -21,11 +21,19 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.assertj.core.util.Lists;
 import org.junit.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -61,6 +69,23 @@ public final class ShenyuDictMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
     }
 
+    @Test
+    public void deleteByIdList() {
+
+        ShenyuDictDO record1 = buildShenyuDictDO();
+        int count1 = shenyuDictMapper.insert(record1);
+        assertThat(count1, equalTo(1));
+
+        ShenyuDictDO record = buildShenyuDictDO();
+        int count = shenyuDictMapper.insert(record);
+        assertThat(count, equalTo(1));
+
+        List<String> idList = Lists.list(record1.getId(), record.getId());
+        int ret = shenyuDictMapper.deleteByIdList(idList);
+        assertThat(ret, equalTo(idList.size()));
+
+    }
+
     private ShenyuDictDO buildShenyuDictDO() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
@@ -68,12 +93,28 @@ public final class ShenyuDictMapperTest extends AbstractSpringIntegrationTest {
                 .id(id)
                 .sort(1)
                 .desc("test")
-                .dictCode("t_dict_1")
+                .dictCode("t_dict_" + Math.random())
                 .dictName("t_d_v")
                 .enabled(false)
                 .type("rule")
                 .dateCreated(now)
                 .dateUpdated(now)
                 .build();
+    }
+
+    @Test
+    public void findByTypeBatch() {
+
+        ShenyuDictDO record1 = buildShenyuDictDO();
+        int count1 = shenyuDictMapper.insert(record1);
+        assertThat(count1, equalTo(1));
+
+        ShenyuDictDO record = buildShenyuDictDO();
+        int count = shenyuDictMapper.insert(record);
+        assertThat(count, equalTo(1));
+
+        final Set<String> fieldSet = Stream.of(record1.getType(), record.getType()).collect(Collectors.toSet());
+        List<ShenyuDictDO> shenyuDictDOList = shenyuDictMapper.findByTypeBatch(fieldSet);
+        assertThat(shenyuDictDOList, hasItems(record1, record));
     }
 }

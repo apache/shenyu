@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.apache.dubbo.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
@@ -34,7 +35,7 @@ import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -46,40 +47,32 @@ import java.util.concurrent.ExecutionException;
  * The type Application config cache.
  */
 public final class ApacheDubboConfigCache extends DubboConfigCache {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboConfigCache.class);
-
+    
     private ApplicationConfig applicationConfig;
-
+    
     private RegistryConfig registryConfig;
-
+    
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
-            .removalListener(notification -> {
-                ReferenceConfig<GenericService> config = (ReferenceConfig<GenericService>) notification.getValue();
-                if (config != null) {
-                    try {
-                        Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("ref");
-                        field.setAccessible(true);
-                        // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
-                        // it will get NULL when reinitializing and cause a NULL pointer problem.
-                        field.set(config, null);
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
-                        LOG.error("modify ref have exception", e);
-                    }
+            .removalListener((RemovalListener<Object, ReferenceConfig<GenericService>>) notification -> {
+                ReferenceConfig<GenericService> config = notification.getValue();
+                if (Objects.nonNull(config)) {
+                    // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
+                    // it will get NULL when reinitializing and cause a NULL pointer problem.
+                    config.destroy();
                 }
             })
             .build(new CacheLoader<String, ReferenceConfig<GenericService>>() {
                 @Override
-                public ReferenceConfig<GenericService> load(final String key) {
+                @Nonnull
+                public ReferenceConfig<GenericService> load(@Nonnull final String key) {
                     return new ReferenceConfig<>();
                 }
             });
-
-    private ApacheDubboConfigCache() {
-    }
-
+    
+    
     /**
      * Gets instance.
      *
@@ -88,7 +81,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     public static ApacheDubboConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-
+    
     /**
      * Init.
      *
@@ -108,7 +101,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             registryConfig = registryConfigTemp;
         }
     }
-
+    
     private boolean needUpdateRegistryConfig(final DubboRegisterConfig dubboRegisterConfig) {
         if (Objects.isNull(registryConfig)) {
             return true;
@@ -117,7 +110,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
                 || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress())
                 || !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol());
     }
-
+    
     /**
      * Init ref reference config.
      *
@@ -135,13 +128,14 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         }
         return build(metaData);
     }
-
+    
     /**
      * Build reference config.
      *
      * @param metaData the meta data
      * @return the reference config
      */
+    @SuppressWarnings("deprecation")
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
         if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
             return new ReferenceConfig<>();
@@ -149,18 +143,18 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);
-
+        
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
         reference.setCheck(false);
         reference.setLoadbalance("gray");
-
+        
         Map<String, String> parameters = new HashMap<>(2);
         parameters.put("dispatcher", "direct");
         reference.setParameters(parameters);
-
+        
         String rpcExt = metaData.getRpcExt();
         DubboParam dubboParam = parserToDubboParam(rpcExt);
         if (Objects.nonNull(dubboParam)) {
@@ -172,6 +166,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             }
             if (StringUtils.isNoneBlank(dubboParam.getUrl())) {
                 reference.setUrl(dubboParam.getUrl());
+            }
+            if (StringUtils.isNoneBlank(dubboParam.getCluster())) {
+                reference.setCluster(dubboParam.getCluster());
             }
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);
@@ -188,22 +185,21 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         }
         return reference;
     }
-
+    
     /**
      * Get reference config.
      *
-     * @param <T>  the type parameter
      * @param path the path
      * @return the reference config
      */
-    public <T> ReferenceConfig<T> get(final String path) {
+    public ReferenceConfig<GenericService> get(final String path) {
         try {
-            return (ReferenceConfig<T>) cache.get(path);
+            return cache.get(path);
         } catch (ExecutionException e) {
             throw new ShenyuException(e.getCause());
         }
     }
-
+    
     /**
      * Invalidate.
      *
@@ -212,21 +208,25 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     public void invalidate(final String path) {
         cache.invalidate(path);
     }
-
+    
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-
+    
     /**
      * The type Application config cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static final class ApplicationConfigCacheInstance {
         /**
          * The Instance.
          */
         static final ApacheDubboConfigCache INSTANCE = new ApacheDubboConfigCache();
+        
+        private ApplicationConfigCacheInstance() {
+        
+        }
     }
 }

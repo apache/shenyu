@@ -31,7 +31,7 @@ public class SofaSimpleTypeBean implements Serializable {
     public SofaSimpleTypeBean() {
     }
 
-    public SofaSimpleTypeBean(String id, String name) {
+    public SofaSimpleTypeBean(final String id, final String name) {
         this.id = id;
         this.name = name;
     }
@@ -50,7 +50,7 @@ public class SofaSimpleTypeBean implements Serializable {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -68,16 +68,16 @@ public class SofaSimpleTypeBean implements Serializable {
      *
      * @param name name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
     @Override
     public String toString() {
-        return "SofaSimpleTypeBean{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                '}';
+        return "SofaSimpleTypeBean{"
+                + "id='" + id + '\''
+                + ", name='" + name + '\''
+                + '}';
     }
 
 }

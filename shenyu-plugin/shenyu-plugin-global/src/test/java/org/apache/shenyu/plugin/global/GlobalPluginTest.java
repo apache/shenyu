@@ -82,7 +82,7 @@ public final class GlobalPluginTest {
 
     @Test
     public void testGetOrder() {
-        assertEquals(globalPlugin.getOrder(), 10);
+        assertEquals(10, globalPlugin.getOrder());
     }
 
     @Test

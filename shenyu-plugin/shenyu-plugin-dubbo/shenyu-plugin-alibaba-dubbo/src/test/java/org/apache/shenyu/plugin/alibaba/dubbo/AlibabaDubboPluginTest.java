@@ -90,7 +90,7 @@ public final class AlibabaDubboPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
 
-        final Boolean result = alibabaDubboPluginUnderTest.skip(exchange);
+        final boolean result = alibabaDubboPluginUnderTest.skip(exchange);
 
         assertFalse(result);
     }
@@ -133,7 +133,7 @@ public final class AlibabaDubboPluginTest {
 
         try (MockedStatic<ShenyuResultWrap> shenyuResultWrapMockedStatic = mockStatic(ShenyuResultWrap.class)) {
             shenyuResultWrapMockedStatic.when(() -> ShenyuResultWrap
-                    .error(ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null))
+                    .error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null))
                     .thenReturn(new Object());
 
             Mono<Void> voidMono = alibabaDubboPluginUnderTest.doExecute(exchange, chain, selectorData, data);

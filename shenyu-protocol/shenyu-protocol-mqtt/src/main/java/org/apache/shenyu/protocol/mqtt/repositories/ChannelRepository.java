@@ -20,36 +20,29 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * channel repository.
  */
-public interface ChannelRepository {
+public class ChannelRepository implements BaseRepository<Channel, String> {
 
-    /**
-     * add channel.
-     * @param clientId clientId
-     * @param channel channel
-     */
-    void add(String clientId, Channel channel);
+    private static final Map<Channel, String> CHANNEL_FACTORY = new ConcurrentHashMap<>();
 
-    /**
-     * remove by clientId.
-     * @param clientId clientId
-     */
-    void remove(String clientId);
+    @Override
+    public void add(final Channel channel, final String clientId) {
+        CompletableFuture.runAsync(() -> CHANNEL_FACTORY.put(channel, clientId));
+    }
 
-    /**
-     * get factory.
-     * @return factory.
-     */
-    Map<String, Channel> getFactory();
+    @Override
+    public void remove(final Channel channel) {
+        CHANNEL_FACTORY.remove(channel);
+    }
 
-    /**
-     * get channel.
-     * @param clientId clientId
-     * @return Channel
-     */
-    Channel get(String clientId);
+    @Override
+    public String get(final Channel channel) {
+        return CHANNEL_FACTORY.get(channel);
+    }
 
 }

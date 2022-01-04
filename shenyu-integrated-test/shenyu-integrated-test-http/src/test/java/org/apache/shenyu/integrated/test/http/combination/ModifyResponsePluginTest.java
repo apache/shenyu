@@ -57,7 +57,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * ModifyResponsePluginTest.
  */
-public class ModifyResponsePluginTest extends AbstractPluginDataInit {
+public final class ModifyResponsePluginTest extends AbstractPluginDataInit {
 
     private static final String ADD_HEADER = "addHeader";
 

@@ -47,7 +47,7 @@ public final class RateLimiterExecutorTest {
         Resilience4JConf conf = mock(Resilience4JConf.class);
         when(conf.getId()).thenReturn("SHENYU");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
-        Mono mono = Mono.just("ERROR");
+        Mono<String> mono = Mono.just("ERROR");
         StepVerifier.create(ratelimiterExecutor.run(Mono.just("SHENYU"), throwable -> mono, conf))
                 .expectSubscription().expectNext("SHENYU")
                 .verifyComplete();
@@ -59,8 +59,9 @@ public final class RateLimiterExecutorTest {
         Resilience4JConf conf = mock(Resilience4JConf.class);
         when(conf.getId()).thenReturn("SHENYU");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
-        StepVerifier.create(ratelimiterExecutor.run(Mono.error(new RuntimeException()), throwable -> Mono.error(throwable), conf))
+        StepVerifier.create(ratelimiterExecutor.run(Mono.error(new RuntimeException()), Mono::error, conf))
                 .expectSubscription()
-                .expectError(RuntimeException.class);
+                .expectError(RuntimeException.class)
+                .verify();
     }
 }

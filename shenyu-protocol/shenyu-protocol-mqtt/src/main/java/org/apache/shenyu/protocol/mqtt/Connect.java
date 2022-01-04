@@ -23,21 +23,18 @@ import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
-import org.apache.shenyu.protocol.mqtt.repositories.SimpleChannelRepository;
 
 /**
  * Client requests a connection to a server.
  */
 public class Connect extends MessageType {
 
-    private final ChannelRepository channelRepository = new SimpleChannelRepository();
-
     @Override
     public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
 
         String clientId = msg.payload().clientIdentifier();
-
         if (StringUtils.isEmpty(clientId)) {
             ctx.writeAndFlush(wrong(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED));
             return;
@@ -52,14 +49,13 @@ public class Connect extends MessageType {
         }
 
         // record connect
-        channelRepository.add(clientId, ctx.channel());
-
+        Singleton.INST.get(ChannelRepository.class).add(ctx.channel(), clientId);
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()
                 .returnCode(MqttConnectReturnCode.CONNECTION_ACCEPTED)
                 .sessionPresent(true)
                 .build();
         ctx.writeAndFlush(ackMessage);
-
+        setConnected(true);
     }
 
     private MqttConnAckMessage wrong(final MqttConnectReturnCode returnCode) {

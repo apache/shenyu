@@ -18,33 +18,51 @@
 package org.apache.shenyu.plugin.api.result;
 
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Objects;
 
 /**
  * The type shenyu result warp.
  */
 public final class ShenyuResultWrap {
     
+    private ShenyuResultWrap() {
+    }
+    
     /**
      * Success object.
      *
-     * @param code    the code
-     * @param message the message
+     * @param exchange the exchange
      * @param object  the object
-     * @return the object
+     * @return the success object
      */
-    public static Object success(final int code, final String message, final Object object) {
-        return SpringBeanUtils.getInstance().getBean(ShenyuResult.class).success(code, message, object);
+    public static Object success(final ServerWebExchange exchange, final Object object) {
+        return shenyuResult().result(exchange, object);
     }
 
     /**
      * Error object.
      *
+     * @param exchange the exchange
      * @param code    the code
      * @param message the message
      * @param object  the object
      * @return the object
      */
-    public static Object error(final int code, final String message, final Object object) {
-        return SpringBeanUtils.getInstance().getBean(ShenyuResult.class).error(code, message, object);
+    public static Object error(final ServerWebExchange exchange, final int code, final String message, final Object object) {
+        if (Objects.isNull(exchange)) {
+            return shenyuResult().error(code, message, object);
+        }
+        return shenyuResult().error(exchange, code, message, object);
+    }
+
+    /**
+     * shenyu result bean.
+     *
+     * @return the shenyu result bean.
+     */
+    public static ShenyuResult<?> shenyuResult() {
+        return SpringBeanUtils.getInstance().getBean(ShenyuResult.class);
     }
 }

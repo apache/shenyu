@@ -36,9 +36,8 @@ import java.util.List;
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
 
-    @Override
-    protected String getScriptName() {
-        return RateLimitEnum.CONCURRENT.getScriptName();
+    public ConcurrentRateLimiterAlgorithm() {
+        super(RateLimitEnum.CONCURRENT.getScriptName());
     }
 
     @Override
