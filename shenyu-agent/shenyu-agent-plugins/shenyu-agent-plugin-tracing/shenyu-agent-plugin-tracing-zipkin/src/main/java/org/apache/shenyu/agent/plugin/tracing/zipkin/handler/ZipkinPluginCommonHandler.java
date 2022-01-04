@@ -23,18 +23,18 @@ import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
 import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 import org.apache.shenyu.agent.plugin.tracing.zipkin.span.ZipkinSpanManager;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
- * The type Zipkin global plugin handler.
+ * The type Zipkin response plugin handler.
  */
-public final class ZipkinGlobalPluginHandler implements InstanceMethodHandler {
+public final class ZipkinPluginCommonHandler implements InstanceMethodHandler {
 
     @Override
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
@@ -42,13 +42,13 @@ public final class ZipkinGlobalPluginHandler implements InstanceMethodHandler {
         final ZipkinSpanManager zipkinSpanManager = (ZipkinSpanManager) exchange.getAttributes()
                 .getOrDefault(TracingConstants.SHENYU_AGENT, new ZipkinSpanManager());
 
-        Map<String, String> tagMap = new HashMap<>(4);
+        Map<String, String> tagMap = new HashMap<>();
         tagMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
-        tagMap.put(TracingConstants.HTTP_URL, exchange.getRequest().getURI().toString());
-        Optional.ofNullable(exchange.getRequest().getMethod())
-                .ifPresent(v -> tagMap.put(TracingConstants.HTTP_STATUS, v.toString()));
+        for (int i = 2; i < args.length; i++) {
+            tagMap.put(args[i].getClass().getName(), GsonUtils.getGson().toJson(args[i]));
+        }
 
-        Span span = zipkinSpanManager.start(TracingConstants.ROOT_SPAN, tagMap);
+        Span span = zipkinSpanManager.start(method.getDeclaringClass().getSimpleName(), tagMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, zipkinSpanManager);
         target.setContext(span);
     }
