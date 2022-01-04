@@ -25,7 +25,7 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
-public class ShenyuClientPathControllerTest extends AbstractTest {
+public final class ShenyuClientPathControllerTest extends AbstractTest {
 
     private static final String HELLO_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
 

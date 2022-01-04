@@ -28,16 +28,17 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-public class RequestControllerTest extends AbstractTest {
+public final class RequestControllerTest extends AbstractTest {
 
     @Test
     public void testRequestHeader() throws IOException {
-        Map<String, Object> headers = new HashMap(2, 1);
+        Map<String, Object> headers = new HashMap<>(2, 1);
         headers.put("header_key1", "header_key1");
         Response response = HttpHelper.INSTANCE.getResponseFromGateway("/http/request/header", headers);
         String body = Objects.requireNonNull(response.body()).string();
-        assertEquals(true, body.contains("response success:"));
+        assertTrue(body.contains("response success:"));
     }
 
     @Test
