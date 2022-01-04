@@ -123,9 +123,15 @@
         <!-- apache shenyu request plugin end-->
 
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
-            <version>${project.version}</version>
+            <version>2.4.2-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     
