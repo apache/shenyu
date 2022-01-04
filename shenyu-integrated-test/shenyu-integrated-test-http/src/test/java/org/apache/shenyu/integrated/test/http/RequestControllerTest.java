@@ -33,29 +33,26 @@ public class RequestControllerTest extends AbstractTest {
 
     @Test
     public void testRequestHeader() throws IOException {
-        Map<String,Object> headers=new HashMap(2,1);
-        headers.put("header_key1","header_key1");
+        Map<String, Object> headers = new HashMap(2, 1);
+        headers.put("header_key1", "header_key1");
         Response response = HttpHelper.INSTANCE.getResponseFromGateway("/http/request/header", headers);
         String body = Objects.requireNonNull(response.body()).string();
-        assertEquals(true,body.contains("response success:"));
+        assertEquals(true, body.contains("response success:"));
     }
 
     @Test
     public void testRequestParameter() throws IOException {
-        String parameter_key1="chuang";
-        String body = HttpHelper.INSTANCE.postGateway("/http/request/parameter?parameter_key1="+parameter_key1+"",String.class);
-        assertEquals("response success: {parameter_key1=["+parameter_key1+"]}" , body);
+        String body = HttpHelper.INSTANCE.postGateway("/http/request/parameter?parameter_key1=chuang", String.class);
+        assertEquals("response success: {parameter_key1=[chuang]}", body);
     }
 
     @Test
     public void testRequestCookie() throws IOException {
-        String userId="chuang";
+        String userId = "chuang";
         Map<String, Object> headers = new HashMap<>(2, 1);
-        headers.put("Cookie", "userId="+userId+"");
-        Response response = HttpHelper.INSTANCE.getResponseFromGateway("/http/request/cookie",headers);
+        headers.put("Cookie", "userId=" + userId + "");
+        Response response = HttpHelper.INSTANCE.getResponseFromGateway("/http/request/cookie", headers);
         String body = Objects.requireNonNull(response.body()).string();
-        assertEquals("response success: {userId=[userId="+userId+"]}",body);
-
-
+        assertEquals("response success: {userId=[userId=" + userId + "]}", body);
     }
 }

@@ -17,15 +17,11 @@
 
 package org.apache.shenyu.integrated.test.http;
 
-import okhttp3.Response;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 
@@ -36,21 +32,21 @@ public class ShenyuClientPathControllerTest extends AbstractTest {
     @Test
     public void testHello() throws IOException {
         String body = HttpHelper.INSTANCE.getFromGateway("/http/shenyu/client/hello", String.class);
-        assertEquals("hello! "+HELLO_SUFFIX , body);
+        assertEquals("hello! " + HELLO_SUFFIX, body);
     }
 
     @Test
     public void testHi() throws IOException {
-        String name="chuang";
-        String body = HttpHelper.INSTANCE.getFromGateway("/http/shenyu/client/hi?name="+name+"", String.class);
-        assertEquals("hi! " + name + "! " + HELLO_SUFFIX , body);
+        String name = "chuang";
+        String body = HttpHelper.INSTANCE.getFromGateway("/http/shenyu/client/hi?name=" + name + "", String.class);
+        assertEquals("hi! " + name + "! " + HELLO_SUFFIX, body);
     }
 
     @Test
     public void testPost() throws IOException {
-        String name="chuang";
-        String body = HttpHelper.INSTANCE.postGateway("/http/shenyu/client/post/hi?name="+name+"", String.class);
-        assertEquals("[post method result]:hi! " + name + "! " + HELLO_SUFFIX , body);
+        String name = "chuang";
+        String body = HttpHelper.INSTANCE.postGateway("/http/shenyu/client/post/hi?name=" + name + "", String.class);
+        assertEquals("[post method result]:hi! " + name + "! " + HELLO_SUFFIX, body);
     }
 
 }
