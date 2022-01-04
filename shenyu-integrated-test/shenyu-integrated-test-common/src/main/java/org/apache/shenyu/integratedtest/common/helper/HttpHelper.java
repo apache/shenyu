@@ -182,7 +182,11 @@ public class HttpHelper {
         Response response = client.newCall(request).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("getFromGateway({}) resp({})", path, respBody);
-        return GSON.fromJson(respBody, type);
+        try {
+            return GSON.fromJson(respBody, type);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
     }
 
     /**
