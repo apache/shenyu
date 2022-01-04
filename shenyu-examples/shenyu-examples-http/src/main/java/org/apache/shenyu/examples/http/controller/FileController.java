@@ -76,12 +76,13 @@ public class FileController {
      */
     @RequestMapping("/download")
     public String fileDownload(String filePath,HttpServletResponse response) throws Exception {
-        try {
+
         File file=new File(filePath);
         String  fileName= file.getName();
         response.setContentType("application/force-download");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(fileName,"UTF-8"));
+        try {
         FileInputStream fis;
         BufferedInputStream bis;
         OutputStream os;
@@ -100,5 +101,4 @@ public class FileController {
         }
         return null;
     }
-
 }
