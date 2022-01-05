@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.admin.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -30,7 +31,7 @@ public abstract class AbstractContextPathRegisterService extends AbstractShenyuC
     public void registerContextPath(final MetaDataRegisterDTO dto) {
         String contextPathSelectorId = getSelectorService().registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
         ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
-        handle.setContextPath(dto.getContextPath());
+        handle.setContextPath(PathUtils.decoratorContextPath(dto.getContextPath()));
         getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
     }
 }
