@@ -32,7 +32,7 @@ public final class PathUtils {
      * @return the string
      */
     public static String decoratorPath(final String contextPath) {
-        return StringUtils.containsAny(contextPath, AdminConstants.URI_SUFFIX) ? contextPath : contextPath + AdminConstants.URI_SUFFIX;
+        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? contextPath : contextPath + AdminConstants.URI_SUFFIX;
     }
     
     /**
@@ -42,10 +42,6 @@ public final class PathUtils {
      * @return the string
      */
     public static String decoratorContextPath(final String contextPath) {
-        String result = contextPath;
-        if (StringUtils.containsAny(contextPath, AdminConstants.URI_SUFFIX)) {
-            result = StringUtils.substringBefore(contextPath, AdminConstants.URI_SUFFIX);
-        }
-        return result;
+        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? StringUtils.substringBefore(contextPath, AdminConstants.URI_SUFFIX) : contextPath;
     }
 }
