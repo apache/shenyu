@@ -30,11 +30,6 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-agent-bootstrap</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>
