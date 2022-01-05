@@ -94,7 +94,7 @@ public class FileController {
      * @throws Exception the Exception
      */
     @RequestMapping("/download")
-    public String fileDownload(HttpServletResponse response) throws Exception {
+    public String fileDownload(HttpServletResponse response) throws IOException {
         File file=new File("shenyu-examples/shenyu-examples-http/src/main/resources/static/test.txt");
         String  fileName= file.getName();
         response.setContentType("application/force-download");
