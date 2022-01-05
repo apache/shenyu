@@ -36,23 +36,23 @@ public class FileControllerTest {
         File file1 = new File("src/main/resources/test.txt");
         File file2 = new File("src/main/resources/test");
         String filePath = "shenyu-examples/shenyu-examples-http/src/main/resources/static/";
-        assertEquals("测试成功", post(file1, filePath));
-        assertEquals("测试失败", post(file2, filePath));
+        assertEquals("Test successful", post(file1, filePath));
+        assertEquals("Test failed", post(file2, filePath));
     }
 
     @Test
     public void testFileUploadWay2() throws Exception {
         String res1 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=测试成功&fileName=test.txt&filePath=shenyu-examples/shenyu-examples-http/src/main/resources/static/",
                 java.lang.String.class);
-        assertEquals("上传成功", res1);
+        assertEquals("Upload succeeded", res1);
         String res2 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=测试成功&fileName=test.txt&filePath=shenyu/image/ss/", java.lang.String.class);
-        assertEquals("上传失败", res2);
+        assertEquals("Upload failed", res2);
     }
 
     @Test
     public void testFileDownload() throws Exception {
         String res = HttpHelper.INSTANCE.postGateway("/http/file/download", java.lang.String.class);
-        assertEquals("测试成功", res);
+        assertEquals("Test successful", res);
     }
 
     /**
@@ -78,8 +78,8 @@ public class FileControllerTest {
         try {
             Response response = client.newCall(request).execute();
         } catch (IOException e) {
-            return "测试失败";
+            return "Test failed";
         }
-        return "测试成功";
+        return "Test successful";
     }
 }
