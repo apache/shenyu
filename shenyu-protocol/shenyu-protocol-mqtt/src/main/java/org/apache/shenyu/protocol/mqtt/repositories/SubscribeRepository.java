@@ -50,6 +50,15 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
         CompletableFuture.runAsync(() -> topics.parallelStream().forEach(TOPIC_CHANNEL_FACTORY::remove));
     }
 
+    /**
+     * remove subscribe channel.
+     * @param topics topics
+     * @param channel channel
+     */
+    public void remove(final List<String> topics, final Channel channel) {
+        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> TOPIC_CHANNEL_FACTORY.get(topic).remove(channel)));
+    }
+
     @Override
     public List<Channel> get(final List<String> topics) {
         Set<Channel> channels = new CopyOnWriteArraySet<>();
@@ -65,4 +74,5 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
     public List<Channel> get(final String topic) {
         return TOPIC_CHANNEL_FACTORY.getOrDefault(topic, new CopyOnWriteArrayList<>());
     }
+
 }
