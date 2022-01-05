@@ -50,8 +50,8 @@ public class FileUploadUtil {
         try {
             Response response = client.newCall(request).execute();
         } catch (IOException e) {
-            return "Test failed";
+            return "TestFailed";
         }
-        return "Test successful";
+        return "TestSuccessful";
     }
 }

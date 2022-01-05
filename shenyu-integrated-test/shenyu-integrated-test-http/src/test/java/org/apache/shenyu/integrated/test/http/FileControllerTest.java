@@ -30,22 +30,22 @@ public class FileControllerTest {
         File file1 = new File("src/main/resources/test.txt");
         File file2 = new File("src/main/resources/test");
         String filePath = "shenyu-examples/shenyu-examples-http/src/main/resources/static/";
-        assertEquals("Test successful", FileUploadUtil.post(file1, filePath));
-        assertEquals("Test failed", FileUploadUtil.post(file2, filePath));
+        assertEquals("TestSuccessful", FileUploadUtil.post(file1, filePath));
+        assertEquals("TestFailed", FileUploadUtil.post(file2, filePath));
     }
 
     @Test
     public void testFileUploadWay2() throws IOException {
-        String res1 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=Test successful&fileName=test.txt&filePath=shenyu-examples/shenyu-examples-http/src/main/resources/static/",
+        String res1 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=TestSuccessful&fileName=test.txt&filePath=shenyu-examples/shenyu-examples-http/src/main/resources/static/",
                 java.lang.String.class);
-        assertEquals("Upload succeeded", res1);
-        String res2 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=Test successful&fileName=test.txt&filePath=shenyu/image/ss/", java.lang.String.class);
-        assertEquals("Upload failed", res2);
+        assertEquals("UploadSucceeded", res1);
+        String res2 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=TestSuccessful&fileName=test.txt&filePath=shenyu/image/ss/", java.lang.String.class);
+        assertEquals("UploadFailed", res2);
     }
 
     @Test
     public void testFileDownload() throws IOException {
         String res = HttpHelper.INSTANCE.postGateway("/http/file/download", java.lang.String.class);
-        assertEquals("Test successful", res);
+        assertEquals("TestSuccessful", res);
     }
 }
