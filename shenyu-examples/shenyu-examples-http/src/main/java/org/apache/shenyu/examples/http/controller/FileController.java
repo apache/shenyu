@@ -95,26 +95,27 @@ public class FileController {
      */
     @RequestMapping("/download")
     public String fileDownload(HttpServletResponse response) throws IOException {
-        File file=new File("shenyu-integrated-test/shenyu-integrated-test-http/src/main/resources/test.txt");
+        File file=new File("shenyu-examples/shenyu-examples-http/src/main/resources/static/test.txt");
         String  fileName= file.getName();
-        logger.info(file.getAbsolutePath());
-        response.setContentType("application/octet-stream");
-        response.setHeader("content-type", "application/octet-stream");
+        response.setContentType("application/force-download");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(fileName,"UTF-8"));
-        FileInputStream fis;
-        BufferedInputStream bis;
-        OutputStream os;
-        byte[] buf=new byte[1024];
-        fis=new FileInputStream(file);
-        bis=new BufferedInputStream(fis);
-        os=response.getOutputStream();
-        int len=bis.read(buf);
-        while(len!= -1) {
-            os.write(buf, 0, len);
-            len = bis.read(buf);
+        try {
+            FileInputStream fis;
+            BufferedInputStream bis;
+            OutputStream os;
+            byte[] buf=new byte[1024];
+            fis=new FileInputStream(file);
+            bis=new BufferedInputStream(fis);
+            os=response.getOutputStream();
+            int len=bis.read(buf);
+            while(len!= -1){
+                os.write(buf, 0, len);
+                len=bis.read(buf);
+            }
+        } catch (IOException e){
+            return "DownloadFailed";
         }
         return null;
     }
-
 }
