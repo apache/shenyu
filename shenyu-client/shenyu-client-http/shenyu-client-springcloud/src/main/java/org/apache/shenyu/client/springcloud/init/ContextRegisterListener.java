@@ -73,7 +73,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 LOG.error(errorMsg);
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
-            this.contextPath = contextPath + "/**";
         }
         port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
         this.appName = env.getProperty("spring.application.name");
