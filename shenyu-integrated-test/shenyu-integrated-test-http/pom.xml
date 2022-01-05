@@ -120,19 +120,15 @@
             <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- apache shenyu request plugin end-->
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
             <version>2.4.2-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        <!-- apache shenyu request plugin end-->
+
+
     </dependencies>
     
     <profiles>

@@ -25,6 +25,7 @@ import okhttp3.Response;
 import okhttp3.MediaType;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
@@ -32,11 +33,11 @@ import java.io.IOException;
 public class FileControllerTest {
     @Test
     public void testFileUploadWay1() throws Exception {
-        String url = "http://localhost:9195/http/file/uploadWay1";
-        String filePath1 = "D:\\interview\\interview2\\shenyu\\incubator-shenyu\\shenyu-examples\\shenyu-examples-http\\src\\main\\resources\\static\\test.txt";
-        String filePath2 = "D:\\interview\\interview2\\shenyu\\incubator-shenyu\\shenyu-examples\\shenyu-examples-http\\src\\main\\resources\\static\\test";
-        assertEquals("测试成功", post(url, filePath1));
-        assertEquals("测试失败", post(url, filePath2));
+        File file1 = new File("src/main/resources/test.txt");
+        File file2 = new File("src/main/resources/test");
+        String filePath = "shenyu-examples/shenyu-examples-http/src/main/resources/static/";
+        assertEquals("测试成功", post(file1, filePath));
+        assertEquals("测试失败", post(file2, filePath));
     }
 
     @Test
@@ -50,35 +51,33 @@ public class FileControllerTest {
 
     @Test
     public void testFileDownload() throws Exception {
-        String res1 = HttpHelper.INSTANCE.postGateway("/http/file/download?filePath=shenyu-examples/shenyu-examples-http/src/main/resources/static/test.txt", java.lang.String.class);
-        String res2 = HttpHelper.INSTANCE.postGateway("/http/file/download?filePath=shenyu-examples/shenyu-examples-http/src/main/resources/static/test", java.lang.String.class);
-        assertEquals("测试成功", res1);
-        assertEquals("下载失败", res2);
+        String res = HttpHelper.INSTANCE.postGateway("/http/file/download", java.lang.String.class);
+        assertEquals("测试成功", res);
     }
 
     /**
      * Post file.
      *
-     * @param url the url
+     * @param file the file
      * @param filePath the filePath
      * @return the String
      * @throws IOException the IOException
      */
-    public String post(final String url, final String filePath) throws IOException {
+    public String post(final File file, final String filePath) throws IOException {
         OkHttpClient client = new OkHttpClient();
-        File file = new File(filePath);
-        RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
+        RequestBody fileBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         RequestBody requestBody = new MultipartBody.Builder()
              .setType(MultipartBody.FORM)
-             .addFormDataPart("application/octet-stream", file.getName(), fileBody)
+             .addFormDataPart("file", file.getName(), fileBody)
+             .addFormDataPart("filePath", filePath)
              .build();
         Request request = new Request.Builder()
-             .url(url)
+             .url("http://localhost:9195/http/file/uploadWay1")
              .post(requestBody)
              .build();
         try {
             Response response = client.newCall(request).execute();
-        } catch (Exception e) {
+        } catch (IOException e) {
             return "测试失败";
         }
         return "测试成功";
