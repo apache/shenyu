@@ -138,6 +138,18 @@ public class DashboardUserController {
     }
 
     /**
+     * modify dashboard user password.
+     *
+     * @param id               primary key.
+     * @param dashboardUserDTO dashboard user.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/modify-password/{id}")
+    public ShenyuAdminResult modifyPassword(@PathVariable("id") final String id, @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
+        return updateDashboardUser(id, dashboardUserDTO);
+    }
+
+    /**
      * delete dashboard users.
      *
      * @param ids primary key.

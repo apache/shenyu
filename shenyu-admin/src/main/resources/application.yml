@@ -97,6 +97,7 @@ shenyu:
       - /swagger-resources/**
       - /v2/api-docs
       - /csrf
+      - /dashboardUser/modify-password/**
   swagger:
     enable: true
 
