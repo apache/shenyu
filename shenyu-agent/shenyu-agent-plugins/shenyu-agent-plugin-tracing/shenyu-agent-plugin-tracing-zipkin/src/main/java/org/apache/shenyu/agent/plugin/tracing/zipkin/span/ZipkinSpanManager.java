@@ -15,44 +15,44 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.tracing.opentelemetry.span;
+package org.apache.shenyu.agent.plugin.tracing.zipkin.span;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.context.Context;
+import brave.Span;
+import brave.Tracing;
 import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class OpenTelemetrySpanManager {
+public class ZipkinSpanManager {
 
     private volatile Span lastSpan;
 
     private final AtomicInteger count;
 
-    public OpenTelemetrySpanManager() {
+    public ZipkinSpanManager() {
         this.count = new AtomicInteger(0);
     }
 
     /**
-     * Start and record a span.
+     * Start span.
      *
      * @param spanName span name
-     * @param attributesMap attributes
+     * @param tagMap  tag
      * @return {@linkplain Span}
      */
-    public Span startAndRecord(final String spanName, final Map<String, String> attributesMap) {
-        SpanBuilder spanBuilder = GlobalOpenTelemetry.getTracer(TracingConstants.SHENYU_AGENT)
-                .spanBuilder(spanName)
-                .setSpanKind(SpanKind.INTERNAL);
-        Optional.ofNullable(attributesMap).ifPresent(attributes -> attributes.forEach(spanBuilder::setAttribute));
-        Optional.ofNullable(lastSpan).ifPresent(parentSpan -> spanBuilder.setParent(Context.current().with(parentSpan)));
-        Span span = spanBuilder.startSpan();
+    public Span start(final String spanName, final Map<String, String> tagMap) {
+        Span span;
+        if (Objects.isNull(lastSpan)) {
+            span = Tracing.currentTracer().nextSpan().name(spanName);
+        } else {
+            span = Tracing.currentTracer().newChild(lastSpan.context()).name(spanName);
+        }
+
+        tagMap.forEach(span::tag);
+        span.start();
 
         count.incrementAndGet();
         lastSpan = span;
@@ -63,11 +63,11 @@ public class OpenTelemetrySpanManager {
     /**
      * Finish span.
      *
-     * @param span {@linkplain Span}
+     * @param span     {@linkplain Span}
      * @param exchange webflux server object
      */
     public void finish(final Span span, final ServerWebExchange exchange) {
-        span.end();
+        span.finish();
         if (count.decrementAndGet() == 0) {
             exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT);
         }

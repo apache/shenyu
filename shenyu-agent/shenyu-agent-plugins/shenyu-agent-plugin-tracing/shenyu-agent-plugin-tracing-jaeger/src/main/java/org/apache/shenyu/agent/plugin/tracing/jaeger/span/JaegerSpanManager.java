@@ -75,7 +75,7 @@ public class JaegerSpanManager {
     }
 
     /**
-     * finis span record.
+     * finish span record.
      *
      * @param span {@linkplain Span}
      * @param exchange webflux server object

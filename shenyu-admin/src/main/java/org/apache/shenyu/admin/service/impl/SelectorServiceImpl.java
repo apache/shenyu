@@ -436,7 +436,7 @@ public class SelectorServiceImpl implements SelectorService {
         selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
         selectorConditionDTO.setParamName("/");
         selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        selectorConditionDTO.setParamValue(contextPath + "/**");
+        selectorConditionDTO.setParamValue(contextPath + AdminConstants.URI_SUFFIX);
         return Collections.singletonList(selectorConditionDTO);
     }
 }
