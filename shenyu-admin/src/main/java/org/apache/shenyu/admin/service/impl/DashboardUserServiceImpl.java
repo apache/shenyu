@@ -122,7 +122,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
         // update old user
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
-            userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
+            if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
+                userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
+            }
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
 
