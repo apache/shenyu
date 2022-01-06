@@ -174,15 +174,14 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S> S getFromGateway(final String path, final Map<String, Object> headers, final Type type) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().url(GATEWAY_END_POINT + path);
-        if (!CollectionUtils.isEmpty(headers)) {
-            headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
-        }
-        Request request = requestBuilder.build();
-        Response response = client.newCall(request).execute();
+        Response response = getHttpService(GATEWAY_END_POINT + path, headers);
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("getFromGateway({}) resp({})", path, respBody);
-        return GSON.fromJson(respBody, type);
+        try {
+            return GSON.fromJson(respBody, type);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
     }
 
     /**
@@ -194,7 +193,19 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public Response getResponseFromGateway(final String path, final Map<String, Object> headers) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().url(GATEWAY_END_POINT + path);
+        return getHttpService(GATEWAY_END_POINT + path, headers);
+    }
+
+    /**
+     * Send a get http request to http service with headers.
+     *
+     * @param url url
+     * @param headers headers
+     * @return response
+     * @throws IOException IO exception
+     */
+    public Response getHttpService(final String url, final Map<String, Object> headers) throws IOException {
+        Request.Builder requestBuilder = new Request.Builder().url(url);
         if (!CollectionUtils.isEmpty(headers)) {
             headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
         }

@@ -17,8 +17,19 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
+import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+
+import java.util.List;
+
+import static io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader.from;
 
 /**
  * Unsubscribe from named topics.
@@ -27,6 +38,16 @@ public class Unsubscribe extends MessageType {
 
     @Override
     public void unsubscribe(final ChannelHandlerContext ctx, final MqttUnsubscribeMessage msg) {
-
+        if (isConnected()) {
+            return;
+        }
+        List<String> topics = msg.payload().topics();
+        Channel channel = ctx.channel();
+        Singleton.INST.get(SubscribeRepository.class).remove(topics, channel);
+        int packetId = msg.variableHeader().messageId();
+        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttUnsubAckMessage mqttUnsubAckMessage = new MqttUnsubAckMessage(mqttFixedHeader, from(packetId));
+        channel.writeAndFlush(mqttUnsubAckMessage);
     }
+
 }

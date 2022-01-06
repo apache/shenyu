@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -156,9 +157,8 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             Supplier<Stream<SelectorDO>> selectorDOStreamSupplier = () -> selectorMapper.selectByQuery(selectorQuery).stream();
             List<String> selectorIds = selectorDOStreamSupplier.get().map(SelectorDO::getId).collect(Collectors.toList());
 
-            Set<String> hasDataPermissionSelectorIds = dataPermissionMapper.selectDataIds(selectorIds,
-                    userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal())
-                    .stream().collect(Collectors.toSet());
+            Set<String> hasDataPermissionSelectorIds = new HashSet<>(dataPermissionMapper.selectDataIds(selectorIds,
+                    userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal()));
 
             selectorList = selectorDOStreamSupplier.get().map(selectorDO -> {
                 boolean isChecked = hasDataPermissionSelectorIds.contains(selectorDO.getId());
@@ -186,8 +186,8 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             Supplier<Stream<RuleDO>> ruleDOStreamSupplier = () -> ruleMapper.selectByQuery(ruleQuery).stream();
             List<String> ruleIds = ruleDOStreamSupplier.get().map(RuleDO::getId).collect(Collectors.toList());
 
-            Set<String> hasDataPermissionRuleIds = dataPermissionMapper.selectDataIds(ruleIds, userId,
-                    AdminDataPermissionTypeEnum.RULE.ordinal()).stream().collect(Collectors.toSet());
+            Set<String> hasDataPermissionRuleIds = new HashSet<>(dataPermissionMapper.selectDataIds(ruleIds, userId,
+                    AdminDataPermissionTypeEnum.RULE.ordinal()));
 
             selectorList = ruleDOStreamSupplier.get().map(ruleDO -> {
                 boolean isChecked = hasDataPermissionRuleIds.contains(ruleDO.getId());
