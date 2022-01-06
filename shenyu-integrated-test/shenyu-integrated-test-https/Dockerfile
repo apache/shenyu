@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:11
+FROM openjdk:8-jre-alpine
 
 ENV APP_NAME shenyu-integrated-test-https
 ENV LOCAL_PATH /opt/${APP_NAME}
