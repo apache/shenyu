@@ -24,4 +24,4 @@ ADD target/${APP_NAME} ${LOCAL_PATH}
 WORKDIR ${LOCAL_PATH}
 EXPOSE 9195
 
-CMD ${LOCAL_PATH}/bin/start.sh agent && tail -f ${LOCAL_PATH}/logs/shenyu-bootstrap.log
+CMD /bin/sh ${LOCAL_PATH}/bin/start.sh agent && tail -f ${LOCAL_PATH}/logs/shenyu-bootstrap.log
