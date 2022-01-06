@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.page;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -37,7 +38,7 @@ public class PageResultUtils {
      */
     public static <T> CommonPager<T> result(final PageParameter pageParameter, final Supplier<Integer> countSupplier, final Supplier<List<T>> listSupplier) {
         Integer count = countSupplier.get();
-        if (count != null && count > 0) {
+        if (Objects.nonNull(count) && count > 0) {
             return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count), listSupplier.get());
         }
         return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Optional;
 
 /**
@@ -33,7 +35,7 @@ public class AesUtils {
      * @return the string
      */
     public static String aesEncryption(final String src, final String aesKey, final String iv) {
-        if (Optional.ofNullable(src).isPresent() && !src.isEmpty()) {
+        if (StringUtils.isNotEmpty(src)) {
             return CipherUtils.encryptHex(src, aesKey, iv);
         }
         return null;
@@ -48,7 +50,7 @@ public class AesUtils {
      * @return the string
      */
     public static String aesDecryption(final String src, final String aesKey, final String iv) {
-        if (Optional.ofNullable(src).isPresent() && !src.isEmpty()) {
+        if (StringUtils.isNotEmpty(src)) {
             return CipherUtils.decryptStr(src, aesKey, iv);
         }
         return null;
