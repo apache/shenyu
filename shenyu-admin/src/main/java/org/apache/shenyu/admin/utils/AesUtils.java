@@ -19,8 +19,6 @@ package org.apache.shenyu.admin.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Optional;
-
 /**
  * The type Aes utils.
  */
