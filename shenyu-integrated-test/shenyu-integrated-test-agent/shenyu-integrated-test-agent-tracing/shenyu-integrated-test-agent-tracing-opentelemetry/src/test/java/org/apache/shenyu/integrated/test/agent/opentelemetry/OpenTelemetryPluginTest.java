@@ -54,7 +54,7 @@ public final class OpenTelemetryPluginTest extends AbstractPluginDataInit {
         user = HttpHelper.INSTANCE.postGateway("/http/order/save", user, OrderDTO.class);
         assertEquals("hello world save order", user.getName());
         // Sleep for jaeger to react
-        Thread.sleep(3000);
+        Thread.sleep(5000);
     }
 
     @Test
