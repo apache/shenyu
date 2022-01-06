@@ -553,6 +553,16 @@ public interface Constants {
     String ADMIN_RESULT_PASSWORD = "password";
 
     /**
+     * shenyu admin path configs fetch.
+     */
+    String SHENYU_ADMIN_PATH_CONFIGS_FETCH = "/configs/fetch";
+
+    /**
+     * shenyu admin path configs listener.
+     */
+    String SHENYU_ADMIN_PATH_CONFIGS_LISTENER = "/configs/listener";
+
+    /**
      * String q.
      */
     default void findConstants() {
