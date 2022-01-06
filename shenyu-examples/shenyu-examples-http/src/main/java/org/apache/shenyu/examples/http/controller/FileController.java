@@ -44,42 +44,20 @@ public class FileController {
     Logger logger= LoggerFactory.getLogger(FileController.class);
 
     /**
-     * Post fileUploadWay1.
+     * Post fileUpload.
      *
      * @param file the file
      * @param filePath the filePath
      * @return the String
      * @throws Exception the Exception
      */
-    @RequestMapping("/uploadWay1")
-    public String fileUploadWay1(@RequestParam("file") MultipartFile file, @RequestParam("filePath") String filePath) throws IOException {
+    @RequestMapping("/upload")
+    public String fileUpload(@RequestParam("file") MultipartFile file, @RequestParam("filePath") String filePath) throws IOException {
         String fileName=file.getOriginalFilename();
         FileOutputStream out;
         try {
             out = new FileOutputStream(filePath + fileName);
             out.write(file.getBytes());
-            out.flush();
-        } catch (IOException e) {
-            return "UploadFailed";
-        }
-        return "UploadSucceeded";
-    }
-
-    /**
-     * Post fileUploadWay2.
-     *
-     * @param file the file
-     * @param filePath the filePath
-     * @param fileName the fileName
-     * @return the String
-     * @throws Exception the Exception
-     */
-    @RequestMapping("/uploadWay2")
-    public String fileUploadWay2(@RequestParam("file") byte[] file, @RequestParam("filePath") String filePath,@RequestParam("fileName") String fileName) throws IOException {
-        FileOutputStream out ;
-        try {
-            out = new FileOutputStream(filePath + fileName);
-            out.write(file);
             out.flush();
         } catch (IOException e) {
             return "UploadFailed";
@@ -113,7 +91,7 @@ public class FileController {
                 os.write(buf, 0, len);
                 len=bis.read(buf);
             }
-        } catch (IOException e){
+        } catch (IOException e) {
             return "DownloadFailed";
         }
         return null;

@@ -35,7 +35,7 @@ public class FileUploadUtil {
      * @return the String
      * @throws IOException the IOException
      */
-    public static String post(final File file, final String filePath) throws IOException {
+    public static String fileUpload(final File file, final String filePath) throws IOException {
         OkHttpClient client = new OkHttpClient();
         RequestBody fileBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         RequestBody requestBody = new MultipartBody.Builder()
@@ -46,6 +46,26 @@ public class FileUploadUtil {
         Request request = new Request.Builder()
                 .url("http://localhost:9195/http/file/uploadWay1")
                 .post(requestBody)
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+        } catch (IOException e) {
+            return "TestFailed";
+        }
+        return "TestSuccessful";
+    }
+
+    /**
+     * Get file.
+     *
+     * @return the String
+     * @throws IOException the IOException
+     */
+    public static String fileDownload() throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("http://localhost:9195/http/file/download")
+                .get()
                 .build();
         try {
             Response response = client.newCall(request).execute();

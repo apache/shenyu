@@ -18,7 +18,6 @@
 package org.apache.shenyu.integrated.test.http;
 
 import org.apache.shenyu.integratedtest.common.helper.FileUploadUtil;
-import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import java.io.File;
@@ -26,26 +25,16 @@ import java.io.IOException;
 
 public class FileControllerTest {
     @Test
-    public void testFileUploadWay1() throws IOException {
+    public void testFileUpload() throws IOException {
         File file1 = new File("src/main/resources/test.txt");
         File file2 = new File("src/main/resources/test");
         String filePath = "shenyu-examples/shenyu-examples-http/src/main/resources/static/";
-        assertEquals("TestSuccessful", FileUploadUtil.post(file1, filePath));
-        assertEquals("TestFailed", FileUploadUtil.post(file2, filePath));
-    }
-
-    @Test
-    public void testFileUploadWay2() throws IOException {
-        String res1 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=TestSuccessful&fileName=test.txt&filePath=shenyu-examples/shenyu-examples-http/src/main/resources/static/",
-                java.lang.String.class);
-        assertEquals("UploadSucceeded", res1);
-        String res2 = HttpHelper.INSTANCE.postGateway("/http/file/uploadWay2?file=TestSuccessful&fileName=test.txt&filePath=shenyu/image/ss/", java.lang.String.class);
-        assertEquals("UploadFailed", res2);
+        assertEquals("TestSuccessful", FileUploadUtil.fileUpload(file1, filePath));
+        assertEquals("TestFailed", FileUploadUtil.fileUpload(file2, filePath));
     }
 
     @Test
     public void testFileDownload() throws IOException {
-        String res = HttpHelper.INSTANCE.postGateway("/http/file/download", java.lang.String.class);
-        assertEquals("TestSuccessful", res);
+        assertEquals("TestSuccessful", FileUploadUtil.fileDownload());
     }
 }
