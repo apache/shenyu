@@ -58,14 +58,14 @@
 
         <!-- agent -->
         <fileSet>
-            <directory>${project.basedir}/../../../shenyu-agent/target</directory>
+            <directory>${project.basedir}/../../../../shenyu-agent/target</directory>
             <includes>
                 <include>shenyu-agent.jar</include>
             </includes>
             <outputDirectory>agent</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/../../../shenyu-agent/shenyu-agent-plugins/shenyu-agent-plugin-tracing/target/plugins</directory>
+            <directory>${project.basedir}/../../../../shenyu-agent/shenyu-agent-plugins/shenyu-agent-plugin-tracing/target/plugins</directory>
             <outputDirectory>agent/plugins</outputDirectory>
             <includes>
                 <include>shenyu-agent-plugin-tracing-common-*.jar</include>

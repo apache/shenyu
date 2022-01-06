@@ -20,22 +20,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-integrated-test-agent</artifactId>
+        <artifactId>shenyu-integrated-test-agent-tracing</artifactId>
         <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shenyu-integrated-test-agent-opentelemetry</artifactId>
-    <name>shenyu-integrated-test-agent-opentelemetry</name>
+    <artifactId>shenyu-integrated-test-agent-tracing-opentelemetry</artifactId>
+    <name>shenyu-integrated-test-agent-tracing-opentelemetry</name>
     <url>https://shenyu.apache.org</url>
 
     <dependencies>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-integrated-test-common</artifactId>
-            <version>${shenyu.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-divide</artifactId>
@@ -44,7 +38,7 @@
     </dependencies>
 
     <build>
-        <finalName>shenyu-integrated-test-agent-opentelemetry</finalName>
+        <finalName>shenyu-integrated-test-agent-tracing-opentelemetry</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -79,17 +73,17 @@
                         <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>shenyu-integrated-test-agent-opentelemetry</id>
+                                <id>shenyu-integrated-test-agent-tracing-opentelemetry</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>apache/shenyu-integrated-test-agent-opentelemetry</repository>
+                            <repository>apache/shenyu-integrated-test-agent-tracing-opentelemetry</repository>
                             <tag>latest</tag>
                             <buildArgs>
-                                <APP_NAME>shenyu-integrated-test-agent-opentelemetry</APP_NAME>
+                                <APP_NAME>shenyu-integrated-test-agent-tracing-opentelemetry</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>

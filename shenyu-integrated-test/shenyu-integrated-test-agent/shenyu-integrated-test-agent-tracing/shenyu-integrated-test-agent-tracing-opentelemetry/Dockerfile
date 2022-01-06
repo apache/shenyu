@@ -16,7 +16,7 @@
 
 FROM openjdk:8
 
-ENV APP_NAME shenyu-integrated-test-agent-opentelemetry
+ENV APP_NAME shenyu-integrated-test-agent-tracing-opentelemetry
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 ADD target/${APP_NAME} ${LOCAL_PATH}

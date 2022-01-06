@@ -42,13 +42,13 @@ services:
     depends_on:
       - shenyu-jaeger
 
-  shenyu-integrated-test-agent-opentelemetry:
+  shenyu-integrated-test-agent-tracing-opentelemetry:
     deploy:
       resources:
         limits:
           memory: 2048M
-    container_name: shenyu-integrated-test-agent-opentelemetry
-    image: apache/shenyu-integrated-test-agent-opentelemetry:latest
+    container_name: shenyu-integrated-test-agent-tracing-opentelemetry
+    image: apache/shenyu-integrated-test-agent-tracing-opentelemetry:latest
     restart: always
     depends_on:
       shenyu-admin:
@@ -58,7 +58,7 @@ services:
     networks:
       - shenyu
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-integrated-test-agent-opentelemetry:9195/actuator/health" ]
+      test: [ "CMD", "wget", "http://shenyu-integrated-test-agent-tracing-opentelemetry:9195/actuator/health" ]
       timeout: 2s
       retries: 30
 

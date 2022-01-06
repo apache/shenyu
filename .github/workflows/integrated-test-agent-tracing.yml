@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: it-agent
+name: it-agent-tracing
 
 on:
   pull_request:
@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         case:
-          - shenyu-integrated-test-agent-opentelemetry
+          - shenyu-integrated-test-agent-tracing-opentelemetry
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -54,19 +54,19 @@ jobs:
         run: ./mvnw -B clean install -Pit4a -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
-        run: docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-agent/${{ matrix.case }}/docker-compose.yml up -d
+        run: docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-agent/shenyu-integrated-test-agent-tracing/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
         if: env.SKIP_CI != 'true'
-        run: bash ./shenyu-integrated-test/shenyu-integrated-test-agent/${{ matrix.case }}/script/healthcheck.sh
+        run: bash ./shenyu-integrated-test/shenyu-integrated-test-agent/shenyu-integrated-test-agent-tracing/${{ matrix.case }}/script/healthcheck.sh
       - name: Run test
         id: test
         if: env.SKIP_CI != 'true'
-        run: ./mvnw test -Ptest -f ./shenyu-integrated-test/shenyu-integrated-test-agent/${{ matrix.case }}/pom.xml
+        run: ./mvnw test -Ptest -f ./shenyu-integrated-test/shenyu-integrated-test-agent/shenyu-integrated-test-agent-tracing/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
         if: env.SKIP_CI != 'true'
         run: |
-          docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-agent/${{ matrix.case }}/docker-compose.yml logs --tail="all"
+          docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-agent/shenyu-integrated-test-agent-tracing/${{ matrix.case }}/docker-compose.yml logs --tail="all"
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
             echo "Test Failed"
             exit 1
