@@ -295,6 +295,7 @@ public final class UpstreamCheckTask implements Runnable {
             }
         });
     }
+    
     private void printUnhealthyUpstream() {
         unhealthyUpstream.forEach((k, v) -> {
             if (Objects.nonNull(v)) {
