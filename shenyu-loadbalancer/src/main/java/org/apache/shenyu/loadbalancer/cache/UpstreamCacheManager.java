@@ -96,7 +96,7 @@ public final class UpstreamCacheManager {
             if (printEnable) {
                 ThreadFactory printFactory = ShenyuThreadFactory.create("upstream-health-print", true);
                 new ScheduledThreadPoolExecutor(1, printFactory)
-                        .scheduleWithFixedDelay(task::printHealthyUpstream, printInterval, printInterval, TimeUnit.MILLISECONDS);
+                        .scheduleWithFixedDelay(task::print, printInterval, printInterval, TimeUnit.MILLISECONDS);
             }
         }
     }
@@ -139,19 +139,10 @@ public final class UpstreamCacheManager {
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
         if (CollectionUtils.isNotEmpty(upstreamList)) {
             List<Upstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> Lists.newArrayList());
-            /**
-             * check upstream delete.
-             */
             existUpstream.stream().filter(upstream -> !upstreamList.contains(upstream))
                     .forEach(upstream -> task.triggerRemoveOne(selectorId, upstream));
-            /**
-             * check upstream add.
-             */
             upstreamList.stream().filter(upstream -> !existUpstream.contains(upstream))
                     .forEach(upstream -> task.triggerAddOne(selectorId, upstream));
-            /**
-             * replace upstream
-             */
             UPSTREAM_MAP.put(selectorId, upstreamList);
         } else {
             UPSTREAM_MAP.remove(selectorId);

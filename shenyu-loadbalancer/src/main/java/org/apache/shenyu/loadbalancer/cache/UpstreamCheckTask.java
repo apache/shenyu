@@ -130,7 +130,7 @@ public final class UpstreamCheckTask implements Runnable {
 
     private void healthCheck() {
         try {
-            /**
+            /*
              * If there is no synchronized. when check is done and all upstream check result is in the futures list.
              * In the same time, triggerRemoveAll() called before waitFinish(), there will be dirty data stay in map.
              */
@@ -273,11 +273,14 @@ public final class UpstreamCheckTask implements Runnable {
             unhealthyUpstream.remove(selectorId);
         }
     }
-
-    /**
-     * Print healthy upstream.
-     */
-    public void printHealthyUpstream() {
+    
+    
+    public void print () {
+        printHealthyUpstream();
+        printUnhealthyUpstream();
+    }
+    
+    private void printHealthyUpstream() {
         healthyUpstream.forEach((k, v) -> {
             if (Objects.nonNull(v)) {
                 List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
@@ -285,11 +288,7 @@ public final class UpstreamCheckTask implements Runnable {
             }
         });
     }
-
-    /**
-     * Print unhealthy upstream.
-     */
-    public void printUnhealthyUpstream() {
+    private void printUnhealthyUpstream() {
         unhealthyUpstream.forEach((k, v) -> {
             if (Objects.nonNull(v)) {
                 List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
