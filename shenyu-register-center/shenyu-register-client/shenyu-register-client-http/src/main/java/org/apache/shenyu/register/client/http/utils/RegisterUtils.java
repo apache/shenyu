@@ -23,6 +23,7 @@ import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -52,6 +53,10 @@ public final class RegisterUtils {
      * @throws IOException the io exception
      */
     public static void doRegister(final String json, final String url, final String type, final String accessToken) throws IOException {
+        if (StringUtils.isEmpty(accessToken)) {
+            LOGGER.error("{} client register error accessToken is null, please check the config : {} ", type, json);
+            return;
+        }
         Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
         String result = OkHttpTools.getInstance().post(url, json, headers);
         if (Objects.equals(SUCCESS, result)) {
