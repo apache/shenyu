@@ -30,6 +30,46 @@ public class HttpConfig {
 
     private Integer connectionTimeout;
 
+    private String username;
+
+    private String password;
+
+    /**
+     * get username.
+     *
+     * @return username
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * set username.
+     *
+     * @param username username
+     */
+    public void setUsername(final String username) {
+        this.username = username;
+    }
+
+    /**
+     * get password.
+     *
+     * @return password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * set password.
+     *
+     * @param password password
+     */
+    public void setPassword(final String password) {
+        this.password = password;
+    }
+
     /**
      * get url.
      *
