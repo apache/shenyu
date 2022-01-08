@@ -48,10 +48,11 @@ public class FallbackFilter implements WebFilter {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    private final Set<String> paths;
-
     private static final String HYSTRIX = "/fallback/hystrix";
+
     private static final String RESILIENCE4J = "/fallback/resilience4j";
+
+    private final Set<String> paths;
 
     public FallbackFilter(final List<String> paths) {
         if (CollectionUtils.isNotEmpty(paths)) {
