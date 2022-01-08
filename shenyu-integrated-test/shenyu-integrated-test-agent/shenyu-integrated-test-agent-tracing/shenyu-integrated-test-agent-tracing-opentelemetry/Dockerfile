@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8
+FROM openjdk:8-jre-alpine
 
 ENV APP_NAME shenyu-integrated-test-agent-tracing-opentelemetry
 ENV LOCAL_PATH /opt/${APP_NAME}
@@ -24,4 +24,4 @@ ADD target/${APP_NAME} ${LOCAL_PATH}
 WORKDIR ${LOCAL_PATH}
 EXPOSE 9195
 
-CMD ${LOCAL_PATH}/bin/start.sh agent && tail -f ${LOCAL_PATH}/logs/shenyu-bootstrap.log
+CMD /bin/sh ${LOCAL_PATH}/bin/start.sh agent && tail -f ${LOCAL_PATH}/logs/shenyu-bootstrap.log
