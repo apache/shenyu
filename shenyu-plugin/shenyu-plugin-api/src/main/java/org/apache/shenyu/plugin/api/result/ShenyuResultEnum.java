@@ -63,6 +63,11 @@ public enum ShenyuResultEnum {
     RESILIENCE4J_PLUGIN_FALLBACK(429, "Resilience4JPlugin fallback success, please check your service status!"),
 
     /**
+     * the default fallback, due to a circuit break.
+     */
+    DEFAULT_FALLBACK(429, "the fallback success, please check your service status!"),
+
+    /**
      * Meta data error shenyu result enum.
      */
     META_DATA_ERROR(430, "Meta data error!"),

@@ -70,20 +70,20 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
         if (!checkMetaData(metaData)) {
             LOG.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         assert metaData != null;
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.GRPC_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.GRPC_HAVE_BODY_PARAM.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.GRPC_HAVE_BODY_PARAM, null);
             return WebFluxResultUtils.result(exchange, error);
         }
 
         final ShenyuGrpcClient client = GrpcClientCache.getGrpcClient(selector.getName());
         if (Objects.isNull(client)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.GRPC_CLIENT_NULL.getCode(), ShenyuResultEnum.GRPC_CLIENT_NULL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.GRPC_CLIENT_NULL, null);
             return WebFluxResultUtils.result(exchange, error);
         }
 
