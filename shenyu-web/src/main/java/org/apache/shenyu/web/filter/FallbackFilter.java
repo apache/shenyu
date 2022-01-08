@@ -69,8 +69,8 @@ public class FallbackFilter implements WebFilter {
     public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        Set<String> excludedPaths = Collections.unmodifiableSet(new HashSet<>(paths));
-        boolean match = excludedPaths.stream().anyMatch(url -> reg(url, path));
+        Set<String> fallbackPaths = Collections.unmodifiableSet(this.paths);
+        boolean match = fallbackPaths.stream().anyMatch(url -> reg(url, path));
         if (match) {
             Object error = this.getError(exchange, path);
             return WebFluxResultUtils.result(exchange, error);
