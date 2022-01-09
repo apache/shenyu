@@ -66,12 +66,12 @@ public class TarsPlugin extends AbstractShenyuPlugin {
             assert metaData != null;
             LOG.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(body)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TARS_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.TARS_HAVE_BODY_PARAM.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TARS_HAVE_BODY_PARAM, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         TarsInvokePrxList tarsInvokePrxList = ApplicationConfigCache.getInstance().get(metaData.getPath());
@@ -85,7 +85,7 @@ public class TarsPlugin extends AbstractShenyuPlugin {
         } catch (Exception e) {
             LOG.error("Invoke tars error", e);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TARS_INVOKE.getCode(), ShenyuResultEnum.TARS_INVOKE.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TARS_INVOKE, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return Mono.fromFuture(future.thenApply(ret -> {
