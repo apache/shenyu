@@ -96,19 +96,24 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(upstream, shenyuContext))).build().toUri();
+        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(exchange, upstream, shenyuContext))).build().toUri();
         LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
     }
     
-    private String buildWsRealPath(final Upstream upstream, final ShenyuContext shenyuContext) {
+    private String buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {
         String protocol = upstream.getProtocol();
         if (StringUtils.isEmpty(protocol)) {
             protocol = "ws://";
         }
-        return protocol + upstream.getUrl() + shenyuContext.getMethod();
+        String path = shenyuContext.getMethod();
+        String query = exchange.getRequest().getURI().getQuery();
+        if (StringUtils.hasText(query)) {
+            path = String.join("?", path, query);
+        }
+        return protocol + upstream.getUrl() + path;
     }
     
     private List<String> buildWsProtocols(final HttpHeaders headers) {
