@@ -43,7 +43,6 @@ public class URIPlugin implements ShenyuPlugin {
             return chain.execute(exchange);
         }
         String rewriteUri = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        URI uri = exchange.getRequest().getURI();
         if (StringUtils.isNoneBlank(rewriteUri)) {
             path = path + rewriteUri;
         } else {
@@ -52,8 +51,10 @@ public class URIPlugin implements ShenyuPlugin {
                 path = path + realUrl;
             }
         }
-        URI realUri = URI.create(path + "?" + RequestQueryCodecUtil.getCodecQuery(exchange));
-        exchange.getAttributes().put(Constants.HTTP_URI, realUri);
+        if (StringUtils.isNoneBlank(exchange.getRequest().getURI().getQuery())) {
+            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
+        }
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create(path));
         return chain.execute(exchange);
     }
 
