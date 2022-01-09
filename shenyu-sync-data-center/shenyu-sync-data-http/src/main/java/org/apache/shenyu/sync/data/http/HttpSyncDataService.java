@@ -52,14 +52,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.Duration;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -81,11 +80,6 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
     /**
-     * default: 10s.
-     */
-    private final Duration connectionTimeout = Duration.ofSeconds(10);
-
-    /**
      * only use for http long polling.
      */
     private final RestTemplate httpClient;
@@ -105,15 +99,16 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         this.httpConfig = httpConfig;
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
-        this.httpClient = createRestTemplate();
+        this.httpClient = createRestTemplate(httpConfig);
         this.accessToken = new FreshBeanHolder<>(this::doLogin);
         this.start();
     }
 
-    private RestTemplate createRestTemplate() {
+    private RestTemplate createRestTemplate(final HttpConfig httpConfig) {
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
-        factory.setConnectTimeout((int) this.connectionTimeout.toMillis());
-        factory.setReadTimeout((int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT);
+        factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
+        factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
+        factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
         return new RestTemplate(factory);
     }
 
