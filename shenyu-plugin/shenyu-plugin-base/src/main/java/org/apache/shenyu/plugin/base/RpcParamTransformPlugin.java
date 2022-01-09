@@ -49,17 +49,17 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        if (Objects.nonNull(shenyuContext)) {
-            MediaType mediaType = request.getHeaders().getContentType();
-            if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
-                return body(exchange, request, chain);
-            }
-            if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
-                return formData(exchange, request, chain);
-            }
-            return query(exchange, request, chain);
+        if (Objects.isNull(shenyuContext) || request.getHeaders().getContentLength() <= 0) {
+            return chain.execute(exchange);
         }
-        return chain.execute(exchange);
+        MediaType mediaType = request.getHeaders().getContentType();
+        if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
+            return body(exchange, request, chain);
+        }
+        if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
+            return formData(exchange, request, chain);
+        }
+        return query(exchange, request, chain);
     }
 
     @Override
