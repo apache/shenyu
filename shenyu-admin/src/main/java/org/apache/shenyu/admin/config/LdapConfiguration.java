@@ -29,6 +29,7 @@ import org.springframework.ldap.core.support.LdapContextSource;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * LdapConfiguration.
@@ -47,17 +48,19 @@ public class LdapConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public LdapContextSource contextSource(final LdapProperties ldapProp) {
-        LdapContextSource contextSource = new LdapContextSource();
-        contextSource.setUrl(ldapProp.getUrl());
-        contextSource.setUserDn(ldapProp.getBindDn());
-        contextSource.setPassword(ldapProp.getPassword());
-        contextSource.setPooled(true);
-        Map<String, Object> config = new HashMap<>();
-        config.put("java.naming.ldap.attributes.binary", "objectGUID");
-        config.put("com.sun.jndi.ldap.connect.timeout", String.valueOf(ldapProp.getConnectTimeout()));
-        config.put("com.sun.jndi.ldap.read.timeout", String.valueOf(ldapProp.getReadTimeout()));
-        contextSource.setBaseEnvironmentProperties(config);
-        return contextSource;
+        return Optional.ofNullable(ldapProp).map(item -> {
+            LdapContextSource contextSource = new LdapContextSource();
+            contextSource.setUrl(item.getUrl());
+            contextSource.setUserDn(item.getBindDn());
+            contextSource.setPassword(item.getPassword());
+            contextSource.setPooled(true);
+            Map<String, Object> config = new HashMap<>();
+            config.put("java.naming.ldap.attributes.binary", "objectGUID");
+            config.put("com.sun.jndi.ldap.connect.timeout", String.valueOf(item.getConnectTimeout()));
+            config.put("com.sun.jndi.ldap.read.timeout", String.valueOf(item.getReadTimeout()));
+            contextSource.setBaseEnvironmentProperties(config);
+            return contextSource;
+        }).orElse(null);
     }
 
     /**
