@@ -18,14 +18,15 @@
 package org.apache.shenyu.integratedtest.alibaba.dubbo;
 
 import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.util.List;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
+import org.apache.shenyu.integratedtest.common.dto.ListResp;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.IOException;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -44,5 +45,28 @@ public class AlibabaDubboPluginTest extends AbstractPluginDataInit {
         DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findById?id=1", new TypeToken<DubboTest>() {
         }.getType());
         assertEquals("hello world shenyu Alibaba Dubbo, findById", dubboTest.getName());
+    }
+
+    @Test
+    public void testFindAll() throws IOException {
+        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/dubbo/findAll", DubboTest.class);
+        assertEquals("hello world shenyu Alibaba Dubbo , findAll", dubboTest.getName());
+    }
+
+    @Test
+    public void testInsert() throws IOException {
+        DubboTest req = new DubboTest("1", "insertName");
+        DubboTest dubboTest = HttpHelper.INSTANCE.postGateway("/dubbo/insert", req, DubboTest.class);
+        assertEquals("hello world shenyu Alibaba Dubbo: insertName", dubboTest.getName());
+        assertEquals("1", dubboTest.getId());
+    }
+
+    @Test
+    public void testFindList() throws IOException {
+        ListResp listResp = HttpHelper.INSTANCE.getFromGateway("/dubbo/findList", ListResp.class);
+        List<DubboTest> users = listResp.getUsers();
+        assertEquals(listResp.getTotal().intValue(), users.size());
+        assertEquals("test", users.get(0).getName());
+        assertEquals("1", users.get(0).getId());
     }
 }

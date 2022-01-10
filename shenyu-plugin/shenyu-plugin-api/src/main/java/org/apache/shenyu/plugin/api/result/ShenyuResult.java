@@ -17,10 +17,14 @@
 
 package org.apache.shenyu.plugin.api.result;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ObjectTypeUtils;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Objects;
 
 /**
  * The interface shenyu result.
@@ -62,6 +66,10 @@ public interface ShenyuResult<T> {
      * @return the context type
      */
     default MediaType contentType(ServerWebExchange exchange, Object formatted) {
+        final ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (Objects.nonNull(clientResponse) && clientResponse.headers().contentType().isPresent()) {
+            return clientResponse.headers().contentType().get();
+        }
         return MediaType.APPLICATION_JSON;
     }
 
@@ -86,5 +94,7 @@ public interface ShenyuResult<T> {
      * @param object  the object
      * @return the t
      */
-    T error(int code, String message, Object object);
+    default T error(int code, String message, Object object) {
+        return null;
+    }
 }

@@ -29,6 +29,7 @@ import org.apache.shenyu.web.configuration.ShenyuExtConfiguration;
 import org.apache.shenyu.web.configuration.SpringExtConfiguration;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
+import org.apache.shenyu.web.filter.FallbackFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
@@ -198,7 +199,20 @@ public class ShenyuConfiguration {
     public WebFilter excludeFilter(final ShenyuConfig shenyuConfig) {
         return new ExcludeFilter(shenyuConfig.getExclude().getPaths());
     }
-    
+
+    /**
+     * fallback filter web filter.
+     *
+     * @param shenyuConfig the shenyu config
+     * @return the fallback web filter
+     */
+    @Bean
+    @Order(-5)
+    @ConditionalOnProperty(name = "shenyu.fallback.enabled", havingValue = "true")
+    public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig) {
+        return new FallbackFilter(shenyuConfig.getFallback().getPaths());
+    }
+
     /**
      * shenyu config.
      *

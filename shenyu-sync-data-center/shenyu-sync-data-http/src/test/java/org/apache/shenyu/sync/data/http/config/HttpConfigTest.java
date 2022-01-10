@@ -70,7 +70,7 @@ public class HttpConfigTest {
     @Test
     public void testHashCode() {
         assertEquals(Objects.hash(httpConfig.getUrl(), httpConfig.getDelayTime(),
-                        httpConfig.getConnectionTimeout()),
+                        httpConfig.getConnectionTimeout(), httpConfig.getReadTimeout(), httpConfig.getWriteTimeout()),
                 httpConfig.hashCode());
     }
 }

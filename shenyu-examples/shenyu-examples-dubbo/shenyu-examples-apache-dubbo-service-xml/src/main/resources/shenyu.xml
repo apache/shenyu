@@ -28,6 +28,12 @@
     <bean id="shenyuRegisterCenterConfig" class="org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig">
         <property name="registerType" value="http"/>
         <property name="serverLists" value="http://localhost:9095"/>
+        <property name="props">
+            <props>
+                <prop key="username">admin</prop>
+                <prop key="password">123456</prop>
+            </props>
+        </property>
     </bean>
 
     <!-- ClientPropertiesConfig -->
