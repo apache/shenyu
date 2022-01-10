@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.RequestQueryCodecUtil;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.slf4j.Logger;
@@ -109,9 +110,8 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             protocol = "ws://";
         }
         String path = shenyuContext.getMethod();
-        String query = exchange.getRequest().getURI().getQuery();
-        if (StringUtils.hasText(query)) {
-            path = String.join("?", path, query);
+        if (StringUtils.hasText(exchange.getRequest().getURI().getQuery())) {
+            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
         }
         return protocol + upstream.getUrl() + path;
     }
