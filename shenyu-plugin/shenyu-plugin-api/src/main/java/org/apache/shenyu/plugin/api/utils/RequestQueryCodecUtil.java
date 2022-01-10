@@ -19,7 +19,9 @@ package org.apache.shenyu.plugin.api.utils;
 
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 /**
@@ -37,13 +39,14 @@ public final class RequestQueryCodecUtil {
      * @return codec query string
      */
     public static String getCodecQuery(final ServerWebExchange exchange) {
+        if (!exchange.getRequest().getURI().getRawQuery().contains("%")) {
+            return exchange.getRequest().getURI().getQuery();
+        }
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         return queryParams.keySet().stream()
                 .map(key -> queryParams.get(key).stream()
                         .map(item -> String.join("=", key,
-                                // https://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1
-                                // https://www.ietf.org/rfc/rfc2396.txt
-                                item.replaceAll(" ", "%20")))
+                                UriUtils.encode(item, StandardCharsets.UTF_8)))
                         .collect(Collectors.joining("&")))
                 .collect(Collectors.joining("&")).trim();
     }
