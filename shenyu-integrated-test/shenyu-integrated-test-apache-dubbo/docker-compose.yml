@@ -60,15 +60,15 @@ services:
     networks:
       - shenyu
     depends_on:
-      shenyu-integration-test-apache-dubbo:
+      shenyu-integrated-test-apache-dubbo:
         condition: service_healthy
     environment:
       - dubbo.registry.address=zookeeper://shenyu-zk:2181
       - shenyu.register.serverLists=http://shenyu-admin:9095
 
-  shenyu-integration-test-apache-dubbo:
-    container_name: shenyu-integration-test-apache-dubbo
-    image: apache/shenyu-integration-test-apache-dubbo:latest
+  shenyu-integrated-test-apache-dubbo:
+    container_name: shenyu-integrated-test-apache-dubbo
+    image: apache/shenyu-integrated-test-apache-dubbo:latest
     restart: always
     deploy:
       resources:
@@ -82,7 +82,7 @@ services:
     ports:
       - "9195:9195"
     healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integration-test-apache-dubbo:9195/actuator/health" ]
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-apache-dubbo:9195/actuator/health" ]
       timeout: 2s
       retries: 3
       start_period: 5s

@@ -25,8 +25,8 @@
         <version>2.4.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>shenyu-integration-test-apache-dubbo</artifactId>
-    <name>shenyu-integration-test-apache-dubbo</name>
+    <artifactId>shenyu-integrated-test-apache-dubbo</artifactId>
+    <name>shenyu-integrated-test-apache-dubbo</name>
 
     <dependencies>
         <dependency>
@@ -75,7 +75,7 @@
         <profile>
             <id>it</id>
             <build>
-                <finalName>shenyu-integration-test-apache-dubbo</finalName>
+                <finalName>shenyu-integrated-test-apache-dubbo</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
@@ -90,7 +90,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <mainClass>org.apache.shenyu.integratedtest.apache.dubbo.ApacheDubboIntegratedBootstrap
+                            <mainClass>org.apache.shenyu.integrated.test.apache.dubbo.ApacheDubboIntegratedBootstrap
                             </mainClass>
                             <executable>true</executable>
                         </configuration>
@@ -101,17 +101,17 @@
                         <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>shenyu-integration-test-apache-dubbo</id>
+                                <id>shenyu-integrated-test-apache-dubbo</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>apache/shenyu-integration-test-apache-dubbo</repository>
+                            <repository>apache/shenyu-integrated-test-apache-dubbo</repository>
                             <tag>latest</tag>
                             <buildArgs>
-                                <APP_NAME>shenyu-integration-test-apache-dubbo</APP_NAME>
+                                <APP_NAME>shenyu-integrated-test-apache-dubbo</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>

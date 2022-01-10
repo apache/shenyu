@@ -25,8 +25,8 @@
         <version>2.4.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>shenyu-integration-test-alibaba-dubbo</artifactId>
-    <name>shenyu-integration-test-alibaba-dubbo</name>
+    <artifactId>shenyu-integrated-test-alibaba-dubbo</artifactId>
+    <name>shenyu-integrated-test-alibaba-dubbo</name>
 
     <dependencies>
         <dependency>
@@ -75,7 +75,7 @@
         <profile>
             <id>it</id>
             <build>
-                <finalName>shenyu-integration-test-alibaba-dubbo</finalName>
+                <finalName>shenyu-integrated-test-alibaba-dubbo</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
@@ -101,17 +101,17 @@
                         <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>shenyu-integration-test-alibaba-dubbo</id>
+                                <id>shenyu-integrated-test-alibaba-dubbo</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>apache/shenyu-integration-test-alibaba-dubbo</repository>
+                            <repository>apache/shenyu-integrated-test-alibaba-dubbo</repository>
                             <tag>latest</tag>
                             <buildArgs>
-                                <APP_NAME>shenyu-integration-test-alibaba-dubbo</APP_NAME>
+                                <APP_NAME>shenyu-integrated-test-alibaba-dubbo</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>

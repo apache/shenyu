@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.apache.dubbo;
+package org.apache.shenyu.integrated.test.apache.dubbo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
