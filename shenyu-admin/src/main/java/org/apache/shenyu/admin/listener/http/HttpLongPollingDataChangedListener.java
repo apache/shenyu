@@ -106,21 +106,13 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         scheduler.scheduleWithFixedDelay(() -> {
             LOG.info("http sync strategy refresh config start.");
             try {
-                this.refreshLocalCache();
+                super.refreshLocalCache();
                 LOG.info("http sync strategy refresh config success.");
             } catch (Exception e) {
                 LOG.error("http sync strategy refresh config error!", e);
             }
         }, syncInterval, syncInterval, TimeUnit.MILLISECONDS);
         LOG.info("http sync strategy refresh interval: {}ms", syncInterval);
-    }
-
-    private void refreshLocalCache() {
-        this.updateAppAuthCache();
-        this.updatePluginCache();
-        this.updateRuleCache();
-        this.updateSelectorCache();
-        this.updateMetaDataCache();
     }
 
     /**
