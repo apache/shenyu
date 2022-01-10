@@ -110,7 +110,7 @@ public class URIPluginTest {
         when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/query");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals("http://localhost:8090/query?queryParam=Hello,%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        assertEquals("http://localhost:8090/query?queryParam=Hello%2C%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
     }
 
     @Test
