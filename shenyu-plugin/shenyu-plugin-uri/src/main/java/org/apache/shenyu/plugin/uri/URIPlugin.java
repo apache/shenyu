@@ -23,8 +23,8 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.RequestQueryCodecUtil;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -42,27 +42,19 @@ public class URIPlugin implements ShenyuPlugin {
         if (StringUtils.isBlank(path)) {
             return chain.execute(exchange);
         }
-        String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        URI uri = exchange.getRequest().getURI();
-        if (StringUtils.isNoneBlank(rewriteURI)) {
-            path = path + rewriteURI;
+        String rewriteUri = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
+        if (StringUtils.isNoneBlank(rewriteUri)) {
+            path = path + rewriteUri;
         } else {
             String realUrl = shenyuContext.getRealUrl();
             if (StringUtils.isNoneBlank(realUrl)) {
                 path = path + realUrl;
             }
         }
-        URI realURI;
-        if (StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")) {
-            path = String.join("?", path, uri.getRawQuery());
-            realURI = UriComponentsBuilder.fromHttpUrl(path).build(true).toUri();
-        } else {
-            if (StringUtils.isNotEmpty(uri.getQuery())) {
-                path = String.join("?", path, uri.getQuery());
-            }
-            realURI = UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
+        if (StringUtils.isNoneBlank(exchange.getRequest().getURI().getQuery())) {
+            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
         }
-        exchange.getAttributes().put(Constants.HTTP_URI, realURI);
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create(path));
         return chain.execute(exchange);
     }
 
