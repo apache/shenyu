@@ -19,17 +19,8 @@ package org.apache.shenyu.admin.listener;
 
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.admin.service.AppAuthService;
-import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.ConfigData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.admin.service.*;
+import org.apache.shenyu.common.dto.*;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -231,6 +222,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
 
+    /**
+     * refresh local cache.
+     */
     protected void refreshLocalCache() {
         this.updateAppAuthCache();
         this.updatePluginCache();

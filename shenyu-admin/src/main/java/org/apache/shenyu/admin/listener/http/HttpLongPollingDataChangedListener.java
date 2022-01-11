@@ -28,11 +28,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.HttpConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.*;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -45,17 +41,8 @@ import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -205,30 +192,43 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // the lastModifyTime before client, then the local cache needs to be updated.
         // Considering the concurrency problem, admin must lock,
         // otherwise it may cause the request from shenyu-web to update the cache concurrently, causing excessive db pressure
-        boolean locked = false;
-        try {
-            locked = LOCK.tryLock(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return true;
+        ConfigDataCache latest = CACHE.get(serverCache.getGroup());
+        if (latest != serverCache){
+            return !StringUtils.equals(clientMd5, latest.getMd5());
         }
-        if (locked) {
-            try {
-                ConfigDataCache latest = CACHE.get(serverCache.getGroup());
-                if (latest != serverCache) {
-                    // the cache of admin was updated. if the md5 value is the same, there's no need to update.
-                    return !StringUtils.equals(clientMd5, latest.getMd5());
-                }
-                // load cache from db.
-                this.refreshLocalCache();
-                latest = CACHE.get(serverCache.getGroup());
+        synchronized (this){
+            latest = CACHE.get(serverCache.getGroup());
+            if (latest != serverCache){
                 return !StringUtils.equals(clientMd5, latest.getMd5());
-            } finally {
-                LOCK.unlock();
             }
+            super.refreshLocalCache();
+            latest = CACHE.get(serverCache.getGroup());
+            return !StringUtils.equals(clientMd5, latest.getMd5());
         }
-        // not locked, the client need to be updated.
-        return true;
+        //boolean locked = false;
+        //try {
+        //    locked = LOCK.tryLock(5, TimeUnit.SECONDS);
+        //} catch (InterruptedException e) {
+        //    Thread.currentThread().interrupt();
+        //    return true;
+        //}
+        //if (locked) {
+        //    try {
+        //        ConfigDataCache latest = CACHE.get(serverCache.getGroup());
+        //        if (latest != serverCache) {
+        //            // the cache of admin was updated. if the md5 value is the same, there's no need to update.
+        //            return !StringUtils.equals(clientMd5, latest.getMd5());
+        //        }
+        //        // load cache from db.
+        //        super.refreshLocalCache();
+        //        latest = CACHE.get(serverCache.getGroup());
+        //        return !StringUtils.equals(clientMd5, latest.getMd5());
+        //    } finally {
+        //        LOCK.unlock();
+        //    }
+        //}
+        //// not locked, the client need to be updated.
+        //return true;
     }
 
     /**
