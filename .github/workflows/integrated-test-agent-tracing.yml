@@ -53,6 +53,7 @@ jobs:
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Pit4a -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Setup Debug Session
+        if: env.SKIP_CI != 'true'
         uses: csexton/debugger-action@master
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
