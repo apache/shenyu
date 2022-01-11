@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.alibaba.dubbo;
+package org.apache.shenyu.integrated.test.alibaba.dubbo;
 
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
