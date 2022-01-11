@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -30,10 +31,10 @@ public class PathUtilsTest {
     @Test
     public void testDecoratorPath() {
         String uri = PathUtils.decoratorPath(URI);
-        assertThat(uri, is(URI_WRAPPER));
+        assertThat(uri, is(URI + AdminConstants.URI_SUFFIX));
 
         uri = PathUtils.decoratorPath(URI_WRAPPER);
-        assertThat(uri, is(URI_WRAPPER));
+        assertThat(uri, is(URI + AdminConstants.URI_SUFFIX));
     }
 
     @Test
