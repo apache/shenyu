@@ -39,49 +39,32 @@ public class MqttPluginDataHandlerTest {
 
     @Test
     public void testEnableConfiguration() {
-        final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n" +
-                "  \"port\": 9500," +
-                "  \"bossGroupThreadCount\": 1," +
-                "  \"maxPayloadSize\": 65536," +
-                "  \"workerGroupThreadCount\": 12," +
-                "  \"userName\": \"shenyu\"," +
-                "  \"password\": \"shenyu\"," +
-                "  \"isEncryptPassword\": false," +
-                "  \"encryptMode\": \"\"," +
-                "  \"leakDetectorLevel\": \"DISABLED\"" +
-                "}", "0", true);
+        final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n"
+                + "  \"port\": 9500,"
+                + "  \"bossGroupThreadCount\": 1,"
+                + "  \"maxPayloadSize\": 65536,"
+                + "  \"workerGroupThreadCount\": 12,"
+                + "  \"userName\": \"shenyu\","
+                + "  \"password\": \"shenyu\","
+                + "  \"isEncryptPassword\": false,"
+                + "  \"encryptMode\": \"\","
+                + "  \"leakDetectorLevel\": \"DISABLED\""
+                + "}", "0", true);
         mqttPluginDataHandlerUnderTest.handlerPlugin(enablePluginData);
         Assert.assertTrue(isPortUsing());
 
-        final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n" +
-                "  \"port\": 9500," +
-                "  \"bossGroupThreadCount\": 1," +
-                "  \"maxPayloadSize\": 65536," +
-                "  \"workerGroupThreadCount\": 12," +
-                "  \"userName\": \"shenyu\"," +
-                "  \"password\": \"shenyu\"," +
-                "  \"isEncryptPassword\": false," +
-                "  \"encryptMode\": \"\"," +
-                "  \"leakDetectorLevel\": \"DISABLED\"" +
-                "}", "0", false);
+        final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n"
+                + "  \"port\": 9500,"
+                + "  \"bossGroupThreadCount\": 1,"
+                + "  \"maxPayloadSize\": 65536,"
+                + "  \"workerGroupThreadCount\": 12,"
+                + "  \"userName\": \"shenyu\","
+                + "  \"password\": \"shenyu\","
+                + "  \"isEncryptPassword\": false,"
+                + "  \"encryptMode\": \"\","
+                + "  \"leakDetectorLevel\": \"DISABLED\""
+                + "}", "0", false);
         mqttPluginDataHandlerUnderTest.handlerPlugin(disablePluginData);
-        Assert.assertFalse(isPortUsing());
-    }
-
-    @Test
-    public void testDisableConfiguration() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\n" +
-                "  \"port\": 9500," +
-                "  \"bossGroupThreadCount\": 1," +
-                "  \"maxPayloadSize\": 65536," +
-                "  \"workerGroupThreadCount\": 12," +
-                "  \"userName\": \"shenyu\"," +
-                "  \"password\": \"shenyu\"," +
-                "  \"isEncryptPassword\": false," +
-                "  \"encryptMode\": \"\"," +
-                "  \"leakDetectorLevel\": \"DISABLED\"" +
-                "}", "0", false);
-        mqttPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         Assert.assertFalse(isPortUsing());
     }
 
