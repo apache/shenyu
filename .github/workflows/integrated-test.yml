@@ -26,8 +26,8 @@ jobs:
     strategy:
       matrix:
         case:
-          - shenyu-integration-test-alibaba-dubbo
-          - shenyu-integration-test-apache-dubbo
+          - shenyu-integrated-test-alibaba-dubbo
+          - shenyu-integrated-test-apache-dubbo
           - shenyu-integrated-test-grpc
           - shenyu-integrated-test-http
           - shenyu-integrated-test-https
