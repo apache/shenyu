@@ -52,6 +52,8 @@ jobs:
       - name: Build integrated tests for agent
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Pit4a -DskipTests -f ./shenyu-integrated-test/pom.xml
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
       - name: Start docker compose
         if: env.SKIP_CI != 'true'
         run: docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-agent/shenyu-integrated-test-agent-tracing/${{ matrix.case }}/docker-compose.yml up -d
