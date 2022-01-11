@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.gateway;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.spring.SpringBeanDefinitionUtils;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
@@ -37,7 +38,12 @@ import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -64,7 +70,7 @@ import java.util.stream.Collectors;
 @AutoConfigureBefore(value = SpringExtConfiguration.class)
 @Import(value = ErrorHandlerConfiguration.class)
 @AutoConfigureAfter(value = ShenyuExtConfiguration.class)
-public class ShenyuConfiguration {
+public class ShenyuConfiguration implements BeanDefinitionRegistryPostProcessor {
     
     /**
      * logger.
@@ -75,7 +81,7 @@ public class ShenyuConfiguration {
      * Init ShenyuWebHandler.
      *
      * @param plugins this plugins is All impl ShenyuPlugin.
-     * @param config the config
+     * @param config  the config
      * @return {@linkplain ShenyuWebHandler}
      */
     @Bean("webHandler")
@@ -121,15 +127,16 @@ public class ShenyuConfiguration {
     /**
      * Shenyu loader service shenyu loader service.
      *
-     * @param shenyuWebHandler the shenyu web handler
+     * @param shenyuWebHandler     the shenyu web handler
      * @param pluginDataSubscriber the plugin data subscriber
-     * @param config the config
+     * @param config               the config
      * @return the shenyu loader service
      */
     @Bean
-    public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler, 
+    public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler,
                                                    final PluginDataSubscriber pluginDataSubscriber,
-                                                   final ShenyuConfig config) {
+                                                   final ShenyuConfig config
+    ) {
         return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config);
     }
     
@@ -199,7 +206,7 @@ public class ShenyuConfiguration {
     public WebFilter excludeFilter(final ShenyuConfig shenyuConfig) {
         return new ExcludeFilter(shenyuConfig.getExclude().getPaths());
     }
-
+    
     /**
      * fallback filter web filter.
      *
@@ -212,7 +219,7 @@ public class ShenyuConfiguration {
     public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig) {
         return new FallbackFilter(shenyuConfig.getFallback().getPaths());
     }
-
+    
     /**
      * shenyu config.
      *
@@ -222,5 +229,15 @@ public class ShenyuConfiguration {
     @ConfigurationProperties(prefix = "shenyu")
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
+    }
+    
+    @Override
+    public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException {
+        SpringBeanDefinitionUtils.setBeanDefinitionRegistry(registry);
+    }
+    
+    @Override
+    public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    
     }
 }
