@@ -19,6 +19,8 @@ package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -36,7 +38,7 @@ public class MqttBootstrapServer implements BootstrapServer {
 
     private static final String REPOSITORY_PACKAGE_NAME = "org.apache.shenyu.protocol.mqtt.repositories";
 
-    private static final MqttEnv ENV = new MqttEnv();
+    private static final MqttContext ENV = new MqttContext();
 
     private EventLoopGroup bossGroup;
 
@@ -73,14 +75,9 @@ public class MqttBootstrapServer implements BootstrapServer {
 
     @Override
     public void shutdown() {
-        try {
-            future.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
-            //// todo log
-        }
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-
+        future.channel().close();
     }
 
     private void initRepositories() throws IllegalAccessException, InstantiationException {

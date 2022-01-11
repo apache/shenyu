@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * mqtt env.
  */
-public class MqttEnv {
+public class MqttContext {
 
     private static int port;
 
@@ -38,11 +38,6 @@ public class MqttEnv {
 
     private static String leakDetectorLevel;
 
-    static {
-        MqttServerConfiguration configuration = new MqttServerConfiguration();
-        configuration.afterPropertiesSet();
-    }
-
     /**
      * Whether userName and password are correct.
      * @param userName userName
@@ -56,7 +51,7 @@ public class MqttEnv {
             return false;
         }
 
-        return MqttEnv.userName.equals(userName) && MqttEnv.password.equals(password);
+        return MqttContext.userName.equals(userName) && MqttContext.password.equals(password);
     }
 
     /**
@@ -120,7 +115,7 @@ public class MqttEnv {
      * @param port port
      */
     public void setPort(final int port) {
-        MqttEnv.port = port;
+        MqttContext.port = port;
     }
 
     /**
@@ -128,7 +123,7 @@ public class MqttEnv {
      * @param bossGroupThreadCount bossGroupThreadCount
      */
     public void setBossGroupThreadCount(final int bossGroupThreadCount) {
-        MqttEnv.bossGroupThreadCount = bossGroupThreadCount;
+        MqttContext.bossGroupThreadCount = bossGroupThreadCount;
     }
 
     /**
@@ -136,7 +131,7 @@ public class MqttEnv {
      * @param maxPayloadSize maxPayloadSize
      */
     public void setMaxPayloadSize(final int maxPayloadSize) {
-        MqttEnv.maxPayloadSize = maxPayloadSize;
+        MqttContext.maxPayloadSize = maxPayloadSize;
     }
 
     /**
@@ -144,7 +139,7 @@ public class MqttEnv {
      * @param workerGroupThreadCount workerGroupThreadCount
      */
     public void setWorkerGroupThreadCount(final int workerGroupThreadCount) {
-        MqttEnv.workerGroupThreadCount = workerGroupThreadCount;
+        MqttContext.workerGroupThreadCount = workerGroupThreadCount;
     }
 
     /**
@@ -152,7 +147,7 @@ public class MqttEnv {
      * @param userName userName
      */
     public void setUserName(final String userName) {
-        MqttEnv.userName = userName;
+        MqttContext.userName = userName;
     }
 
     /**
@@ -160,7 +155,7 @@ public class MqttEnv {
      * @param password password.
      */
     public void setPassword(final String password) {
-        MqttEnv.password = password;
+        MqttContext.password = password;
     }
 
     /**
@@ -168,6 +163,6 @@ public class MqttEnv {
      * @param leakDetectorLevel leakDetectorLevel
      */
     public void setLeakDetectorLevel(final String leakDetectorLevel) {
-        MqttEnv.leakDetectorLevel = leakDetectorLevel;
+        MqttContext.leakDetectorLevel = leakDetectorLevel;
     }
 }
