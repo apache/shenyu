@@ -116,6 +116,10 @@
                                     <pattern>net.bytebuddy</pattern>
                                     <shadedPattern>${shade.package}.net.bytebuddy</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>okio</pattern>
+                                    <shadedPattern>${shade.package}.okio</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
