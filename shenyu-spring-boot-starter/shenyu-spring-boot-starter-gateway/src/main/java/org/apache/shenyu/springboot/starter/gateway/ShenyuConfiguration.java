@@ -18,7 +18,6 @@
 package org.apache.shenyu.springboot.starter.gateway;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.spring.SpringBeanDefinitionUtils;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
@@ -38,12 +37,7 @@ import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -70,7 +64,7 @@ import java.util.stream.Collectors;
 @AutoConfigureBefore(value = SpringExtConfiguration.class)
 @Import(value = ErrorHandlerConfiguration.class)
 @AutoConfigureAfter(value = ShenyuExtConfiguration.class)
-public class ShenyuConfiguration implements BeanDefinitionRegistryPostProcessor {
+public class ShenyuConfiguration {
     
     /**
      * logger.
@@ -229,15 +223,5 @@ public class ShenyuConfiguration implements BeanDefinitionRegistryPostProcessor 
     @ConfigurationProperties(prefix = "shenyu")
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
-    }
-    
-    @Override
-    public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException {
-        SpringBeanDefinitionUtils.setBeanDefinitionRegistry(registry);
-    }
-    
-    @Override
-    public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
-    
     }
 }
