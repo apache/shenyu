@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.mqtt.handler;
 import org.apache.shenyu.common.dto.PluginData;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -38,6 +39,7 @@ public class MqttPluginDataHandlerTest {
     }
 
     @Test
+    @Ignore
     public void testEnableConfiguration() {
         final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
