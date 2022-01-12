@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.DispatcherHandler;
 
 public class ExtPluginDataHandler implements PluginDataHandler {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ExtPluginDataHandler.class);
     
     private DispatcherHandler dispatcherHandler;
@@ -44,7 +44,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         LOG.info("hello, im extend plugin dataHandler");
     }
-
+    
     /**
      * Remove plugin.
      *
@@ -54,7 +54,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     public void removePlugin(final PluginData pluginData) {
         LOG.info("selector removed : name = {}", pluginData.getName());
     }
-
+    
     /**
      * Handler selector.
      *
@@ -64,7 +64,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     public void handlerSelector(final SelectorData selectorData) {
         LOG.info("selector processing : name = {}", selectorData.getName());
     }
-
+    
     /**
      * Remove selector.
      *
@@ -74,7 +74,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     public void removeSelector(final SelectorData selectorData) {
         LOG.info("selector removed : name = {}", selectorData.getName());
     }
-
+    
     /**
      * Handler rule.
      *
@@ -84,7 +84,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         LOG.info("rule processing : name = {}", ruleData.getName());
     }
-
+    
     /**
      * Remove rule.
      *
@@ -94,7 +94,11 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     public void removeRule(final RuleData ruleData) {
         LOG.info("rule data removed: name = {}", ruleData.getName());
     }
-
+    
+    public DispatcherHandler getDispatcherHandler() {
+        return dispatcherHandler;
+    }
+    
     /**
      * Plugin named string.
      *
