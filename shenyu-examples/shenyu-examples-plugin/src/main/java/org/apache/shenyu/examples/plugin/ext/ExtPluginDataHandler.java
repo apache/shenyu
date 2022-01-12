@@ -23,11 +23,18 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.reactive.DispatcherHandler;
 
 public class ExtPluginDataHandler implements PluginDataHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExtPluginDataHandler.class);
-
+    
+    private DispatcherHandler dispatcherHandler;
+    
+    public ExtPluginDataHandler(final DispatcherHandler dispatcherHandler) {
+        this.dispatcherHandler = dispatcherHandler;
+    }
+    
     /**
      * Handler plugin.
      *

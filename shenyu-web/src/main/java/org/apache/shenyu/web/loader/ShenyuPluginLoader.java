@@ -20,21 +20,31 @@ package org.apache.shenyu.web.loader;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
@@ -62,6 +72,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     
     private final List<PluginJar> jars = Lists.newArrayList();
     
+    private final Set<String> names = new HashSet<>();
+    
+    private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
+    
     private ShenyuPluginLoader() {
         super(ShenyuPluginLoader.class.getClassLoader());
     }
@@ -87,7 +101,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      *
      * @param path the path
      * @return the list
-     * @throws IOException the io exception
+     * @throws IOException            the io exception
      * @throws ClassNotFoundException the class not found exception
      * @throws InstantiationException the instantiation exception
      * @throws IllegalAccessException the illegal access exception
@@ -109,33 +123,55 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                     String entryName = jarEntry.getName();
                     if (entryName.endsWith(".class") && !entryName.contains("$")) {
                         String className = entryName.substring(0, entryName.length() - 6).replaceAll("/", ".");
-                        Object instance = getOrCreateInstance(className);
-                        if (Objects.nonNull(instance)) {
-                            results.add(buildResult(instance));
-                        }
+                        names.add(className);
                     }
                 }
             }
         }
+        names.forEach(className -> {
+            Object instance;
+            try {
+                instance = getOrCreateSpringBean(className);
+                if (Objects.nonNull(instance)) {
+                    results.add(buildResult(instance));
+                }
+            } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                e.printStackTrace();
+            }
+        });
         return results;
     }
     
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        String path = classNameToPath(name);
-        for (PluginJar each : jars) {
-            ZipEntry entry = each.jarFile.getEntry(path);
-            if (Objects.nonNull(entry)) {
-                try {
-                    int index = name.lastIndexOf('.');
-                    if (index != -1) {
-                        String packageName = name.substring(0, index);
-                        definePackageInternal(packageName, each.jarFile.getManifest());
+        if (!ability(name)) {
+            return this.getParent().loadClass(name);
+        }
+        Class<?> clazz = classCache.get(name);
+        if (clazz != null) {
+            return clazz;
+        }
+        synchronized (this) {
+            clazz = classCache.get(name);
+            if (clazz == null) {
+                String path = classNameToPath(name);
+                for (PluginJar each : jars) {
+                    ZipEntry entry = each.jarFile.getEntry(path);
+                    if (Objects.nonNull(entry)) {
+                        try {
+                            int index = name.lastIndexOf('.');
+                            if (index != -1) {
+                                String packageName = name.substring(0, index);
+                                definePackageInternal(packageName, each.jarFile.getManifest());
+                            }
+                            byte[] data = ByteStreams.toByteArray(each.jarFile.getInputStream(entry));
+                            clazz = defineClass(name, data, 0, data.length);
+                            classCache.put(name, clazz);
+                            return clazz;
+                        } catch (final IOException ex) {
+                            LOG.error("Failed to load class {}.", name, ex);
+                        }
                     }
-                    byte[] data = ByteStreams.toByteArray(each.jarFile.getInputStream(entry));
-                    return defineClass(name, data, 0, data.length);
-                } catch (final IOException ex) {
-                    LOG.error("Failed to load class {}.", name, ex);
                 }
             }
         }
@@ -143,7 +179,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
     
     @Override
-    protected Enumeration<URL> findResources(final String name) {
+    protected Enumeration<URL> findResources(final String name) throws IOException {
+        if (!ability(name)) {
+            return this.getParent().getResources(name);
+        }
         List<URL> resources = Lists.newArrayList();
         for (PluginJar each : jars) {
             JarEntry entry = each.jarFile.getJarEntry(name);
@@ -159,6 +198,9 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     
     @Override
     protected URL findResource(final String name) {
+        if (!ability(name)) {
+            return this.getParent().getResource(name);
+        }
         for (PluginJar each : jars) {
             JarEntry entry = each.jarFile.getJarEntry(name);
             if (Objects.nonNull(entry)) {
@@ -183,7 +225,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
     
     @SuppressWarnings("unchecked")
-    private <T> T getOrCreateInstance(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private <T> T getOrCreateSpringBean(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (objectPool.containsKey(className)) {
             return (T) objectPool.get(className);
         }
@@ -191,16 +233,24 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         try {
             Object inst = objectPool.get(className);
             if (Objects.isNull(inst)) {
-                Class<?> clazz = Class.forName(className, true, this);
-                if (ShenyuPlugin.class.isAssignableFrom(clazz) || PluginDataHandler.class.isAssignableFrom(clazz)) {
-                    inst = clazz.newInstance();
+                Class<?> clazz = Class.forName(className, false, this);
+                Annotation[] annotations = clazz.getAnnotations();
+                boolean b = Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class) || e.annotationType().equals(Service.class));
+                if (b) {
+                    GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+                    beanDefinition.setBeanClassName(className);
+                    beanDefinition.setAutowireCandidate(true);
+                    beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+                    String bean = SpringBeanUtils.getInstance().registerBean(beanDefinition, this);
+                    inst = SpringBeanUtils.getInstance().getBean(bean);
                     objectPool.put(className, inst);
+                    return (T) inst;
                 }
             }
-            return (T) inst;
         } finally {
             lock.unlock();
         }
+        return null;
     }
     
     private ShenyuLoaderResult buildResult(final Object instance) {
@@ -231,16 +281,20 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         definePackage(packageName, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, null);
     }
     
+    private boolean ability(final String name) {
+        return names.contains(name);
+    }
+    
     private static class PluginJar {
         
         private final JarFile jarFile;
         
         private final File sourcePath;
-    
+        
         /**
          * Instantiates a new Plugin jar.
          *
-         * @param jarFile the jar file
+         * @param jarFile    the jar file
          * @param sourcePath the source path
          */
         PluginJar(final JarFile jarFile, final File sourcePath) {
