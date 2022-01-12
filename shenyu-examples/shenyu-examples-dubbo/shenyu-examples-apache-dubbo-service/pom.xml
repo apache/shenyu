@@ -30,7 +30,7 @@
     <properties>
         <curator.version>4.0.1</curator.version>
         <nacos-client.version>1.1.4</nacos-client.version>
-        <apache.dubbo.version>2.7.5</apache.dubbo.version>
+        <apache.dubbo.version>2.7.15</apache.dubbo.version>
         <zookeeper.version>3.4.6</zookeeper.version>
     </properties>
 
