@@ -55,20 +55,19 @@ public final class WebFluxResultUtils {
             return Mono.empty();
         }
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
-        Object resultData = result;
-        // WebClientMessageWriter provide byte[] data, convert to string
-        if (result instanceof byte[]) {
-            resultData = new String((byte[]) result, StandardCharsets.UTF_8);
-        }
-        resultData = shenyuResult.format(exchange, resultData);
+        Object resultData = shenyuResult.format(exchange, result);
         // basic data use text/plain
         MediaType mediaType = MediaType.TEXT_PLAIN;
         if (!ObjectTypeUtils.isBasicType(result)) {
             mediaType = shenyuResult.contentType(exchange, resultData);
         }
         exchange.getResponse().getHeaders().setContentType(mediaType);
+        final Object responseData = shenyuResult.result(exchange, resultData);
+        assert null != responseData;
+        final byte[] bytes = (responseData instanceof byte[]) ?
+                (byte[]) responseData : responseData.toString().getBytes(StandardCharsets.UTF_8);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                        .bufferFactory().wrap(Objects.requireNonNull(shenyuResult.result(exchange, resultData)).toString().getBytes(StandardCharsets.UTF_8)))
+                        .bufferFactory().wrap(bytes))
                 .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
     }
 
