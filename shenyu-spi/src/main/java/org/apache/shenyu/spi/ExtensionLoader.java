@@ -275,6 +275,7 @@ public final class ExtensionLoader<T> {
             throw new IllegalStateException("load extension resources error," + subClass + " subtype is not of " + clazz);
         }
         Join annotation = subClass.getAnnotation(Join.class);
+        // TODO 修改bug
         if (Objects.isNull(annotation)) {
             throw new IllegalStateException("load extension resources error," + subClass + " with Join annotation");
         }
