@@ -41,31 +41,42 @@ public class ShenyuLoaderService {
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
     
+    private final ShenyuWebHandler webHandler;
+    
+    private final CommonPluginDataSubscriber subscriber;
+    
+    private final ShenyuConfig shenyuConfig;
+    
     /**
      * Instantiates a new Shenyu loader service.
      *
-     * @param webHandler the web handler
-     * @param subscriber the subscriber
+     * @param webHandler   the web handler
+     * @param subscriber   the subscriber
      * @param shenyuConfig the shenyu config
      */
     public ShenyuLoaderService(final ShenyuWebHandler webHandler, final CommonPluginDataSubscriber subscriber, final ShenyuConfig shenyuConfig) {
+        this.subscriber = subscriber;
+        this.webHandler = webHandler;
+        this.shenyuConfig = shenyuConfig;
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
             ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
-            executor.scheduleAtFixedRate(() -> {
-                try {
-                    List<ShenyuLoaderResult> results = ShenyuPluginLoader.getInstance().loadExtendPlugins(config.getPath());
-                    if (CollectionUtils.isEmpty(results)) {
-                        return;
-                    }
-                    List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
-                    webHandler.putExtPlugins(shenyuExtendPlugins);
-                    List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
-                    subscriber.putExtendPluginDataHandler(handlers);
-                } catch (Exception e) {
-                    LOG.error("shenyu ext plugins load has error ", e);
-                }
-            }, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(this::loaderExtPlugins, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
+        }
+    }
+    
+    private void loaderExtPlugins() {
+        try {
+            List<ShenyuLoaderResult> results = ShenyuPluginLoader.getInstance().loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
+            if (CollectionUtils.isEmpty(results)) {
+                return;
+            }
+            List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
+            webHandler.putExtPlugins(shenyuExtendPlugins);
+            List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
+            subscriber.putExtendPluginDataHandler(handlers);
+        } catch (Exception e) {
+            LOG.error("shenyu ext plugins load has error ", e);
         }
     }
 }

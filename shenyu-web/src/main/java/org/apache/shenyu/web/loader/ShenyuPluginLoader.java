@@ -66,8 +66,6 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     
     private static volatile ShenyuPluginLoader pluginLoader;
     
-    private final ConcurrentHashMap<String, Object> objectPool = new ConcurrentHashMap<>();
-    
     private final ReentrantLock lock = new ReentrantLock();
     
     private final List<PluginJar> jars = Lists.newArrayList();
@@ -107,7 +105,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      * @throws IllegalAccessException the illegal access exception
      */
     public List<ShenyuLoaderResult> loadExtendPlugins(final String path) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        File[] jarFiles = ShenyuPluginPathBuilder.getPluginPath(path).listFiles(file -> file.getName().endsWith(".jar"));
+        File[] jarFiles = ShenyuPluginPathBuilder.getPluginFile(path).listFiles(file -> file.getName().endsWith(".jar"));
         if (null == jarFiles) {
             return Collections.emptyList();
         }
@@ -134,9 +132,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                 instance = getOrCreateSpringBean(className);
                 if (Objects.nonNull(instance)) {
                     results.add(buildResult(instance));
+                    LOG.info("The class successfully loaded into a ext-plugin {} is registered as a spring bean", className);
                 }
             } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-                e.printStackTrace();
+                LOG.warn("Registering ext-plugins succeeds spring bean fails:{}", className);
             }
         });
         return results;
@@ -224,33 +223,31 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         }
     }
     
-    @SuppressWarnings("unchecked")
     private <T> T getOrCreateSpringBean(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        if (objectPool.containsKey(className)) {
-            return (T) objectPool.get(className);
+        if (SpringBeanUtils.getInstance().existBean(className)) {
+            return SpringBeanUtils.getInstance().getBeanByClassName(className);
         }
         lock.lock();
         try {
-            Object inst = objectPool.get(className);
+            T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
             if (Objects.isNull(inst)) {
                 Class<?> clazz = Class.forName(className, false, this);
                 Annotation[] annotations = clazz.getAnnotations();
-                boolean b = Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class) || e.annotationType().equals(Service.class));
-                if (b) {
+                boolean next = Arrays.stream(annotations).anyMatch(e -> e.annotationType().equals(Component.class)
+                        || e.annotationType().equals(Service.class));
+                if (next) {
                     GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
                     beanDefinition.setBeanClassName(className);
                     beanDefinition.setAutowireCandidate(true);
                     beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-                    String bean = SpringBeanUtils.getInstance().registerBean(beanDefinition, this);
-                    inst = SpringBeanUtils.getInstance().getBean(bean);
-                    objectPool.put(className, inst);
-                    return (T) inst;
+                    String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, this);
+                    inst = SpringBeanUtils.getInstance().getBeanByClassName(beanName);
                 }
             }
+            return inst;
         } finally {
             lock.unlock();
         }
-        return null;
     }
     
     private ShenyuLoaderResult buildResult(final Object instance) {
