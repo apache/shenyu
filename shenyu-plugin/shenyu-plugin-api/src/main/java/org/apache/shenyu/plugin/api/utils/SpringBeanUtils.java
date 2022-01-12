@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.api.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -83,6 +84,36 @@ public final class SpringBeanUtils {
         beanFactory.setBeanClassLoader(classLoader);
         beanFactory.registerBeanDefinition(beanName, beanDefinition);
         return beanName;
+    }
+    
+    /**
+     * Exist spring bean boolean.
+     * Only applies to successful beans registered by the {@linkplain #registerBean(BeanDefinition, ClassLoader)} method.
+     *
+     * @param className the class name
+     * @return the boolean
+     */
+    public boolean existBean(final String className) {
+        String beanName = this.getBeanName(className);
+        return this.applicationContext.containsBean(beanName);
+    }
+    
+    /**
+     * Get bean boolean.
+     * Only applies to successful beans registered by the {@linkplain #registerBean(BeanDefinition, ClassLoader)} method.
+     *
+     * @param <T>       the type parameter
+     * @param className the class name
+     * @return boolean bean by class name
+     */
+    @SuppressWarnings("all")
+    public <T> T getBeanByClassName(final String className) {
+        String beanName = this.getBeanName(className);
+        try {
+            return this.getBean(beanName);
+        } catch (BeansException e) {
+            return null;
+        }
     }
     
     private String getBeanName(final String className) {
