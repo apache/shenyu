@@ -25,12 +25,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.DispatcherHandler;
 
+/**
+ * The type Ext plugin data handler.
+ */
 public class ExtPluginDataHandler implements PluginDataHandler {
     
     private static final Logger LOG = LoggerFactory.getLogger(ExtPluginDataHandler.class);
     
     private DispatcherHandler dispatcherHandler;
     
+    /**
+     * Instantiates a new Ext plugin data handler.
+     *
+     * @param dispatcherHandler the dispatcher handler
+     */
     public ExtPluginDataHandler(final DispatcherHandler dispatcherHandler) {
         this.dispatcherHandler = dispatcherHandler;
     }
@@ -95,6 +103,11 @@ public class ExtPluginDataHandler implements PluginDataHandler {
         LOG.info("rule data removed: name = {}", ruleData.getName());
     }
     
+    /**
+     * Gets dispatcher handler.
+     *
+     * @return the dispatcher handler
+     */
     public DispatcherHandler getDispatcherHandler() {
         return dispatcherHandler;
     }
