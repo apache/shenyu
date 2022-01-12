@@ -81,6 +81,10 @@
                                     <pattern>io.opentracing</pattern>
                                     <shadedPattern>${shade.package}.io.opentracing</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>net.bytebuddy</pattern>
+                                    <shadedPattern>${shade.package}.net.bytebuddy</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
