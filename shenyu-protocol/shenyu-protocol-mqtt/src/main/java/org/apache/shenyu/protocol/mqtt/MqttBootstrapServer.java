@@ -36,7 +36,7 @@ public class MqttBootstrapServer implements BootstrapServer {
 
     private static final String REPOSITORY_PACKAGE_NAME = "org.apache.shenyu.protocol.mqtt.repositories";
 
-    private static final MqttEnv ENV = new MqttEnv();
+    private static final MqttContext ENV = new MqttContext();
 
     private EventLoopGroup bossGroup;
 
@@ -73,14 +73,9 @@ public class MqttBootstrapServer implements BootstrapServer {
 
     @Override
     public void shutdown() {
-        try {
-            future.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
-            //// todo log
-        }
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-
+        future.channel().close();
     }
 
     private void initRepositories() throws IllegalAccessException, InstantiationException {

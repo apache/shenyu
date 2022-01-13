@@ -274,10 +274,8 @@ public final class ExtensionLoader<T> {
         if (!clazz.isAssignableFrom(subClass)) {
             throw new IllegalStateException("load extension resources error," + subClass + " subtype is not of " + clazz);
         }
-        Join annotation = subClass.getAnnotation(Join.class);
-        // TODO 修改bug
-        if (Objects.isNull(annotation)) {
-            throw new IllegalStateException("load extension resources error," + subClass + " with Join annotation");
+        if (!subClass.isAnnotationPresent(Join.class)) {
+            throw new IllegalStateException("load extension resources error," + subClass + " without @" + Join.class + " annotation");
         }
         Class<?> oldClass = classes.get(name);
         if (Objects.isNull(oldClass)) {

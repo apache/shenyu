@@ -394,7 +394,11 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '8' || ''', ''' || 'springCloud' || ''', NULL, ''' || 'Proxy' || ''', 200, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '9' || ''', ''' || 'hystrix' || ''', NULL, ''' || 'FaultTolerance' || ''', 130, 0, ''' || '2020-01-15 10:19:10' || ''', ''' || '2020-01-15 10:19:10' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '27' || ''', ''' || 'generalContext' || ''', NULL, ''' || 'Common' || ''', 125, 0, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-	PERFORM public.dblink_exec('init_conn', 'COMMIT');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '28' || ''', ''' || 'mqtt' || ''', ''' || 'Proxy' || ''', 125, 0, ''' || '2022-01-12 20:33:50' || ''', ''' || '2022-01-12 20:34:07' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '28' || ''', ''' || 'mqtt' || ''', ''' || '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}' || ''', ''' || 'Proxy' || ''', 310, 0, ''' || '2022-01-12 20:33:50' || ''', ''' || '2022-01-12 20:33:50' || ''');');
+
+
+PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
 
 -- ----------------------------------------------------
@@ -637,7 +641,18 @@ ELSE
     /*insert "plugin_handle" data for plugin motan*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'register' || ''', ''' || 'register' || ''', 2, 3, 0, null);');
 
-	PERFORM public.dblink_exec('init_conn', 'COMMIT');
+    /*insert plugin_handle data for plugin mqtt*/
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'port' || ''', ''' || 'port' || ''', 1, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'bossGroupThreadCount' || ''', ''' || 'bossGroupThreadCount' || ''', 1, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'maxPayloadSize' || ''', ''' || 'maxPayloadSize' || ''', 1, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'workerGroupThreadCount' || ''', ''' || 'workerGroupThreadCount' || ''', 1, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'userName' || ''', ''' || 'userName' || ''', 2, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'password' || ''', ''' || 'password' || ''', 2, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'isEncryptPassword' || ''', ''' || 'isEncryptPassword' || ''', 2, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'encryptMode' || ''', ''' || 'encryptMode' || ''', 2, 3, 1, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'leakDetectorLevel' || ''', ''' || 'leakDetectorLevel' || ''', 2, 3, 1, null);');
+
+PERFORM public.dblink_exec('init_conn', 'COMMIT');
 
 END IF;
 
