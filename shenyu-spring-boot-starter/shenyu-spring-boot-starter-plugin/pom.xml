@@ -57,5 +57,6 @@
         <module>shenyu-spring-boot-starter-plugin-dubbo</module>
         <module>shenyu-spring-boot-starter-plugin-uri</module>
         <module>shenyu-spring-boot-starter-plugin-general-context</module>
+        <module>shenyu-spring-boot-starter-plugin-mqtt</module>
     </modules>
 </project>
