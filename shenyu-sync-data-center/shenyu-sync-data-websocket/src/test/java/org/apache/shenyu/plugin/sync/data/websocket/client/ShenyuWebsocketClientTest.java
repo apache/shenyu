@@ -37,6 +37,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -49,24 +50,27 @@ import static org.mockito.Mockito.verify;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ShenyuWebsocketClientTest {
-
+    
     @InjectMocks
     private ShenyuWebsocketClient shenyuWebsocketClient;
-
+    
     @Mock
     private URI serverUri;
-
+    
     @Mock
     private PluginDataSubscriber pluginDataSubscriber;
-
+    
     @Mock
     private List<MetaDataSubscriber> metaDataSubscribers;
-
+    
     @Mock
     private List<AuthDataSubscriber> authDataSubscribers;
-
+    
+    @Mock
+    private ScheduledThreadPoolExecutor executor;
+    
     private WebsocketData<PluginData> websocketData;
-
+    
     @Before
     public void setUp() {
         websocketData = new WebsocketData();
@@ -78,7 +82,7 @@ public class ShenyuWebsocketClientTest {
         list.add(pluginData);
         websocketData.setData(list);
     }
-
+    
     @Test
     public void testOnOpen() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
@@ -87,7 +91,7 @@ public class ShenyuWebsocketClientTest {
         shenyuWebsocketClient.onOpen(serverHandshake);
         verify(shenyuWebsocketClient).send(DataEventTypeEnum.MYSELF.name());
     }
-
+    
     @Test
     public void testOnMessage() {
         doNothing().when(pluginDataSubscriber).onSubscribe(any());
@@ -95,7 +99,7 @@ public class ShenyuWebsocketClientTest {
         shenyuWebsocketClient.onMessage(json);
         verify(pluginDataSubscriber).onSubscribe(any());
     }
-
+    
     @Test
     public void testOnClose() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
@@ -103,7 +107,7 @@ public class ShenyuWebsocketClientTest {
         shenyuWebsocketClient.onClose(1, "shenyu-plugin-grpc", true);
         verify(shenyuWebsocketClient).close();
     }
-
+    
     @Test
     public void testOnError() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
