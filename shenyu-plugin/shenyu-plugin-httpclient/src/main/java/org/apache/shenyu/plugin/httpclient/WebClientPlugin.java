@@ -130,6 +130,7 @@ public class WebClientPlugin implements ShenyuPlugin {
         } else {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
         }
+        exchange.getResponse().setStatusCode(res.statusCode());
         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
         return chain.execute(exchange);
     }
