@@ -53,13 +53,14 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         String resourceName = CacheKeyUtils.INST.getKey(rule);
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
         sentinelHandle.checkData(sentinelHandle);
-        return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName)).doOnSuccess(v -> {
+        return chain.execute(exchange).doOnSuccess(v -> {
             HttpStatus status = exchange.getResponse().getStatusCode();
             if (status == null || !status.is2xxSuccessful()) {
                 exchange.getResponse().setStatusCode(null);
                 throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
             }
-        }).onErrorResume(throwable -> fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
+        }).transform(new SentinelReactorTransformer<>(resourceName)).onErrorResume(throwable ->
+                fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
     }
 
     @Override
