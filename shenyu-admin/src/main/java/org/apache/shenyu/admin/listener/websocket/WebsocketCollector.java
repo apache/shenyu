@@ -46,13 +46,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 @ServerEndpoint(value = "/websocket", configurator = WebsocketConfigurator.class)
 public class WebsocketCollector {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketCollector.class);
-
+    
     private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
-
+    
     private static final String SESSION_KEY = "sessionKey";
-
+    
     /**
      * On open.
      *
@@ -63,18 +63,18 @@ public class WebsocketCollector {
         LOG.info("websocket on client[{}] open successful....", getClientIp(session));
         SESSION_SET.add(session);
     }
-
+    
     private static String getClientIp(final Session session) {
         Map<String, Object> userProperties = session.getUserProperties();
         if (MapUtils.isEmpty(userProperties)) {
             return StringUtils.EMPTY;
         }
-
+        
         return Optional.ofNullable(userProperties.get(WebsocketListener.CLIENT_IP_NAME))
                 .map(Object::toString)
                 .orElse(StringUtils.EMPTY);
     }
-
+    
     /**
      * On message.
      *
@@ -86,7 +86,7 @@ public class WebsocketCollector {
         if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
             return;
         }
-
+        
         try {
             ThreadLocalUtils.put(SESSION_KEY, session);
             SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
@@ -95,7 +95,7 @@ public class WebsocketCollector {
         }
 
     }
-
+    
     /**
      * On close.
      *
@@ -103,11 +103,10 @@ public class WebsocketCollector {
      */
     @OnClose
     public void onClose(final Session session) {
-        SESSION_SET.remove(session);
-        ThreadLocalUtils.clear();
+        clearSession(session);
         LOG.warn("websocket close on client[{}]", getClientIp(session));
     }
-
+    
     /**
      * On error.
      *
@@ -116,11 +115,10 @@ public class WebsocketCollector {
      */
     @OnError
     public void onError(final Session session, final Throwable error) {
-        SESSION_SET.remove(session);
-        ThreadLocalUtils.clear();
+        clearSession(session);
         LOG.error("websocket collection on client[{}] error: ", getClientIp(session), error);
     }
-
+    
     /**
      * Send.
      *
@@ -131,7 +129,7 @@ public class WebsocketCollector {
         if (StringUtils.isBlank(message)) {
             return;
         }
-
+        
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {
@@ -140,14 +138,19 @@ public class WebsocketCollector {
         } else {
             SESSION_SET.forEach(session -> sendMessageBySession(session, message));
         }
-
+        
     }
-
+    
     private static synchronized void sendMessageBySession(final Session session, final String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
             LOG.error("websocket send result is exception: ", e);
         }
+    }
+    
+    private void clearSession(final Session session) {
+        SESSION_SET.remove(session);
+        ThreadLocalUtils.clear();
     }
 }
