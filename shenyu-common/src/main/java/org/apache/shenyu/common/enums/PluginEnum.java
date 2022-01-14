@@ -24,6 +24,11 @@ import java.util.List;
  * PluginEnum.
  */
 public enum PluginEnum {
+
+    /**
+     * Mqtt plugin enum.
+     */
+    MQTT(0, 0, "mqtt"),
     
     /**
      * Global plugin enum.

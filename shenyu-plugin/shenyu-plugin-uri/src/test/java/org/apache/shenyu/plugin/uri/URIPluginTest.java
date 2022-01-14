@@ -29,11 +29,14 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -107,7 +110,7 @@ public class URIPluginTest {
         when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/query");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals("http://localhost:8090/query?queryParam=Hello,%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        assertEquals("http://localhost:8090/query?queryParam=Hello%2C%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
     }
 
     @Test
@@ -128,5 +131,33 @@ public class URIPluginTest {
         Assert.assertFalse(uriPlugin.skip(exchange));
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
         Assert.assertTrue(uriPlugin.skip(exchange));
+    }
+
+    @Test
+    public void testRequestQueryCodec() {
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add("zcq", "01");
+        queryParams.add("zcq", "03");
+        queryParams.add("add", "bj");
+        queryParams.add("name", "b j");
+        queryParams.add("age", "['z','zc','zz']");
+        Assert.assertEquals("zcq=01&zcq=03&add=bj&name=b%20j&age=['z','zc','zz']", getCodecQuery(queryParams));
+    }
+
+    /**
+     * Gets codec query string.
+     *
+     * @param queryParams the queryParams
+     * @return codec query string
+     */
+    private static String getCodecQuery(final MultiValueMap<String, String> queryParams) {
+        return queryParams.keySet().stream()
+                .map(key -> queryParams.get(key).stream()
+                        .map(item -> String.join("=", key,
+                                // https://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1
+                                // https://www.ietf.org/rfc/rfc2396.txt
+                                item.replaceAll(" ", "%20")))
+                        .collect(Collectors.joining("&")))
+                .collect(Collectors.joining("&")).trim();
     }
 }

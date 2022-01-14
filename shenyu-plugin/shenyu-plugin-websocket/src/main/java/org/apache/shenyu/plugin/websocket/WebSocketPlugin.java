@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.RequestQueryCodecUtil;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.slf4j.Logger;
@@ -93,22 +94,26 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("websocket has no upstream");
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL, null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(upstream, shenyuContext))).build().toUri();
+        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(exchange, upstream, shenyuContext))).build().toUri();
         LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
     }
     
-    private String buildWsRealPath(final Upstream upstream, final ShenyuContext shenyuContext) {
+    private String buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {
         String protocol = upstream.getProtocol();
         if (StringUtils.isEmpty(protocol)) {
             protocol = "ws://";
         }
-        return protocol + upstream.getUrl() + shenyuContext.getMethod();
+        String path = shenyuContext.getMethod();
+        if (StringUtils.hasText(exchange.getRequest().getURI().getQuery())) {
+            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
+        }
+        return protocol + upstream.getUrl() + path;
     }
     
     private List<String> buildWsProtocols(final HttpHeaders headers) {

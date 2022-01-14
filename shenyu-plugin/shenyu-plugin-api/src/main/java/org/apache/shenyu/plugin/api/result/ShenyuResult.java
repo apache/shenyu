@@ -35,7 +35,7 @@ public interface ShenyuResult<T> {
      * The response result.
      *
      * @param exchange the exchange
-     * @param formatted the formatted object
+     * @param formatted the formatted data that is origin data(basic、byte[]) or json string
      * @return the result object
      */
     default Object result(ServerWebExchange exchange, Object formatted) {
@@ -43,15 +43,15 @@ public interface ShenyuResult<T> {
     }
 
     /**
-     * format the origin, default is json format.
+     * format the origin, default is json format except the basic and bytes.
      *
      * @param exchange the exchange
      * @param origin the origin
      * @return format origin
      */
     default Object format(ServerWebExchange exchange, Object origin) {
-        // basic data
-        if (ObjectTypeUtils.isBasicType(origin)) {
+        // basic data or upstream data
+        if (ObjectTypeUtils.isBasicType(origin) || (origin instanceof byte[])) {
             return origin;
         }
         // error result or rpc origin result.
@@ -62,7 +62,7 @@ public interface ShenyuResult<T> {
      * the response context type, default is application/json.
      *
      * @param exchange the exchange
-     * @param formatted the formatted data that is origin data or byte[] convert string
+     * @param formatted the formatted data that is origin data(basic、byte[]) or json string
      * @return the context type
      */
     default MediaType contentType(ServerWebExchange exchange, Object formatted) {
@@ -94,5 +94,7 @@ public interface ShenyuResult<T> {
      * @param object  the object
      * @return the t
      */
-    T error(int code, String message, Object object);
+    default T error(int code, String message, Object object) {
+        return null;
+    }
 }

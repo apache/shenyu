@@ -73,7 +73,7 @@ public class FileSizeFilter implements WebFilter {
                         if (size.capacity() > BYTES_PER_MB * fileMaxSize) {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
-                            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.PAYLOAD_TOO_LARGE.getCode(), ShenyuResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
+                            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.PAYLOAD_TOO_LARGE, null);
                             return WebFluxResultUtils.result(exchange, error);
                         }
                         BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters.fromPublisher(Mono.just(size), DataBuffer.class);

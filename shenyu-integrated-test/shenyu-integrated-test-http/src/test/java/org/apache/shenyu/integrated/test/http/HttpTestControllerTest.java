@@ -34,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public final class HttpTestControllerTest extends AbstractTest {
-    
+
     @Test
     public void testPayment() throws IOException {
         UserDTO user = new UserDTO("1", "http-test");
@@ -42,14 +42,49 @@ public final class HttpTestControllerTest extends AbstractTest {
         assertEquals("1", user.getUserId());
         assertEquals("http-test", user.getUserName());
     }
-    
+
     @Test
     public void testFindByUserId() throws IOException {
         UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/test/findByUserId?userId=1", UserDTO.class);
         assertEquals("1", user.getUserId());
         assertEquals("hello world", user.getUserName());
     }
-    
+
+    @Test
+    public void testFindByUserIdSepcChar0() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/test/findByUserId?userId=1%25", UserDTO.class);
+        assertEquals("1%", user.getUserId());
+        assertEquals("hello world", user.getUserName());
+    }
+
+    @Test
+    public void testFindByUserIdSepcChar1() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/test/findByUserId?userId=1%201", UserDTO.class);
+        assertEquals("1 1", user.getUserId());
+        assertEquals("hello world", user.getUserName());
+    }
+
+    @Test
+    public void testFindByUserIdSepcChar3() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/test/findByUserId?userId=1%231", UserDTO.class);
+        assertEquals("1#1", user.getUserId());
+        assertEquals("hello world", user.getUserName());
+    }
+
+    @Test
+    public void testFindByUserIdName() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/test/findByUserIdName?userId=1%231&name=shenyu%20666", UserDTO.class);
+        assertEquals("1#1", user.getUserId());
+        assertEquals("shenyu 666", user.getUserName());
+    }
+
+    @Test
+    public void testFindByUserIdName1() throws IOException {
+        UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/test/findByUserIdName?userId=1%231&name=[shenyu%20666]", UserDTO.class);
+        assertEquals("1#1", user.getUserId());
+        assertEquals("[shenyu 666]", user.getUserName());
+    }
+
     @Test
     public void testFindByPage() throws IOException {
         UserDTO user = HttpHelper.INSTANCE.getFromGateway("/http/test/findByPage?keyword=http-test&page=1&pageSize=10", UserDTO.class);
