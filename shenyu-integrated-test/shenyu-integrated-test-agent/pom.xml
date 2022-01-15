@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
-            <version>${shenyu.version}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
