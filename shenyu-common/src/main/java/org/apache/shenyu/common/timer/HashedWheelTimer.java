@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * A {@link Timer} optimized for approximated I/O timeout scheduling.
  *
- * <h3>Tick Duration</h3>
+ * Tick Duration
  *
  * <p>As described with 'approximated', this timer does not execute the scheduled
  * {@link TimerTask} on time.  {@link HashedWheelTimer}, on every tick, will
