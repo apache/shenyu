@@ -113,7 +113,7 @@
 
     <profiles>
         <profile>
-            <id>docker</id>
+            <id>example</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
