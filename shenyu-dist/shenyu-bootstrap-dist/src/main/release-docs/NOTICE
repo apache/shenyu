@@ -325,6 +325,37 @@ limitations under the License.
 
 ========================================================================
 
+zipkin NOTICE
+
+========================================================================
+Brave
+
+Copyright 2013-2020 The OpenZipkin Authors
+
+-------------------------------------------------------------------------------
+
+This product contains a modified portion of 'InetAddresses', distributed
+by Google in the Guava Library:
+
+  * Copyright (C) 2008 The Guava Authors
+  * License: Apache License v2.0
+  * Homepage: https://github.com/google/guava
+
+This product contains a modified portion of 'JsonUtf8Writer', distributed
+by Square, Inc in the Moshi Library:
+
+  * Copyright (C) 2010 Google Inc.
+  * License: Apache License v2.0
+  * Homepage: https://github.com/square/moshi
+
+This product contains a modified portion of 'WeakConcurrentMap', distributed
+by Rafael Winterhalter in the weak-lock-free Library:
+
+  * License: Apache License v2.0
+  * Homepage: https://github.com/raphw/weak-lock-free
+
+========================================================================
+
 Netty NOTICE
 
 ========================================================================
