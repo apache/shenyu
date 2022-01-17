@@ -64,5 +64,9 @@ header:
     - 'licenses'
     - 'LICENSE'
     - 'NOTICE'
+    - '**/Timer.*'
+    - '**/TimerTask.*'
+    - '**/Timeout.*'
+    - '**/HashedWheelTimer.*'
 
   comment: on-failure
