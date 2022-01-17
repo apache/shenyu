@@ -17,24 +17,26 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.context.ApplicationContext;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for  ShenyuPluginLoader.
@@ -42,11 +44,11 @@ import static org.mockito.Mockito.spy;
 public class ShenyuPluginLoaderTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
-
+    
     private ShenyuPluginLoader shenyuPluginLoader;
-
+    
     private String path;
-
+    
     @Before
     public void setUp() throws IOException, NoSuchFieldException, IllegalAccessException {
         shenyuPluginLoader = ShenyuPluginLoader.getInstance();
@@ -60,25 +62,34 @@ public class ShenyuPluginLoaderTest {
             jos.write(pluginClz.getBytes());
             jos.closeEntry();
         }
-
-        Field objectPool = shenyuPluginLoader.getClass().getDeclaredField("objectPool");
-        objectPool.setAccessible(true);
-        ConcurrentHashMap<String, Object> objectPoolMap = new ConcurrentHashMap<>();
-        objectPoolMap.put("org.apache.shenyu.plugin.DividePlugin", new Object());
-        objectPool.set(shenyuPluginLoader, objectPoolMap);
+        ApplicationContext mockApplication =
+                mock(ApplicationContext.class);
+        when(mockApplication.getBean("dividePlugin")).thenReturn(new Object());
+        when(mockApplication.containsBean("dividePlugin")).thenReturn(true);
+        SpringBeanUtils instance = SpringBeanUtils.getInstance();
+        instance.setApplicationContext(mockApplication);
+        
     }
-
+    
+    @Test
+    public void testGetBean() {
+        boolean exist = SpringBeanUtils.getInstance().existBean("dividePlugin");
+        Assert.assertTrue(exist);
+        Object dividePlugin = SpringBeanUtils.getInstance().getBean("dividePlugin");
+        Assert.assertNotNull(dividePlugin);
+    }
+    
     @Test
     public void testGetInstance() {
         Assert.assertThat(shenyuPluginLoader, is(ShenyuPluginLoader.getInstance()));
     }
-
+    
     @Test
     public void testGetPluginPathWithNoJar() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         List<ShenyuLoaderResult> pluginList = shenyuPluginLoader.loadExtendPlugins("test");
         Assert.assertThat(pluginList.size(), is(0));
     }
-
+    
     @Test
     public void testGetPluginPathWithJar() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         ShenyuPluginLoader loader = spy(shenyuPluginLoader);

@@ -80,7 +80,6 @@
                 <exclude>shenyu-integrated-test/**</exclude>
                 <exclude>shenyu-examples/**</exclude>
                 <exclude>shenyu-dashboard/**</exclude>
-                <exclude>shenyu-agent/**</exclude>
                 <exclude>shenyu-admin/src/main/resources/static/*.css</exclude>
                 <exclude>shenyu-admin/src/main/resources/static/*.js</exclude>
             </excludes>

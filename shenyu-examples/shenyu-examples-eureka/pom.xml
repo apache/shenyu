@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-examples</artifactId>
-        <version>2.1.0</version>
+        <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-eureka</artifactId>
@@ -52,17 +52,17 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
-        <!--spring boot的核心启动器-->
+  
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!--aop支持-->
+     
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
-        <!--自动配置-->
+       
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -97,7 +97,7 @@
 
     <profiles>
         <profile>
-            <id>docker</id>
+            <id>example</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>

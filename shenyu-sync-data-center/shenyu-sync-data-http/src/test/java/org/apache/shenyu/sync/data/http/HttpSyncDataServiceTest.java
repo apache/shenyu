@@ -22,6 +22,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -40,9 +41,9 @@ import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -76,6 +77,12 @@ public final class HttpSyncDataServiceTest {
 
     @Before
     public void before() {
+        wireMockRule.stubFor(get(urlPathEqualTo("/platform/login"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(this.mockLoginResponseJson())
+                        .withStatus(200))
+        );
         wireMockRule.stubFor(get(urlPathEqualTo("/configs/fetch"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
@@ -95,6 +102,8 @@ public final class HttpSyncDataServiceTest {
         httpConfig.setConnectionTimeout(3000);
         // set delay time
         httpConfig.setDelayTime(3);
+        httpConfig.setPassword("123456");
+        httpConfig.setUsername("admin");
         this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
         this.metaDataSubscriber = mock(MetaDataSubscriber.class);
         this.authDataSubscriber = mock(AuthDataSubscriber.class);
@@ -156,5 +165,15 @@ public final class HttpSyncDataServiceTest {
         response.put("data", data);
         response.put("code", 200);
         return GsonUtils.getInstance().toJson(response);
+    }
+
+    // mock configs fetch api response
+    private String mockLoginResponseJson() {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", "token");
+        result.put("data", data);
+        result.put("code", CommonErrorCode.SUCCESSFUL);
+        return GsonUtils.getInstance().toJson(result);
     }
 }

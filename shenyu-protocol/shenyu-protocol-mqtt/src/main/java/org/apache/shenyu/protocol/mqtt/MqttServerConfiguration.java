@@ -50,13 +50,13 @@ public class MqttServerConfiguration {
         if (isEncryptPassword()) {
             setPassword(encryptPassword());
         }
-        MqttEnv env = new MqttEnv();
-        env.setPassword(getPassword());
-        env.setPort(getPort());
-        env.setMaxPayloadSize(getMaxPayloadSize());
-        env.setUserName(getUserName());
-        env.setWorkerGroupThreadCount(getWorkerGroupThreadCount());
-        env.setLeakDetectorLevel(getLeakDetectorLevel());
+        MqttContext context = new MqttContext();
+        context.setPassword(getPassword());
+        context.setPort(getPort());
+        context.setMaxPayloadSize(getMaxPayloadSize());
+        context.setUserName(getUserName());
+        context.setWorkerGroupThreadCount(getWorkerGroupThreadCount());
+        context.setLeakDetectorLevel(getLeakDetectorLevel());
     }
 
     private String encryptPassword() {

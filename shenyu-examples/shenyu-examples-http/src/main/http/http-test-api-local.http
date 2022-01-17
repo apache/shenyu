@@ -93,6 +93,21 @@ GET http://localhost:8189/test/findByUserId?userId=123
 Accept: application/json
 Content-Type: application/json
 
+### example local findByUserId
+GET http://localhost:8189/test/findByUserId?userId=123%5D%2D
+Accept: application/json
+Content-Type: application/json
+
+### example local findByUserId
+GET http://localhost:8189/test/findByUserId?userId=123%5D%2D%2Casd
+Accept: application/json
+Content-Type: application/json
+
+### example local findByUserId
+GET http://localhost:8189/test/findByUserId?userId=123%5D%2D,asd
+Accept: application/json
+Content-Type: application/json
+
 ### example local path
 GET http://localhost:8189/test/path/123?name=haha
 Accept: application/json
@@ -117,3 +132,5 @@ Content-Type: application/json
 GET http://localhost:8189/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
+
+###

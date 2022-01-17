@@ -68,20 +68,25 @@ public final class UpstreamCheckTask implements Runnable {
     private int healthyThreshold = 1;
 
     private int unhealthyThreshold = 1;
-
+    
+    /**
+     * Instantiates a new Upstream check task.
+     *
+     * @param checkInterval the check interval
+     */
     public UpstreamCheckTask(final int checkInterval) {
         this.checkInterval = checkInterval;
     }
-
+    
     /**
      * get checkStarted.
      *
-     * @return checkStarted
+     * @return checkStarted check started
      */
     public AtomicBoolean getCheckStarted() {
         return checkStarted;
     }
-
+    
     /**
      * Schedule health check task.
      */
@@ -95,7 +100,7 @@ public final class UpstreamCheckTask implements Runnable {
         ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
         executor = new ScheduledThreadPoolExecutor(10, requestFactory);
     }
-
+    
     /**
      * Set check timeout.
      *
@@ -104,7 +109,7 @@ public final class UpstreamCheckTask implements Runnable {
     public void setCheckTimeout(final int checkTimeout) {
         this.checkTimeout = checkTimeout;
     }
-
+    
     /**
      * Set healthy threshold.
      *
@@ -113,7 +118,7 @@ public final class UpstreamCheckTask implements Runnable {
     public void setHealthyThreshold(final int healthyThreshold) {
         this.healthyThreshold = healthyThreshold;
     }
-
+    
     /**
      * Set unhealthy threshold.
      *
@@ -130,7 +135,7 @@ public final class UpstreamCheckTask implements Runnable {
 
     private void healthCheck() {
         try {
-            /**
+            /*
              * If there is no synchronized. when check is done and all upstream check result is in the futures list.
              * In the same time, triggerRemoveAll() called before waitFinish(), there will be dirty data stay in map.
              */
@@ -222,22 +227,22 @@ public final class UpstreamCheckTask implements Runnable {
     private void finishHealthCheck() {
         checkStarted.set(false);
     }
-
+    
     /**
      * Add one upstream via selectorData.
      *
      * @param selectorId selectorId
-     * @param upstream     upstream
+     * @param upstream upstream
      */
     public void triggerAddOne(final String selectorId, final Upstream upstream) {
         putToMap(healthyUpstream, selectorId, upstream);
     }
-
+    
     /**
      * Remove a specific upstream via selectorId.
      *
      * @param selectorId selectorId
-     * @param upstream   upstream
+     * @param upstream upstream
      */
     public void triggerRemoveOne(final String selectorId, final Upstream upstream) {
         removeFromMap(healthyUpstream, selectorId, upstream);
@@ -261,7 +266,7 @@ public final class UpstreamCheckTask implements Runnable {
             }
         }
     }
-
+    
     /**
      * Remove all upstream via selectorId.
      *
@@ -273,11 +278,16 @@ public final class UpstreamCheckTask implements Runnable {
             unhealthyUpstream.remove(selectorId);
         }
     }
-
+    
     /**
-     * Print healthy upstream.
+     * Print healthy and unhealthy check log.
      */
-    public void printHealthyUpstream() {
+    public void print() {
+        printHealthyUpstream();
+        printUnhealthyUpstream();
+    }
+    
+    private void printHealthyUpstream() {
         healthyUpstream.forEach((k, v) -> {
             if (Objects.nonNull(v)) {
                 List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
@@ -285,11 +295,8 @@ public final class UpstreamCheckTask implements Runnable {
             }
         });
     }
-
-    /**
-     * Print unhealthy upstream.
-     */
-    public void printUnhealthyUpstream() {
+    
+    private void printUnhealthyUpstream() {
         unhealthyUpstream.forEach((k, v) -> {
             if (Objects.nonNull(v)) {
                 List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
@@ -297,7 +304,7 @@ public final class UpstreamCheckTask implements Runnable {
             }
         });
     }
-
+    
     /**
      * Get healthy upstream map.
      *
@@ -306,7 +313,7 @@ public final class UpstreamCheckTask implements Runnable {
     public Map<String, List<Upstream>> getHealthyUpstream() {
         return healthyUpstream;
     }
-
+    
     /**
      * Get unhealthy upstream map.
      *

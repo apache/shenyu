@@ -37,6 +37,8 @@ public class ShenyuConfig {
     private FileConfig file = new FileConfig();
     
     private ExcludePath exclude = new ExcludePath();
+
+    private FallbackPath fallback = new FallbackPath();
     
     private ExtPlugin extPlugin = new ExtPlugin();
     
@@ -155,7 +157,25 @@ public class ShenyuConfig {
     public void setExclude(final ExcludePath exclude) {
         this.exclude = exclude;
     }
-    
+
+    /**
+     * Gets fallback.
+     *
+     * @return the fallback
+     */
+    public FallbackPath getFallback() {
+        return fallback;
+    }
+
+    /**
+     * Sets fallback.
+     *
+     * @param fallback the fallback
+     */
+    public void setFallback(final FallbackPath fallback) {
+        this.fallback = fallback;
+    }
+
     /**
      * Gets upstream check.
      *
@@ -402,6 +422,52 @@ public class ShenyuConfig {
             this.paths = paths;
         }
     
+        /**
+         * get paths.
+         *
+         * @return paths paths
+         */
+        public List<String> getPaths() {
+            return paths;
+        }
+    }
+
+    /**
+     * The type fallback path.
+     */
+    public static class FallbackPath {
+
+        private Boolean enabled = false;
+
+        private List<String> paths = new ArrayList<>();
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * Sets paths.
+         *
+         * @param paths the paths
+         */
+        public void setPaths(final List<String> paths) {
+            this.paths = paths;
+        }
+
         /**
          * get paths.
          *

@@ -49,7 +49,7 @@ public class OpenTelemetrySpanManager {
     public Span startAndRecord(final String spanName, final Map<String, String> attributesMap) {
         SpanBuilder spanBuilder = GlobalOpenTelemetry.getTracer(TracingConstants.SHENYU_AGENT)
                 .spanBuilder(spanName)
-                .setSpanKind(SpanKind.CLIENT);
+                .setSpanKind(SpanKind.INTERNAL);
         Optional.ofNullable(attributesMap).ifPresent(attributes -> attributes.forEach(spanBuilder::setAttribute));
         Optional.ofNullable(lastSpan).ifPresent(parentSpan -> spanBuilder.setParent(Context.current().with(parentSpan)));
         Span span = spanBuilder.startSpan();

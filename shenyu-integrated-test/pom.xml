@@ -33,17 +33,17 @@
         <module>shenyu-integrated-test-https</module>
         <module>shenyu-integrated-test-spring-cloud</module>
         <module>shenyu-integrated-test-common</module>
-        <module>shenyu-integration-test-alibaba-dubbo</module>
-        <module>shenyu-integration-test-apache-dubbo</module>
+        <module>shenyu-integrated-test-alibaba-dubbo</module>
+        <module>shenyu-integrated-test-apache-dubbo</module>
         <module>shenyu-integrated-test-grpc</module>
         <module>shenyu-integrated-test-motan</module>
         <module>shenyu-integrated-test-sofa</module>
         <module>shenyu-integrated-test-websocket</module>
         <module>shenyu-integrated-test-combination</module>
+        <module>shenyu-integrated-test-agent</module>
     </modules>
 
     <properties>
-        <shenyu.version>2.4.2-SNAPSHOT</shenyu.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

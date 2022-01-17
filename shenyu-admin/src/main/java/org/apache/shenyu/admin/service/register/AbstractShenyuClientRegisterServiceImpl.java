@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.admin.utils.PathUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -210,7 +211,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     protected RuleDTO buildContextPathDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
         String contextPath = metaDataDTO.getContextPath();
-        return buildRuleDTO(selectorId, ruleHandler, contextPath, contextPath + "/**");
+        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath));
     }
     
     private RuleDTO buildRpcDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {

@@ -35,22 +35,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Websocket sync data service.
  */
 public class WebsocketSyncDataService implements SyncDataService, AutoCloseable {
-
+    
     /**
-     * logger. 
+     * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSyncDataService.class);
-
+    
     private final List<WebSocketClient> clients = new ArrayList<>();
-
+    
     private final ScheduledThreadPoolExecutor executor;
-
+    
     /**
      * Instantiates a new Websocket sync cache.
      *
@@ -65,54 +64,19 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                                     final List<AuthDataSubscriber> authDataSubscribers) {
         String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
         executor = new ScheduledThreadPoolExecutor(urls.length, ShenyuThreadFactory.create("websocket-connect", true));
-
         for (String url : urls) {
             try {
-                clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
+                clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers, executor));
             } catch (URISyntaxException e) {
                 LOG.error("websocket url({}) is error", url, e);
             }
         }
-
-        try {
-            for (WebSocketClient client : clients) {
-                boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
-                if (success) {
-                    LOG.info("websocket connection is successful.....");
-                } else {
-                    LOG.error("websocket connection is error.....");
-                }
-
-                executor.scheduleAtFixedRate(() -> {
-                    try {
-                        if (client.isClosed()) {
-                            boolean reconnectSuccess = client.reconnectBlocking();
-                            if (reconnectSuccess) {
-                                LOG.info("websocket reconnect server[{}] is successful.....", client.getURI().toString());
-                            } else {
-                                LOG.error("websocket reconnection server[{}] is error.....", client.getURI().toString());
-                            }
-                        } else {
-                            client.sendPing();
-                            LOG.debug("websocket send to [{}] ping message successful", client.getURI().toString());
-                        }
-                    } catch (InterruptedException e) {
-                        LOG.error("websocket connect is error :{}", e.getMessage());
-                    }
-                }, 10, 10, TimeUnit.SECONDS);
-            }
-        } catch (InterruptedException e) {
-            LOG.info("websocket connection...exception....", e);
-        }
-
     }
-
+    
     @Override
     public void close() {
         for (WebSocketClient client : clients) {
-            if (!client.isClosed()) {
-                client.close();
-            }
+            client.close();
         }
         if (Objects.nonNull(executor)) {
             executor.shutdown();

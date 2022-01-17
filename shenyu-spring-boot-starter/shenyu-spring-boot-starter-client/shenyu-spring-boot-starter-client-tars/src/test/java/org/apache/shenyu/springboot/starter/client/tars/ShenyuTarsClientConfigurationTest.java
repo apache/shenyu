@@ -20,14 +20,20 @@ package org.apache.shenyu.springboot.starter.client.tars;
 
 import org.apache.shenyu.client.tars.TarsContextRefreshedEventListener;
 import org.apache.shenyu.client.tars.TarsServiceBeanPostProcessor;
+import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Optional;
+
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test case for {@link ShenyuTarsClientConfiguration}.
@@ -47,6 +53,8 @@ public class ShenyuTarsClientConfigurationTest {
                 "debug=true",
                 "shenyu.register.registerType=http",
                 "shenyu.register.serverLists=http://localhost:9095",
+                "shenyu.register.props.username=admin",
+                "shenyu.register.props.password=123456",
                 "shenyu.client.tars.props[contextPath]=/tars",
                 "shenyu.client.tars.props[appName]=tars",
                 "shenyu.client.tars.props[host]=127.0.0.1",
@@ -56,17 +64,23 @@ public class ShenyuTarsClientConfigurationTest {
 
     @Test
     public void testTarsServiceBeanPostProcessor() {
+        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
             TarsServiceBeanPostProcessor processor = context.getBean("tarsServiceBeanPostProcessor", TarsServiceBeanPostProcessor.class);
             assertNotNull(processor);
         });
+        registerUtilsMockedStatic.close();
     }
 
     @Test
     public void testTarsContextRefreshedEventListener() {
+        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
             TarsContextRefreshedEventListener listener = context.getBean("tarsContextRefreshedEventListener", TarsContextRefreshedEventListener.class);
             assertNotNull(listener);
         });
+        registerUtilsMockedStatic.close();
     }
 }

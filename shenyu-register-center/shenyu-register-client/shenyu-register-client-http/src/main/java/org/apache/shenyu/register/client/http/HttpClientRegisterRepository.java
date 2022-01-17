@@ -29,8 +29,8 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The type Http client register repository.
@@ -39,16 +39,17 @@ import java.util.List;
 public class HttpClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
-    
-    private static final String META_PATH = "/shenyu-client/register-metadata";
 
-    private static final String META_TYPE = "metadata";
+    private String username;
 
-    private static final String URI_PATH = "/shenyu-client/register-uri";
+    private String password;
 
     private List<String> serverList;
 
-    public HttpClientRegisterRepository() { }
+    private String accessToken;
+
+    public HttpClientRegisterRepository() {
+    }
 
     public HttpClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         init(config);
@@ -56,9 +57,12 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
+        this.username = config.getProps().getProperty(Constants.USER_NAME);
+        this.password = config.getProps().getProperty(Constants.PASS_WORD);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
+        this.getAccessToken().ifPresent(V -> this.accessToken = String.valueOf(V));
     }
-    
+
     /**
      * Persist uri.
      *
@@ -66,18 +70,30 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
      */
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
-        doRegister(registerDTO, URI_PATH, Constants.URI);
+        doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
     }
-    
+
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
-        doRegister(metadata, META_PATH, META_TYPE);
+        doRegister(metadata, Constants.META_PATH, Constants.META_TYPE);
     }
-    
+
+    private Optional getAccessToken() {
+        for (String server : serverList) {
+            try {
+                Optional login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
+                return login;
+            } catch (Exception e) {
+                LOGGER.error("login admin url :{} is fail, will retry, ex is :{}", server, e);
+            }
+        }
+        return Optional.empty();
+    }
+
     private <T> void doRegister(final T t, final String path, final String type) {
         for (String server : serverList) {
             try {
-                RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), server + path, type);
+                RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), server.concat(path), type, accessToken);
                 return;
             } catch (Exception e) {
                 LOGGER.error("register admin url :{} is fail, will retry, ex is :{}", server, e);

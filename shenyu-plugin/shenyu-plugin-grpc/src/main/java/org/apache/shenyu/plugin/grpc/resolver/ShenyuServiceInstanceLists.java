@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
-import org.springframework.beans.BeanUtils;
+import org.apache.shenyu.plugin.grpc.transfer.ShenyuServiceTransfer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,8 +103,7 @@ public class ShenyuServiceInstanceLists {
     public List<ShenyuServiceInstance> getCopyInstances() {
         List<ShenyuServiceInstance> copy = new ArrayList<>(shenyuServiceInstances.size());
         shenyuServiceInstances.forEach(instance -> {
-            ShenyuServiceInstance cp = new ShenyuServiceInstance();
-            BeanUtils.copyProperties(instance, cp);
+            ShenyuServiceInstance cp = ShenyuServiceTransfer.INSTANCE.deepCopy(instance);
             copy.add(cp);
         });
         return copy;
