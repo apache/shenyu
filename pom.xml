@@ -541,7 +541,7 @@
                 <configuration>
                     <configLocation>/script/shenyu_checkstyle.xml</configLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <excludes>**/transfer/**/*</excludes>
+                    <excludes>**/transfer/**/*,**/Timer.*,**/TimerTask.*,**/Timeout.*,**/HashedWheelTimer.*</excludes>
                 </configuration>
                 <executions>
                     <execution>
