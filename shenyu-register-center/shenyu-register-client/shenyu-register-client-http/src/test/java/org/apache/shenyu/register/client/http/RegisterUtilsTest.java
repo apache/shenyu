@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  */
 public final class RegisterUtilsTest {
 
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
     private OkHttpTools okHttpTools;
 

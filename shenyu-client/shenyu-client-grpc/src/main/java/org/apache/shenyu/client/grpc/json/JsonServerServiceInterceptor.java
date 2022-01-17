@@ -41,9 +41,9 @@ import java.util.Objects;
  */
 public class JsonServerServiceInterceptor {
 
-    private static Map<String, Class<?>> requestClazzMap = Maps.newConcurrentMap();
+    private static final Map<String, Class<?>> requestClazzMap = Maps.newConcurrentMap();
 
-    private static Map<String, MethodDescriptor.MethodType> methodTypeMap = Maps.newConcurrentMap();
+    private static final Map<String, MethodDescriptor.MethodType> methodTypeMap = Maps.newConcurrentMap();
 
     /**
      * wrap ServerServiceDefinition to get json ServerServiceDefinition.

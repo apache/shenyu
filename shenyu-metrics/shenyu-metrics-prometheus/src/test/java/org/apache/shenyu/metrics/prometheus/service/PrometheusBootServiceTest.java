@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
  */
 public final class PrometheusBootServiceTest {
 
-    private static PrometheusBootService prometheusBootService = new PrometheusBootService();
+    private static final PrometheusBootService prometheusBootService = new PrometheusBootService();
 
     @Before
     public void init() {

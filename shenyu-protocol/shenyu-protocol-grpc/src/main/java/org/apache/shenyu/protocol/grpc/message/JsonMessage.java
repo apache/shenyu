@@ -45,7 +45,7 @@ public class JsonMessage {
     /**
      * methodDescriptorCache.
      */
-    private static Map<String, MethodDescriptor<DynamicMessage, DynamicMessage>> methodDescriptorCache = Maps.newConcurrentMap();
+    private static final Map<String, MethodDescriptor<DynamicMessage, DynamicMessage>> methodDescriptorCache = Maps.newConcurrentMap();
 
     /**
      * Dynamic build JsonMarshaller Descriptor.

@@ -39,7 +39,7 @@ public class UpstreamCheckTaskTest {
     /**
      *  Here to set interval with 50s to avoid running the second time.
      */
-    private UpstreamCheckTask healthCheckTask = new UpstreamCheckTask(50000);
+    private final UpstreamCheckTask healthCheckTask = new UpstreamCheckTask(50000);
 
     /**
      * Test run.

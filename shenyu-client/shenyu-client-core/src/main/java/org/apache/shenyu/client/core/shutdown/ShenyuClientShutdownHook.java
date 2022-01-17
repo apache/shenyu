@@ -44,7 +44,7 @@ public class ShenyuClientShutdownHook {
 
     private static Properties props;
 
-    private static AtomicBoolean delay = new AtomicBoolean(false);
+    private static final AtomicBoolean delay = new AtomicBoolean(false);
 
     private static IdentityHashMap<Thread, Thread> delayHooks = new IdentityHashMap<>();
 
