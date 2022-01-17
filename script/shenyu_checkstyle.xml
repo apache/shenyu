@@ -172,7 +172,7 @@
         </module>
         <module name="NestedTryDepth"/>
         <module name="NoClone"/>
-        <module name="NoFinalizer"/>
+<!--        <module name="NoFinalizer"/>-->
         <module name="SuperClone"/>
         <module name="SuperFinalize"/>
         <module name="OneStatementPerLine"/>
