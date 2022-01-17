@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.4.2-SNAPSHOT</version>
+    <version>${shenyu.revision}</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -76,6 +76,9 @@
     </issueManagement>
 
     <properties>
+        <!-- shenyu.version -->
+        <shenyu.revision>2.4.2-SNAPSHOT</shenyu.revision>
+
         <java.version>1.8</java.version>
         <hutool.version>4.0.8</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -145,6 +148,7 @@
         <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
         <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
+        <maven.flatten.version>1.2.2</maven.flatten.version>
     </properties>
 
     <dependencyManagement>
@@ -625,6 +629,31 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${maven.flatten.version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
                         </goals>
                     </execution>
                 </executions>

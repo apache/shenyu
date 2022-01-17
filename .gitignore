@@ -12,6 +12,7 @@ dependency-reduced-pom.xml
 release.properties
 cobertura.ser
 *.gpg
+.flattened-pom.xml
 
 # eclipse ignore
 .settings/
