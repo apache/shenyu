@@ -44,8 +44,6 @@
         <module>shenyu-dist</module>
         <module>shenyu-agent</module>
         <module>shenyu-loadbalancer</module>
-        <module>shenyu-examples</module>
-        <module>shenyu-integrated-test</module>
     </modules>
 
     <licenses>
@@ -220,12 +218,6 @@
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${gson.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>${okhttp.version}</version>
             </dependency>
 
             <dependency>

@@ -26,17 +26,17 @@ import java.io.File;
  * Test for  ShenyuPluginPathBuilder.
  */
 public final class ShenyuPluginPathBuilderTest {
-
-
+    
+    
     /**
      * test for  Custom path.
      */
     @Test
     public void testGetPluginPathByCustomPath() {
-        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("/testpath");
-        Assert.assertNotNull(pluginPath);
+        File jarFile = ShenyuPluginPathBuilder.getPluginFile("/testpath");
+        Assert.assertNotNull(jarFile);
     }
-
+    
     /**
      * test  for plugin-ext.
      * -Dplugin-ext=D:\testUrl
@@ -44,16 +44,16 @@ public final class ShenyuPluginPathBuilderTest {
     @Test
     public void testGetPluginPathByPluginExt() {
         System.setProperty("plugin-ext", "/testUrl");
-        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("");
-        Assert.assertNotNull(pluginPath);
+        File jarFile = ShenyuPluginPathBuilder.getPluginFile("");
+        Assert.assertNotNull(jarFile);
     }
-
+    
     /**
      * test for default path.
      */
     @Test
     public void testGetPluginPathByExtLib() {
-        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("");
-        Assert.assertNotNull(pluginPath);
+        File jarFile = ShenyuPluginPathBuilder.getPluginFile("");
+        Assert.assertNotNull(jarFile);
     }
 }

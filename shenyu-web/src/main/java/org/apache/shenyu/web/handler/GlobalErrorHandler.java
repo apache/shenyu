@@ -55,7 +55,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
             httpStatus = ((ResponseStatusException) throwable).getStatus();
         }
         exchange.getResponse().setStatusCode(httpStatus);
-        Object error = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), throwable.getMessage());
+        Object error = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), throwable);
         return WebFluxResultUtils.result(exchange, error);
     }
 

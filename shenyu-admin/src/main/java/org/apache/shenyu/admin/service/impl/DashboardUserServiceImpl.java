@@ -40,12 +40,12 @@ import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 import org.apache.shenyu.admin.utils.AesUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.support.LdapEncoder;
@@ -269,8 +269,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                             .enabled(true)
                             .build();
                     createOrUpdate(dashboardUserDTO);
-                    dashboardUserVO = new DashboardUserVO();
-                    BeanUtils.copyProperties(dashboardUserDTO, dashboardUserVO);
+                    dashboardUserVO = DashboardUserTransfer.INSTANCE.transferDTO2VO(dashboardUserDTO);
                 }
             }
             return dashboardUserVO;

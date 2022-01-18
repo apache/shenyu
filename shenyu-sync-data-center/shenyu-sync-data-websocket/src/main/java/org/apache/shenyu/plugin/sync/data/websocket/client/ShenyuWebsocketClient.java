@@ -32,21 +32,25 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type shenyu websocket client.
  */
 public final class ShenyuWebsocketClient extends WebSocketClient {
-
+    
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
-
+    
     private volatile boolean alreadySync = Boolean.FALSE;
-
+    
     private final WebsocketDataHandler websocketDataHandler;
-
+    
+    private final ScheduledThreadPoolExecutor executor;
+    
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -54,13 +58,39 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers
+     * @param executor             the executor
      */
     public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
-                                 final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final ScheduledThreadPoolExecutor executor
+    ) {
         super(serverUri);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.executor = executor;
+        this.connection();
     }
-
+    
+    private void connection() {
+        executor.scheduleAtFixedRate(this::healthCheck, 10, 10, TimeUnit.SECONDS);
+        this.connectBlocking();
+    }
+    
+    @Override
+    public boolean connectBlocking() {
+        boolean success = false;
+        try {
+            success = super.connectBlocking();
+        } catch (Exception ignored) {
+        }
+        if (success) {
+            LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
+        } else {
+            LOG.warn("websocket connection server[{}] is error.....", this.getURI().toString());
+        }
+        return success;
+    }
+    
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         if (!alreadySync) {
@@ -68,22 +98,43 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             alreadySync = true;
         }
     }
-
+    
     @Override
     public void onMessage(final String result) {
         handleResult(result);
     }
-
+    
     @Override
     public void onClose(final int i, final String s, final boolean b) {
         this.close();
     }
-
+    
     @Override
     public void onError(final Exception e) {
         this.close();
     }
-
+    
+    @Override
+    public void close() {
+        alreadySync = false;
+        if (this.isOpen()) {
+            super.close();
+        }
+    }
+    
+    private void healthCheck() {
+        try {
+            if (!this.isOpen()) {
+                this.reconnectBlocking();
+            } else {
+                this.sendPing();
+                LOG.debug("websocket send to [{}] ping message successful", this.getURI().toString());
+            }
+        } catch (Exception e) {
+            LOG.error("websocket connect is error :{}", e.getMessage());
+        }
+    }
+    
     @SuppressWarnings("ALL")
     private void handleResult(final String result) {
         LOG.info("handleResult({})", result);
