@@ -24,7 +24,7 @@ package_names = []
 directory_names = []
 source_directory_full_name = ''
 directory_full_names = []
-potential_binary_suffix = ['.zip', '.tar.gz', '.gzip', '.7z', '.class', '.jar', '.war']
+potential_binary_suffix = ['.zip', '.tar.gz', '.gzip', '.7z', '.class', '.jar', '.war', '.o', '.so', '.obj', '.a', '.dll', '.lib', '.pyc', '.pyd', '.pyo']
 
 
 def check_size_and_uncompress_packages():
@@ -32,11 +32,11 @@ def check_size_and_uncompress_packages():
     shutil.rmtree(uncompress_directory, ignore_errors=True)
     names = os.listdir('.')
     for name in names:
-        if name.rfind('.zip') != -1:
+        if name.rfind('-src') != -1:
             package_names.append(name)
             shutil.unpack_archive(name, uncompress_directory)
             check_size(name, 10000000)
-        if name.rfind('.tar.gz') != -1:
+        if name.rfind('-bin') != -1:
             package_names.append(name)
             shutil.unpack_archive(name, uncompress_directory)
             check_size(name, 200000000)
@@ -93,7 +93,7 @@ def check_all_text_files():
     # print(len(all_file_names))
     for name in all_file_names:
         for suffix in potential_binary_suffix:
-            if name.rfind(suffix) != -1:
+            if name.endswith(suffix):
                 print('ERROR :: ' + name + ' is not allowed here')
 
 
@@ -101,4 +101,3 @@ if __name__ == '__main__':
     check_size_and_uncompress_packages()
     check_common()
     check_all_text_files()
-
