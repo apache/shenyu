@@ -206,12 +206,12 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // Considering the concurrency problem, admin must lock,
         // otherwise it may cause the request from shenyu-web to update the cache concurrently, causing excessive db pressure
         ConfigDataCache latest = CACHE.get(serverCache.getGroup());
-        if (latest != serverCache){
+        if (latest != serverCache) {
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
-        synchronized (this){
+        synchronized (this) {
             latest = CACHE.get(serverCache.getGroup());
-            if (latest != serverCache){
+            if (latest != serverCache) {
                 return !StringUtils.equals(clientMd5, latest.getMd5());
             }
             super.refreshLocalCache();
