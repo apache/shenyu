@@ -161,8 +161,7 @@ public class HashedWheelTimer implements Timer {
     }
     
     /**
-     * Creates a new timer with the default tick duration and default number ofw
-     * ticks per wheel.
+     * Creates a new timer with the default tick duration and default number ofw ticks per wheel.
      *
      * @param threadFactory a {@link ThreadFactory} that creates a
      *                      background {@link Thread} which is dedicated to
