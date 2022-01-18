@@ -23,7 +23,6 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
  * Build upstream for rpc plugin.
  */
 public class CommonUpstreamUtils {
-
+    
     /**
      * Build divide upstream divide upstream.
      *
@@ -43,7 +42,7 @@ public class CommonUpstreamUtils {
     public static DivideUpstream buildDefaultDivideUpstream(final String host, final Integer port) {
         return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
-
+    
     /**
      * Build default dubbo upstream dubbo upstream.
      *
@@ -54,7 +53,7 @@ public class CommonUpstreamUtils {
     public static DubboUpstream buildDefaultDubboUpstream(final String host, final Integer port) {
         return DubboUpstream.builder().upstreamHost("localhost").protocol("dubbo://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
-
+    
     /**
      * Build default grpc upstream grpc upstream.
      *
@@ -65,7 +64,7 @@ public class CommonUpstreamUtils {
     public static GrpcUpstream buildDefaultGrpcUpstream(final String host, final Integer port) {
         return GrpcUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).timestamp(System.currentTimeMillis()).build();
     }
-
+    
     /**
      * Build default tars upstream tars upstream.
      *
@@ -76,7 +75,7 @@ public class CommonUpstreamUtils {
     public static TarsUpstream buildDefaultTarsUpstream(final String host, final Integer port) {
         return TarsUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
-
+    
     /**
      * Convert common upstream list list.
      *
@@ -84,14 +83,10 @@ public class CommonUpstreamUtils {
      * @return the list
      */
     public static List<CommonUpstream> convertCommonUpstreamList(final List<? extends CommonUpstream> upstreamList) {
-       return Optional.ofNullable(upstreamList)
-               .orElse(Collections.emptyList())
-               .stream()
-               .map(upstream -> new CommonUpstream(upstream.getProtocol(),upstream.getUpstreamHost(),upstream.getUpstreamUrl()))
-               .collect(Collectors.toList());
+        return upstreamList.stream().map(upstream -> new CommonUpstream(upstream.getProtocol(), upstream.getUpstreamHost(), upstream.getUpstreamUrl())).collect(Collectors.toList());
     }
-
-
+    
+    
     /**
      * Build url string.
      *

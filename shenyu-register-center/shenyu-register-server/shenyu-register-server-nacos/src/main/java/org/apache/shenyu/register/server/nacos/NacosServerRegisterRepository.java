@@ -87,11 +87,11 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
-        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty("nacosNameSpace","SheyuRegisterCenter"));
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty("nacosNameSpace"));
         // the nacos authentication username
-        nacosProperties.put(PropertyKeyConst.USERNAME, properties.getProperty(PropertyKeyConst.USERNAME, "nacos"));
+        nacosProperties.put(PropertyKeyConst.USERNAME, properties.getProperty(PropertyKeyConst.USERNAME, ""));
         // the nacos authentication password
-        nacosProperties.put(PropertyKeyConst.PASSWORD, properties.getProperty(PropertyKeyConst.PASSWORD, "***"));
+        nacosProperties.put(PropertyKeyConst.PASSWORD, properties.getProperty(PropertyKeyConst.PASSWORD, ""));
         // access key for namespace
         nacosProperties.put(PropertyKeyConst.ACCESS_KEY, properties.getProperty(PropertyKeyConst.ACCESS_KEY, ""));
         // secret key for namespace
