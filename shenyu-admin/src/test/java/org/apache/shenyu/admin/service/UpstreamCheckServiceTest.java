@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.admin.listener.ApplicationStartListener;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -55,10 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -98,7 +95,7 @@ public final class UpstreamCheckServiceTest {
 
     @Mock
     private SelectorConditionMapper selectorConditionMapper;
-    
+
     private SelectorHandleConverterFactor converterFactor;
 
     private ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
