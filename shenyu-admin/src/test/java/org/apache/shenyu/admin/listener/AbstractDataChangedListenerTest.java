@@ -34,7 +34,6 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The TestCase for AbstractDataChangedListener.
+ * The TestCase for {@link AbstractDataChangedListener}.
  */
 public final class AbstractDataChangedListenerTest {
 
@@ -70,13 +69,7 @@ public final class AbstractDataChangedListenerTest {
         ruleService = mock(RuleService.class);
         selectorService = mock(SelectorService.class);
         metaDataService = mock(MetaDataService.class);
-
-        Whitebox.setInternalState(listener, "appAuthService", appAuthService);
-        Whitebox.setInternalState(listener, "pluginService", pluginService);
-        Whitebox.setInternalState(listener, "ruleService", ruleService);
-        Whitebox.setInternalState(listener, "selectorService", selectorService);
-        Whitebox.setInternalState(listener, "metaDataService", metaDataService);
-
+        
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));

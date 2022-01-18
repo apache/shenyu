@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
+import org.apache.shenyu.admin.listener.ApplicationStartListener;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -43,8 +44,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -69,10 +68,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
- * Test cases for UpstreamCheckService.
+ * Test cases for {@link UpstreamCheckService}.
  */
 @RunWith(MockitoJUnitRunner.class)
-@PrepareForTest(UpstreamCheckService.class)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
@@ -239,11 +237,7 @@ public final class UpstreamCheckServiceTest {
         properties.setProperty(Constants.IS_CHECKED, "true");
         shenyuRegisterCenterConfig.setProps(properties);
         upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig, converterFactor);
-        ScheduledThreadPoolExecutor executor = Whitebox.getInternalState(upstreamCheckService, "executor");
-        assertNotNull(executor);
         upstreamCheckService.close();
-        executor = Whitebox.getInternalState(upstreamCheckService, "executor");
-        assertTrue(executor.isShutdown());
     }
 
     private void setupZombieSet() {
