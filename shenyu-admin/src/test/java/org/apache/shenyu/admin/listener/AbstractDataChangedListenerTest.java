@@ -35,6 +35,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
@@ -62,14 +63,31 @@ public final class AbstractDataChangedListenerTest {
     private MetaDataService metaDataService;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
         appAuthService = mock(AppAuthService.class);
         pluginService = mock(PluginService.class);
         ruleService = mock(RuleService.class);
         selectorService = mock(SelectorService.class);
         metaDataService = mock(MetaDataService.class);
-        
+
+        Class clazz = MockAbstractDataChangedListener.class.getSuperclass();
+        Field appAuthServiceField = clazz.getDeclaredField("appAuthService");
+        appAuthServiceField.setAccessible(true);
+        appAuthServiceField.set(listener, appAuthService);
+        Field pluginServiceField = clazz.getDeclaredField("pluginService");
+        pluginServiceField.setAccessible(true);
+        pluginServiceField.set(listener, pluginService);
+        Field ruleServiceField = clazz.getDeclaredField("ruleService");
+        ruleServiceField.setAccessible(true);
+        ruleServiceField.set(listener, ruleService);
+        Field selectorServiceField = clazz.getDeclaredField("selectorService");
+        selectorServiceField.setAccessible(true);
+        selectorServiceField.set(listener, selectorService);
+        Field metaDataServiceField = clazz.getDeclaredField("metaDataService");
+        metaDataServiceField.setAccessible(true);
+        metaDataServiceField.set(listener, metaDataService);
+
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
