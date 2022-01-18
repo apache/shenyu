@@ -38,13 +38,13 @@ public class ShenyuClientShutdownHook {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientShutdownHook.class);
 
+    private static final AtomicBoolean DELAY = new AtomicBoolean(false);
+
     private static String hookNamePrefix = "ShenyuClientShutdownHook";
 
     private static AtomicInteger hookId = new AtomicInteger(0);
 
     private static Properties props;
-
-    private static final AtomicBoolean delay = new AtomicBoolean(false);
 
     private static IdentityHashMap<Thread, Thread> delayHooks = new IdentityHashMap<>();
 
@@ -77,7 +77,7 @@ public class ShenyuClientShutdownHook {
      * Delay other shutdown hooks.
      */
     public static void delayOtherHooks() {
-        if (!delay.compareAndSet(false, true)) {
+        if (!DELAY.compareAndSet(false, true)) {
             return;
         }
         TakeoverOtherHooksThread thread = new TakeoverOtherHooksThread();
