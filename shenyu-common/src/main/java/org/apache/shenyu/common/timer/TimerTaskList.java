@@ -26,8 +26,6 @@ import java.util.function.Consumer;
 
 /**
  * TimerTaskList .
- *
- * @author sixh chenbin
  */
 public class TimerTaskList implements Delayed, Iterable<TimerTask> {
     
