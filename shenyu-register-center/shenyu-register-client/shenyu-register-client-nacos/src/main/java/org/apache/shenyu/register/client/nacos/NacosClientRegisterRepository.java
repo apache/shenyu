@@ -157,10 +157,13 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
         try {
             final String defaultGroup = NacosPathConstants.GROUP;
-            configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache));
+            if (configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache))) {
+                LOGGER.info("register metadata success: {}", metadata.getRuleName());
+            } else {
+                LOGGER.error("register metadata error: {}", metadata.getRuleName());
+            }
         } catch (NacosException e) {
             throw new ShenyuException(e);
         }
-        LOGGER.info("register metadata success: {}", metadata.getRuleName());
     }
 }
