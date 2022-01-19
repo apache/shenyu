@@ -1,9 +1,10 @@
 /*
- * Copyright 2012 The Netty Project
- *
- * The Netty Project licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,41 +17,39 @@
 
 package org.apache.shenyu.common.timer;
 
-import java.util.Set;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-
 /**
- * Schedules {@link TimerTask}s for one-time future execution in a background
- * thread.
+ * Timer .
+ *
+ * @author sixh chenbin
  */
 public interface Timer {
     
     /**
-     * Schedules the specified {@link TimerTask} for one-time execution after
-     * the specified delay.
+     * Add timer task.
      *
-     * @param task  the task
-     * @param delay the delay
-     * @param unit  the unit
-     * @return a handle which is associated with the specified task
-     * @throws IllegalStateException      if this timer has been {@linkplain #stop() stopped} already
-     * @throws RejectedExecutionException if the pending timeouts are too many and creating new timeout                                    can cause instability in the system.
+     * @param timerTask the timer task
      */
-    Timeout newTimeout(TimerTask task, long delay, TimeUnit unit);
+    void add(TimerTask timerTask);
     
     /**
-     * Releases all resources acquired by this {@link Timer} and cancels all
-     * tasks which were scheduled but not executed yet.
+     * Advance clock boolean.
      *
-     * @return the handles associated with the tasks which were canceled by         this method
+     * @param timeoutMs the timeout ms
+     * @throws InterruptedException the interrupted exception
      */
-    Set<Timeout> stop();
+    void advanceClock(long timeoutMs) throws InterruptedException;
     
     /**
-     * Is stop boolean.
+     * Size int.
      *
-     * @return the boolean
+     * @return the int
      */
-    boolean isStop();
+    int size();
+    
+    /**
+     * Shutdown.
+     */
+    void shutdown();
+    
 }
+

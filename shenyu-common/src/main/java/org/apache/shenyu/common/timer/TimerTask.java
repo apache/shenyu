@@ -1,9 +1,10 @@
 /*
- * Copyright 2012 The Netty Project
- *
- * The Netty Project licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,17 +20,75 @@ package org.apache.shenyu.common.timer;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A task which is executed after the delay specified with
- * {@link Timer#newTimeout(TimerTask, long, TimeUnit)}.
+ * TimerTask .
+ *
+ * @author sixh chenbin
  */
-public interface TimerTask {
+public abstract class TimerTask implements Runnable {
     
     /**
-     * Executed after the delay specified with
-     * {@link Timer#newTimeout(TimerTask, long, TimeUnit)}.
-     *
-     * @param timeout a handle which is associated with this task
-     * @throws Exception the exception
+     * The time the current task delays execution ms.
      */
-    void run(Timeout timeout) throws Exception;
+    private final long delayMs;
+    
+    private TimerTaskList.TimerTaskEntry timerTaskEntry;
+    
+    /**
+     * Instantiates a new Timer task.
+     *
+     * @param delayMs the delay ms
+     */
+    public TimerTask(final long delayMs) {
+        this(delayMs, TimeUnit.MILLISECONDS);
+    }
+    
+    /**
+     * Instantiates a new Timer task.
+     *
+     * @param delay the delay
+     * @param unit  the unit
+     */
+    public TimerTask(final long delay, final TimeUnit unit) {
+        delayMs = unit.toMillis(delay);
+    }
+    
+    /**
+     * Sets timer task entry.
+     *
+     * @param entry the entry
+     */
+    synchronized void setTimerTaskEntry(final TimerTaskList.TimerTaskEntry entry) {
+        if (timerTaskEntry != null && timerTaskEntry != entry) {
+            this.timerTaskEntry.remove();
+        }
+        timerTaskEntry = entry;
+    }
+    
+    /**
+     * Gets delay ms.
+     *
+     * @return the delay ms
+     */
+    long getDelayMs() {
+        return delayMs;
+    }
+    
+    /**
+     * Gets timer task entry.
+     *
+     * @return the timer task entry
+     */
+    TimerTaskList.TimerTaskEntry getTimerTaskEntry() {
+        return timerTaskEntry;
+    }
+    
+    /**
+     * Cancel task.
+     */
+    public synchronized void cancel() {
+        if (timerTaskEntry != null) {
+            timerTaskEntry.remove();
+        }
+        timerTaskEntry = null;
+    }
 }

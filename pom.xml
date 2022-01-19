@@ -621,11 +621,6 @@
                         <exclude>**/node/**</exclude>
                         <exclude>**/node_modules/**</exclude>
                         <exclude>**/test/coverage/**</exclude>
-                        <!--netty files-->
-                        <exclude>**/Timer.*</exclude>
-                        <exclude>**/TimerTask.*</exclude>
-                        <exclude>**/Timeout.*</exclude>
-                        <exclude>**/HashedWheelTimer.*</exclude>
                     </excludes>
                 </configuration>
                 <executions>

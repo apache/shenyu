@@ -17,18 +17,15 @@
 
 package org.apache.shenyu.common.timer;
 
-import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 /**
  * WheelTimerFactory .
  * shared wheel time.
  */
 public class WheelTimerFactory {
     
-    private static final TimerSharedRef SHARED_TIMER = new TimerSharedRef("shared_wheel_timer");
+    private static final String NAME = "shared_wheel_timer";
+    
+    private static final TimerSharedRef SHARED_TIMER = new TimerSharedRef();
     
     /**
      * Gets wheel timer.
@@ -45,40 +42,7 @@ public class WheelTimerFactory {
      * @return the hashed wheel timer
      */
     public static Timer newWheelTimer() {
-        return new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 4069);
-    }
-    
-    /**
-     * New wheel timer timer.
-     *
-     * @param name the name
-     * @return the timer
-     */
-    public static Timer newWheelTimer(final String name) {
-        return new HashedWheelTimer(ShenyuThreadFactory.create(name, false), 100, TimeUnit.MILLISECONDS, 4069);
-    }
-    
-    /**
-     * New wheel timer hashed wheel timer.
-     *
-     * @param tickDuration the tick duration
-     * @param unit         the unit
-     * @return the hashed wheel timer
-     */
-    public static Timer newWheelTimer(final long tickDuration, final TimeUnit unit) {
-        return new HashedWheelTimer(tickDuration, unit);
-    }
-    
-    /**
-     * New wheel timer hashed wheel timer.
-     *
-     * @param tickDuration  the tick duration
-     * @param unit          the unit
-     * @param ticksPerWheel the ticks per wheel
-     * @return the hashed wheel timer
-     */
-    public static Timer newWheelTimer(final long tickDuration, final TimeUnit unit, final int ticksPerWheel) {
-        return new HashedWheelTimer(tickDuration, unit, ticksPerWheel);
+        return new HierarchicalWheelTimer(NAME);
     }
     
     private abstract static class Shared<T> {
@@ -124,18 +88,7 @@ public class WheelTimerFactory {
     
     private abstract static class SharedRef<T> {
         
-        private final String name;
-        
         private Shared<T> shared;
-        
-        /**
-         * Instantiates a new Shared ref.
-         *
-         * @param name the name
-         */
-        SharedRef(final String name) {
-            this.name = name;
-        }
         
         /**
          * Gets ref.
@@ -147,15 +100,6 @@ public class WheelTimerFactory {
                 this.shared = create();
             }
             return this.shared.getRef();
-        }
-        
-        /**
-         * Gets name.
-         *
-         * @return the name
-         */
-        public String getName() {
-            return name;
         }
         
         /**
@@ -182,32 +126,47 @@ public class WheelTimerFactory {
             return this;
         }
         
+        /**
+         * Add timer task.
+         *
+         * @param timerTask the timer task
+         */
         @Override
-        public Timeout newTimeout(final TimerTask task, final long delay, final TimeUnit unit) {
-            return this.getSharedObj().newTimeout(task, delay, unit);
+        public void add(final TimerTask timerTask) {
+            this.getSharedObj().add(timerTask);
         }
         
+        /**
+         * Advance clock boolean.
+         *
+         * @param timeoutMs the timeout ms
+         * @throws InterruptedException the interrupted exception
+         */
         @Override
-        public Set<Timeout> stop() {
-            return this.getSharedObj().stop();
+        public void advanceClock(final long timeoutMs) throws InterruptedException {
+            this.getSharedObj().advanceClock(timeoutMs);
         }
         
+        /**
+         * Size int.
+         *
+         * @return the int
+         */
         @Override
-        public boolean isStop() {
-            return this.getSharedObj().isStop();
+        public int size() {
+            return this.getSharedObj().size();
+        }
+        
+        /**
+         * Shutdown.
+         */
+        @Override
+        public void shutdown() {
+            this.getSharedObj().shutdown();
         }
     }
     
     private static class TimerSharedRef extends SharedRef<Timer> {
-        
-        /**
-         * Instantiates a new Shared ref.
-         *
-         * @param name the name
-         */
-        TimerSharedRef(final String name) {
-            super(name);
-        }
         
         /**
          * Create shared.
@@ -216,7 +175,7 @@ public class WheelTimerFactory {
          */
         @Override
         protected Shared<Timer> create() {
-            return new TimerShared(WheelTimerFactory.newWheelTimer(this.getName()));
+            return new TimerShared(WheelTimerFactory.newWheelTimer());
         }
     }
 }
