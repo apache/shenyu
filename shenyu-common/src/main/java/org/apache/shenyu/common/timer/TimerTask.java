@@ -20,8 +20,7 @@ package org.apache.shenyu.common.timer;
 import java.util.concurrent.TimeUnit;
 
 /**
- * TimerTask
- *
+ * TimerTask.
  */
 public abstract class TimerTask implements Runnable {
     
