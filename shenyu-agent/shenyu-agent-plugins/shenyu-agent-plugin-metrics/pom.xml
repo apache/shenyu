@@ -21,18 +21,46 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-agent</artifactId>
+        <artifactId>shenyu-agent-plugins</artifactId>
         <version>2.4.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-agent-api</artifactId>
+    <artifactId>shenyu-agent-plugin-metrics</artifactId>
+    <packaging>pom</packaging>
+    
+    <modules>
+        <module>shenyu-agent-plugin-metrics-api</module>
+        <module>shenyu-agent-plugin-metrics-common</module>
+        <module>shenyu-agent-plugin-metrics-prometheus</module>
+    </modules>
+
+    <properties>
+        <metrics.target.directory>${project.basedir}/../target/plugins</metrics.target.directory>
+        <prometheus.version>0.11.0</prometheus.version>
+        <prometheus.jmx.version>0.16.1</prometheus.jmx.version>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spi</artifactId>
+            <artifactId>shenyu-agent-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <outputFile>${metrics.target.directory}/${project.build.finalName}</outputFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

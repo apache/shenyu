@@ -15,34 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.api.spi;
+package org.apache.shenyu.agent.plugin.metrics.api;
 
-import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint;
-import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint.JoinPointBuilder;
+import org.apache.shenyu.agent.plugin.metrics.api.config.Metrics.Metric;
+import org.apache.shenyu.spi.SPI;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
- * The type Abstract agent plugin definition.
+ * The interface Metrics recorder registry.
  */
-public abstract class AbstractAgentPluginDefinition implements AgentPluginDefinition {
+@SPI
+public interface MetricsRecorderRegistry {
     
     /**
-     * Define join point builder.
+     * Registry optional.
      *
-     * @return the collection
+     * @param metric the metric
+     * @return the optional
      */
-    protected abstract Collection<JoinPointBuilder> joinPointBuilder();
+    Optional<MetricsRecorder> register(Metric metric);
     
     /**
-     * Collector collection.
+     * Named string.
      *
-     * @return the collection
+     * @return the string
      */
-    @Override
-    public final Collection<ShenyuAgentJoinPoint> collector() {
-        Collection<JoinPointBuilder> joinPointBuilders = joinPointBuilder();
-        return joinPointBuilders.stream().map(JoinPointBuilder::install).collect(Collectors.toList());
-    }
+    String named();
 }
