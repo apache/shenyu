@@ -19,8 +19,6 @@ package org.apache.shenyu.common.timer;
 
 /**
  * Timer .
- *
- * @author sixh chenbin
  */
 public interface Timer {
     
