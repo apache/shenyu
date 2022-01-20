@@ -42,4 +42,9 @@ public interface TaskEntity {
      * @return the boolean
      */
     boolean cancelled();
+    
+    /**
+     * Cancel boolean.
+     */
+    void cancel();
 }

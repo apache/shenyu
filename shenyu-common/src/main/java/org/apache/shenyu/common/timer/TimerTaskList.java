@@ -220,6 +220,14 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
         }
         
         /**
+         * Cancel boolean.
+         */
+        @Override
+        public void cancel() {
+            this.timerTask.cancel();
+        }
+        
+        /**
          * Gets expiration ms.
          *
          * @return the expiration ms
