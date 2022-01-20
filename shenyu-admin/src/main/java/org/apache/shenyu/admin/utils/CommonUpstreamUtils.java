@@ -48,8 +48,8 @@ public class CommonUpstreamUtils {
      * Build divide upstream divide upstream.
      *
      * @param protocol the protocol
-     * @param host the host
-     * @param port the port
+     * @param host     the host
+     * @param port     the port
      * @return the divide upstream
      */
     public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port) {
@@ -97,10 +97,10 @@ public class CommonUpstreamUtils {
      */
     public static List<CommonUpstream> convertCommonUpstreamList(final List<? extends CommonUpstream> upstreamList) {
         return Optional.ofNullable(upstreamList)
-            .orElse(Collections.emptyList())
-            .stream()
-            .map(upstream -> new CommonUpstream(upstream.getProtocol(),upstream.getUpstreamHost(),upstream.getUpstreamUrl()))
-            .collect(Collectors.toList());
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(upstream -> new CommonUpstream(upstream.getProtocol(), upstream.getUpstreamHost(), upstream.getUpstreamUrl()))
+                .collect(Collectors.toList());
     }
 
 
