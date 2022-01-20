@@ -103,7 +103,7 @@ public final class UpstreamCheckServiceTest {
     
     private SelectorHandleConverterFactor converterFactor;
 
-    private ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
+    private final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
 
     private Map<String, List<DivideUpstream>> upstreamMap;
 

@@ -24,5 +24,5 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ExtendsShenyuZerBean {
-    private String name = "test";
+    private final String name = "test";
 }

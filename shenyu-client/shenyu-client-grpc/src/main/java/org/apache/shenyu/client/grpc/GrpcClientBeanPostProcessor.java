@@ -56,7 +56,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(GrpcClientBeanPostProcessor.class);
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final String contextPath;
 
@@ -66,7 +66,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final int port;
 
-    private List<ServerServiceDefinition> serviceDefinitions = Lists.newArrayList();
+    private final List<ServerServiceDefinition> serviceDefinitions = Lists.newArrayList();
 
     /**
      * Instantiates a new Shenyu client bean post processor.

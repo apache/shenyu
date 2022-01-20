@@ -45,7 +45,7 @@ public final class ReflectUtilsTest {
     }
 
     static class Reflect {
-        private String a = "1";
+        private final String a = "1";
     }
 
     static class ReflectNonField {

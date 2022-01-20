@@ -32,7 +32,7 @@ public class ExtPluginDataHandler implements PluginDataHandler {
     
     private static final Logger LOG = LoggerFactory.getLogger(ExtPluginDataHandler.class);
     
-    private DispatcherHandler dispatcherHandler;
+    private final DispatcherHandler dispatcherHandler;
     
     /**
      * Instantiates a new Ext plugin data handler.

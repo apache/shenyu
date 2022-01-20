@@ -46,7 +46,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    private String contextPath;
+    private final String contextPath;
 
     private final String appName;
 
