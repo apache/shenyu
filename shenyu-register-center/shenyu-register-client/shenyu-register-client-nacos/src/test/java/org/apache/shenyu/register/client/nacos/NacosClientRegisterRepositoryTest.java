@@ -80,7 +80,7 @@ public class NacosClientRegisterRepositoryTest {
             String key = invocationOnMock.getArgument(0);
             String value = invocationOnMock.getArgument(2);
             nacosBroker.put(key, value);
-            return null;
+            return true;
         }).when(configService).publishConfig(anyString(), anyString(), anyString());
 
         return configService;
