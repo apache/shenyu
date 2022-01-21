@@ -15,14 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.plugin.ext;
+package org.apache.shenyu.common.timer;
 
-import org.springframework.stereotype.Component;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * ExtendsShenyuBean .
+ * WheelTimerFactoryTest .
  */
-@Component
-public class ExtendsShenyuZerBean {
-    private final String name = "test";
+public class WheelTimerFactoryTest {
+    
+    /**
+     * Test get shared.
+     */
+    @Test
+    public void testGetShared() {
+        Timer sharedTimer1 = WheelTimerFactory.getSharedTimer();
+        Timer sharedTimer2 = WheelTimerFactory.getSharedTimer();
+        Assert.assertSame(sharedTimer1, sharedTimer2);
+    }
 }

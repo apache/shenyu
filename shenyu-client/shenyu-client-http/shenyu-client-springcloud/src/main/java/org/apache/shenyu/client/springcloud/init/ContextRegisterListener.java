@@ -51,7 +51,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     
     private final String host;
     
-    private String contextPath;
+    private final String contextPath;
     
     private final String appName;
     

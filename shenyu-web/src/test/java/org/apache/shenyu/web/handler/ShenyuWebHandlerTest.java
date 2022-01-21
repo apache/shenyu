@@ -43,7 +43,7 @@ public final class ShenyuWebHandlerTest {
 
     private ShenyuWebHandler shenyuWebHandler;
     
-    private List<ShenyuPlugin> listPlugins = new ArrayList<>();
+    private final List<ShenyuPlugin> listPlugins = new ArrayList<>();
 
     @Before
     public void setUp() {

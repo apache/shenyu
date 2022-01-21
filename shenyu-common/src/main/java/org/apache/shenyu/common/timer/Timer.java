@@ -15,46 +15,39 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.controller;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectProvider;
+package org.apache.shenyu.common.timer;
 
 /**
- * The type Test object provider.
- *
- * @param <R> the type parameter
+ * Timer .
  */
-public class TestObjectProvider<R> implements ObjectProvider<R> {
-    
-    private final R r;
+public interface Timer {
     
     /**
-     * Instantiates a new Test object provider.
+     * Add timer task.
      *
-     * @param r the r
+     * @param timerTask the timer task
      */
-    public TestObjectProvider(final R r) { 
-        this.r = r;
-    }
+    void add(TimerTask timerTask);
     
-    @Override
-    public R getObject() throws BeansException {
-        return r;
-    }
+    /**
+     * Advance clock boolean.
+     *
+     * @param timeoutMs the timeout ms
+     * @throws InterruptedException the interrupted exception
+     */
+    void advanceClock(long timeoutMs) throws InterruptedException;
     
-    @Override
-    public R getObject(final Object... args) throws BeansException {
-        return r;
-    }
+    /**
+     * Size int.
+     *
+     * @return the int
+     */
+    int size();
     
-    @Override
-    public R getIfAvailable() throws BeansException {
-        return r;
-    }
+    /**
+     * Shutdown.
+     */
+    void shutdown();
     
-    @Override
-    public R getIfUnique() throws BeansException {
-        return r;
-    }
 }
+
