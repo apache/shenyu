@@ -43,8 +43,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -56,10 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -69,10 +65,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
- * Test cases for UpstreamCheckService.
+ * Test cases for {@link UpstreamCheckService}.
  */
 @RunWith(MockitoJUnitRunner.class)
-@PrepareForTest(UpstreamCheckService.class)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
@@ -100,7 +95,7 @@ public final class UpstreamCheckServiceTest {
 
     @Mock
     private SelectorConditionMapper selectorConditionMapper;
-    
+
     private SelectorHandleConverterFactor converterFactor;
 
     private final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
@@ -239,11 +234,7 @@ public final class UpstreamCheckServiceTest {
         properties.setProperty(Constants.IS_CHECKED, "true");
         shenyuRegisterCenterConfig.setProps(properties);
         upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig, converterFactor);
-        ScheduledThreadPoolExecutor executor = Whitebox.getInternalState(upstreamCheckService, "executor");
-        assertNotNull(executor);
         upstreamCheckService.close();
-        executor = Whitebox.getInternalState(upstreamCheckService, "executor");
-        assertTrue(executor.isShutdown());
     }
 
     private void setupZombieSet() {
