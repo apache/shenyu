@@ -160,7 +160,7 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
             if (configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache))) {
                 LOGGER.info("register metadata success: {}", metadata.getRuleName());
             } else {
-                LOGGER.error("register metadata error: {}", metadata.getRuleName());
+                throw new ShenyuException("register metadata fail , please check ");
             }
         } catch (NacosException e) {
             throw new ShenyuException(e);
