@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.api.retry;
+package org.apache.shenyu.common.timer;
 
-import org.apache.shenyu.common.timer.TaskEntity;
-import org.apache.shenyu.common.timer.Timer;
-import org.apache.shenyu.common.timer.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +32,8 @@ public abstract class AbstractRetryTask extends TimerTask {
     private final Integer retryCount;
     
     private int tickCount = 1;
+    
+    private final Boolean retryLimit;
     
     /**
      * Instantiates a new Timer task.
@@ -55,13 +54,31 @@ public abstract class AbstractRetryTask extends TimerTask {
      * @param retryCount the retry count
      */
     public AbstractRetryTask(final String key,
-                             final long delayMs, final Integer retryCount) {
+                             final long delayMs,
+                             final Integer retryCount) {
+        this(key, delayMs, retryCount, retryCount < 0);
+    }
+    
+    /**
+     * Instantiates a new Abstract retry task.
+     * The retryCount parameter has no effect when retryLimit is true.
+     *
+     * @param key        the key
+     * @param delayMs    the delay ms
+     * @param retryCount the retry count
+     * @param retryLimit the retry limit
+     */
+    public AbstractRetryTask(final String key,
+                             final long delayMs,
+                             final Integer retryCount,
+                             final boolean retryLimit) {
         super(delayMs);
         this.key = key;
         this.retryCount = retryCount;
+        this.retryLimit = retryLimit;
     }
     
-    private void again(final TaskEntity taskEntity) {
+    protected void again(final TaskEntity taskEntity) {
         Timer timer = taskEntity.getTimer();
         if (timer == null) {
             return;
@@ -85,7 +102,7 @@ public abstract class AbstractRetryTask extends TimerTask {
         if (taskEntity.cancelled()) {
             return;
         }
-        if (tickCount > retryCount) {
+        if (!retryLimit && tickCount > retryCount) {
             logger.warn("Final failed to execute task, key:{},retried:{},task over.", key, tickCount);
             return;
         }
