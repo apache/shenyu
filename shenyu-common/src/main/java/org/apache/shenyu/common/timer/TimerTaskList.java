@@ -42,7 +42,7 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
      */
     public TimerTaskList(final AtomicInteger taskCounter) {
         this.taskCounter = taskCounter;
-        root = new TimerTaskEntry(null, -1L);
+        root = new TimerTaskEntry(null, null, -1L);
         root.next = root;
         root.prev = root;
     }
@@ -170,7 +170,9 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
     /**
      * The type Timer task entry.
      */
-    public static class TimerTaskEntry implements Comparable<TimerTaskEntry> {
+    public static class TimerTaskEntry implements TaskEntity, Comparable<TimerTaskEntry> {
+        
+        private final Timer timer;
         
         private final TimerTask timerTask;
         
@@ -194,12 +196,14 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
         /**
          * Instantiates a new Timer task entry.
          *
+         * @param timer        the timer
          * @param timerTask    the timer task
          * @param expirationMs the expiration ms
          */
-        public TimerTaskEntry(final TimerTask timerTask, final Long expirationMs) {
+        public TimerTaskEntry(final Timer timer, final TimerTask timerTask, final Long expirationMs) {
             this.timerTask = timerTask;
             this.expirationMs = expirationMs;
+            this.timer = timer;
             if (timerTask != null) {
                 timerTask.setTimerTaskEntry(this);
             }
@@ -210,8 +214,17 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
          *
          * @return the boolean
          */
-        boolean cancelled() {
+        @Override
+        public boolean cancelled() {
             return this.timerTask.getTimerTaskEntry() != this;
+        }
+        
+        /**
+         * Cancel boolean.
+         */
+        @Override
+        public void cancel() {
+            this.timerTask.cancel();
         }
         
         /**
@@ -224,11 +237,22 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
         }
         
         /**
+         * Gets timer.
+         *
+         * @return the timer
+         */
+        @Override
+        public Timer getTimer() {
+            return this.timer;
+        }
+        
+        /**
          * Gets timer task.
          *
          * @return the timer task
          */
-        TimerTask getTimerTask() {
+        @Override
+        public TimerTask getTimerTask() {
             return timerTask;
         }
         

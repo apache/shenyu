@@ -23,7 +23,6 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 /**
  * HierarchicalWheelTimerTest .
@@ -56,15 +55,14 @@ public class HierarchicalWheelTimerTest {
     
     /**
      * Test timer.
-     *
-     * @throws InterruptedException the interrupted exception
      */
     @Test
-    public void testTimer() throws InterruptedException {
+    public void testTimer() {
         for (int i = 0; i < 100; i++) {
             timer.add(new TimerTask(1 + i, TimeUnit.SECONDS) {
                 @Override
-                public void run() {
+                public void run(final TaskEntity taskEntity) {
+                
                 }
             });
         }
@@ -78,7 +76,7 @@ public class HierarchicalWheelTimerTest {
     public void testTimerCancel() {
         TimerTask timerTask = new TimerTask(100000) {
             @Override
-            public void run() {
+            public void run(final TaskEntity taskEntity) {
             }
         };
         timer.add(timerTask);
@@ -94,17 +92,13 @@ public class HierarchicalWheelTimerTest {
     public void testListForeach() {
         TimerTask timerTask = new TimerTask(100000) {
             @Override
-            public void run() {
+            public void run(final TaskEntity taskEntity) {
+            
             }
         };
-        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timerTask, -1L));
+        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timer, timerTask, -1L));
         Assert.assertEquals(taskCount.get(), 1);
-        timerTaskList.foreach(new Consumer<TimerTask>() {
-            @Override
-            public void accept(final TimerTask timerTask) {
-                Assert.assertSame(timerTask, timerTask);
-            }
-        });
+        timerTaskList.foreach(timerTask1 -> Assert.assertSame(timerTask1, timerTask1));
     }
     
     /**
@@ -114,10 +108,10 @@ public class HierarchicalWheelTimerTest {
     public void testListIterator() {
         TimerTask timerTask = new TimerTask(100000) {
             @Override
-            public void run() {
+            public void run(final TaskEntity taskEntity) {
             }
         };
-        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timerTask, -1L));
+        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timer, timerTask, -1L));
         Assert.assertEquals(taskCount.get(), 1);
         for (final TimerTask task : timerTaskList) {
             Assert.assertSame(timerTask, timerTask);
