@@ -17,16 +17,15 @@
 
 package org.apache.shenyu.disruptor.provider;
 
-import com.lmax.disruptor.EventTranslatorOneArg;
-import com.lmax.disruptor.EventTranslatorTwoArg;
-import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.dsl.Disruptor;
 import org.apache.shenyu.disruptor.event.DataEvent;
 import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.function.Consumer;
+import com.lmax.disruptor.EventTranslatorOneArg;
+import com.lmax.disruptor.EventTranslatorTwoArg;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.dsl.Disruptor;
 
 /**
  * DisruptorProvider.
@@ -68,20 +67,7 @@ public class DisruptorProvider<T> {
         this.disruptor = disruptor;
         this.isOrderly = isOrderly;
     }
-    
-    /**
-     * On data.
-     *
-     * @param function the function
-     * @deprecated {{@link #onData(Object)}}
-     */
-    @Deprecated
-    public void onData(final Consumer<DataEvent<T>> function) {
-        DataEvent<T> tmpObj = new DataEvent<>();
-        function.accept(tmpObj);
-        onData(tmpObj.getData());
-    }
-    
+
     /**
      * Send a data.
      *
