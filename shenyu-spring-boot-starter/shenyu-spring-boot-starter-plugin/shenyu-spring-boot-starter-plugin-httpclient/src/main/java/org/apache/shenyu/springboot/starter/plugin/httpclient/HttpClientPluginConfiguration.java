@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.httpclient;
 
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -40,10 +42,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.tcp.SslProvider;
+import reactor.netty.tcp.TcpClient;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * The type Http client plugin configuration.
