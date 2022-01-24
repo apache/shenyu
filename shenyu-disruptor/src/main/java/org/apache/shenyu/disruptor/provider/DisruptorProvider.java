@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.disruptor.provider;
 
-import org.apache.shenyu.disruptor.event.DataEvent;
-import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.lmax.disruptor.EventTranslatorOneArg;
 import com.lmax.disruptor.EventTranslatorTwoArg;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
+import org.apache.shenyu.disruptor.event.DataEvent;
+import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DisruptorProvider.
@@ -34,27 +33,27 @@ import com.lmax.disruptor.dsl.Disruptor;
  * @param <T> the type parameter
  */
 public class DisruptorProvider<T> {
-    
+
     private final RingBuffer<DataEvent<T>> ringBuffer;
-    
+
     private final Disruptor<DataEvent<T>> disruptor;
-    
+
     private final boolean isOrderly;
-    
+
     private final EventTranslatorOneArg<DataEvent<T>, T> translatorOneArg = (event, sequence, t) -> event.setData(t);
-    
+
     private final EventTranslatorTwoArg<DataEvent<T>, T, String> orderlyArg = (event, sequence, t, orderly) -> {
         if (event instanceof OrderlyDataEvent) {
             ((OrderlyDataEvent<T>) event).setHash(orderly);
         }
         event.setData(t);
     };
-    
+
     /**
      * The Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(DisruptorProvider.class);
-    
+
     /**
      * Instantiates a new Disruptor provider.
      *
@@ -83,7 +82,7 @@ public class DisruptorProvider<T> {
             logger.error("ex", ex);
         }
     }
-    
+
     /**
      * On orderly data.
      *
@@ -101,7 +100,7 @@ public class DisruptorProvider<T> {
             logger.error("ex", ex);
         }
     }
-    
+
     /**
      * Shutdown.
      */
