@@ -33,27 +33,27 @@ import org.slf4j.LoggerFactory;
  * @param <T> the type parameter
  */
 public class DisruptorProvider<T> {
-
+    
     private final RingBuffer<DataEvent<T>> ringBuffer;
-
+    
     private final Disruptor<DataEvent<T>> disruptor;
-
+    
     private final boolean isOrderly;
-
+    
     private final EventTranslatorOneArg<DataEvent<T>, T> translatorOneArg = (event, sequence, t) -> event.setData(t);
-
+    
     private final EventTranslatorTwoArg<DataEvent<T>, T, String> orderlyArg = (event, sequence, t, orderly) -> {
         if (event instanceof OrderlyDataEvent) {
             ((OrderlyDataEvent<T>) event).setHash(orderly);
         }
         event.setData(t);
     };
-
+    
     /**
      * The Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(DisruptorProvider.class);
-
+    
     /**
      * Instantiates a new Disruptor provider.
      *
@@ -82,7 +82,7 @@ public class DisruptorProvider<T> {
             logger.error("ex", ex);
         }
     }
-
+    
     /**
      * On orderly data.
      *
@@ -100,7 +100,7 @@ public class DisruptorProvider<T> {
             logger.error("ex", ex);
         }
     }
-
+    
     /**
      * Shutdown.
      */
