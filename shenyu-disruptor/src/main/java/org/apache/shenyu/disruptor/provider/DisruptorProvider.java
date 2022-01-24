@@ -82,7 +82,7 @@ public class DisruptorProvider<T> {
             logger.error("ex", ex);
         }
     }
-
+    
     /**
      * On orderly data.
      *
