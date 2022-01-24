@@ -15,33 +15,36 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.api.retry;
+package org.apache.shenyu.common.timer;
 
-import org.apache.shenyu.common.timer.AbstractRetryTask;
-import org.apache.shenyu.common.timer.TimerTask;
-import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
-
-import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * FailureRegistryTask .
- * When the registration url in Shenyu Client Register Repository fails.
- * It needs to be re-registered here.
+ * AbstractRoundTask .
+ * A timer that runs periodically, repeatedly.
  */
-public class FailureRegistryTask extends AbstractRetryTask {
+public abstract class AbstractRoundTask extends AbstractRetryTask {
     
-    private final FailbackRegistryRepository registerRepository;
+    private final Logger logger = LoggerFactory.getLogger(AbstractRetryTask.class);
     
     /**
      * Instantiates a new Timer task.
      *
-     * @param key                the key
-     * @param registerRepository the register repository
+     * @param key     the key
+     * @param delayMs the delay ms
      */
-    public FailureRegistryTask(final String key, final FailbackRegistryRepository registerRepository) {
-        //Indicates 10s to retry.
-        super(key, TimeUnit.SECONDS.toMillis(10), 18);
-        this.registerRepository = registerRepository;
+    public AbstractRoundTask(final String key, final long delayMs) {
+        super(key, delayMs, -1);
+    }
+    
+    @Override
+    public void run(final TaskEntity taskEntity) {
+        try {
+            super.run(taskEntity);
+        } finally {
+            this.again(taskEntity);
+        }
     }
     
     /**
@@ -52,8 +55,18 @@ public class FailureRegistryTask extends AbstractRetryTask {
      */
     @Override
     protected void doRetry(final String key, final TimerTask timerTask) {
-        this.registerRepository.accept(key);
-        //Because accept requires an exception to be thrown. Only normal can remove.
-        this.registerRepository.remove(key);
+        try {
+            this.doRun(key, timerTask);
+        } catch (Throwable ex) {
+            logger.warn("Failed to execute,but can be ignored");
+        }
     }
+    
+    /**
+     * Do timer.
+     *
+     * @param key       the key
+     * @param timerTask the timer task
+     */
+    public abstract void doRun(String key, TimerTask timerTask);
 }
