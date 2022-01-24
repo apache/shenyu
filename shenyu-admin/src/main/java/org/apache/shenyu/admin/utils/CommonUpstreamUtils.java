@@ -103,7 +103,6 @@ public class CommonUpstreamUtils {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Build url string.
      *
