@@ -27,6 +27,8 @@ cd shenyu-${version}
 
 mkdir -p {shenyu-bootstrap,shenyu-admin}/{conf,logs}
 
+mkdir -p shenyu-bootstrap/agent/conf
+
 echo "download docker-compose configuration"
 curl -sSl https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/stand-alone-${storage}/docker-compose.yaml > docker-compose.yaml
 
@@ -50,5 +52,6 @@ echo "download shenyu-admin of configuration"
 (cd shenyu-admin/conf/ && curl -OOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-admin/src/main/resources/{application-mysql.yml,logback.xml,application.yml})
 echo "download shenyu-bootstrap of configuration"
 (cd shenyu-bootstrap/conf/ && curl -OOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-bootstrap/src/main/resources/{application-local.yml,logback.xml,application.yml})
+(cd shenyu-bootstrap/agent/conf && curl -OO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-agent-dist/src/main/resources/conf/{shenyu-agent.yaml,tracing-point.yaml})
 
 docker-compose up -d
