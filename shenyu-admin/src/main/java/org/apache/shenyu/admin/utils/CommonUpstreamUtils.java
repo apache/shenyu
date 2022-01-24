@@ -48,8 +48,8 @@ public class CommonUpstreamUtils {
      * Build divide upstream divide upstream.
      *
      * @param protocol the protocol
-     * @param host     the host
-     * @param port     the port
+     * @param host the host
+     * @param port the port
      * @return the divide upstream
      */
     public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port) {
