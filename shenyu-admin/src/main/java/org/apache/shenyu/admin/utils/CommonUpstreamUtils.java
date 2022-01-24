@@ -43,7 +43,7 @@ public class CommonUpstreamUtils {
     public static DivideUpstream buildDefaultDivideUpstream(final String host, final Integer port) {
         return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
-
+    
     /**
      * Build divide upstream divide upstream.
      *
