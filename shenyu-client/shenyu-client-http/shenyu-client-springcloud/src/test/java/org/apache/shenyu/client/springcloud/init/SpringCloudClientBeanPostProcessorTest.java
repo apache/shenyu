@@ -56,7 +56,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
     @Mock
     private static Environment env;
 
-    private MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
+    private final MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
 
     private final SpringCloudClientTestBean springCloudClientTestBean = new SpringCloudClientTestBean();
 

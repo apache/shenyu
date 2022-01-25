@@ -34,8 +34,8 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The TestCase for AbstractDataChangedListener.
+ * The TestCase for {@link AbstractDataChangedListener}.
  */
 public final class AbstractDataChangedListenerTest {
 
@@ -63,7 +63,7 @@ public final class AbstractDataChangedListenerTest {
     private MetaDataService metaDataService;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
         appAuthService = mock(AppAuthService.class);
         pluginService = mock(PluginService.class);
@@ -71,11 +71,22 @@ public final class AbstractDataChangedListenerTest {
         selectorService = mock(SelectorService.class);
         metaDataService = mock(MetaDataService.class);
 
-        Whitebox.setInternalState(listener, "appAuthService", appAuthService);
-        Whitebox.setInternalState(listener, "pluginService", pluginService);
-        Whitebox.setInternalState(listener, "ruleService", ruleService);
-        Whitebox.setInternalState(listener, "selectorService", selectorService);
-        Whitebox.setInternalState(listener, "metaDataService", metaDataService);
+        Class clazz = MockAbstractDataChangedListener.class.getSuperclass();
+        Field appAuthServiceField = clazz.getDeclaredField("appAuthService");
+        appAuthServiceField.setAccessible(true);
+        appAuthServiceField.set(listener, appAuthService);
+        Field pluginServiceField = clazz.getDeclaredField("pluginService");
+        pluginServiceField.setAccessible(true);
+        pluginServiceField.set(listener, pluginService);
+        Field ruleServiceField = clazz.getDeclaredField("ruleService");
+        ruleServiceField.setAccessible(true);
+        ruleServiceField.set(listener, ruleService);
+        Field selectorServiceField = clazz.getDeclaredField("selectorService");
+        selectorServiceField.setAccessible(true);
+        selectorServiceField.set(listener, selectorService);
+        Field metaDataServiceField = clazz.getDeclaredField("metaDataService");
+        metaDataServiceField.setAccessible(true);
+        metaDataServiceField.set(listener, metaDataService);
 
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);

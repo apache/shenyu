@@ -20,6 +20,10 @@ package org.apache.shenyu.plugin.sync.data.websocket.client;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.timer.AbstractRoundTask;
+import org.apache.shenyu.common.timer.Timer;
+import org.apache.shenyu.common.timer.TimerTask;
+import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -32,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,7 +52,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     private final WebsocketDataHandler websocketDataHandler;
     
-    private final ScheduledThreadPoolExecutor executor;
+    private final Timer timer;
+    
+    private TimerTask timerTask;
     
     /**
      * Instantiates a new shenyu websocket client.
@@ -58,22 +63,25 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers
-     * @param executor             the executor
      */
     public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
-                                 final List<AuthDataSubscriber> authDataSubscribers,
-                                 final ScheduledThreadPoolExecutor executor
+                                 final List<AuthDataSubscriber> authDataSubscribers
     ) {
         super(serverUri);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
-        this.executor = executor;
+        this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
     
     private void connection() {
-        executor.scheduleAtFixedRate(this::healthCheck, 10, 10, TimeUnit.SECONDS);
         this.connectBlocking();
+        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
+            @Override
+            public void doRun(final String key, final TimerTask timerTask) {
+                healthCheck();
+            }
+        });
     }
     
     @Override
@@ -120,6 +128,15 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         if (this.isOpen()) {
             super.close();
         }
+    }
+    
+    /**
+     * Now close.
+     * now close. will cancel the task execution.
+     */
+    public void nowClose() {
+        this.close();
+        timerTask.cancel();
     }
     
     private void healthCheck() {

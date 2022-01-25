@@ -47,7 +47,7 @@ public final class PrometheusBootService implements MetricsBootService {
 
     private HTTPServer server;
     
-    private volatile AtomicBoolean registered = new AtomicBoolean(false);
+    private final AtomicBoolean registered = new AtomicBoolean(false);
     
     @Override
     public void start(final MetricsConfig metricsConfig, final MetricsRegister metricsRegister) {

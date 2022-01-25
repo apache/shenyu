@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
  */
 public final class PrometheusBootServiceTest {
 
-    private static PrometheusBootService prometheusBootService = new PrometheusBootService();
+    private static final PrometheusBootService PROMETHEUS_BOOT_SERVICE = new PrometheusBootService();
 
     @Before
     public void init() {
@@ -49,21 +49,21 @@ public final class PrometheusBootServiceTest {
     
     @Test
     public void testRegistered() throws NoSuchFieldException, IllegalAccessException {
-        AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusBootService, "registered");
+        AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(PROMETHEUS_BOOT_SERVICE, "registered");
         registered.set(true);
         String jmxConfig = GsonUtils.getInstance().toJson("whitelistObjectNames:org.apache.cassandra.metrics:type=ColumnFamily");
         MetricsConfig metricsConfig = new MetricsConfig("test", "", 10119, false, 1, jmxConfig, null);
-        prometheusBootService.start(metricsConfig, new PrometheusMetricsRegister());
+        PROMETHEUS_BOOT_SERVICE.start(metricsConfig, new PrometheusMetricsRegister());
         Field field = PrometheusBootService.class.getDeclaredField("server");
         field.setAccessible(true);
-        HTTPServer httpServer = (HTTPServer) field.get(prometheusBootService);
+        HTTPServer httpServer = (HTTPServer) field.get(PROMETHEUS_BOOT_SERVICE);
         assertNotNull(httpServer);
         assertThat(httpServer.getPort(), is(10119));
-        assertTrue(prometheusBootService.getRegistered().get());
+        assertTrue(PROMETHEUS_BOOT_SERVICE.getRegistered().get());
     }
     
     @AfterClass
     public static void close() {
-        prometheusBootService.stop();
+        PROMETHEUS_BOOT_SERVICE.stop();
     }
 }

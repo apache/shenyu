@@ -129,6 +129,15 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.afterAppAuthChanged(changed, eventType);
     }
 
+    /**
+     * After app auth changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
+    }
+
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -145,15 +154,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param eventType the event type
      */
     protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-    }
-
-    /**
-     * After app auth changed.
-     *
-     * @param changed   the changed
-     * @param eventType the event type
-     */
-    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
     }
 
     @Override
@@ -212,12 +212,8 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
 
     @Override
     public final void afterPropertiesSet() {
-        updateAppAuthCache();
-        updatePluginCache();
-        updateRuleCache();
-        updateSelectorCache();
-        updateMetaDataCache();
-        afterInitialize();
+        this.refreshLocalCache();
+        this.afterInitialize();
     }
 
     protected abstract void afterInitialize();
@@ -233,6 +229,17 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache newVal = new ConfigDataCache(group.name(), json, Md5Utils.md5(json), System.currentTimeMillis());
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
+    }
+
+    /**
+     * refresh local cache.
+     */
+    protected void refreshLocalCache() {
+        this.updateAppAuthCache();
+        this.updatePluginCache();
+        this.updateRuleCache();
+        this.updateSelectorCache();
+        this.updateMetaDataCache();
     }
 
     /**
