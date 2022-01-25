@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.tracing.common.definition;
+package org.apache.shenyu.agent.plugin.metrics.common.definition;
 
 import org.apache.shenyu.agent.api.entity.PointCutConfig;
 import org.apache.shenyu.agent.api.point.ShenyuAgentJoinPoint.JoinPointBuilder;
@@ -30,18 +30,21 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Collection;
 
+/**
+ * The type Metrics agent plugin definition.
+ */
 @Join
-public final class TracingAgentPluginDefinition extends AbstractAgentPluginDefinition {
+public final class MetricsAgentPluginDefinition extends AbstractAgentPluginDefinition {
     
-    private static final Logger LOG = LoggerFactory.getLogger(TracingAgentPluginDefinition.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MetricsAgentPluginDefinition.class);
     
     @Override
     protected Collection<JoinPointBuilder> joinPointBuilder() {
         PointCutConfig config = null;
         try {
-            config = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("tracing-point.yaml"), PointCutConfig.class);
+            config = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("metrics-point.yaml"), PointCutConfig.class);
         } catch (IOException e) {
-            LOG.error("Exception loader tracing point config is", e);
+            LOG.error("Exception loader metrics point config is", e);
         }
         return JoinPointBuilderFactory.create(config);
     }
