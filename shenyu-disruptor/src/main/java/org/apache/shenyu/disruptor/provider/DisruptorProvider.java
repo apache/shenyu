@@ -26,8 +26,6 @@ import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.function.Consumer;
-
 /**
  * DisruptorProvider.
  * disruptor provider definition.
@@ -68,20 +66,7 @@ public class DisruptorProvider<T> {
         this.disruptor = disruptor;
         this.isOrderly = isOrderly;
     }
-    
-    /**
-     * On data.
-     *
-     * @param function the function
-     * @deprecated {{@link #onData(Object)}}
-     */
-    @Deprecated
-    public void onData(final Consumer<DataEvent<T>> function) {
-        DataEvent<T> tmpObj = new DataEvent<>();
-        function.accept(tmpObj);
-        onData(tmpObj.getData());
-    }
-    
+
     /**
      * Send a data.
      *
