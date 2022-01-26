@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
@@ -36,9 +39,15 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * ResponseUtils.
@@ -74,7 +83,27 @@ public final class ResponseUtils {
                                                      final Publisher<? extends DataBuffer> body) {
         ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(response.getStatusCode()), getReaders());
         return builder
-                .headers(headers -> headers.putAll(response.getHeaders()))
+                .headers(headers -> {
+                    for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
+                        final String key = entry.getKey();
+                        final List<String> needToAdd = Optional.ofNullable(entry.getValue()).orElseGet(LinkedList::new);
+                        final List<String> exists = Optional.ofNullable(headers.get(key)).orElseGet(LinkedList::new);
+                        exists.addAll(needToAdd);
+                        if (CollectionUtils.isEmpty(exists)) {
+                            //Does it necessary to add empty http header ?
+                            continue;
+                        }
+                        //In org.apache.shenyu.web.filter.CrossFilter, we had add some http header,
+                        //when `clientResponse` has the same http header, duplicated http header will be returned
+                        String result = exists.stream()
+                                .filter(StringUtils::isNotBlank)
+                                .map(item -> Arrays.asList(item.split(",")))
+                                .flatMap(Collection::stream)
+                                .distinct()
+                                .collect(Collectors.joining(", "));
+                        headers.put(key, Lists.newArrayList(result));
+                    }
+                })
                 .cookies(cookies -> response.getCookies())
                 .body(Flux.from(body)).build();
     }
