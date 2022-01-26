@@ -49,6 +49,7 @@ public class ShenyuClientPathController {
      * @return result
      */
     @RequestMapping("shenyu/client/hi")
+    @ShenyuSpringMvcClient(path = "shenyu/client/hi", desc = "shenyu client annotation register")
     public String hello(final String name) {
         return "hi! " + name + "! " + HELLO_SUFFIX;
     }

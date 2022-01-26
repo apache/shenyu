@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -34,6 +32,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
 
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * The type Context register listener.
  */
@@ -45,7 +46,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    private String contextPath;
+    private final String contextPath;
 
     private final String appName;
 
@@ -72,7 +73,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 LOG.error(errorMsg);
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
-            this.contextPath = contextPath + "/**";
         }
         this.port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);

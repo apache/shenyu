@@ -72,7 +72,7 @@ public class WebClientPlugin implements ShenyuPlugin {
         assert shenyuContext != null;
         URI uri = exchange.getAttribute(Constants.HTTP_URI);
         if (Objects.isNull(uri)) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
@@ -130,6 +130,7 @@ public class WebClientPlugin implements ShenyuPlugin {
         } else {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
         }
+        exchange.getResponse().setStatusCode(res.statusCode());
         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
         return chain.execute(exchange);
     }

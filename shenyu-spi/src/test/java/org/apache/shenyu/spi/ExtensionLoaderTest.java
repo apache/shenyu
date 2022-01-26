@@ -202,7 +202,8 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(NoJoinSPI.class).getJoin("subNoJoinSPI");
             fail();
         } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), containsString("load extension resources error,class org.apache.shenyu.spi.fixture.SubNoJoinSPI with Join annotation"));
+            assertThat(expected.getMessage(), 
+                    containsString("load extension resources error,class org.apache.shenyu.spi.fixture.SubNoJoinSPI without @interface org.apache.shenyu.spi.Join annotation"));
         }
     }
     

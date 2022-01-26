@@ -16,13 +16,11 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-agent-plugins</artifactId>
-        <version>2.4.2-SNAPSHOT</version>
+        <version>2.4.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-agent-plugin-tracing</artifactId>
@@ -41,6 +39,8 @@
         <opentracing.version>0.33.0</opentracing.version>
         <opentelemetry.version>1.9.1</opentelemetry.version>
         <opentelemetry-autoconfigure.version>1.9.1-alpha</opentelemetry-autoconfigure.version>
+        <zipkin-brave.version>5.13.2</zipkin-brave.version>
+        <zipkin-reporter.version>2.16.2</zipkin-reporter.version>
     </properties>
 
     <dependencies>

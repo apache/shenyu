@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -51,8 +52,11 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class SpringCloudClientBeanPostProcessorTest {
+
     @Mock
     private static Environment env;
+
+    private final MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
 
     private final SpringCloudClientTestBean springCloudClientTestBean = new SpringCloudClientTestBean();
 
@@ -63,27 +67,31 @@ public final class SpringCloudClientBeanPostProcessorTest {
 
     @Test
     public void testShenyuBeanProcess() {
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         // config with full
         SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(true);
         assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "springCloudClientTestBean")));
+        registerUtilsMockedStatic.close();
     }
 
     @Test
     public void testNormalBeanProcess() {
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
         Object normalBean = new Object();
 
         assertThat(normalBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(normalBean, "normalBean")));
+        registerUtilsMockedStatic.close();
     }
 
     @Test
     public void testWithShenyuClientAnnotation() {
-        try (MockedStatic mocked = mockStatic(RegisterUtils.class)) {
-            mocked.when(() -> RegisterUtils.doRegister(any(), any(), any()))
-                    .thenAnswer((Answer<Void>) invocation -> null);
-            SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
-            assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "normalBean")));
-        }
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doRegister(any(), any(), any()))
+                .thenAnswer((Answer<Void>) invocation -> null);
+        SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
+        assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "normalBean")));
+        registerUtilsMockedStatic.close();
     }
 
     private SpringCloudClientBeanPostProcessor buildSpringCloudClientBeanPostProcessor(final boolean full) {
@@ -92,11 +100,14 @@ public final class SpringCloudClientBeanPostProcessorTest {
         properties.setProperty("isFull", full + "");
         properties.setProperty("ip", "127.0.0.1");
         properties.setProperty("port", "8081");
+        properties.setProperty("username", "admin");
+        properties.setProperty("password", "123456");
         PropertiesConfig config = new PropertiesConfig();
         config.setProps(properties);
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");
+        mockRegisterCenter.setProps(properties);
         return new SpringCloudClientBeanPostProcessor(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
 

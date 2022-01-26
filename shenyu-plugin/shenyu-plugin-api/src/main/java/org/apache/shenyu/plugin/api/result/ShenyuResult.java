@@ -17,10 +17,14 @@
 
 package org.apache.shenyu.plugin.api.result;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ObjectTypeUtils;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Objects;
 
 /**
  * The interface shenyu result.
@@ -31,7 +35,7 @@ public interface ShenyuResult<T> {
      * The response result.
      *
      * @param exchange the exchange
-     * @param formatted the formatted object
+     * @param formatted the formatted data that is origin data(basic、byte[]) or json string
      * @return the result object
      */
     default Object result(ServerWebExchange exchange, Object formatted) {
@@ -39,15 +43,15 @@ public interface ShenyuResult<T> {
     }
 
     /**
-     * format the origin, default is json format.
+     * format the origin, default is json format except the basic and bytes.
      *
      * @param exchange the exchange
      * @param origin the origin
      * @return format origin
      */
     default Object format(ServerWebExchange exchange, Object origin) {
-        // basic data
-        if (ObjectTypeUtils.isBasicType(origin)) {
+        // basic data or upstream data
+        if (ObjectTypeUtils.isBasicType(origin) || (origin instanceof byte[])) {
             return origin;
         }
         // error result or rpc origin result.
@@ -58,10 +62,14 @@ public interface ShenyuResult<T> {
      * the response context type, default is application/json.
      *
      * @param exchange the exchange
-     * @param formatted the formatted data that is origin data or byte[] convert string
+     * @param formatted the formatted data that is origin data(basic、byte[]) or json string
      * @return the context type
      */
     default MediaType contentType(ServerWebExchange exchange, Object formatted) {
+        final ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (Objects.nonNull(clientResponse) && clientResponse.headers().contentType().isPresent()) {
+            return clientResponse.headers().contentType().get();
+        }
         return MediaType.APPLICATION_JSON;
     }
 
@@ -86,5 +94,7 @@ public interface ShenyuResult<T> {
      * @param object  the object
      * @return the t
      */
-    T error(int code, String message, Object object);
+    default T error(int code, String message, Object object) {
+        return null;
+    }
 }

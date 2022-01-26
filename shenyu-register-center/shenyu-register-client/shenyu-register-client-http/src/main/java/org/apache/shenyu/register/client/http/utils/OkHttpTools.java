@@ -21,8 +21,11 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Headers;
+import okhttp3.HttpUrl;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -70,6 +73,42 @@ public final class OkHttpTools {
                 .url(url)
                 .post(body)
                 .build();
+        return client.newCall(request).execute().body().string();
+    }
+
+    /**
+     * Post string.
+     *
+     * @param url     the url
+     * @param json    the json
+     * @param headers the headers
+     * @return the string
+     * @throws IOException the io exception
+     */
+    public String post(final String url, final String json, final Headers headers) throws IOException {
+        RequestBody body = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .headers(headers)
+                .url(url)
+                .post(body)
+                .build();
+        return client.newCall(request).execute().body().string();
+    }
+
+    /**
+     * Get string.
+     *
+     * @param url   the url
+     * @param query the query
+     * @return the http result
+     * @throws IOException the io exception
+     */
+    public String get(final String url, final Map<String, Object> query) throws IOException {
+        Request.Builder reqBuild = new Request.Builder();
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
+        query.forEach((K, V) -> urlBuilder.addQueryParameter(K, String.valueOf(V)));
+        reqBuild.url(urlBuilder.build());
+        Request request = reqBuild.build();
         return client.newCall(request).execute().body().string();
     }
 }

@@ -1,0 +1,221 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+pointCuts:
+  - targetClass: org.apache.shenyu.plugin.global.GlobalPlugin
+    points:
+      - type: instanceMethod
+        name: execute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryGlobalPluginHandler
+  - targetClass: org.apache.shenyu.plugin.context.path.ContextPathPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.divide.DividePlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin
+    points:
+      - type: instanceMethod
+        name: doDubboInvoker
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin
+    points:
+      - type: instanceMethod
+        name: doDubboInvoker
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.general.context.GeneralContextPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.grpc.GrpcPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.hystrix.HystrixPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.jwt.JwtPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.logging.LoggingPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.modify.response.ModifyResponsePlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.monitor.MonitorPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.motan.MotanPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.oauth2.OAuth2Plugin
+    points:
+      - type: instanceMethod
+        name: execute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.param.mapping.ParamMappingPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.ratelimiter.RateLimiterPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.redirect.RedirectPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.request.RequestPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.resilience4j.Resilience4JPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.response.ResponsePlugin
+    points:
+      - type: instanceMethod
+        name: execute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.rewrite.RewritePlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.sentinel.SentinelPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.sign.SignPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.sofa.SofaPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.springcloud.SpringCloudPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.tars.TarsPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.uri.URIPlugin
+    points:
+      - type: instanceMethod
+        name: execute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.waf.WafPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
+  - targetClass: org.apache.shenyu.plugin.websocket.WebSocketPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      opentelemetry:
+        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler

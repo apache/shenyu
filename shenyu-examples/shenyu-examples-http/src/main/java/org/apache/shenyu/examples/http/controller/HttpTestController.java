@@ -69,6 +69,17 @@ public class HttpTestController {
     }
 
     /**
+     * Find by user id string.
+     *
+     * @param userId the user id
+     * @return the string
+     */
+    @GetMapping("/findByUserIdName")
+    public UserDTO findByUserId(@RequestParam("userId") final String userId, @RequestParam("name") final String name) {
+        return buildUser(userId, name);
+    }
+
+    /**
      * Find by page user dto.
      *
      * @param keyword the keyword

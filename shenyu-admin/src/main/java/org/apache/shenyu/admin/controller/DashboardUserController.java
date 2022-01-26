@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -129,12 +130,26 @@ public class DashboardUserController {
     @RequiresPermissions("system:manager:edit")
     @PutMapping("/{id}")
     public ShenyuAdminResult updateDashboardUser(@PathVariable("id") final String id, @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
-        String key = secretProperties.getKey();
-        String iv = secretProperties.getIv();
         dashboardUserDTO.setId(id);
-        dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key, iv));
+        if (StringUtils.isNotBlank(dashboardUserDTO.getPassword())) {
+            String key = secretProperties.getKey();
+            String iv = secretProperties.getIv();
+            dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key, iv));
+        }
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
+    }
+
+    /**
+     * modify dashboard user password.
+     *
+     * @param id               primary key.
+     * @param dashboardUserDTO dashboard user.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/modify-password/{id}")
+    public ShenyuAdminResult modifyPassword(@PathVariable("id") final String id, @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
+        return updateDashboardUser(id, dashboardUserDTO);
     }
 
     /**

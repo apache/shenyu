@@ -30,6 +30,8 @@ public abstract class AbstractAgentPluginDefinition implements AgentPluginDefini
     
     /**
      * Define join point builder.
+     *
+     * @return the collection
      */
     protected abstract Collection<JoinPointBuilder> joinPointBuilder();
     

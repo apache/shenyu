@@ -132,6 +132,8 @@ shenyu:
     enabled: false
     paths:
       - /favicon.ico
+  fallback:
+    enabled: true
   extPlugin:
     path:
     enabled: true

@@ -18,9 +18,11 @@
 package org.apache.shenyu.register.client.http;
 
 import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.shenyu.register.client.http.utils.OkHttpTools;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
@@ -39,15 +41,15 @@ import static org.mockito.Mockito.when;
  * Test case for {@link RegisterUtils}.
  */
 public final class RegisterUtilsTest {
-    
-    private Gson gson = new Gson();
-    
+
+    private final Gson gson = new Gson();
+
     private OkHttpTools okHttpTools;
-    
+
     private String json;
-    
+
     private String url;
-    
+
     @Before
     public void setUp() {
         okHttpTools = mock(OkHttpTools.class);
@@ -64,18 +66,18 @@ public final class RegisterUtilsTest {
         json = gson.toJson(jsonMap);
         url = "http://localhost:9095/shenyu-client/dubbo-register";
     }
-    
+
     @Test
     public void testDoRegisterWhenSuccess() throws IOException {
         when(okHttpTools.post(url, json)).thenReturn("success");
-        
+
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
-    
+
     @Test
     public void testDoRegisterWhenError() throws IOException {
         when(okHttpTools.post(url, json)).thenReturn("Error parameter！");
@@ -85,7 +87,7 @@ public final class RegisterUtilsTest {
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
-    
+
     @Test(expected = IOException.class)
     public void testDoRegisterWhenThrowException() throws IOException {
         when(okHttpTools.post(url, json)).thenThrow(IOException.class);

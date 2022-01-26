@@ -88,7 +88,7 @@ public class NettyHttpClientPlugin implements ShenyuPlugin {
         }
         URI uri = exchange.getAttribute(Constants.HTTP_URI);
         if (Objects.isNull(uri)) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         LOG.info("you request, The resulting urlPath is: {}", uri.toASCIIString());
