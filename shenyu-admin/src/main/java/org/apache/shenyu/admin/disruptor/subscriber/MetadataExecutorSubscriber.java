@@ -47,7 +47,7 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
         for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
             ShenyuClientRegisterService shenyuClientRegisterService = this.shenyuClientRegisterService.get(metaDataRegisterDTO.getRpcType());
             Objects.requireNonNull(shenyuClientRegisterService);
-            synchronized (ShenyuClientRegisterService.class) {
+            synchronized (shenyuClientRegisterService) {
                 shenyuClientRegisterService.register(metaDataRegisterDTO);
             }
         }
