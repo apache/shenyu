@@ -37,6 +37,6 @@ public enum ShenyuServiceTransfer {
      * @return The new instance
      */
     public ShenyuServiceInstance deepCopy(final ShenyuServiceInstance instance) {
-        return Optional.ofNullable(instance).map(data -> new ShenyuServiceInstance(data.getHost(), data.getPort(), data.getMetadata())).orElseGet(null);
+        return Optional.ofNullable(instance).map(data -> new ShenyuServiceInstance(data.getHost(), data.getPort(), data.getMetadata())).orElse(null);
     }
 }
