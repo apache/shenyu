@@ -18,10 +18,9 @@
 @echo off & setlocal enabledelayedexpansion
 
 cd %~dp0
-set BASE_DIR=%~dp0
-set BASE_DIR=%BASE_DIR:~0,-5%
 
-set LOG_HOME=%BASE_DIR%/logs
+set LOG_HOME=%~dp0/../logs
+
 set SERVER_NAME=ShenYu-Bootstrap
 
 set CLASS_PATH=".;..\conf;..\lib\*;..\ext-lib\*"
@@ -32,27 +31,16 @@ echo %version%| findstr "^1.8" >nul && (
    set "JAVA_OPTS=%JAVA_OPTS%  -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70"
 )
 echo %version%| findstr "^11" >nul && (
-    set "JAVA_OPTS=%JAVA_OPTS%"
+    set "JAVA_OPTS=%JAVA_OPTS%
 )
 echo %version%| findstr "^17" >nul && (
-   set "JAVA_OPTS=%JAVA_OPTS%"
+   set "JAVA_OPTS=%JAVA_OPTS%
 )
 
 set MAIN_CLASS=org.apache.shenyu.bootstrap.ShenyuBootstrapApplication
 
-echo current jdk version:%version%
+echo Starting the %SERVER_NAME% ...
 
-set AGENT=%1%
-
-set "SHENYU_AGENT=-javaagent:%BASE_DIR%\agent\shenyu-agent.jar"
-
-if "%AGENT%"=="agent" (
-    echo Starting the %SERVER_NAME%  with shenyu-agent ...
-    java %JAVA_OPTS%  %SHENYU_AGENT%  -Dfile.encoding=UTF-8 -Dlog.home=%LOG_HOME% -classpath %CLASS_PATH% %MAIN_CLASS%
- ) ^
-else (
-    echo Starting the %SERVER_NAME% ...
-    java %JAVA_OPTS% -Dfile.encoding=UTF-8 -Dlog.home=%LOG_HOME% -classpath %CLASS_PATH% %MAIN_CLASS%
-) 
+java %JAVA_OPTS% -Dfile.encoding=UTF-8 -Dlog.home=%LOG_HOME% -classpath %CLASS_PATH% %MAIN_CLASS%
 
 pause
