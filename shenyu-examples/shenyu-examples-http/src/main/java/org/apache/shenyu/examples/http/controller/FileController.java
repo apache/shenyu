@@ -21,17 +21,17 @@ import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.http.dto.FileUploadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
-import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @RestController
@@ -39,7 +39,9 @@ import java.nio.charset.StandardCharsets;
 @ShenyuSpringMvcClient(path = "/file/**")
 public class FileController {
 
-    public static final Logger LOG = LoggerFactory.getLogger(FileController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileController.class);
+
+    private static final String TEST_FILE_PATH = "shenyu-examples/shenyu-examples-http/src/main/resources/test_file";
 
     @PostMapping("/uploadFile")
     public FileUploadResponse uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
@@ -48,28 +50,19 @@ public class FileController {
     }
 
     @GetMapping("/downloadFile")
-    public String downloadFile(HttpServletResponse response) {
-        try {
-            String path = "shenyu-examples/shenyu-examples-http/src/main/resources/test_file";
-            File file = new File(path);
-            String filename = file.getName();
-            LOG.info("fileName: "+filename);
-            FileInputStream fileInputStream = new FileInputStream(file);
-            InputStream fis = new BufferedInputStream(fileInputStream);
-            byte[] buffer = new byte[fis.available()];
-            fis.read(buffer);
-            fis.close();
-            response.reset();
-            response.setCharacterEncoding("UTF-8");
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
-            response.addHeader("Content-Length", "" + file.length());
-            OutputStream outputStream = new BufferedOutputStream(response.getOutputStream());
-            response.setContentType("application/octet-stream");
-            outputStream.write(buffer);
-            outputStream.flush();
-        } catch (IOException ex) {
-            return "下载失败";
-        }
-        return "";
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public void downloadFile(HttpServletResponse response) throws IOException {
+        FileInputStream inputStream = new FileInputStream(TEST_FILE_PATH);
+        byte[] buffer = new byte[inputStream.available()];
+        inputStream.read(buffer);
+        inputStream.close();
+
+        response.reset();
+        response.addHeader("Content-Disposition", "attachment;filename=test_file");
+
+        OutputStream outputStream = new BufferedOutputStream(response.getOutputStream());
+        outputStream.write(buffer);
+        outputStream.flush();
+        outputStream.close();
     }
 }
