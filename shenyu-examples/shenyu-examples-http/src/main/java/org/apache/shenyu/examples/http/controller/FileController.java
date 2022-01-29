@@ -39,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 @ShenyuSpringMvcClient(path = "/file/**")
 public class FileController {
 
-
     public static final Logger LOG = LoggerFactory.getLogger(FileController.class);
 
     @PostMapping("/uploadFile")
