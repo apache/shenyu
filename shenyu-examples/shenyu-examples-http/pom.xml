@@ -36,6 +36,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-springmvc</artifactId>
             <version>${project.version}</version>
@@ -61,7 +66,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
         <!--shenyu consul register center -->
         <!--<dependency>
             <groupId>org.springframework.cloud</groupId>
