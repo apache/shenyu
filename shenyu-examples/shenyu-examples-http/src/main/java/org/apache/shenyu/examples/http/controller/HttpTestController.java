@@ -82,8 +82,8 @@ public class HttpTestController {
     /**
      * Find by page user dto.
      *
-     * @param keyword the keyword
-     * @param page the page
+     * @param keyword  the keyword
+     * @param page     the page
      * @param pageSize the page size
      * @return the user dto
      */
@@ -95,7 +95,7 @@ public class HttpTestController {
     /**
      * Gets path variable.
      *
-     * @param id the id
+     * @param id   the id
      * @param name the name
      * @return the path variable
      */
@@ -120,7 +120,7 @@ public class HttpTestController {
     /**
      * Put path variable and body string.
      *
-     * @param id the id
+     * @param id      the id
      * @param userDTO the user dto
      * @return the string
      */
@@ -238,6 +238,20 @@ public class HttpTestController {
                 .put("removeBodyKeys", true)
                 .build();
         return Mono.just(GsonUtils.getInstance().toJson(body));
+    }
+
+
+    @PostMapping(path = "/modifyRequest")
+    public Map<String, Object> modifyRequest(@RequestBody final UserDTO userDTO,
+                                             @CookieValue(value = "cookie", defaultValue = "") final String cookie,
+                                             @RequestHeader(value = "requestHeader", defaultValue = "") final String requestHeader,
+                                             @RequestParam(value = "requestParameter", defaultValue = "") final String requestParameter) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("body", userDTO);
+        result.put("cookie", cookie);
+        result.put("header", requestHeader);
+        result.put("parameter", requestParameter);
+        return result;
     }
 
     private UserDTO buildUser(final String id, final String name) {
