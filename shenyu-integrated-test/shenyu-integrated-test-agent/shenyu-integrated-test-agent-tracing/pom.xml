@@ -30,6 +30,7 @@
 
     <modules>
         <module>shenyu-integrated-test-agent-tracing-opentelemetry</module>
+        <module>shenyu-integrated-test-agent-tracing-jaeger</module>
         <module>shenyu-integrated-test-agent-tracing-zipkin</module>
     </modules>
 
