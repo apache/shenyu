@@ -146,6 +146,27 @@ public class HttpHelper {
         }
     }
 
+    /**
+     * Send a post http request to shenyu gateway with custom requestBody.
+     *
+     * @param <S>         type of response object
+     * @param path        path
+     * @param requestBody request Body
+     * @param respType    response type passed to {@link Gson#fromJson(String, Class)}
+     * @return response s
+     * @throws IOException IO exception
+     */
+    public <S> S postGateway(final String path, final RequestBody requestBody, final Class<S> respType) throws IOException {
+        Request.Builder requestBuilder = new Request.Builder().post(requestBody).url(GATEWAY_END_POINT + path);
+        Response response = client.newCall(requestBuilder.build()).execute();
+        String respBody = Objects.requireNonNull(response.body()).string();
+        try {
+            return GSON.fromJson(respBody, respType);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
+    }
+
     private <Q> String post(final String path, final Map<String, Object> headers, final Q req) throws IOException {
         Request.Builder requestBuilder = new Request.Builder().post(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path);
         if (!CollectionUtils.isEmpty(headers)) {
