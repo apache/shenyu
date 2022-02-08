@@ -25,10 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * @author ZhangZiCheng
- * @date 2022/2/8 11:41
- */
 @Aspect
 @Component
 public class LogInterceptor {
