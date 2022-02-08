@@ -92,9 +92,9 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         String serviceName = serviceBean.getClass().getAnnotation(ShenyuTarsService.class).serviceName();
         for (Method method : methods) {
-            ShenyuTarsClient shenyuSofaClient = method.getAnnotation(ShenyuTarsClient.class);
-            if (Objects.nonNull(shenyuSofaClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuSofaClient, method, buildRpcExt(methods)));
+            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
+            if (Objects.nonNull(shenyuTarsClient)) {
+                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuTarsClient, method, buildRpcExt(methods)));
             }
         }
     }
@@ -142,8 +142,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private String buildRpcExt(final Method[] methods) {
         List<TarsRpcExt.RpcExt> list = new ArrayList<>();
         for (Method method : methods) {
-            ShenyuTarsClient shenyuSofaClient = method.getAnnotation(ShenyuTarsClient.class);
-            if (Objects.nonNull(shenyuSofaClient)) {
+            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
+            if (Objects.nonNull(shenyuTarsClient)) {
                 list.add(buildRpcExt(method));
             }
         }
