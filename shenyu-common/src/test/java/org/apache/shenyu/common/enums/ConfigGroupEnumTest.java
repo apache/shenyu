@@ -18,29 +18,25 @@
 package org.apache.shenyu.common.enums;
 
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test Cases for ConfigGroupEnum.
  */
 public final class ConfigGroupEnumTest {
 
-    @Rule
-    public ExpectedException expectedEx = ExpectedException.none();
-
     @Test
     public void testAcquireByName() {
         assertThat(ConfigGroupEnum.APP_AUTH, equalTo(ConfigGroupEnum.acquireByName(ConfigGroupEnum.APP_AUTH.name())));
         assertThat(ConfigGroupEnum.APP_AUTH, not(ConfigGroupEnum.acquireByName(ConfigGroupEnum.PLUGIN.name())));
 
-        expectedEx.expect(ShenyuException.class);
-        expectedEx.expectMessage("this ConfigGroupEnum can not support unknown");
-        ConfigGroupEnum.acquireByName("unknown");
+        Exception exception = assertThrows(ShenyuException.class, () -> ConfigGroupEnum.acquireByName("unknown"));
+        assertEquals(" this ConfigGroupEnum can not support unknown", exception.getMessage());
     }
 }

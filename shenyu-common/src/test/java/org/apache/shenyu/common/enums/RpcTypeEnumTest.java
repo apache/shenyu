@@ -18,14 +18,13 @@
 package org.apache.shenyu.common.enums;
 
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RpcTypeEnumTest {
     @Test
@@ -88,8 +87,8 @@ public class RpcTypeEnumTest {
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.TARS));
     }
 
-    @Test(expected = ShenyuException.class)
+    @Test
     public void testGetRpcTypeEnumByNameInvalid() {
-        RpcTypeEnum.acquireByName("InvalidName");
+        assertThrows(ShenyuException.class, () -> RpcTypeEnum.acquireByName("InvalidName"));
     }
 }
