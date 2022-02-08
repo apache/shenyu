@@ -228,7 +228,7 @@
         <module name="SummaryJavadoc"/>
         <module name="JavadocMethod">
             <property name="scope" value="public"/>
-            <property name="allowedAnnotations" value="Override, Test, Before, After, BeforeClass, AfterClass, Parameterized, Parameters"/>
+            <property name="allowedAnnotations" value="Override, Test, Before, After, BeforeClass, AfterClass, Parameterized, Parameters, BeforeEach, AfterEach, BeforeAll, AfterAll, ParameterizedTest, TestMethodOrder"/>
             <property name="ignoreMethodNamesRegex" value="^assert.*$|^verify.*$"/>
             <property name="tokens" value="METHOD_DEF, ANNOTATION_FIELD_DEF"/>
         </module>
