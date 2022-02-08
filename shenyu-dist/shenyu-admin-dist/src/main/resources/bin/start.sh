@@ -30,7 +30,7 @@ fi
 LOG_FILES=${LOGS_DIR}/shenyu-admin.log
 EXT_LIB=${DEPLOY_DIR}/ext-lib
 
-PIDS=`ps -ef | grep "$DEPLOY_DIR" | grep -v grep | awk '{print $2}'`
+PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | grep -v grep | awk '{print $2}'`
 if [ -n "$PIDS" ]; then
     echo "ERROR: The $SERVER_NAME already started!"
     echo "PID: $PIDS"
