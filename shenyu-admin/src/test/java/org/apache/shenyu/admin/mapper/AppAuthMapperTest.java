@@ -22,15 +22,17 @@ import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test cases for AppAuthMapper.
@@ -42,7 +44,7 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
 
     private final AppAuthDO appAuthDO = buildAppAuthDO();
 
-    @Before
+    @BeforeEach
     public void before() {
         int count = appAuthMapper.insert(appAuthDO);
         assertEquals(1, count);

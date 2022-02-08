@@ -22,8 +22,9 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
@@ -31,10 +32,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for MetaDataMapper.
@@ -47,7 +48,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     /**
      * Clean data before test.
      */
-    @Before
+    @BeforeEach
     public void setUp() {
         List<MetaDataDO> all = metaDataMapper.findAll();
         for (MetaDataDO metaDataDO : all) {

@@ -24,16 +24,18 @@ import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
     
 import java.util.ArrayList;
 import java.util.List;
     
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,7 +43,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link ShenyuClientRegisterSofaServiceImpl}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShenyuClientRegisterSofaServiceImplTest {
 
     @InjectMocks
@@ -53,18 +56,18 @@ public final class ShenyuClientRegisterSofaServiceImplTest {
     @Test
     public void testRpcType() {
         String rpcType = shenyuClientRegisterSofaService.rpcType();
-        Assert.assertEquals(RpcTypeEnum.SOFA.getName(), rpcType);
+        assertEquals(RpcTypeEnum.SOFA.getName(), rpcType);
     }
     
     @Test
     public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
-        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterSofaService.selectorHandler(metaDataRegisterDTO));
+        assertEquals(StringUtils.EMPTY, shenyuClientRegisterSofaService.selectorHandler(metaDataRegisterDTO));
     }
     
     @Test
     public void testRuleHandler() {
-        Assert.assertEquals("{\"retries\":0,\"loadBalance\":\"random\",\"timeout\":3000}",
+        assertEquals("{\"retries\":0,\"loadBalance\":\"random\",\"timeout\":3000}",
                 shenyuClientRegisterSofaService.ruleHandler());
     }
     
@@ -81,7 +84,7 @@ public final class ShenyuClientRegisterSofaServiceImplTest {
     public void testBuildHandle() {
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().build());
-        Assert.assertEquals(StringUtils.EMPTY,
+        assertEquals(StringUtils.EMPTY,
                 shenyuClientRegisterSofaService.buildHandle(list, SelectorDO.builder().build()));
     }
 }

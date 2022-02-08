@@ -29,18 +29,19 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
     
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
     
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -51,7 +52,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link ShenyuClientRegisterDubboServiceImpl}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShenyuClientRegisterDubboServiceImplTest {
     
     public static final String LOCALHOST = "localhost";
@@ -64,18 +66,18 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
     
     @Test
     public void testRpcType() {
-        Assert.assertEquals(RpcTypeEnum.DUBBO.getName(), shenyuClientRegisterDubboService.rpcType());
+        assertEquals(RpcTypeEnum.DUBBO.getName(), shenyuClientRegisterDubboService.rpcType());
     }
     
     @Test
     public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
-        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterDubboService.selectorHandler(metaDataRegisterDTO));
+        assertEquals(StringUtils.EMPTY, shenyuClientRegisterDubboService.selectorHandler(metaDataRegisterDTO));
     }
     
     @Test
     public void testRuleHandler() {
-        Assert.assertEquals(new DubboRuleHandle().toJson(), shenyuClientRegisterDubboService.ruleHandler());
+        assertEquals(new DubboRuleHandle().toJson(), shenyuClientRegisterDubboService.ruleHandler());
     }
     
     @Test

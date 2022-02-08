@@ -22,13 +22,13 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for {@link ExceptionHandlers}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ExceptionHandlersTest {
 
     private static Logger loggerSpy;
@@ -64,19 +64,19 @@ public final class ExceptionHandlersTest {
 
     private ExceptionHandlers exceptionHandlersUnderTest;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(ExceptionHandlers.class));
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ExceptionHandlers.class)).thenReturn(loggerSpy);
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {
         loggerFactoryMockedStatic.close();
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         exceptionHandlersUnderTest = new ExceptionHandlers();
     }

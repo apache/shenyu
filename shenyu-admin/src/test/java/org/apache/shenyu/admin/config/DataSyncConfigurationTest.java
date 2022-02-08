@@ -33,14 +33,14 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 /**
  * The TestCase for {@link DataSyncConfiguration}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @EnableConfigurationProperties(HttpSyncProperties.class)
 public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
@@ -77,12 +77,12 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Mock
     private MetaDataService metaDataService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws Exception {
         zkServer = new TestingServer(21810, true);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() throws Exception {
         zkServer.stop();
     }
@@ -140,7 +140,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         SyncDataService syncDataService = mock(SyncDataService.class);
         assertNotNull(nacosListener.nacosDataInit(configService, syncDataService));
     }
-    
+
     @Test
     public void testEtcdDataChangedListener() {
         DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
@@ -170,7 +170,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         ConsulClient consulClient = mock(ConsulClient.class);
         assertNotNull(consulListener.consulDataChangedListener(consulClient));
     }
-    
+
     @Test
     public void testConsulDataInit() {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
@@ -178,8 +178,8 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         SyncDataService syncDataService = mock(SyncDataService.class);
         assertNotNull(consulListener.consulDataInit(consulClient, syncDataService));
     }
-    
-    @After
+
+    @AfterEach
     public void after() {
         zkClient.close();
     }

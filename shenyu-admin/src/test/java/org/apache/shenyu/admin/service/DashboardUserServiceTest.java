@@ -35,11 +35,11 @@ import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
 import org.apache.shenyu.admin.utils.AesUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -64,7 +64,7 @@ import static org.mockito.Mockito.when;
 /**
  * test cases for DashboardUserService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class DashboardUserServiceTest {
 
     public static final String TEST_ID = "testId";
