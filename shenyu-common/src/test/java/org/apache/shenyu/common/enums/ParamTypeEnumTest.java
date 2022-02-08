@@ -71,9 +71,7 @@ public final class ParamTypeEnumTest {
     public void testGetParamTypeEnumByNameValid() {
         Arrays.stream(ParamTypeEnum.values())
                 .filter(ParamTypeEnum::getSupport)
-                .forEach(
-                        paramTypeEnum ->
-                                assertEquals(
-                                        paramTypeEnum, ParamTypeEnum.getParamTypeEnumByName(paramTypeEnum.getName())));
+                .forEach(paramTypeEnum -> assertEquals(
+                        paramTypeEnum, ParamTypeEnum.getParamTypeEnumByName(paramTypeEnum.getName())));
     }
 }

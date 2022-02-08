@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.constant;
 
-
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

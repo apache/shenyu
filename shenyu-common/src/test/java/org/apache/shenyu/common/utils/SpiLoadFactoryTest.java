@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test Cases for SpiLoadFactory.
@@ -33,9 +34,9 @@ public class SpiLoadFactoryTest {
         assertNotNull(SpiLoadFactory.loadFirst(SpiInterface.class));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testLoadFirstNoDefined() {
-        SpiLoadFactory.loadFirst(List.class);
+        assertThrows(IllegalStateException.class, () -> SpiLoadFactory.loadFirst(List.class));
     }
 
     @Test

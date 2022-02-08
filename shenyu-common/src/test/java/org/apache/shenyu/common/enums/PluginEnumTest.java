@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

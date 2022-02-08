@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.timer;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -49,7 +49,7 @@ public class HierarchicalWheelTimerTest {
     /**
      * Sets up.
      */
-    @Before
+    @BeforeEach
     public void setUp() {
         timer = WheelTimerFactory.newWheelTimer();
         timerTaskList = new TimerTaskList(taskCount);

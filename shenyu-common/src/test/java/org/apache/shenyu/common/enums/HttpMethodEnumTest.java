@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.common.enums;
 
-
 import java.util.Arrays;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Test Cases for HttpMethodEnum. */
 public final class HttpMethodEnumTest {

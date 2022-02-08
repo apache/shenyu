@@ -17,13 +17,11 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -33,12 +31,11 @@ import static org.mockito.Mockito.verify;
 /**
  * Test Cases for ThreadUtils.
  */
-@RunWith(MockitoJUnitRunner.class)
 public final class ThreadUtilsTest {
 
     private TimeUnit timeUnit;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         timeUnit = mock(TimeUnit.class);
     }

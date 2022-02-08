@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.dto;
 
-
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;

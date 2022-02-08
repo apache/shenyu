@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.concurrent;
 
-
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.ThreadFactory;

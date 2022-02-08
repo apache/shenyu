@@ -20,10 +20,8 @@ package org.apache.shenyu.plugin.resilience4j.core;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -36,12 +34,11 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 /**
  * RateLimiter test.
  */
-@RunWith(MockitoJUnitRunner.class)
 public final class RateLimiterTest {
 
     private RateLimiter rateLimiter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         rateLimiter = mock(RateLimiter.class, RETURNS_DEEP_STUBS);
     }

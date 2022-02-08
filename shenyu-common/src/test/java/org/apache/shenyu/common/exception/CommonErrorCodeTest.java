@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.exception;
 
-
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
