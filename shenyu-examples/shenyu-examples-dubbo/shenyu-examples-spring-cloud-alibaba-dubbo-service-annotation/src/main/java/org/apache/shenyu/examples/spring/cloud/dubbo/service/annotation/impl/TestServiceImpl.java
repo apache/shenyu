@@ -21,6 +21,7 @@ import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
+import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 
 import java.util.Collections;
 import java.util.Random;
@@ -32,7 +33,7 @@ import java.util.Random;
 public class TestServiceImpl implements DubboTestService {
     
     @Override
-    @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
+    @SoulDubboClient(path = "/findById", desc = "Query by Id")
     public DubboTest findById(final String id) {
         return new DubboTest(id, "hello world shenyu Apache, findById");
     }

@@ -23,7 +23,6 @@ import com.alibaba.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
-import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -32,9 +31,11 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -76,7 +77,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
     }
-    
+
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
         if (!registered.compareAndSet(false, true)) {
@@ -100,19 +101,19 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuDubboClient shenyuDubboClient = method.getAnnotation(ShenyuDubboClient.class);
-            if (Objects.nonNull(shenyuDubboClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuDubboClient, method));
+            SoulDubboClient dubboClient = AnnotatedElementUtils.findMergedAnnotation(method, SoulDubboClient.class);
+            if (Objects.nonNull(dubboClient)) {
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, dubboClient, method));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final SoulDubboClient dubboClient, final Method method) {
         String appName = buildAppName(serviceBean);
-        String path = contextPath + shenyuDubboClient.path();
-        String desc = shenyuDubboClient.desc();
+        String path = contextPath + dubboClient.path();
+        String desc = dubboClient.desc();
         String serviceName = serviceBean.getInterface();
-        String configRuleName = shenyuDubboClient.ruleName();
+        String configRuleName = dubboClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -130,7 +131,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
                 .parameterTypes(parameterTypes)
                 .rpcExt(buildRpcExt(serviceBean))
                 .rpcType(RpcTypeEnum.DUBBO.getName())
-                .enabled(shenyuDubboClient.enabled())
+                .enabled(dubboClient.enabled())
                 .build();
     }
     

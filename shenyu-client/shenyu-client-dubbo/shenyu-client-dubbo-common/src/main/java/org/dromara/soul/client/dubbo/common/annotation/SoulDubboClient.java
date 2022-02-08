@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.dubbo.common.annotation;
-
-import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
-import org.springframework.core.annotation.AliasFor;
+package org.dromara.soul.client.dubbo.common.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -27,20 +24,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The interface shenyu client.
+ * The interface Soul client.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
-@SoulDubboClient(path = "")
-public @interface ShenyuDubboClient {
+public @interface SoulDubboClient {
 
     /**
      * Path string.
      *
      * @return the string
      */
-    @AliasFor(annotation = SoulDubboClient.class)
     String path();
 
     /**
@@ -48,7 +43,6 @@ public @interface ShenyuDubboClient {
      *
      * @return the string
      */
-    @AliasFor(annotation = SoulDubboClient.class)
     String ruleName() default "";
 
     /**
@@ -56,7 +50,6 @@ public @interface ShenyuDubboClient {
      *
      * @return String string
      */
-    @AliasFor(annotation = SoulDubboClient.class)
     String desc() default "";
 
     /**
@@ -64,6 +57,5 @@ public @interface ShenyuDubboClient {
      *
      * @return the boolean
      */
-    @AliasFor(annotation = SoulDubboClient.class)
     boolean enabled() default true;
 }
