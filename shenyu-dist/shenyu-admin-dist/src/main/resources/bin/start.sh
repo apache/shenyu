@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+ 
 SERVER_NAME=ShenYu-Admin
 
 cd `dirname $0`
