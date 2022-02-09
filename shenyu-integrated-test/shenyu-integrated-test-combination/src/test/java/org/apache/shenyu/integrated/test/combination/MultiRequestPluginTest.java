@@ -18,7 +18,7 @@
 package org.apache.shenyu.integrated.test.combination;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +48,7 @@ import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonObject;

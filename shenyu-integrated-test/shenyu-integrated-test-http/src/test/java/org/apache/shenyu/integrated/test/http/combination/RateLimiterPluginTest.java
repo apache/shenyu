@@ -29,9 +29,9 @@ import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,13 +41,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class RateLimiterPluginTest extends AbstractPluginDataInit {
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.RATE_LIMITER.getName(), "{\"mode\":\"standalone\",\"master\":\"mymaster\",\"url\":\"shenyu-redis:6379\",\"password\":\"abc\"}");
         assertThat(pluginResult, is("success"));
@@ -168,7 +168,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(ruleLocalData);
     }
 
-    @After
+    @AfterEach
     public void clean() throws IOException {
         String res = cleanPluginData(PluginEnum.RATE_LIMITER.getName());
         assertThat(res, is("success"));
