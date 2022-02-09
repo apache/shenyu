@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.starter.client.apache.dubbo;
 
 import org.apache.shenyu.client.apache.dubbo.ApacheDubboServiceBeanListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
