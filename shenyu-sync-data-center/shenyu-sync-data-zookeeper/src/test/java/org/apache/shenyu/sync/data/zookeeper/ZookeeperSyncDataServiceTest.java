@@ -30,28 +30,28 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ZookeeperSyncDataServiceTest {
 
     private static final String MOCK_PLUGIN_PARENT_PATH = "/shenyu/plugin";
@@ -88,7 +88,7 @@ public final class ZookeeperSyncDataServiceTest {
 
     private ZookeeperSyncDataService syncDataService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         zkClient = mock(ZkClient.class);
         //mock plugin data & method
@@ -349,7 +349,7 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient,
                 null, Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
-        Assert.assertEquals(1, subscribeList.size());
+        assertEquals(1, subscribeList.size());
         ArgumentCaptor<IZkDataListener> captor = ArgumentCaptor.forClass(IZkDataListener.class);
         verify(zkClient).subscribeDataChanges(eq(MOCK_META_DATA_PATH), captor.capture());
         captor.getValue().handleDataChange(MOCK_META_DATA_PATH, GsonUtils.getInstance().toJson(changedMetaData));
@@ -379,7 +379,7 @@ public final class ZookeeperSyncDataServiceTest {
         assertThat(unSubscribeList.get(0).getPath(), is(MOCK_META_DATA_ID));
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         syncDataService.close();
     }
