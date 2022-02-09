@@ -36,10 +36,10 @@ import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -60,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * The type Plugin controller Test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class LocalPluginControllerTest {
 
     private PluginDataSubscriber subscriber;
@@ -69,7 +69,7 @@ public final class LocalPluginControllerTest {
 
     private BaseDataCache baseDataCache;
 
-    @Before
+    @BeforeEach
     public void setup() {
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
         subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList);
