@@ -21,9 +21,8 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -34,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * test for ShenyuWebHandler.
@@ -45,7 +45,7 @@ public final class ShenyuWebHandlerTest {
     
     private final List<ShenyuPlugin> listPlugins = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         final ShenyuPlugin plugins = mock(ShenyuPlugin.class);
         listPlugins.add(plugins);
@@ -60,6 +60,6 @@ public final class ShenyuWebHandlerTest {
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         Mono<Void> handle = shenyuWebHandler.handle(exchange);
-        Assert.assertNotNull(handle);
+        assertNotNull(handle);
     }
 }

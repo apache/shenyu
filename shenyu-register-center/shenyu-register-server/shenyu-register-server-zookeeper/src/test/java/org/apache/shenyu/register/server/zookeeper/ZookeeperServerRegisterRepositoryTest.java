@@ -23,8 +23,8 @@ import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -54,7 +54,7 @@ public class ZookeeperServerRegisterRepositoryTest {
 
     private IZkDataListener zkDataListener;
 
-    @Before
+    @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.publisher = mockPublish();
         this.repository = new ZookeeperServerRegisterRepository();

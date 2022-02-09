@@ -20,10 +20,10 @@ package org.apache.shenyu.web.controller;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 /**
  * Test cases for {@link LocalMetadataController}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class LocalMetadataControllerTest {
 
     private MockMvc mockMvc;
@@ -50,7 +50,7 @@ public final class LocalMetadataControllerTest {
 
     private List<MetaDataSubscriber> subscribers;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         subscribers = new LinkedList<>();
         subscribers.add(mock(MetaDataSubscriber.class));
