@@ -30,7 +30,14 @@ fi
 LOG_FILES=${LOGS_DIR}/shenyu-bootstrap.log
 EXT_LIB=${DEPLOY_DIR}/ext-lib
 
-PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | grep -v grep | awk '{print $2}'`
+IS_DOCKER=`cat /proc/1/cgroup | grep -qi docker && echo 1 || echo 0`
+if [ $IS_DOCKER -eq 1 ];
+  then
+      PIDS=`ps -ef | grep "$DEPLOY_DIR" | grep -v grep | pgrep -f java`
+  else
+      PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | grep -v grep | awk '{print $2}'`
+fi
+
 if [ -n "$PIDS" ]; then
     echo "ERROR: The $SERVER_NAME already started!"
     echo "PID: $PIDS"
