@@ -17,24 +17,26 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.dto.RoleDTO;
-import org.apache.shenyu.admin.model.entity.PermissionDO;
-import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
+import org.apache.shenyu.admin.model.dto.RoleDTO;
+import org.apache.shenyu.admin.model.entity.PermissionDO;
+import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RoleQuery;
-import org.apache.shenyu.admin.service.impl.RoleServiceImpl;
 import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.apache.shenyu.admin.service.impl.RoleServiceImpl;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -44,20 +46,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test cases for RoleService.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RoleServiceTest {
 
     @InjectMocks
@@ -167,28 +170,28 @@ public class RoleServiceTest {
 
     private RoleDTO buildRoleDTO() {
         return RoleDTO.builder()
-            .id(UUIDUtils.getInstance().generateShortUuid())
-            .roleName("test-role")
-            .description("role desc")
-            .build();
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .roleName("test-role")
+                .description("role desc")
+                .build();
     }
 
     private RoleDTO buildRoleDTOWithoutId() {
         return RoleDTO.builder()
-            .roleName("test-role")
-            .description("role desc")
-            .build();
+                .roleName("test-role")
+                .description("role desc")
+                .build();
     }
 
     private RoleDO buildRoleDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         return RoleDO.builder()
-            .id(UUIDUtils.getInstance().generateShortUuid())
-            .roleName("test-role")
-            .description("role desc")
-            .dateCreated(now)
-            .dateUpdated(now)
-            .build();
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .roleName("test-role")
+                .description("role desc")
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 
 }

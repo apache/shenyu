@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.admin.spring;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +32,7 @@ public final class SpringBeanUtilsTest {
 
     private SpringBeanUtils springBeanUtilsUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         springBeanUtilsUnderTest = SpringBeanUtils.getInstance();
     }
@@ -43,20 +43,20 @@ public final class SpringBeanUtilsTest {
         when(applicationContext.getBean(TestBean.class)).thenReturn(new TestBean());
         springBeanUtilsUnderTest.setApplicationContext(applicationContext);
         final TestBean result = springBeanUtilsUnderTest.getBean(TestBean.class);
-        Assert.assertNotNull(result);
+        assertNotNull(result);
     }
 
     @Test
     public void testSetCfgContext() throws NoSuchFieldException {
         final ConfigurableApplicationContext cfgContext = mock(ConfigurableApplicationContext.class);
         springBeanUtilsUnderTest.setApplicationContext(cfgContext);
-        Assert.assertNotNull(springBeanUtilsUnderTest.getClass().getDeclaredField("applicationContext"));
+        assertNotNull(springBeanUtilsUnderTest.getClass().getDeclaredField("applicationContext"));
     }
 
     @Test
     public void testGetInstance() {
         final SpringBeanUtils result = SpringBeanUtils.getInstance();
-        Assert.assertNotNull(result);
+        assertNotNull(result);
     }
 
     /**

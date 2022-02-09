@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ public class WebsocketListenerTest {
 
     private WebsocketListener websocketListener;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.websocketListener = new WebsocketListener();
     }

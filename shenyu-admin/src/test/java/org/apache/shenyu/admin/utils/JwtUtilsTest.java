@@ -19,12 +19,12 @@ package org.apache.shenyu.admin.utils;
 
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +39,7 @@ public class JwtUtilsTest {
 
     private static final String KEY = "jwt-token";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         JwtProperties jwtProperties = mock(JwtProperties.class);

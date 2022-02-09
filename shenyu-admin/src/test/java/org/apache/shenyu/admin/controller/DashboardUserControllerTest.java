@@ -28,12 +28,13 @@ import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -58,7 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test cases for {@link DashboardUserController}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class DashboardUserControllerTest {
 
     private MockMvc mockMvc;
@@ -80,7 +81,7 @@ public final class DashboardUserControllerTest {
     private final DashboardUserDTO dashboardUserDTO = new DashboardUserDTO("2", "userName",
             "123456", 0, new ArrayList<>(), false);
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         final SecretProperties secretProperties = new SecretProperties();
         secretProperties.setKey("2095132720951327");

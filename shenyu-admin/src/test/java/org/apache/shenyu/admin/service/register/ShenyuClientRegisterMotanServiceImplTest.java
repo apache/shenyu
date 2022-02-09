@@ -24,16 +24,18 @@ import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
     
 import java.util.ArrayList;
 import java.util.List;
     
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,7 +43,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link ShenyuClientRegisterMotanServiceImpl}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShenyuClientRegisterMotanServiceImplTest {
     
     @InjectMocks
@@ -53,18 +56,18 @@ public final class ShenyuClientRegisterMotanServiceImplTest {
     @Test
     public void testRpcType() {
         String rpcType = shenyuClientRegisterMotanService.rpcType();
-        Assert.assertEquals(RpcTypeEnum.MOTAN.getName(), rpcType);
+        assertEquals(RpcTypeEnum.MOTAN.getName(), rpcType);
     }
     
     @Test
     public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().build();
-        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.selectorHandler(metaDataRegisterDTO));
+        assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.selectorHandler(metaDataRegisterDTO));
     }
     
     @Test
     public void testRuleHandler() {
-        Assert.assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.ruleHandler());
+        assertEquals(StringUtils.EMPTY, shenyuClientRegisterMotanService.ruleHandler());
     }
     
     @Test
@@ -80,7 +83,7 @@ public final class ShenyuClientRegisterMotanServiceImplTest {
     public void testBuildHandle() {
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().build());
-        Assert.assertEquals(StringUtils.EMPTY,
+        assertEquals(StringUtils.EMPTY,
             shenyuClientRegisterMotanService.buildHandle(list, SelectorDO.builder().build()));
     }
 }

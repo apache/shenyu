@@ -26,17 +26,18 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
     
 import java.util.ArrayList;
 import java.util.List;
     
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -47,7 +48,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link ShenyuClientRegisterSpringCloudServiceImpl}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShenyuClientRegisterSpringCloudServiceImplTest {
     
     public static final String HOST = "localhost";
@@ -60,19 +62,19 @@ public final class ShenyuClientRegisterSpringCloudServiceImplTest {
     
     @Test
     public void testRpcType() {
-        Assert.assertEquals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuClientRegisterSpringCloudService.rpcType());
+        assertEquals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuClientRegisterSpringCloudService.rpcType());
     }
     
     @Test
     public void testSelectorHandler() {
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder().appName("testSelectorHandler").build();
-        Assert.assertEquals("{\"serviceId\":\"testSelectorHandler\",\"gray\":false}", 
+        assertEquals("{\"serviceId\":\"testSelectorHandler\",\"gray\":false}", 
                 shenyuClientRegisterSpringCloudService.selectorHandler(metaDataRegisterDTO));
     }
     
     @Test
     public void testRuleHandler() {
-        Assert.assertEquals(new SpringCloudRuleHandle().toJson(), shenyuClientRegisterSpringCloudService.ruleHandler());
+        assertEquals(new SpringCloudRuleHandle().toJson(), shenyuClientRegisterSpringCloudService.ruleHandler());
     }
     
     @Test

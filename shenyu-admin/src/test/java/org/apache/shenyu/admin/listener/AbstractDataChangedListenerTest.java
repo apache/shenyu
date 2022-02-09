@@ -31,17 +31,17 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,7 +62,7 @@ public final class AbstractDataChangedListenerTest {
 
     private MetaDataService metaDataService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
         appAuthService = mock(AppAuthService.class);
@@ -100,7 +100,7 @@ public final class AbstractDataChangedListenerTest {
         when(metaDataService.listAll()).thenReturn(metaDatas);
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         listener.getCache().clear();
     }

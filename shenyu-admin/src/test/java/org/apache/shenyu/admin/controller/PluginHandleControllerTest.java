@@ -27,13 +27,13 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test case for PluginHandleController.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public final class PluginHandleControllerTest {
 
     private MockMvc mockMvc;
@@ -63,7 +63,7 @@ public final class PluginHandleControllerTest {
             1, 1, 1, null, DateUtils.localDateTimeToString(LocalDateTime.now()),
             DateUtils.localDateTimeToString(LocalDateTime.now()), new ArrayList<>());
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(pluginHandleController)
                 .setControllerAdvice(new ExceptionHandlers())

@@ -19,11 +19,12 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.service.impl.EnumServiceImpl;
 import org.apache.shenyu.admin.model.vo.EnumVO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -37,7 +38,7 @@ import static org.hamcrest.number.OrderingComparison.greaterThan;
 /**
  * Test cases for EnumService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class EnumServiceTest {
 
     private final EnumServiceImpl enumService = new EnumServiceImpl();
