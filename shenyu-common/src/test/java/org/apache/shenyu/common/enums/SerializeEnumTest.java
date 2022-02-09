@@ -17,16 +17,19 @@
 
 package org.apache.shenyu.common.enums;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test case for SerializeEnum.
  */
-public final class SerializeEnumTest extends TestCase {
+public final class SerializeEnumTest {
 
     /**
      * test SerializeEnum#getSerialize.
      */
+    @Test
     public void testGetSerialize() {
         assertEquals(SerializeEnum.JDK.getSerialize(), "jdk");
         assertEquals(SerializeEnum.KRYO.getSerialize(), "kryo");
@@ -38,6 +41,7 @@ public final class SerializeEnumTest extends TestCase {
     /**
      * test SerializeEnum#acquire.
      */
+    @Test
     public void testAcquire() {
         assertEquals(SerializeEnum.acquire("unknown"), SerializeEnum.JDK);
         assertEquals(SerializeEnum.acquire("jdk"), SerializeEnum.JDK);
@@ -45,6 +49,5 @@ public final class SerializeEnumTest extends TestCase {
         assertEquals(SerializeEnum.acquire("hessian"), SerializeEnum.HESSIAN);
         assertEquals(SerializeEnum.acquire("fastJson"), SerializeEnum.FAST_JSON);
         assertEquals(SerializeEnum.acquire("protostuff"), SerializeEnum.PROTOSTUFF);
-
     }
 }
