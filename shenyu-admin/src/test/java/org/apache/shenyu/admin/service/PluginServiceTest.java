@@ -36,12 +36,14 @@ import org.apache.shenyu.admin.service.impl.PluginServiceImpl;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
@@ -52,10 +54,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -64,7 +66,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for PluginService.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class PluginServiceTest {
 
     @InjectMocks
@@ -94,7 +97,7 @@ public final class PluginServiceTest {
     @Mock
     private ResourceService resourceService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         pluginService = new PluginServiceImpl(pluginMapper, pluginHandleMapper, selectorMapper, selectorConditionMapper,
                 ruleMapper, ruleConditionMapper, eventPublisher, resourceService);

@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -70,11 +69,11 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         String handleAdd;
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
         List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
-        if (StringUtils.isBlank(selectorDO.getHandle())) {
+        List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
+        if (CollectionUtils.isEmpty(existList)) {
             handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
-            List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
             List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);

@@ -21,8 +21,8 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -33,9 +33,9 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test cases for RuleConditionMapper.
@@ -47,7 +47,7 @@ public final class RuleConditionMapperTest extends AbstractSpringIntegrationTest
 
     private final RuleConditionDO record = buildRuleConditionDo();
 
-    @Before
+    @BeforeEach
     public void before() {
         int count = ruleConditionMapper.insert(record);
         assertEquals(1, count);

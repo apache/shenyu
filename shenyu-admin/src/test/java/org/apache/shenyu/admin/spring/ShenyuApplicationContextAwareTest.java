@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.spring;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -32,7 +32,7 @@ public final class ShenyuApplicationContextAwareTest {
 
     private ShenyuApplicationContextAware shenyuApplicationContextAwareUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         shenyuApplicationContextAwareUnderTest = new ShenyuApplicationContextAware();
     }
@@ -41,6 +41,6 @@ public final class ShenyuApplicationContextAwareTest {
     public void testSetApplicationContext() throws NoSuchFieldException {
         final ApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         shenyuApplicationContextAwareUnderTest.setApplicationContext(applicationContext);
-        Assert.assertNotNull(SpringBeanUtils.getInstance().getClass().getDeclaredField("applicationContext"));
+        assertNotNull(SpringBeanUtils.getInstance().getClass().getDeclaredField("applicationContext"));
     }
 }

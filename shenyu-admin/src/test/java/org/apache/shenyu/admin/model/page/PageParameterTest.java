@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.admin.model.page;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test case for {@link PageParameter}.
@@ -29,7 +29,7 @@ public final class PageParameterTest {
 
     private PageParameter pageParameterUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         pageParameterUnderTest = new PageParameter();
         pageParameterUnderTest = new PageParameter(1, 10);

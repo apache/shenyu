@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.net.InetAddress;
@@ -27,9 +27,9 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Vector;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -41,12 +41,12 @@ public final class IpUtilsTest {
 
     private MockedStatic<NetworkInterface> networkInterfaceMockedStatic;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         networkInterfaceMockedStatic = mockStatic(NetworkInterface.class);
     }
 
-    @After
+    @AfterEach
     public void close() {
         networkInterfaceMockedStatic.close();
     }

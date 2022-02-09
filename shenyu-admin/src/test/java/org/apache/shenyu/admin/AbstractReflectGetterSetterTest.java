@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;

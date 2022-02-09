@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.common.enums;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RateLimitEnumTest {
+
     @Test
     public void testGetKeyName() {
         assertEquals("concurrent_request_rate_limiter", RateLimitEnum.CONCURRENT.getKeyName());

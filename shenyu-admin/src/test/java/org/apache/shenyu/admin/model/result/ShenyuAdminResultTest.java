@@ -18,15 +18,15 @@
 package org.apache.shenyu.admin.model.result;
 
 import org.apache.shenyu.common.exception.CommonErrorCode;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test case for {@link ShenyuAdminResult}.
@@ -35,7 +35,7 @@ public final class ShenyuAdminResultTest {
 
     private ShenyuAdminResult shenyuAdminResultUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         shenyuAdminResultUnderTest = new ShenyuAdminResult(0, "message", "data");
     }

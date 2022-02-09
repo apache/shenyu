@@ -27,6 +27,8 @@ jobs:
       matrix:
         case:
           - shenyu-integrated-test-agent-tracing-opentelemetry
+          - shenyu-integrated-test-agent-tracing-zipkin
+          - shenyu-integrated-test-agent-tracing-jaeger
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

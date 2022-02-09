@@ -20,24 +20,24 @@ package org.apache.shenyu.admin.listener.zookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link ZookeeperDataInit}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ZookeeperDataInitTest {
 
     @Mock
@@ -66,7 +66,7 @@ public final class ZookeeperDataInitTest {
                 )));
         zookeeperDataInit.run();
 
-        Assert.assertNotNull(zookeeperDataInit);
+        assertNotNull(zookeeperDataInit);
     }
 
     private boolean pathExist(final InvocationOnMock invocation, final List<String> pathList) {

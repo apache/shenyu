@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
 import java.util.function.Supplier;
@@ -39,7 +39,7 @@ public final class LogUtilsTest {
 
     private Supplier<Object> supplier;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         logger = spy(Logger.class);
         supplier = mock(Supplier.class);

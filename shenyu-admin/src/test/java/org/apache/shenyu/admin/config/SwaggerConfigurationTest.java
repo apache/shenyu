@@ -17,17 +17,18 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test cases for SwaggerConfiguration.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class SwaggerConfigurationTest {
 
     @InjectMocks
@@ -35,12 +36,12 @@ public final class SwaggerConfigurationTest {
 
     @Test
     public void testCreateRestApi() {
-        Assert.assertNotNull(swaggerConfiguration.createRestApi());
+        assertNotNull(swaggerConfiguration.createRestApi());
     }
 
     @Test
     public void testSwaggerEnable() {
         ReflectionTestUtils.setField(swaggerConfiguration, "enable", true);
-        Assert.assertNotNull(swaggerConfiguration.createRestApi());
+        assertNotNull(swaggerConfiguration.createRestApi());
     }
 }

@@ -18,11 +18,12 @@
 package org.apache.shenyu.admin.utils;
 
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test cases for CipherUtils.
@@ -43,14 +44,18 @@ public final class CipherUtilsTest {
         assertThat(CipherUtils.decryptStr("bbiB8zbUo3z3oA0VqEB/IA==", AES_KEY, IV), is("123456"));
     }
 
-    @Test(expected = ShenyuException.class)
+    @Test
     public void testDecryptStrForErrorStringThrowsException() {
-        assertThat(CipherUtils.decryptStr("bbiB8zbUo3z3oA0VqEB/IA=", AES_KEY, IV), notNullValue());
+        assertThrows(ShenyuException.class, () -> {
+            assertThat(CipherUtils.decryptStr("bbiB8zbUo3z3oA0VqEB/IA=", AES_KEY, IV), notNullValue());
+        });
     }
 
-    @Test(expected = AssertionError.class)
+    @Test
     public void testDecryptStrForNullThrowsException() {
-        assertThat(CipherUtils.decryptStr(null, AES_KEY, IV), notNullValue());
+        assertThrows(AssertionError.class, () -> {
+            assertThat(CipherUtils.decryptStr(null, AES_KEY, IV), notNullValue());
+        });
     }
 }
 
