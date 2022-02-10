@@ -88,6 +88,8 @@ public class ContextRegisterListener implements ApplicationListener<WebServerIni
         if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
+        //Note: In this way, no matter what container is actually used,
+        //you can get the port that is actually started in the end.
         int mergedPort = port <= 0 ? webServerInitializedEvent.getWebServer().getPort() : port;
         publisher.publishEvent(buildUriRegisterDTO(mergedPort));
     }
