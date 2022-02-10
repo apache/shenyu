@@ -25,8 +25,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.LinkedMultiValueMap;
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 /**
  * The Test Case For {@link URIPlugin}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class URIPluginTest {
 
     private MockServerHttpRequest request;
