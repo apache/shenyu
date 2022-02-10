@@ -19,13 +19,15 @@ package org.apache.shenyu.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidationParameter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.validation.ValidationException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test case for {@link AlibabaDubboClientValidation}.
@@ -35,11 +37,11 @@ public final class AlibabaDubboClientValidatorTest {
     private static final String MOCK_SERVICE_URL =
             "mock://test:28000/org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidatorTarget";
 
-    @Test(expected = NoSuchMethodException.class)
+    @Test
     public void testItWithNonExistMethod() throws Exception {
         final URL url = URL.valueOf(MOCK_SERVICE_URL);
-        new AlibabaDubboClientValidation().getValidator(url)
-                .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
+        assertThrows(NoSuchMethodException.class, () -> new AlibabaDubboClientValidation().getValidator(url)
+                .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"}));
 
     }
 
@@ -50,11 +52,11 @@ public final class AlibabaDubboClientValidatorTest {
                 .validate("method1", new Class<?>[]{String.class}, new Object[]{"anything"});
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testValidateWhenMeetsConstraintThenValidationFailed() throws Exception {
         final URL url = URL.valueOf(MOCK_SERVICE_URL);
-        new AlibabaDubboClientValidation().getValidator(url)
-                .validate("method2", new Class<?>[]{MockValidationParameter.class}, new Object[]{new MockValidationParameter("NotBeNull")});
+        assertThrows(ValidationException.class, () -> new AlibabaDubboClientValidation().getValidator(url)
+                .validate("method2", new Class<?>[]{MockValidationParameter.class}, new Object[]{new MockValidationParameter("NotBeNull")}));
     }
 
     @Test

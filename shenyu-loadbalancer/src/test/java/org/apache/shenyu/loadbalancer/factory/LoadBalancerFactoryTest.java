@@ -18,8 +18,7 @@
 package org.apache.shenyu.loadbalancer.factory;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +26,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * The type loadBalance utils test.
@@ -51,7 +52,7 @@ public final class LoadBalancerFactoryTest {
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
-        Assert.assertEquals(12, countMap.get("upstream-10").intValue());
+        assertEquals(12, countMap.get("upstream-10").intValue());
     }
 
     @Test
@@ -69,7 +70,7 @@ public final class LoadBalancerFactoryTest {
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
-        Assert.assertEquals(12, countMap.get("upstream-10").intValue());
+        assertEquals(12, countMap.get("upstream-10").intValue());
     }
 
     @Test
@@ -87,6 +88,6 @@ public final class LoadBalancerFactoryTest {
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
-        Assert.assertEquals(12, countMap.get("upstream-10").intValue());
+        assertEquals(12, countMap.get("upstream-10").intValue());
     }
 }

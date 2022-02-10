@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for UpstreamCheckUtils.
@@ -40,7 +40,7 @@ public final class UpstreamCheckUtilsTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testSocketConnect() {
         Runnable runnable = () -> {
             ServerSocket serverSocket;

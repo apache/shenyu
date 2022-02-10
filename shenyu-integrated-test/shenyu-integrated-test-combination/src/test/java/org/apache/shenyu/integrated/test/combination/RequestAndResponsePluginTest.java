@@ -29,7 +29,7 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * The integrated test for combination plugins about request and response.

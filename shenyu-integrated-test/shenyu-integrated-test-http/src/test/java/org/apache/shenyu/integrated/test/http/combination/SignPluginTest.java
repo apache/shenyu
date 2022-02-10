@@ -31,9 +31,9 @@ import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -43,8 +43,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class SignPluginTest extends AbstractPluginDataInit {
 
@@ -52,7 +52,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private static final String APP_SECRET = "061521A73DD94A3FA873C25D050685BB";
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String authResult = initAuthData(APP_KEY, APP_SECRET, buildAuthParamDataList(), buildAuthPathDataList());
         assertThat(authResult, is("success"));
@@ -159,7 +159,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(ruleLocalData);
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.SIGN.getName());
         cleanAuthData(APP_KEY);

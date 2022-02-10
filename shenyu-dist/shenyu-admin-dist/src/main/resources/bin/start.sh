@@ -30,13 +30,6 @@ fi
 LOG_FILES=${LOGS_DIR}/shenyu-admin.log
 EXT_LIB=${DEPLOY_DIR}/ext-lib
 
-PIDS=`ps -ef | grep "$DEPLOY_DIR" | grep -v grep | pgrep -f java`
-if [ -n "$PIDS" ]; then
-    echo "ERROR: The $SERVER_NAME already started!"
-    echo "PID: $PIDS"
-    exit 1
-fi
-
 CLASS_PATH=.:${DEPLOY_DIR}/conf:${DEPLOY_DIR}/lib/*:${EXT_LIB}/*
 JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss256k -XX:+DisableExplicitGC   -XX:LargePageSizeInBytes=128m"
 
