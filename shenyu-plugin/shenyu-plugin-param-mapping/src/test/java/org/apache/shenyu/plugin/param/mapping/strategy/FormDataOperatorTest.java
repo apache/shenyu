@@ -19,11 +19,11 @@ package org.apache.shenyu.plugin.param.mapping.strategy;
 
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for {@link FormDataOperator}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class FormDataOperatorTest {
 
     @Mock
@@ -58,7 +58,7 @@ public class FormDataOperatorTest {
 
     private ParamMappingRuleHandle paramMappingRuleHandle;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Set<String> remove = new HashSet<>();
         remove.add("$.age");

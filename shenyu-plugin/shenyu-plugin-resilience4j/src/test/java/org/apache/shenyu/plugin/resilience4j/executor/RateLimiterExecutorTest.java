@@ -19,10 +19,10 @@ package org.apache.shenyu.plugin.resilience4j.executor;
 
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -32,12 +32,12 @@ import static org.mockito.Mockito.when;
 /**
  * RateLimiter executor tests.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class RateLimiterExecutorTest {
 
     private RateLimiterExecutor ratelimiterExecutor;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ratelimiterExecutor = new RateLimiterExecutor();
     }

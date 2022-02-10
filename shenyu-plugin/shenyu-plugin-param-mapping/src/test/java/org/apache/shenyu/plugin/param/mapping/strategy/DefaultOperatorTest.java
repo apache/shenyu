@@ -19,11 +19,11 @@ package org.apache.shenyu.plugin.param.mapping.strategy;
 
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for {@link DefaultOperator}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DefaultOperatorTest {
 
     @Mock
@@ -47,7 +47,7 @@ public class DefaultOperatorTest {
 
     private DefaultOperator defaultOperator;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.defaultOperator = new DefaultOperator();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
