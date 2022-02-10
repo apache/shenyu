@@ -49,7 +49,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -80,7 +79,8 @@ public final class HttpSyncDataServiceTest {
         this.wireMockServer = new WireMockServer(
                 options()
                         .extensions(new ResponseTemplateTransformer(false))
-                        .port(8081));
+                        .dynamicPort());
+        this.wireMockServer.start();
         wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
@@ -99,7 +99,6 @@ public final class HttpSyncDataServiceTest {
                         .withBody(this.mockConfigsListenResponseJson())
                         .withStatus(200))
         );
-        this.wireMockServer.start();
 
         HttpConfig httpConfig = new HttpConfig();
         httpConfig.setUrl(this.getMockServerUrl());

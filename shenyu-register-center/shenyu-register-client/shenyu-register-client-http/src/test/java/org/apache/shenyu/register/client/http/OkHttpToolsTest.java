@@ -27,9 +27,7 @@ import wiremock.org.apache.http.entity.ContentType;
 
 import java.io.IOException;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -52,14 +50,14 @@ public final class OkHttpToolsTest {
         this.wireMockServer = new WireMockServer(
                 options()
                         .extensions(new ResponseTemplateTransformer(false))
-                        .port(8081));
+                        .dynamicPort());
+        this.wireMockServer.start();
         wireMockServer.stubFor(post(urlPathEqualTo("/"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(json)
                         .withStatus(200))
         );
-        this.wireMockServer.start();
         url = "http://localhost:" + wireMockServer.port();
     }
 
