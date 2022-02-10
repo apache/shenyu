@@ -20,14 +20,15 @@ package org.apache.shenyu.loadbalancer.cache;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.awaitility.Awaitility;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +45,8 @@ public class UpstreamCheckTaskTest {
     /**
      * Test run.
      */
-    @Test(timeout = 30000)
+    @Test
+    @Timeout(30000)
     public void testRun() {
         /**
          * Mock selectorId1~selectorId4 to let it coverage 4 branch of `HealthCheckTask#check` method.
