@@ -101,7 +101,7 @@ public class WebClientMessageWriter implements MessageWriter {
         // openxmlformats-officedocument => .pptx .xlsx .docx
         // binary => .bin
         // pdf => .pdf
-        // octet-stream	=> octet-stream
+        // octet-stream => octet-stream
         Set<String> commonBinaryTypes = new HashSet<String>() {
             {
                 add("image");
