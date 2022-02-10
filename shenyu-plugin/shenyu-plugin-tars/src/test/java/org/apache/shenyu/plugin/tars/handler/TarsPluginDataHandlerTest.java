@@ -19,23 +19,23 @@ package org.apache.shenyu.plugin.tars.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test case for {@link TarsPluginDataHandler}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class TarsPluginDataHandlerTest {
     
     private TarsPluginDataHandler tarsPluginDataHandlerUnderTest;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         tarsPluginDataHandlerUnderTest = new TarsPluginDataHandler();
     }
