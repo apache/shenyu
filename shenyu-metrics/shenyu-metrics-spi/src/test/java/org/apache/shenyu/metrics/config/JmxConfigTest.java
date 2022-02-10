@@ -19,18 +19,18 @@ package org.apache.shenyu.metrics.config;
 
 import org.apache.shenyu.metrics.config.JmxConfig.Rule;
 import org.apache.shenyu.metrics.config.JmxConfig.Type;
-import org.junit.Before;
-import org.junit.Test;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For JmxConfig.
@@ -39,7 +39,7 @@ public final class JmxConfigTest {
 
     private JmxConfig jmxConfig;
 
-    @Before
+    @BeforeEach
     public void setUp() throws MalformedObjectNameException {
         jmxConfig = new JmxConfig();
         jmxConfig.setStartDelaySeconds(10);

@@ -17,14 +17,13 @@
 
 package org.apache.shenyu.metrics.config;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.Properties;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For MetricsConfig.
@@ -33,7 +32,7 @@ public final class MetricsConfigTest {
 
     private MetricsConfig metricsConfig;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Properties properties = new Properties();
         properties.setProperty("key", "value");
