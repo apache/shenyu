@@ -21,18 +21,18 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SpringCloudPluginTest extends AbstractPluginDataInit {
     
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.SPRING_CLOUD.getName(), "");
         assertThat(pluginResult, is("success"));

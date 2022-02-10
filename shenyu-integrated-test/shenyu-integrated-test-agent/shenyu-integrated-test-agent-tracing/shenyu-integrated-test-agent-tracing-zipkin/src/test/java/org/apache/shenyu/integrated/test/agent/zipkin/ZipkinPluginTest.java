@@ -27,8 +27,8 @@ import org.apache.shenyu.integrated.test.agent.zipkin.result.ZipkinSpan;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +36,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -52,7 +52,7 @@ public class ZipkinPluginTest extends AbstractPluginDataInit {
 
     private static final Gson GSON = new Gson();
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException, InterruptedException {
         OrderDTO user = new OrderDTO("123", "Tom");
         user = HttpHelper.INSTANCE.postGateway("/http/order/save", user, OrderDTO.class);
