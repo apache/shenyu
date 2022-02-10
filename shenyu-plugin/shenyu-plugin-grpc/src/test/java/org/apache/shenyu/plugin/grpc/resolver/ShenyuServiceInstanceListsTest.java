@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mock;
 /**
  * The Test Case For {@link ShenyuServiceInstanceLists}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ShenyuServiceInstanceListsTest {
     
     private final String appName = "shenyu";
@@ -44,7 +44,7 @@ public class ShenyuServiceInstanceListsTest {
     
     private CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         shenyuServiceInstances = new CopyOnWriteArrayList<>();
         shenyuServiceInstances.add(mock(ShenyuServiceInstance.class));
