@@ -19,21 +19,21 @@ package org.apache.shenyu.springboot.starter.sync.data.nacos;
 
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.nacos.config.NacosConfig;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.mockito.Answers.CALLS_REAL_METHODS;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The test case for {@link NacosSyncDataConfiguration}.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = NacosSyncDataConfiguration.class,
         properties = {
@@ -52,11 +52,11 @@ public final class NacosSyncDataConfigurationTest {
 
     @Test
     public void nacosSyncDataServiceTest() {
-        Assert.assertNotNull("the syncDataService must be not null", syncDataService);
+        assertNotNull(syncDataService);
     }
 
     @Test
     public void nacosConfigTest() {
-        Assert.assertNotNull("the nacosConfig must be not null", nacosConfig);
+        assertNotNull(nacosConfig);
     }
 }
