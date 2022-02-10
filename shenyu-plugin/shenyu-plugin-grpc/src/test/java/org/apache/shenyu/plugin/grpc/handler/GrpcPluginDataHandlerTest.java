@@ -25,16 +25,16 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +47,7 @@ public class GrpcPluginDataHandlerTest {
     
     private GrpcPluginDataHandler grpcPluginDataHandler;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         this.grpcPluginDataHandler = new GrpcPluginDataHandler();
         List<DivideUpstream> divideUpstreamList = Stream.of(3)
@@ -76,11 +76,11 @@ public class GrpcPluginDataHandlerTest {
         when(selectorData.getName()).thenReturn("/grpc");
         grpcPluginDataHandler.removeSelector(selectorData);
         final List<ShenyuServiceInstance> shenyuServiceInstances = ApplicationConfigCache.getInstance().get(selectorData.getName()).getShenyuServiceInstances();
-        assertTrue("shenyuServiceInstances mast is empty", CollectionUtils.isEmpty(shenyuServiceInstances));
+        assertTrue(CollectionUtils.isEmpty(shenyuServiceInstances), "shenyuServiceInstances mast is empty");
     }
     
     @Test
     public void testPpluginNamed() {
-        Assert.assertEquals(grpcPluginDataHandler.pluginNamed(), PluginEnum.GRPC.getName());
+        assertEquals(grpcPluginDataHandler.pluginNamed(), PluginEnum.GRPC.getName());
     }
 }

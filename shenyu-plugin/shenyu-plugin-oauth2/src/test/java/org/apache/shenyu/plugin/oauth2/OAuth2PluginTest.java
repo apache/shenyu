@@ -19,10 +19,10 @@ package org.apache.shenyu.plugin.oauth2;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -31,10 +31,10 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OAuth2PluginTest {
 
     private OAuth2Plugin oAuth2Plugin;
@@ -43,7 +43,7 @@ public class OAuth2PluginTest {
 
     private ShenyuPluginChain chain;
 
-    @Before
+    @BeforeEach
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         exchange.getAttributes().put("skip", true);

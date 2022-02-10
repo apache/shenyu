@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.oauth2.filter;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -31,13 +31,13 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OAuth2PreFilterTest {
 
     @Mock
     private OAuth2PreFilter preFilter;
 
-    @Before
+    @BeforeEach
     public void setup() {
         preFilter = new OAuth2PreFilter(mock(List.class));
     }
@@ -45,6 +45,6 @@ public class OAuth2PreFilterTest {
     @Test
     public void testFilter() {
         StepVerifier.create(preFilter.filter(MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build()), filterExchange -> Mono.empty()))
-            .expectSubscription().verifyComplete();
+                .expectSubscription().verifyComplete();
     }
 }

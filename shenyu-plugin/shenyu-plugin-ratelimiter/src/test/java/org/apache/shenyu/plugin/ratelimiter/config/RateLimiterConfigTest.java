@@ -18,16 +18,17 @@
 package org.apache.shenyu.plugin.ratelimiter.config;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * RateLimiterConfig default value test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class RateLimiterConfigTest {
 
     private static final int DEFAULT_MAX_IDLE = 8;
@@ -38,7 +39,7 @@ public final class RateLimiterConfigTest {
 
     private RateLimiterConfig rateLimiterConfig;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.rateLimiterConfig = new RateLimiterConfig();
     }
@@ -48,7 +49,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void modeDefaultValueTest() {
-        Assert.assertEquals(RedisModeEnum.STANDALONE.getName(), rateLimiterConfig.getMode());
+        assertEquals(RedisModeEnum.STANDALONE.getName(), rateLimiterConfig.getMode());
     }
 
     /**
@@ -56,7 +57,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void maxIdleDefaultValueTest() {
-        Assert.assertEquals(DEFAULT_MAX_IDLE, rateLimiterConfig.getMaxIdle());
+        assertEquals(DEFAULT_MAX_IDLE, rateLimiterConfig.getMaxIdle());
     }
 
     /**
@@ -64,7 +65,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void maxActiveDefaultValueTest() {
-        Assert.assertEquals(DEFAULT_MAX_ACTIVE, rateLimiterConfig.getMaxActive());
+        assertEquals(DEFAULT_MAX_ACTIVE, rateLimiterConfig.getMaxActive());
     }
 
     /**
@@ -72,7 +73,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void minIdleDefaultValueTest() {
-        Assert.assertEquals(DEFAULT_MIN_IDLE, rateLimiterConfig.getMinIdle());
+        assertEquals(DEFAULT_MIN_IDLE, rateLimiterConfig.getMinIdle());
     }
 
     /**
@@ -81,6 +82,6 @@ public final class RateLimiterConfigTest {
     @Test
     public void equalsTest() {
         RateLimiterConfig defaultConfig = new RateLimiterConfig();
-        Assert.assertEquals(defaultConfig, this.rateLimiterConfig);
+        assertEquals(defaultConfig, this.rateLimiterConfig);
     }
 }

@@ -28,12 +28,11 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.lang.NonNull;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -41,13 +40,15 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * SofaProxyServiceTest.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class SofaProxyServiceTest {
     
     private static final String PATH = "/sofa/findAll";
@@ -62,7 +63,7 @@ public final class SofaProxyServiceTest {
     
     private ServerWebExchange exchange;
     
-    @Before
+    @BeforeEach
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         metaData = new MetaData();
@@ -74,7 +75,7 @@ public final class SofaProxyServiceTest {
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
     }
     
-    @After
+    @AfterEach
     public void after() {
         ApplicationConfigCache.getInstance().invalidateAll();
     }
@@ -89,9 +90,9 @@ public final class SofaProxyServiceTest {
         when(genericService.$genericInvoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
         final Field cacheField = FieldUtils.getDeclaredField(ApplicationConfigCache.class, "cache", true);
-        Assert.assertNotNull(cacheField);
+        assertNotNull(cacheField);
         final Object cache = cacheField.get(applicationConfigCache);
-        Assert.assertTrue(cache instanceof LoadingCache);
+        assertTrue(cache instanceof LoadingCache);
         ((LoadingCache) cache).put(PATH, consumerConfig);
         SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
         sofaProxyService.genericInvoker("", metaData, exchange);

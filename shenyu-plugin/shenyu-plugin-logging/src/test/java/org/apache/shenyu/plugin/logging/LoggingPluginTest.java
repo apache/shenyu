@@ -17,22 +17,24 @@
 
 package org.apache.shenyu.plugin.logging;
 
-import java.net.InetSocketAddress;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.InetSocketAddress;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -41,7 +43,7 @@ import static org.mockito.Mockito.when;
 /**
  * The Test Case For DebugPlugin.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class LoggingPluginTest {
 
     private LoggingPlugin loggingPlugin;
@@ -54,18 +56,18 @@ public final class LoggingPluginTest {
 
     private SelectorData selectorData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.loggingPlugin = new LoggingPlugin();
         this.ruleData = mock(RuleData.class);
         this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         MockServerHttpRequest request = MockServerHttpRequest
-            .get("localhost")
-            .remoteAddress(new InetSocketAddress(8090))
-            .header("X-source", "mock test")
-            .queryParam("queryParam", "Hello,World")
-            .build();
+                .get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .header("X-source", "mock test")
+                .queryParam("queryParam", "Hello,World")
+                .build();
         this.exchange = spy(MockServerWebExchange.from(request));
     }
 
@@ -85,16 +87,16 @@ public final class LoggingPluginTest {
 
     @Test
     public void testGetOrder() {
-        Assert.assertEquals(loggingPlugin.getOrder(), PluginEnum.LOGGING.getCode());
+        assertEquals(loggingPlugin.getOrder(), PluginEnum.LOGGING.getCode());
     }
 
     @Test
     public void testNamed() {
-        Assert.assertEquals(loggingPlugin.named(), PluginEnum.LOGGING.getName());
+        assertEquals(loggingPlugin.named(), PluginEnum.LOGGING.getName());
     }
 
     @Test
     public void testSkip() {
-        Assert.assertFalse(loggingPlugin.skip(exchange));
+        assertFalse(loggingPlugin.skip(exchange));
     }
 }

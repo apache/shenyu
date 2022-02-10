@@ -28,15 +28,16 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,12 +49,12 @@ public final class HystrixPluginTest {
 
     private HystrixPlugin hystrixPlugin;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         hystrixPlugin = new HystrixPlugin();
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testDoExecuteNullException() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         ShenyuContext shenyuContext = mock(ShenyuContext.class);
@@ -69,8 +70,10 @@ public final class HystrixPluginTest {
         HystrixPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), hystrixHandle);
         rule.setHandle(GsonUtils.getInstance().toJson(hystrixHandle));
         SelectorData selectorData = mock(SelectorData.class);
-        Mono<Void> mono = hystrixPlugin.doExecute(exchange, chain, selectorData, rule);
-        StepVerifier.create(mono).expectSubscription().verifyComplete();
+        assertThrows(NullPointerException.class, () -> {
+            Mono<Void> mono = hystrixPlugin.doExecute(exchange, chain, selectorData, rule);
+            StepVerifier.create(mono).expectSubscription().verifyComplete();
+        });
     }
 
     @Test

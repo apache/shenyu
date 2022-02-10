@@ -30,8 +30,8 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.jwt.handle.JwtPluginDataHandler;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,7 +73,7 @@ public final class JwtPluginTest {
 
     private JwtRuleHandle jwtRuleHandle;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());

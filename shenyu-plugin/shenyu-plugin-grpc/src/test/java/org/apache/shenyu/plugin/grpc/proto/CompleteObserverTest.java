@@ -18,22 +18,23 @@
 package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * The Test Case For {@link CompleteObserver}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CompleteObserverTest {
     
     private CompleteObserver<Object> completeObserver;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         completeObserver = new CompleteObserver<>();
     }
@@ -45,12 +46,14 @@ public class CompleteObserverTest {
         assertNotNull(future);
     }
     
-    @Test(expected = Throwable.class)
-    public void onError() throws Exception {
+    @Test
+    public void onError() {
         Throwable throwable = new Throwable("error");
         completeObserver.onError(throwable);
         ListenableFuture<Void> future = completeObserver.getCompletionFuture();
-        future.get();
+        assertThrows(Throwable.class, () -> {
+            future.get();
+        });
     }
     
     @Test
