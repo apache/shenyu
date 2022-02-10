@@ -36,11 +36,6 @@
             <artifactId>jetcd-core</artifactId>
             <version>0.5.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>
