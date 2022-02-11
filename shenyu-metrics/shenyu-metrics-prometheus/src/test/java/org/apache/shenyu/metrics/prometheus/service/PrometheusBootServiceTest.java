@@ -23,17 +23,17 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.metrics.config.MetricsConfig;
 import org.apache.shenyu.metrics.prometheus.register.PrometheusMetricsRegister;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for PrometheusMetricsTrackerManager.
@@ -42,7 +42,7 @@ public final class PrometheusBootServiceTest {
 
     private static final PrometheusBootService PROMETHEUS_BOOT_SERVICE = new PrometheusBootService();
 
-    @Before
+    @BeforeEach
     public void init() {
         CollectorRegistry.defaultRegistry.clear();
     }
@@ -62,7 +62,7 @@ public final class PrometheusBootServiceTest {
         assertTrue(PROMETHEUS_BOOT_SERVICE.getRegistered().get());
     }
     
-    @AfterClass
+    @AfterAll
     public static void close() {
         PROMETHEUS_BOOT_SERVICE.stop();
     }

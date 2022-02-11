@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.metrics.enums;
 
-import org.junit.Test;
-
 import java.util.Arrays;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * The Test Case For MetricsTypeEnum.
