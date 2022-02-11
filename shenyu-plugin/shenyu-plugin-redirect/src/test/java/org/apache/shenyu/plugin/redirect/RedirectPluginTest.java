@@ -25,11 +25,11 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -37,7 +37,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * test case for {@link RedirectPlugin}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class RedirectPluginTest {
 
     private RedirectPlugin redirectPlugin;
@@ -58,7 +58,7 @@ public final class RedirectPluginTest {
     @Mock
     private DispatcherHandler dispatcherHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         redirectPlugin = new RedirectPlugin(dispatcherHandler);

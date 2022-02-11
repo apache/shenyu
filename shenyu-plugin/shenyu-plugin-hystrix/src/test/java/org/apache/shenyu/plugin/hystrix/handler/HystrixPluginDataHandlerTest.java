@@ -22,11 +22,11 @@ import com.netflix.hystrix.HystrixCommandProperties.Setter;
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -36,7 +36,7 @@ public final class HystrixPluginDataHandlerTest {
 
     private HystrixPluginDataHandler hystrixPluginDataHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         hystrixPluginDataHandler = new HystrixPluginDataHandler();
     }

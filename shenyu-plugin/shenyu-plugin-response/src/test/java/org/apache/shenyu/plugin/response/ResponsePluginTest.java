@@ -25,8 +25,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.response.strategy.MessageWriter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -38,7 +38,7 @@ import reactor.test.StepVerifier;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -53,7 +53,7 @@ public class ResponsePluginTest {
     @Mock
     private ShenyuPluginChain chain;
 
-    @Before
+    @BeforeEach
     public void setup() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));

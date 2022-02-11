@@ -20,15 +20,15 @@ package org.apache.shenyu.integrated.test.http;
 import okhttp3.Response;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class RequestControllerTest extends AbstractTest {
 

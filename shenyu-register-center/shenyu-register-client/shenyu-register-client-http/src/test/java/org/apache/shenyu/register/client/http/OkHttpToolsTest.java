@@ -17,44 +17,48 @@
 
 package org.apache.shenyu.register.client.http;
 
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import org.apache.shenyu.register.client.http.utils.OkHttpTools;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import wiremock.com.google.common.net.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
 import java.io.IOException;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link OkHttpTools}.
  */
 public final class OkHttpToolsTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
+    private WireMockServer wireMockServer;
 
     private String url;
 
     private final String json = "{\"appName\":\"shenyu\"}";
 
-    @Before
+    @BeforeEach
     public void setUpWireMock() {
-        wireMockRule.stubFor(post(urlPathEqualTo("/"))
+        this.wireMockServer = new WireMockServer(
+                options()
+                        .extensions(new ResponseTemplateTransformer(false))
+                        .dynamicPort());
+        this.wireMockServer.start();
+        wireMockServer.stubFor(post(urlPathEqualTo("/"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(json)
                         .withStatus(200))
         );
-        url = "http://localhost:" + wireMockRule.port();
+        url = "http://localhost:" + wireMockServer.port();
     }
 
     @Test

@@ -23,12 +23,14 @@ import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +46,8 @@ import static org.mockito.Mockito.when;
 /**
  * test case for {@link ConsulSyncDataService}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ConsulSyncDataServiceTest {
 
     private static final int WAIT_TIME = 1000;
@@ -67,7 +70,7 @@ public final class ConsulSyncDataServiceTest {
     @Mock
     private Response response;
 
-    @Before
+    @BeforeEach
     public void setup() {
         when(consulConfig.getWaitTime()).thenReturn(WAIT_TIME);
         when(consulConfig.getWatchDelay()).thenReturn(WATCH_DELAY);
@@ -94,7 +97,7 @@ public final class ConsulSyncDataServiceTest {
         verify(response, atLeast(3)).getValue();
     }
 
-    @After
+    @AfterEach
     public void testStop() {
         consulSyncDataService.close();
     }

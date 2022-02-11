@@ -29,7 +29,7 @@ import org.apache.shenyu.spi.fixture.NoJoinSPI;
 import org.apache.shenyu.spi.fixture.NopSPI;
 import org.apache.shenyu.spi.fixture.NotMatchSPI;
 import org.apache.shenyu.spi.fixture.SubHasDefaultSPI;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,10 +41,10 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * The type Extension loader test.

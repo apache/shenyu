@@ -20,22 +20,22 @@ package org.apache.shenyu.springboot.starter.sync.data.websocket;
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test case for {@link WebsocketSyncDataConfiguration}.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = {
                 WebsocketSyncDataConfiguration.class

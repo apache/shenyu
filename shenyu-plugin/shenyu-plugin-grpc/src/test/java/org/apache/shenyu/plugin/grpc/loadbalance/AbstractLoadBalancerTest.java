@@ -23,8 +23,8 @@ import io.grpc.LoadBalancer;
 import io.netty.channel.local.LocalAddress;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.UnitTestIdleHelper;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.UnitTestReadHelper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class AbstractLoadBalancerTest {
     private RandomLoadBalancerProvider randomLoadBalancerProvider;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         randomLoadBalancerProvider = new RandomLoadBalancerProvider();
     }

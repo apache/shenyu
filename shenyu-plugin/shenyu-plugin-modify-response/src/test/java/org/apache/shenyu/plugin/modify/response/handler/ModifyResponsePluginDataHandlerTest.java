@@ -22,10 +22,11 @@ import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +39,7 @@ public final class ModifyResponsePluginDataHandlerTest {
 
     private ModifyResponsePluginDataHandler modifyResponsePluginDataHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.modifyResponsePluginDataHandler = new ModifyResponsePluginDataHandler();
         this.ruleData = mock(RuleData.class);
@@ -56,7 +57,7 @@ public final class ModifyResponsePluginDataHandlerTest {
     public void handlerSelectorTest() {
         modifyResponsePluginDataHandler.handlerRule(ruleData);
         ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
-        Assert.assertEquals(400, modifyResponseRuleHandle.getStatusCode());
+        assertEquals(400, modifyResponseRuleHandle.getStatusCode());
     }
 
     /**
@@ -66,7 +67,7 @@ public final class ModifyResponsePluginDataHandlerTest {
     public void removeSelectorTest() {
         modifyResponsePluginDataHandler.removeRule(ruleData);
         ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
-        Assert.assertNull(modifyResponseRuleHandle);
+        assertNull(modifyResponseRuleHandle);
     }
 
     /**
@@ -74,6 +75,6 @@ public final class ModifyResponsePluginDataHandlerTest {
      */
     @Test
     public void pluginNamedTest() {
-        Assert.assertEquals(modifyResponsePluginDataHandler.pluginNamed(), PluginEnum.MODIFY_RESPONSE.getName());
+        assertEquals(modifyResponsePluginDataHandler.pluginNamed(), PluginEnum.MODIFY_RESPONSE.getName());
     }
 }

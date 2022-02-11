@@ -27,12 +27,12 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.java_websocket.handshake.ServerHandshake;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.verify;
 /**
  * add test case for {@link ShenyuWebsocketClient}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ShenyuWebsocketClientTest {
     
     @InjectMocks
@@ -71,7 +71,7 @@ public class ShenyuWebsocketClientTest {
     
     private WebsocketData<PluginData> websocketData;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         websocketData = new WebsocketData();
         websocketData.setEventType(DataEventTypeEnum.MYSELF.name());

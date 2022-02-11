@@ -31,9 +31,9 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -45,8 +45,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * The integrated test for combination plugins about request.
@@ -67,7 +67,7 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
 
     private static final Map<String, Object> DUBBO_REQUEST = new HashMap<>();
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String dubboPluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\"}");
         assertThat(dubboPluginResult, is("success"));
@@ -216,7 +216,7 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
         assertThat(res, is("success"));
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanAll() throws IOException {
         String res = cleanPluginData(PluginEnum.DUBBO.getName());
         assertThat(res, is("success"));

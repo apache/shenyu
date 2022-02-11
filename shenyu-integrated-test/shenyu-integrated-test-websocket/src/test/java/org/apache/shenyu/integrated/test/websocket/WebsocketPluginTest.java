@@ -28,8 +28,8 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class WebsocketPluginTest extends AbstractPluginDataInit {
 
@@ -50,7 +50,7 @@ public class WebsocketPluginTest extends AbstractPluginDataInit {
 
     private static final String WEBSOCKET_URI = "ws://localhost:9195/websocket";
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.WEB_SOCKET.getName(), "{\"multiSelectorHandle\":\"1\"}");
         assertThat(pluginResult, is("success"));

@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.sync.data.nacos.config;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * add test case for {@link NacosACMConfig}.
@@ -46,7 +45,7 @@ public final class NacosACMConfigTest {
 
     private NacosACMConfig that;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         nacosACMConfig = new NacosACMConfig();
         nacosACMConfig.setAccessKey(ACCESS_KEY);
@@ -70,11 +69,11 @@ public final class NacosACMConfigTest {
         nacosACMConfig.setEndpoint(ENDPOINT);
         nacosACMConfig.setNamespace(NAMESPACE);
         nacosACMConfig.setSecretKey(SECRE_KEY);
-        Assert.assertEquals(ACCESS_KEY, nacosACMConfig.getAccessKey());
-        Assert.assertEquals(ENABLE, nacosACMConfig.isEnabled());
-        Assert.assertEquals(ENDPOINT, nacosACMConfig.getEndpoint());
-        Assert.assertEquals(NAMESPACE, nacosACMConfig.getNamespace());
-        Assert.assertEquals(SECRE_KEY, nacosACMConfig.getSecretKey());
+        assertEquals(ACCESS_KEY, nacosACMConfig.getAccessKey());
+        assertEquals(ENABLE, nacosACMConfig.isEnabled());
+        assertEquals(ENDPOINT, nacosACMConfig.getEndpoint());
+        assertEquals(NAMESPACE, nacosACMConfig.getNamespace());
+        assertEquals(SECRE_KEY, nacosACMConfig.getSecretKey());
     }
 
     @Test

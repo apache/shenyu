@@ -18,9 +18,9 @@
 package org.apache.shenyu.integrated.test.http.combination;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -37,9 +37,9 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
@@ -48,7 +48,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_SENTINEL_PATH = "/http/test/sentinel/pass";
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.SENTINEL.getName(), "{\"model\":\"black\"}");
         assertThat(pluginResult, is("success"));
@@ -102,7 +102,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         return Lists.newArrayList(ruleLocalData);
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.SENTINEL.getName());
     }

@@ -20,25 +20,28 @@ package org.apache.shenyu.plugin.sofa.handler;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.utils.Singleton;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * SofaPluginDataHandlerTest.
  */
-@RunWith(MockitoJUnitRunner.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@ExtendWith(MockitoExtension.class)
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public final class SofaPluginDataHandlerTest {
+    
+    private final String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
+    
     private SofaPluginDataHandler sofaPluginDataHandler;
 
-    private final String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
-
-    @Before
+    @BeforeEach
     public void setUp() {
         sofaPluginDataHandler = new SofaPluginDataHandler();
     }
@@ -47,13 +50,13 @@ public final class SofaPluginDataHandlerTest {
     public void testPluginEnable() {
         PluginData pluginData = new PluginData("", "", registryConfig, "1", true);
         sofaPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertEquals("127.0.0.1:2181", Singleton.INST.get(SofaRegisterConfig.class).getRegister());
+        assertEquals("127.0.0.1:2181", Singleton.INST.get(SofaRegisterConfig.class).getRegister());
     }
 
     @Test
     public void testPluginDisable() {
         PluginData pluginData = new PluginData("", "", registryConfig, "1", false);
         sofaPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertNull(Singleton.INST.get(SofaRegisterConfig.class));
+        assertNull(Singleton.INST.get(SofaRegisterConfig.class));
     }
 }
