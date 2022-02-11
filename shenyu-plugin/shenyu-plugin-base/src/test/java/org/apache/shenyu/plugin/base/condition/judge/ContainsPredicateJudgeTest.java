@@ -21,15 +21,15 @@ import junit.framework.TestCase;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ContainsPredicateJudgeTest extends TestCase {
 
     private ConditionData conditionDataForIp;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         conditionDataForIp = new ConditionData();
         conditionDataForIp.setParamType(ParamTypeEnum.IP.getName());
@@ -39,8 +39,8 @@ public class ContainsPredicateJudgeTest extends TestCase {
     @Test
     public void testContainsJudgeForIp() {
         conditionDataForIp.setOperator(OperatorEnum.CONTAINS.getAlias());
-        Assert.assertTrue(PredicateJudgeFactory.judge(conditionDataForIp, "127.0.0.1"));
-        Assert.assertTrue(PredicateJudgeFactory.judge(conditionDataForIp, "128.0.0.1"));
-        Assert.assertFalse(PredicateJudgeFactory.judge(conditionDataForIp, "0.1.128.0"));
+        Assertions.assertTrue(PredicateJudgeFactory.judge(conditionDataForIp, "127.0.0.1"));
+        Assertions.assertTrue(PredicateJudgeFactory.judge(conditionDataForIp, "128.0.0.1"));
+        Assertions.assertFalse(PredicateJudgeFactory.judge(conditionDataForIp, "0.1.128.0"));
     }
 }
