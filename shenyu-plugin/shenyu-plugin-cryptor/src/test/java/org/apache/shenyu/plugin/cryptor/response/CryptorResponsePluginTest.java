@@ -24,10 +24,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.cryptor.decorator.CryptorResponseDecorator;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,16 +42,16 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 
 /**
  * Test case for {@link CryptorResponsePlugin}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CryptorResponsePluginTest {
 
     private RuleData ruleData;
@@ -66,7 +66,7 @@ public class CryptorResponsePluginTest {
 
     private SelectorData selectorData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test");
