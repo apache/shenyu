@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.client.core.shutdown;
 
-import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Field;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -30,6 +26,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Shenyu client shutdown hook.
  */
@@ -37,17 +38,27 @@ public class ShenyuClientShutdownHook {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientShutdownHook.class);
 
+    private static final AtomicBoolean DELAY = new AtomicBoolean(false);
+
     private static String hookNamePrefix = "ShenyuClientShutdownHook";
 
     private static AtomicInteger hookId = new AtomicInteger(0);
 
     private static Properties props;
 
-    private static AtomicBoolean delay = new AtomicBoolean(false);
-
     private static IdentityHashMap<Thread, Thread> delayHooks = new IdentityHashMap<>();
 
     private static IdentityHashMap<Thread, Thread> delayedHooks = new IdentityHashMap<>();
+
+    public ShenyuClientShutdownHook() {
+    }
+
+    public ShenyuClientShutdownHook(final ShenyuClientRegisterRepository repository, final ShenyuRegisterCenterConfig config) {
+        String name = String.join("-", hookNamePrefix, String.valueOf(hookId.incrementAndGet()));
+        Runtime.getRuntime().addShutdownHook(new Thread(repository::close, name));
+        LOG.info("Add hook {}", name);
+        ShenyuClientShutdownHook.props = config.getProps();
+    }
 
     /**
      * Add shenyu client shutdown hook.
@@ -56,7 +67,7 @@ public class ShenyuClientShutdownHook {
      * @param props  Properties
      */
     public static void set(final ShenyuClientRegisterRepository result, final Properties props) {
-        String name = hookNamePrefix + "-" + hookId.incrementAndGet();
+        String name = String.join("-", hookNamePrefix, String.valueOf(hookId.incrementAndGet()));
         Runtime.getRuntime().addShutdownHook(new Thread(result::close, name));
         LOG.info("Add hook {}", name);
         ShenyuClientShutdownHook.props = props;
@@ -66,7 +77,7 @@ public class ShenyuClientShutdownHook {
      * Delay other shutdown hooks.
      */
     public static void delayOtherHooks() {
-        if (!delay.compareAndSet(false, true)) {
+        if (!DELAY.compareAndSet(false, true)) {
             return;
         }
         TakeoverOtherHooksThread thread = new TakeoverOtherHooksThread();
@@ -104,7 +115,8 @@ public class ShenyuClientShutdownHook {
                         LOG.info("sleep {}ms", shutdownWaitTime);
                         try {
                             TimeUnit.MILLISECONDS.sleep(shutdownWaitTime);
-                        } catch (InterruptedException ignore) { }
+                        } catch (InterruptedException ignore) {
+                        }
                         hook.run();
                     }, hook.getName());
                     delayHooks.put(delayHook, delayHook);
@@ -126,7 +138,7 @@ public class ShenyuClientShutdownHook {
             }
 
             hookNamePrefix = null;
-            hookId = null;
+            hookId = new AtomicInteger(0);
             props = null;
             delayHooks = null;
             delayedHooks = null;

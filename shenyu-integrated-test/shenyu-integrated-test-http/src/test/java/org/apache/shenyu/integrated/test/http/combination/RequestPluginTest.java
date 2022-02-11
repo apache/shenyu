@@ -27,9 +27,9 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.HttpCookie;
@@ -40,15 +40,15 @@ import java.util.Map;
 import java.util.ArrayList;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class RequestPluginTest extends AbstractPluginDataInit {
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.SENTINEL.getName(), "{\"model\":\"black\"}");
+        String pluginResult = initPlugin(PluginEnum.REQUEST.getName(), null);
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.REQUEST.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
@@ -58,20 +58,20 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
     public void test() throws IOException {
         Map<String, Object> paramMap = new HashMap<>();
 
-        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/parameter/pass?requestParameter=requestParameter", paramMap, Map.class);
+        Map<String, Object> result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/parameter/pass?requestParameter=NULL", paramMap, Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
         assertEquals("requestParameter", GsonUtils.getInstance().convertToMap(String.valueOf(result.get("data"))).get("requestParameter"));
 
         paramMap.clear();
-        paramMap.put("requestHeader", "requestHeader");
+        paramMap.put("requestHeader", "NULL");
         result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/header/pass", paramMap, Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
         assertEquals("requestHeader", GsonUtils.getInstance().convertToMap(String.valueOf(result.get("data"))).get("requestHeader"));
 
         paramMap.clear();
-        paramMap.put("cookie", new HttpCookie("cookie", "cookie"));
+        paramMap.put("cookie", new HttpCookie("cookie", "NULL"));
         result = HttpHelper.INSTANCE.getFromGateway("/http/test/request/cookie/pass", paramMap, Map.class);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
@@ -88,11 +88,11 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
 
     private static List<RuleLocalData> buildRuleLocalDataList() {
         List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/request/pass"));
+        ruleLocalDataList.add(buildRuleLocalData());
         return ruleLocalDataList;
     }
 
-    private static RuleLocalData buildRuleLocalData(final String paramValue) {
+    private static RuleLocalData buildRuleLocalData() {
         final RuleLocalData ruleLocalData = new RuleLocalData();
         RequestHandle requestHandle = new RequestHandle();
         final RequestHandle.ShenyuRequestParameter requestParameter = requestHandle.new ShenyuRequestParameter();
@@ -101,29 +101,29 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
 
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put("requestParameter", "requestParameter");
-        requestParameter.setSetParameters(paramMap);
+        requestParameter.setSetParameters(new HashMap<>(paramMap));
         requestHandle.setParameter(requestParameter);
 
         paramMap.clear();
         paramMap.put("requestHeader", "requestHeader");
-        requestHeader.setSetHeaders(paramMap);
+        requestHeader.setSetHeaders(new HashMap<>(paramMap));
         requestHandle.setHeader(requestHeader);
 
         paramMap.clear();
         paramMap.put("cookie", "cookie");
-        cookie.setSetCookies(paramMap);
+        cookie.setSetCookies(new HashMap<>(paramMap));
         requestHandle.setCookie(cookie);
 
         ruleLocalData.setRuleHandler(JsonUtils.toJson(requestHandle));
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(paramValue);
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamValue("/http/test/request/**");
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
         return ruleLocalData;
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.REQUEST.getName());
     }

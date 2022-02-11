@@ -64,7 +64,70 @@
    * Support A/B test and grayscale publishing.
    
 --------------------------------------------------------------------------------  
- 
+
+# Quick Start (docker)
+
+### Run Apache ShenYu Admin
+
+```
+> docker pull apache/shenyu-admin
+> docker network create shenyu
+> docker run -d -p 9095:9095 --net shenyu apache/shenyu-admin
+```
+
+### Run Apache ShenYu Bootstrap
+
+```
+> docker network create shenyu
+> docker pull apache/shenyu-bootstrap
+> docker run -d -p 9195:9195 --net shenyu apache/shenyu-bootstrap
+```                       
+
+### Set router
+
+* Real requests  ：http://127.0.0.1:8080/helloworld,
+
+```json
+{
+  "name" : "Shenyu",
+  "data" : "hello world"
+}
+```
+
+* Set routing rules（Standalone）
+
+```
+curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndRules' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "pluginName": "divide",
+    "selectorHandler": "[{\"upstreamUrl\":\"127.0.0.1:8080\"}]",
+    "conditionDataList": [{
+        "paramType": "uri",
+        "operator": "match",
+        "paramValue": "/**"
+    }],
+    "ruleDataList": [{
+        "ruleHandler": "{\"loadBalance\":\"random\"}",
+        "conditionDataList": [{
+            "paramType": "uri",
+            "operator": "match",
+            "paramValue": "/**"
+        }]
+    }]
+}'
+```
+
+* Proxy request ：http://localhost:9195/helloworld 
+
+```json
+{
+  "name" : "Shenyu",
+  "data" : "hello world"
+}
+```
+--------------------------------------------------------------------------------
+
 # Plugin
 
  Whenever a request comes in, ShenYu will execute it by all enabled plugins through the chain of responsibility.

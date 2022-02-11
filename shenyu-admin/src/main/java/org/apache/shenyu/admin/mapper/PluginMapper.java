@@ -18,10 +18,12 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * PluginMapper.
@@ -36,6 +38,14 @@ public interface PluginMapper {
      * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
+
+    /**
+     * select plugin by id.
+     *
+     * @param ids primary keys.
+     * @return {@linkplain PluginDO}
+     */
+    List<PluginDO> selectByIds(List<String> ids);
 
     /**
      * Select by name plugin do.
@@ -67,6 +77,13 @@ public interface PluginMapper {
      * @return {@linkplain List}
      */
     List<PluginDO> selectAll();
+
+    /**
+     * select all not in resource.
+     *
+     * @return {@linkplain List}
+     */
+    List<PluginDO> listAllNotInResource();
 
     /**
      * count plugin by query.
@@ -109,6 +126,14 @@ public interface PluginMapper {
     int updateEnable(PluginDO pluginDO);
 
     /**
+     * enable data by a set of ids.
+     * @param idSet a set of ids
+     * @param enabled status
+     * @return the count of enabled datas
+     */
+    int updateEnableByIdSet(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
+
+    /**
      * update selective plugin.
      *
      * @param pluginDO {@linkplain PluginDO}
@@ -123,4 +148,12 @@ public interface PluginMapper {
      * @return rows int
      */
     int delete(String id);
+
+    /**
+     * delete plugin.
+     *
+     * @param ids primary keys.
+     * @return rows int
+     */
+    int deleteByIds(List<String> ids);
 }

@@ -17,23 +17,27 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.apache.shenyu.common.utils.UriUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * The Uri Util test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class UriUtilsTest {
 
     @Test
     public void createUriTest() {
         URI uri = UriUtils.createUri("/SHENYU/TEST");
-        Assert.assertEquals(uri.getPath(), "/SHENYU/TEST");
-        Assert.assertNull(UriUtils.createUri(""));
+        assertEquals("/SHENYU/TEST", Objects.requireNonNull(uri).getPath());
+        assertNull(UriUtils.createUri(""));
     }
 }

@@ -17,23 +17,23 @@
 
 package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * test for AbstractRateLimiterAlgorithm.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class AbstractRateLimiterAlgorithmTest {
 
     private static final String RATE_ALGORITHM_SCRIPT_NAME = "request_leaky_rate_limiter.lua";
@@ -44,16 +44,11 @@ public final class AbstractRateLimiterAlgorithmTest {
 
     private AbstractRateLimiterAlgorithm abstractRateLimiterAlgorithm;
 
-    @Before
+    @BeforeEach
     public void startup() {
-        abstractRateLimiterAlgorithm = new AbstractRateLimiterAlgorithm() {
+        abstractRateLimiterAlgorithm = new AbstractRateLimiterAlgorithm(RATE_ALGORITHM_SCRIPT_NAME) {
             @Override
-            protected String getScriptName() {
-                return RATE_ALGORITHM_SCRIPT_NAME;
-            }
-
-            @Override
-            protected String getKeyName() {
+            public String getKeyName() {
                 return KEY_NAME;
             }
         };

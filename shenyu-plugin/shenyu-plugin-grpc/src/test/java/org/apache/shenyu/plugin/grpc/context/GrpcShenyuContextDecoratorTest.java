@@ -20,10 +20,11 @@ package org.apache.shenyu.plugin.grpc.context;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The Test Case For {@link GrpcShenyuContextDecorator}.
@@ -32,7 +33,7 @@ public class GrpcShenyuContextDecoratorTest {
 
     private GrpcShenyuContextDecorator grpcShenyuContextDecorator;
 
-    @Before
+    @BeforeEach
     public void setup() {
         grpcShenyuContextDecorator = new GrpcShenyuContextDecorator();
     }
@@ -44,7 +45,11 @@ public class GrpcShenyuContextDecoratorTest {
         metaData.setServiceName("echo");
         metaData.setRpcType(PluginEnum.GRPC.getName());
         metaData.setContextPath("/grpc");
-        assert grpcShenyuContextDecorator.decorator(new ShenyuContext(), metaData) != null;
+        final ShenyuContext shenyuContext = grpcShenyuContextDecorator.decorator(new ShenyuContext(), metaData);
+        assertNotNull(shenyuContext);
+        assertNotNull(shenyuContext.getContextPath());
+        assertNotNull(shenyuContext.getMethod());
+        assertNotNull(shenyuContext.getModule());
     }
 
     @Test

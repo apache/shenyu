@@ -20,13 +20,13 @@ package org.apache.shenyu.plugin.base.cache;
 import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * BaseHandleCache test.
  */
-public class CommonHandleCacheTest {
+public final class CommonHandleCacheTest {
 
     private static final String MOCK_KEY = "mockKey";
 
@@ -36,7 +36,7 @@ public class CommonHandleCacheTest {
 
     private ConcurrentHashMap<String, String> cachedMockMap;
 
-    @Before
+    @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.commonHandleCache = new EmptyMockCommonHandleCache<>();
         this.cachedMockMap = new ConcurrentHashMap<>();

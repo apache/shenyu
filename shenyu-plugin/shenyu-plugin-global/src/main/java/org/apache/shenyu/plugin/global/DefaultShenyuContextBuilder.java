@@ -25,6 +25,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.cache.MetaDataCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -38,6 +40,12 @@ import java.util.Optional;
  * The type Default Shenyu context builder.
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GlobalPlugin.class);
+
+    private static final String RPC_TYPE = "rpc_type";
+
+    private static final String UPGRADE = "Upgrade";
 
     private final Map<String, ShenyuContextDecorator> decoratorMap;
 
@@ -56,15 +64,15 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         String path = request.getURI().getPath();
         MetaData metaData = MetaDataCache.getInstance().obtain(path);
         HttpHeaders headers = request.getHeaders();
-        String upgrade = headers.getFirst("Upgrade");
+        String upgrade = headers.getFirst(UPGRADE);
         String rpcType;
-        if (Objects.nonNull(metaData) && metaData.getEnabled()) {
+        if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             rpcType = metaData.getRpcType();
         } else if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             rpcType = RpcTypeEnum.WEB_SOCKET.getName();
         } else {
-            String rpcTypeParam = request.getHeaders().getFirst("rpc_type");
+            String rpcTypeParam = request.getHeaders().getFirst(RPC_TYPE);
             rpcType = StringUtils.isEmpty(rpcTypeParam) ? RpcTypeEnum.HTTP.getName() : rpcTypeParam;
         }
         return decoratorMap.get(rpcType).decorator(buildDefaultContext(request), metaData);

@@ -17,59 +17,68 @@
 
 package org.apache.shenyu.plugin.grpc.cache;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.junit.Assert.assertNotNull;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For {@link ApplicationConfigCache}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ApplicationConfigCacheTest {
-
+    
     private ApplicationConfigCache applicationConfigCache;
-
+    
     private SelectorData selector;
-
-    @Before
+    
+    @BeforeEach
     public void setUp() {
         applicationConfigCache = ApplicationConfigCache.getInstance();
         selector = mock(SelectorData.class);
         when(selector.getName()).thenReturn("/grpc");
         when(selector.getHandle()).thenReturn("[{\"upstreamUrl\":\"localhost:8080\",\"weight\":50,\"status\":true}]");
     }
-
+    
     @Test
     public void getInstance() {
         assertNotNull(this.applicationConfigCache);
     }
-
+    
     @Test
     public void testInitPrx() {
         this.applicationConfigCache.initPrx(selector);
         assertNotNull(applicationConfigCache.get(selector.getName()));
     }
-
+    
     @Test
     public void testGet() {
         assertNotNull(this.applicationConfigCache.get("/test"));
     }
-
+    
     @Test
     public void testInvalidate() {
         this.applicationConfigCache.invalidate(selector.getName());
-        assert this.applicationConfigCache.get(selector.getName()).getShenyuServiceInstances().size() == 0;
+        final List<ShenyuServiceInstance> shenyuServiceInstances = this.applicationConfigCache.get(selector.getName()).getShenyuServiceInstances();
+        assertTrue(CollectionUtils.isEmpty(shenyuServiceInstances), "shenyuServiceInstances mast is empty");
     }
-
+    
     @Test
     public void testWatch() {
-        this.applicationConfigCache.watch(selector.getName(), Assert::assertNotNull);
+        this.applicationConfigCache.watch(selector.getName(), Assertions::assertNotNull);
     }
 }

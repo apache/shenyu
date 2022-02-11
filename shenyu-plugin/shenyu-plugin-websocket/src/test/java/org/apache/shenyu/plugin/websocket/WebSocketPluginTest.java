@@ -20,9 +20,8 @@ package org.apache.shenyu.plugin.websocket;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -30,10 +29,9 @@ import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -48,6 +46,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -78,7 +78,7 @@ public class WebSocketPluginTest {
 
     private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
 
-    @Before
+    @BeforeEach
     public void setup() {
         this.ruleData = mock(RuleData.class);
         this.chain = mock(ShenyuPluginChain.class);
@@ -103,7 +103,7 @@ public class WebSocketPluginTest {
         mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mockCheckUtils.close();
     }
@@ -124,7 +124,7 @@ public class WebSocketPluginTest {
     @Test
     public void skip() {
         initMockInfo();
-        Assert.assertTrue(webSocketPlugin.skip(exchange));
+        assertTrue(webSocketPlugin.skip(exchange));
     }
 
     /**
@@ -132,7 +132,7 @@ public class WebSocketPluginTest {
      */
     @Test
     public void namedTest() {
-        Assert.assertEquals(PluginEnum.WEB_SOCKET.getName(), webSocketPlugin.named());
+        assertEquals(PluginEnum.WEB_SOCKET.getName(), webSocketPlugin.named());
     }
 
     /**
@@ -140,7 +140,7 @@ public class WebSocketPluginTest {
      */
     @Test
     public void getOrderTest() {
-        Assert.assertEquals(PluginEnum.WEB_SOCKET.getCode(), webSocketPlugin.getOrder());
+        assertEquals(PluginEnum.WEB_SOCKET.getCode(), webSocketPlugin.getOrder());
     }
 
     /**
@@ -148,8 +148,8 @@ public class WebSocketPluginTest {
      */
     private void initMockInfo() {
         ShenyuContext context = mock(ShenyuContext.class);
-        context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "", "");
+        context.setRpcType(RpcTypeEnum.WEB_SOCKET.getName());
+        WebSocketRuleHandle handle = new WebSocketRuleHandle();
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));

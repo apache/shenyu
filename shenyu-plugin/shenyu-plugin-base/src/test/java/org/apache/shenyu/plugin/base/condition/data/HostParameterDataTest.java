@@ -20,11 +20,12 @@ package org.apache.shenyu.plugin.base.condition.data;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -35,25 +36,26 @@ import java.net.InetSocketAddress;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * unit test for {@link HostParameterData}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class HostParameterDataTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+public final class HostParameterDataTest {
 
     private ServerWebExchange exchange;
 
     private HostParameterData hostParameterData;
 
-    private RemoteAddressResolver remoteAddressResolver;
-
     private final String testhost = "192.168.0.121";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        this.remoteAddressResolver = new RemoteAddressResolver() {
+        RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress(testhost, 8085))
@@ -65,11 +67,11 @@ public class HostParameterDataTest {
 
     @Test
     public void testBuilderWithNullParamName() {
-        Assert.assertEquals(testhost, hostParameterData.builder(null, exchange));
+        assertEquals(testhost, hostParameterData.builder(null, exchange));
     }
 
     @Test
     public void testBuilderWithAnyParamName() {
-        Assert.assertEquals(testhost, hostParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
+        assertEquals(testhost, hostParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
     }
 }

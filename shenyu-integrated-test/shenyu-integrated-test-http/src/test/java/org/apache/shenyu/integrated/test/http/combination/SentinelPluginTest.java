@@ -17,6 +17,17 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -26,35 +37,34 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.Lists;
+import com.google.gson.reflect.TypeToken;
 
 public final class SentinelPluginTest extends AbstractPluginDataInit {
 
-    @BeforeClass
+    private static final String TEST_SENTINEL_PATH = "/http/test/sentinel/pass";
+
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.SENTINEL.getName(), "{\"model\":\"black\"}");
         assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
+        String selectorAndRulesResult =
+                initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
     }
 
     @Test
     public void test() throws IOException {
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway("/http/test/sentinel/pass", "", Map.class);
+        Type returnType = new TypeToken<Map<String, Object>>() {
+        }.getType();
+        Map<String, Object> result = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
-        result = HttpHelper.INSTANCE.postGateway("/http/test/sentinel/pass", "", Map.class);
+        result = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
         assertEquals("You have been restricted, please try again later!", result.get("message"));
     }
 
@@ -67,12 +77,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
     }
 
     private static List<RuleLocalData> buildRuleLocalDataList() {
-        List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/sentinel/pass"));
-        return ruleLocalDataList;
-    }
 
-    private static RuleLocalData buildRuleLocalData(final String paramValue) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
         SentinelHandle sentinelHandle = new SentinelHandle();
         sentinelHandle.setDegradeRuleCount(1);
@@ -91,12 +96,13 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(paramValue);
+        conditionData.setParamValue(TEST_SENTINEL_PATH);
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        return ruleLocalData;
+
+        return Lists.newArrayList(ruleLocalData);
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.SENTINEL.getName());
     }

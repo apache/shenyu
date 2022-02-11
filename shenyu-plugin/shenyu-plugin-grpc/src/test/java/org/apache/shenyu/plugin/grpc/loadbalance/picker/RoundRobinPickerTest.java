@@ -22,29 +22,32 @@ import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RoundRobinPickerTest {
 
     private RoundRobinPicker roundRobinPicker;
-
-    private List<LoadBalancer.Subchannel> list;
-
-    @Before
+    
+    @BeforeEach
     public void setUp() {
         Attributes attributes = SubChannels.createAttributes(1, "ok");
         LoadBalancer.Subchannel subchannel =
                 SubChannels.createSubChannel(new UnitTestReadHelper(), mock(EquivalentAddressGroup.class), attributes);
-        list = new LinkedList<>();
+        List<LoadBalancer.Subchannel> list = new LinkedList<>();
         list.add(subchannel);
         roundRobinPicker = new RoundRobinPicker(list);
     }
@@ -54,9 +57,9 @@ public class RoundRobinPickerTest {
         SubChannelCopy firstSubChannelCopy = mock(SubChannelCopy.class);
         SubChannelCopy secondSubChannelCopy = mock(SubChannelCopy.class);
         List<SubChannelCopy> list = Arrays.asList(firstSubChannelCopy, secondSubChannelCopy);
-        Assert.assertNotNull(roundRobinPicker.pick(list));
-        Assert.assertNotNull(roundRobinPicker.pick(list));
-        Assert.assertEquals(firstSubChannelCopy, roundRobinPicker.pick(Arrays.asList(firstSubChannelCopy)));
-        Assert.assertNull(roundRobinPicker.pick(null));
+        assertNotNull(roundRobinPicker.pick(list));
+        assertNotNull(roundRobinPicker.pick(list));
+        assertEquals(firstSubChannelCopy, roundRobinPicker.pick(Collections.singletonList(firstSubChannelCopy)));
+        assertNull(roundRobinPicker.pick(null));
     }
 }

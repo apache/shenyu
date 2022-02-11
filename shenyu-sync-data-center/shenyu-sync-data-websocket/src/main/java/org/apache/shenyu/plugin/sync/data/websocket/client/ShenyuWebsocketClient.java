@@ -20,6 +20,10 @@ package org.apache.shenyu.plugin.sync.data.websocket.client;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.timer.AbstractRoundTask;
+import org.apache.shenyu.common.timer.Timer;
+import org.apache.shenyu.common.timer.TimerTask;
+import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -32,21 +36,26 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type shenyu websocket client.
  */
 public final class ShenyuWebsocketClient extends WebSocketClient {
-
+    
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
-
+    
     private volatile boolean alreadySync = Boolean.FALSE;
-
+    
     private final WebsocketDataHandler websocketDataHandler;
-
+    
+    private final Timer timer;
+    
+    private TimerTask timerTask;
+    
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -56,11 +65,40 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param authDataSubscribers  the auth data subscribers
      */
     public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
-                                 final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers
+    ) {
         super(serverUri);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.timer = WheelTimerFactory.getSharedTimer();
+        this.connection();
     }
-
+    
+    private void connection() {
+        this.connectBlocking();
+        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
+            @Override
+            public void doRun(final String key, final TimerTask timerTask) {
+                healthCheck();
+            }
+        });
+    }
+    
+    @Override
+    public boolean connectBlocking() {
+        boolean success = false;
+        try {
+            success = super.connectBlocking();
+        } catch (Exception ignored) {
+        }
+        if (success) {
+            LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
+        } else {
+            LOG.warn("websocket connection server[{}] is error.....", this.getURI().toString());
+        }
+        return success;
+    }
+    
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         if (!alreadySync) {
@@ -68,22 +106,52 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             alreadySync = true;
         }
     }
-
+    
     @Override
     public void onMessage(final String result) {
         handleResult(result);
     }
-
+    
     @Override
     public void onClose(final int i, final String s, final boolean b) {
         this.close();
     }
-
+    
     @Override
     public void onError(final Exception e) {
         this.close();
     }
-
+    
+    @Override
+    public void close() {
+        alreadySync = false;
+        if (this.isOpen()) {
+            super.close();
+        }
+    }
+    
+    /**
+     * Now close.
+     * now close. will cancel the task execution.
+     */
+    public void nowClose() {
+        this.close();
+        timerTask.cancel();
+    }
+    
+    private void healthCheck() {
+        try {
+            if (!this.isOpen()) {
+                this.reconnectBlocking();
+            } else {
+                this.sendPing();
+                LOG.debug("websocket send to [{}] ping message successful", this.getURI().toString());
+            }
+        } catch (Exception e) {
+            LOG.error("websocket connect is error :{}", e.getMessage());
+        }
+    }
+    
     @SuppressWarnings("ALL")
     private void handleResult(final String result) {
         LOG.info("handleResult({})", result);

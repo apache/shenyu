@@ -40,12 +40,16 @@ import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.RoleService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +64,9 @@ public class RoleServiceImpl implements RoleService {
 
     private final ResourceMapper resourceMapper;
 
-    public RoleServiceImpl(final RoleMapper roleMapper, final PermissionMapper permissionMapper, final ResourceMapper resourceMapper) {
+    public RoleServiceImpl(final RoleMapper roleMapper,
+                           final PermissionMapper permissionMapper,
+                           final ResourceMapper resourceMapper) {
         this.roleMapper = roleMapper;
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
@@ -105,8 +111,9 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleEditVO findById(final String id) {
         RoleVO sysRole = RoleVO.buildRoleVO(roleMapper.selectById(id));
-        return Optional.ofNullable(sysRole).map(item -> new RoleEditVO(getPermissionIdsByRoleId(item.getId()), item,
-                getAllPermissions())).orElse(null);
+        return Optional.ofNullable(sysRole)
+                .map(item -> new RoleEditVO(getPermissionIdsByRoleId(item.getId()), item, getAllPermissions()))
+                .orElse(null);
     }
 
     /**
@@ -129,8 +136,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Pageable
     public CommonPager<RoleVO> listByPage(final RoleQuery roleQuery) {
-        return PageResultUtils.result(roleQuery.getPageParameter(),
-            () -> roleMapper.selectByQuery(roleQuery).stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(roleQuery.getPageParameter(), () -> roleMapper.selectByQuery(roleQuery)
+                .stream()
+                .map(RoleVO::buildRoleVO)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -140,7 +149,10 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public List<RoleVO> selectAll() {
-        return roleMapper.selectAll().stream().map(RoleVO::buildRoleVO).collect(Collectors.toList());
+        return roleMapper.selectAll()
+                .stream()
+                .map(RoleVO::buildRoleVO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -149,10 +161,13 @@ public class RoleServiceImpl implements RoleService {
      * @return {@linkplain PermissionInfo}
      */
     private PermissionInfo getAllPermissions() {
-        List<ResourceVO> resourceVOList = resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
+        List<ResourceVO> resourceVOList = resourceMapper.selectAll()
+                .stream()
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList());
         List<String> permissionIds = resourceVOList.stream().map(ResourceVO::getId).collect(Collectors.toList());
-        List<ResourceInfo> treeList = new ArrayList<>();
-        getTreeModelList(treeList, resourceVOList, null);
+
+        List<ResourceInfo> treeList = getTreeModelList(resourceVOList);
         return PermissionInfo.builder().treeList(treeList).permissionIds(permissionIds).build();
     }
 
@@ -163,39 +178,61 @@ public class RoleServiceImpl implements RoleService {
      * @return {@linkplain List}
      */
     private List<String> getPermissionIdsByRoleId(final String roleId) {
-        return permissionMapper.findByObjectId(roleId).stream().map(PermissionDO::getResourceId).collect(Collectors.toList());
+        return permissionMapper.findByObjectId(roleId)
+                .stream()
+                .map(PermissionDO::getResourceId)
+                .collect(Collectors.toList());
     }
 
     /**
      * get menu list.
      *
-     * @param treeList {@linkplain ResourceInfo}
      * @param metaList {@linkplain ResourceDTO}
-     * @param resourceInfo {@linkplain ResourceInfo}
+     * @return list of {@linkplain ResourceInfo}
      */
-    private void getTreeModelList(final List<ResourceInfo> treeList, final List<ResourceVO> metaList, final ResourceInfo resourceInfo) {
-        for (ResourceVO resourceVO : metaList) {
-            String parentId = resourceVO.getParentId();
-            ResourceInfo resourceInfoItem = ResourceInfo.buildResourceInfo(resourceVO);
-            if (ObjectUtils.isEmpty(resourceInfo) && StringUtils.isEmpty(parentId)) {
-                treeList.add(resourceInfoItem);
-                if (resourceInfoItem.getIsLeaf().equals(Boolean.FALSE)) {
-                    getTreeModelList(treeList, metaList, resourceInfoItem);
-                }
-            } else if (!ObjectUtils.isEmpty(resourceInfo) && StringUtils.isNotEmpty(parentId) && parentId.equals(resourceInfo.getId())) {
-                resourceInfo.getChildren().add(resourceInfoItem);
-                if (resourceInfoItem.getIsLeaf().equals(Boolean.FALSE)) {
-                    getTreeModelList(treeList, metaList, resourceInfoItem);
-                }
-            }
+    private List<ResourceInfo> getTreeModelList(final List<ResourceVO> metaList) {
 
+        List<ResourceInfo> retList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(metaList)) {
+            return retList;
         }
+        Map<String, ResourceInfo> resourceInfoMap = metaList.stream().map(ResourceInfo::buildResourceInfo)
+                .filter(resourceInfo -> Objects.nonNull(resourceInfo) && StringUtils.isNotEmpty(resourceInfo.getId()))
+                .collect(Collectors.toMap(ResourceInfo::getId, Function.identity(), (value1, value2) -> value1));
+        Map<String, Set<String>> metaChildrenMap = metaList.stream().filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
+                .collect(Collectors.toMap(ResourceVO::getParentId,
+                    resourceVO -> {
+                        Set<String> idSet = new LinkedHashSet<>();
+                        idSet.add(resourceVO.getId());
+                        return idSet;
+                    }, (set1, set2) -> {
+                        set1.addAll(set2);
+                        return set1;
+                    }, LinkedHashMap::new));
+        metaChildrenMap.forEach((parent, children) -> {
+            ResourceInfo resourceInfo = resourceInfoMap.get(parent);
+            if (CollectionUtils.isNotEmpty(children)) {
+                List<ResourceInfo> targetList;
+                if (Objects.isNull(resourceInfo)) {
+                    targetList = retList;
+                } else {
+                    targetList = resourceInfo.getChildren();
+                }
+                children.forEach(child -> {
+                    ResourceInfo data = resourceInfoMap.get(child);
+                    if (Objects.nonNull(data)) {
+                        targetList.add(data);
+                    }
+                });
+            }
+        });
+        return retList;
     }
 
     /**
      * get two list different.
      *
-     * @param preList {@linkplain List}
+     * @param preList  {@linkplain List}
      * @param lastList {@linkplain List}
      * @return {@linkplain List}
      */
@@ -203,9 +240,11 @@ public class RoleServiceImpl implements RoleService {
         if (CollectionUtils.isEmpty(lastList)) {
             return null;
         }
+
         if (CollectionUtils.isEmpty(preList)) {
             return lastList;
         }
+
         Map<String, Integer> map = preList.stream().distinct()
                 .collect(Collectors.toMap(source -> source, source -> 1));
         return lastList.stream().filter(item -> !map.containsKey(item)).collect(Collectors.toList());
@@ -232,7 +271,7 @@ public class RoleServiceImpl implements RoleService {
     /**
      * manger role permission.
      *
-     * @param roleId role id.
+     * @param roleId                role id.
      * @param currentPermissionList {@linkplain List} current role permission ids
      */
     private void manageRolePermission(final String roleId, final List<String> currentPermissionList) {
@@ -241,6 +280,7 @@ public class RoleServiceImpl implements RoleService {
         if (CollectionUtils.isNotEmpty(addPermission)) {
             batchSavePermission(addPermission.stream().map(node -> PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(roleId).resourceId(node).build())).collect(Collectors.toList()));
         }
+
         List<String> deletePermission = getListDiff(currentPermissionList, lastPermissionList);
         if (CollectionUtils.isNotEmpty(deletePermission)) {
             deletePermission.forEach(node -> deleteByObjectIdAndResourceId(new PermissionQuery(roleId, node)));

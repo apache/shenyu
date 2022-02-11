@@ -22,9 +22,17 @@ import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.http.dto.UserDTO;
 import org.apache.shenyu.examples.http.result.ResultBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +43,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +60,8 @@ import java.util.Map;
 @RequestMapping("/test")
 @ShenyuSpringMvcClient(path = "/test/**")
 public class HttpTestController {
+
+    private static final Logger logger = LoggerFactory.getLogger(HttpTestController.class);
 
     /**
      * Post user dto.
@@ -65,10 +82,31 @@ public class HttpTestController {
      */
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(userId);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(userId, "hello world");
+    }
+
+    /**
+     * Find by user id string.
+     *
+     * @param userId the user id
+     * @return the string
+     */
+    @GetMapping("/findByUserIdName")
+    public UserDTO findByUserId(@RequestParam("userId") final String userId, @RequestParam("name") final String name) {
+        return buildUser(userId, name);
+    }
+
+    /**
+     * Find by page user dto.
+     *
+     * @param keyword  the keyword
+     * @param page     the page
+     * @param pageSize the page size
+     * @return the user dto
+     */
+    @GetMapping("/findByPage")
+    public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
+        return buildUser(keyword, "hello world keyword is " + keyword + " page is " + page + " pageSize is " + pageSize);
     }
 
     /**
@@ -80,10 +118,7 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(id);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(id, name);
     }
 
 
@@ -95,10 +130,7 @@ public class HttpTestController {
      */
     @GetMapping("/path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(id);
-        userDTO.setUserName("hello world");
-        return userDTO;
+        return buildUser(id, "hello world");
     }
 
 
@@ -119,8 +151,7 @@ public class HttpTestController {
     /**
      * the waf pass.
      *
-     * @return response.
-     * @return the string
+     * @return response. result bean
      */
     @PostMapping("/waf/pass")
     public ResultBean pass() {
@@ -133,7 +164,7 @@ public class HttpTestController {
     /**
      * the waf deny.
      *
-     * @return response.
+     * @return response. result bean
      */
     @PostMapping("/waf/deny")
     public ResultBean deny() {
@@ -145,8 +176,9 @@ public class HttpTestController {
 
     /**
      * request Pass.
+     *
      * @param requestParameter the requestParameter.
-     * @return ResultBean
+     * @return ResultBean result bean
      */
     @GetMapping("/request/parameter/pass")
     public ResultBean requestParameter(@RequestParam("requestParameter") final String requestParameter) {
@@ -162,8 +194,9 @@ public class HttpTestController {
 
     /**
      * request Pass.
-     * @param requestHeader    the requestHeader.
-     * @return ResultBean
+     *
+     * @param requestHeader the requestHeader.
+     * @return ResultBean result bean
      */
     @GetMapping("/request/header/pass")
     public ResultBean requestHeader(@RequestHeader("requestHeader") final String requestHeader) {
@@ -179,8 +212,9 @@ public class HttpTestController {
 
     /**
      * request Pass.
-     * @param cookie           the cookie.
-     * @return ResultBean
+     *
+     * @param cookie the cookie.
+     * @return ResultBean result bean
      */
     @GetMapping("/request/cookie/pass")
     public ResultBean requestCookie(@CookieValue("cookie") final String cookie) {
@@ -196,20 +230,19 @@ public class HttpTestController {
 
     /**
      * post sentinel.
-     * @return response.
+     *
+     * @return response. result bean
      */
     @PostMapping("/sentinel/pass")
     public ResultBean sentinelPass() {
-        ResultBean response = new ResultBean();
-        response.setCode(200);
-        response.setMsg("pass");
-        return response;
+        return pass();
     }
 
     /**
      * modify response.
+     *
      * @param exchange exchange
-     * @return response
+     * @return response mono
      */
     @GetMapping(path = "/modifyResponse")
     public Mono<String> modifyResponse(final ServerWebExchange exchange) {
@@ -222,5 +255,76 @@ public class HttpTestController {
                 .put("removeBodyKeys", true)
                 .build();
         return Mono.just(GsonUtils.getInstance().toJson(body));
+    }
+
+
+    /**
+     * modify request.
+     *
+     * @param userDTO          request body
+     * @param cookie           cookie
+     * @param requestHeader    header
+     * @param requestParameter parameter
+     * @return
+     */
+    @PostMapping(path = "/modifyRequest")
+    public Map<String, Object> modifyRequest(@RequestBody final UserDTO userDTO,
+                                             @CookieValue(value = "cookie", defaultValue = "") final String cookie,
+                                             @RequestHeader(value = "requestHeader", defaultValue = "") final String requestHeader,
+                                             @RequestParam(value = "requestParameter", defaultValue = "") final String requestParameter) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("body", userDTO);
+        result.put("cookie", cookie);
+        result.put("header", requestHeader);
+        result.put("parameter", requestParameter);
+        return result;
+    }
+
+    /**
+     * download file.
+     *
+     * @param body file content
+     * @return file
+     * @throws IOException
+     */
+    @GetMapping(path = "/download")
+    public ResponseEntity<byte[]> downloadFile(@RequestParam(value = "body", defaultValue = "") final String body) throws IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        String downloadFileName = URLEncoder.encode("downloadFile.txt", "UTF-8");
+        headers.setContentDispositionFormData("attachment", downloadFileName);
+
+        return new ResponseEntity<>(body.getBytes(StandardCharsets.UTF_8), headers, HttpStatus.CREATED);
+    }
+
+
+    /**
+     * upload file and print.
+     *
+     * @param filePart upload file
+     * @return OK
+     * @throws IOException
+     */
+    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String downloadFile(@RequestPart("file") FilePart filePart) throws IOException {
+        logger.info("file name: {}", filePart.filename());
+        Path tempFile = Files.createTempFile(String.valueOf(System.currentTimeMillis()), filePart.filename());
+        filePart.transferTo(tempFile.toFile());
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile.toFile()))) {
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                logger.info(line);
+                line = bufferedReader.readLine();
+            }
+        }
+        return "OK";
+    }
+
+    private UserDTO buildUser(final String id, final String name) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(id);
+        userDTO.setUserName(name);
+        return userDTO;
     }
 }

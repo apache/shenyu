@@ -19,8 +19,8 @@ package org.apache.shenyu.plugin.param.mapping.strategy;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
-import org.apache.shenyu.common.utils.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -37,10 +37,10 @@ public interface Operator {
      *
      * @param exchange           exchange
      * @param shenyuPluginChain  chain
-     * @param paramMappingHandle handle
+     * @param paramMappingRuleHandle handle
      * @return mono
      */
-    Mono<Void> apply(ServerWebExchange exchange, ShenyuPluginChain shenyuPluginChain, ParamMappingHandle paramMappingHandle);
+    Mono<Void> apply(ServerWebExchange exchange, ShenyuPluginChain shenyuPluginChain, ParamMappingRuleHandle paramMappingRuleHandle);
 
     /**
      * Clean buffer.
@@ -50,7 +50,7 @@ public interface Operator {
      * @return mono
      */
     default Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
-        if (outputMessage.getCache()) {
+        if (Boolean.TRUE.equals(outputMessage.getCache())) {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
         return Mono.error(throwable);
@@ -60,21 +60,17 @@ public interface Operator {
      * Operation.
      *
      * @param jsonValue          json
-     * @param paramMappingHandle handle
+     * @param paramMappingRuleHandle handle
      * @return string
      */
-    default String operation(final String jsonValue, final ParamMappingHandle paramMappingHandle) {
+    default String operation(final String jsonValue, final ParamMappingRuleHandle paramMappingRuleHandle) {
         DocumentContext context = JsonPath.parse(jsonValue);
-        operation(context, paramMappingHandle);
-        if (!CollectionUtils.isEmpty(paramMappingHandle.getReplaceParameterKeys())) {
-            paramMappingHandle.getReplaceParameterKeys().forEach(info -> {
-                context.renameKey(info.getPath(), info.getKey(), info.getValue());
-            });
+        operation(context, paramMappingRuleHandle);
+        if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getReplaceParameterKeys())) {
+            paramMappingRuleHandle.getReplaceParameterKeys().forEach(info -> context.renameKey(info.getPath(), info.getKey(), info.getValue()));
         }
-        if (!CollectionUtils.isEmpty(paramMappingHandle.getRemoveParameterKeys())) {
-            paramMappingHandle.getRemoveParameterKeys().forEach(info -> {
-                context.delete(info);
-            });
+        if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getRemoveParameterKeys())) {
+            paramMappingRuleHandle.getRemoveParameterKeys().forEach(context::delete);
         }
         return context.jsonString();
     }
@@ -83,13 +79,11 @@ public interface Operator {
      * Operation.
      *
      * @param context            context
-     * @param paramMappingHandle handle
+     * @param paramMappingRuleHandle handle
      */
-    default void operation(final DocumentContext context, final ParamMappingHandle paramMappingHandle) {
-        if (!CollectionUtils.isEmpty(paramMappingHandle.getAddParameterKeys())) {
-            paramMappingHandle.getAddParameterKeys().forEach(info -> {
-                context.put(info.getPath(), info.getKey(), info.getValue());
-            });
+    default void operation(final DocumentContext context, final ParamMappingRuleHandle paramMappingRuleHandle) {
+        if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys())) {
+            paramMappingRuleHandle.getAddParameterKeys().forEach(info -> context.put(info.getPath(), info.getKey(), info.getValue()));
         }
     }
 }

@@ -29,7 +29,6 @@ public class CustomShenyuPlugin implements ShenyuPlugin {
     
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        System.out.println("hello world im is custom Shenyu plugin");
         return chain.execute(exchange);
     }
     

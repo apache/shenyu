@@ -17,37 +17,63 @@
 
 package org.apache.shenyu.springboot.starter.plugin.cryptor;
 
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.cryptor.request.CryptorRequestPlugin;
-import org.apache.shenyu.plugin.cryptor.response.CryptorResponsePlugin;
-import org.junit.Test;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link CryptorPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class CryptorPluginConfigurationTest {
 
-    @Test
-    public void testCryptorRequestPlugin() {
-        new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(CryptorPluginConfiguration.class))
-                .run(context -> {
-                    CryptorRequestPlugin plugin = context.getBean("cryptorRequestPlugin", CryptorRequestPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.CRYPTOR_REQUEST.getName());
-                });
+    private ApplicationContextRunner applicationContextRunner;
+
+    @BeforeEach
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(CryptorPluginConfiguration.class))
+            .withBean(CryptorPluginConfigurationTest.class)
+            .withPropertyValues(
+                "debug=true",
+                "shenyu.register.registerType=http",
+                "shenyu.register.serverLists=http://localhost:9095",
+                "shenyu.client.http.props[contextPath]=/http",
+                "shenyu.client.http.props[appName]=http",
+                "shenyu.client.http.props[port]=8189",
+                "shenyu.cross.enabled=true",
+                "shenyu.file.enabled=true",
+                "shenyu.exclude.enabled=true"
+            );
     }
 
     @Test
-    public void testCryptorResponsePlugin() {
-        new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(CryptorPluginConfiguration.class))
-                .run(context -> {
-                    CryptorResponsePlugin plugin = context.getBean("cryptorResponsePlugin", CryptorResponsePlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.CRYPTOR_RESPONSE.getName());
-                });
+    public void testShenyuPlugin() {
+        applicationContextRunner.run(context -> {
+                ShenyuPlugin cryptorRequestPlugin = context.getBean("cryptorRequestPlugin", ShenyuPlugin.class);
+                assertNotNull(cryptorRequestPlugin);
+                ShenyuPlugin cryptorResponsePlugin = context.getBean("cryptorResponsePlugin", ShenyuPlugin.class);
+                assertNotNull(cryptorResponsePlugin);
+            }
+        );
+    }
+
+    @Test
+    public void testPluginDataHandler() {
+        applicationContextRunner.run(context -> {
+                PluginDataHandler cryptorRequestPluginDataHandler = context.getBean("cryptorRequestPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(cryptorRequestPluginDataHandler);
+                PluginDataHandler cryptorResponsePluginDataHandler = context.getBean("cryptorResponsePluginDataHandler", PluginDataHandler.class);
+                assertNotNull(cryptorResponsePluginDataHandler);
+            }
+        );
     }
 }

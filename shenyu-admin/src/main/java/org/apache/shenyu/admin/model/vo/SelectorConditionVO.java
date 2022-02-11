@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * this is selector condition view to web front.
@@ -80,7 +81,7 @@ public class SelectorConditionVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
-
+    
     public SelectorConditionVO() {
     }
 
@@ -296,8 +297,9 @@ public class SelectorConditionVO implements Serializable {
         ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(selectorConditionDO.getParamType());
         OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(selectorConditionDO.getOperator());
         return new SelectorConditionVO(selectorConditionDO.getId(), selectorConditionDO.getSelectorId(), selectorConditionDO.getParamType(),
-                paramTypeEnum == null ? null : paramTypeEnum.name(), selectorConditionDO.getOperator(),
-                operatorEnum == null ? null : operatorEnum.name(), selectorConditionDO.getParamName(), selectorConditionDO.getParamValue(),
+                Optional.ofNullable(paramTypeEnum).map(ParamTypeEnum::getName).orElse(selectorConditionDO.getParamType()), selectorConditionDO.getOperator(),
+                Optional.ofNullable(operatorEnum).map(OperatorEnum::getAlias).orElse(selectorConditionDO.getOperator()), 
+                selectorConditionDO.getParamName(), selectorConditionDO.getParamValue(),
                 DateUtils.localDateTimeToString(selectorConditionDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(selectorConditionDO.getDateUpdated().toLocalDateTime()));
     }

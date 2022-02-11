@@ -25,7 +25,6 @@ import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
@@ -46,28 +45,27 @@ public class RewritePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String handle = rule.getHandle();
-        final RewriteHandle rewriteHandle = RewritePluginDataHandler.CACHED_HANDLE.get()
-                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        RewriteHandle rewriteHandle = RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(rewriteHandle)) {
             LOG.error("uri rewrite rule can not configuration：{}", handle);
             return chain.execute(exchange);
         }
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         String rewriteUri = exchange.getRequest().getURI().getPath();
-        if (StringUtils.isNotBlank(shenyuContext.getRealUrl())) {
-            rewriteUri = shenyuContext.getRealUrl();
-        }
         if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())) {
             rewriteUri = rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+            exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
         }
-        exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
         return chain.execute(exchange);
     }
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
-        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
+        return skip(exchange,
+                RpcTypeEnum.DUBBO,
+                RpcTypeEnum.GRPC,
+                RpcTypeEnum.TARS,
+                RpcTypeEnum.MOTAN,
+                RpcTypeEnum.SOFA);
     }
 
     @Override

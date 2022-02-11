@@ -17,18 +17,22 @@
 
 package org.apache.shenyu.plugin.jwt.handle;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.impl.JwtRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test case for {@link JwtPluginDataHandler}.
@@ -37,19 +41,42 @@ public final class JwtPluginDataHandlerTest {
 
     private JwtPluginDataHandler jwtPluginDataHandlerUnderTest;
 
-    @Before
+    private List<JwtRuleHandle.Convert> converts;
+
+    private JwtRuleHandle.Convert convert;
+
+    private JwtRuleHandle jwtRuleHandle;
+
+    @BeforeEach
     public void setUp() {
         jwtPluginDataHandlerUnderTest = new JwtPluginDataHandler();
+        converts = new ArrayList<>();
+        convert = new JwtRuleHandle.Convert();
+        jwtRuleHandle = new JwtRuleHandle();
     }
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"sinsy\",\"filterPath\":\"/cloud/ecg/common,/cloud/ecg/selectAll\"}", "0", false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu\"}", "0", false);
         jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
         assertEquals(jwtConfig.getSecretKey(), map.get("secretKey"));
-        assertEquals(StringUtils.join(jwtConfig.getFilterPath(), ","), map.get("filterPath"));
+    }
+
+    @Test
+    public void testHandlerRule() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("jwtRule");
+        ruleData.setSelectorId("jwt");
+        convert.setJwtVal("userId");
+        convert.setHeaderVal("userId");
+        converts.add(convert);
+        jwtRuleHandle.setConverter(converts);
+
+        ruleData.setHandle(GsonUtils.getGson().toJson(jwtRuleHandle));
+        jwtPluginDataHandlerUnderTest.handlerRule(ruleData);
+        assertEquals(jwtRuleHandle.getConverter().toString(), JwtPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).getConverter().toString());
     }
 
     @Test

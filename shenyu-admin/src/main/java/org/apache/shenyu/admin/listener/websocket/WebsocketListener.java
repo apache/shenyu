@@ -26,6 +26,7 @@ import javax.servlet.ServletRequestListener;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Objects;
 
 /**
  * The Websocket listener.
@@ -44,7 +45,7 @@ public class WebsocketListener implements ServletRequestListener {
     public void requestDestroyed(final ServletRequestEvent sre) {
         try {
             HttpServletRequest request = (HttpServletRequest) sre.getServletRequest();
-            if (null != request && null != request.getSession()) {
+            if (Objects.nonNull(request) && Objects.nonNull(request.getSession())) {
                 HttpSession session = request.getSession();
                 request.removeAttribute(CLIENT_IP_NAME);
                 session.removeAttribute(CLIENT_IP_NAME);
@@ -58,7 +59,7 @@ public class WebsocketListener implements ServletRequestListener {
     public void requestInitialized(final ServletRequestEvent sre) {
         try {
             HttpServletRequest request = (HttpServletRequest) sre.getServletRequest();
-            if (null != request && null != request.getSession()) {
+            if (Objects.nonNull(request) && Objects.nonNull(request.getSession())) {
                 HttpSession session = request.getSession();
                 request.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
                 session.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());

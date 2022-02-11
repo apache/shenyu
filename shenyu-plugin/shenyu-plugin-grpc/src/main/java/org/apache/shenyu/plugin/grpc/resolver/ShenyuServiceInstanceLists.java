@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
-import org.springframework.beans.BeanUtils;
+import org.apache.shenyu.plugin.grpc.transfer.ShenyuServiceTransfer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ShenyuServiceInstanceLists {
 
-    private CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances;
+    private final List<ShenyuServiceInstance> shenyuServiceInstances = new CopyOnWriteArrayList<>();
 
     private String appName;
 
@@ -37,6 +37,15 @@ public class ShenyuServiceInstanceLists {
      */
     public ShenyuServiceInstanceLists() {
     }
+    
+    /**
+     * Instantiates a new Shenyu service instance lists.
+     *
+     * @param appName                the app name
+     */
+    public ShenyuServiceInstanceLists(final String appName) {
+        this.appName = appName;
+    }
 
     /**
      * Instantiates a new Shenyu service instance lists.
@@ -44,8 +53,9 @@ public class ShenyuServiceInstanceLists {
      * @param shenyuServiceInstances the shenyu service instances
      * @param appName                the app name
      */
-    public ShenyuServiceInstanceLists(final CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances, final String appName) {
-        this.shenyuServiceInstances = shenyuServiceInstances;
+    public ShenyuServiceInstanceLists(final List<ShenyuServiceInstance> shenyuServiceInstances,
+                                      final String appName) {
+        addShenyuServiceInstances(shenyuServiceInstances);
         this.appName = appName;
     }
 
@@ -54,17 +64,17 @@ public class ShenyuServiceInstanceLists {
      *
      * @return the shenyu service instances
      */
-    public CopyOnWriteArrayList<ShenyuServiceInstance> getShenyuServiceInstances() {
+    public List<ShenyuServiceInstance> getShenyuServiceInstances() {
         return shenyuServiceInstances;
     }
 
     /**
-     * Sets shenyu service instances.
+     * add shenyu service instances. Allow duplicate elements.
      *
      * @param shenyuServiceInstances the shenyu service instances
      */
-    public void setShenyuServiceInstances(final CopyOnWriteArrayList<ShenyuServiceInstance> shenyuServiceInstances) {
-        this.shenyuServiceInstances = shenyuServiceInstances;
+    public void addShenyuServiceInstances(final List<ShenyuServiceInstance> shenyuServiceInstances) {
+        this.shenyuServiceInstances.addAll(shenyuServiceInstances);
     }
 
     /**
@@ -93,8 +103,7 @@ public class ShenyuServiceInstanceLists {
     public List<ShenyuServiceInstance> getCopyInstances() {
         List<ShenyuServiceInstance> copy = new ArrayList<>(shenyuServiceInstances.size());
         shenyuServiceInstances.forEach(instance -> {
-            ShenyuServiceInstance cp = new ShenyuServiceInstance();
-            BeanUtils.copyProperties(instance, cp);
+            ShenyuServiceInstance cp = ShenyuServiceTransfer.INSTANCE.deepCopy(instance);
             copy.add(cp);
         });
         return copy;

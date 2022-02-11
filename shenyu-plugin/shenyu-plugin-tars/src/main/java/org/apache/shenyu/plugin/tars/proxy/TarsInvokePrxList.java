@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.tars.proxy;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -25,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class TarsInvokePrxList {
 
-    private CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList;
+    private final List<TarsInvokePrx> tarsInvokePrxList;
 
     private Method method;
 
@@ -37,21 +38,20 @@ public class TarsInvokePrxList {
      * Instantiates a new Tars invoke prx list.
      */
     public TarsInvokePrxList() {
+        tarsInvokePrxList = new CopyOnWriteArrayList<>();
     }
 
     /**
      * Instantiates a new Tars invoke prx list.
      *
-     * @param tarsInvokePrxList the tars invoke prx list
      * @param method            the method
      * @param paramTypes        the param types
      * @param paramNames        the param names
      */
-    public TarsInvokePrxList(final CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList,
-                             final Method method,
+    public TarsInvokePrxList(final Method method,
                              final Class<?>[] paramTypes,
                              final String[] paramNames) {
-        this.tarsInvokePrxList = tarsInvokePrxList;
+        this.tarsInvokePrxList = new CopyOnWriteArrayList<>();
         this.method = method;
         this.paramTypes = paramTypes;
         this.paramNames = paramNames;
@@ -62,7 +62,7 @@ public class TarsInvokePrxList {
      *
      * @return the tars invoke prx list
      */
-    public CopyOnWriteArrayList<TarsInvokePrx> getTarsInvokePrxList() {
+    public List<TarsInvokePrx> getTarsInvokePrxList() {
         return tarsInvokePrxList;
     }
 
@@ -71,8 +71,8 @@ public class TarsInvokePrxList {
      *
      * @param tarsInvokePrxList the tars invoke prx list
      */
-    public void setTarsInvokePrxList(final CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList) {
-        this.tarsInvokePrxList = tarsInvokePrxList;
+    public void addTarsInvokePrxList(final List<TarsInvokePrx> tarsInvokePrxList) {
+        this.tarsInvokePrxList.addAll(tarsInvokePrxList);
     }
 
     /**

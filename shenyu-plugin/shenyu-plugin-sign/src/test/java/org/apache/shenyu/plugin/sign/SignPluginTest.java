@@ -20,14 +20,15 @@ package org.apache.shenyu.plugin.sign;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.apache.shenyu.plugin.sign.api.SignService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -40,7 +41,8 @@ import static org.mockito.Mockito.when;
 /**
  * SignPlugin test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class SignPluginTest {
     @Mock
     private ShenyuPluginChain chain;
@@ -49,7 +51,7 @@ public final class SignPluginTest {
 
     private SignPlugin signPlugin;
 
-    @Before
+    @BeforeEach
     public void setup() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         SignService signService = mock(SignService.class);

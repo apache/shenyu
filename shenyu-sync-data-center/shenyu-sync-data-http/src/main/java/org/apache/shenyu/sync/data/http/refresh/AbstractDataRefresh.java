@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -76,15 +77,18 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
 
     @Override
     public Boolean refresh(final JsonObject data) {
-        boolean updated = false;
         JsonObject jsonObject = convert(data);
-        if (null != jsonObject) {
-            ConfigData<T> result = fromJson(jsonObject);
-            if (this.updateCacheIfNeed(result)) {
-                updated = true;
-                refresh(result.getData());
-            }
+        if (Objects.isNull(jsonObject)) {
+            return false;
         }
+
+        boolean updated = false;
+        ConfigData<T> result = fromJson(jsonObject);
+        if (this.updateCacheIfNeed(result)) {
+            updated = true;
+            refresh(result.getData());
+        }
+
         return updated;
     }
 

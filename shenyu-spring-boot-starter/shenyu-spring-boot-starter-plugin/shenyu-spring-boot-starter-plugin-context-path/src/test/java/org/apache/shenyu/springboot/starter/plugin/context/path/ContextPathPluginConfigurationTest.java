@@ -19,30 +19,46 @@ package org.apache.shenyu.springboot.starter.plugin.context.path;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.junit.Test;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link ContextPathPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class ContextPathPluginConfigurationTest {
 
     @Test
     public void testContextPathPlugin() {
         new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                    ContextPathPluginConfiguration.class
-                ))
+            .withConfiguration(AutoConfigurations.of(ContextPathPluginConfiguration.class))
+            .withBean(ContextPathPluginConfigurationTest.class)
             .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    ShenyuPlugin plugin = context.getBean("contextPathPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.CONTEXT_PATH.getName());
-                }
-            );
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("contextPathPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.CONTEXT_PATH.getName());
+            });
+    }
+
+    @Test
+    public void testContextPathPluginDataHandler() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ContextPathPluginConfiguration.class))
+            .withBean(ContextPathPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                PluginDataHandler handler = context.getBean("contextPathPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+                assertThat(handler.pluginNamed()).isEqualTo(PluginEnum.CONTEXT_PATH.getName());
+            });
     }
 }

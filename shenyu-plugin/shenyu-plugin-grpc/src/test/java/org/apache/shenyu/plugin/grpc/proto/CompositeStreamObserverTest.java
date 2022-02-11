@@ -19,16 +19,18 @@ package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
@@ -37,40 +39,40 @@ import static org.mockito.Mockito.doAnswer;
 /**
  * The Test Case For {@link CompositeStreamObserver}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CompositeStreamObserverTest {
 
     /**
      * The Logger.
      */
-    private Logger logger = LoggerFactory.getLogger(CompositeStreamObserverTest.class);
+    private final Logger logger = LoggerFactory.getLogger(CompositeStreamObserverTest.class);
 
     private CompositeStreamObserver<Boolean> compositeStreamObserver;
-
-    private CompleteObserver<Boolean> completeObserver;
-
+    
     private MyStreamObserver streamObserver;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         streamObserver = new MyStreamObserver(false);
-        completeObserver = new CompleteObserver<>();
+        CompleteObserver<Boolean> completeObserver = new CompleteObserver<>();
         compositeStreamObserver = CompositeStreamObserver.of(streamObserver, completeObserver);
     }
 
     @Test
+    @SuppressWarnings("all")
     public void onCompleted() throws ExecutionException, InterruptedException {
         CompositeStreamObserver compositeStreamObserverMock = mock(CompositeStreamObserver.class);
         doNothing().when(compositeStreamObserverMock).onCompleted();
         compositeStreamObserverMock.onCompleted();
         CompleteObserver completeObserverMock = mock(CompleteObserver.class);
         when(completeObserverMock.getCompletionFuture()).thenReturn(SettableFuture.create());
-        ListenableFuture<Void> future = completeObserverMock.getCompletionFuture();
+        ListenableFuture future = completeObserverMock.getCompletionFuture();
         future = mock(ListenableFuture.class);
-        assert future.get() == null;
+        assertNull(future.get());
     }
 
-    @Test(expected = Throwable.class)
+    @Test
+    @SuppressWarnings("all")
     public void onError() throws Exception {
         Throwable throwable = new Throwable("error");
         CompleteObserver completeObserver = mock(CompleteObserver.class);
@@ -79,7 +81,9 @@ public class CompositeStreamObserverTest {
             return null;
         }).when(completeObserver).onError(throwable);
         completeObserver.onError(throwable);
-        completeObserver.getCompletionFuture().get();
+        assertThrows(Throwable.class, () -> {
+            completeObserver.getCompletionFuture().get();
+        });
     }
 
     @Test
@@ -89,6 +93,7 @@ public class CompositeStreamObserverTest {
     }
 
     @Test
+    @SuppressWarnings("all")
     public void onNextThrowException() {
         CompleteObserver completeObserver = mock(CompleteObserver.class);
         doAnswer(invocationOnMock -> {

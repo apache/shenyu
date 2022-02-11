@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.shiro.bean;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shiro.subject.Subject;
@@ -41,23 +42,22 @@ public class StatelessAuthFilter extends AccessControlFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(StatelessAuthFilter.class);
 
-    private static final String HEAD_TOKEN = "X-Access-Token";
-
     @Override
-    protected boolean isAccessAllowed(final ServletRequest servletRequest, final ServletResponse servletResponse,
+    protected boolean isAccessAllowed(final ServletRequest servletRequest,
+                                      final ServletResponse servletResponse,
                                       final Object o) {
         return false;
     }
 
     @Override
-    protected boolean onAccessDenied(final ServletRequest servletRequest, final ServletResponse servletResponse)
-            throws Exception {
+    protected boolean onAccessDenied(final ServletRequest servletRequest,
+                                     final ServletResponse servletResponse) throws Exception {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         if (StringUtils.equals(HttpMethod.OPTIONS.name(), httpServletRequest.getMethod())) {
             return true;
         }
 
-        String tokenValue = httpServletRequest.getHeader(HEAD_TOKEN);
+        String tokenValue = httpServletRequest.getHeader(Constants.X_ACCESS_TOKEN);
         if (StringUtils.isBlank(tokenValue)) {
             LOG.error("token is null.");
             unionFailResponse(servletResponse);

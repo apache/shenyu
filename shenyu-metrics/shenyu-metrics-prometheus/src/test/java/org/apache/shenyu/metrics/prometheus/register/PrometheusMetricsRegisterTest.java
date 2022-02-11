@@ -20,12 +20,12 @@ package org.apache.shenyu.metrics.prometheus.register;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
 import org.apache.shenyu.common.utils.ReflectUtils;
-import org.junit.Test;
 
 import java.util.Map;
 
+import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class PrometheusMetricsRegisterTest {
 

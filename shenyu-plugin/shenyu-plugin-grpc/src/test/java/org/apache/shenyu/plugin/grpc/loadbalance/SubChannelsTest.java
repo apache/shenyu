@@ -19,12 +19,13 @@ package org.apache.shenyu.plugin.grpc.loadbalance;
 
 import io.grpc.Attributes;
 import io.grpc.LoadBalancer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 
 public class SubChannelsTest {
     @Test
     public void testUpdateAttributes() {
-        SubChannels.updateAttributes(mock(LoadBalancer.Subchannel.class), mock(Attributes.class));
+        final LoadBalancer.Subchannel subchannel = mock(LoadBalancer.Subchannel.class);
+        SubChannels.updateAttributes(subchannel, mock(Attributes.class));
     }
 }

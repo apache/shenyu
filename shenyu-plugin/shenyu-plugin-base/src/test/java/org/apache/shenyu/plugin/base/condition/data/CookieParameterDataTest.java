@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpCookie;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -27,16 +26,18 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * Test cases for {@link CookieParameterData}.
  */
-public class CookieParameterDataTest {
+public final class CookieParameterDataTest {
 
     private ServerWebExchange exchange;
 
     private CookieParameterData parameterData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
@@ -47,7 +48,7 @@ public class CookieParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals("", parameterData.builder("invalid-cookie-name", exchange));
-        Assert.assertEquals("cookie-value", parameterData.builder("cookie-name", exchange));
+        assertEquals("", parameterData.builder("invalid-cookie-name", exchange));
+        assertEquals("cookie-value", parameterData.builder("cookie-name", exchange));
     }
 }

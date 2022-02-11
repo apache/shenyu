@@ -26,11 +26,11 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mockStatic;
 /**
  * Data Change WebSocketListener Test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class WebsocketDataChangedListenerTest {
 
     private WebsocketDataChangedListener websocketDataChangedListener;
@@ -56,7 +56,7 @@ public final class WebsocketDataChangedListenerTest {
 
     private final List<MetaData> metaDataList = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void before() {
         websocketDataChangedListener = new WebsocketDataChangedListener();
         initSelectorDataList();

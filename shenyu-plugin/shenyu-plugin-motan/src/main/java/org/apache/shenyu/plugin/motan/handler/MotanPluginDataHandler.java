@@ -34,7 +34,7 @@ public class MotanPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (null != pluginData && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             MotanRegisterConfig motanRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MotanRegisterConfig.class);
             MotanRegisterConfig exist = Singleton.INST.get(MotanRegisterConfig.class);
             if (Objects.isNull(motanRegisterConfig)) {

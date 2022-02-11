@@ -72,6 +72,27 @@ public class ShenyuDictDTO implements Serializable {
      */
     private Boolean enabled;
 
+    public ShenyuDictDTO() {
+    }
+
+    public ShenyuDictDTO(final String id,
+                         @NotNull final String type,
+                         final String dictCode,
+                         @NotNull final String dictName,
+                         @NotNull final String dictValue,
+                         final String desc,
+                         @NotNull final Integer sort,
+                         final Boolean enabled) {
+        this.id = id;
+        this.type = type;
+        this.dictCode = dictCode;
+        this.dictName = dictName;
+        this.dictValue = dictValue;
+        this.desc = desc;
+        this.sort = sort;
+        this.enabled = enabled;
+    }
+
     /**
      * Gets the value of id.
      *
@@ -215,7 +236,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

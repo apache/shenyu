@@ -18,12 +18,12 @@
 package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.dto.RuleData;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * CacheKeyUtilsTest test.
  */
-public class CacheKeyUtilsTest {
+public final class CacheKeyUtilsTest {
 
     private static final String MOCK_SELECTOR_ID = "mockSelectorId";
 

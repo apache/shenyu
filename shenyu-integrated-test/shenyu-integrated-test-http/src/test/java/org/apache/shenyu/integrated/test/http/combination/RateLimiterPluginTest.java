@@ -29,39 +29,115 @@ import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RateLimiterPluginTest extends AbstractPluginDataInit {
+public final class RateLimiterPluginTest extends AbstractPluginDataInit {
 
-    @BeforeClass
-    public static void setup() throws IOException {
+    @BeforeEach
+    public void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.RATE_LIMITER.getName(), "{\"mode\":\"standalone\",\"master\":\"mymaster\",\"url\":\"shenyu-redis:6379\",\"password\":\"abc\"}");
         assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.RATE_LIMITER.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
-        assertThat(selectorAndRulesResult, is("success"));
     }
 
     @Test
-    public void testSlidingWindow() throws Exception {
-        Future<UserDTO> normalRespFuture = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
-        assertEquals("hello world", normalRespFuture.get().getUserName());
+    public void testSlidingWindow() throws IOException, ExecutionException, InterruptedException {
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.RATE_LIMITER.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("slidingWindow"));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        Future<UserDTO> allowedRespFuture1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
+        assertEquals("Tom", allowedRespFuture1.get().getUserName());
 
         Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
                 HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
                 }.getType()));
         AdminResponse<Object> dto = rejectedRespFuture.get();
         assertEquals("You have been restricted, please try again later!", dto.getMessage());
+
+        Thread.sleep(2000);
+        Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
+        assertEquals("Tom", allowedRespFuture2.get().getUserName());
+    }
+
+    @Test
+    public void testLeakyBucket() throws IOException, ExecutionException, InterruptedException {
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.RATE_LIMITER.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("leakyBucket"));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        Future<UserDTO> allowedRespFuture1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
+        assertEquals("Tom", allowedRespFuture1.get().getUserName());
+
+        Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
+                HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
+                }.getType()));
+        AdminResponse<Object> dto = rejectedRespFuture.get();
+        assertEquals("You have been restricted, please try again later!", dto.getMessage());
+
+        Thread.sleep(2000);
+        Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
+        assertEquals("Tom", allowedRespFuture2.get().getUserName());
+    }
+
+    @Test
+    public void testTokenBucket() throws IOException, ExecutionException, InterruptedException {
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.RATE_LIMITER.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("tokenBucket"));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        Future<UserDTO> allowedRespFuture1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
+        assertEquals("Tom", allowedRespFuture1.get().getUserName());
+
+        Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
+                HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
+                }.getType()));
+        AdminResponse<Object> dto = rejectedRespFuture.get();
+        assertEquals("You have been restricted, please try again later!", dto.getMessage());
+
+        Thread.sleep(2000);
+        Future<UserDTO> allowedRespFuture2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class));
+        assertEquals("Tom", allowedRespFuture2.get().getUserName());
+    }
+
+    @Test
+    public void testConcurrentTokenBucket() throws IOException, ExecutionException, InterruptedException {
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.RATE_LIMITER.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("concurrent"));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        UserDTO allowedResp = HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", UserDTO.class);
+        assertEquals("Tom", allowedResp.getUserName());
+
+        List<Future<AdminResponse<Object>>> futures = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            Future<AdminResponse<Object>> rejectedRespFuture = this.getService().submit(() ->
+                    HttpHelper.INSTANCE.getFromGateway("/http/test/path/123?name=Tom", new TypeToken<AdminResponse<Object>>() {
+                    }.getType()));
+            futures.add(rejectedRespFuture);
+        }
+
+        int errorCount = 0;
+        int correctCount = 0;
+        for (Future<AdminResponse<Object>> future : futures) {
+            AdminResponse<Object> adminResponse = future.get();
+            if (adminResponse.getCode() != null && adminResponse.getCode() == 429) {
+                errorCount++;
+            } else {
+                correctCount++;
+            }
+        }
+        assertTrue(errorCount > 0);
+        assertTrue(correctCount > 0);
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
@@ -72,12 +148,12 @@ public class RateLimiterPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<RuleLocalData> buildRuleLocalDataList() {
+    private static List<RuleLocalData> buildRuleLocalDataList(final String algorithmName) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
 
         RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();
-        rateLimiterHandle.setAlgorithmName("slidingWindow");
-        rateLimiterHandle.setReplenishRate(1);
+        rateLimiterHandle.setAlgorithmName(algorithmName);
+        rateLimiterHandle.setReplenishRate(0.5);
         rateLimiterHandle.setBurstCapacity(1);
         // see WholeKeyResolver.java
         rateLimiterHandle.setKeyResolverName("WHOLE_KEY_RESOLVER");
@@ -92,8 +168,9 @@ public class RateLimiterPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(ruleLocalData);
     }
 
-    @AfterClass
-    public static void clean() throws IOException {
-        cleanPluginData(PluginEnum.RATE_LIMITER.getName());
+    @AfterEach
+    public void clean() throws IOException {
+        String res = cleanPluginData(PluginEnum.RATE_LIMITER.getName());
+        assertThat(res, is("success"));
     }
 }

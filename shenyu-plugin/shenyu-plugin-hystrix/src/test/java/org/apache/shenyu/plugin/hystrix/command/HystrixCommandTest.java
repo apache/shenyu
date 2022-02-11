@@ -23,10 +23,10 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
 import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -34,20 +34,21 @@ import rx.observers.TestSubscriber;
 
 import java.net.InetSocketAddress;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For HystrixCommand.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class HystrixCommandTest {
 
     private HystrixCommand hystrixCommand;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
                 .remoteAddress(new InetSocketAddress(8092))
@@ -79,7 +80,7 @@ public final class HystrixCommandTest {
 
     @Test
     public void testGetCallBackUri() {
-        assertEquals(hystrixCommand.getCallBackUri().getHost(), "callback");
+        assertEquals("callback", hystrixCommand.getCallBackUri().getHost());
     }
 
     @Test
@@ -87,7 +88,7 @@ public final class HystrixCommandTest {
         assertNotNull(ReflectionTestUtils.invokeMethod(this.hystrixCommand, "construct"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testResumeWithFallback() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
                 .remoteAddress(new InetSocketAddress(8092))
@@ -109,8 +110,10 @@ public final class HystrixCommandTest {
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
                 .andCommandPropertiesDefaults(propertiesSetter);
-        HystrixCommand hystrixCommand = new HystrixCommand(setter, exchange, mock(ShenyuPluginChain.class), null);
-        TestSubscriber<Void> testSubscriberWithNull = new TestSubscriber<>();
-        when(hystrixCommand.resumeWithFallback().subscribe(testSubscriberWithNull)).thenThrow(NullPointerException.class);
+        assertThrows(NullPointerException.class, () -> {
+            HystrixCommand hystrixCommand = new HystrixCommand(setter, exchange, mock(ShenyuPluginChain.class), null);
+            TestSubscriber<Void> testSubscriberWithNull = new TestSubscriber<>();
+            when(hystrixCommand.resumeWithFallback().subscribe(testSubscriberWithNull)).thenThrow(NullPointerException.class);
+        });
     }
 }

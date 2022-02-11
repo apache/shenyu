@@ -17,22 +17,25 @@
 
 package org.apache.shenyu.client.tars;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -41,8 +44,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -52,9 +53,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final ExecutorService executorService;
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final String contextPath;
 
@@ -64,26 +63,24 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final int port;
 
-    public TarsServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String ip = props.getProperty("host");
-        String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
+    public TarsServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        Properties props = clientConfig.getProps();
+        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+        String port = props.getProperty(ShenyuClientConstants.PORT);
+        if (StringUtils.isAnyBlank(contextPath, this.host, port)) {
+            throw new ShenyuClientIllegalArgumentException("tars client must config the contextPath, ipAndPort");
         }
         this.contextPath = contextPath;
-        this.ipAndPort = ip + ":" + port;
-        this.host = props.getProperty("host");
+        this.ipAndPort = this.host + ":" + port;
         this.port = Integer.parseInt(port);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-tars-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        if (bean.getClass().getAnnotation(ShenyuTarsService.class) != null) {
-            executorService.execute(() -> handler(bean));
+        if (AnnotationUtils.findAnnotation(bean.getClass(), ShenyuTarsService.class) != null) {
+            handler(bean);
         }
         return bean;
     }
@@ -94,11 +91,11 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
             clazz = AopUtils.getTargetClass(serviceBean);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        String serviceName = serviceBean.getClass().getAnnotation(ShenyuTarsService.class).serviceName();
+        String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
         for (Method method : methods) {
-            ShenyuTarsClient shenyuSofaClient = method.getAnnotation(ShenyuTarsClient.class);
-            if (Objects.nonNull(shenyuSofaClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuSofaClient, method, buildRpcExt(methods)));
+            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
+            if (Objects.nonNull(shenyuTarsClient)) {
+                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuTarsClient, method, buildRpcExt(methods)));
             }
         }
     }
@@ -125,7 +122,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcType("tars")
+                .rpcType(RpcTypeEnum.TARS.getName())
                 .rpcExt(rpcExt)
                 .enabled(shenyuTarsClient.enabled())
                 .build();
@@ -146,8 +143,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private String buildRpcExt(final Method[] methods) {
         List<TarsRpcExt.RpcExt> list = new ArrayList<>();
         for (Method method : methods) {
-            ShenyuTarsClient shenyuSofaClient = method.getAnnotation(ShenyuTarsClient.class);
-            if (Objects.nonNull(shenyuSofaClient)) {
+            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
+            if (Objects.nonNull(shenyuTarsClient)) {
                 list.add(buildRpcExt(method));
             }
         }

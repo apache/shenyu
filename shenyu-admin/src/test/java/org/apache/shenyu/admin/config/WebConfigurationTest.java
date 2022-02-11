@@ -19,10 +19,11 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test cases for WebConfig.
@@ -34,7 +35,7 @@ public final class WebConfigurationTest extends AbstractConfigurationTest {
         CorsRegistry registry = new CorsRegistry();
         WebConfiguration webConfiguration = new WebConfiguration();
         webConfiguration.addCorsMappings(registry);
-        Assert.assertEquals(getCorsConfigurationsString(registry), getCorsConfigurationsString(corsRegistryJSONStringExtendBuild()));
+        assertEquals(getCorsConfigurationsString(registry), getCorsConfigurationsString(corsRegistryJSONStringExtendBuild()));
     }
 
     private CorsRegistry corsRegistryJSONStringExtendBuild() {

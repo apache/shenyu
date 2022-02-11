@@ -21,25 +21,25 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * CombinedExecutor test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class CombinedExecutorTest {
 
     private CombinedExecutor combinedExecutor;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         combinedExecutor = new CombinedExecutor();
     }
@@ -51,7 +51,7 @@ public final class CombinedExecutorTest {
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
         when(conf.getTimeLimiterConfig()).thenReturn(TimeLimiterConfig.ofDefaults());
         when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());
-        Mono mono = Mono.just("ERROR");
+        Mono<String> mono = Mono.just("ERROR");
         StepVerifier.create(combinedExecutor.run(Mono.just("SHENYU"), throwable -> mono, conf))
                 .expectSubscription()
                 .expectNext("SHENYU")
@@ -66,7 +66,7 @@ public final class CombinedExecutorTest {
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
         when(conf.getTimeLimiterConfig()).thenReturn(TimeLimiterConfig.ofDefaults());
         when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());
-        StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), throwable -> Mono.error(throwable), conf))
+        StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), Mono::error, conf))
                 .expectSubscription()
                 .expectError(RuntimeException.class)
                 .verify();

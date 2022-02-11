@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.disruptor.provider;
 
+import com.lmax.disruptor.EventTranslatorOneArg;
+import com.lmax.disruptor.EventTranslatorTwoArg;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import org.apache.shenyu.disruptor.event.DataEvent;
+import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.function.Consumer;
 
 /**
  * DisruptorProvider.
@@ -37,33 +38,64 @@ public class DisruptorProvider<T> {
     
     private final Disruptor<DataEvent<T>> disruptor;
     
+    private final boolean isOrderly;
+    
+    private final EventTranslatorOneArg<DataEvent<T>, T> translatorOneArg = (event, sequence, t) -> event.setData(t);
+    
+    private final EventTranslatorTwoArg<DataEvent<T>, T, String> orderlyArg = (event, sequence, t, orderly) -> {
+        if (event instanceof OrderlyDataEvent) {
+            ((OrderlyDataEvent<T>) event).setHash(orderly);
+        }
+        event.setData(t);
+    };
+    
     /**
      * The Logger.
      */
-    private Logger logger = LoggerFactory.getLogger(DisruptorProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(DisruptorProvider.class);
     
     /**
      * Instantiates a new Disruptor provider.
      *
      * @param ringBuffer the ring buffer
-     * @param disruptor the disruptor
+     * @param disruptor  the disruptor
+     * @param isOrderly  the orderly Whether to execute sequentially.
      */
-    public DisruptorProvider(final RingBuffer<DataEvent<T>> ringBuffer, final Disruptor<DataEvent<T>> disruptor) {
+    public DisruptorProvider(final RingBuffer<DataEvent<T>> ringBuffer, final Disruptor<DataEvent<T>> disruptor, final boolean isOrderly) {
         this.ringBuffer = ringBuffer;
         this.disruptor = disruptor;
+        this.isOrderly = isOrderly;
+    }
+
+    /**
+     * Send a data.
+     *
+     * @param data the data
+     */
+    public void onData(final T data) {
+        if (isOrderly) {
+            throw new IllegalArgumentException("The current provider is  of orderly type. Please use onOrderlyData() method.");
+        }
+        try {
+            ringBuffer.publishEvent(translatorOneArg, data);
+        } catch (Exception ex) {
+            logger.error("ex", ex);
+        }
     }
     
     /**
-     * On data.
+     * On orderly data.
      *
-     * @param function the function
+     * @param data      the data
+     * @param hashArray the hashArray.
      */
-    public void onData(final Consumer<DataEvent<T>> function) {
-        long position = ringBuffer.next();
+    public void onOrderlyData(final T data, final String... hashArray) {
+        if (!this.isOrderly) {
+            throw new IllegalArgumentException("The current provider is not of orderly type. Please use onData() method.");
+        }
         try {
-            DataEvent<T> dataEvent = ringBuffer.get(position);
-            function.accept(dataEvent);
-            ringBuffer.publish(position);
+            String hash = String.join(":", hashArray);
+            ringBuffer.publishEvent(orderlyArg, data, hash);
         } catch (Exception ex) {
             logger.error("ex", ex);
         }

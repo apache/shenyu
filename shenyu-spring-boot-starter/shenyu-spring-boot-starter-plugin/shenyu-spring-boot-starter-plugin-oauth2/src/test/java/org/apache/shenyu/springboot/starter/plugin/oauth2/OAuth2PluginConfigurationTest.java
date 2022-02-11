@@ -19,33 +19,75 @@ package org.apache.shenyu.springboot.starter.plugin.oauth2;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * Test case for {@link OAuth2PluginConfiguration}.
+ */
+@Configuration
+@EnableConfigurationProperties
 public class OAuth2PluginConfigurationTest {
 
+    private ApplicationContextRunner applicationContextRunner;
+
+    @BeforeEach
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(OAuth2PluginConfiguration.class))
+            .withBean(OAuth2PluginConfigurationTest.class)
+            .withBean(InMemoryReactiveOAuth2AuthorizedClientService.class)
+            .withPropertyValues("debug=true");
+    }
+
     @Test
-    public void testSpringCloudPlugin() {
-        new ApplicationContextRunner()
-            .withUserConfiguration(EnableWebFluxSecurity.class)
-            .withConfiguration(
-                AutoConfigurations.of(
-                    InMemoryReactiveOAuth2AuthorizedClientService.class,
-                    OAuth2PluginConfiguration.class
-                ))
-            .withPropertyValues(
-                "debug=true")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(InMemoryReactiveOAuth2AuthorizedClientService.class);
-                    ShenyuPlugin plugin = context.getBean(ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.OAUTH2.getName());
-                }
-            );
+    public void testOAuth2Plugin() {
+        applicationContextRunner.run(context -> {
+                ShenyuPlugin plugin = context.getBean("oAuth2Plugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.OAUTH2.getName());
+            }
+        );
+    }
+
+    @Test
+    public void testMapReactiveUserDetailsService() {
+        applicationContextRunner.run(context -> {
+                MapReactiveUserDetailsService service = context.getBean("userDetailsService", MapReactiveUserDetailsService.class);
+                assertNotNull(service);
+            }
+        );
+    }
+
+    @Test
+    public void testSecurityWebFilterChain() {
+        applicationContextRunner.run(context -> {
+                SecurityWebFilterChain chain = context.getBean("getSecurityWebFilterChain", SecurityWebFilterChain.class);
+                assertNotNull(chain);
+            }
+        );
+    }
+
+    @Test
+    public void testInMemoryReactiveClientRegistrationRepository() {
+        applicationContextRunner.run(context -> {
+                ReactiveClientRegistrationRepository repository = context.getBean(
+                    "org.apache.shenyu.springboot.starter.plugin.oauth2.defaultReactiveClientRegistrationRepository",
+                    ReactiveClientRegistrationRepository.class
+                );
+                assertNotNull(repository);
+            }
+        );
     }
 }

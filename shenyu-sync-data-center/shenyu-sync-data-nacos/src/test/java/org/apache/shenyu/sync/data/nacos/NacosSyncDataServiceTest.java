@@ -19,23 +19,21 @@ package org.apache.shenyu.sync.data.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.shenyu.sync.data.nacos.handler.NacosMockConfigService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
 /**
  * add test case for {@link NacosSyncDataService}.
  */
-public class NacosSyncDataServiceTest {
-
-    private ConfigService configService;
+public final class NacosSyncDataServiceTest {
 
     private NacosSyncDataService nacosSyncDataService;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        configService = new NacosMockConfigService();
+        ConfigService configService = new NacosMockConfigService();
         nacosSyncDataService = new NacosSyncDataService(configService, null,
                 Collections.emptyList(), Collections.emptyList());
     }

@@ -17,22 +17,6 @@
 
 package org.apache.shenyu.admin.spring;
 
-import com.google.common.base.Splitter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.jdbc.ScriptRunner;
-import org.apache.shenyu.admin.config.properties.DataBaseProperties;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Resource;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,6 +25,24 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.List;
+
+import javax.annotation.Resource;
+
+import com.google.common.base.Splitter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.jdbc.ScriptRunner;
+import org.apache.shenyu.admin.config.properties.DataBaseProperties;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
 /**
  * for execute schema sql file.
@@ -53,9 +55,11 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     private static final String PRE_FIX = "file:";
 
+    private static final String DELIMITER = ";;";
+
     @Resource
     private DataBaseProperties dataBaseProperties;
-    
+
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
         if ((bean instanceof DataSourceProperties) && dataBaseProperties.getInitEnable()) {
@@ -84,6 +88,10 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
             // doesn't print logger
             runner.setLogWriter(null);
             runner.setAutoCommit(true);
+            runner.setFullLineDelimiter(false);
+            runner.setDelimiter(DELIMITER);
+            runner.setSendFullScript(false);
+            runner.setStopOnError(false);
             Resources.setCharset(StandardCharsets.UTF_8);
             List<String> initScripts = Splitter.on(";").splitToList(script);
             for (String sqlScript : initScripts) {

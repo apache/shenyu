@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,6 +37,8 @@ public class ShenyuConfig {
     private FileConfig file = new FileConfig();
     
     private ExcludePath exclude = new ExcludePath();
+
+    private FallbackPath fallback = new FallbackPath();
     
     private ExtPlugin extPlugin = new ExtPlugin();
     
@@ -44,6 +47,26 @@ public class ShenyuConfig {
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
     private CrossFilterConfig cross = new CrossFilterConfig();
+    
+    private InstanceConfig instance = new InstanceConfig();
+    
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
+    public InstanceConfig getInstance() {
+        return instance;
+    }
+    
+    /**
+     * Sets instance.
+     *
+     * @param instance the instance
+     */
+    public void setInstance(final InstanceConfig instance) {
+        this.instance = instance;
+    }
     
     /**
      * Gets switch config.
@@ -134,7 +157,25 @@ public class ShenyuConfig {
     public void setExclude(final ExcludePath exclude) {
         this.exclude = exclude;
     }
-    
+
+    /**
+     * Gets fallback.
+     *
+     * @return the fallback
+     */
+    public FallbackPath getFallback() {
+        return fallback;
+    }
+
+    /**
+     * Sets fallback.
+     *
+     * @param fallback the fallback
+     */
+    public void setFallback(final FallbackPath fallback) {
+        this.fallback = fallback;
+    }
+
     /**
      * Gets upstream check.
      *
@@ -381,6 +422,52 @@ public class ShenyuConfig {
             this.paths = paths;
         }
     
+        /**
+         * get paths.
+         *
+         * @return paths paths
+         */
+        public List<String> getPaths() {
+            return paths;
+        }
+    }
+
+    /**
+     * The type fallback path.
+     */
+    public static class FallbackPath {
+
+        private Boolean enabled = false;
+
+        private List<String> paths = new ArrayList<>();
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * Sets paths.
+         *
+         * @param paths the paths
+         */
+        public void setPaths(final List<String> paths) {
+            this.paths = paths;
+        }
+
         /**
          * get paths.
          *
@@ -791,6 +878,112 @@ public class ShenyuConfig {
          */
         public void setAllowCredentials(final boolean allowCredentials) {
             this.allowCredentials = allowCredentials;
+        }
+    }
+    
+    /**
+     * The type Instance config.
+     */
+    public static class InstanceConfig {
+    
+        private Boolean enabled = false;
+    
+        private String registerType;
+    
+        private String serverLists;
+    
+        private Properties props = new Properties();
+        
+        /**
+         * Instantiates a new Instance config.
+         */
+        public InstanceConfig() {
+        
+        }
+    
+        /**
+         * Instantiates a new Instance config.
+         *
+         * @param registerType the register type
+         * @param serverLists the server lists
+         * @param props the props
+         */
+        public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
+            this.registerType = registerType;
+            this.serverLists = serverLists;
+            this.props = props;
+        }
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+    
+        /**
+         * getRegisterType.
+         *
+         * @return String register type
+         */
+        public String getRegisterType() {
+            return registerType;
+        }
+    
+        /**
+         * setRegisterType.
+         *
+         * @param registerType registerType
+         */
+        public void setRegisterType(final String registerType) {
+            this.registerType = registerType;
+        }
+    
+        /**
+         * getServerLists.
+         *
+         * @return String server lists
+         */
+        public String getServerLists() {
+            return serverLists;
+        }
+    
+        /**
+         * setServerLists.
+         *
+         * @param serverLists serverLists
+         */
+        public void setServerLists(final String serverLists) {
+            this.serverLists = serverLists;
+        }
+    
+        /**
+         * getProps.
+         *
+         * @return String props
+         */
+        public Properties getProps() {
+            return props;
+        }
+    
+        /**
+         * setProps.
+         *
+         * @param props props
+         */
+        public void setProps(final Properties props) {
+            this.props = props;
         }
     }
 }

@@ -16,13 +16,11 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-agent-plugins</artifactId>
-        <version>2.4.1-SNAPSHOT</version>
+        <version>2.4.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-agent-plugin-tracing</artifactId>
@@ -30,7 +28,28 @@
 
     <modules>
         <module>shenyu-agent-plugin-tracing-jaeger</module>
+        <module>shenyu-agent-plugin-tracing-common</module>
+        <module>shenyu-agent-plugin-tracing-zipkin</module>
+        <module>shenyu-agent-plugin-tracing-opentelemetry</module>
     </modules>
+
+    <properties>
+        <tracing.target.directory>${project.basedir}/../target/plugins</tracing.target.directory>
+        <jaeger-client.version>1.6.0</jaeger-client.version>
+        <opentracing.version>0.33.0</opentracing.version>
+        <opentelemetry.version>1.9.1</opentelemetry.version>
+        <opentelemetry-autoconfigure.version>1.9.1-alpha</opentelemetry-autoconfigure.version>
+        <zipkin-brave.version>5.13.2</zipkin-brave.version>
+        <zipkin-reporter.version>2.16.2</zipkin-reporter.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-agent-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -39,9 +58,10 @@
                 <artifactId>maven-jar-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <configuration>
-                    <outputFile>${project.basedir}/../target/plugins/${project.build.finalName}</outputFile>
+                    <outputFile>${tracing.target.directory}/${project.build.finalName}</outputFile>
                 </configuration>
             </plugin>
         </plugins>

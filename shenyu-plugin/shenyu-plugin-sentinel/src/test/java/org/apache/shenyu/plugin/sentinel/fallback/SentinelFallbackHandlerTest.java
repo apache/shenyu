@@ -23,11 +23,12 @@ import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -39,14 +40,15 @@ import java.net.InetSocketAddress;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class SentinelFallbackHandlerTest {
 
     private SentinelFallbackHandler fallbackHandler;
 
     private ServerWebExchange exchange;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         fallbackHandler = new SentinelFallbackHandler();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/Sentinel/Sentinel")

@@ -19,27 +19,47 @@ package org.apache.shenyu.springboot.starter.plugin.param.mapping;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.param.mapping.ParamMappingPlugin;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.boot.test.context.runner.ContextConsumer;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link ParamMappingPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class ParamMappingPluginConfigurationTest {
 
     @Test
-    public void testRequestPlugin() {
-        ApplicationContextRunner runner = new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(ParamMappingPluginConfiguration.class));
-        ContextConsumer contextConsumer = context -> {
-            ShenyuPlugin plugin = context.getBean("paramMappingPlugin", ShenyuPlugin.class);
-            assertThat(plugin instanceof ParamMappingPlugin).isEqualTo(true);
-            assertThat(plugin.named()).isEqualTo(PluginEnum.PARAM_MAPPING.getName());
-        };
-        runner.run(contextConsumer);
+    public void testParamMappingPlugin() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ParamMappingPluginConfiguration.class))
+            .withBean(ParamMappingPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("paramMappingPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin instanceof ParamMappingPlugin).isEqualTo(true);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.PARAM_MAPPING.getName());
+            });
+    }
+
+    @Test
+    public void testParamMappingPluginDataHandler() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ParamMappingPluginConfiguration.class))
+            .withBean(ParamMappingPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                PluginDataHandler handler = context.getBean("paramMappingPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            });
     }
 }

@@ -23,47 +23,47 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.metrics.config.MetricsConfig;
 import org.apache.shenyu.metrics.prometheus.register.PrometheusMetricsRegister;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for PrometheusMetricsTrackerManager.
  */
 public final class PrometheusBootServiceTest {
 
-    private static PrometheusBootService prometheusBootService = new PrometheusBootService();
+    private static final PrometheusBootService PROMETHEUS_BOOT_SERVICE = new PrometheusBootService();
 
-    @Before
+    @BeforeEach
     public void init() {
         CollectorRegistry.defaultRegistry.clear();
     }
     
     @Test
     public void testRegistered() throws NoSuchFieldException, IllegalAccessException {
-        AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusBootService, "registered");
+        AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(PROMETHEUS_BOOT_SERVICE, "registered");
         registered.set(true);
         String jmxConfig = GsonUtils.getInstance().toJson("whitelistObjectNames:org.apache.cassandra.metrics:type=ColumnFamily");
         MetricsConfig metricsConfig = new MetricsConfig("test", "", 10119, false, 1, jmxConfig, null);
-        prometheusBootService.start(metricsConfig, new PrometheusMetricsRegister());
+        PROMETHEUS_BOOT_SERVICE.start(metricsConfig, new PrometheusMetricsRegister());
         Field field = PrometheusBootService.class.getDeclaredField("server");
         field.setAccessible(true);
-        HTTPServer httpServer = (HTTPServer) field.get(prometheusBootService);
+        HTTPServer httpServer = (HTTPServer) field.get(PROMETHEUS_BOOT_SERVICE);
         assertNotNull(httpServer);
         assertThat(httpServer.getPort(), is(10119));
-        assertTrue(prometheusBootService.getRegistered().get());
+        assertTrue(PROMETHEUS_BOOT_SERVICE.getRegistered().get());
     }
     
-    @AfterClass
+    @AfterAll
     public static void close() {
-        prometheusBootService.stop();
+        PROMETHEUS_BOOT_SERVICE.stop();
     }
 }

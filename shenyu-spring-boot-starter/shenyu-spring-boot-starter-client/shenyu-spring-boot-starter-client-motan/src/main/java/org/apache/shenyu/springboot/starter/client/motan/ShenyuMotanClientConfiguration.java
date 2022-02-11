@@ -19,8 +19,9 @@
 package org.apache.shenyu.springboot.starter.client.motan;
 
 import org.apache.shenyu.client.motan.MotanServiceBeanPostProcessor;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -36,12 +37,12 @@ public class ShenyuMotanClientConfiguration {
     /**
      * Motan service bean post processor sofa service bean post processor.
      *
-     * @param motanConfig the motan config
+     * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the tars service bean post processor
      */
     @Bean
-    public MotanServiceBeanPostProcessor tarsServiceBeanPostProcessor(final ShenyuRegisterCenterConfig motanConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new MotanServiceBeanPostProcessor(motanConfig, shenyuClientRegisterRepository);
+    public MotanServiceBeanPostProcessor tarsServiceBeanPostProcessor(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        return new MotanServiceBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.MOTAN.getName()), shenyuClientRegisterRepository);
     }
 }

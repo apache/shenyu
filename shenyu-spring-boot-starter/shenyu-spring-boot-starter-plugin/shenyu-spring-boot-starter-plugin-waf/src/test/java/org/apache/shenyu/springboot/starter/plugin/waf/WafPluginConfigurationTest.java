@@ -20,31 +20,45 @@ package org.apache.shenyu.springboot.starter.plugin.waf;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link WafPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class WafPluginConfigurationTest {
 
     @Test
     public void testWafPlugin() {
         new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                        WafPluginConfiguration.class
-                ))
-            .run(
-                context -> {
-                    PluginDataHandler pluginDataHandler = context.getBean(PluginDataHandler.class);
-                    assertThat(pluginDataHandler.pluginNamed()).isEqualTo(PluginEnum.WAF.getName());
-                    ShenyuPlugin plugin = context.getBean(ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.WAF.getName());
-                }
-            );
+            .withConfiguration(AutoConfigurations.of(WafPluginConfiguration.class))
+            .withBean(WafPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("wafPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.WAF.getName());
+            });
+    }
+
+    @Test
+    public void testWafPluginDataHandler() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(WafPluginConfiguration.class))
+            .withBean(WafPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                PluginDataHandler handler = context.getBean("wafPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+                assertThat(handler.pluginNamed()).isEqualTo(PluginEnum.WAF.getName());
+            });
     }
 }

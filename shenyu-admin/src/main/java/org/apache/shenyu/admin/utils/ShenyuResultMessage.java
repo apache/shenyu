@@ -26,8 +26,6 @@ public final class ShenyuResultMessage {
 
     public static final String CREATE_SUCCESS = "create success";
 
-    public static final String CREATE_FAILED = "create failed";
-
     public static final String DELETE_SUCCESS = "delete success";
 
     public static final String UPDATE_SUCCESS = "update success";
@@ -48,13 +46,15 @@ public final class ShenyuResultMessage {
 
     public static final String ROLE_CREATE_ERROR = "can not create super role";
 
-    public static final String DASHBOARD_QUERY_ERROR = "users info is empty";
+    public static final String DASHBOARD_QUERY_ERROR = "user info is empty";
 
-    public static final String DASHBOARD_CREATE_USER_ERROR = "user info not empty";
+    public static final String DASHBOARD_CREATE_USER_ERROR = "empty user info, please confirm";
 
     public static final String PLATFORM_LOGIN_SUCCESS = "login dashboard user success";
 
-    public static final String PLATFORM_LOGIN_ERROR = " username or password error";
+    public static final String PLATFORM_LOGIN_ERROR = "username or password error";
+
+    public static final String LOGIN_USER_DISABLE_ERROR = "the user is disabled";
 
     public static final String PARAMETER_ERROR = "parameter error";
 

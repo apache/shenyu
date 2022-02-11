@@ -17,36 +17,59 @@
 
 package org.apache.shenyu.springboot.starter.plugin.global;
 
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link GlobalPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class GlobalPluginConfigurationTest {
+
+    private ApplicationContextRunner applicationContextRunner;
+
+    @BeforeEach
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(GlobalPluginConfiguration.class))
+            .withBean(GlobalPluginConfigurationTest.class)
+            .withPropertyValues("debug=true");
+    }
 
     @Test
     public void testGlobalPlugin() {
-        new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                    GlobalPluginConfiguration.class
-                ))
-            .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(MetaDataSubscriber.class);
-                    assertThat(context).hasSingleBean(ShenyuContextBuilder.class);
-                    ShenyuPlugin plugin = context.getBean("globalPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.GLOBAL.getName());
-                }
-            );
+        applicationContextRunner.run(context -> {
+                ShenyuPlugin plugin = context.getBean("globalPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+            }
+        );
+    }
+
+    @Test
+    public void testDefaultShenyuContextBuilder() {
+        applicationContextRunner.run(context -> {
+                ShenyuContextBuilder builder = context.getBean("shenyuContextBuilder", ShenyuContextBuilder.class);
+                assertNotNull(builder);
+            }
+        );
+    }
+
+    @Test
+    public void testMetaDataCacheSubscriber() {
+        applicationContextRunner.run(context -> {
+                MetaDataSubscriber subscriber = context.getBean("metaDataCacheSubscriber", MetaDataSubscriber.class);
+                assertNotNull(subscriber);
+            }
+        );
     }
 }

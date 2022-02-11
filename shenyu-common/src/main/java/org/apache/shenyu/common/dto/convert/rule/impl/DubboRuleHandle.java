@@ -17,12 +17,9 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Objects;
 
@@ -30,8 +27,6 @@ import java.util.Objects;
  * The type Dubbo rule handle.
  */
 public class DubboRuleHandle implements RuleHandle {
-
-    private static final long serialVersionUID = 2687375375638048966L;
 
     /**
      * version.
@@ -46,13 +41,13 @@ public class DubboRuleHandle implements RuleHandle {
     /**
      * retries.
      */
-    private Integer retries;
+    private Integer retries = 0;
 
     /**
      * the loadbalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadbalance;
+    private String loadbalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * timeout is required.
@@ -179,15 +174,5 @@ public class DubboRuleHandle implements RuleHandle {
                 + ", loadbalance='" + loadbalance + '\''
                 + ", timeout=" + timeout
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        if (StringUtils.isBlank(rpcExt)) {
-            this.loadbalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
-            this.retries = RuleHandleConstants.DEFAULT_RETRIES;
-            return this;
-        }
-        return GsonUtils.getInstance().fromJson(rpcExt, DubboRuleHandle.class);
     }
 }

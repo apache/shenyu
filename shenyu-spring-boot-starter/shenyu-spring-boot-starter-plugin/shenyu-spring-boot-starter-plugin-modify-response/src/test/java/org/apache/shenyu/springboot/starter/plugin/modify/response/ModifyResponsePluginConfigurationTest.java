@@ -19,33 +19,50 @@ package org.apache.shenyu.springboot.starter.plugin.modify.response;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.modify.response.ModifyResponsePlugin;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link ModifyResponsePluginConfiguration}.
- **/
+ */
+@Configuration
+@EnableConfigurationProperties
 public class ModifyResponsePluginConfigurationTest {
+
     @Test
-    public void testRequestPlugin() {
+    public void testModifyResponsePlugin() {
         new ApplicationContextRunner()
-            .withConfiguration(
-                    AutoConfigurations.of(ModifyResponsePluginConfiguration.class)
-            )
+            .withConfiguration(AutoConfigurations.of(ModifyResponsePluginConfiguration.class))
+            .withBean(ModifyResponsePluginConfigurationTest.class)
             .withPropertyValues("debug=true")
-            .run(
-                    context -> {
-                        assertThat(context).hasSingleBean(ModifyResponsePlugin.class);
-                        assertThat(context).hasSingleBean(ModifyResponsePluginDataHandler.class);
-                        ShenyuPlugin plugin = context.getBean("modifyResponsePlugin", ShenyuPlugin.class);
-                        assertThat(plugin instanceof ModifyResponsePlugin).isEqualTo(true);
-                        assertThat(plugin.named()).isEqualTo(PluginEnum.MODIFY_RESPONSE.getName());
-                    }
-            );
+            .run(context -> {
+                assertThat(context).hasSingleBean(ModifyResponsePlugin.class);
+                ShenyuPlugin plugin = context.getBean("modifyResponsePlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin instanceof ModifyResponsePlugin).isEqualTo(true);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.MODIFY_RESPONSE.getName());
+            });
+    }
+
+    @Test
+    public void testModifyResponsePluginDataHandler() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ModifyResponsePluginConfiguration.class))
+            .withBean(ModifyResponsePluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                assertThat(context).hasSingleBean(ModifyResponsePluginDataHandler.class);
+                PluginDataHandler handler = context.getBean("modifyResponsePluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            });
     }
 }

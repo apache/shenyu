@@ -36,13 +36,17 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -55,7 +59,8 @@ public class ResourceServiceImpl implements ResourceService {
 
     private final PermissionMapper permissionMapper;
 
-    public ResourceServiceImpl(final ResourceMapper resourceMapper, final PermissionMapper permissionMapper) {
+    public ResourceServiceImpl(final ResourceMapper resourceMapper,
+                               final PermissionMapper permissionMapper) {
         this.resourceMapper = resourceMapper;
         this.permissionMapper = permissionMapper;
     }
@@ -71,7 +76,18 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
-     *  create or update resource.
+     * create Resources.
+     *
+     * @param resourceDOList list of {@linkplain ResourceDO}
+     * @return rows int
+     */
+    @Override
+    public int createResourceBatch(final List<ResourceDO> resourceDOList) {
+        return this.insertResourceBatch(resourceDOList);
+    }
+
+    /**
+     * create or update resource.
      *
      * @param resourceDTO {@linkplain ResourceDTO}
      * @return rows int
@@ -96,12 +112,16 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        Map<String, String> deleteResourceMap = new HashMap<>();
+
+        int ret = 0;
         List<ResourceVO> resourceVOList = resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
-        getDeleteResourceIds(deleteResourceMap, ids, resourceVOList);
-        List<String> deleteResourceIds = new ArrayList<>(deleteResourceMap.keySet());
-        permissionMapper.deleteByResourceId(deleteResourceIds);
-        return resourceMapper.delete(deleteResourceIds);
+        List<String> deleteResourceIds = getDeleteResourceIds(ids, resourceVOList);
+        if (CollectionUtils.isNotEmpty(deleteResourceIds)) {
+            permissionMapper.deleteByResourceId(deleteResourceIds);
+            ret = resourceMapper.delete(deleteResourceIds);
+        }
+
+        return ret;
     }
 
     /**
@@ -127,6 +147,22 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
+     * find by title.
+     *
+     * @param titles resource titles
+     * @return {@linkplain ResourceVO}
+     */
+    @Override
+    public List<ResourceVO> listByTitles(final List<String> titles) {
+        final List<ResourceDO> resources = this.resourceMapper.selectByTitles(titles);
+        if (CollectionUtils.isEmpty(resources)) {
+            return Collections.emptyList();
+        }
+        return resources.stream().map(ResourceVO::buildResourceVO)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    /**
      * find page of role by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
@@ -135,11 +171,10 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     @Pageable
     public CommonPager<ResourceVO> listByPage(final ResourceQuery resourceQuery) {
-        return PageResultUtils.result(resourceQuery.getPageParameter(),
-            () -> resourceMapper.selectByQuery(resourceQuery)
-                            .stream()
-                            .map(ResourceVO::buildResourceVO)
-                            .collect(Collectors.toList()));
+        return PageResultUtils.result(resourceQuery.getPageParameter(), () -> resourceMapper.selectByQuery(resourceQuery)
+                .stream()
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -150,12 +185,11 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public List<MenuInfo> getMenuTree() {
         List<ResourceVO> resourceVOList = resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(resourceVOList)) {
-            List<MenuInfo> menuInfoList = new ArrayList<>();
-            getMenuInfo(menuInfoList, resourceVOList, null);
-            return menuInfoList;
+        if (CollectionUtils.isEmpty(resourceVOList)) {
+            return null;
         }
-        return null;
+
+        return this.getMenuInfo(resourceVOList);
     }
 
     /**
@@ -174,55 +208,95 @@ public class ResourceServiceImpl implements ResourceService {
     /**
      * get Menu Info.
      *
-     * @param menuInfoList {@linkplain List} menu info.
      * @param metaList {@linkplain List} resource list
-     * @param menuInfo {@linkplain MenuInfo}
+     * @return {@linkplain List} menu infos.
      */
     @Override
-    public void getMenuInfo(final List<MenuInfo> menuInfoList, final List<ResourceVO> metaList, final MenuInfo menuInfo) {
-        for (ResourceVO resourceVO : metaList) {
-            String parentId = resourceVO.getParentId();
-            MenuInfo tempMenuInfo = MenuInfo.buildMenuInfo(resourceVO);
-            if (ObjectUtils.isEmpty(tempMenuInfo)) {
-                continue;
-            }
-            if (ObjectUtils.isEmpty(menuInfo) && reactor.util.StringUtils.isEmpty(parentId)) {
-                menuInfoList.add(tempMenuInfo);
-                if (Objects.equals(resourceVO.getIsLeaf(), Boolean.FALSE)) {
-                    getMenuInfo(menuInfoList, metaList, tempMenuInfo);
-                }
-            } else if (!ObjectUtils.isEmpty(menuInfo) && StringUtils.isNotEmpty(parentId) && parentId.equals(menuInfo.getId())) {
-                menuInfo.getChildren().add(tempMenuInfo);
-                if (Objects.equals(resourceVO.getIsLeaf(), Boolean.FALSE)) {
-                    getMenuInfo(menuInfoList, metaList, tempMenuInfo);
-                }
-            }
+    public List<MenuInfo> getMenuInfo(final List<ResourceVO> metaList) {
+
+        List<MenuInfo> retList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(metaList)) {
+            return retList;
         }
+        Map<String, MenuInfo> menuInfoMap = metaList.stream().map(MenuInfo::buildMenuInfo).filter(menuInfo -> Objects.nonNull(menuInfo) && StringUtils.isNotEmpty(menuInfo.getId()))
+                .collect(Collectors.toMap(MenuInfo::getId, Function.identity(), (value1, value2) -> value1));
+        Map<String, Set<String>> metaChildrenMap = this.dealChildrenMap(metaList);
+
+        metaChildrenMap.forEach((parent, children) -> {
+            MenuInfo menuInfo = menuInfoMap.get(parent);
+            if (CollectionUtils.isNotEmpty(children)) {
+                List<MenuInfo> targetList;
+                if (Objects.isNull(menuInfo)) {
+                    targetList = retList;
+                } else {
+                    targetList = menuInfo.getChildren();
+                }
+                children.forEach(child -> {
+                    MenuInfo data = menuInfoMap.get(child);
+                    if (Objects.nonNull(data)) {
+                        targetList.add(data);
+                    }
+                });
+            }
+        });
+
+        return retList;
     }
+
+    /**
+     * convert the list to a map, the key is the parent id, and the value is the set of child ids.
+     *
+     * @param metaList the list to be converted
+     * @return the map
+     */
+    private Map<String, Set<String>> dealChildrenMap(final List<ResourceVO> metaList) {
+        return metaList.stream().filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
+                .collect(Collectors.toMap(ResourceVO::getParentId,
+                    resourceVO -> {
+                        Set<String> idSet = new HashSet<>();
+                        idSet.add(resourceVO.getId());
+                        return idSet;
+                    }, (set1, set2) -> {
+                        set1.addAll(set2);
+                        return set1;
+                    }));
+    }
+
 
     /**
      * get delete resource ids.
      *
      * @param resourceIds resource ids
-     * @param metaList all resource object
+     * @param metaList    all resource object
+     * @return the list of ids to delete
      */
-    private void getDeleteResourceIds(final Map<String, String> deleteResourceIds, final List<String> resourceIds,
-                                      final List<ResourceVO> metaList) {
-        List<String> matchResourceIds = new ArrayList<>();
-        resourceIds.forEach(item -> {
-            matchResourceIds.clear();
-            metaList.forEach(resource -> {
-                if (resource.getParentId().equals(item)) {
-                    matchResourceIds.add(resource.getId());
-                }
-                if (resource.getId().equals(item) || resource.getParentId().equals(item)) {
-                    deleteResourceIds.put(resource.getId(), resource.getTitle());
-                }
-            });
-            if (CollectionUtils.isNotEmpty(matchResourceIds)) {
-                getDeleteResourceIds(deleteResourceIds, matchResourceIds, metaList);
+    private List<String> getDeleteResourceIds(final List<String> resourceIds, final List<ResourceVO> metaList) {
+
+        List<String> deleteResourceIds = null;
+        if (CollectionUtils.isEmpty(metaList) || CollectionUtils.isEmpty(resourceIds)) {
+            return deleteResourceIds;
+        }
+        deleteResourceIds = new ArrayList<>();
+        Map<String, ResourceVO> metaMap = metaList.stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(ResourceVO::getId, Function.identity(), (value1, value2) -> value1));
+
+        Map<String, Set<String>> metaChildrenMap = this.dealChildrenMap(metaList);
+
+        Deque<String> cacheDatas = new ArrayDeque<>(resourceIds);
+        while (!cacheDatas.isEmpty()) {
+            String resourceId = cacheDatas.pollFirst();
+            ResourceVO resourceVO = metaMap.get(resourceId);
+            Set<String> children = metaChildrenMap.get(resourceId);
+            if (Objects.nonNull(resourceVO)) {
+                deleteResourceIds.add(resourceVO.getId());
+                metaMap.remove(resourceId);
             }
-        });
+            if (CollectionUtils.isNotEmpty(children)) {
+                children.forEach(cacheDatas::addFirst);
+                metaChildrenMap.remove(resourceId);
+            }
+        }
+        return deleteResourceIds;
     }
 
     /**
@@ -236,5 +310,26 @@ public class ResourceServiceImpl implements ResourceService {
                 .objectId(AdminConstants.ROLE_SUPER_ID)
                 .resourceId(resourceDO.getId()).build()));
         return resourceMapper.insertSelective(resourceDO);
+    }
+
+
+    /**
+     * insert Resources.
+     *
+     * @param resourceDOList list of {@linkplain ResourceDO}
+     * @return row int
+     */
+    private int insertResourceBatch(final List<ResourceDO> resourceDOList) {
+
+        if (CollectionUtils.isEmpty(resourceDOList)) {
+            return 0;
+        }
+        List<PermissionDO> permissionDOList = resourceDOList.stream().filter(Objects::nonNull).map(resourceDO -> PermissionDO.buildPermissionDO(PermissionDTO.builder()
+                .objectId(AdminConstants.ROLE_SUPER_ID)
+                .resourceId(resourceDO.getId()).build())).collect(Collectors.toList());
+
+        permissionMapper.insertBatch(permissionDOList);
+
+        return resourceMapper.insertBatch(resourceDOList);
     }
 }

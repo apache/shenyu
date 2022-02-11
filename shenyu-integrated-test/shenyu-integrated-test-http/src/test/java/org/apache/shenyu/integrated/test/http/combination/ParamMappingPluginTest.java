@@ -18,7 +18,7 @@
 package org.apache.shenyu.integrated.test.http.combination;
 
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -28,9 +28,9 @@ import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -42,12 +42,12 @@ import java.util.Set;
 import java.util.HashSet;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class ParamMappingPluginTest extends AbstractPluginDataInit {
+public final class ParamMappingPluginTest extends AbstractPluginDataInit {
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.PARAM_MAPPING.getName(), "{\"ruleHandlePageType\":\"custom\"}");
         assertThat(pluginResult, is("success"));
@@ -83,8 +83,8 @@ public class ParamMappingPluginTest extends AbstractPluginDataInit {
         final List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
 
         // prepare for addParameterKeys and removeParameterKeys
-        final ParamMappingHandle addAndRemoveHandle = new ParamMappingHandle();
-        ParamMappingHandle.ParamMapInfo addInfo = new ParamMappingHandle.ParamMapInfo();
+        final ParamMappingRuleHandle addAndRemoveHandle = new ParamMappingRuleHandle();
+        ParamMappingRuleHandle.ParamMapInfo addInfo = new ParamMappingRuleHandle.ParamMapInfo();
         addInfo.setPath("$");
         addInfo.setKey("userName");
         addInfo.setValue("FixedName");
@@ -95,8 +95,8 @@ public class ParamMappingPluginTest extends AbstractPluginDataInit {
         ruleLocalDataList.add(buildRuleLocalData(addAndRemoveHandle, "/http/test/payment"));
 
         // prepare for addParameterKeys and removeParameterKeys
-        final ParamMappingHandle replaceHandle = new ParamMappingHandle();
-        ParamMappingHandle.ParamMapInfo replaceInfo = new ParamMappingHandle.ParamMapInfo();
+        final ParamMappingRuleHandle replaceHandle = new ParamMappingRuleHandle();
+        ParamMappingRuleHandle.ParamMapInfo replaceInfo = new ParamMappingRuleHandle.ParamMapInfo();
         replaceInfo.setPath("$");
         replaceInfo.setKey("i");
         replaceInfo.setValue("id");
@@ -105,7 +105,7 @@ public class ParamMappingPluginTest extends AbstractPluginDataInit {
         return ruleLocalDataList;
     }
 
-    private static LocalPluginController.RuleLocalData buildRuleLocalData(final ParamMappingHandle handle, final String paramValue) {
+    private static LocalPluginController.RuleLocalData buildRuleLocalData(final ParamMappingRuleHandle handle, final String paramValue) {
         LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleHandler(JsonUtils.toJson(handle));
         ConditionData conditionData = new ConditionData();
@@ -116,7 +116,7 @@ public class ParamMappingPluginTest extends AbstractPluginDataInit {
         return ruleLocalData;
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.PARAM_MAPPING.getName());
     }

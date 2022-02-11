@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.Test;
+import org.apache.shenyu.common.constant.Constants;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test cases for JsonUtils.
@@ -75,7 +76,7 @@ public final class JsonUtilsTest {
         assertEquals(EXPECTED_JSON, JsonUtils.toJson(object));
 
         Object o = new Object();
-        assertEquals("{}", JsonUtils.toJson(o));
+        assertEquals(Constants.EMPTY_JSON, JsonUtils.toJson(o));
     }
 
     @Test

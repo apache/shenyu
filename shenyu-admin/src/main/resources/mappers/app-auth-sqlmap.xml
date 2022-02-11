@@ -32,7 +32,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,  app_key, app_secret,user_id, phone,ext_info,open,enabled,date_created, date_updated
+        id, app_key, app_secret,user_id, phone,ext_info,open,enabled,date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -40,6 +40,16 @@
         <include refid="Base_Column_List"/>
         from app_auth
         where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from app_auth
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
     <select id="findByAppKey" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -212,17 +222,34 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByIds" parameterType="java.util.List">
+        delete from app_auth
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
         update app_auth
-        set  enabled = #{enabled,jdbcType=TINYINT}
+        set enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
+    <update id="updateEnableBatch">
+        update app_auth
+        set enabled = #{enabled,jdbcType=TINYINT}
+        where id in
+        <foreach collection="idSet" index="index" item="id"
+                 open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </update>
 
     <update id="updateAppSecretByAppKey">
         update app_auth
-        set  app_secret = #{appSecret,jdbcType=VARCHAR}
+        set app_secret = #{appSecret,jdbcType=VARCHAR}
         where app_key = #{appKey,jdbcType=VARCHAR}
     </update>
 

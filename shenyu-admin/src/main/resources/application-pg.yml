@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 shenyu:
     database:
       dialect: postgresql
@@ -27,11 +26,5 @@ spring:
     password: 123456
     driver-class-name: org.postgresql.Driver
 
-
 mybatis:
   type-handlers-package: org.apache.shenyu.admin.mybatis.pg.handler
-
-
-
-
-

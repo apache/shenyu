@@ -20,9 +20,8 @@ package org.apache.shenyu.plugin.divide;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandleFactory;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -30,13 +29,14 @@ import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -57,7 +59,8 @@ import static org.mockito.Mockito.when;
 /**
  * The type divide plugin test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class DividePluginTest {
 
     private RuleData ruleData;
@@ -75,8 +78,8 @@ public final class DividePluginTest {
     private List<DivideUpstream> divideUpstreamList;
 
     private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
-    
-    @Before
+
+    @BeforeEach
     public void setup() {
         this.ruleData = mock(RuleData.class);
         this.chain = mock(ShenyuPluginChain.class);
@@ -97,9 +100,10 @@ public final class DividePluginTest {
         // mock static
         mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
         mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+        initMockInfo();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mockCheckUtils.close();
     }
@@ -109,7 +113,6 @@ public final class DividePluginTest {
      */
     @Test
     public void doExecuteTest() {
-        initMockInfo();
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
@@ -120,7 +123,6 @@ public final class DividePluginTest {
      */
     @Test
     public void doPostExecuteTest() {
-        initMockInfo();
         when(chain.execute(postExchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(postExchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
@@ -131,8 +133,7 @@ public final class DividePluginTest {
      */
     @Test
     public void skip() {
-        initMockInfo();
-        Assert.assertTrue(dividePlugin.skip(exchange));
+        assertTrue(dividePlugin.skip(exchange));
     }
 
     /**
@@ -140,7 +141,7 @@ public final class DividePluginTest {
      */
     @Test
     public void namedTest() {
-        Assert.assertEquals(PluginEnum.DIVIDE.getName(), dividePlugin.named());
+        assertEquals(PluginEnum.DIVIDE.getName(), dividePlugin.named());
     }
 
     /**
@@ -148,23 +149,22 @@ public final class DividePluginTest {
      */
     @Test
     public void getOrderTest() {
-        Assert.assertEquals(PluginEnum.DIVIDE.getCode(), dividePlugin.getOrder());
+        assertEquals(PluginEnum.DIVIDE.getCode(), dividePlugin.getOrder());
     }
 
     /**
      * Init mock info.
      */
-    private void initMockInfo() { 
+    private void initMockInfo() {
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "", "");
+        DivideRuleHandle handle = new DivideRuleHandle();
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
         dividePluginDataHandler.handlerSelector(selectorData);
-        when(context.getRealUrl()).thenReturn("mock-real");
         exchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         postExchange.getAttributes().put(Constants.CONTEXT, context);

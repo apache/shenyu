@@ -2,12 +2,13 @@
 
 There are two key points:
 1. Using docker compose to build a test environment. We start MySQL, database, redis and other dependencies in docker;
-2. Writing integrated tests under `shenyu-integrated-tests/src/test`.
+2. Write integrated tests under `shenyu-integrated-tests/src/test`.
+
+## Preparation
+1. Install and start docker and docker-compose.
 
 ## Quick start
-**You must install Docker**!
-
-> If you are using windows, please notice that `-` is an invalid operator for terminals
+> If you are using windows, please notice that `-` is an invalid operator for terminals.
 
 Run those steps under this project's root directory 
 
@@ -15,24 +16,19 @@ Run those steps under this project's root directory
 ```shell
 ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 ```
-2. Build the examples' docker, here is the `http` plugin example:
+2. Build integrated tests:
 ```shell
-./mvnw -B clean install -DskipTests -f ./shenyu-examples/shenyu-examples-http/pom.xml
-```
-3. Build integrated gateway:
-```shell
-./mvnw -B clean install -DskipTests -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
+./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
 ```
 4. Start the docker compose:
 ```shell
-docker-compose -f ./shenyu-integrated-test/shenyu-integrated-test-http/docker-compose.yml up -d
+docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
 ```
-
-> On mac, you could `docker compose`, but if you are using ubuntu, you'd better using `docker-compose`
-
-5. Run the integrated test
+> You need to replace ${{ matrix.case }} with the exact directory, such as shenyu-integrated-test-http.
+> On mac, you could `docker compose`, but if you are using ubuntu, you'd better using `docker-compose`.
+5. Run the integrated test:
 ```shell
-./mvnw test -f ./shenyu-integrated-test/shenyu-integrated-test-http/pom.xml
+./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
 ```
 
 ## How to write a new integrated tests?
@@ -47,7 +43,7 @@ You just need to do those steps:
    
 2. Writing new test cases under  `shenyu-integated-test-{plugin}/src/test`.
 
-### Writing integrated tests for new plugin
+### Write integrated tests for new plugin
 In this case, we didn't write tests for this plugin, so you need to setup the environment by yourself.
 
 #### Create a new module under `shenyu-integrated-test`
@@ -63,7 +59,7 @@ In this step you could copy other plugins' `Dockerfile` and update it.
 
 We are using `shenyu-examples` module as the backend behind gateway. So you need to write `Dockerfile` for your plugin's example module.
 
-#### Writing docker compose file
+#### Write docker compose file
 
 You could copy other plugins' `docker-compose` file. Update the image of example's image and gateway's image
 
@@ -74,10 +70,10 @@ You could extends `AbstractPluginDataInit` and call method in `AbstractPluginDat
 
 However, pls remember to clean after class.
 
-#### Writing tests
+#### Write tests
 
 Writing tests under `shenyu-integated-test-{plugin}/src/test`. You must run test locally before you commit your changes.
 
-#### Writing new github workflow
+#### Write new github workflow
 
 You could copy other plugins' YAML file and then update the plugin name. And then you could make PR for us.

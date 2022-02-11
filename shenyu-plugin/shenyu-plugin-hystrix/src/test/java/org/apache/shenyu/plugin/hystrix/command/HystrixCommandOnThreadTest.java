@@ -25,15 +25,16 @@ import com.netflix.hystrix.HystrixThreadPoolProperties;
 import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.common.dto.convert.rule.HystrixHandle.HystrixThreadPoolConfig;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -43,7 +44,7 @@ public final class HystrixCommandOnThreadTest {
 
     private HystrixCommandOnThread hystrixCommandOnThread;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         HystrixHandle hystrixHandle = new HystrixHandle();
         hystrixHandle.setGroupKey("groupKey");
@@ -78,11 +79,13 @@ public final class HystrixCommandOnThreadTest {
 
     @Test
     public void testGetCallBackUri() {
-        assertEquals(hystrixCommandOnThread.getCallBackUri().getHost(), "callback");
+        assertEquals("callback", hystrixCommandOnThread.getCallBackUri().getHost());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testGetFallback() {
-        StepVerifier.create(hystrixCommandOnThread.getFallback()).expectSubscription().verifyComplete();
+        assertThrows(NullPointerException.class, () -> {
+            StepVerifier.create(hystrixCommandOnThread.getFallback()).expectSubscription().verifyComplete();
+        });
     }
 }

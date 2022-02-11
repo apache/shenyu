@@ -48,7 +48,12 @@ public class ZookeeperDataInit implements CommandLineRunner {
         String pluginPath = DefaultPathConstants.PLUGIN_PARENT;
         String authPath = DefaultPathConstants.APP_AUTH_PARENT;
         String metaDataPath = DefaultPathConstants.META_DATA;
-        if (!zkClient.exists(pluginPath) && !zkClient.exists(authPath) && !zkClient.exists(metaDataPath)) {
+
+        boolean zkPathNotExist = !zkClient.exists(pluginPath)
+                && !zkClient.exists(authPath)
+                && !zkClient.exists(metaDataPath);
+
+        if (zkPathNotExist) {
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         }
     }

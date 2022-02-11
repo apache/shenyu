@@ -20,9 +20,10 @@ package org.apache.shenyu.register.server.zookeeper;
 import com.google.common.collect.Lists;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -33,6 +34,7 @@ import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -51,10 +53,12 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
     public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.init(config);
         this.publisher = publisher;
+
         Properties props = config.getProps();
         int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "30000"));
         int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
         this.zkClient = new ZkClient(config.getServerLists(), sessionTimeout, connectionTimeout);
+
         initSubscribe();
     }
 
@@ -137,14 +141,15 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
     }
     
     private void registerURIChildrenList(final List<String> childrenList, final String uriParentPath) {
-        List<URIRegisterDTO> registerDTOList = new ArrayList<>();
+        List<URIRegisterDTO> registerDTOList = new LinkedList<>();
         childrenList.forEach(addPath -> {
             String realPath = RegisterPathConstants.buildRealNode(uriParentPath, addPath);
             registerDTOList.add(GsonUtils.getInstance().fromJson(zkClient.readData(realPath).toString(), URIRegisterDTO.class));
         });
-        if (registerDTOList.isEmpty()) {
-            String contextPath = StringUtils.substringAfterLast(uriParentPath, "/");
-            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + contextPath).build();
+
+        if (CollectionUtils.isEmpty(registerDTOList)) {
+            String contextPath = StringUtils.substringAfterLast(uriParentPath, Constants.PATH_SEPARATOR);
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + contextPath).build();
             registerDTOList.add(uriRegisterDTO);
         }
         publishRegisterURI(registerDTOList);

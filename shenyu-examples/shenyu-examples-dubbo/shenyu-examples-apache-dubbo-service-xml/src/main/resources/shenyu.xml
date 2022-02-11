@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id = "apacheDubboServiceBeanListener" class="org.apache.shenyu.client.apache.dubbo.ApacheDubboServiceBeanListener">
+        <constructor-arg ref="clientPropertiesConfig"/>
+        <constructor-arg ref="clientRegisterRepository"/>
+    </bean>
+
+    <!-- conifig ShenyuRegisterCenterConfig according to your registerType -->
+    <bean id="shenyuRegisterCenterConfig" class="org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig">
+        <property name="registerType" value="http"/>
+        <property name="serverLists" value="http://localhost:9095"/>
+        <property name="props">
+            <props>
+                <prop key="username">admin</prop>
+                <prop key="password">123456</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- ClientPropertiesConfig -->
+    <bean id="clientPropertiesConfig"
+          class="org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig">
+        <property name="props">
+            <map>
+                <entry key="contextPath" value="/dubbo"/>
+                <entry key="appName" value="dubbo"/>
+            </map>
+        </property>
+    </bean>
+
+    <!-- for other kind of register method, please use related ShenyuClientRegisterRepository -->
+    <bean id="clientRegisterRepository" class="org.apache.shenyu.register.client.http.HttpClientRegisterRepository">
+        <constructor-arg ref="shenyuRegisterCenterConfig"/>
+    </bean>
+
+    <bean id="shenyuClientShutdownHook" class="org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook">
+        <constructor-arg ref="shenyuRegisterCenterConfig"/>
+        <constructor-arg ref="clientRegisterRepository"/>
+    </bean>
+</beans>

@@ -26,20 +26,20 @@ import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.SignUtils;
-import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
-import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
+import org.apache.shenyu.plugin.sign.api.SignProvider;
+import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -49,13 +49,15 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.Collections;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * DefaultSignService Test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class DefaultSignServiceTest {
 
     private SignService signService;
@@ -71,7 +73,7 @@ public final class DefaultSignServiceTest {
     @Value("${shenyu.sign.delay:5}")
     private int delay;
 
-    @Before
+    @BeforeEach
     public void setup() {
         this.signService = new DefaultSignService();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -104,7 +106,7 @@ public final class DefaultSignServiceTest {
         this.passed.setPath(path);
         final String timestamp = String.valueOf(System.currentTimeMillis());
         this.passed.setTimestamp(timestamp);
-        this.passed.setSign(buildSign(secretKey, timestamp, this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, timestamp, this.passed.getPath()));
         this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
@@ -119,7 +121,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(true, ""));
+        assertEquals(ret, Pair.of(true, ""));
     }
 
     @Test
@@ -128,7 +130,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
+        assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
@@ -137,7 +139,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
+        assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
@@ -146,18 +148,18 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
+        assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
     public void overdueTest() {
-        Long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
-        this.passed.setTimestamp(errorTimestamp.toString());
-        this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
+        this.passed.setTimestamp(Long.toString(errorTimestamp));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay)));
+        assertEquals(ret, Pair.of(false, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay)));
     }
 
     @Test
@@ -166,7 +168,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_APP_KEY_IS_NOT_EXIST));
+        assertEquals(ret, Pair.of(false, Constants.SIGN_APP_KEY_IS_NOT_EXIST));
     }
 
     @Test
@@ -177,17 +179,17 @@ public final class DefaultSignServiceTest {
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
+        assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
     }
 
     @Test
     public void errorAuthPath() {
         this.passed.setPath("errorPath");
-        this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
+        assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
     }
 
     @Test
@@ -196,7 +198,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
+        assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
     }
 
     private String buildSign(final String signKey, final String timeStamp, final String path) {

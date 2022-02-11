@@ -17,16 +17,13 @@
 
 package org.apache.shenyu.admin;
 
-import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Abstract Integration Test for Spring.
  */
 @ActiveProfiles("h2")
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = ShenyuAdminBootstrap.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.jdbc.DataSourceHealthContributorAutoConfiguration")
 public abstract class AbstractSpringIntegrationTest {

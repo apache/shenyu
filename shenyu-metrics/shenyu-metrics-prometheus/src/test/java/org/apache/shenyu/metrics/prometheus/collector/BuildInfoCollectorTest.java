@@ -17,10 +17,9 @@
 
 package org.apache.shenyu.metrics.prometheus.collector;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The Test Case For BuildInfoCollector.
@@ -29,7 +28,7 @@ public final class BuildInfoCollectorTest {
 
     private BuildInfoCollector buildInfoCollector;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         buildInfoCollector = new BuildInfoCollector();
     }

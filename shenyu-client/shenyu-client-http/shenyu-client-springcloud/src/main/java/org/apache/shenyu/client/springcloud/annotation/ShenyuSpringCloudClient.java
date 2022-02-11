@@ -34,7 +34,7 @@ public @interface ShenyuSpringCloudClient {
      *
      * @return the string
      */
-    String path();
+    String path() default "";
     
     /**
      * Rule name string.
@@ -49,13 +49,6 @@ public @interface ShenyuSpringCloudClient {
      * @return String string
      */
     String desc() default "";
-    
-    /**
-     * Rpc type string.
-     *
-     * @return the string
-     */
-    String rpcType() default "springCloud";
     
     /**
      * Enabled boolean.

@@ -17,22 +17,22 @@
 
 package org.apache.shenyu.plugin.grpc.resolver;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The Test Case For {@link ShenyuResolverHelper}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ShenyuResolverHelperTest {
 
     private ShenyuServiceInstance serviceInstance;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         serviceInstance = new ShenyuServiceInstance("localhost", 8080);
     }

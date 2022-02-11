@@ -23,63 +23,69 @@ import org.apache.shenyu.plugin.response.ResponsePlugin;
 import org.apache.shenyu.plugin.response.strategy.MessageWriter;
 import org.apache.shenyu.plugin.response.strategy.NettyClientMessageWriter;
 import org.apache.shenyu.plugin.response.strategy.WebClientMessageWriter;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link ResponsePluginConfiguration}.
  **/
+@Configuration
+@EnableConfigurationProperties
 public class ResponsePluginConfigurationTest {
+
+    private ApplicationContextRunner applicationContextRunner;
+
+    @BeforeEach
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(ResponsePluginConfiguration.class))
+            .withBean(ResponsePluginConfigurationTest.class);
+    }
 
     @Test
     public void testResponsePlugin() {
-        new ApplicationContextRunner()
-            .withConfiguration(
-                    AutoConfigurations.of(ResponsePluginConfiguration.class)
-            )
+        applicationContextRunner
             .withPropertyValues("debug=true")
-            .run(
-                    context -> {
-                        assertThat(context).hasSingleBean(MessageWriter.class);
-                        assertThat(context).hasSingleBean(ShenyuPlugin.class);
-                        ShenyuPlugin plugin = context.getBean("responsePlugin", ShenyuPlugin.class);
-                        assertThat(plugin instanceof ResponsePlugin).isEqualTo(true);
-                        assertThat(plugin.named()).isEqualTo(PluginEnum.RESPONSE.getName());
-
-                    }
-            );
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("responsePlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin instanceof ResponsePlugin).isEqualTo(true);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.RESPONSE.getName());
+            });
     }
 
     @Test
     public void testWebClientMessageWriter() {
-        new ApplicationContextRunner().withPropertyValues("shenyu.httpclient.strategy=webClient")
-            .withConfiguration(
-                    AutoConfigurations.of(ResponsePluginConfiguration.class)
+        applicationContextRunner
+            .withPropertyValues(
+                "debug=true",
+                "shenyu.httpclient.strategy=webClient"
             )
-            .withPropertyValues("debug=true")
-            .run(
-                    context -> {
-                        MessageWriter messageWriter = context.getBean("webClientMessageWriter", MessageWriter.class);
-                        assertThat(messageWriter instanceof WebClientMessageWriter).isEqualTo(true);
-                    }
-            );
+            .run(context -> {
+                MessageWriter writer = context.getBean("webClientMessageWriter", MessageWriter.class);
+                assertNotNull(writer);
+                assertThat(writer instanceof WebClientMessageWriter).isEqualTo(true);
+            });
     }
 
     @Test
     public void testNettyClientMessageWriter() {
-        new ApplicationContextRunner().withPropertyValues("shenyu.httpclient.strategy=netty")
-            .withConfiguration(
-                    AutoConfigurations.of(ResponsePluginConfiguration.class)
+        applicationContextRunner
+            .withPropertyValues(
+                "debug=true",
+                "shenyu.httpclient.strategy=netty"
             )
-            .withPropertyValues("debug=true")
-            .run(
-                    context -> {
-                        MessageWriter messageWriter = context.getBean("nettyMessageWriter", MessageWriter.class);
-                        assertThat(messageWriter instanceof NettyClientMessageWriter).isEqualTo(true);
-                    }
-            );
+            .run(context -> {
+                MessageWriter writer = context.getBean("nettyMessageWriter", MessageWriter.class);
+                assertNotNull(writer);
+                assertThat(writer instanceof NettyClientMessageWriter).isEqualTo(true);
+            });
     }
 }

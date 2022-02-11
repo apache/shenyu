@@ -1,4 +1,4 @@
-SLF4J License
+Reflections License
 ---------------
 
             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE

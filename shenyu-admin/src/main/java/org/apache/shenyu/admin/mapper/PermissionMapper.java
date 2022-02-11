@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
 import org.apache.shenyu.admin.model.query.PermissionQuery;
 
@@ -46,6 +47,14 @@ public interface PermissionMapper {
     List<PermissionDO> findByObjectId(String objectId);
 
     /**
+     * find by Object id.
+     *
+     * @param objectIds role ids
+     * @return {@linkplain List}
+     */
+    List<PermissionDO> findByObjectIds(List<String> objectIds);
+
+    /**
      * insert permission.
      *
      * @param userRoleDO {@linkplain PermissionDO}
@@ -60,6 +69,14 @@ public interface PermissionMapper {
      * @return rows int
      */
     int insertSelective(PermissionDO permissionDO);
+
+    /**
+     * batch insert permissions.
+     *
+     * @param permissionDOList list of {@linkplain PermissionDO}
+     * @return rows int
+     */
+    int insertBatch(@Param("permissionDOList") List<PermissionDO> permissionDOList);
 
     /**
      * delete permission.

@@ -19,6 +19,7 @@ package org.apache.shenyu.client.core.disruptor;
 
 import org.apache.shenyu.client.core.disruptor.executor.RegisterClientConsumerExecutor.RegisterClientExecutorFactory;
 import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientMetadataExecutorSubscriber;
+import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientURIExecutorSubscriber;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -50,7 +51,9 @@ public class ShenyuClientRegisterEventPublisher {
      * @param shenyuClientRegisterRepository shenyuClientRegisterRepository
      */
     public void start(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        factory = new RegisterClientExecutorFactory(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
+        factory = new RegisterClientExecutorFactory();
+        factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
+        factory.addSubscribers(new ShenyuClientURIExecutorSubscriber(shenyuClientRegisterRepository));
         providerManage = new DisruptorProviderManage(factory);
         providerManage.startup();
     }
@@ -63,6 +66,6 @@ public class ShenyuClientRegisterEventPublisher {
      */
     public <T> void publishEvent(final T data) {
         DisruptorProvider<Object> provider = providerManage.getProvider();
-        provider.onData(f -> f.setData(data));
+        provider.onData(data);
     }
 }

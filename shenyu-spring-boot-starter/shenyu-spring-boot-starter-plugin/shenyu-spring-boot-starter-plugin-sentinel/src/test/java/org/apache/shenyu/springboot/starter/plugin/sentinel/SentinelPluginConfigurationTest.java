@@ -19,36 +19,72 @@ package org.apache.shenyu.springboot.starter.plugin.sentinel;
 
 import com.alibaba.csp.sentinel.adapter.spring.webflux.exception.SentinelBlockExceptionHandler;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.junit.Test;
+import org.apache.shenyu.plugin.sentinel.SentinelPlugin;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link SentinelPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class SentinelPluginConfigurationTest {
+
+    private ApplicationContextRunner applicationContextRunner;
+
+    @BeforeEach
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(SentinelPluginConfiguration.class))
+            .withBean(SentinelPluginConfigurationTest.class)
+            .withBean(DefaultServerCodecConfigurer.class)
+            .withPropertyValues("debug=true");
+    }
 
     @Test
     public void testSentinelPlugin() {
-        new ApplicationContextRunner()
-            .withConfiguration(
-                AutoConfigurations.of(
-                    SentinelPluginConfiguration.class
-                ))
-            .withBean(DefaultServerCodecConfigurer.class)
-            .withPropertyValues("debug=true")
-            .run(
-                context -> {
-                    assertThat(context).hasSingleBean(PluginDataHandler.class);
-                    assertThat(context).hasSingleBean(SentinelBlockExceptionHandler.class);
-                    ShenyuPlugin plugin = context.getBean("sentinelPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.SENTINEL.getName());
-                }
-            );
+        applicationContextRunner.run(context -> {
+                SentinelPlugin plugin = context.getBean("sentinelPlugin", SentinelPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.SENTINEL.getName());
+            }
+        );
+    }
+
+    @Test
+    public void testSentinelFallbackHandler() {
+        applicationContextRunner.run(context -> {
+                FallbackHandler handler = context.getBean("fallbackHandler", FallbackHandler.class);
+                assertNotNull(handler);
+            }
+        );
+    }
+
+    @Test
+    public void testSentinelRuleHandle() {
+        applicationContextRunner.run(context -> {
+                PluginDataHandler handler = context.getBean("sentinelRuleHandle", PluginDataHandler.class);
+                assertNotNull(handler);
+            }
+        );
+    }
+
+    @Test
+    public void testSentinelBlockExceptionHandler() {
+        applicationContextRunner.run(context -> {
+                SentinelBlockExceptionHandler handler = context.getBean("sentinelBlockExceptionHandler", SentinelBlockExceptionHandler.class);
+                assertNotNull(handler);
+            }
+        );
     }
 }

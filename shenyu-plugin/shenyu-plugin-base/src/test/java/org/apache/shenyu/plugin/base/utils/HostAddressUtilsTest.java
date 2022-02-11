@@ -19,11 +19,10 @@ package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -31,24 +30,23 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for HostAddressUtils.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class HostAddressUtilsTest {
 
     private ServerWebExchange exchange;
 
-    private RemoteAddressResolver remoteAddressResolver;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        this.remoteAddressResolver = new RemoteAddressResolver() {
+        RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
@@ -61,7 +59,7 @@ public final class HostAddressUtilsTest {
      */
     @Test
     public void acquireHostTest() {
-        Assert.assertEquals(HostAddressUtils.acquireHost(exchange), "0.0.0.0");
+        assertEquals("0.0.0.0", HostAddressUtils.acquireHost(exchange));
     }
 
     /**
@@ -69,6 +67,6 @@ public final class HostAddressUtilsTest {
      */
     @Test
     public void acquireIpTest() {
-        Assert.assertEquals(HostAddressUtils.acquireIp(exchange), "0.0.0.0");
+        assertEquals("0.0.0.0", HostAddressUtils.acquireIp(exchange));
     }
 }

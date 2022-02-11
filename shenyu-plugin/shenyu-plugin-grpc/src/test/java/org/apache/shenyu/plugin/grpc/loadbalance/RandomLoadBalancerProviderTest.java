@@ -19,23 +19,24 @@ package org.apache.shenyu.plugin.grpc.loadbalance;
 
 import io.grpc.LoadBalancer;
 import org.apache.shenyu.plugin.grpc.loadbalance.picker.UnitTestReadHelper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For {@link RandomLoadBalancerProvider}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RandomLoadBalancerProviderTest {
 
     private RandomLoadBalancerProvider randomLoadBalancerProvider;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         randomLoadBalancerProvider = new RandomLoadBalancerProvider();
     }
@@ -47,7 +48,7 @@ public class RandomLoadBalancerProviderTest {
 
     @Test
     public void testGetPriority() {
-        assertEquals(randomLoadBalancerProvider.getPriority(), 6);
+        assertEquals(6, randomLoadBalancerProvider.getPriority());
     }
 
     @Test

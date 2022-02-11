@@ -36,9 +36,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -92,8 +94,8 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createSelector(final DataPermissionDTO dataPermissionDTO) {
-        List<DataPermissionDO> allDOList = new LinkedList<>();
 
+        List<DataPermissionDO> allDOList = new LinkedList<>();
         dataPermissionDTO.setDataType(AdminDataPermissionTypeEnum.SELECTOR.ordinal());
         allDOList.add(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
 
@@ -108,9 +110,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             allDOList.addAll(allRuleList);
         }
 
-        allDOList.iterator().forEachRemaining(dataPermissionMapper::insertSelective);
-
-        return allDOList.size();
+        return dataPermissionMapper.insertBatch(allDOList);
     }
 
 
@@ -157,8 +157,8 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             Supplier<Stream<SelectorDO>> selectorDOStreamSupplier = () -> selectorMapper.selectByQuery(selectorQuery).stream();
             List<String> selectorIds = selectorDOStreamSupplier.get().map(SelectorDO::getId).collect(Collectors.toList());
 
-            List<String> hasDataPermissionSelectorIds = dataPermissionMapper.selectDataIds(selectorIds,
-                    userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal());
+            Set<String> hasDataPermissionSelectorIds = new HashSet<>(dataPermissionMapper.selectDataIds(selectorIds,
+                    userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal()));
 
             selectorList = selectorDOStreamSupplier.get().map(selectorDO -> {
                 boolean isChecked = hasDataPermissionSelectorIds.contains(selectorDO.getId());
@@ -186,8 +186,8 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             Supplier<Stream<RuleDO>> ruleDOStreamSupplier = () -> ruleMapper.selectByQuery(ruleQuery).stream();
             List<String> ruleIds = ruleDOStreamSupplier.get().map(RuleDO::getId).collect(Collectors.toList());
 
-            List<String> hasDataPermissionRuleIds = dataPermissionMapper.selectDataIds(ruleIds, userId,
-                    AdminDataPermissionTypeEnum.RULE.ordinal());
+            Set<String> hasDataPermissionRuleIds = new HashSet<>(dataPermissionMapper.selectDataIds(ruleIds, userId,
+                    AdminDataPermissionTypeEnum.RULE.ordinal()));
 
             selectorList = ruleDOStreamSupplier.get().map(ruleDO -> {
                 boolean isChecked = hasDataPermissionRuleIds.contains(ruleDO.getId());

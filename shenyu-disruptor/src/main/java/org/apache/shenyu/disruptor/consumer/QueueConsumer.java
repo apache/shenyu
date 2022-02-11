@@ -19,8 +19,10 @@ package org.apache.shenyu.disruptor.consumer;
 
 import com.lmax.disruptor.WorkHandler;
 import org.apache.shenyu.disruptor.event.DataEvent;
+import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
+import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * The type Queue consumer.
@@ -29,29 +31,42 @@ import java.util.concurrent.ExecutorService;
  */
 public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
     
-    private ExecutorService executor;
+    private final OrderlyExecutor executor;
     
-    private QueueConsumerFactory<T> factory;
+    private final QueueConsumerFactory<T> factory;
     
     /**
      * Instantiates a new Queue consumer.
      *
      * @param executor the executor
-     * @param factory the factory
+     * @param factory  the factory
      */
-    public QueueConsumer(final ExecutorService executor, final QueueConsumerFactory<T> factory) {
+    public QueueConsumer(final OrderlyExecutor executor, final QueueConsumerFactory<T> factory) {
         this.executor = executor;
         this.factory = factory;
     }
-
+    
     @Override
     public void onEvent(final DataEvent<T> t) {
         if (t != null) {
+            ThreadPoolExecutor executor = orderly(t);
             QueueConsumerExecutor<T> queueConsumerExecutor = factory.create();
             queueConsumerExecutor.setData(t.getData());
             // help gc
             t.setData(null);
             executor.execute(queueConsumerExecutor);
         }
+    }
+    
+    private ThreadPoolExecutor orderly(final DataEvent<T> t) {
+        if (t instanceof OrderlyDataEvent && !isEmpty(((OrderlyDataEvent<T>) t).getHash())) {
+            return executor.select(((OrderlyDataEvent<T>) t).getHash());
+        } else {
+            return executor;
+        }
+    }
+    
+    private boolean isEmpty(final String t) {
+        return t == null || t.isEmpty();
     }
 }

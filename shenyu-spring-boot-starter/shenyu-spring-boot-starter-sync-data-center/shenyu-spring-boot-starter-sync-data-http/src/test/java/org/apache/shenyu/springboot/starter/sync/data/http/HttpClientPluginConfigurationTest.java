@@ -18,23 +18,27 @@
 package org.apache.shenyu.springboot.starter.sync.data.http;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import org.apache.shenyu.common.exception.CommonErrorCode;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.http.HttpSyncDataService;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -43,13 +47,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test cases for {@link HttpSyncDataConfiguration}.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = {
                 HttpSyncDataConfiguration.class
@@ -58,6 +62,8 @@ import static org.junit.Assert.assertThat;
         properties = {
                 "shenyu.sync.http.url=http://localhost:18848",
                 "shenyu.sync.http.delayTime=3",
+                "shenyu.sync.http.username=admin",
+                "shenyu.sync.http.password=123456",
                 "shenyu.sync.http.connectionTimeout=5"
         })
 @EnableAutoConfiguration
@@ -70,9 +76,16 @@ public final class HttpClientPluginConfigurationTest {
     @Autowired
     private HttpSyncDataService httpSyncDataService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpWireMock() throws Exception {
         WireMockServer wireMockServer = new WireMockServer(options().port(18848));
+
+        wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(mockLoginResponseJson())
+                        .withStatus(200))
+        );
 
         wireMockServer.stubFor(get(urlPathEqualTo("/configs/fetch"))
                 .willReturn(aResponse()
@@ -112,5 +125,15 @@ public final class HttpClientPluginConfigurationTest {
         return new String(Files.readAllBytes(
                 Paths.get(Objects.requireNonNull(HttpClientPluginConfigurationTest.class.getClassLoader()
                         .getResource("mock_configs_fetch_response.json")).toURI())));
+    }
+
+    // mock configs fetch api response
+    private static String mockLoginResponseJson() {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", "token");
+        result.put("data", data);
+        result.put("code", CommonErrorCode.SUCCESSFUL);
+        return GsonUtils.getInstance().toJson(result);
     }
 }

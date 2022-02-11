@@ -21,12 +21,17 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for PluginHandleMapper.
@@ -179,4 +184,28 @@ public final class PluginHandleMapperTest extends AbstractSpringIntegrationTest 
                 .dateUpdated(now)
                 .build();
     }
+
+    @Test
+    public void deleteByIdSet() {
+
+        PluginHandleDO pluginHandleDO1 = buildPluginHandleDO();
+        int insert1 = pluginHandleMapper.insert(pluginHandleDO1);
+        assertThat(insert1, equalTo(1));
+
+        PluginHandleDO pluginHandleDO = buildPluginHandleDO();
+        int insert = pluginHandleMapper.insert(pluginHandleDO);
+        assertThat(insert, equalTo(1));
+
+        Set<String> idSetStrings = Stream.of(pluginHandleDO1.getId(), pluginHandleDO.getId()).collect(Collectors.toSet());
+        int count = pluginHandleMapper.deleteByIdSet(idSetStrings);
+        assertThat(idSetStrings.size(), equalTo(count));
+
+        PluginHandleDO resultPluginHandleDO1 = pluginHandleMapper.selectById(pluginHandleDO1.getId());
+        assertThat(resultPluginHandleDO1, equalTo(null));
+
+        PluginHandleDO resultPluginHandleDO = pluginHandleMapper.selectById(pluginHandleDO.getId());
+        assertThat(resultPluginHandleDO, equalTo(null));
+
+    }
+
 }

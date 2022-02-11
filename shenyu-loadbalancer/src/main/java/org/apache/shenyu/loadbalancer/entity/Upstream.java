@@ -27,7 +27,7 @@ public final class Upstream {
     /**
      * protocol.
      */
-    private String protocol;
+    private final String protocol;
 
     /**
      * url.
@@ -37,22 +37,22 @@ public final class Upstream {
     /**
      * weight.
      */
-    private int weight;
+    private final int weight;
 
     /**
-     * false close/ true open.
+     * false close, true open.
      */
     private boolean status;
 
     /**
      * startup time.
      */
-    private long timestamp;
+    private final long timestamp;
 
     /**
      * warmup.
      */
-    private int warmup;
+    private final int warmup;
 
     /**
      * healthy.

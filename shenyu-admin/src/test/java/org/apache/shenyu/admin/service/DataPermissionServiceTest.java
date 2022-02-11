@@ -32,26 +32,30 @@ import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.impl.DataPermissionServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 
 /**
  * Test cases for DataPermissionService.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class DataPermissionServiceTest {
 
     @InjectMocks
@@ -72,7 +76,7 @@ public final class DataPermissionServiceTest {
 
     private SelectorDTO selectorDTO;
 
-    @Before
+    @BeforeEach
     public void setup() {
         ruleDTO = new RuleDTO("1", "1", 1, "test", true, true, 1, "test", null);
         dataPermissionDTO = new DataPermissionDTO();
@@ -103,6 +107,7 @@ public final class DataPermissionServiceTest {
         List<RuleDO> list = new LinkedList<>();
         list.add(RuleDO.buildRuleDO(ruleDTO));
         given(ruleMapper.findBySelectorId("1")).willReturn(list);
+        given(dataPermissionMapper.insertBatch(anyList())).willReturn(2);
         assertThat(dataPermissionService.createSelector(dataPermissionDTO), is(2));
     }
 

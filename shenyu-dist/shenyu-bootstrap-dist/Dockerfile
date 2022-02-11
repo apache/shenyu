@@ -14,13 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM java:openjdk-8-jre-alpine
+FROM openjdk:8-jre-alpine
 
 ARG APP_NAME
 ENV LOCAL_PATH /opt/shenyu-bootstrap
 
 ARG SPRING_PROFILES_ACTIVE
 ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
+
+RUN apk --no-cache add procps
 
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}

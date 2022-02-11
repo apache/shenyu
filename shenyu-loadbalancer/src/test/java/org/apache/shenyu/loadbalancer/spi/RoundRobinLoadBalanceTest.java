@@ -18,14 +18,16 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * The type Load balance test.
@@ -47,12 +49,12 @@ public final class RoundRobinLoadBalanceTest {
 
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
-        for (int i = 0; i < 120; i++) {
+        IntStream.range(0, 120).forEach(i -> {
             Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
-        }
-        Assert.assertEquals(60, countMap.get("upstream-50").intValue());
+        });
+        assertEquals(60, countMap.get("upstream-50").intValue());
     }
 
     @Test
@@ -67,12 +69,12 @@ public final class RoundRobinLoadBalanceTest {
 
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
-        for (int i = 0; i < 120; i++) {
+        IntStream.range(0, 120).forEach(i -> {
             Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
-        }
-        Assert.assertEquals(60, countMap.get("upstream-50").intValue());
+        });
+        assertEquals(60, countMap.get("upstream-50").intValue());
     }
 
     @Test
@@ -87,11 +89,11 @@ public final class RoundRobinLoadBalanceTest {
 
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
-        for (int i = 0; i < 120; i++) {
+        IntStream.range(0, 120).forEach(i -> {
             Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
-        }
-        Assert.assertEquals(60, countMap.get("upstream-50").intValue());
+        });
+        assertEquals(60, countMap.get("upstream-50").intValue());
     }
 }

@@ -40,13 +40,15 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.RuleData;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -57,10 +59,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
@@ -69,7 +71,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for RuleService.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class RuleServiceTest {
 
     @InjectMocks
@@ -96,7 +99,7 @@ public final class RuleServiceTest {
     @Mock
     private org.apache.shiro.mgt.SecurityManager securityManager;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
         ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, dataPermissionMapper, eventPublisher);
@@ -209,6 +212,20 @@ public final class RuleServiceTest {
         assertEquals(ruleDOList.size(), dataList.size());
     }
 
+    @Test
+    public void testFindBySelectorIdList() {
+        publishEvent();
+        RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
+        RuleConditionDO ruleCondition = buildRuleConditionDO();
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
+        RuleDO ruleDO = buildRuleDO("123");
+        List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
+        given(this.ruleMapper.findBySelectorIds(Collections.singletonList("456"))).willReturn(ruleDOList);
+        List<RuleData> dataList = this.ruleService.findBySelectorIdList(Collections.singletonList("456"));
+        assertNotNull(dataList);
+        assertEquals(ruleDOList.size(), dataList.size());
+    }
+
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         SelectorDO selectorDO = buildSelectorDO();
@@ -219,14 +236,14 @@ public final class RuleServiceTest {
     private void testRegisterCreate() {
         RuleDTO ruleDTO = buildRuleDTO("");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
-        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
+        String ruleId = this.ruleService.registerDefault(ruleDTO);
         assertNotNull(ruleId);
         assertEquals(ruleId.length(), ruleDO.getId().length());
     }
 
     private void testRegisterUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        String ruleId = this.ruleService.register(ruleDTO, ruleDTO.getName(), false);
+        String ruleId = this.ruleService.registerDefault(ruleDTO);
         assertNotNull(ruleId);
         assertEquals(ruleId, ruleDTO.getId());
     }

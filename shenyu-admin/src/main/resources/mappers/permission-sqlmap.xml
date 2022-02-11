@@ -43,6 +43,16 @@
         from permission where object_id = #{objectId,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByObjectIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from permission
+        where object_id in
+        <foreach item="objectId" collection="list" open="(" separator="," close=")">
+            #{objectId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PermissionDO">
         insert into permission (id, date_created, date_updated,
         object_id, resource_id)
@@ -82,6 +92,23 @@
                 #{resourceId,jdbcType=VARCHAR},
             </if>
         </trim>
+    </insert>
+
+    <insert id="insertBatch">
+        INSERT INTO permission
+        (
+        id,
+        object_id,
+        resource_id
+        )
+        VALUES
+        <foreach collection="permissionDOList" item="permissionDO" separator=",">
+            (
+            #{permissionDO.id,jdbcType=VARCHAR},
+            #{permissionDO.objectId,jdbcType=VARCHAR},
+            #{permissionDO.resourceId,jdbcType=VARCHAR}
+            )
+        </foreach>
     </insert>
 
     <delete id="delete" parameterType="java.lang.String">

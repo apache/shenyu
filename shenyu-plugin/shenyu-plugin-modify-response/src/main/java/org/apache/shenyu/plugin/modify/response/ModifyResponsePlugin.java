@@ -19,31 +19,27 @@ package org.apache.shenyu.plugin.modify.response;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.CollectionUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.support.BodyInserterContext;
-import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ReactiveHttpOutputMessage;
-import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.web.reactive.function.BodyExtractors;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -60,53 +56,19 @@ import java.util.Set;
  * ModifyResponse plugin.
  */
 public class ModifyResponsePlugin extends AbstractShenyuPlugin {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(ModifyResponsePlugin.class);
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        final ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.nonNull(modifyResponseRuleHandle)) {
-            ClientResponse response = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.addAll(Objects.requireNonNull(response).headers().asHttpHeaders());
-            if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getAddHeaders())) {
-                Map<String, String> addHeaderMap = modifyResponseRuleHandle.getAddHeaders();
-                addHeaderMap.forEach(httpHeaders::add);
-            }
-
-            if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getSetHeaders())) {
-                Map<String, String> setHeaderMap = modifyResponseRuleHandle.getSetHeaders();
-                setHeaderMap.forEach(httpHeaders::set);
-            }
-
-            if (MapUtils.isNotEmpty(modifyResponseRuleHandle.getReplaceHeaderKeys())) {
-                Map<String, String> replaceHeaderMap = modifyResponseRuleHandle.getReplaceHeaderKeys();
-                replaceHeaderMap.forEach((key, value) -> httpHeaders.replace(key, Collections.singletonList(value)));
-            }
-
-            if (Objects.nonNull(modifyResponseRuleHandle.getRemoveHeaderKeys()) && !CollectionUtils.isEmpty(modifyResponseRuleHandle.getRemoveHeaderKeys())) {
-                Set<String> removeHeaderList = modifyResponseRuleHandle.getRemoveHeaderKeys();
-                removeHeaderList.forEach(httpHeaders::remove);
-            }
-
-            if (modifyResponseRuleHandle.getStatusCode() > 0) {
-                exchange.getResponse().setStatusCode(HttpStatus.valueOf(modifyResponseRuleHandle.getStatusCode()));
-            }
-
-            ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(exchange.getResponse().getStatusCode()),
-                    ServerCodecConfigurer.create().getReaders());
-            Flux<DataBuffer> body = response.body(BodyExtractors.toDataBuffers());
-            ClientResponse modifyResponse = builder
-                    .headers(headers -> headers.putAll(httpHeaders))
-                    .body(body)
-                    .cookies(cookies -> cookies.putAll(response.cookies()))
-                    .build();
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, modifyResponse);
+        ModifyResponseRuleHandle ruleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (Objects.isNull(ruleHandle)) {
+            return chain.execute(exchange);
         }
-
         return chain.execute(exchange.mutate()
-                .response(new ModifyServerHttpResponse(exchange, modifyResponseRuleHandle)).build());
+                .response(new ModifyResponseDecorator(exchange, ruleHandle)).build());
     }
 
     @Override
@@ -119,75 +81,97 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         return PluginEnum.MODIFY_RESPONSE.getName();
     }
 
-    static class ModifyServerHttpResponse extends ServerHttpResponseDecorator {
+    static class ModifyResponseDecorator extends ServerHttpResponseDecorator {
 
         private final ServerWebExchange exchange;
 
-        private final ModifyResponseRuleHandle handle;
+        private final ModifyResponseRuleHandle ruleHandle;
 
-        ModifyServerHttpResponse(final ServerWebExchange exchange, final ModifyResponseRuleHandle handle) {
+        ModifyResponseDecorator(final ServerWebExchange exchange,
+                                final ModifyResponseRuleHandle ruleHandle) {
             super(exchange.getResponse());
             this.exchange = exchange;
-            this.handle = handle;
+            this.ruleHandle = ruleHandle;
         }
 
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            if (Objects.isNull(clientResponse)) {
-                clientResponse = prepareClientResponse(body, this.getHeaders());
-            }
+            ClientResponse clientResponse = this.buildModifiedResponse(body);
             Mono<byte[]> modifiedBody = clientResponse.bodyToMono(byte[].class)
-                    .flatMap(originalBody -> Mono.just(updateResponse(originalBody)));
-
-            BodyInserter<Mono<byte[]>, ReactiveHttpOutputMessage> bodyInserter =
-                    BodyInserters.fromPublisher(modifiedBody, byte[].class);
-            CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-                    exchange.getResponse().getHeaders());
-            return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
-                Mono<DataBuffer> messageBody = DataBufferUtils.join(outputMessage.getBody());
-                HttpHeaders headers = getDelegate().getHeaders();
-                if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-                        || headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-                    messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-                }
-                return getDelegate().writeWith(messageBody);
-            }));
-
+                    .flatMap(originalBody -> Mono.just(modifyBody(originalBody)));
+            return ResponseUtils.writeWith(clientResponse, this.exchange, modifiedBody, byte[].class);
         }
 
-        private byte[] updateResponse(final byte[] responseBody) {
-            if (Objects.isNull(handle)) {
-                return responseBody;
+        private ClientResponse buildModifiedResponse(final Publisher<? extends DataBuffer> body) {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            // add origin headers
+            httpHeaders.addAll(this.getHeaders());
+
+            // add new headers
+            if (MapUtils.isNotEmpty(this.ruleHandle.getAddHeaders())) {
+                Map<String, String> addHeaderMap = this.ruleHandle.getAddHeaders();
+                addHeaderMap.forEach(httpHeaders::add);
             }
 
-            String bodyStr = operation(new String(responseBody, StandardCharsets.UTF_8), handle);
-            return bodyStr.getBytes(StandardCharsets.UTF_8);
+            // set new headers
+            if (MapUtils.isNotEmpty(this.ruleHandle.getSetHeaders())) {
+                Map<String, String> setHeaderMap = this.ruleHandle.getSetHeaders();
+                setHeaderMap.forEach(httpHeaders::set);
+            }
+
+            // replace headers
+            if (MapUtils.isNotEmpty(this.ruleHandle.getReplaceHeaderKeys())) {
+                Map<String, String> replaceHeaderMap = this.ruleHandle.getReplaceHeaderKeys();
+                replaceHeaderMap.forEach((key, value) -> httpHeaders.replace(key, Collections.singletonList(value)));
+            }
+
+            // remove headers
+            if (CollectionUtils.isNotEmpty(this.ruleHandle.getRemoveHeaderKeys())) {
+                Set<String> removeHeaderList = this.ruleHandle.getRemoveHeaderKeys();
+                removeHeaderList.forEach(httpHeaders::remove);
+            }
+
+            // reset http status
+            ClientResponse clientResponse = ResponseUtils.buildClientResponse(this.getDelegate(), body);
+            HttpStatus statusCode = clientResponse.statusCode();
+            if (this.ruleHandle.getStatusCode() > 0) {
+                this.setStatusCode(statusCode = HttpStatus.valueOf(this.ruleHandle.getStatusCode()));
+            }
+
+            // reset http headers
+            this.getDelegate().getHeaders().clear();
+            this.getDelegate().getHeaders().putAll(httpHeaders);
+
+            return ClientResponse.from(clientResponse)
+                    .headers(headers -> headers.putAll(httpHeaders))
+                    .statusCode(statusCode)
+                    .body(Flux.from(body)).build();
         }
 
-        private String operation(final String jsonValue, final ModifyResponseRuleHandle handle) {
+        private byte[] modifyBody(final byte[] responseBody) {
+            try {
+                String bodyStr = modifyBody(new String(responseBody, StandardCharsets.UTF_8));
+                LOG.info("the body string {}", bodyStr);
+                return bodyStr.getBytes(StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                LOG.error("modify response error", e);
+                throw new ShenyuException(String.format("response modify failure. %s", e.getLocalizedMessage()));
+            }
+        }
+
+        private String modifyBody(final String jsonValue) {
             DocumentContext context = JsonPath.parse(jsonValue);
-            if (!CollectionUtils.isEmpty(handle.getAddBodyKeys())) {
-                handle.getAddBodyKeys().forEach(info -> {
-                    context.put(info.getPath(), info.getKey(), info.getValue());
-                });
+            if (CollectionUtils.isNotEmpty(this.ruleHandle.getAddBodyKeys())) {
+                this.ruleHandle.getAddBodyKeys().forEach(info -> context.put(info.getPath(), info.getKey(), info.getValue()));
             }
-            if (!CollectionUtils.isEmpty(handle.getReplaceBodyKeys())) {
-                handle.getReplaceBodyKeys().forEach(info -> {
-                    context.renameKey(info.getPath(), info.getKey(), info.getValue());
-                });
+            if (CollectionUtils.isNotEmpty(this.ruleHandle.getReplaceBodyKeys())) {
+                this.ruleHandle.getReplaceBodyKeys().forEach(info -> context.renameKey(info.getPath(), info.getKey(), info.getValue()));
             }
-            if (!CollectionUtils.isEmpty(handle.getRemoveBodyKeys())) {
-                handle.getRemoveBodyKeys().forEach(context::delete);
+            if (CollectionUtils.isNotEmpty(this.ruleHandle.getRemoveBodyKeys())) {
+                this.ruleHandle.getRemoveBodyKeys().forEach(context::delete);
             }
             return context.jsonString();
-        }
-
-        private ClientResponse prepareClientResponse(final Publisher<? extends DataBuffer> body, final HttpHeaders httpHeaders) {
-            ClientResponse.Builder builder;
-            builder = ClientResponse.create(this.getDelegate().getStatusCode(), ServerCodecConfigurer.create().getReaders());
-            return builder.headers(headers -> headers.putAll(httpHeaders)).body(Flux.from(body)).build();
         }
     }
 }

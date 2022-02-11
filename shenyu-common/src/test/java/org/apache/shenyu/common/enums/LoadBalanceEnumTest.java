@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for LoadBalanceEnum.
@@ -27,22 +29,22 @@ public final class LoadBalanceEnumTest {
 
     @Test
     public void testHashLoadBalance() {
-        Assert.assertEquals(1, LoadBalanceEnum.HASH.getCode());
-        Assert.assertEquals("hash", LoadBalanceEnum.HASH.getName());
-        Assert.assertTrue(LoadBalanceEnum.HASH.isSupport());
+        assertEquals(1, LoadBalanceEnum.HASH.getCode());
+        assertEquals("hash", LoadBalanceEnum.HASH.getName());
+        assertTrue(LoadBalanceEnum.HASH.isSupport());
     }
 
     @Test
     public void testRandomLoadBalance() {
-        Assert.assertEquals(2, LoadBalanceEnum.RANDOM.getCode());
-        Assert.assertEquals("random", LoadBalanceEnum.RANDOM.getName());
-        Assert.assertTrue(LoadBalanceEnum.RANDOM.isSupport());
+        assertEquals(2, LoadBalanceEnum.RANDOM.getCode());
+        assertEquals("random", LoadBalanceEnum.RANDOM.getName());
+        assertTrue(LoadBalanceEnum.RANDOM.isSupport());
     }
 
     @Test
     public void testRoundRobinLoadBalance() {
-        Assert.assertEquals(3, LoadBalanceEnum.ROUND_ROBIN.getCode());
-        Assert.assertEquals("roundRobin", LoadBalanceEnum.ROUND_ROBIN.getName());
-        Assert.assertTrue(LoadBalanceEnum.ROUND_ROBIN.isSupport());
+        assertEquals(3, LoadBalanceEnum.ROUND_ROBIN.getCode());
+        assertEquals("roundRobin", LoadBalanceEnum.ROUND_ROBIN.getName());
+        assertTrue(LoadBalanceEnum.ROUND_ROBIN.isSupport());
     }
 }

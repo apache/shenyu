@@ -28,18 +28,19 @@ import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
@@ -49,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test cases for ShenyuDictController.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ShenyuDictControllerTest {
 
     private MockMvc mockMvc;
@@ -63,7 +64,7 @@ public final class ShenyuDictControllerTest {
     private final ShenyuDictVO shenyuDictVO = new ShenyuDictVO("123", "1", "t", "t_n", "1", "desc", 2, true,
             DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuDictController)
                 .setControllerAdvice(new ExceptionHandlers())
@@ -144,10 +145,17 @@ public final class ShenyuDictControllerTest {
 
     @Test
     public void testDeleteShenyuDicts() throws Exception {
-        given(this.shenyuDictService.deleteShenyuDicts(Collections.singletonList("123"))).willReturn(1);
+
+        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
+        shenyuDictDTO.setId(UUID.randomUUID().toString());
+        shenyuDictDTO.setType("mode");
+        shenyuDictDTO.setDictName("test");
+        shenyuDictDTO.setDictValue("v");
+        shenyuDictDTO.setSort(1);
+        given(this.shenyuDictService.deleteShenyuDicts(Collections.singletonList(shenyuDictDTO.getId()))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/shenyu-dict/batch")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("[\"123\"]"))
+                .content("[\"" + shenyuDictDTO.getId() + "\"]"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();

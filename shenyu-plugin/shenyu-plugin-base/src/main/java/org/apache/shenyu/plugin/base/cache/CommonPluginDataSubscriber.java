@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Map;
@@ -61,10 +62,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         for (PluginDataHandler handler : handlers) {
             String pluginNamed = handler.pluginNamed();
-            if (!handlerMap.containsKey(pluginNamed)) {
-                handlerMap.put(pluginNamed, handler);
+            handlerMap.computeIfAbsent(pluginNamed, name -> {
                 LOG.info("shenyu auto add extends plugin data handler name is :{}", pluginNamed);
-            }
+                return handler;
+            });
         }
     }
     
@@ -138,35 +139,66 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
     
     private <T> void subscribeDataHandler(final T classData, final DataEventTypeEnum dataType) {
-        Optional.ofNullable(classData).ifPresent(data -> {
-            if (data instanceof PluginData) {
-                PluginData pluginData = (PluginData) data;
-                if (dataType == DataEventTypeEnum.UPDATE) {
-                    BaseDataCache.getInstance().cachePluginData(pluginData);
-                    Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.handlerPlugin(pluginData));
-                } else if (dataType == DataEventTypeEnum.DELETE) {
-                    BaseDataCache.getInstance().removePluginData(pluginData);
-                    Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.removePlugin(pluginData));
-                }
-            } else if (data instanceof SelectorData) {
-                SelectorData selectorData = (SelectorData) data;
-                if (dataType == DataEventTypeEnum.UPDATE) {
-                    BaseDataCache.getInstance().cacheSelectData(selectorData);
-                    Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.handlerSelector(selectorData));
-                } else if (dataType == DataEventTypeEnum.DELETE) {
-                    BaseDataCache.getInstance().removeSelectData(selectorData);
-                    Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.removeSelector(selectorData));
-                }
-            } else if (data instanceof RuleData) {
-                RuleData ruleData = (RuleData) data;
-                if (dataType == DataEventTypeEnum.UPDATE) {
-                    BaseDataCache.getInstance().cacheRuleData(ruleData);
-                    Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.handlerRule(ruleData));
-                } else if (dataType == DataEventTypeEnum.DELETE) {
-                    BaseDataCache.getInstance().removeRuleData(ruleData);
-                    Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.removeRule(ruleData));
-                }
-            }
-        });
+        if (dataType == DataEventTypeEnum.UPDATE) {
+            Optional.ofNullable(classData)
+                    .ifPresent(data -> updateCacheData(classData));
+        } else if (dataType == DataEventTypeEnum.DELETE) {
+            Optional.ofNullable(classData)
+                    .ifPresent(data -> removeCacheData(classData));
+        }
+    }
+    
+    /**
+     * update cache data.
+     *
+     * @param data data is plugin mate data, data is not null
+     * @param <T>  data type, support is [{@link PluginData},{@link SelectorData},{@link RuleData}]
+     */
+    private <T> void updateCacheData(@NonNull final T data) {
+        if (data instanceof PluginData) {
+            PluginData pluginData = (PluginData) data;
+            BaseDataCache.getInstance().cachePluginData(pluginData);
+            Optional.ofNullable(handlerMap.get(pluginData.getName()))
+                    .ifPresent(handler -> handler.handlerPlugin(pluginData));
+        } else if (data instanceof SelectorData) {
+            SelectorData selectorData = (SelectorData) data;
+            BaseDataCache.getInstance().cacheSelectData(selectorData);
+            Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
+                    .ifPresent(handler -> handler.handlerSelector(selectorData));
+            
+        } else if (data instanceof RuleData) {
+            RuleData ruleData = (RuleData) data;
+            BaseDataCache.getInstance().cacheRuleData(ruleData);
+            Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
+                    .ifPresent(handler -> handler.handlerRule(ruleData));
+            
+        }
+    }
+    
+    /**
+     * remove cache data.
+     *
+     * @param data data is plugin mate data, data is not null
+     * @param <T>  data type, support is [{@link PluginData},{@link SelectorData},{@link RuleData}]
+     */
+    private <T> void removeCacheData(@NonNull final T data) {
+        if (data instanceof PluginData) {
+            PluginData pluginData = (PluginData) data;
+            BaseDataCache.getInstance().removePluginData(pluginData);
+            Optional.ofNullable(handlerMap.get(pluginData.getName()))
+                    .ifPresent(handler -> handler.removePlugin(pluginData));
+        } else if (data instanceof SelectorData) {
+            SelectorData selectorData = (SelectorData) data;
+            BaseDataCache.getInstance().removeSelectData(selectorData);
+            Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
+                    .ifPresent(handler -> handler.removeSelector(selectorData));
+            
+        } else if (data instanceof RuleData) {
+            RuleData ruleData = (RuleData) data;
+            BaseDataCache.getInstance().removeRuleData(ruleData);
+            Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
+                    .ifPresent(handler -> handler.removeRule(ruleData));
+            
+        }
     }
 }

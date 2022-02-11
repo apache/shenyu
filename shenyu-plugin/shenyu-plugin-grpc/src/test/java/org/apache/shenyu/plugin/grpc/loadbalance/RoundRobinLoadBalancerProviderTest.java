@@ -18,21 +18,22 @@
 package org.apache.shenyu.plugin.grpc.loadbalance;
 
 import io.grpc.LoadBalancer;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RoundRobinLoadBalancerProviderTest {
 
     private RoundRobinLoadBalancerProvider roundRobinLoadBalancerProvider;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         roundRobinLoadBalancerProvider = new RoundRobinLoadBalancerProvider();
     }
@@ -44,7 +45,7 @@ public class RoundRobinLoadBalancerProviderTest {
 
     @Test
     public void testGetPriority() {
-        assertEquals(roundRobinLoadBalancerProvider.getPriority(), 6);
+        assertEquals(6, roundRobinLoadBalancerProvider.getPriority());
     }
 
     @Test

@@ -59,8 +59,8 @@ public class SignPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         Pair<Boolean, String> result = signService.signVerify(exchange);
-        if (!result.getLeft()) {
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
+        if (Boolean.FALSE.equals(result.getLeft())) {
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);

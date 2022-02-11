@@ -22,16 +22,18 @@ import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.NacosProperties;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+
 import java.util.Properties;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for NacosConfiguration.
@@ -67,12 +69,12 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
         };
         try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = Mockito.mockStatic(NacosFactory.class)) {
             final ConfigService configServiceMock = Mockito.mock(ConfigService.class);
-            ArgumentCaptor argument = ArgumentCaptor.forClass(Properties.class);
+            ArgumentCaptor<Properties> argument = ArgumentCaptor.forClass(Properties.class);
             nacosFactoryMockedStatic
-                    .when(() -> NacosFactory.createConfigService((Properties) argument.capture()))
+                    .when(() -> NacosFactory.createConfigService(argument.capture()))
                     .thenReturn(configServiceMock);
             load(NacosConfiguration.class, inlinedProperties);
-            assertTrue(((Properties) argument.getValue()).containsKey(PropertyKeyConst.ENDPOINT));
+            assertTrue(argument.getValue().containsKey(PropertyKeyConst.ENDPOINT));
         }
         ConfigService configService = (ConfigService) getContext().getBean("nacosConfigService");
         assertNotNull(configService);

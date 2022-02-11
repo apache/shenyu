@@ -20,10 +20,10 @@ package org.apache.shenyu.plugin.ratelimiter.resolver;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.TokenBucketRateLimiterAlgorithm;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -33,9 +33,9 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RateLimiterKeyResolverTest {
 
     private RateLimiterAlgorithm<?> rateLimiterAlgorithm;
@@ -44,7 +44,7 @@ public class RateLimiterKeyResolverTest {
 
     private ServerWebExchange secondExchange;
 
-    @Before
+    @BeforeEach
     public void setUp() throws UnknownHostException {
         rateLimiterAlgorithm = new TokenBucketRateLimiterAlgorithm();
         firstExchange = MockServerWebExchange.from(MockServerHttpRequest
@@ -76,12 +76,12 @@ public class RateLimiterKeyResolverTest {
     @Test
     public void wholeGetKeyResolverNameTest() {
         String keyResolverName = new WholeKeyResolver().getKeyResolverName();
-        assertEquals(keyResolverName, "WHOLE_KEY_RESOLVER");
+        assertEquals("WHOLE_KEY_RESOLVER", keyResolverName);
     }
 
     @Test
     public void remoteAddrGetKeyResolverNameTest() {
         String keyResolverName = new RemoteAddrKeyResolver().getKeyResolverName();
-        assertEquals(keyResolverName, "REMOTE_ADDRESS_KEY_RESOLVER");
+        assertEquals("REMOTE_ADDRESS_KEY_RESOLVER", keyResolverName);
     }
 }

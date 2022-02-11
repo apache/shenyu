@@ -17,25 +17,26 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * Test cases for {@link URIParameterData}.
  */
-public class URIParameterDataTest {
+public final class URIParameterDataTest {
 
     private ServerWebExchange exchange;
 
     private URIParameterData uriParameterData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/uri/path")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
@@ -46,6 +47,6 @@ public class URIParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals(uriParameterData.builder(null, exchange), "/uri/path");
+        assertEquals("/uri/path", uriParameterData.builder(null, exchange));
     }
 }

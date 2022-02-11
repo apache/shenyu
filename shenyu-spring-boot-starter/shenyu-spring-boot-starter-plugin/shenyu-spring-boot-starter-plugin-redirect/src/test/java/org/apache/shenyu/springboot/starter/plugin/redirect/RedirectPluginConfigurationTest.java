@@ -19,28 +19,48 @@ package org.apache.shenyu.springboot.starter.plugin.redirect;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.junit.Test;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * test case for {@link RedirectPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class RedirectPluginConfigurationTest {
 
     @Test
     public void testRedirectPlugin() {
         new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(RedirectPluginConfiguration.class))
-                .withBean(DispatcherHandler.class)
-                .withPropertyValues("debug=true")
-                .run(context -> {
-                    ShenyuPlugin shenyuPlugin = context.getBean("redirectPlugin", ShenyuPlugin.class);
-                    assertThat(shenyuPlugin.named()).isEqualTo(PluginEnum.REDIRECT.getName());
-                });
+            .withConfiguration(AutoConfigurations.of(RedirectPluginConfiguration.class))
+            .withBean(RedirectPluginConfigurationTest.class)
+            .withBean(DispatcherHandler.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                ShenyuPlugin shenyuPlugin = context.getBean("redirectPlugin", ShenyuPlugin.class);
+                assertNotNull(shenyuPlugin);
+                assertThat(shenyuPlugin.named()).isEqualTo(PluginEnum.REDIRECT.getName());
+            });
+    }
+
+    @Test
+    public void testRedirectPluginDataHandler() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(RedirectPluginConfiguration.class))
+            .withBean(RedirectPluginConfigurationTest.class)
+            .withBean(DispatcherHandler.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                PluginDataHandler handler = context.getBean("redirectPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            });
     }
 }

@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
-import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -35,7 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for {@link FormDataOperator}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class FormDataOperatorTest {
 
     @Mock
@@ -56,27 +56,27 @@ public class FormDataOperatorTest {
 
     private FormDataOperator formDataOperator;
 
-    private ParamMappingHandle paramMappingHandle;
+    private ParamMappingRuleHandle paramMappingRuleHandle;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Set<String> remove = new HashSet<>();
         remove.add("$.age");
-        ParamMappingHandle.ParamMapInfo add = new ParamMappingHandle.ParamMapInfo();
+        ParamMappingRuleHandle.ParamMapInfo add = new ParamMappingRuleHandle.ParamMapInfo();
         add.setPath("$");
         add.setKey("webName");
         add.setValue("SHENYU");
-        ParamMappingHandle.ParamMapInfo replace = new ParamMappingHandle.ParamMapInfo();
+        ParamMappingRuleHandle.ParamMapInfo replace = new ParamMappingRuleHandle.ParamMapInfo();
         replace.setPath("$");
         replace.setKey("name");
         replace.setValue("realName");
         MultiValueMap<String, String> param = new LinkedMultiValueMap<>();
         param.set("name", "shenyu");
         param.set("age", "18");
-        this.paramMappingHandle = new ParamMappingHandle();
-        this.paramMappingHandle.setRemoveParameterKeys(remove);
-        this.paramMappingHandle.setAddParameterKeys(Arrays.asList(add));
-        this.paramMappingHandle.setReplaceParameterKeys(Arrays.asList(replace));
+        this.paramMappingRuleHandle = new ParamMappingRuleHandle();
+        this.paramMappingRuleHandle.setRemoveParameterKeys(remove);
+        this.paramMappingRuleHandle.setAddParameterKeys(Collections.singletonList(add));
+        this.paramMappingRuleHandle.setReplaceParameterKeys(Collections.singletonList(replace));
         this.formDataOperator = new FormDataOperator();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.POST, "localhost")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE).queryParams(param));
@@ -85,6 +85,6 @@ public class FormDataOperatorTest {
     @Test
     public void testApply() {
         when(this.chain.execute(any())).thenReturn(Mono.empty());
-        StepVerifier.create(formDataOperator.apply(this.exchange, this.chain, paramMappingHandle)).expectSubscription().verifyComplete();
+        StepVerifier.create(formDataOperator.apply(this.exchange, this.chain, paramMappingRuleHandle)).expectSubscription().verifyComplete();
     }
 }

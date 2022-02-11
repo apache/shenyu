@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sofa;
 
+import com.alipay.sofa.rpc.context.RpcInvokeContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -27,9 +28,9 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * The sofa plugin.
@@ -67,14 +69,16 @@ public class SofaPlugin extends AbstractShenyuPlugin {
             assert metaData != null;
             LOG.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.SOFA_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.SOFA_HAVE_BODY_PARAM.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SOFA_HAVE_BODY_PARAM, null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
+        Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.SOFA.getName())).ifPresent(context -> RpcInvokeContext.getContext().putAllRequestBaggage(context));
         final Mono<Object> result = sofaProxyService.genericInvoker(param, metaData, exchange);
         return result.then(chain.execute(exchange));
     }
@@ -97,9 +101,7 @@ public class SofaPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.SOFA.getName());
+        return skipExcept(exchange, RpcTypeEnum.SOFA);
     }
 
     @Override

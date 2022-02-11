@@ -37,13 +37,12 @@ public class RsaStrategy implements CryptorStrategy {
     private static final String RSA = "rsa";
 
     @Override
-    public String decrypt(final String key, final String encryptData) throws Exception {
-        byte[] inputByte = Base64.getDecoder().decode(encryptData.getBytes(StandardCharsets.UTF_8));
+    public String decrypt(final String key, final byte[] encryptData) throws Exception {
         byte[] decoded = Base64.getDecoder().decode(key);
         PrivateKey priKey = KeyFactory.getInstance(RSA).generatePrivate(new PKCS8EncodedKeySpec(decoded));
         Cipher cipher = Cipher.getInstance(RSA);
         cipher.init(Cipher.DECRYPT_MODE, priKey);
-        return new String(cipher.doFinal(inputByte));
+        return new String(cipher.doFinal(encryptData));
     }
 
     @Override

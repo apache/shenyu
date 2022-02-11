@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * DashboardUserMapper.
@@ -110,4 +111,11 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int delete(String id);
+
+    /**
+     * delete the specified dashboard users.
+     * @param idSet primary key of dashboard_user
+     * @return the count of deleted
+     */
+    int deleteByIdSet(@Param("idSet") Set<String> idSet);
 }

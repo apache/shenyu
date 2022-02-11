@@ -18,41 +18,44 @@
 package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.concurrent.ExecutionException;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * The Test Case For {@link CompleteObserver}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CompleteObserverTest {
-
-    private CompleteObserver completeObserver;
-
-    @Before
+    
+    private CompleteObserver<Object> completeObserver;
+    
+    @BeforeEach
     public void setUp() {
-        completeObserver = new CompleteObserver();
+        completeObserver = new CompleteObserver<>();
     }
-
+    
     @Test
-    public void onCompleted() throws ExecutionException, InterruptedException {
+    public void onCompleted() {
         completeObserver.onCompleted();
-        ListenableFuture future = completeObserver.getCompletionFuture();
-        assert future.get() == null;
+        ListenableFuture<Void> future = completeObserver.getCompletionFuture();
+        assertNotNull(future);
     }
-
-    @Test(expected = Throwable.class)
-    public void onError() throws Exception {
+    
+    @Test
+    public void onError() {
         Throwable throwable = new Throwable("error");
         completeObserver.onError(throwable);
-        ListenableFuture future = completeObserver.getCompletionFuture();
-        future.get();
+        ListenableFuture<Void> future = completeObserver.getCompletionFuture();
+        assertThrows(Throwable.class, () -> {
+            future.get();
+        });
     }
-
+    
     @Test
     public void onNext() {
         completeObserver.onNext(new Object());

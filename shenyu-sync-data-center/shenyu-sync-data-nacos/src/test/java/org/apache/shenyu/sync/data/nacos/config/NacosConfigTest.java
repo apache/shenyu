@@ -17,25 +17,71 @@
 
 package org.apache.shenyu.sync.data.nacos.config;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * add test case for {@link NacosConfig}.
  */
-public class NacosConfigTest {
+public final class NacosConfigTest {
+
+    private static final String URL = "url";
+
+    private static final String NAMESPACE = "nameSpace";
+
+    private static final String PASSWORD = "password";
+
+    private static final String USERNAME = "username";
+
+    private static final NacosACMConfig ACM = new NacosACMConfig();
+
+    private NacosConfig nacosConfig;
+
+    private NacosConfig that;
+
+    @BeforeEach
+    public void setUp() {
+        nacosConfig = new NacosConfig();
+        nacosConfig.setUrl(URL);
+        nacosConfig.setNamespace(NAMESPACE);
+        nacosConfig.setPassword(PASSWORD);
+        nacosConfig.setUsername(USERNAME);
+        nacosConfig.setAcm(ACM);
+        that = new NacosConfig();
+        that.setUrl(URL);
+        that.setNamespace(NAMESPACE);
+        that.setPassword(PASSWORD);
+        that.setUsername(USERNAME);
+        that.setAcm(ACM);
+    }
+
     @Test
     public void testGetterSetter() {
-        NacosConfig nacosConfig = new NacosConfig();
-        nacosConfig.setUrl("url");
-        nacosConfig.setNamespace("nameSpace");
-        nacosConfig.setPassword("password");
-        nacosConfig.setUsername("username");
-        nacosConfig.setAcm(new NacosACMConfig());
-        Assert.assertEquals("url", nacosConfig.getUrl());
-        Assert.assertEquals("nameSpace", nacosConfig.getNamespace());
-        Assert.assertEquals("password", nacosConfig.getPassword());
-        Assert.assertEquals("username", nacosConfig.getUsername());
-        Assert.assertNotNull(nacosConfig.getAcm());
+        assertEquals(URL, nacosConfig.getUrl());
+        assertEquals(NAMESPACE, nacosConfig.getNamespace());
+        assertEquals(PASSWORD, nacosConfig.getPassword());
+        assertEquals(USERNAME, nacosConfig.getUsername());
+        assertEquals(ACM, nacosConfig.getAcm());
+    }
+
+    @Test
+    public void testEquals() {
+        assertTrue(nacosConfig.equals(nacosConfig));
+        assertTrue(nacosConfig.equals(that));
+        assertFalse(nacosConfig.equals(null));
+        assertFalse(nacosConfig.equals(new Object()));
+    }
+
+    @Test
+    public void testHashCode() {
+        assertEquals(Objects.hash(nacosConfig.getUrl(), nacosConfig.getNamespace(),
+                        nacosConfig.getUsername(), nacosConfig.getPassword(), nacosConfig.getAcm()),
+                nacosConfig.hashCode());
     }
 }

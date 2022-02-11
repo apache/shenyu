@@ -29,12 +29,16 @@ logging:
     org.apache.shenyu: debug
 
 shenyu:
-  client:
+  register:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      contextPath: /tars
-      appName: tars
-      port: 21715
-      host: 192.168.41.103
-      nacosNameSpace: ShenyuRegisterCenter
+      username: admin
+      password: 123456
+  client:
+    tars:
+      props:
+        contextPath: /tars
+        appName: tars
+        port: 21715
+        host: 192.168.41.103

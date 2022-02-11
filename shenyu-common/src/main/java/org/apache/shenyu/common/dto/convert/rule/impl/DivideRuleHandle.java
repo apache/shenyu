@@ -18,7 +18,6 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.RuleHandleConstants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
@@ -29,18 +28,16 @@ import java.util.Objects;
  */
 public class DivideRuleHandle implements RuleHandle {
 
-    private static final long serialVersionUID = 3975134663460754084L;
-
     /**
      * loadBalance.
      * {@linkplain LoadBalanceEnum}
      */
-    private String loadBalance;
+    private String loadBalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
      * http retry.
      */
-    private int retry;
+    private int retry = 3;
 
     /**
      * timeout is required.
@@ -180,12 +177,5 @@ public class DivideRuleHandle implements RuleHandle {
                 + ", requestMaxSize="
                 + requestMaxSize
                 + '}';
-    }
-
-    @Override
-    public RuleHandle createDefault(final String path, final String rpcExt) {
-        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
-        this.retry = RuleHandleConstants.DEFAULT_RETRY;
-        return this;
     }
 }

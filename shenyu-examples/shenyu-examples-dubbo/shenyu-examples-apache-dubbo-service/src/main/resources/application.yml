@@ -24,12 +24,16 @@ spring:
 dubbo:
   registry:
     address: zookeeper://localhost:2181
+    
 shenyu:
-  client:
+  register:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      contextPath: /dubbo
-      appName: dubbo
-      nacosNameSpace: ShenyuRegisterCenter
-      port: 20888
+      username: admin
+      password: 123456
+  client:
+    dubbo:
+      props:
+        contextPath: /dubbo
+        appName: dubbo

@@ -20,27 +20,44 @@ package org.apache.shenyu.springboot.starter.plugin.jwt;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link JwtPluginConfiguration}.
  */
+@Configuration
+@EnableConfigurationProperties
 public class JwtPluginConfigurationTest {
 
     @Test
     public void testJwtPlugin() {
         new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(JwtPluginConfiguration.class))
-                .run(context -> {
-                    PluginDataHandler pluginDataHandler = context.getBean(PluginDataHandler.class);
-                    assertThat(pluginDataHandler.pluginNamed()).isEqualTo(PluginEnum.JWT.getName());
-                    ShenyuPlugin plugin = context.getBean(ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.JWT.getName());
-                });
+            .withConfiguration(AutoConfigurations.of(JwtPluginConfiguration.class))
+            .withBean(JwtPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                ShenyuPlugin plugin = context.getBean("jwtPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.JWT.getName());
+            });
     }
 
+    @Test
+    public void testJwtPluginDataHandler() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(JwtPluginConfiguration.class))
+            .withBean(JwtPluginConfigurationTest.class)
+            .withPropertyValues("debug=true")
+            .run(context -> {
+                PluginDataHandler handler = context.getBean("jwtPluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            });
+    }
 }

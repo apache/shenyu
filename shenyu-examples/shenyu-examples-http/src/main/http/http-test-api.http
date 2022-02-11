@@ -15,6 +15,38 @@
 # limitations under the License.
 #
 
+# Use gateway proxy
+# if you used IDEA, start example project. click green button.Quick access！
+
+### shengyu getway proxy hello
+POST http://localhost:9195/http/shenyu/client/hello
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/shenyu/client/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/shenyu/client/post/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hello
+POST http://localhost:9195/http/hello
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/post/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
 
 ### shengyu getway proxy orderSave
 POST http://localhost:9195/http/order/save
@@ -60,6 +92,61 @@ GET http://localhost:9195/http/test/findByUserId?userId=123
 Accept: application/json
 Content-Type: application/json
 
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123%5D%2D
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=1#
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=1#1
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=1%25
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123%20zcq
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=#123
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=%25
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserIdName?userId=#&name=shenyu
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123%5D%2D%2Casd
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=%5B%27z%27%2C%27zc%27%2C%27zz%27%5D
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=['z','zc','zz']
+Accept: application/json
+Content-Type: application/json
+
 ### shengyu getway proxy path
 GET http://localhost:9195/http/test/path/123?name=haha
 Accept: application/json
@@ -84,3 +171,5 @@ Content-Type: application/json
 GET http://localhost:9195/http/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
+
+###
