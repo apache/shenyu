@@ -90,11 +90,11 @@ public class ContextRegisterListener implements ApplicationListener<WebServerIni
         }
         //Note: In this way, no matter what container is actually used,
         //you can get the port that is actually started in the end.
-        int mergedPort = port <= 0 ? webServerInitializedEvent.getWebServer().getPort() : port;
+        final int mergedPort = port <= 0 ? webServerInitializedEvent.getWebServer().getPort() : port;
         publisher.publishEvent(buildUriRegisterDTO(mergedPort));
     }
 
-    private URIRegisterDTO buildUriRegisterDTO(int port) {
+    private URIRegisterDTO buildUriRegisterDTO(final int port) {
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(appName)
