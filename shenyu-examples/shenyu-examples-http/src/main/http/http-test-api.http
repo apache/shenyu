@@ -18,6 +18,11 @@
 # Use gateway proxy
 # if you used IDEA, start example project. click green button.Quick access！
 
+### shengyu getway test timeout
+POST http://localhost:9195/http/shenyu/client/timeout
+Accept: application/json
+Content-Type: application/json
+
 ### shengyu getway proxy hello
 POST http://localhost:9195/http/shenyu/client/hello
 Accept: application/json
