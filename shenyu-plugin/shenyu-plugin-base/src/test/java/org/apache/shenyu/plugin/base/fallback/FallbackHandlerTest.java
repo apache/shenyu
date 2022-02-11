@@ -18,10 +18,12 @@
 package org.apache.shenyu.plugin.base.fallback;
 
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -40,14 +42,15 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for FallbackHandler.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class FallbackHandlerTest {
 
     private ServerWebExchange exchange;
 
     private TestFallbackHandler testFallbackHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         DispatcherHandler handler = mock(DispatcherHandler.class);

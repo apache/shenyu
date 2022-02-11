@@ -19,26 +19,29 @@ package org.apache.shenyu.plugin.alibaba.dubbo.subscriber;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 
 /**
  * The Test Case For AlibabaDubboMetaDataSubscriber.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class AlibabaDubboMetaDataSubscriberTest {
 
     private AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriber;
 
     private MetaData metaData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         alibabaDubboMetaDataSubscriber = new AlibabaDubboMetaDataSubscriber();
         metaData = new MetaData();

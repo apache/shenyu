@@ -30,12 +30,14 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -44,8 +46,8 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -53,7 +55,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for AlibabaDubboPlugin.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class AlibabaDubboPluginTest {
     @Mock
     private AlibabaDubboProxyService mockAlibabaDubboProxyService;
@@ -62,7 +65,7 @@ public final class AlibabaDubboPluginTest {
 
     private MetaData metaData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
@@ -133,7 +136,7 @@ public final class AlibabaDubboPluginTest {
 
         try (MockedStatic<ShenyuResultWrap> shenyuResultWrapMockedStatic = mockStatic(ShenyuResultWrap.class)) {
             shenyuResultWrapMockedStatic.when(() -> ShenyuResultWrap
-                    .error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM, null))
+                            .error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM, null))
                     .thenReturn(new Object());
 
             Mono<Void> voidMono = alibabaDubboPluginUnderTest.doExecute(exchange, chain, selectorData, data);

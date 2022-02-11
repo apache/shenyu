@@ -19,11 +19,10 @@ package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -31,17 +30,19 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * The MatchStrategyFactory test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class MatchStrategyFactoryTest {
 
     private ServerWebExchange exchange;
 
     private List<ConditionData> conditionDatas;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.conditionDatas = new ArrayList<>();
         ConditionData conditionData = new ConditionData();
@@ -59,6 +60,6 @@ public final class MatchStrategyFactoryTest {
      */
     @Test
     public void matchTest() {
-        Assert.assertTrue(MatchStrategyFactory.match(0, conditionDatas, exchange));
+        assertTrue(MatchStrategyFactory.match(0, conditionDatas, exchange));
     }
 }
