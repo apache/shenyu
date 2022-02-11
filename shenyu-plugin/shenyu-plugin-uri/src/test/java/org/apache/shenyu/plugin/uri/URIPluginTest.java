@@ -118,7 +118,6 @@ public class URIPluginTest {
         assertEquals("http://localhost:8090/query?queryParam=Hello%2C%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
     }
 
-
     @Test
     public void testGetOrder() {
         assertEquals(uriPlugin.getOrder(), PluginEnum.URI.getCode());
