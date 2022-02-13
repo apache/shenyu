@@ -24,7 +24,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.ProviderNotFoundException;
 import java.util.Objects;
 
 /**
@@ -59,7 +58,7 @@ public final class ShenyuAgentLocator {
      */
     public static File locatorPlugin() {
         final File file = locatorAgent();
-        if (Objects.isNull(file)){
+        if (Objects.isNull(file)) {
             LOG.error("[shenyu agent exception] locator plugin load error. the locator agent is not found");
             throw new RuntimeException("locator plugin load error. the locator agent is not found");
         }
@@ -74,9 +73,9 @@ public final class ShenyuAgentLocator {
      */
     public static File locatorConf(final String fileName) {
         final File file = locatorAgent();
-        if (Objects.isNull(file)){
+        if (Objects.isNull(file)) {
             LOG.error("[shenyu agent exception] the locator agent is not found");
-            throw new ProviderNotFoundException("[shenyu agent exception] the locator agent is not found");
+            throw new RuntimeException("[shenyu agent exception] the locator agent is not found");
         }
         return new File(String.join("/", file.getPath(), "conf", fileName));
     }
