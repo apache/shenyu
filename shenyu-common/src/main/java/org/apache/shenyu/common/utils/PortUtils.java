@@ -36,16 +36,14 @@ public class PortUtils {
     /**
      * Note: springboot 1.x version has been made compatible.
      * Note: springmvc with external tomcat had been made compatible.
-     * Note: In this way, no matter what container is actually used, you can get the port that is actually started in the end.
-     * <p>
-     * Note: see {@code org.springframework.boot.context.embedded.AbstractConfigurableEmbeddedServletContainer#getPort()}
-     * for springboot 1.x;
-     * see {@code org.springframework.boot.web.server.AbstractConfigurableWebServerFactory#getPort()}
-     * for springboot 2.x
+     * Note: In this way, no matter what container is actually used,
+     * you can get the port that is actually started in the end.
      *
      * @param beanFactory beanFactory
      * @return port number
      * @throws ShenyuException when can not find port
+     * @see org.springframework.boot.context.embedded.AbstractConfigurableEmbeddedServletContainer#getPort()
+     * @see org.springframework.boot.web.server.AbstractConfigurableWebServerFactory#getPort()
      */
     @SuppressWarnings("all")
     public static int findPort(final BeanFactory beanFactory) {
