@@ -17,15 +17,25 @@
 
 package org.apache.shenyu.agent.core.locator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.ProviderNotFoundException;
+import java.util.Objects;
 
 /**
  * The type Shenyu agent locator.
  */
 public final class ShenyuAgentLocator {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuAgentLocator.class);
+    
+    private ShenyuAgentLocator() {
+    }
     
     /**
      * Locator agent file.
@@ -48,7 +58,12 @@ public final class ShenyuAgentLocator {
      * @return the file
      */
     public static File locatorPlugin() {
-        return new File(String.join("", locatorAgent().getPath(), "/plugins"));
+        final File file = locatorAgent();
+        if (Objects.isNull(file)){
+            LOG.error("[shenyu agent exception] locator plugin load error. the locator agent is not found");
+            throw new RuntimeException("locator plugin load error. the locator agent is not found");
+        }
+        return new File(String.join("", file.getPath(), "/plugins"));
     }
     
     /**
@@ -58,7 +73,12 @@ public final class ShenyuAgentLocator {
      * @return the file
      */
     public static File locatorConf(final String fileName) {
-        return new File(String.join("/", locatorAgent().getPath(), "conf", fileName));
+        final File file = locatorAgent();
+        if (Objects.isNull(file)){
+            LOG.error("[shenyu agent exception] the locator agent is not found");
+            throw new ProviderNotFoundException("[shenyu agent exception] the locator agent is not found");
+        }
+        return new File(String.join("/", file.getPath(), "conf", fileName));
     }
     
     private static File getFileInResource(final String url, final String classResourcePath) {
