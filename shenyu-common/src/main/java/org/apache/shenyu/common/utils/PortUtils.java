@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.shenyu.common.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,7 +34,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 
 /**
- * get the port number exposed by the current tomcat
+ * get the port number exposed by the current tomcat.
  */
 public class PortUtils {
 
@@ -43,6 +44,9 @@ public class PortUtils {
      * Note: In this way, no matter what container is actually used,
      * you can get the port that is actually started in the end.
      *
+     * @param beanFactory beanFactory
+     * @return port number
+     * @throws ShenyuException when can not find port
      * @see org.springframework.boot.context.embedded.AbstractConfigurableEmbeddedServletContainer#getPort()
      * @see org.springframework.boot.web.server.AbstractConfigurableWebServerFactory#getPort()
      */
@@ -66,6 +70,13 @@ public class PortUtils {
         }
     }
 
+    /**
+     * get container port
+     *
+     * @param beanFactory beanFactory
+     * @param className   className
+     * @return container port
+     */
     private static int getPort(final BeanFactory beanFactory, final String className) throws ClassNotFoundException,
             NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Class<?> clazz = Class.forName(className);
@@ -77,6 +88,8 @@ public class PortUtils {
     /**
      * get the current tomcat port number
      * Note: This method is not supported when there are multiple instances of external Tomcat
+     *
+     * @return tomcat port number
      */
     public static Integer getPort() throws MalformedObjectNameException, ReflectionException, AttributeNotFoundException, InstanceNotFoundException, MBeanException {
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
