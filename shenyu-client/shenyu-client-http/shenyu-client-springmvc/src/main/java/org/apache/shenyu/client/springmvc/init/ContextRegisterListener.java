@@ -89,7 +89,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     }
 
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
     }
 
