@@ -21,13 +21,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.beans.factory.BeanFactory;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
 import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -71,7 +66,7 @@ public class PortUtils {
     }
 
     /**
-     * get container port
+     * get container port.
      *
      * @param beanFactory beanFactory
      * @param className   className
@@ -86,12 +81,13 @@ public class PortUtils {
     }
 
     /**
-     * get the current tomcat port number
-     * Note: This method is not supported when there are multiple instances of external Tomcat
+     * get the current tomcat port number.
+     * Note: This method is not supported when there are multiple instances of external Tomcat.
      *
      * @return tomcat port number
+     * @throws Exception when failed to get port
      */
-    public static Integer getPort() throws MalformedObjectNameException, ReflectionException, AttributeNotFoundException, InstanceNotFoundException, MBeanException {
+    public static Integer getPort() throws Exception {
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         Set<ObjectName> objectNames = mBeanServer.queryNames(new ObjectName("*:type=Connector,*"), null);
         if (CollectionUtils.isEmpty(objectNames)) {
