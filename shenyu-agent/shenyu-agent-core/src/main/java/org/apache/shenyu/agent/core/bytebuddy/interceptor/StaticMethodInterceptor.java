@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
  */
 public class StaticMethodInterceptor {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ConstructorInterceptor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StaticMethodInterceptor.class);
     
     private final List<StaticMethodHandler> handlerList;
     
