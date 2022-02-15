@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.monitor.handler;
 
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
