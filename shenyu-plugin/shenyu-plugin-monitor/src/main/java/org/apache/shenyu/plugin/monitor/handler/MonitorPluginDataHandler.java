@@ -56,7 +56,6 @@ public class MonitorPluginDataHandler implements PluginDataHandler {
     
     private boolean checkConfig(final MetricsConfig monitorConfig) {
         return Objects.nonNull(monitorConfig)
-                && StringUtils.isNoneBlank(monitorConfig.getHost())
                 && Objects.nonNull(monitorConfig.getPort())
                 && Objects.nonNull(monitorConfig.getAsync());
     }
