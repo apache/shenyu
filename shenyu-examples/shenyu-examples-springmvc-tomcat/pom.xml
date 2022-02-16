@@ -26,7 +26,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-springmvc-tomcat</artifactId>
-    <packaging>war</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
