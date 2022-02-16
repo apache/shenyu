@@ -21,7 +21,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -104,6 +103,7 @@ public class HttpClientPluginConfiguration {
                     }
                     // The write and read timeouts are serving as generic socket idle state handlers.
                     tcpClient = tcpClient.doOnConnected(connection -> {
+                        connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
                     });
