@@ -106,7 +106,6 @@ public class HttpClientPluginConfiguration {
                     tcpClient = tcpClient.doOnConnected(connection -> {
                         connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
-                        connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
                     });
                     return tcpClient;
                 });
