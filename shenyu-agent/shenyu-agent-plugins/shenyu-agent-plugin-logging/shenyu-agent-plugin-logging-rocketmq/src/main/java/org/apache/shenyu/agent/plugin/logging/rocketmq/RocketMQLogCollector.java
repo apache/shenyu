@@ -118,6 +118,6 @@ public class RocketMQLogCollector implements LogCollector {
         if (instance == null) {
             return;
         }
-        instance.close();
+        logCollectClient.close();
     }
 }
