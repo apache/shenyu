@@ -58,6 +58,9 @@ public final class JoinPointBuilderFactory {
                             .filter(entry -> supports.contains(entry.getKey()))
                             .flatMap(entry -> entry.getValue().stream())
                             .collect(Collectors.toList());
+                    if (handlers.isEmpty()) {
+                        return null;
+                    }
                     String[] instanceMethods = pointCut
                             .getPoints()
                             .stream()
@@ -86,6 +89,8 @@ public final class JoinPointBuilderFactory {
                         builder.onConstructor(ElementMatchers.namedOneOf(constructorPoints)).handlers(handlers).build();
                     }
                     return builder;
-                }).collect(Collectors.toList());
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }
