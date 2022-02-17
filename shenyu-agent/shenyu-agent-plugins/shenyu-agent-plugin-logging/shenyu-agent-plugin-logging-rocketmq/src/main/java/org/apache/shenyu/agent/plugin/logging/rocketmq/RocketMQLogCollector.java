@@ -18,106 +18,30 @@
 package org.apache.shenyu.agent.plugin.logging.rocketmq;
 
 import org.apache.shenyu.agent.plugin.logging.LogCollector;
+import org.apache.shenyu.agent.plugin.logging.common.AbstractLogCollector;
 import org.apache.shenyu.agent.plugin.logging.spi.LogCollectClient;
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.ThreadUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Objects;
 
 /**
  * queue-based logging collector.
  */
-public class RocketMQLogCollector implements LogCollector {
+public class RocketMQLogCollector extends AbstractLogCollector {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RocketMQLogCollector.class);
-    
-    private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
-
-    private static LogCollector instance;
-
-    private final AtomicBoolean started = new AtomicBoolean(false);
-
-    private final LogCollectClient logCollectClient;
-
-    private final BlockingQueue<String> bufferQueue;
-
-    private final int bufferSize = 50000;
-
-    private final int batchSize = 100;
-
-    private final int diffTimeMSForPush = 100;
-
-    private long lastPushTime;
+    private static RocketMQLogCollector instance;
 
     public RocketMQLogCollector(final LogCollectClient logCollectClient) {
-        this.logCollectClient = logCollectClient;
-        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
-        started.set(true);
+        super(logCollectClient);
         instance = this;
-        THREAD_EXECUTOR.execute(this::consume);
     }
 
     /**
-     * get single instance.
+     * get RocketMQLogCollector instance.
      *
-     * @return LogCollector is used to collect log
+     * @return RocketMQLogCollector instance
      */
     public static LogCollector getInstance() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
-    /**
-     * batch and async consume.
-     */
-    private void consume() {
-        while (started.get()) {
-            try {
-                List<String> logs = new ArrayList<>();
-                int size = bufferQueue.size();
-                long time = System.currentTimeMillis();
-                long timeDiffMs = time - lastPushTime;
-                if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
-                    bufferQueue.drainTo(logs, batchSize);
-                    logCollectClient.collect(logs);
-                    lastPushTime = time;
-                } else {
-                    ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
-                }
-            } catch (Exception e) {
-                LOG.error("DefaultLogCollector collect log error", e);
-                ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
-            }
-        }
-    }
-    
-    @Override
-    public void collect(final Object log) {
-        if (log == null) {
-            return;
-        }
-        if (bufferQueue.size() < bufferSize) {
-            if (log instanceof String) {
-                bufferQueue.add((String) log);
-            } else {
-                bufferQueue.add(JsonUtils.toJson(log));
-            }
-        }
-    }
-    
-    @Override
-    public void close() throws Exception {
-        if (instance == null) {
-            return;
-        }
-        logCollectClient.close();
-    }
 }

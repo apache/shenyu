@@ -16,10 +16,10 @@
 #
 
 pointCuts:
-  - targetClass: org.apache.shenyu.plugin.global.GlobalPlugin
+  - targetClass: org.springframework.web.server.adapter.HttpWebHandlerAdapter
     points:
       - type: instanceMethod
-        name: execute
+        name: createExchange
     handlers:
       rocketmq:
         - org.apache.shenyu.agent.plugin.logging.rocketmq.handler.RocketMQGlobalPluginHandler
