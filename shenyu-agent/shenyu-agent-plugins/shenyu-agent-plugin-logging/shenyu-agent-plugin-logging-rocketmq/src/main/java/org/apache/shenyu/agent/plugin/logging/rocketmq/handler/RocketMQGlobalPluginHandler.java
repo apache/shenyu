@@ -79,7 +79,7 @@ public class RocketMQGlobalPluginHandler implements InstanceMethodHandler {
         ServerWebExchange exchange = (ServerWebExchange) result;
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
-        // 处理请求
+
         ShenyuRequestLog requestInfo = new ShenyuRequestLog();
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());
