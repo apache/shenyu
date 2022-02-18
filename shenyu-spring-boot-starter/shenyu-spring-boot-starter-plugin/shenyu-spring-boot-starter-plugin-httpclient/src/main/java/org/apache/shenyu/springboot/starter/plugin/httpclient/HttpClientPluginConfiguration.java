@@ -104,7 +104,6 @@ public class HttpClientPluginConfiguration {
                     // The write and read timeouts are serving as generic socket idle state handlers.
                     tcpClient = tcpClient.doOnConnected(connection -> {
                         connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
-                        connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
                     });
                     return tcpClient;
