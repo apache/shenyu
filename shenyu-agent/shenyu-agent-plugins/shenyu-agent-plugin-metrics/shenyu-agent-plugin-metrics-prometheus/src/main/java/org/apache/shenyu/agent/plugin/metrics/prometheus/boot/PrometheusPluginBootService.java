@@ -59,9 +59,9 @@ public final class PrometheusPluginBootService implements AgentPluginBootService
         String host = config.getHost();
         InetSocketAddress inetSocketAddress;
         if (StringUtils.isNotEmpty(host)) {
-            inetSocketAddress = new InetSocketAddress(port);
-        } else {
             inetSocketAddress = new InetSocketAddress(host, port);
+        } else {
+            inetSocketAddress = new InetSocketAddress(port);
         }
         try {
             server = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);

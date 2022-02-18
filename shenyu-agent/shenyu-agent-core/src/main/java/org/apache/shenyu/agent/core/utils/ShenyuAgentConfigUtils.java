@@ -55,8 +55,7 @@ public final class ShenyuAgentConfigUtils {
     public static Map<String, AgentPluginConfig> getPluginConfigMap() {
         return getConfig().getPlugins().values().stream()
                 .map(Map::entrySet).flatMap(Set::stream)
-                .collect(Collectors.toMap(Entry::getKey, entry -> GsonUtils.getInstance()
-                        .fromJson(GsonUtils.getInstance().toJson(entry.getValue()), AgentPluginConfig.class)));
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
     
     /**

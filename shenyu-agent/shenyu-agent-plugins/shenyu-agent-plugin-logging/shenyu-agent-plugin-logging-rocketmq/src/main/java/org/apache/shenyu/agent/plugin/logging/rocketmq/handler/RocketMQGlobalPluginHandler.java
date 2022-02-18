@@ -251,8 +251,9 @@ public class RocketMQGlobalPluginHandler implements InstanceMethodHandler {
                     logInfo.setMethod(shenyuContext.getMethod());
                 }
             }
+            String body = writer.output();
             if (isNotBinaryType(getHeaders())) {
-                logInfo.setResponseBody(writer.output());
+                logInfo.setResponseBody(body);
             }
             // collect log
             RocketMQLogCollector.getInstance().collect(logInfo);
