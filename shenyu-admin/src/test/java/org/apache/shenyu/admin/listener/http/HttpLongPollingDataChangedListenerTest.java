@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.admin.listener.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.commons.util.StringUtils;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -35,9 +32,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The TestCase for {@link HttpLongPollingDataChangedListener}.
@@ -53,7 +54,7 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     private MockHttpServletResponse httpServletResponse;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.httpServletRequest = new MockHttpServletRequest();
         this.httpServletResponse = new MockHttpServletResponse();
