@@ -41,7 +41,6 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,18 +137,18 @@ public final class SelectorServiceTest {
         final String correctId = "456";
 
         // mock basic objects for delete.
-        SelectorDO mockedSelectorDO = mock(SelectorDO.class);
-        PluginDO mockedPluginDO = mock(PluginDO.class);
-        when(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).thenReturn(Collections.singletonList(mockedPluginDO));
-        when(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).thenReturn(Collections.singletonList(mockedSelectorDO));
+        SelectorDO mockedSelectorDO = buildSelectorDO();
+        PluginDO mockedPluginDO = buildPluginDO();
+        given(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).willReturn(Collections.singletonList(mockedPluginDO));
+        given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).willReturn(Collections.singletonList(mockedSelectorDO));
 
         // mock for test if divide selector delete.
-        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
-        when(mockedSelectorDO.getName()).thenReturn("anyString");
+//        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
+//        when(mockedSelectorDO.getName()).thenReturn("anyString");
 
         // mock objects for test delete rule and ruleCondition.
         List<RuleDO> mockedRuleDOList = mock(List.class);
-        when(ruleMapper.findBySelectorIds(Collections.singletonList(correctId))).thenReturn(mockedRuleDOList);
+        given(ruleMapper.findBySelectorIds(Collections.singletonList(correctId))).willReturn(mockedRuleDOList);
 
         // mock for test for-each statement.
 //        RuleDO mockedRuleDo = mock(RuleDO.class);
@@ -157,7 +156,7 @@ public final class SelectorServiceTest {
 //        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 
         final List<String> ids = Collections.singletonList(correctId);
-        assertEquals(this.selectorService.delete(ids), ids.size());
+        assertEquals(selectorService.delete(ids), ids.size());
     }
 
     @Test
