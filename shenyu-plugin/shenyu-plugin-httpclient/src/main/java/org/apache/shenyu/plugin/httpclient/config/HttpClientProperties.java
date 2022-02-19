@@ -75,9 +75,9 @@ public class HttpClientProperties {
     private Integer allIdleTime = 3000;
 
     /**
-     * readTimeout, the default is 3s.
+     * readTimeout, the default is non limited(almost).
      */
-    private Integer readTimeout = 3000;
+    private Integer readTimeout = Integer.MAX_VALUE;
 
     /**
      * writeTimeout, the default is 3s.
