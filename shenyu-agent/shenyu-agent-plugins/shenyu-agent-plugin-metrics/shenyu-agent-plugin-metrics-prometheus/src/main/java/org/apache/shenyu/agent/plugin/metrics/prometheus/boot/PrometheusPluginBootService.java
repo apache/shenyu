@@ -58,12 +58,12 @@ public final class PrometheusPluginBootService implements AgentPluginBootService
         int port = config.getPort();
         String host = config.getHost();
         InetSocketAddress inetSocketAddress;
-        if (StringUtils.isNotEmpty(host)) {
-            inetSocketAddress = new InetSocketAddress(host, port);
-        } else {
-            inetSocketAddress = new InetSocketAddress(port);
-        }
         try {
+            if (StringUtils.isNotEmpty(host)) {
+                inetSocketAddress = new InetSocketAddress(host, port);
+            } else {
+                inetSocketAddress = new InetSocketAddress(port);
+            }
             server = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
             LOG.info(String.format("Prometheus metrics HTTP server `%s:%s` start success.", inetSocketAddress.getHostString(), inetSocketAddress.getPort()));
         } catch (final IOException ex) {
