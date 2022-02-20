@@ -39,6 +39,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -130,11 +131,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<S
     private List<ShenyuPlugin> sortPlugins(final List<ShenyuPlugin> list) {
         Map<String, Integer> pluginSortMap = list.stream().collect(Collectors.toMap(ShenyuPlugin::named, plugin -> {
             PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(plugin.named());
-            if (pluginData == null) {
-                return plugin.getOrder();
-            }
-            Integer sort = pluginData.getSort();
-            return sort == null ? plugin.getOrder() : sort;
+            return Optional.ofNullable(pluginData).map(PluginData::getSort).orElse(plugin.getOrder());
         }));
         list.sort(Comparator.comparingLong(plugin -> pluginSortMap.get(plugin.named())));
         return list;
