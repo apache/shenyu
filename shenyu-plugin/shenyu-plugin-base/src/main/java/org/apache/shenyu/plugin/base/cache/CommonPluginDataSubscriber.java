@@ -204,7 +204,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         if (Objects.isNull(eventPublisher) || Objects.isNull(pluginData.getSort())) {
             return;
         }
-        if (oldPluginData == null || oldPluginData.getSort() == null
+        if (Objects.isNull(oldPluginData)||  Objects.isNull(oldPluginData.getSort())
                 || (!Objects.equals(oldPluginData.getSort(), pluginData.getSort()))) {
             eventPublisher.publishEvent(new SortPluginEvent(new Object()));
         }
