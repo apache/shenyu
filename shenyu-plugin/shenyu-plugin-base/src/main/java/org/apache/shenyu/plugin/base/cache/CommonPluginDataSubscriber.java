@@ -201,10 +201,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      * @param pluginData    current pluginData
      */
     private void sortPluginIfOrderChange(final PluginData oldPluginData, final PluginData pluginData) {
-        if (eventPublisher == null) {
-            return;
-        }
-        if (pluginData.getSort() == null) {
+        if (Objects.isNull(eventPublisher) || Objects.isNull(pluginData.getSort())) {
             return;
         }
         if (oldPluginData == null || oldPluginData.getSort() == null
