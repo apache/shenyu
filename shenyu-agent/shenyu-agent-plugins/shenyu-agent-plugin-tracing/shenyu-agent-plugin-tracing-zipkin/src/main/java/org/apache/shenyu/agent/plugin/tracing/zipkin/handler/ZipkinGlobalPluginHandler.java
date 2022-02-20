@@ -54,7 +54,8 @@ public final class ZipkinGlobalPluginHandler implements InstanceMethodHandler {
     }
 
     @Override
-    public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, final Object result) {
+    public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult) {
+        Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
         ZipkinSpanManager manager = (ZipkinSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
