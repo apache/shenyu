@@ -75,7 +75,9 @@ public class InstanceMethodInterceptor {
                 LOG.error("Failed to execute the before method of method {} in class {}", method.getName(), target.getClass(), ex);
             }
             try {
-                result = callable.call();
+                if (!methodResult.isReset()) {
+                    methodResult.reset(callable.call());
+                }
                 // CHECKSTYLE:OFF
             } catch (final Throwable ex) {
                 // CHECKSTYLE:ON
@@ -89,7 +91,7 @@ public class InstanceMethodInterceptor {
                 }
             } finally {
                 try {
-                    result = handler.after(instance, method, args, methodResult, result);
+                    result = handler.after(instance, method, args, methodResult);
                     // CHECKSTYLE:OFF
                 } catch (final Throwable ex) {
                     // CHECKSTYLE:ON

@@ -75,7 +75,8 @@ public class RocketMQGlobalPluginHandler implements InstanceMethodHandler {
 
     @Override
     public Object after(final TargetObject target, final Method method, final Object[] args,
-                        final MethodResult methodResult, final Object result) {
+                        final MethodResult methodResult) {
+        Object result = methodResult.getResult();
         ServerWebExchange exchange = (ServerWebExchange) result;
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
