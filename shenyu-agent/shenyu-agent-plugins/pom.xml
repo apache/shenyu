@@ -29,6 +29,7 @@
     <modules>
         <module>shenyu-agent-plugin-tracing</module>
         <module>shenyu-agent-plugin-metrics</module>
+        <module>shenyu-agent-plugin-logging</module>
     </modules>
 
     <build>

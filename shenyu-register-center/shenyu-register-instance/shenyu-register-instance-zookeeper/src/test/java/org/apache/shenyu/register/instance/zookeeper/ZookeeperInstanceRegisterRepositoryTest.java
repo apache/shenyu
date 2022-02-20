@@ -19,8 +19,8 @@ package org.apache.shenyu.register.instance.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
     private final ZookeeperInstanceRegisterRepository repository
             = new ZookeeperInstanceRegisterRepository();
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         final ZkClient zkClient = mockZkClient();
         final Field field = repository.getClass().getDeclaredField("zkClient");

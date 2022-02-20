@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.sync.data.consul.config;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * add test case for {@link ConsulConfig}.
@@ -40,7 +40,7 @@ public class ConsulConfigTest {
 
     private ConsulConfig that;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         consulConfig = new ConsulConfig();
         consulConfig.setUrl(URL);

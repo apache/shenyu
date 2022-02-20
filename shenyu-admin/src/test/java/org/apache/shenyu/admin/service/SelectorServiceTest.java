@@ -41,16 +41,17 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -63,11 +64,11 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -79,7 +80,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for SelectorService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class SelectorServiceTest {
 
     @InjectMocks
@@ -109,7 +111,7 @@ public final class SelectorServiceTest {
     @Mock
     private UpstreamCheckService upstreamCheckService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
@@ -135,18 +137,18 @@ public final class SelectorServiceTest {
         final String correctId = "456";
 
         // mock basic objects for delete.
-        SelectorDO mockedSelectorDO = mock(SelectorDO.class);
-        PluginDO mockedPluginDO = mock(PluginDO.class);
-        when(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).thenReturn(Collections.singletonList(mockedPluginDO));
-        when(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).thenReturn(Collections.singletonList(mockedSelectorDO));
+        SelectorDO mockedSelectorDO = buildSelectorDO();
+        PluginDO mockedPluginDO = buildPluginDO();
+        given(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).willReturn(Collections.singletonList(mockedPluginDO));
+        given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).willReturn(Collections.singletonList(mockedSelectorDO));
 
         // mock for test if divide selector delete.
-        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
-        when(mockedSelectorDO.getName()).thenReturn("anyString");
+//        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
+//        when(mockedSelectorDO.getName()).thenReturn("anyString");
 
         // mock objects for test delete rule and ruleCondition.
         List<RuleDO> mockedRuleDOList = mock(List.class);
-        when(ruleMapper.findBySelectorIds(Collections.singletonList(correctId))).thenReturn(mockedRuleDOList);
+        given(ruleMapper.findBySelectorIds(Collections.singletonList(correctId))).willReturn(mockedRuleDOList);
 
         // mock for test for-each statement.
 //        RuleDO mockedRuleDo = mock(RuleDO.class);
@@ -154,7 +156,7 @@ public final class SelectorServiceTest {
 //        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 
         final List<String> ids = Collections.singletonList(correctId);
-        assertEquals(this.selectorService.delete(ids), ids.size());
+        assertEquals(selectorService.delete(ids), ids.size());
     }
 
     @Test

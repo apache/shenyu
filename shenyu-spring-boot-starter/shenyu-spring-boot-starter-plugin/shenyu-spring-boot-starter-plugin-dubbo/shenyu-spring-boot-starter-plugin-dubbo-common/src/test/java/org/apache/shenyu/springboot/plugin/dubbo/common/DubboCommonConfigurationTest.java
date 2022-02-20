@@ -19,13 +19,13 @@ package org.apache.shenyu.springboot.plugin.dubbo.common;
 
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for {@link DubboCommonConfiguration}.

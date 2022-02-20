@@ -23,16 +23,18 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Field;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,12 +42,13 @@ import static org.mockito.Mockito.when;
 /**
  * The Test Case For ApacheDubboConfigCache.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ApacheDubboConfigCacheTest {
 
     private ApacheDubboConfigCache apacheDubboConfigCache;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         apacheDubboConfigCache = ApacheDubboConfigCache.getInstance();
     }
@@ -70,7 +73,7 @@ public final class ApacheDubboConfigCacheTest {
             assertNotNull(config);
             registryConfig = (RegistryConfig) config;
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            Assert.fail();
+            fail();
         }
 
         DubboRegisterConfig dubboRegisterConfig1 = new DubboRegisterConfig();
@@ -86,7 +89,7 @@ public final class ApacheDubboConfigCacheTest {
             assertNotNull(config);
             registryConfig1 = (RegistryConfig) config;
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            Assert.fail();
+            fail();
         }
         assertNotSame(registryConfig, registryConfig1);
     }

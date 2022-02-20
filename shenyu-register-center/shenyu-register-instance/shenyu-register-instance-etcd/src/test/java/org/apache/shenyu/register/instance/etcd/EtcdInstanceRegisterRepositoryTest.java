@@ -19,15 +19,15 @@ package org.apache.shenyu.register.instance.etcd;
 
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -38,7 +38,7 @@ public final class EtcdInstanceRegisterRepositoryTest {
 
     private final Map<String, String> etcdBroker = new HashMap<>();
 
-    @Before
+    @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.repository = new EtcdInstanceRegisterRepository();
         Class<? extends EtcdInstanceRegisterRepository> clazz = this.repository.getClass();

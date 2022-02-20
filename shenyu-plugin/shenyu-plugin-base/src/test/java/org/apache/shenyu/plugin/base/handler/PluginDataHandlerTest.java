@@ -20,22 +20,26 @@ package org.apache.shenyu.plugin.base.handler;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for PluginDataHandler.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class PluginDataHandlerTest {
 
     private RuleData ruleData;
@@ -48,7 +52,7 @@ public final class PluginDataHandlerTest {
 
     private PluginDataHandler pluginDataHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.ruleData = mock(RuleData.class);
         this.pluginData = mock(PluginData.class);
@@ -67,7 +71,7 @@ public final class PluginDataHandlerTest {
     public void handlerPluginTest() {
         pluginDataHandler.handlerPlugin(pluginData);
         testPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertEquals(testPluginDataHandler.getPluginDataMap().get(pluginData.getId()).getId(), pluginData.getId());
+        assertEquals(testPluginDataHandler.getPluginDataMap().get(pluginData.getId()).getId(), pluginData.getId());
     }
 
     /**
@@ -78,7 +82,7 @@ public final class PluginDataHandlerTest {
         pluginDataHandler.removePlugin(pluginData);
         testPluginDataHandler.handlerPlugin(pluginData);
         testPluginDataHandler.removePlugin(pluginData);
-        Assert.assertNull(testPluginDataHandler.getPluginDataMap().get(pluginData.getId()));
+        assertNull(testPluginDataHandler.getPluginDataMap().get(pluginData.getId()));
     }
 
     /**
@@ -88,7 +92,7 @@ public final class PluginDataHandlerTest {
     public void handlerSelectorTest() {
         pluginDataHandler.handlerSelector(selectorData);
         testPluginDataHandler.handlerSelector(selectorData);
-        Assert.assertEquals(testPluginDataHandler.getSelectorDataMap().get(selectorData.getId()).getId(), selectorData.getId());
+        assertEquals(testPluginDataHandler.getSelectorDataMap().get(selectorData.getId()).getId(), selectorData.getId());
     }
 
     /**
@@ -99,7 +103,7 @@ public final class PluginDataHandlerTest {
         pluginDataHandler.removeSelector(selectorData);
         testPluginDataHandler.handlerSelector(selectorData);
         testPluginDataHandler.removeSelector(selectorData);
-        Assert.assertNull(testPluginDataHandler.getSelectorDataMap().get(selectorData.getId()));
+        assertNull(testPluginDataHandler.getSelectorDataMap().get(selectorData.getId()));
     }
 
     /**
@@ -109,7 +113,7 @@ public final class PluginDataHandlerTest {
     public void handlerRuleTest() {
         pluginDataHandler.handlerRule(ruleData);
         testPluginDataHandler.handlerRule(ruleData);
-        Assert.assertEquals(testPluginDataHandler.getRuleDataMap().get(ruleData.getId()).getId(), ruleData.getId());
+        assertEquals(testPluginDataHandler.getRuleDataMap().get(ruleData.getId()).getId(), ruleData.getId());
     }
 
     /**
@@ -120,7 +124,7 @@ public final class PluginDataHandlerTest {
         pluginDataHandler.removeRule(ruleData);
         testPluginDataHandler.handlerRule(ruleData);
         testPluginDataHandler.removeRule(ruleData);
-        Assert.assertNull(testPluginDataHandler.getRuleDataMap().get(ruleData.getId()));
+        assertNull(testPluginDataHandler.getRuleDataMap().get(ruleData.getId()));
     }
 
     /**
@@ -128,8 +132,8 @@ public final class PluginDataHandlerTest {
      */
     @Test
     public void pluginNamedTest() {
-        Assert.assertEquals("SHENYU", pluginDataHandler.pluginNamed());
-        Assert.assertEquals("SHENYU_TEST", testPluginDataHandler.pluginNamed());
+        assertEquals("SHENYU", pluginDataHandler.pluginNamed());
+        assertEquals("SHENYU_TEST", testPluginDataHandler.pluginNamed());
     }
 
     static class TestPluginDataHandler implements PluginDataHandler {

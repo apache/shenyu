@@ -29,9 +29,9 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Base64;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
 
@@ -58,7 +58,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
 
     private static final RsaStrategy RSA_STRATEGY = new RsaStrategy();
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.CRYPTOR_REQUEST.getName(), null);
         assertThat(pluginResult, is("success"));
@@ -129,7 +129,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
         return ruleLocalData;
     }
 
-    @After
+    @AfterEach
     public void clean() throws IOException {
         String cleanResult = cleanPluginData(PluginEnum.CRYPTOR_REQUEST.getName());
         assertThat(cleanResult, is("success"));

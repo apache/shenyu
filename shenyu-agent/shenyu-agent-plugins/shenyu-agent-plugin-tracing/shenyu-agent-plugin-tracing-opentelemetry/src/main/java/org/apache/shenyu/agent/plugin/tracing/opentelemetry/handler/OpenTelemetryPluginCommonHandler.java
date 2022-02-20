@@ -24,7 +24,6 @@ import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
 import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 import org.apache.shenyu.agent.plugin.tracing.opentelemetry.span.OpenTelemetrySpanManager;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -43,11 +42,8 @@ public class OpenTelemetryPluginCommonHandler implements InstanceMethodHandler {
         final OpenTelemetrySpanManager spanManager = (OpenTelemetrySpanManager) exchange.getAttributes()
                 .getOrDefault(TracingConstants.SHENYU_AGENT, new OpenTelemetrySpanManager());
 
-        Map<String, String> attributesMap = new HashMap<>(8);
+        Map<String, String> attributesMap = new HashMap<>(2, 1);
         attributesMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
-        for (int i = 2; i < args.length; i++) {
-            attributesMap.put(args[i].getClass().getName(), GsonUtils.getGson().toJson(args[i]));
-        }
 
         Span span = spanManager.startAndRecord(method.getDeclaringClass().getSimpleName(), attributesMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, spanManager);

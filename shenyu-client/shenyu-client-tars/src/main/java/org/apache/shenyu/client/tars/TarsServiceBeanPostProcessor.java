@@ -35,6 +35,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -78,7 +79,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        if (bean.getClass().getAnnotation(ShenyuTarsService.class) != null) {
+        if (AnnotationUtils.findAnnotation(bean.getClass(), ShenyuTarsService.class) != null) {
             handler(bean);
         }
         return bean;
@@ -90,11 +91,11 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
             clazz = AopUtils.getTargetClass(serviceBean);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        String serviceName = serviceBean.getClass().getAnnotation(ShenyuTarsService.class).serviceName();
+        String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
         for (Method method : methods) {
-            ShenyuTarsClient shenyuSofaClient = method.getAnnotation(ShenyuTarsClient.class);
-            if (Objects.nonNull(shenyuSofaClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuSofaClient, method, buildRpcExt(methods)));
+            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
+            if (Objects.nonNull(shenyuTarsClient)) {
+                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuTarsClient, method, buildRpcExt(methods)));
             }
         }
     }
@@ -142,8 +143,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private String buildRpcExt(final Method[] methods) {
         List<TarsRpcExt.RpcExt> list = new ArrayList<>();
         for (Method method : methods) {
-            ShenyuTarsClient shenyuSofaClient = method.getAnnotation(ShenyuTarsClient.class);
-            if (Objects.nonNull(shenyuSofaClient)) {
+            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
+            if (Objects.nonNull(shenyuTarsClient)) {
                 list.add(buildRpcExt(method));
             }
         }

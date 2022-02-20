@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.jwt;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.LongSerializationPolicy;
+import com.google.gson.reflect.TypeToken;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -126,11 +130,16 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         if (jwtParser.isSigned(authorization)) {
             jwtParser.setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8));
             Jwt jwt = ThrowingFunction.wrap(() -> jwtParser.parse(authorization));
-            return jwt == null ? null : GsonUtils.getInstance().toObjectMap(String.valueOf(jwt.getBody()), String.class);
+            if (jwt == null) {
+                return null;
+            }
+
+            return new Gson().fromJson(new GsonBuilder().setLongSerializationPolicy(LongSerializationPolicy.STRING)
+                    .create()
+                    .toJson(jwt.getBody()), new TypeToken<Map<String, String>>() { }.getType());
         }
         return null;
     }
-
 
     /**
      * The parameters in token are converted to request header.

@@ -20,14 +20,14 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test cases for AuthPathMapper.

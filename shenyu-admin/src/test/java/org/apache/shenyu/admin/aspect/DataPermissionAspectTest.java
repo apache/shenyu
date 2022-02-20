@@ -20,10 +20,10 @@ package org.apache.shenyu.admin.aspect;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Test cases for {@link DataPermissionAspect}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
 public class DataPermissionAspectTest {
 
     @InjectMocks

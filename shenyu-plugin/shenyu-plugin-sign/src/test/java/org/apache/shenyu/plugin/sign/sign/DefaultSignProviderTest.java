@@ -17,14 +17,14 @@
 
 package org.apache.shenyu.plugin.sign.sign;
 
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
 import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
 import org.apache.shenyu.plugin.sign.api.SignProvider;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.HashMap;
@@ -37,10 +37,10 @@ import static org.mockito.Mockito.when;
 /**
  * The Shenyu default sign provider test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DefaultSignProviderTest {
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);

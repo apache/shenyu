@@ -23,7 +23,6 @@ import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
 import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 import org.apache.shenyu.agent.plugin.tracing.zipkin.span.ZipkinSpanManager;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -42,11 +41,8 @@ public final class ZipkinPluginCommonHandler implements InstanceMethodHandler {
         final ZipkinSpanManager zipkinSpanManager = (ZipkinSpanManager) exchange.getAttributes()
                 .getOrDefault(TracingConstants.SHENYU_AGENT, new ZipkinSpanManager());
 
-        Map<String, String> tagMap = new HashMap<>();
+        Map<String, String> tagMap = new HashMap<>(2, 1);
         tagMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
-        for (int i = 2; i < args.length; i++) {
-            tagMap.put(args[i].getClass().getName(), GsonUtils.getGson().toJson(args[i]));
-        }
 
         Span span = zipkinSpanManager.start(method.getDeclaringClass().getSimpleName(), tagMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, zipkinSpanManager);

@@ -19,8 +19,8 @@ package org.apache.shenyu.web.filter;
 
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -42,7 +42,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
  */
 public final class FileSizeFilterTest {
 
-    @Before
+    @BeforeEach
     public void setup() {
         GenericApplicationContext context = new GenericApplicationContext();
         SpringBeanUtils.getInstance().setApplicationContext(context);

@@ -17,11 +17,23 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.JsonObject;
-import okhttp3.Headers;
-import okhttp3.Response;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
@@ -33,26 +45,16 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonObject;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertEquals;
+import okhttp3.Headers;
+import okhttp3.Response;
 
 /**
  * ModifyResponsePluginTest.
@@ -79,7 +81,7 @@ public final class ModifyResponsePluginTest extends AbstractPluginDataInit {
 
     private static final int EXCEPT_STATUS_CODE = 201;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.MODIFY_RESPONSE.getName(), "{\"ruleHandlerPageType\":\"custom\"}");
         assertThat(pluginResult, is("success"));
@@ -136,7 +138,7 @@ public final class ModifyResponsePluginTest extends AbstractPluginDataInit {
         return ruleLocalData;
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.MODIFY_RESPONSE.getName());
     }

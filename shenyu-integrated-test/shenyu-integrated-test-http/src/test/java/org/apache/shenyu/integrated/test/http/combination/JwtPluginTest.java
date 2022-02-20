@@ -26,9 +26,9 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,11 +39,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class JwtPluginTest extends AbstractPluginDataInit {
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"key00000\"}");
         assertThat(pluginResult, is("success"));
@@ -94,7 +94,7 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
         return ruleLocalData;
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.JWT.getName());
     }

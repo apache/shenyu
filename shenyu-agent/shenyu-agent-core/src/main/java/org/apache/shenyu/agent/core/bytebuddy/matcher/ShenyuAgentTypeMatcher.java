@@ -38,7 +38,7 @@ public final class ShenyuAgentTypeMatcher extends ElementMatcher.Junction.Abstra
     
     private static final ShenyuAgentTypeMatcher SHENYU_AGENT_TYPE_MATCHER = new ShenyuAgentTypeMatcher();
     
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuAgentPluginLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuAgentTypeMatcher.class);
     
     private final ConcurrentHashMap<String, Object> objectPool = new ConcurrentHashMap<>();
     
@@ -80,7 +80,7 @@ public final class ShenyuAgentTypeMatcher extends ElementMatcher.Junction.Abstra
      * @return the shenyu agent join point
      */
     public ShenyuAgentJoinPoint loadShenyuAgentJoinPoint(final TypeDescription typeDescription) {
-        return joinPointMap.getOrDefault(typeDescription.getTypeName(), 
+        return joinPointMap.getOrDefault(typeDescription.getTypeName(),
                 new ShenyuAgentJoinPoint("", Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
     }
     

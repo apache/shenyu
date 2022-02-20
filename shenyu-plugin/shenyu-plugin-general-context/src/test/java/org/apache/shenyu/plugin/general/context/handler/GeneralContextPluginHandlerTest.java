@@ -20,26 +20,26 @@ package org.apache.shenyu.plugin.general.context.handler;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * request plugin handler test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GeneralContextPluginHandlerTest {
 
     private GeneralContextPluginDataHandler generalContextPluginDataHandler;
 
     private RuleData ruleData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.generalContextPluginDataHandler = new GeneralContextPluginDataHandler();
         this.ruleData = new RuleData();

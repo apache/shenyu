@@ -44,7 +44,12 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
     public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
     }
-    
+
+    @Override
+    public void close() {
+        publisher.close();
+    }
+
     /**
      * Register metadata string.
      *

@@ -46,6 +46,24 @@
                 <include>**.jar</include>
             </includes>
         </fileSet>
+        
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-agent/shenyu-agent-plugins/shenyu-agent-plugin-metrics/target/plugins</directory>
+            <outputDirectory>./plugins</outputDirectory>
+            <includes>
+                <include>**.jar</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-agent/shenyu-agent-plugins/shenyu-agent-plugin-logging/target/plugins</directory>
+            <outputDirectory>./plugins</outputDirectory>
+            <includes>
+                <include>**.jar</include>
+            </includes>
+        </fileSet>
+        
+        
     </fileSets>
     
 </assembly>

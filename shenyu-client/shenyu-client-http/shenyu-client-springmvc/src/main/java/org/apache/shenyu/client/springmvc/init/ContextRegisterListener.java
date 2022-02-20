@@ -22,23 +22,29 @@ import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
+import org.apache.shenyu.common.utils.PortUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
 
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
  */
-public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent>, BeanFactoryAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
 
@@ -58,6 +64,8 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final Boolean isFull;
 
+    private BeanFactory beanFactory;
+
     /**
      * Instantiates a new Context register listener.
      *
@@ -74,10 +82,15 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
         }
-        this.port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
+        this.port = Integer.parseInt(Optional.ofNullable(props.getProperty(ShenyuClientConstants.PORT)).orElseGet(() -> "-1"));
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
+    }
+
+    @Override
+    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
     }
 
     @Override
@@ -88,10 +101,15 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
-        publisher.publishEvent(buildURIRegisterDTO());
+        try {
+            final int mergedPort = port <= 0 ? PortUtils.findPort(beanFactory) : port;
+            publisher.publishEvent(buildURIRegisterDTO(mergedPort));
+        } catch (ShenyuException e) {
+            throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
+        }
     }
 
-    private URIRegisterDTO buildURIRegisterDTO() {
+    private URIRegisterDTO buildURIRegisterDTO(final int port) {
         return URIRegisterDTO.builder()
             .contextPath(this.contextPath)
             .appName(appName)
