@@ -60,7 +60,8 @@ public class WebsocketCollector {
      */
     @OnOpen
     public void onOpen(final Session session) {
-        LOG.info("websocket on client[{}] open successful....", getClientIp(session));
+        LOG.info("websocket on client[{}] open successful,maxTextMessageBufferSize:{}",
+                getClientIp(session), session.getMaxTextMessageBufferSize());
         SESSION_SET.add(session);
     }
     
