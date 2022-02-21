@@ -47,7 +47,7 @@ public final class OpenTelemetryGlobalPluginHandler implements InstanceMethodHan
         attributesMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
         attributesMap.put(TracingConstants.HTTP_URL, exchange.getRequest().getURI().toString());
         Optional.ofNullable(exchange.getRequest().getMethod())
-                .ifPresent(v -> attributesMap.put(TracingConstants.HTTP_STATUS, v.toString()));
+                .ifPresent(v -> attributesMap.put(TracingConstants.HTTP_METHOD, v.toString()));
 
         Span span = spanManager.startAndRecord(TracingConstants.ROOT_SPAN, attributesMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, spanManager);
