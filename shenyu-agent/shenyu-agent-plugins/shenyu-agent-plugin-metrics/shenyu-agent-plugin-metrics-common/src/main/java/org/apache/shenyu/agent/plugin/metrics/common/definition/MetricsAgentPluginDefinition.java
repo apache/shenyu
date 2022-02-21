@@ -23,6 +23,7 @@ import org.apache.shenyu.agent.api.spi.AbstractAgentPluginDefinition;
 import org.apache.shenyu.agent.core.builder.JoinPointBuilderFactory;
 import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
 import org.apache.shenyu.agent.core.yaml.ShenyuYamlEngine;
+import org.apache.shenyu.agent.plugin.metrics.common.factory.MetricsRecorderPool;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ public final class MetricsAgentPluginDefinition extends AbstractAgentPluginDefin
     
     @Override
     protected Collection<JoinPointBuilder> joinPointBuilder() {
+        MetricsRecorderPool.init();
         PointCutConfig config = null;
         try {
             config = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("metrics-point.yaml"), PointCutConfig.class);

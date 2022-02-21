@@ -47,6 +47,7 @@ public enum PluginTransfer {
                         .config(v.getConfig())
                         .role(v.getRole())
                         .enabled(v.getEnabled())
+                        .sort(v.getSort())
                         .build())
                 .orElse(null);
     }
@@ -65,6 +66,7 @@ public enum PluginTransfer {
                         .config(v.getConfig())
                         .role(v.getRole())
                         .enabled(v.getEnabled())
+                        .sort(v.getSort())
                         .build())
                 .orElse(null);
     }

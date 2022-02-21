@@ -46,7 +46,7 @@ public final class ZipkinGlobalPluginHandler implements InstanceMethodHandler {
         tagMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
         tagMap.put(TracingConstants.HTTP_URL, exchange.getRequest().getURI().toString());
         Optional.ofNullable(exchange.getRequest().getMethod())
-                .ifPresent(v -> tagMap.put(TracingConstants.HTTP_STATUS, v.toString()));
+                .ifPresent(v -> tagMap.put(TracingConstants.HTTP_METHOD, v.toString()));
 
         Span span = zipkinSpanManager.start(TracingConstants.ROOT_SPAN, tagMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, zipkinSpanManager);
@@ -54,7 +54,8 @@ public final class ZipkinGlobalPluginHandler implements InstanceMethodHandler {
     }
 
     @Override
-    public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, final Object result) {
+    public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult) {
+        Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
         ZipkinSpanManager manager = (ZipkinSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);

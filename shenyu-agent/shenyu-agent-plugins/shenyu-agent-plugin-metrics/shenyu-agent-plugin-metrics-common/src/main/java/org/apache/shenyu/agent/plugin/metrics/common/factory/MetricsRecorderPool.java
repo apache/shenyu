@@ -47,11 +47,10 @@ public class MetricsRecorderPool {
     
     private static final ConcurrentHashMap<String, Map<String, MetricsRecorder>> RECORDER_MAP = new ConcurrentHashMap<>();
     
-    static {
-        init();
-    }
-    
-    private static void init() {
+    /**
+     * Init.
+     */
+    public static void init() {
         Metrics metrics = null;
         try {
             metrics = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("metrics-meta.yaml"), Metrics.class);

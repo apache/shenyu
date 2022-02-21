@@ -223,7 +223,7 @@ public class SelectorServiceImpl implements SelectorService {
                     List<SelectorData> selectorDataList = selectorDOMap.values().stream().map(selectorDO -> {
                         String pluginName = pluginMap.get(selectorDO.getPluginId());
                         if (pluginName.equals(PluginEnum.DIVIDE.getName())) {
-                            UpstreamCheckService.removeByKey(selectorDO.getName());
+                            UpstreamCheckService.removeByKey(selectorDO.getId());
                         }
                         return SelectorDO.transFrom(selectorDO, pluginName, null);
                     }).collect(Collectors.toList());
@@ -386,7 +386,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     private void updateDivideUpstream(final SelectorDO selectorDO) {
-        String selectorName = selectorDO.getName();
+        String selectorId = selectorDO.getId();
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<DivideUpstream> existDivideUpstreams = null;
         if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
@@ -402,7 +402,7 @@ public class SelectorServiceImpl implements SelectorService {
             }
         }
         if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
-            upstreamCheckService.replace(selectorName, CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
+            upstreamCheckService.replace(selectorId, CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
         }
     }
 
