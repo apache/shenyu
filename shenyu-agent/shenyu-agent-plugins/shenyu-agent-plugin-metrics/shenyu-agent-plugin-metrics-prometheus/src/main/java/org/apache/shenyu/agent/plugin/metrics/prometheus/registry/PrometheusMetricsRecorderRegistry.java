@@ -19,7 +19,7 @@ package org.apache.shenyu.agent.plugin.metrics.prometheus.registry;
 
 import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorder;
 import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorderRegistry;
-import org.apache.shenyu.agent.plugin.metrics.api.config.Metrics.Metric;
+import org.apache.shenyu.agent.api.config.MetricsConfig.Metric;
 import org.apache.shenyu.agent.plugin.metrics.api.constant.MetricsConstant;
 import org.apache.shenyu.agent.plugin.metrics.prometheus.recorder.MetricsRecorderFactory;
 import org.apache.shenyu.spi.Join;

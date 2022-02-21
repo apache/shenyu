@@ -21,15 +21,32 @@ package org.apache.shenyu.agent.plugin.metrics.api.constant;
  * The type Metrics constant.
  */
 public final class MetricsConstant {
-    
-    /**
-     * The constant REQUEST_TOTAL.
-     */
-    public static final String REQUEST_TOTAL = "shenyu_request_total";
-    
+
     /**
      * The constant PROMETHEUS.
      */
     public static final String PROMETHEUS = "prometheus";
-    
+
+    /**
+     * The constant REQUEST_TOTAL.
+     */
+    public static final String REQUEST_TOTAL = "shenyu_request_total";
+
+    /**
+     * The constant REQUEST_THROW_TOTAL.
+     */
+    public static final String REQUEST_THROW_TOTAL = "shenyu_request_throw_total";
+
+    /**
+     * The constant REQUEST_THROW_TOTAL.
+     */
+    public static final String HTTP_REQUEST_TOTAL = "shenyu_http_request_total";
+
+    /**
+     * The constant SHENYU_REQUEST_UNDONE.
+     */
+    public static final String SHENYU_REQUEST_UNDONE = "shenyu_request_undone";
+
+
+
 }

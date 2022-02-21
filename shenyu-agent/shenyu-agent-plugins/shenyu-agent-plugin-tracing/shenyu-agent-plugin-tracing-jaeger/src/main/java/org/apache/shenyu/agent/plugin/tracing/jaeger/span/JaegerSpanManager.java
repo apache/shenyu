@@ -21,7 +21,7 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.util.GlobalTracer;
-import org.apache.shenyu.agent.plugin.tracing.jaeger.constant.JaegerConstants;
+import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.LinkedList;
@@ -84,7 +84,7 @@ public class JaegerSpanManager {
         span.finish();
         if (count.decrementAndGet() == 0) {
             scopeList.forEach(Scope::close);
-            exchange.getAttributes().remove(JaegerConstants.RESPONSE_SPAN);
+            exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT);
         }
     }
 

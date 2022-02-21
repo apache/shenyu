@@ -20,33 +20,30 @@ package org.apache.shenyu.agent.plugin.metrics.prometheus.handler;
 import org.apache.shenyu.agent.api.entity.MethodResult;
 import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
-import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorder;
 import org.apache.shenyu.agent.plugin.metrics.api.constant.MetricsConstant;
 import org.apache.shenyu.agent.plugin.metrics.common.factory.MetricsRecorderPool;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Method;
 
 /**
- * The type metrics prometheus global plugin handler.
+ * The type metrics prometheus divide plugin handler.
  */
-public final class PrometheusGlobalPluginHandler implements InstanceMethodHandler {
+public class PrometheusDividePluginHandler implements InstanceMethodHandler {
 
     @Override
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
-        MetricsRecorderPool.get(MetricsConstant.REQUEST_TOTAL, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
-        MetricsRecorderPool.get(MetricsConstant.SHENYU_REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
+        final ServerWebExchange exchange = (ServerWebExchange) args[0];
+        final String path = exchange.getRequest().getURI().getPath();
+        final String methodValue = exchange.getRequest().getMethodValue();
+
+        MetricsRecorderPool.get(MetricsConstant.HTTP_REQUEST_TOTAL, MetricsConstant.PROMETHEUS)
+                .ifPresent(metricsRecorder -> metricsRecorder.inc(path, methodValue));
     }
 
     @Override
     public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult) {
-        MetricsRecorderPool.get(MetricsConstant.SHENYU_REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::dec);
         return methodResult.getResult();
-    }
-
-    @Override
-    public void onThrowing(final TargetObject target, final Method method, final Object[] args, final Throwable throwable) {
-        MetricsRecorderPool.get(MetricsConstant.REQUEST_THROW_TOTAL, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
-        MetricsRecorderPool.get(MetricsConstant.SHENYU_REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::dec);
     }
 
 }

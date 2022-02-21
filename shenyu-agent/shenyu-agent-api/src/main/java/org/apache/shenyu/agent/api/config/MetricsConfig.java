@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.metrics.api.config;
+package org.apache.shenyu.agent.api.config;
 
 import java.util.List;
 import java.util.Properties;
@@ -23,10 +23,10 @@ import java.util.Properties;
 /**
  * The type Metrics.
  */
-public class Metrics {
-    
+public class MetricsConfig {
+
     private List<Metric> metrics;
-    
+
     /**
      * Gets metrics.
      *
