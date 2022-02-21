@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
+import com.netflix.client.config.CommonClientConfigKey;
+import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.IRule;
+import com.netflix.loadbalancer.PollingServerListUpdater;
+import com.netflix.loadbalancer.ServerListUpdater;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
@@ -31,6 +35,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClientSpecification;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * The type Spring cloud plugin configuration.
@@ -84,6 +89,13 @@ public class SpringCloudPluginConfiguration {
         @Bean
         public IRule ribbonRule() {
             return new LoadBalanceRule();
+        }
+
+        @Lazy
+        @Bean
+        public ServerListUpdater ribbonServerListUpdater(final IClientConfig config) {
+            config.set(CommonClientConfigKey.ServerListRefreshInterval, 10000);
+            return new PollingServerListUpdater(config);
         }
     }
 
