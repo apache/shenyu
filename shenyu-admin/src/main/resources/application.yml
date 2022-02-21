@@ -45,6 +45,7 @@ shenyu:
   sync:
     websocket:
       enabled: true
+      messageMaxSize: 10240
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
