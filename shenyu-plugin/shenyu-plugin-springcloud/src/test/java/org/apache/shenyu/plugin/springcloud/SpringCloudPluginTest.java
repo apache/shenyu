@@ -37,11 +37,9 @@ import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -71,9 +69,6 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class SpringCloudPluginTest {
 
-    @Mock
-    private RibbonLoadBalancerClient loadBalancerClient;
-
     private SpringCloudPlugin springCloudPlugin;
 
     private ServerWebExchange exchange;
@@ -99,9 +94,12 @@ public class SpringCloudPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         chain = mock(ShenyuPluginChain.class);
         selector = mock(SelectorData.class);
-        springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
+        springCloudPlugin = new SpringCloudPlugin();
     }
 
+    /**
+     * fixme
+     */
     @Test
     public void doExecute() {
         final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
@@ -153,6 +151,9 @@ public class SpringCloudPluginTest {
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
+    /**
+     * fixme
+     */
     @Test
     public void testSpringCloudPluginNotConfigServiceId() {
         final SelectorData selectorData = SelectorData.builder()
@@ -173,6 +174,9 @@ public class SpringCloudPluginTest {
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
+    /**
+     * fixme
+     */
     @Test
     public void testSpringCloudPluginErrorServiceId() {
         SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
@@ -199,6 +203,9 @@ public class SpringCloudPluginTest {
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
+    /**
+     * fixme
+     */
     @Test
     public void testSpringCloudPluginNormal() throws URISyntaxException {
         final SelectorData selectorData = SelectorData.builder()

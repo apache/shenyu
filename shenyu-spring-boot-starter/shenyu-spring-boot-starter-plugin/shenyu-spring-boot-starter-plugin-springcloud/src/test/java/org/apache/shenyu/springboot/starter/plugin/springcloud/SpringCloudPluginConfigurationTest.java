@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
-import com.netflix.loadbalancer.IRule;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
@@ -27,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.netflix.ribbon.RibbonClientSpecification;
 import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,21 +76,4 @@ public class SpringCloudPluginConfigurationTest {
         );
     }
 
-    @Test
-    public void testRibbonClientSpecification() {
-        applicationContextRunner.run(context -> {
-                RibbonClientSpecification specification = context.getBean("ribbonClientSpecification", RibbonClientSpecification.class);
-                assertNotNull(specification);
-            }
-        );
-    }
-
-    @Test
-    public void testLoadBalanceRulen() {
-        applicationContextRunner.run(context -> {
-                IRule rule = context.getBean("ribbonRule", IRule.class);
-                assertNotNull(rule);
-            }
-        );
-    }
 }
