@@ -22,7 +22,7 @@ cd `dirname $0`
 cd ..
 DEPLOY_DIR=`pwd`
 
-PIDS=`ps -ef | grep "$DEPLOY_DIR" | grep -v grep | pgrep -f java`
+PIDS=`ps -eo pid,cmd |grep -v tail|grep -v grep|grep "$DEPLOY_DIR"|awk '{print $1}'`
 if [ -z "$PIDS" ]; then
     echo "ERROR: The $SERVER_NAME does not started!"
     exit 1

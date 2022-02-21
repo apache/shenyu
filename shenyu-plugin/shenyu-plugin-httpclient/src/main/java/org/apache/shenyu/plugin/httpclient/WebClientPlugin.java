@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -45,6 +46,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -118,7 +120,7 @@ public class WebClientPlugin implements ShenyuPlugin {
                 .exchange()
                 .doOnError(e -> LOG.error(e.getMessage(), e))
                 .timeout(Duration.ofMillis(timeout))
-                .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
+                .retryWhen(Retry.anyOf(TimeoutException.class, ConnectTimeoutException.class, ReadTimeoutException.class)
                         .retryMax(retryTimes)
                         .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
@@ -130,6 +132,7 @@ public class WebClientPlugin implements ShenyuPlugin {
         } else {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
         }
+        exchange.getResponse().setStatusCode(res.statusCode());
         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
         return chain.execute(exchange);
     }

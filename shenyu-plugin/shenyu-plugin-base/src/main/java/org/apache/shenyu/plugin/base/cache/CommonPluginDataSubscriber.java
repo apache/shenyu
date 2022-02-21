@@ -26,10 +26,12 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -41,7 +43,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     private static final Logger LOG = LoggerFactory.getLogger(CommonPluginDataSubscriber.class);
     
     private final Map<String, PluginDataHandler> handlerMap;
-    
+
+    private ApplicationEventPublisher eventPublisher;
+
     /**
      * Instantiates a new Common plugin data subscriber.
      *
@@ -50,7 +54,19 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
     }
-    
+
+    /**
+     * Instantiates a new Common plugin data subscriber.
+     *
+     * @param pluginDataHandlerList the plugin data handler list
+     * @param eventPublisher        eventPublisher is used to publish sort plugin event
+     */
+    public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList,
+                                      final ApplicationEventPublisher eventPublisher) {
+        this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+        this.eventPublisher = eventPublisher;
+    }
+
     /**
      * Put extend plugin data handler.
      *
@@ -157,9 +173,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     private <T> void updateCacheData(@NonNull final T data) {
         if (data instanceof PluginData) {
             PluginData pluginData = (PluginData) data;
+            PluginData oldPluginData = BaseDataCache.getInstance().obtainPluginData(pluginData.getName());
             BaseDataCache.getInstance().cachePluginData(pluginData);
             Optional.ofNullable(handlerMap.get(pluginData.getName()))
                     .ifPresent(handler -> handler.handlerPlugin(pluginData));
+
+            sortPluginIfOrderChange(oldPluginData, pluginData);
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().cacheSelectData(selectorData);
@@ -174,7 +193,23 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             
         }
     }
-    
+
+    /**
+     * judge need update plugin order.
+     *
+     * @param oldPluginData old pluginData
+     * @param pluginData    current pluginData
+     */
+    private void sortPluginIfOrderChange(final PluginData oldPluginData, final PluginData pluginData) {
+        if (Objects.isNull(eventPublisher) || Objects.isNull(pluginData.getSort())) {
+            return;
+        }
+        if (Objects.isNull(oldPluginData) || Objects.isNull(oldPluginData.getSort())
+                || (!Objects.equals(oldPluginData.getSort(), pluginData.getSort()))) {
+            eventPublisher.publishEvent(new SortPluginEvent(new Object()));
+        }
+    }
+
     /**
      * remove cache data.
      *

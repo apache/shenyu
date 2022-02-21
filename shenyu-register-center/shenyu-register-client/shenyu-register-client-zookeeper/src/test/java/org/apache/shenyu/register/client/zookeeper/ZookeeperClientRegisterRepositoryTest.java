@@ -22,9 +22,8 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -32,6 +31,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -49,7 +50,7 @@ public class ZookeeperClientRegisterRepositoryTest {
 
     private final Set<String> ephemeralNode = new HashSet<>();
 
-    @Before
+    @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.repository = new ZookeeperClientRegisterRepository();
         Class<? extends ZookeeperClientRegisterRepository> clazz = this.repository.getClass();
@@ -112,8 +113,8 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .build();
         repository.persistInterface(data);
         String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
-        Assert.assertTrue(zookeeperBroker.containsKey(metadataPath));
-        Assert.assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
+        assertTrue(zookeeperBroker.containsKey(metadataPath));
+        assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
         repository.close();
     }
     
@@ -127,8 +128,8 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .build();
         repository.persistURI(data);
         String uriPath = "/shenyu/register/uri/http/context/host:80";
-        Assert.assertTrue(zookeeperBroker.containsKey(uriPath));
-        Assert.assertEquals(zookeeperBroker.get(uriPath), GsonUtils.getInstance().toJson(data));
+        assertTrue(zookeeperBroker.containsKey(uriPath));
+        assertEquals(zookeeperBroker.get(uriPath), GsonUtils.getInstance().toJson(data));
         repository.close();
     }
 
@@ -147,8 +148,8 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .build();
         repository.persistInterface(data);
         String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";
-        Assert.assertTrue(zookeeperBroker.containsKey(metadataPath));
-        Assert.assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
+        assertTrue(zookeeperBroker.containsKey(metadataPath));
+        assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
         repository.close();
     }
 }

@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for ReflectUtils.
@@ -45,7 +45,7 @@ public final class ReflectUtilsTest {
     }
 
     static class Reflect {
-        private String a = "1";
+        private final String a = "1";
     }
 
     static class ReflectNonField {

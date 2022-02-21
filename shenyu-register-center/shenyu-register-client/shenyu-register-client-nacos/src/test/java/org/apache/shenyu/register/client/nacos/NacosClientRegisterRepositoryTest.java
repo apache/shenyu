@@ -24,15 +24,16 @@ import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -53,7 +54,7 @@ public class NacosClientRegisterRepositoryTest {
 
     private NamingService namingService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IllegalAccessException, NoSuchFieldException, NacosException {
         this.repository = new NacosClientRegisterRepository();
         this.configService = mockConfigService();
@@ -80,7 +81,7 @@ public class NacosClientRegisterRepositoryTest {
             String key = invocationOnMock.getArgument(0);
             String value = invocationOnMock.getArgument(2);
             nacosBroker.put(key, value);
-            return null;
+            return true;
         }).when(configService).publishConfig(anyString(), anyString(), anyString());
 
         return configService;
@@ -117,9 +118,9 @@ public class NacosClientRegisterRepositoryTest {
                 .build();
         repository.persistInterface(data);
         String configPath = "shenyu.register.service.http.context";
-        Assert.assertTrue(nacosBroker.containsKey(configPath));
+        assertTrue(nacosBroker.containsKey(configPath));
         String dataStr = GsonUtils.getInstance().toJson(data);
-        Assert.assertEquals(nacosBroker.get(configPath), GsonUtils.getInstance().toJson(Collections.singletonList(dataStr)));
+        assertEquals(nacosBroker.get(configPath), GsonUtils.getInstance().toJson(Collections.singletonList(dataStr)));
     }
     
     @Test
@@ -132,10 +133,10 @@ public class NacosClientRegisterRepositoryTest {
                 .build();
         repository.persistURI(data);
         String uriInstancePath = "shenyu.register.service.http";
-        Assert.assertTrue(nacosBroker.containsKey(uriInstancePath));
+        assertTrue(nacosBroker.containsKey(uriInstancePath));
         Instance instance = (Instance) nacosBroker.get(uriInstancePath);
-        Assert.assertEquals(instance.getIp(), data.getHost());
+        assertEquals(instance.getIp(), data.getHost());
         Map<String, String> metadataMap = instance.getMetadata();
-        Assert.assertEquals(metadataMap.get("uriMetadata"), GsonUtils.getInstance().toJson(data));
+        assertEquals(metadataMap.get("uriMetadata"), GsonUtils.getInstance().toJson(data));
     }
 }

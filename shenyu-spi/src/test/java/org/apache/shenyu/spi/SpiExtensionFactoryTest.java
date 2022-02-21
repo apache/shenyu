@@ -18,9 +18,9 @@
 package org.apache.shenyu.spi;
 
 import org.apache.shenyu.spi.fixture.MysqlSPI;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public final class SpiExtensionFactoryTest {
 

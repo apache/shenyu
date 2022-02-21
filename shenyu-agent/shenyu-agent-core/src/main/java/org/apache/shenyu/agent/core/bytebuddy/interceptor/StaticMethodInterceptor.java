@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
  */
 public class StaticMethodInterceptor {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ConstructorInterceptor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StaticMethodInterceptor.class);
     
     private final List<StaticMethodHandler> handlerList;
     
@@ -65,7 +65,7 @@ public class StaticMethodInterceptor {
         for (StaticMethodHandler handler : handlerList) {
             MethodResult methodResult = new MethodResult();
             try {
-                handler.before(klass, method, args, new MethodResult());
+                handler.before(klass, method, args, methodResult);
                 // CHECKSTYLE:OFF
             } catch (final Throwable ex) {
                 // CHECKSTYLE:ON

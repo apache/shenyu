@@ -29,12 +29,13 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * test case for {@link ConsulCacheHandler}.
@@ -66,8 +67,8 @@ public final class ConsulCacheHandlerTest {
             }
         }, Collections.emptyList(), Collections.emptyList());
         consulCacheHandler.updatePluginData(pluginData);
-        Assert.assertEquals(2, onSubscribeList.size());
-        Assert.assertEquals(2, unsubscribeList.size());
+        assertEquals(2, onSubscribeList.size());
+        assertEquals(2, unsubscribeList.size());
     }
 
     @Test
@@ -104,8 +105,8 @@ public final class ConsulCacheHandlerTest {
             }
         }, Collections.emptyList(), Collections.emptyList());
         consulCacheHandler.updateSelectorMap(selectorDataParam);
-        Assert.assertEquals(2, subscribeList.size());
-        Assert.assertEquals(2, unsubscribeList.size());
+        assertEquals(2, subscribeList.size());
+        assertEquals(2, unsubscribeList.size());
     }
 
     @Test
@@ -137,8 +138,8 @@ public final class ConsulCacheHandlerTest {
             }
         }, Collections.emptyList(), Collections.emptyList());
         consulCacheHandler.updateRuleMap(ruleDataParam);
-        Assert.assertEquals(2, subscribeList.size());
-        Assert.assertEquals(2, unsubscribeList.size());
+        assertEquals(2, subscribeList.size());
+        assertEquals(2, unsubscribeList.size());
     }
 
     @Test
@@ -166,8 +167,8 @@ public final class ConsulCacheHandlerTest {
         ConsulCacheHandler consulCacheHandler = new ConsulCacheHandler(null, Lists.newArrayList(metaDataSubscriber),
                 Collections.emptyList());
         consulCacheHandler.updateMetaDataMap(metaDataParam);
-        Assert.assertEquals(2, subscribeList.size());
-        Assert.assertEquals(2, unsubscribeList.size());
+        assertEquals(2, subscribeList.size());
+        assertEquals(2, unsubscribeList.size());
     }
 
     @Test
@@ -200,7 +201,7 @@ public final class ConsulCacheHandlerTest {
                 Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
 
         consulCacheHandler.updateAuthMap(appAuthDataParam);
-        Assert.assertEquals(2, subscribeList.size());
-        Assert.assertEquals(2, unsubscribeList.size());
+        assertEquals(2, subscribeList.size());
+        assertEquals(2, unsubscribeList.size());
     }
 }

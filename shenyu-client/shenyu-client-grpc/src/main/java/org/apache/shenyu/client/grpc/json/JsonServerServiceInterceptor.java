@@ -41,9 +41,9 @@ import java.util.Objects;
  */
 public class JsonServerServiceInterceptor {
 
-    private static Map<String, Class<?>> requestClazzMap = Maps.newConcurrentMap();
+    private static final Map<String, Class<?>> REQUEST_CLAZZ_MAP = Maps.newConcurrentMap();
 
-    private static Map<String, MethodDescriptor.MethodType> methodTypeMap = Maps.newConcurrentMap();
+    private static final Map<String, MethodDescriptor.MethodType> METHOD_TYPE_MAP = Maps.newConcurrentMap();
 
     /**
      * wrap ServerServiceDefinition to get json ServerServiceDefinition.
@@ -85,11 +85,11 @@ public class JsonServerServiceInterceptor {
 
             String fullMethodName = definition.getMethodDescriptor().getFullMethodName();
             MethodDescriptor.MethodType methodType = definition.getMethodDescriptor().getType();
-            methodTypeMap.put(fullMethodName, methodType);
+            METHOD_TYPE_MAP.put(fullMethodName, methodType);
 
             String[] splitMethodName = fullMethodName.split("/");
             fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_SERVICE + "/" + splitMethodName[1];
-            requestClazzMap.put(fullMethodName, defaultInstanceField.get(requestMarshaller).getClass());
+            REQUEST_CLAZZ_MAP.put(fullMethodName, defaultInstanceField.get(requestMarshaller).getClass());
 
             final MethodDescriptor<?, ?> originalMethodDescriptor = definition.getMethodDescriptor();
             final MethodDescriptor<T, T> wrappedMethodDescriptor = originalMethodDescriptor
@@ -177,7 +177,7 @@ public class JsonServerServiceInterceptor {
      * @return requestClazzMap
      */
     public static Map<String, Class<?>> getRequestClazzMap() {
-        return requestClazzMap;
+        return REQUEST_CLAZZ_MAP;
     }
 
     /**
@@ -185,6 +185,6 @@ public class JsonServerServiceInterceptor {
      * @return methodTypeMap
      */
     public static Map<String, MethodDescriptor.MethodType> getMethodTypeMap() {
-        return methodTypeMap;
+        return METHOD_TYPE_MAP;
     }
 }

@@ -19,11 +19,13 @@ package org.apache.shenyu.common.enums;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 /**
  * Test Cases for DataEventTypeEnum.
@@ -36,8 +38,8 @@ public final class DataEventTypeEnumTest {
                 .forEach(e -> assertThat(e, Matchers.equalTo(DataEventTypeEnum.acquireByName(e.name()))));
     }
 
-    @Test(expected = ShenyuException.class)
+    @Test
     public void testAcquireByNameInvalid() {
-        DataEventTypeEnum.acquireByName("invalidName");
+        assertThrows(ShenyuException.class, () -> DataEventTypeEnum.acquireByName("invalidName"));
     }
 }

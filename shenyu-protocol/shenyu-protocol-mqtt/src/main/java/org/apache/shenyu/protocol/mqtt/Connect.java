@@ -43,7 +43,7 @@ public class Connect extends MessageType {
         String userName = msg.payload().userName();
         byte[] passwordInBytes = msg.payload().passwordInBytes();
 
-        if (!MqttEnv.isValid(userName, passwordInBytes)) {
+        if (!MqttContext.isValid(userName, passwordInBytes)) {
             ctx.writeAndFlush(wrong(MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD));
             return;
         }

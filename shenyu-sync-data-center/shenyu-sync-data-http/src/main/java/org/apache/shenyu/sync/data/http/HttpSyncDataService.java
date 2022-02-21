@@ -19,7 +19,6 @@ package org.apache.shenyu.sync.data.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.ArrayUtils;
@@ -74,8 +73,6 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(HttpSyncDataService.class);
-
-    private static final Gson GSON = new Gson();
 
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
@@ -184,7 +181,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
      * @return true: the local cache was updated. false: not updated.
      */
     private boolean updateCacheWithJson(final String json) {
-        JsonObject jsonObject = GSON.fromJson(json, JsonObject.class);
+        JsonObject jsonObject = GsonUtils.getGson().fromJson(json, JsonObject.class);
         JsonObject data = jsonObject.getAsJsonObject("data");
         // if the config cache will be updated?
         return factory.executor(data);
@@ -214,7 +211,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         try {
             String json = this.httpClient.postForEntity(listenerUrl, httpEntity, String.class).getBody();
             LOG.debug("listener result: [{}]", json);
-            groupJson = GSON.fromJson(json, JsonObject.class).getAsJsonArray("data");
+            groupJson = GsonUtils.getGson().fromJson(json, JsonObject.class).getAsJsonArray("data");
         } catch (RestClientException e) {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
@@ -222,7 +219,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
         if (Objects.nonNull(groupJson)) {
             // fetch group configuration async.
-            ConfigGroupEnum[] changedGroups = GSON.fromJson(groupJson, ConfigGroupEnum[].class);
+            ConfigGroupEnum[] changedGroups = GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
             if (ArrayUtils.isNotEmpty(changedGroups)) {
                 LOG.info("Group config changed: {}", Arrays.toString(changedGroups));
                 this.doFetchGroupConfig(server, changedGroups);

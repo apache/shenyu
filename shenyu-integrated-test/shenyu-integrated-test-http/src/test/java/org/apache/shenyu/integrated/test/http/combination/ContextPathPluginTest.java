@@ -27,8 +27,8 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.hamcrest.CoreMatchers;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class ContextPathPluginTest extends AbstractPluginDataInit {
 
@@ -86,7 +86,7 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
         return conditionData;
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.CONTEXT_PATH.getName());
         restoreOriginalConfiguration();

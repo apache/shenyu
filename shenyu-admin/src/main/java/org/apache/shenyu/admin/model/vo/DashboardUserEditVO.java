@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import org.springframework.beans.BeanUtils;
+import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 
 import java.util.List;
 import java.util.Objects;
@@ -89,8 +89,7 @@ public class DashboardUserEditVO extends DashboardUserVO {
      */
     public static DashboardUserEditVO buildDashboardUserEditVO(final DashboardUserVO dashboardUserVO, final List<RoleVO> roles, final List<RoleVO> allRoles) {
         return Optional.ofNullable(dashboardUserVO).map(item -> {
-            DashboardUserEditVO vo = new DashboardUserEditVO();
-            BeanUtils.copyProperties(item, vo);
+            DashboardUserEditVO vo = DashboardUserTransfer.INSTANCE.transfer2EditVO(dashboardUserVO);
             vo.setRoles(roles);
             vo.setAllRoles(allRoles);
             return vo;

@@ -20,9 +20,8 @@ package org.apache.shenyu.plugin.base.condition.data;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -30,6 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +44,7 @@ public class IpParameterDataTest {
 
     private final String testHost = "127.0.0.1";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
@@ -61,11 +61,11 @@ public class IpParameterDataTest {
 
     @Test
     public void testBuilderWithNullParamName() {
-        Assert.assertEquals(testHost, ipParameterData.builder(null, exchange));
+        assertEquals(testHost, ipParameterData.builder(null, exchange));
     }
 
     @Test
     public void testBuilderWithAnyParamName() {
-        Assert.assertEquals(testHost, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
+        assertEquals(testHost, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
     }
 }

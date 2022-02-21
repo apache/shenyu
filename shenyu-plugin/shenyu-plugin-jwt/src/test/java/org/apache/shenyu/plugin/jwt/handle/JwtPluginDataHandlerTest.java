@@ -25,14 +25,14 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test case for {@link JwtPluginDataHandler}.
@@ -47,7 +47,7 @@ public final class JwtPluginDataHandlerTest {
 
     private JwtRuleHandle jwtRuleHandle;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         jwtPluginDataHandlerUnderTest = new JwtPluginDataHandler();
         converts = new ArrayList<>();

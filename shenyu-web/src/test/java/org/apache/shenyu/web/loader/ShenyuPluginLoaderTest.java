@@ -17,42 +17,46 @@
 
 package org.apache.shenyu.web.loader;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.springframework.context.ApplicationContext;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for  ShenyuPluginLoader.
  */
 public class ShenyuPluginLoaderTest {
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-
+    
+    @TempDir
+    private static Path folder;
+    
     private ShenyuPluginLoader shenyuPluginLoader;
-
-    private String path;
-
-    @Before
+    
+    private Path path;
+    
+    @BeforeEach
     public void setUp() throws IOException, NoSuchFieldException, IllegalAccessException {
         shenyuPluginLoader = ShenyuPluginLoader.getInstance();
-        File jar = folder.newFile("plugin.jar");
+        Path jar = folder.resolve("plugin.jar");
         path = jar.getParent();
-        FileOutputStream fos = new FileOutputStream(jar);
+        FileOutputStream fos = new FileOutputStream(jar.toFile());
         BufferedOutputStream bos = new BufferedOutputStream(fos);
         try (JarOutputStream jos = new JarOutputStream(bos)) {
             String pluginClz = "public class DividePlugin {}";
@@ -60,29 +64,39 @@ public class ShenyuPluginLoaderTest {
             jos.write(pluginClz.getBytes());
             jos.closeEntry();
         }
-
-        Field objectPool = shenyuPluginLoader.getClass().getDeclaredField("objectPool");
-        objectPool.setAccessible(true);
-        ConcurrentHashMap<String, Object> objectPoolMap = new ConcurrentHashMap<>();
-        objectPoolMap.put("org.apache.shenyu.plugin.DividePlugin", new Object());
-        objectPool.set(shenyuPluginLoader, objectPoolMap);
+        ApplicationContext mockApplication =
+                mock(ApplicationContext.class);
+        when(mockApplication.getBean("dividePlugin")).thenReturn(new Object());
+        when(mockApplication.containsBean("dividePlugin")).thenReturn(true);
+        SpringBeanUtils instance = SpringBeanUtils.getInstance();
+        instance.setApplicationContext(mockApplication);
+        
     }
-
+    
+    @Test
+    public void testGetBean() {
+        boolean exist = SpringBeanUtils.getInstance().existBean("dividePlugin");
+        assertTrue(exist);
+        Object dividePlugin = SpringBeanUtils.getInstance().getBean("dividePlugin");
+        assertNotNull(dividePlugin);
+    }
+    
     @Test
     public void testGetInstance() {
-        Assert.assertThat(shenyuPluginLoader, is(ShenyuPluginLoader.getInstance()));
+        assertThat(shenyuPluginLoader, is(ShenyuPluginLoader.getInstance()));
     }
-
+    
     @Test
     public void testGetPluginPathWithNoJar() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         List<ShenyuLoaderResult> pluginList = shenyuPluginLoader.loadExtendPlugins("test");
-        Assert.assertThat(pluginList.size(), is(0));
+        assertThat(pluginList.size(), is(0));
     }
-
+    
     @Test
     public void testGetPluginPathWithJar() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         ShenyuPluginLoader loader = spy(shenyuPluginLoader);
-        List<ShenyuLoaderResult> pluginList = loader.loadExtendPlugins(path);
-        Assert.assertThat(pluginList.size(), is(1));
+        List<ShenyuLoaderResult> pluginList = loader.loadExtendPlugins(path.toString());
+        assertThat(pluginList.size(), is(1));
+        loader.close();
     }
 }

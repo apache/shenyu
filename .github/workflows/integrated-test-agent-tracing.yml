@@ -27,6 +27,8 @@ jobs:
       matrix:
         case:
           - shenyu-integrated-test-agent-tracing-opentelemetry
+          - shenyu-integrated-test-agent-tracing-zipkin
+          - shenyu-integrated-test-agent-tracing-jaeger
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -49,6 +51,9 @@ jobs:
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+      - name: Build examples
+        if: env.SKIP_CI != 'true'
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
       - name: Build integrated tests for agent
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Pit4a -DskipTests -f ./shenyu-integrated-test/pom.xml

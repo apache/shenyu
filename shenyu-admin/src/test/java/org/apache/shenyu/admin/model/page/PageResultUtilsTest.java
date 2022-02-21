@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.model.page;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test case for {@link PageResultUtils}.
@@ -32,7 +33,7 @@ public final class PageResultUtilsTest {
     public void testEmptyResult() {
         final PageParameter pageParameter = new PageParameter(1, 10, 0);
         final CommonPager<String> result = PageResultUtils.result(pageParameter, () -> 0, ArrayList::new);
-        Assert.assertEquals(result.getDataList().size(), 0);
+        assertEquals(result.getDataList().size(), 0);
     }
 
     @Test
@@ -40,6 +41,6 @@ public final class PageResultUtilsTest {
         final PageParameter pageParameter = new PageParameter(1, 10, 1);
         final CommonPager<String> result = PageResultUtils.result(pageParameter, () -> 1,
             () -> Collections.singletonList("result1"));
-        Assert.assertEquals(result.getDataList().size(), 1);
+        assertEquals(result.getDataList().size(), 1);
     }
 }

@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
  */
 public final class ShenyuAgentConfigUtils {
     
+    private ShenyuAgentConfigUtils() {
+    }
+    
     /**
      * Gets supports.
      *

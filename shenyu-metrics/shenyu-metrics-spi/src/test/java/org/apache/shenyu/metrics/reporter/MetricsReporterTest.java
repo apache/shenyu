@@ -20,11 +20,13 @@ package org.apache.shenyu.metrics.reporter;
 import org.apache.shenyu.metrics.entity.Metric;
 import org.apache.shenyu.metrics.enums.MetricType;
 import org.apache.shenyu.metrics.spi.MetricsRegister;
-import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * MetricsReporterTest.
@@ -38,21 +40,23 @@ public class MetricsReporterTest {
         MetricsReporter.register(metricsRegister);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testRegisterMetrics() {
-        List<String> labels = Collections.singletonList("label");
-        Collection<Metric> metricsCounter = Collections.singletonList(new Metric(MetricType.COUNTER,
-                "request_total", "shenyu request total count", labels));
-        MetricsReporter.registerMetrics(metricsCounter);
-        Collection<Metric> metricsGauge = Collections.singletonList(new Metric(MetricType.GAUGE,
-                "jvm.total.used", "shenyu jvm total used", labels));
-        MetricsReporter.registerMetrics(metricsGauge);
-        Collection<Metric> metricsHistogram = Collections.singletonList(new Metric(MetricType.HISTOGRAM,
-                "requests_latency_histogram_millis", "the shenyu proxy executor latency millis", labels));
-        MetricsReporter.registerMetrics(metricsHistogram);
-        Collection<Metric> metricsNull = Collections.singletonList(new Metric(null,
-                null, null, labels));
-        MetricsReporter.registerMetrics(metricsNull);
+        Assertions.assertThrows(RuntimeException.class, () -> {
+            List<String> labels = Collections.singletonList("label");
+            Collection<Metric> metricsCounter = Collections.singletonList(new Metric(MetricType.COUNTER,
+                    "request_total", "shenyu request total count", labels));
+            MetricsReporter.registerMetrics(metricsCounter);
+            Collection<Metric> metricsGauge = Collections.singletonList(new Metric(MetricType.GAUGE,
+                    "jvm.total.used", "shenyu jvm total used", labels));
+            MetricsReporter.registerMetrics(metricsGauge);
+            Collection<Metric> metricsHistogram = Collections.singletonList(new Metric(MetricType.HISTOGRAM,
+                    "requests_latency_histogram_millis", "the shenyu proxy executor latency millis", labels));
+            MetricsReporter.registerMetrics(metricsHistogram);
+            Collection<Metric> metricsNull = Collections.singletonList(new Metric(null,
+                    null, null, labels));
+            MetricsReporter.registerMetrics(metricsNull);
+        });
     }
 
     @Test

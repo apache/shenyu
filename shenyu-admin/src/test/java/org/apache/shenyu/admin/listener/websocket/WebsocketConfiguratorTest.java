@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;

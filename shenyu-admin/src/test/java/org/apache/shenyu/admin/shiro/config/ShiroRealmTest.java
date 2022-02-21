@@ -27,21 +27,21 @@ import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
     
 import java.util.HashSet;
 import java.util.Set;
     
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,13 +49,11 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link ShiroRealm}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShiroRealmTest {
     
     private static final String PASSWORD = "123456";
-    
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
     
     @InjectMocks
     private ShiroRealm shiroRealm;
@@ -97,40 +95,33 @@ public final class ShiroRealmTest {
         when(token.getCredentials()).thenReturn(null);
         assertNull(shiroRealm.doGetAuthenticationInfo(token));
 
-        boolean thrown = false;
-        try {
+        AuthenticationException exception1 = assertThrows(AuthenticationException.class, () -> {
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
                     + ".cThIIoDvwdueQB468K5xDc5633seEFoqwxjF_xSJyQQ");
             shiroRealm.doGetAuthenticationInfo(token);
-        } catch (AuthenticationException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
+        });
+        assertNotNull(exception1);
 
-        try {
+        AuthenticationException exception2 = assertThrows(AuthenticationException.class, () -> {
             when(dashboardUserService.findByUserName(any())).thenReturn(null);
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                     + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
             shiroRealm.doGetAuthenticationInfo(token);
-        } catch (AuthenticationException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
+        });
+        assertNotNull(exception2);
 
-        try {
+        AuthenticationException exception3 = assertThrows(AuthenticationException.class, () -> {
             when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
             when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                     + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
             shiroRealm.doGetAuthenticationInfo(token);
-        } catch (AuthenticationException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
-        
+        });
+        assertNotNull(exception3);
+
         when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
         when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
         when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"

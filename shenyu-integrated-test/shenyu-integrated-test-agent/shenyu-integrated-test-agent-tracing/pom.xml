@@ -21,7 +21,7 @@
     <parent>
         <artifactId>shenyu-integrated-test-agent</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <version>2.4.2-SNAPSHOT</version>
+        <version>2.4.3-SNAPSHOT</version>
     </parent>
     <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
@@ -30,6 +30,8 @@
 
     <modules>
         <module>shenyu-integrated-test-agent-tracing-opentelemetry</module>
+        <module>shenyu-integrated-test-agent-tracing-jaeger</module>
+        <module>shenyu-integrated-test-agent-tracing-zipkin</module>
     </modules>
 
 </project>

@@ -47,8 +47,21 @@
  ![](https://shenyu.apache.org/img/architecture/shenyu-framework.png)  
  
 -------------------------------------------------------------------------------- 
-    
- 
+
+# Why named ShenYu
+
+ShenYu (神禹) is the honorific name for our ancient monarch Xia Yu (also known in later times as Da Yu), 
+who left behind the touching story of the three times he crossed the Yellow River for the benefit of the people and successfully managed the flooding of the river. 
+He is known as one of the three greatest kings of ancient China, along with Yao and Shun.
+
+   * Firstly, the name ShenYu is to promote the traditional virtues of our Chinese civilisation.
+
+   * Secondly, the most important thing about the gateway is the governance of the traffic.
+
+   * Finally, the community will do things in a fair, just, open and meritocratic way, paying tribute to ShenYu while also conforming to the Apache Way.
+
+-------------------------------------------------------------------------------- 
+
 # Features
 
    * ShenYu provides ability such as current limiting, fusing, forwarding, routing monitoring and so on by its plugins.

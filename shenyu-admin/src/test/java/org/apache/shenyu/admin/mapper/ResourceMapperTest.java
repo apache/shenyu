@@ -25,9 +25,9 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
@@ -36,10 +36,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * test for {@linkplain ResourceMapper}.
@@ -57,12 +57,12 @@ public class ResourceMapperTest extends AbstractSpringIntegrationTest {
     @Autowired
     private ResourceMapper resourceMapper;
 
-    @Before
+    @BeforeEach
     public void insertTestResources() {
         resourceMapper.insert(this.buildTestResource());
     }
 
-    @After
+    @AfterEach
     public void deleteTestResource() {
         resourceMapper.delete(Collections.singletonList(MOCK_RESOURCE_ID));
     }

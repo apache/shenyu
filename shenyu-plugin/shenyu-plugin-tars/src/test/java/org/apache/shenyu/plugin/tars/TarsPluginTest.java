@@ -31,11 +31,13 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -49,8 +51,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -58,7 +61,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for {@link TarsPlugin}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class TarsPluginTest {
 
     @Mock
@@ -70,7 +74,7 @@ public class TarsPluginTest {
 
     private TarsPlugin tarsPluginUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
@@ -109,7 +113,7 @@ public class TarsPluginTest {
         StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testTarsPluginWithArgumentTypeMissMatch() {
         ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
@@ -118,10 +122,12 @@ public class TarsPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
-        StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertThrows(IllegalArgumentException.class, () -> {
+            StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testTarsPluginNormal() throws InvocationTargetException, IllegalAccessException {
         ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
@@ -137,7 +143,9 @@ public class TarsPluginTest {
         CompletableFuture<String> stringCompletableFuture = CompletableFuture.supplyAsync(() -> "", executorService);
         when(method.invoke(any(), any())).thenReturn(stringCompletableFuture);
         tarsInvokePrxList.setMethod(method);
-        StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertThrows(IllegalArgumentException.class, () -> {
+            StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        });
     }
 
     @Test

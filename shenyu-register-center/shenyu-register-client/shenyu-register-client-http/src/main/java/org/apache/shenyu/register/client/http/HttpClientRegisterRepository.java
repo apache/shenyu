@@ -19,9 +19,10 @@ package org.apache.shenyu.register.client.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -29,6 +30,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -36,67 +38,82 @@ import java.util.Optional;
  * The type Http client register repository.
  */
 @Join
-public class HttpClientRegisterRepository implements ShenyuClientRegisterRepository {
-
+public class HttpClientRegisterRepository extends FailbackRegistryRepository {
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
-
+    
     private String username;
-
+    
     private String password;
-
+    
     private List<String> serverList;
-
+    
     private String accessToken;
-
+    
+    /**
+     * Instantiates a new Http client register repository.
+     */
     public HttpClientRegisterRepository() {
     }
-
+    
+    /**
+     * Instantiates a new Http client register repository.
+     *
+     * @param config the config
+     */
     public HttpClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         init(config);
     }
-
+    
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         this.username = config.getProps().getProperty(Constants.USER_NAME);
         this.password = config.getProps().getProperty(Constants.PASS_WORD);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
-        this.getAccessToken().ifPresent(V -> this.accessToken = String.valueOf(V));
+        this.setAccessToken();
     }
-
+    
     /**
      * Persist uri.
      *
      * @param registerDTO the register dto
      */
     @Override
-    public void persistURI(final URIRegisterDTO registerDTO) {
+    public void doPersistURI(final URIRegisterDTO registerDTO) {
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
     }
-
+    
     @Override
-    public void persistInterface(final MetaDataRegisterDTO metadata) {
+    public void doPersistInterface(final MetaDataRegisterDTO metadata) {
         doRegister(metadata, Constants.META_PATH, Constants.META_TYPE);
     }
-
-    private Optional getAccessToken() {
+    
+    private void setAccessToken() {
         for (String server : serverList) {
             try {
-                Optional login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
-                return login;
+                Optional<?> login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
+                login.ifPresent(v -> this.accessToken = String.valueOf(v));
             } catch (Exception e) {
-                LOGGER.error("login admin url :{} is fail, will retry, ex is :{}", server, e);
+                LOGGER.error("Login admin url :{} is fail, will retry. cause: {} ", server, e.getMessage());
             }
         }
-        return Optional.empty();
     }
-
+    
     private <T> void doRegister(final T t, final String path, final String type) {
         for (String server : serverList) {
+            String concat = server.concat(path);
             try {
-                RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), server.concat(path), type, accessToken);
+                if (StringUtils.isBlank(accessToken)) {
+                    this.setAccessToken();
+                    if (StringUtils.isBlank(accessToken)) {
+                        throw new NullPointerException("accessToken is null");
+                    }
+                }
+                RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), concat, type, accessToken);
                 return;
             } catch (Exception e) {
-                LOGGER.error("register admin url :{} is fail, will retry, ex is :{}", server, e);
+                LOGGER.error("Register admin url :{} is fail, will retry. cause:{}", server, e.getMessage());
+                throw new RuntimeException(e);
             }
         }
     }

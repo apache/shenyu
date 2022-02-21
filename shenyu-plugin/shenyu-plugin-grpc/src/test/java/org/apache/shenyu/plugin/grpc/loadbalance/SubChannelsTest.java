@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.grpc.loadbalance;
 
 import io.grpc.Attributes;
 import io.grpc.LoadBalancer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 
 public class SubChannelsTest {

@@ -18,9 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -28,6 +27,8 @@ import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * The type Hash balance test.
@@ -48,7 +49,7 @@ public final class HashLoadBalanceTest {
 
     private ConcurrentSkipListMap<Long, Upstream> treeMapReversed;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         this.hash = HashLoadBalancer.class.getDeclaredMethod("hash", String.class);
         this.hash.setAccessible(true);
@@ -104,7 +105,7 @@ public final class HashLoadBalanceTest {
         final Long hashKey = Long.parseLong(hash.invoke(null, ip).toString());
         final SortedMap<Long, Upstream> lastRing = treeMapOrdered.tailMap(hashKey);
         final Upstream assertUp = lastRing.get(lastRing.firstKey());
-        Assert.assertEquals(assertUp.getUrl(), upstream.getUrl());
+        assertEquals(assertUp.getUrl(), upstream.getUrl());
 
     }
 
@@ -116,7 +117,7 @@ public final class HashLoadBalanceTest {
         final Long hashKey = Long.parseLong(hash.invoke(null, ip).toString());
         final SortedMap<Long, Upstream> lastRing = treeMapDisordered.tailMap(hashKey);
         final Upstream assertUp = lastRing.get(lastRing.firstKey());
-        Assert.assertEquals(assertUp.getUrl(), upstream.getUrl());
+        assertEquals(assertUp.getUrl(), upstream.getUrl());
 
     }
 
@@ -128,6 +129,6 @@ public final class HashLoadBalanceTest {
         final Long hashKey = Long.parseLong(hash.invoke(null, ip).toString());
         final SortedMap<Long, Upstream> lastRing = treeMapReversed.tailMap(hashKey);
         final Upstream assertUp = lastRing.get(lastRing.firstKey());
-        Assert.assertEquals(assertUp.getUrl(), divideUpstream.getUrl());
+        assertEquals(assertUp.getUrl(), divideUpstream.getUrl());
     }
 }
