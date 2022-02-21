@@ -98,7 +98,7 @@ public class SpringCloudPluginTest {
     }
 
     /**
-     * fixme
+     * fixme.
      */
     @Test
     public void doExecute() {
@@ -152,7 +152,7 @@ public class SpringCloudPluginTest {
     }
 
     /**
-     * fixme
+     * fixme.
      */
     @Test
     public void testSpringCloudPluginNotConfigServiceId() {
@@ -175,7 +175,7 @@ public class SpringCloudPluginTest {
     }
 
     /**
-     * fixme
+     * fixme.
      */
     @Test
     public void testSpringCloudPluginErrorServiceId() {
@@ -204,7 +204,7 @@ public class SpringCloudPluginTest {
     }
 
     /**
-     * fixme
+     * fixme.
      */
     @Test
     public void testSpringCloudPluginNormal() throws URISyntaxException {
