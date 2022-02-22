@@ -18,7 +18,7 @@
 package org.apache.shenyu.agent.plugin.metrics.prometheus.recorder;
 
 import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorder;
-import org.apache.shenyu.agent.plugin.metrics.api.config.Metrics.Metric;
+import org.apache.shenyu.agent.api.config.MetricsConfig.Metric;
 import org.apache.shenyu.agent.plugin.metrics.api.enums.MetricsType;
 
 import java.util.Optional;

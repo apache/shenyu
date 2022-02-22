@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,11 @@ public final class ShenyuAgentConfigUtils {
      */
     public static Set<String> getSupports() {
         Map<String, List<String>> supports = getConfig().getSupports();
-        return supports.values().stream().flatMap(Collection::stream).filter(StringUtils::isNoneEmpty).collect(Collectors.toSet());
+        return supports.values().stream()
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(StringUtils::isNoneEmpty)
+                .collect(Collectors.toSet());
     }
     
     /**

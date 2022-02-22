@@ -23,8 +23,8 @@ import org.apache.shenyu.agent.core.utils.ShenyuAgentConfigUtils;
 import org.apache.shenyu.agent.core.yaml.ShenyuYamlEngine;
 import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorder;
 import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorderRegistry;
-import org.apache.shenyu.agent.plugin.metrics.api.config.Metrics;
-import org.apache.shenyu.agent.plugin.metrics.api.config.Metrics.Metric;
+import org.apache.shenyu.agent.api.config.MetricsConfig;
+import org.apache.shenyu.agent.api.config.MetricsConfig.Metric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,14 +51,14 @@ public class MetricsRecorderPool {
      * Init.
      */
     public static void init() {
-        Metrics metrics = null;
+        MetricsConfig metricsConfig = null;
         try {
-            metrics = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("metrics-meta.yaml"), Metrics.class);
+            metricsConfig = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("metrics-meta.yaml"), MetricsConfig.class);
         } catch (IOException e) {
             LOG.error("Exception loader metrics meta data config is", e);
         }
-        if (Objects.nonNull(metrics) && !metrics.getMetrics().isEmpty()) {
-            List<Metric> metricList = metrics.getMetrics();
+        if (Objects.nonNull(metricsConfig) && !metricsConfig.getMetrics().isEmpty()) {
+            List<Metric> metricList = metricsConfig.getMetrics();
             Collection<MetricsRecorderRegistry> registryList = SPILoader.loadList(MetricsRecorderRegistry.class);
             Set<String> supports = ShenyuAgentConfigUtils.getSupports();
             for (Metric metric : metricList) {

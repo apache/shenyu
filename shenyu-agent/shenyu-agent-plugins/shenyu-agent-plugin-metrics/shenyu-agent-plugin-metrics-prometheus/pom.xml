@@ -33,26 +33,39 @@
             <artifactId>shenyu-agent-plugin-metrics-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-agent-plugin-metrics-common</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-web</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
             <version>${prometheus.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
             <version>${prometheus.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.prometheus.jmx</groupId>
             <artifactId>collector</artifactId>
             <version>${prometheus.jmx.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_httpserver</artifactId>

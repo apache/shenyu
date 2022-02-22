@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.agent.plugin.metrics.api;
 
-import org.apache.shenyu.agent.plugin.metrics.api.config.Metrics.Metric;
+import org.apache.shenyu.agent.api.config.MetricsConfig.Metric;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.Optional;
