@@ -33,42 +33,24 @@ import java.util.stream.Stream;
 public class ShenyuConfig {
 
     private SwitchConfig switchConfig = new SwitchConfig();
-
+    
     private FileConfig file = new FileConfig();
-
+    
     private ExcludePath exclude = new ExcludePath();
 
     private FallbackPath fallback = new FallbackPath();
-
+    
     private ExtPlugin extPlugin = new ExtPlugin();
-
+    
     private Scheduler scheduler = new Scheduler();
-
+    
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
     private CrossFilterConfig cross = new CrossFilterConfig();
-
+    
     private InstanceConfig instance = new InstanceConfig();
 
     private RibbonConfig ribbon = new RibbonConfig();
-
-    /**
-     * Gets instance.
-     *
-     * @return the instance
-     */
-    public InstanceConfig getInstance() {
-        return instance;
-    }
-
-    /**
-     * Sets instance.
-     *
-     * @param instance the instance
-     */
-    public void setInstance(final InstanceConfig instance) {
-        this.instance = instance;
-    }
 
     /**
      * Gets ribbon.
@@ -89,6 +71,24 @@ public class ShenyuConfig {
     }
 
     /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
+    public InstanceConfig getInstance() {
+        return instance;
+    }
+    
+    /**
+     * Sets instance.
+     *
+     * @param instance the instance
+     */
+    public void setInstance(final InstanceConfig instance) {
+        this.instance = instance;
+    }
+    
+    /**
      * Gets switch config.
      *
      * @return the switch config
@@ -96,7 +96,7 @@ public class ShenyuConfig {
     public SwitchConfig getSwitchConfig() {
         return switchConfig;
     }
-
+    
     /**
      * Sets switch config.
      *
@@ -105,7 +105,7 @@ public class ShenyuConfig {
     public void setSwitchConfig(final SwitchConfig switchConfig) {
         this.switchConfig = switchConfig;
     }
-
+    
     /**
      * Gets scheduler.
      *
@@ -114,7 +114,7 @@ public class ShenyuConfig {
     public Scheduler getScheduler() {
         return scheduler;
     }
-
+    
     /**
      * Sets scheduler.
      *
@@ -123,7 +123,7 @@ public class ShenyuConfig {
     public void setScheduler(final Scheduler scheduler) {
         this.scheduler = scheduler;
     }
-
+    
     /**
      * Gets ext plugin.
      *
@@ -132,7 +132,7 @@ public class ShenyuConfig {
     public ExtPlugin getExtPlugin() {
         return extPlugin;
     }
-
+    
     /**
      * Sets ext plugin.
      *
@@ -141,7 +141,7 @@ public class ShenyuConfig {
     public void setExtPlugin(final ExtPlugin extPlugin) {
         this.extPlugin = extPlugin;
     }
-
+    
     /**
      * Gets file.
      *
@@ -150,7 +150,7 @@ public class ShenyuConfig {
     public FileConfig getFile() {
         return file;
     }
-
+    
     /**
      * Sets file.
      *
@@ -159,7 +159,7 @@ public class ShenyuConfig {
     public void setFile(final FileConfig file) {
         this.file = file;
     }
-
+    
     /**
      * Gets exclude.
      *
@@ -168,7 +168,7 @@ public class ShenyuConfig {
     public ExcludePath getExclude() {
         return exclude;
     }
-
+    
     /**
      * Sets exclude.
      *
@@ -204,7 +204,7 @@ public class ShenyuConfig {
     public UpstreamCheck getUpstreamCheck() {
         return upstreamCheck;
     }
-
+    
     /**
      * Sets upstream check.
      *
@@ -213,7 +213,7 @@ public class ShenyuConfig {
     public void setUpstreamCheck(final UpstreamCheck upstreamCheck) {
         this.upstreamCheck = upstreamCheck;
     }
-
+    
     /**
      * Gets cross.
      *
@@ -222,7 +222,7 @@ public class ShenyuConfig {
     public CrossFilterConfig getCross() {
         return cross;
     }
-
+    
     /**
      * Sets cross.
      *
@@ -231,18 +231,18 @@ public class ShenyuConfig {
     public void setCross(final CrossFilterConfig cross) {
         this.cross = cross;
     }
-
+    
     /**
      * The type Scheduler.
      */
     public static class Scheduler {
-
+    
         private Boolean enabled = false;
-
+    
         private String type = "fixed";
-
+    
         private Integer threads = Math.max((Runtime.getRuntime().availableProcessors() << 1) + 1, 16);
-
+    
         /**
          * Gets enabled.
          *
@@ -251,7 +251,7 @@ public class ShenyuConfig {
         public Boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
@@ -260,7 +260,7 @@ public class ShenyuConfig {
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * Gets type.
          *
@@ -269,7 +269,7 @@ public class ShenyuConfig {
         public String getType() {
             return type;
         }
-
+    
         /**
          * Sets type.
          *
@@ -278,7 +278,7 @@ public class ShenyuConfig {
         public void setType(final String type) {
             this.type = type;
         }
-
+    
         /**
          * Gets threads.
          *
@@ -287,7 +287,7 @@ public class ShenyuConfig {
         public Integer getThreads() {
             return threads;
         }
-
+    
         /**
          * Sets threads.
          *
@@ -296,24 +296,24 @@ public class ShenyuConfig {
         public void setThreads(final Integer threads) {
             this.threads = threads;
         }
-
+        
     }
-
+    
     /**
      * The type Ext plugin.
      */
     public static class ExtPlugin {
-
+        
         private String path;
-
+        
         private Boolean enabled = true;
-
+    
         private Integer threads = 1;
-
+        
         private Integer scheduleTime = 300;
-
+    
         private Integer scheduleDelay = 30;
-
+    
         /**
          * Gets path.
          *
@@ -322,7 +322,7 @@ public class ShenyuConfig {
         public String getPath() {
             return path;
         }
-
+    
         /**
          * Sets path.
          *
@@ -331,7 +331,7 @@ public class ShenyuConfig {
         public void setPath(final String path) {
             this.path = path;
         }
-
+    
         /**
          * Gets enabled.
          *
@@ -340,7 +340,7 @@ public class ShenyuConfig {
         public Boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
@@ -349,7 +349,7 @@ public class ShenyuConfig {
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * Gets threads.
          *
@@ -358,7 +358,7 @@ public class ShenyuConfig {
         public Integer getThreads() {
             return threads;
         }
-
+    
         /**
          * Sets threads.
          *
@@ -367,8 +367,8 @@ public class ShenyuConfig {
         public void setThreads(final Integer threads) {
             this.threads = threads;
         }
-
-
+    
+    
         /**
          * Gets schedule time.
          *
@@ -377,7 +377,7 @@ public class ShenyuConfig {
         public Integer getScheduleTime() {
             return scheduleTime;
         }
-
+    
         /**
          * Sets schedule time.
          *
@@ -386,7 +386,7 @@ public class ShenyuConfig {
         public void setScheduleTime(final Integer scheduleTime) {
             this.scheduleTime = scheduleTime;
         }
-
+    
         /**
          * Gets schedule delay.
          *
@@ -395,7 +395,7 @@ public class ShenyuConfig {
         public Integer getScheduleDelay() {
             return scheduleDelay;
         }
-
+    
         /**
          * Sets schedule delay.
          *
@@ -405,16 +405,16 @@ public class ShenyuConfig {
             this.scheduleDelay = scheduleDelay;
         }
     }
-
+    
     /**
      * The type Exclude path.
      */
     public static class ExcludePath {
-
+    
         private Boolean enabled = false;
-
+    
         private List<String> paths = new ArrayList<>();
-
+    
         /**
          * Gets enabled.
          *
@@ -423,7 +423,7 @@ public class ShenyuConfig {
         public Boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
@@ -432,7 +432,7 @@ public class ShenyuConfig {
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * Sets paths.
          *
@@ -441,7 +441,7 @@ public class ShenyuConfig {
         public void setPaths(final List<String> paths) {
             this.paths = paths;
         }
-
+    
         /**
          * get paths.
          *
@@ -497,16 +497,16 @@ public class ShenyuConfig {
             return paths;
         }
     }
-
+    
     /**
      * The type File config.
      */
     public static class FileConfig {
-
+    
         private Boolean enabled = true;
-
+    
         private Integer maxSize = 10;
-
+    
         /**
          * Gets enabled.
          *
@@ -515,7 +515,7 @@ public class ShenyuConfig {
         public Boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
@@ -524,7 +524,7 @@ public class ShenyuConfig {
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * Gets file max size.
          *
@@ -533,7 +533,7 @@ public class ShenyuConfig {
         public Integer getMaxSize() {
             return maxSize;
         }
-
+    
         /**
          * Sets file max size.
          *
@@ -543,14 +543,14 @@ public class ShenyuConfig {
             this.maxSize = maxSize;
         }
     }
-
+    
     /**
      * The type Switch config.
      */
     public static class SwitchConfig {
-
+        
         private Boolean local = true;
-
+    
         /**
          * Gets local.
          *
@@ -559,7 +559,7 @@ public class ShenyuConfig {
         public Boolean getLocal() {
             return local;
         }
-
+    
         /**
          * Sets local.
          *
@@ -568,28 +568,28 @@ public class ShenyuConfig {
         public void setLocal(final Boolean local) {
             this.local = local;
         }
-
+        
     }
-
+    
     /**
      * The type Upstream check.
      */
     public static class UpstreamCheck {
-
+    
         private Boolean enabled = false;
-
+        
         private Integer timeout = 3000;
-
+        
         private Integer healthyThreshold = 1;
-
+    
         private Integer unhealthyThreshold = 1;
-
+        
         private Integer interval = 5000;
-
+        
         private Boolean printEnabled = true;
-
+        
         private Integer printInterval = 60000;
-
+    
         /**
          * Gets enabled.
          *
@@ -598,7 +598,7 @@ public class ShenyuConfig {
         public Boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
@@ -607,7 +607,7 @@ public class ShenyuConfig {
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * Gets timeout.
          *
@@ -616,7 +616,7 @@ public class ShenyuConfig {
         public Integer getTimeout() {
             return timeout;
         }
-
+    
         /**
          * Sets timeout.
          *
@@ -625,7 +625,7 @@ public class ShenyuConfig {
         public void setTimeout(final Integer timeout) {
             this.timeout = timeout;
         }
-
+    
         /**
          * Gets healthy threshold.
          *
@@ -634,7 +634,7 @@ public class ShenyuConfig {
         public Integer getHealthyThreshold() {
             return healthyThreshold;
         }
-
+    
         /**
          * Sets healthy threshold.
          *
@@ -643,7 +643,7 @@ public class ShenyuConfig {
         public void setHealthyThreshold(final Integer healthyThreshold) {
             this.healthyThreshold = healthyThreshold;
         }
-
+    
         /**
          * Gets unhealthy threshold.
          *
@@ -652,7 +652,7 @@ public class ShenyuConfig {
         public Integer getUnhealthyThreshold() {
             return unhealthyThreshold;
         }
-
+    
         /**
          * Sets unhealthy threshold.
          *
@@ -661,7 +661,7 @@ public class ShenyuConfig {
         public void setUnhealthyThreshold(final Integer unhealthyThreshold) {
             this.unhealthyThreshold = unhealthyThreshold;
         }
-
+    
         /**
          * Gets interval.
          *
@@ -670,7 +670,7 @@ public class ShenyuConfig {
         public Integer getInterval() {
             return interval;
         }
-
+    
         /**
          * Sets interval.
          *
@@ -679,7 +679,7 @@ public class ShenyuConfig {
         public void setInterval(final Integer interval) {
             this.interval = interval;
         }
-
+    
         /**
          * Gets print enabled.
          *
@@ -688,7 +688,7 @@ public class ShenyuConfig {
         public Boolean getPrintEnabled() {
             return printEnabled;
         }
-
+    
         /**
          * Sets print enabled.
          *
@@ -697,7 +697,7 @@ public class ShenyuConfig {
         public void setPrintEnabled(final Boolean printEnabled) {
             this.printEnabled = printEnabled;
         }
-
+    
         /**
          * Gets print interval.
          *
@@ -706,7 +706,7 @@ public class ShenyuConfig {
         public Integer getPrintInterval() {
             return printInterval;
         }
-
+    
         /**
          * Sets print interval.
          *
@@ -716,7 +716,7 @@ public class ShenyuConfig {
             this.printInterval = printInterval;
         }
     }
-
+    
     /**
      * The Cross Filter Config.
      */
@@ -739,7 +739,7 @@ public class ShenyuConfig {
                 }
             };
         }
-
+    
         private Boolean enabled = true;
 
         /**
@@ -773,7 +773,7 @@ public class ShenyuConfig {
             }
             return String.join(",", headerSet);
         }
-
+    
         /**
          * Gets enabled.
          *
@@ -782,7 +782,7 @@ public class ShenyuConfig {
         public Boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
@@ -791,7 +791,7 @@ public class ShenyuConfig {
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * Gets the value of allowedHeaders.
          *
@@ -800,7 +800,7 @@ public class ShenyuConfig {
         public String getAllowedHeaders() {
             return allowedHeaders = wrapperHeaders(allowedHeaders);
         }
-
+    
         /**
          * Sets the allowedHeaders.
          *
@@ -809,7 +809,7 @@ public class ShenyuConfig {
         public void setAllowedHeaders(final String allowedHeaders) {
             this.allowedHeaders = wrapperHeaders(allowedHeaders);
         }
-
+    
         /**
          * Gets the value of allowedMethods.
          *
@@ -818,7 +818,7 @@ public class ShenyuConfig {
         public String getAllowedMethods() {
             return allowedMethods;
         }
-
+    
         /**
          * Sets the allowedMethods.
          *
@@ -827,7 +827,7 @@ public class ShenyuConfig {
         public void setAllowedMethods(final String allowedMethods) {
             this.allowedMethods = allowedMethods;
         }
-
+    
         /**
          * Gets the value of allowedOrigin.
          *
@@ -836,7 +836,7 @@ public class ShenyuConfig {
         public String getAllowedOrigin() {
             return allowedOrigin;
         }
-
+    
         /**
          * Sets the allowedOrigin.
          *
@@ -845,7 +845,7 @@ public class ShenyuConfig {
         public void setAllowedOrigin(final String allowedOrigin) {
             this.allowedOrigin = allowedOrigin;
         }
-
+    
         /**
          * Gets the value of allowedExpose.
          *
@@ -854,7 +854,7 @@ public class ShenyuConfig {
         public String getAllowedExpose() {
             return allowedExpose;
         }
-
+    
         /**
          * Sets the allowedExpose.
          *
@@ -863,7 +863,7 @@ public class ShenyuConfig {
         public void setAllowedExpose(final String allowedExpose) {
             this.allowedExpose = allowedExpose;
         }
-
+    
         /**
          * Gets the value of maxAge.
          *
@@ -872,7 +872,7 @@ public class ShenyuConfig {
         public String getMaxAge() {
             return maxAge;
         }
-
+    
         /**
          * Sets the maxAge.
          *
@@ -881,7 +881,7 @@ public class ShenyuConfig {
         public void setMaxAge(final String maxAge) {
             this.maxAge = maxAge;
         }
-
+    
         /**
          * Gets the value of allowCredentials.
          *
@@ -890,7 +890,7 @@ public class ShenyuConfig {
         public boolean isAllowCredentials() {
             return allowCredentials;
         }
-
+    
         /**
          * Sets the allowCredentials.
          *
@@ -900,40 +900,40 @@ public class ShenyuConfig {
             this.allowCredentials = allowCredentials;
         }
     }
-
+    
     /**
      * The type Instance config.
      */
     public static class InstanceConfig {
-
+    
         private Boolean enabled = false;
-
+    
         private String registerType;
-
+    
         private String serverLists;
-
+    
         private Properties props = new Properties();
-
+        
         /**
          * Instantiates a new Instance config.
          */
         public InstanceConfig() {
-
+        
         }
-
+    
         /**
          * Instantiates a new Instance config.
          *
          * @param registerType the register type
-         * @param serverLists  the server lists
-         * @param props        the props
+         * @param serverLists the server lists
+         * @param props the props
          */
         public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
             this.registerType = registerType;
             this.serverLists = serverLists;
             this.props = props;
         }
-
+    
         /**
          * Gets enabled.
          *
@@ -942,7 +942,7 @@ public class ShenyuConfig {
         public Boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
@@ -951,7 +951,7 @@ public class ShenyuConfig {
         public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * getRegisterType.
          *
@@ -960,7 +960,7 @@ public class ShenyuConfig {
         public String getRegisterType() {
             return registerType;
         }
-
+    
         /**
          * setRegisterType.
          *
@@ -969,7 +969,7 @@ public class ShenyuConfig {
         public void setRegisterType(final String registerType) {
             this.registerType = registerType;
         }
-
+    
         /**
          * getServerLists.
          *
@@ -978,7 +978,7 @@ public class ShenyuConfig {
         public String getServerLists() {
             return serverLists;
         }
-
+    
         /**
          * setServerLists.
          *
@@ -987,7 +987,7 @@ public class ShenyuConfig {
         public void setServerLists(final String serverLists) {
             this.serverLists = serverLists;
         }
-
+    
         /**
          * getProps.
          *
@@ -996,7 +996,7 @@ public class ShenyuConfig {
         public Properties getProps() {
             return props;
         }
-
+    
         /**
          * setProps.
          *
