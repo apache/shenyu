@@ -40,6 +40,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -180,15 +181,16 @@ public class JwtPlugin extends AbstractShenyuPlugin {
                         final String[] split,
                         final AtomicInteger deep) {
         for (Map.Entry<String, Object> entry : body.entrySet()) {
+
+            if (deep.get() == split.length - 1) {
+                return String.valueOf(body.get(split[deep.get()]));
+            }
+
             if (entry.getKey().equals(split[deep.get()])) {
-                if (entry.getValue() instanceof Map && split.length > 1) {
+                if (entry.getValue() instanceof Map) {
                     deep.incrementAndGet();
                     return parse((Map<String, Object>) entry.getValue(), split, deep);
-                } else {
-                    return String.valueOf(entry.getValue());
                 }
-            } else {
-                return String.valueOf(entry.getValue());
             }
         }
         return String.valueOf(body.get(split[deep.get()]));
