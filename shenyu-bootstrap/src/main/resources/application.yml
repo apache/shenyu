@@ -154,6 +154,8 @@ shenyu:
     interval: 5000
     printEnabled: true
     printInterval: 60000
+  ribbon:
+    serverListRefreshInterval: 10000
 
 eureka:
   client:
