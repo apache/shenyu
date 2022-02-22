@@ -22,7 +22,7 @@ import io.opentracing.tag.Tags;
 import org.apache.shenyu.agent.api.entity.MethodResult;
 import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
-import org.apache.shenyu.agent.plugin.tracing.jaeger.constant.JaegerConstants;
+import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 import org.apache.shenyu.agent.plugin.tracing.jaeger.span.JaegerSpanManager;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -41,16 +41,15 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
         final JaegerSpanManager jaegerSpanManager = (JaegerSpanManager) exchange.getAttributes()
-                .getOrDefault(JaegerConstants.ROOT_SPAN, new JaegerSpanManager());
+                .getOrDefault(TracingConstants.SHENYU_AGENT, new JaegerSpanManager());
 
         Map<String, String> tagMap = new HashMap<>(4);
-        tagMap.put(Tags.COMPONENT.getKey(), JaegerConstants.NAME);
-        tagMap.put(Tags.HTTP_URL.getKey(), exchange.getRequest().getURI().toString());
+        tagMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
         Optional.ofNullable(exchange.getRequest().getMethod())
-                        .ifPresent(v -> tagMap.put(Tags.HTTP_METHOD.getKey(), v.toString()));
+                .ifPresent(v -> tagMap.put(Tags.HTTP_METHOD.getKey(), v.toString()));
 
-        Span span = jaegerSpanManager.add(JaegerConstants.ROOT_SPAN, tagMap);
-        exchange.getAttributes().put(JaegerConstants.RESPONSE_SPAN, jaegerSpanManager);
+        Span span = jaegerSpanManager.add(TracingConstants.ROOT_SPAN, tagMap);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, jaegerSpanManager);
         target.setContext(span);
     }
 
@@ -59,7 +58,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
         Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(JaegerConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.ROOT_SPAN);
 
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> {
@@ -76,7 +75,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
         Span span = (Span) target.getContext();
 
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(JaegerConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.ROOT_SPAN);
 
         manager.error(span, exchange, throwable);
     }

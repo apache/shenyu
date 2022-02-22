@@ -19,7 +19,7 @@ package org.apache.shenyu.agent.plugin.metrics.prometheus.recorder;
 
 import io.prometheus.client.Counter;
 import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorder;
-import org.apache.shenyu.agent.plugin.metrics.api.config.Metrics.Metric;
+import org.apache.shenyu.agent.api.config.MetricsConfig.Metric;
 
 import java.util.Objects;
 

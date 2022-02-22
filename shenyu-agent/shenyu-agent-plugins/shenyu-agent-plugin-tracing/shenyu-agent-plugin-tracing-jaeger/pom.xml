@@ -50,9 +50,17 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-web</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-agent-plugin-tracing-common</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>

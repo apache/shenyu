@@ -16,7 +16,19 @@
 #
 
 metrics:
-  - name: shenyu_request_total    
+  - name: shenyu_request_total
     type: counter
-    help: the shenyu gateway request total
+    help: ShenYu gateway request total.
+  - name: shenyu_request_throw_total
+    type: counter
+    help: ShenYu gateway request total when an exception occurs.
+  - name: shenyu_http_request_total
+    type: counter
+    labelNames:
+      - path
+      - method
+    help: ShenYu gateway request total of http.
+  - name: shenyu_request_undone
+    type: gauge
+    help: ShenYu gateway request is not completed.
   
