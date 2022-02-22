@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.monitor.handler;
 
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -56,7 +55,6 @@ public class MonitorPluginDataHandler implements PluginDataHandler {
     
     private boolean checkConfig(final MetricsConfig monitorConfig) {
         return Objects.nonNull(monitorConfig)
-                && StringUtils.isNoneBlank(monitorConfig.getHost())
                 && Objects.nonNull(monitorConfig.getPort())
                 && Objects.nonNull(monitorConfig.getAsync());
     }
