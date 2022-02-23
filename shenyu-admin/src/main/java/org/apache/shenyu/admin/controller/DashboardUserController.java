@@ -28,7 +28,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
-import org.apache.shenyu.admin.utils.AesUtils;
+import org.apache.shenyu.admin.utils.ShaUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
@@ -111,10 +111,8 @@ public class DashboardUserController {
     @RequiresPermissions("system:manager:add")
     @PostMapping("")
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
-        String key = secretProperties.getKey();
-        String iv = secretProperties.getIv();
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
-            item.setPassword(AesUtils.aesEncryption(item.getPassword(), key, iv));
+            item.setPassword(ShaUtils.shaEncryption(item.getPassword()));
             Integer createCount = dashboardUserService.createOrUpdate(item);
             return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
         }).orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
@@ -132,9 +130,7 @@ public class DashboardUserController {
     public ShenyuAdminResult updateDashboardUser(@PathVariable("id") final String id, @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         dashboardUserDTO.setId(id);
         if (StringUtils.isNotBlank(dashboardUserDTO.getPassword())) {
-            String key = secretProperties.getKey();
-            String iv = secretProperties.getIv();
-            dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key, iv));
+            dashboardUserDTO.setPassword(ShaUtils.shaEncryption(dashboardUserDTO.getPassword()));
         }
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
