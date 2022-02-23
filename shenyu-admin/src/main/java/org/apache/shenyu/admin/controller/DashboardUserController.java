@@ -111,10 +111,7 @@ public class DashboardUserController {
     @RequiresPermissions("system:manager:add")
     @PostMapping("")
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
-        //String key = secretProperties.getKey();
-        //String iv = secretProperties.getIv();
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
-            //item.setPassword(AesUtils.aesEncryption(item.getPassword(), key, iv));
             item.setPassword(ShaUtils.shaEncryption(item.getPassword()));
             Integer createCount = dashboardUserService.createOrUpdate(item);
             return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
