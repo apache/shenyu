@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
-import org.apache.shenyu.admin.utils.AesUtils;
+import org.apache.shenyu.admin.utils.ShaUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 
@@ -160,14 +160,12 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
     }
 
     private DashboardUserDO buildDashboardUserDO() {
-        String aseKey = "2095132720951327";
-        String iv = "6075877187097700";
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
         return DashboardUserDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .userName("adminTest")
-                .password(AesUtils.aesEncryption("123456", aseKey, iv))
+                .password(ShaUtils.shaEncryption("123456"))
                 .enabled(true)
                 .role(1)
                 .dateCreated(now)

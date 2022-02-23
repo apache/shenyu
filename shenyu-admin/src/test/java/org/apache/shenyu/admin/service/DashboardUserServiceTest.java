@@ -34,7 +34,7 @@ import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
-import org.apache.shenyu.admin.utils.AesUtils;
+import org.apache.shenyu.admin.utils.ShaUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -180,10 +180,7 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
-        String key = "2095132720951327";
-        String iv = "6075877187097700";
-        when(secretProperties.getKey()).thenReturn(key, key);
-        when(secretProperties.getIv()).thenReturn(iv, iv);
+
         when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
         given(ldapTemplate.authenticate(anyString(), anyString(), anyString())).willReturn(true);
         given(roleMapper.findByRoleName("default")).willReturn(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null)));
@@ -195,7 +192,7 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", ldapTemplate);
         LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD);
         assertEquals(TEST_USER_NAME, loginDashboardUserVO.getUserName());
-        assertEquals(AesUtils.aesEncryption(TEST_PASSWORD, secretProperties.getKey(), secretProperties.getIv()), loginDashboardUserVO.getPassword());
+        assertEquals(ShaUtils.shaEncryption(TEST_PASSWORD), loginDashboardUserVO.getPassword());
 
         // test loginByDatabase
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);

@@ -24,36 +24,24 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Test cases for AesUtils.
+ * Test cases for ShaUtils.
  */
-public final class AesUtilsTest {
-
-    private static final String AES_KEY = "2095132720951327";
-
-    private static final String IV = "6075877187097700";
+public final class ShaUtilsTest {
 
     @Test
-    public void testAesEncryption() {
-        assertThat(AesUtils.aesEncryption("123456", AES_KEY, IV), is("bbiB8zbUo3z3oA0VqEB/IA=="));
+    public void testShaEncryption() {
+        assertThat(ShaUtils.shaEncryption("123456"), is("ba3253876aed6bc22d4a6ff53d846c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413"));
     }
 
     @Test
-    public void testAesEncryptionForNull() {
-        assertThat(AesUtils.aesEncryption(null, AES_KEY, IV), nullValue());
+    public void testShaEncryptionForNull() {
+        assertThat(ShaUtils.shaEncryption(null), nullValue());
     }
 
     @Test
-    public void testAesDecryption() {
-        assertThat(AesUtils.aesDecryption("bbiB8zbUo3z3oA0VqEB/IA==", AES_KEY, IV), is("123456"));
+    public void testShaDecryptionForEmptyString() {
+        assertThat(ShaUtils.shaEncryption(""), nullValue());
     }
 
-    @Test
-    public void testAesDecryptionForEmptyString() {
-        assertThat(AesUtils.aesDecryption("", AES_KEY, IV), nullValue());
-    }
-
-    @Test
-    public void testAesDecryptionForNull() {
-        assertThat(AesUtils.aesDecryption(null, AES_KEY, IV), nullValue());
-    }
 }
+
