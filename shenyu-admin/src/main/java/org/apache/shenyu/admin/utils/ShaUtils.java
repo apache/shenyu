@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.utils;
 import java.security.MessageDigest;
 
 import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
@@ -35,7 +37,7 @@ public class ShaUtils {
      */
     public static String shaEncryption(final String src) {
         return Optional.ofNullable(src).map(item -> {
-            if ("".equals(src)) {
+            if (StringUtils.isEmpty(src)) {
                 return null;
             }
             try {
