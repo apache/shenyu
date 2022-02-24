@@ -67,6 +67,8 @@ public class ConsulSyncDataService extends ConsulCacheHandler implements AutoClo
     /**
      * Instantiates a new Consul sync data service.
      *
+     * @param consulClient the plugin data consulClient
+     * @param consulConfig the plugin data consulConfig
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers

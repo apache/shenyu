@@ -28,34 +28,38 @@ import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * The type Consumer executor.
  */
-@SuppressWarnings("all")
 public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<List<DataTypeParent>> {
     
-    private Map<DataType, ExecutorSubscriber> subscribers = new HashMap<>();
-
-    private RegisterServerConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber> executorSubscriberMap) {
-        this.subscribers.putAll(executorSubscriberMap);
+    private final Map<DataType, ExecutorSubscriber<DataTypeParent>> subscribers;
+    
+    private RegisterServerConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> executorSubscriberMap) {
+        this.subscribers = new HashMap<>(executorSubscriberMap);
     }
-
+    
     @Override
     public void run() {
-        List<DataTypeParent> results = getData();
-        results = results.stream().filter(data -> isValidData(data)).collect(Collectors.toList());
+        Collection<DataTypeParent> results = getData()
+                .stream()
+                .filter(this::isValidData)
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(results)) {
             return;
         }
-        getType(results).executor(results);
+        
+        selectExecutor(results).executor(results);
     }
-
+    
     private boolean isValidData(final Object data) {
         if (data instanceof URIRegisterDTO) {
             URIRegisterDTO uriRegisterDTO = (URIRegisterDTO) data;
@@ -72,19 +76,22 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
         return true;
     }
     
-    private ExecutorSubscriber getType(final List<DataTypeParent> list) {
-        DataTypeParent result = list.get(0);
-        return subscribers.get(result.getType());
+    private ExecutorSubscriber<DataTypeParent> selectExecutor(final Collection<DataTypeParent> list) {
+        final Optional<DataTypeParent> first = list.stream().findFirst();
+        return subscribers.get(first.orElseThrow(() -> new RuntimeException("the data type is not found")).getType());
     }
     
     public static class RegisterServerExecutorFactory extends AbstractQueueConsumerFactory {
-
+        
         @Override
         public QueueConsumerExecutor create() {
-            Map<DataType, ExecutorTypeSubscriber> maps = getSubscribers().stream().map(e -> (ExecutorTypeSubscriber) e).collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
+            Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> maps = getSubscribers()
+                    .stream()
+                    .map(e -> (ExecutorTypeSubscriber<DataTypeParent>) e)
+                    .collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
             return new RegisterServerConsumerExecutor(maps);
         }
-
+        
         @Override
         public String fixName() {
             return "shenyu_register_server";

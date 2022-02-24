@@ -23,21 +23,20 @@ import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscribe
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
  * The type Disruptor publisher.
  */
-@SuppressWarnings("all")
 public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPublisher {
-
-    private static final RegisterServerDisruptorPublisher INSTANCE = new RegisterServerDisruptorPublisher();
-
-    private DisruptorProviderManage providerManage;
     
-    private RegisterServerExecutorFactory factory;
+    private static final RegisterServerDisruptorPublisher INSTANCE = new RegisterServerDisruptorPublisher();
+    
+    private DisruptorProviderManage<DataTypeParent> providerManage;
     
     /**
      * Gets instance.
@@ -54,17 +53,25 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
      * @param shenyuClientRegisterService the shenyu client register service
      */
     public void start(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService) {
-        factory = new RegisterServerExecutorFactory();
+        RegisterServerExecutorFactory factory = new RegisterServerExecutorFactory();
         factory.addSubscribers(new URIRegisterExecutorSubscriber(shenyuClientRegisterService));
         factory.addSubscribers(new MetadataExecutorSubscriber(shenyuClientRegisterService));
-        providerManage = new DisruptorProviderManage(factory);
+        providerManage = new DisruptorProviderManage<>(factory);
         providerManage.startup();
     }
     
     @Override
-    public <T> void publish(final T data) {
-        DisruptorProvider<Object> provider = providerManage.getProvider();
+    public void publish(final DataTypeParent data) {
+        DisruptorProvider<DataTypeParent> provider = providerManage.getProvider();
         provider.onData(data);
+    }
+    
+    @Override
+    public void publish(final Collection<? extends DataTypeParent> dataList) {
+        DisruptorProvider<DataTypeParent> provider = providerManage.getProvider();
+        for (DataTypeParent data : dataList) {
+            provider.onData(data);
+        }
     }
     
     @Override

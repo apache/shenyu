@@ -32,12 +32,12 @@ import java.util.stream.Collectors;
 /**
  * The type Consumer executor.
  */
-@SuppressWarnings("all")
 public final class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTypeParent> {
     
-    private Map<DataType, ExecutorSubscriber> subscribers = new HashMap<>();
+    private final Map<DataType, ExecutorSubscriber<DataTypeParent>> subscribers;
     
-    private RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber> executorSubscriberMap) {
+    private RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> executorSubscriberMap) {
+        this.subscribers = new HashMap<>(executorSubscriberMap.size());
         this.subscribers.putAll(executorSubscriberMap);
     }
 
@@ -53,9 +53,12 @@ public final class RegisterClientConsumerExecutor extends QueueConsumerExecutor<
     public static class RegisterClientExecutorFactory extends AbstractQueueConsumerFactory {
         
         @Override
-        public QueueConsumerExecutor create() {
-            Map<DataType, ExecutorTypeSubscriber> maps = getSubscribers().stream().map(e -> (ExecutorTypeSubscriber) e).collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
-            return new RegisterClientConsumerExecutor(maps);
+        public RegisterClientConsumerExecutor create() {
+            Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> map = getSubscribers()
+                    .stream()
+                    .map(e -> (ExecutorTypeSubscriber<DataTypeParent>) e)
+                    .collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
+            return new RegisterClientConsumerExecutor(map);
         }
 
         @Override

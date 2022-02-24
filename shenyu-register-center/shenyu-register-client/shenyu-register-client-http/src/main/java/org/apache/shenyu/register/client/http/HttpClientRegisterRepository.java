@@ -40,7 +40,7 @@ import java.util.Optional;
 @Join
 public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(RegisterUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientRegisterRepository.class);
     
     private String username;
     
