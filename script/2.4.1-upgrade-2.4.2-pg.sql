@@ -136,3 +136,6 @@ ALTER TABLE shenyu_dict ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::
 -- add user_role date_created,date_updated default
 ALTER TABLE user_role ALTER COLUMN date_created SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
 ALTER TABLE user_role ALTER COLUMN date_updated SET DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE);
+
+-- update admin password v2.4.2->2.4.3
+UPDATE dashboard_user SET password='ba3253876aed6bc22d4a6ff53d846c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413' WHERE user_name = 'admin' ;

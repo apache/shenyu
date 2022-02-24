@@ -68,3 +68,6 @@ UPDATE plugin_handle SET data_type = '3' WHERE plugin_id = '6' AND field = 'load
 
 -- change shenyu-dict unique key
 ALTER TABLE shenyu_dict ADD UNIQUE KEY `dict_type_dict_code_dict_name` (`type`, `dict_code`,`dict_name`);
+
+-- update admin password v2.4.2->2.4.3
+UPDATE dashboard_user SET password='ba3253876aed6bc22d4a6ff53d846c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413' WHERE user_name = 'admin';
