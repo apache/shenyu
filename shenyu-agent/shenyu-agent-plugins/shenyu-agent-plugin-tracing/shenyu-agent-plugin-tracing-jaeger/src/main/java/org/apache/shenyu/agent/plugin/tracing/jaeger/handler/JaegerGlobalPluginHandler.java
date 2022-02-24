@@ -58,7 +58,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
         Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
 
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> {
