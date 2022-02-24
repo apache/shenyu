@@ -29,17 +29,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -61,7 +62,7 @@ import java.util.Map;
 @ShenyuSpringMvcClient(path = "/test/**")
 public class HttpTestController {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpTestController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
 
     /**
      * Post user dto.
@@ -89,6 +90,7 @@ public class HttpTestController {
      * Find by user id string.
      *
      * @param userId the user id
+     * @param name name
      * @return the string
      */
     @GetMapping("/findByUserIdName")
@@ -265,7 +267,7 @@ public class HttpTestController {
      * @param cookie           cookie
      * @param requestHeader    header
      * @param requestParameter parameter
-     * @return
+     * @return result
      */
     @PostMapping(path = "/modifyRequest")
     public Map<String, Object> modifyRequest(@RequestBody final UserDTO userDTO,
@@ -285,7 +287,7 @@ public class HttpTestController {
      *
      * @param body file content
      * @return file
-     * @throws IOException
+     * @throws IOException io exception
      */
     @GetMapping(path = "/download")
     public ResponseEntity<byte[]> downloadFile(@RequestParam(value = "body", defaultValue = "") final String body) throws IOException {
@@ -304,21 +306,59 @@ public class HttpTestController {
      *
      * @param filePart upload file
      * @return OK
-     * @throws IOException
+     * @throws IOException io exception
      */
     @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String downloadFile(@RequestPart("file") FilePart filePart) throws IOException {
-        logger.info("file name: {}", filePart.filename());
+    public String downloadFile(@RequestPart("file") final FilePart filePart) throws IOException {
+        LOGGER.info("file name: {}", filePart.filename());
         Path tempFile = Files.createTempFile(String.valueOf(System.currentTimeMillis()), filePart.filename());
         filePart.transferTo(tempFile.toFile());
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile.toFile()))) {
             String line = bufferedReader.readLine();
             while (line != null) {
-                logger.info(line);
+                LOGGER.info(line);
                 line = bufferedReader.readLine();
             }
         }
         return "OK";
+    }
+
+    /**
+     * Return bad request code.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/request/badrequest")
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultBean badRequest() {
+        ResultBean response = new ResultBean();
+        response.setCode(400);
+        return response;
+    }
+
+    /**
+     * Return bad request code.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/request/accepted")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResultBean accepted() {
+        ResultBean response = new ResultBean();
+        response.setCode(202);
+        return response;
+    }
+
+    /**
+     * Return bad request code.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/success")
+    public ResultBean success() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        return response;
     }
 
     private UserDTO buildUser(final String id, final String name) {

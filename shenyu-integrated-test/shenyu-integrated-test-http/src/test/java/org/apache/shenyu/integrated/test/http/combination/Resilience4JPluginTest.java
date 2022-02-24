@@ -18,7 +18,6 @@
 package org.apache.shenyu.integrated.test.http.combination;
 
 import com.google.common.collect.Lists;
-import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.Resilience4JHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -26,68 +25,131 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class Resilience4JPluginTest extends AbstractPluginDataInit {
 
-    private static final String TEST_RESILIENCE4J_PATH = "/http/test/path/123?name=joker";
+    private static final String TEST_RESILIENCE4J_SUCCESS_OUT_SCOPE_PATH = "/http/test/success";
 
-    @BeforeAll
-    public static void setup() throws IOException {
+    private static final String TEST_RESILIENCE4J_SUCCESS_PATH = "/http/test/request/accepted";
+
+    private static final String TEST_RESILIENCE4J_BAD_REQUEST_PATH = "/http/test/request/badrequest";
+
+    @BeforeEach
+    public void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.RESILIENCE4J.getName(), null);
         assertThat(pluginResult, is("success"));
+    }
+
+    @Test
+    public void testRateLimiterPass() throws InterruptedException, ExecutionException, IOException {
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(0));
+                initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
+                        buildSelectorConditionList(), buildRuleLocalDataList(0, 3, null));
         assertThat(selectorAndRulesResult, is("success"));
+
+        Set<Integer> resultSet = new HashSet<>();
+        Future<ResultBean> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        Future<ResultBean> resp2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        Future<ResultBean> resp3 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        resultSet.add(resp1.get().getCode());
+        resultSet.add(resp2.get().getCode());
+        resultSet.add(resp3.get().getCode());
+        assertTrue(resultSet.contains(202));
+
+        Future<ResultBean> resp4 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        assertEquals(202, resp4.get().getCode());
     }
 
     @Test
-    public void testCircuitBreaker() throws IOException {
-        UserDTO result = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_PATH, UserDTO.class);
-        assertNotNull(result);
-        assertEquals("123", result.getUserId());
-        result = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_PATH, UserDTO.class);
-        assertEquals("You have been restricted, please try again later!", result.getUserId());
+    public void testRateLimiter() throws InterruptedException, ExecutionException, IOException {
+        String selectorAndRulesResult =
+                initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
+                        buildSelectorConditionList(), buildRuleLocalDataList(0, 1, null));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        Set<Integer> resultSet = new HashSet<>();
+        Future<ResultBean> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        Future<ResultBean> resp2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        Future<ResultBean> resp3 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        resultSet.add(resp1.get().getCode());
+        resultSet.add(resp2.get().getCode());
+        resultSet.add(resp3.get().getCode());
+        assertTrue(resultSet.contains(202));
+        assertTrue(resultSet.contains(429));
+
+        Future<ResultBean> resp4 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
+        assertEquals(202, resp4.get().getCode());
     }
 
     @Test
-    @Disabled
-    public void testRateLimiter() throws IOException {
-        Type returnType = new TypeToken<Map<String, Object>>() {
-        }.getType();
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway(TEST_RESILIENCE4J_PATH, returnType);
-        assertNotNull(result);
-        assertEquals("pass", result.get("msg"));
-        result = HttpHelper.INSTANCE.postGateway(TEST_RESILIENCE4J_PATH, returnType);
-        assertEquals("You have been restricted, please try again later!", result.get("message"));
+    public void testCircuitBreaker() throws IOException, ExecutionException, InterruptedException {
+        String selectorAndRulesResult =
+                initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
+                        buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, null));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        List<Integer> rets = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class);
+            rets.add(resp.getCode());
+        }
+        for (int i = 0; i < 5; i++) {
+            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
+            Thread.sleep(50);
+            rets.add(resp.getCode());
+        }
+        assertEquals(2, rets.stream().filter(c -> c == 202).count());
+        assertEquals(2, rets.stream().filter(c -> c == 400).count());
+        // circuit breaker has been triggered
+        assertEquals(3, rets.stream().filter(c -> c == -103).count());
     }
 
     @Test
-    @Disabled
-    public void testCombined() throws IOException {
-        Type returnType = new TypeToken<Map<String, Object>>() {
-        }.getType();
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway(TEST_RESILIENCE4J_PATH, returnType);
-        assertNotNull(result);
-        assertEquals("pass", result.get("msg"));
-        result = HttpHelper.INSTANCE.postGateway(TEST_RESILIENCE4J_PATH, returnType);
-        assertEquals("You have been restricted, please try again later!", result.get("message"));
+    public void testCircuitBreakerFallbackUri() throws IOException, ExecutionException, InterruptedException {
+        String selectorAndRulesResult =
+                initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
+                        buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, TEST_RESILIENCE4J_SUCCESS_OUT_SCOPE_PATH));
+        assertThat(selectorAndRulesResult, is("success"));
+
+        List<Integer> rets = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class);
+            rets.add(resp.getCode());
+        }
+        for (int i = 0; i < 5; i++) {
+            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
+            Thread.sleep(50);
+            rets.add(resp.getCode());
+        }
+        assertEquals(2, rets.stream().filter(c -> c == 202).count());
+        assertEquals(2, rets.stream().filter(c -> c == 400).count());
+        // circuit breaker has been triggered
+        assertEquals(3, rets.stream().filter(c -> c == 200).count());
+    }
+
+    @AfterEach
+    public void clean() throws IOException {
+        cleanPluginData(PluginEnum.RESILIENCE4J.getName());
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
@@ -98,20 +160,26 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList(final int circuitEnable) {
+    private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList(final int circuitEnable, final int limitForPeriod, final String fallbackUri) {
         final LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         Resilience4JHandle resilience4JHandle = new Resilience4JHandle();
-        resilience4JHandle.setCircuitEnable(circuitEnable);
+        // set parameters for rate limiter
         resilience4JHandle.setTimeoutDuration(5000);
-        resilience4JHandle.setLimitRefreshPeriod(50000);
-        resilience4JHandle.setLimitForPeriod(1);
+        resilience4JHandle.setLimitRefreshPeriod(5000);
+        resilience4JHandle.setLimitForPeriod(limitForPeriod);
+
+        // set parameters for circuit breaker
+        resilience4JHandle.setCircuitEnable(circuitEnable);
+        resilience4JHandle.setFallbackUri(fallbackUri);
+        resilience4JHandle.setMinimumNumberOfCalls(1);
+        resilience4JHandle.setFailureRateThreshold(50);
 
         ruleLocalData.setRuleHandler(JsonUtils.toJson(resilience4JHandle));
 
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/http/test/**");
+        conditionData.setParamValue("/http/test/request/**");
 
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
 
