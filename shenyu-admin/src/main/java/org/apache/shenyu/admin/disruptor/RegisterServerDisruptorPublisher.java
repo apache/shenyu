@@ -36,7 +36,7 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
     
     private static final RegisterServerDisruptorPublisher INSTANCE = new RegisterServerDisruptorPublisher();
     
-    private DisruptorProviderManage<DataTypeParent> providerManage;
+    private DisruptorProviderManage<Object> providerManage;
     
     /**
      * Gets instance.
@@ -56,22 +56,21 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
         RegisterServerExecutorFactory factory = new RegisterServerExecutorFactory();
         factory.addSubscribers(new URIRegisterExecutorSubscriber(shenyuClientRegisterService));
         factory.addSubscribers(new MetadataExecutorSubscriber(shenyuClientRegisterService));
-        providerManage = new DisruptorProviderManage<>(factory);
+        providerManage = new DisruptorProviderManage(factory);
         providerManage.startup();
     }
     
     @Override
     public void publish(final DataTypeParent data) {
-        DisruptorProvider<DataTypeParent> provider = providerManage.getProvider();
+        DisruptorProvider<Object> provider = providerManage.getProvider();
         provider.onData(data);
     }
     
     @Override
     public void publish(final Collection<? extends DataTypeParent> dataList) {
-        DisruptorProvider<DataTypeParent> provider = providerManage.getProvider();
-        for (DataTypeParent data : dataList) {
-            provider.onData(data);
-        }
+        DisruptorProvider<Object> provider = providerManage.getProvider();
+        provider.onData(dataList);
+
     }
     
     @Override

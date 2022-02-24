@@ -183,7 +183,7 @@ public class NacosServerRegisterRepositoryTest {
         verify(publisher, times(4)).publish(localAny());
     }
     
-    private DataTypeParent localAny() {
+    private List<DataTypeParent> localAny() {
         return any();
     }
 }

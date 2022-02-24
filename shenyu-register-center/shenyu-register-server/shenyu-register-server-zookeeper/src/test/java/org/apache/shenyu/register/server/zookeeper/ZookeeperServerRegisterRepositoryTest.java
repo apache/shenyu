@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -135,7 +136,7 @@ public class ZookeeperServerRegisterRepositoryTest {
         verify(publisher, times(6)).publish(localAny());
     }
     
-    private DataTypeParent localAny() {
+    private List<DataTypeParent> localAny() {
         return any();
     }
 }

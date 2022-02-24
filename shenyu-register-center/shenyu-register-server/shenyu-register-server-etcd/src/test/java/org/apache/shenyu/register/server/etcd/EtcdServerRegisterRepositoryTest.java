@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -104,7 +105,7 @@ public class EtcdServerRegisterRepositoryTest {
         return client;
     }
     
-    private DataTypeParent localAny() {
+    private List<DataTypeParent> localAny() {
         return any();
     }
 }
