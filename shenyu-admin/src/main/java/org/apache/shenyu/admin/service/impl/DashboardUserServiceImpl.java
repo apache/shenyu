@@ -41,8 +41,8 @@ import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
-import org.apache.shenyu.admin.utils.AesUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.utils.ShaUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -251,8 +251,6 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     private DashboardUserVO loginByLdap(final String userName, final String password) {
-        String key = secretProperties.getKey();
-        String iv = secretProperties.getIv();
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
         try {
@@ -263,7 +261,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     RoleDO role = roleMapper.findByRoleName("default");
                     DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                             .userName(userName)
-                            .password(AesUtils.aesEncryption(password, key, iv))
+                            .password(ShaUtils.shaEncryption(password))
                             .role(1)
                             .roles(Lists.newArrayList(role.getId()))
                             .enabled(true)
@@ -282,9 +280,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
-        String key = secretProperties.getKey();
-        String iv = secretProperties.getIv();
-        return findByQuery(userName, AesUtils.aesEncryption(password, key, iv));
+        return findByQuery(userName, ShaUtils.shaEncryption(password));
     }
 
     /**

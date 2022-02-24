@@ -280,7 +280,12 @@ public interface Constants {
     /**
      * circuitBreaker circuitEnable.
      */
-    int CIRCUIT_ENABLE = 0;
+    int CIRCUIT_DISABLE = 0;
+
+    /**
+     * circuitBreaker enable.
+     */
+    int CIRCUIT_ENABLE = 1;
 
     /**
      * circuitBreaker timeoutDuration.

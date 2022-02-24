@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.plugin.jwt;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.LongSerializationPolicy;
-import com.google.gson.reflect.TypeToken;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -46,6 +42,7 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Jwt Plugin.
@@ -70,7 +67,7 @@ public class JwtPlugin extends AbstractShenyuPlugin {
 
         // compatible processing
         String finalAuthorization = compatible(token, authorization);
-        Map<String, String> jwtBody = checkAuthorization(finalAuthorization, jwtConfig.getSecretKey());
+        Map<String, Object> jwtBody = checkAuthorization(finalAuthorization, jwtConfig.getSecretKey());
         if (jwtBody != null) {
             JwtRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), JwtRuleHandle.class);
             if (ruleHandle == null) {
@@ -120,7 +117,7 @@ public class JwtPlugin extends AbstractShenyuPlugin {
      * @param secretKey secretKey of authorization
      * @return Map
      */
-    private Map<String, String> checkAuthorization(final String authorization,
+    private Map<String, Object> checkAuthorization(final String authorization,
                                                    final String secretKey) {
 
         if (StringUtils.isEmpty(authorization)) {
@@ -133,10 +130,7 @@ public class JwtPlugin extends AbstractShenyuPlugin {
             if (jwt == null) {
                 return null;
             }
-
-            return new Gson().fromJson(new GsonBuilder().setLongSerializationPolicy(LongSerializationPolicy.STRING)
-                    .create()
-                    .toJson(jwt.getBody()), new TypeToken<Map<String, String>>() { }.getType());
+            return (Map<String, Object>) jwt.getBody();
         }
         return null;
     }
@@ -148,9 +142,10 @@ public class JwtPlugin extends AbstractShenyuPlugin {
      * @return ServerWebExchange exchange.
      */
     private ServerWebExchange converter(final ServerWebExchange exchange,
-                                        final Map<String, String> jwtBody,
+                                        final Map<String, Object> jwtBody,
                                         final List<JwtRuleHandle.Convert> converters) {
         ServerHttpRequest modifiedRequest = exchange.getRequest().mutate().headers(httpHeaders -> this.addHeader(httpHeaders, jwtBody, converters)).build();
+
         return exchange.mutate().request(modifiedRequest).build();
     }
 
@@ -162,10 +157,42 @@ public class JwtPlugin extends AbstractShenyuPlugin {
      * @param converters converters
      */
     private void addHeader(final HttpHeaders headers,
-                           final Map<String, String> body,
+                           final Map<String, Object> body,
                            final List<JwtRuleHandle.Convert> converters) {
         for (JwtRuleHandle.Convert converter : converters) {
-            headers.add(converter.getHeaderVal(), body.get(converter.getJwtVal()));
+            if (converter.getJwtVal().contains(".")) {
+                headers.add(converter.getHeaderVal(), parse(body, converter.getJwtVal().split("\\."), new AtomicInteger(0)));
+            } else {
+                headers.add(converter.getHeaderVal(), String.valueOf(body.get(converter.getJwtVal())));
+            }
         }
     }
+
+    /**
+     * Parsing multi-level tokens.
+     *
+     * @param body token
+     * @param split jwt of key
+     * @param deep level default 0
+     * @return token of val
+     */
+    private String parse(final Map<String, Object> body,
+                        final String[] split,
+                        final AtomicInteger deep) {
+        for (Map.Entry<String, Object> entry : body.entrySet()) {
+
+            if (deep.get() == split.length - 1) {
+                return String.valueOf(body.get(split[deep.get()]));
+            }
+
+            if (entry.getKey().equals(split[deep.get()])) {
+                if (entry.getValue() instanceof Map) {
+                    deep.incrementAndGet();
+                    return parse((Map<String, Object>) entry.getValue(), split, deep);
+                }
+            }
+        }
+        return String.valueOf(body.get(split[deep.get()]));
+    }
+
 }
