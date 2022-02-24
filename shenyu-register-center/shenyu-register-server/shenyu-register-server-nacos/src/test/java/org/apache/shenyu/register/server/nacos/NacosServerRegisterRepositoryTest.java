@@ -56,93 +56,93 @@ import static org.mockito.Mockito.times;
  * Test for NacosServerRegisterRepository.
  */
 public class NacosServerRegisterRepositoryTest {
-
+    
     private NacosServerRegisterRepository repository;
-
+    
     private ShenyuServerRegisterPublisher publisher;
-
+    
     private Listener configListener;
-
+    
     private EventListener eventListener;
-
+    
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException, NacosException {
         this.publisher = mockPublish();
         this.repository = new NacosServerRegisterRepository();
         Class<? extends NacosServerRegisterRepository> clazz = this.repository.getClass();
-
+        
         String configServiceString = "configService";
         Field configService = clazz.getDeclaredField(configServiceString);
         configService.setAccessible(true);
         configService.set(repository, mockConfigService());
-
+        
         String namingServiceString = "namingService";
         Field namingService = clazz.getDeclaredField(namingServiceString);
         namingService.setAccessible(true);
         namingService.set(repository, mockNamingService());
-
+        
         String fieldPublisherString = "publisher";
         Field fieldPublisher = clazz.getDeclaredField(fieldPublisherString);
         fieldPublisher.setAccessible(true);
         fieldPublisher.set(repository, publisher);
     }
-
+    
     private ConfigService mockConfigService() throws NacosException {
         ConfigService configService = mock(ConfigService.class);
-
+        
         doAnswer(invocationOnMock -> {
             this.configListener = invocationOnMock.getArgument(2);
             return null;
         }).when(configService).addListener(anyString(), anyString(), any(Listener.class));
-
+        
         doAnswer(invocationOnMock -> {
             List<String> list = new ArrayList<>();
             list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
             return GsonUtils.getInstance().toJson(list);
         }).when(configService).getConfig(anyString(), anyString(), anyLong());
-
+        
         return configService;
     }
-
+    
     private NamingService mockNamingService() throws NacosException {
         NamingService namingService = mock(NamingService.class);
-
+        
         doAnswer(invocationOnMock -> mockInstances())
                 .when(namingService).selectInstances(anyString(), anyBoolean());
-
+        
         doAnswer(invocationOnMock -> {
             this.eventListener = invocationOnMock.getArgument(1);
             return null;
         }).when(namingService).subscribe(anyString(), any(EventListener.class));
-
+        
         return namingService;
     }
-
+    
     private List<Instance> mockInstances() {
         MetaDataRegisterDTO metadata = MetaDataRegisterDTO.builder().build();
         Map<String, String> metadataMap = new HashMap<>(1);
         metadataMap.put("contextPath", "contextPath");
         metadataMap.put("uriMetadata", GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
-
+        
         Instance instance = new Instance();
         instance.setEphemeral(true);
         instance.setIp("127.0.0.1");
         instance.setPort(80);
         instance.setMetadata(metadataMap);
-
+        
         return Collections.singletonList(instance);
     }
-
+    
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
         doNothing().when(publisher).publish(localAny());
         return publisher;
     }
-
+    
     private NamingEvent mockEvent() {
         return new NamingEvent("serviceName", mockInstances());
     }
-
+    
     @Test
     public void testSubscribeTypeOfSupportURI() throws NoSuchMethodException, InvocationTargetException,
             IllegalAccessException {
@@ -153,16 +153,16 @@ public class NacosServerRegisterRepositoryTest {
         method.invoke(repository, RpcTypeEnum.HTTP);
         
         verify(publisher, times(2)).publish(localAny());
-
+        
         List<String> list = new ArrayList<>();
         list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
         verify(publisher, times(3)).publish(localAny());
-
+        
         eventListener.onEvent(mockEvent());
         verify(publisher, times(4)).publish(localAny());
     }
-
+    
     @Test
     public void testSubscribeTypeOfNotSupportURI() throws NoSuchMethodException, InvocationTargetException,
             IllegalAccessException {
@@ -173,17 +173,17 @@ public class NacosServerRegisterRepositoryTest {
         method.invoke(repository, RpcTypeEnum.DUBBO);
         
         verify(publisher, times(2)).publish(localAny());
-
+        
         List<String> list = new ArrayList<>();
         list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
         verify(publisher, times(3)).publish(localAny());
-
+        
         eventListener.onEvent(mockEvent());
         verify(publisher, times(4)).publish(localAny());
     }
     
-    private DataTypeParent localAny(){
+    private DataTypeParent localAny() {
         return any();
     }
 }
