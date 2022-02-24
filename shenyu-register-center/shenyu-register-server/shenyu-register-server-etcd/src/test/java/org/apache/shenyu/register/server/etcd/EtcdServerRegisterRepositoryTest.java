@@ -19,6 +19,7 @@ package org.apache.shenyu.register.server.etcd;
 
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.apache.shenyu.register.server.etcd.client.EtcdClient;
 import org.apache.shenyu.register.server.etcd.client.EtcdListenHandler;
@@ -74,16 +75,18 @@ public class EtcdServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, String.class);
         method.setAccessible(true);
         method.invoke(repository, "http");
-        verify(publisher, times(2)).publish(any());
+        final DataTypeParent any = any();
+        verify(publisher, times(2)).publish(any);
 
         String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
         watchHandler.updateHandler("/path", data);
-        verify(publisher, times(3)).publish(any());
+        verify(publisher, times(3)).publish(any);
     }
 
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        doNothing().when(publisher).publish(any());
+        final DataTypeParent any = any();
+        doNothing().when(publisher).publish(any);
         return publisher;
     }
 

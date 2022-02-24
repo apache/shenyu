@@ -28,6 +28,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -134,7 +135,8 @@ public class NacosServerRegisterRepositoryTest {
 
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        doNothing().when(publisher).publish(any());
+        final DataTypeParent any = any();
+        doNothing().when(publisher).publish(any);
         return publisher;
     }
 
@@ -150,15 +152,16 @@ public class NacosServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, RpcTypeEnum.class);
         method.setAccessible(true);
         method.invoke(repository, RpcTypeEnum.HTTP);
-        verify(publisher, times(2)).publish(any());
+        final DataTypeParent any = any();
+        verify(publisher, times(2)).publish(any);
 
         List<String> list = new ArrayList<>();
         list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
-        verify(publisher, times(3)).publish(any());
+        verify(publisher, times(3)).publish(any);
 
         eventListener.onEvent(mockEvent());
-        verify(publisher, times(4)).publish(any());
+        verify(publisher, times(4)).publish(any);
     }
 
     @Test
@@ -169,14 +172,15 @@ public class NacosServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, RpcTypeEnum.class);
         method.setAccessible(true);
         method.invoke(repository, RpcTypeEnum.DUBBO);
-        verify(publisher, times(2)).publish(any());
+        final DataTypeParent any = any();
+        verify(publisher, times(2)).publish(any);
 
         List<String> list = new ArrayList<>();
         list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
-        verify(publisher, times(3)).publish(any());
+        verify(publisher, times(3)).publish(any);
 
         eventListener.onEvent(mockEvent());
-        verify(publisher, times(4)).publish(any());
+        verify(publisher, times(4)).publish(any);
     }
 }
