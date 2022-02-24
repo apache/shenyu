@@ -135,8 +135,7 @@ public class NacosServerRegisterRepositoryTest {
 
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        final DataTypeParent any = any();
-        doNothing().when(publisher).publish(any);
+        doNothing().when(publisher).publish(localAny());
         return publisher;
     }
 
@@ -152,16 +151,16 @@ public class NacosServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, RpcTypeEnum.class);
         method.setAccessible(true);
         method.invoke(repository, RpcTypeEnum.HTTP);
-        final DataTypeParent any = any();
-        verify(publisher, times(2)).publish(any);
+        
+        verify(publisher, times(2)).publish(localAny());
 
         List<String> list = new ArrayList<>();
         list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
-        verify(publisher, times(3)).publish(any);
+        verify(publisher, times(3)).publish(localAny());
 
         eventListener.onEvent(mockEvent());
-        verify(publisher, times(4)).publish(any);
+        verify(publisher, times(4)).publish(localAny());
     }
 
     @Test
@@ -172,15 +171,19 @@ public class NacosServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, RpcTypeEnum.class);
         method.setAccessible(true);
         method.invoke(repository, RpcTypeEnum.DUBBO);
-        final DataTypeParent any = any();
-        verify(publisher, times(2)).publish(any);
+        
+        verify(publisher, times(2)).publish(localAny());
 
         List<String> list = new ArrayList<>();
         list.add(GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build()));
         configListener.receiveConfigInfo(GsonUtils.getInstance().toJson(list));
-        verify(publisher, times(3)).publish(any);
+        verify(publisher, times(3)).publish(localAny());
 
         eventListener.onEvent(mockEvent());
-        verify(publisher, times(4)).publish(any);
+        verify(publisher, times(4)).publish(localAny());
+    }
+    
+    private DataTypeParent localAny(){
+        return any();
     }
 }

@@ -75,18 +75,17 @@ public class EtcdServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, String.class);
         method.setAccessible(true);
         method.invoke(repository, "http");
-        final DataTypeParent any = any();
-        verify(publisher, times(2)).publish(any);
+        
+        verify(publisher, times(2)).publish(localAny());
 
         String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
         watchHandler.updateHandler("/path", data);
-        verify(publisher, times(3)).publish(any);
+        verify(publisher, times(3)).publish(localAny());
     }
 
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        final DataTypeParent any = any();
-        doNothing().when(publisher).publish(any);
+        doNothing().when(publisher).publish(localAny());
         return publisher;
     }
 
@@ -103,5 +102,9 @@ public class EtcdServerRegisterRepositoryTest {
         }).when(client).subscribeChildChanges(anyString(), any(EtcdListenHandler.class));
 
         return client;
+    }
+    
+    private DataTypeParent localAny(){
+        return any();
     }
 }

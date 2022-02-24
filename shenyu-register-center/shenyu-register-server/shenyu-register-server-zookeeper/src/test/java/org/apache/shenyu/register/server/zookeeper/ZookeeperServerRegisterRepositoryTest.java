@@ -74,8 +74,7 @@ public class ZookeeperServerRegisterRepositoryTest {
 
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        final DataTypeParent any = any();
-        doNothing().when(publisher).publish(any);
+        doNothing().when(publisher).publish(localAny());
         return publisher;
     }
 
@@ -108,15 +107,15 @@ public class ZookeeperServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, String.class);
         method.setAccessible(true);
         method.invoke(repository, "http");
-        final DataTypeParent any = any();
-        verify(publisher, times(4)).publish(any);
+        
+        verify(publisher, times(4)).publish(localAny());
 
         zkChildListener.handleChildChange("/path", Arrays.asList("/path1", "/path2", "/path3"));
-        verify(publisher, times(10)).publish(any);
+        verify(publisher, times(10)).publish(localAny());
 
         String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
         zkDataListener.handleDataChange("/path1", data);
-        verify(publisher, times(11)).publish(any);
+        verify(publisher, times(11)).publish(localAny());
     }
 
     @Test
@@ -126,13 +125,17 @@ public class ZookeeperServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, String.class);
         method.setAccessible(true);
         method.invoke(repository, "http");
-        final DataTypeParent any = any();
-        verify(publisher, times(2)).publish(any);
+        
+        verify(publisher, times(2)).publish(localAny());
 
         zkChildListener.handleChildChange("/path", Arrays.asList("/path1", "/path2", "/path3"));
-        verify(publisher, times(5)).publish(any);
+        verify(publisher, times(5)).publish(localAny());
 
         zkChildListener.handleChildChange("/path", Collections.emptyList());
-        verify(publisher, times(6)).publish(any);
+        verify(publisher, times(6)).publish(localAny());
+    }
+    
+    private DataTypeParent localAny(){
+        return any();
     }
 }

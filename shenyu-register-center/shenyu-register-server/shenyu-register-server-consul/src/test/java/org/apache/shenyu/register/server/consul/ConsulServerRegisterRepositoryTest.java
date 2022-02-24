@@ -57,8 +57,7 @@ public class ConsulServerRegisterRepositoryTest {
 
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        final DataTypeParent any = any();
-        doNothing().when(publisher).publish(any);
+        doNothing().when(publisher).publish(localAny());
         return publisher;
     }
 
@@ -110,5 +109,9 @@ public class ConsulServerRegisterRepositoryTest {
                     ConsulConfigChangedEvent consulConfigChangedEvent = new ConsulConfigChangedEvent(this, 1L, mateData);
                     context.publishEvent(consulConfigChangedEvent);
                 });
+    }
+    
+    private DataTypeParent localAny(){
+        return any();
     }
 }
