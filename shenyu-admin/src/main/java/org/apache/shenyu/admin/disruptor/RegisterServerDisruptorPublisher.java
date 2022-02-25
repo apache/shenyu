@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.disruptor;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.shenyu.admin.disruptor.executor.RegisterServerConsumerExecutor.RegisterServerExecutorFactory;
 import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
