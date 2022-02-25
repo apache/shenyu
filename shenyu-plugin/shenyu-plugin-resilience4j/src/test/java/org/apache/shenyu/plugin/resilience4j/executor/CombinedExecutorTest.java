@@ -25,9 +25,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -70,5 +75,25 @@ public final class CombinedExecutorTest {
                 .expectSubscription()
                 .expectError(RuntimeException.class)
                 .verify();
+    }
+
+    @Test
+    public void fallbackUriTest() {
+        Resilience4JConf conf = mock(Resilience4JConf.class);
+        when(conf.getId()).thenReturn("SHENYU");
+        when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
+        when(conf.getTimeLimiterConfig()).thenReturn(TimeLimiterConfig.ofDefaults());
+        when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());
+
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+
+        StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), t -> combinedExecutor.fallback(exchange, "https://example.com", t),
+                        conf))
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+
+        assertEquals(HttpStatus.FOUND, exchange.getResponse().getStatusCode());
+        assertEquals("https://example.com", exchange.getResponse().getHeaders().getLocation().toString());
     }
 }
