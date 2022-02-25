@@ -92,7 +92,7 @@ public final class RegisterUtils {
      * @return Optional token
      * @throws IOException the io exception
      */
-    public static Optional doLogin(final String username, final String password, final String url) throws IOException {
+    public static Optional<Object> doLogin(final String username, final String password, final String url) throws IOException {
         Map<String, Object> loginMap = new HashMap<>(2);
         loginMap.put(Constants.LOGIN_NAME, username);
         loginMap.put(Constants.PASS_WORD, password);

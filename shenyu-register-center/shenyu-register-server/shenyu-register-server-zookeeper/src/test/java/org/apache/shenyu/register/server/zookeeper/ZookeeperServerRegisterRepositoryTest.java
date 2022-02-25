@@ -22,6 +22,7 @@ import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -45,60 +47,60 @@ import static org.mockito.Mockito.when;
  * Test for Zookeeper register center.
  */
 public class ZookeeperServerRegisterRepositoryTest {
-
+    
     private ZookeeperServerRegisterRepository repository;
-
+    
     private ShenyuServerRegisterPublisher publisher;
-
+    
     private IZkChildListener zkChildListener;
-
+    
     private IZkDataListener zkDataListener;
-
+    
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.publisher = mockPublish();
         this.repository = new ZookeeperServerRegisterRepository();
         Class<? extends ZookeeperServerRegisterRepository> clazz = this.repository.getClass();
-
+        
         String fieldClientString = "zkClient";
         Field fieldClient = clazz.getDeclaredField(fieldClientString);
         fieldClient.setAccessible(true);
         fieldClient.set(repository, mockZkClient());
-
+        
         String fieldPublisherString = "publisher";
         Field fieldPublisher = clazz.getDeclaredField(fieldPublisherString);
         fieldPublisher.setAccessible(true);
         fieldPublisher.set(repository, publisher);
     }
-
+    
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        doNothing().when(publisher).publish(any());
+        doNothing().when(publisher).publish(localAny());
         return publisher;
     }
-
+    
     private ZkClient mockZkClient() {
         MetaDataRegisterDTO data = MetaDataRegisterDTO.builder().build();
         ZkClient client = mock(ZkClient.class);
-
+        
         when(client.getChildren(anyString())).thenReturn(Arrays.asList("/path1", "/path2"));
         when(client.readData(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
-
+        
         doNothing().when(client).createPersistent(anyString(), anyBoolean());
-
+        
         doAnswer(invocationOnMock -> {
             this.zkChildListener = invocationOnMock.getArgument(1);
             return null;
         }).when(client).subscribeChildChanges(anyString(), any(IZkChildListener.class));
-
+        
         doAnswer(invocationOnMock -> {
             this.zkDataListener = invocationOnMock.getArgument(1);
             return null;
         }).when(client).subscribeDataChanges(anyString(), any(IZkDataListener.class));
-
+        
         return client;
     }
-
+    
     @Test
     public void testSubscribeMetaData() throws Exception {
         Class<? extends ZookeeperServerRegisterRepository> clazz = this.repository.getClass();
@@ -106,16 +108,17 @@ public class ZookeeperServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, String.class);
         method.setAccessible(true);
         method.invoke(repository, "http");
-        verify(publisher, times(4)).publish(any());
-
+        
+        verify(publisher, times(4)).publish(localAny());
+        
         zkChildListener.handleChildChange("/path", Arrays.asList("/path1", "/path2", "/path3"));
-        verify(publisher, times(10)).publish(any());
-
+        verify(publisher, times(10)).publish(localAny());
+        
         String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
         zkDataListener.handleDataChange("/path1", data);
-        verify(publisher, times(11)).publish(any());
+        verify(publisher, times(11)).publish(localAny());
     }
-
+    
     @Test
     public void testSubscribeURI() throws Exception {
         Class<? extends ZookeeperServerRegisterRepository> clazz = this.repository.getClass();
@@ -123,12 +126,17 @@ public class ZookeeperServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, String.class);
         method.setAccessible(true);
         method.invoke(repository, "http");
-        verify(publisher, times(2)).publish(any());
-
+        
+        verify(publisher, times(2)).publish(localAny());
+        
         zkChildListener.handleChildChange("/path", Arrays.asList("/path1", "/path2", "/path3"));
-        verify(publisher, times(5)).publish(any());
-
+        verify(publisher, times(5)).publish(localAny());
+        
         zkChildListener.handleChildChange("/path", Collections.emptyList());
-        verify(publisher, times(6)).publish(any());
+        verify(publisher, times(6)).publish(localAny());
+    }
+    
+    private List<DataTypeParent> localAny() {
+        return any();
     }
 }

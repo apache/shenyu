@@ -74,7 +74,7 @@ public enum DashboardUserTransfer {
 
     /**
      * conversion dashboardUserVO to dashboardUserEditVO
-     * @param dashboardUserVO
+     * @param dashboardUserVO dashboardUserVO
      * @return {@linkplain DashboardUserEditVO}
      */
     public DashboardUserEditVO transfer2EditVO(final DashboardUserVO dashboardUserVO) {

@@ -29,8 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Collections;
-
 /**
  * The type shenyu client controller.
  */
@@ -59,7 +57,7 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
     @PostMapping("/register-metadata")
     @ResponseBody
     public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publish(metaDataRegisterDTO);
+        publisher.publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
     
@@ -73,11 +71,8 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
     @PostMapping("/register-uri")
     @ResponseBody
     public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
-        publish(uriRegisterDTO);
+        publisher.publish(uriRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-
-    private <T> void publish(final T t) {
-        publisher.publish(Collections.singletonList(t));
-    }
+    
 }

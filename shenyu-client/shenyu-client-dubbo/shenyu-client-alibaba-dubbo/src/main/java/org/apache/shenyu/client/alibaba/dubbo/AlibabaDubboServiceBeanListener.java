@@ -35,6 +35,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -48,12 +49,12 @@ import java.util.stream.Collectors;
 /**
  * The Alibaba Dubbo ServiceBean Listener.
  */
-@SuppressWarnings("all")
+//@SuppressWarnings("all")
 public class AlibabaDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
-    private AtomicBoolean registered = new AtomicBoolean(false);
+    private final AtomicBoolean registered = new AtomicBoolean(false);
 
     private final String contextPath;
 
@@ -66,19 +67,18 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     public AlibabaDubboServiceBeanListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
-        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (StringUtils.isBlank(contextPath)) {
             throw new ShenyuClientIllegalArgumentException("alibaba dubbo client must config the contextPath");
         }
         this.contextPath = contextPath;
-        this.appName = appName;
+        this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
     }
     
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
         if (!registered.compareAndSet(false, true)) {
             return;
         }
@@ -87,9 +87,10 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
             handler(entry.getValue());
         }
-        serviceBean.values().stream().findFirst().ifPresent(bean -> {
-            publisher.publishEvent(buildURIRegisterDTO(bean));
-        });
+        serviceBean.values()
+                .stream()
+                .findFirst()
+                .ifPresent(bean -> publisher.publishEvent(buildURIRegisterDTO(bean)));
     }
 
     private void handler(final ServiceBean<?> serviceBean) {
@@ -108,7 +109,6 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
-        String appName = buildAppName(serviceBean);
         String path = contextPath + shenyuDubboClient.path();
         String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
@@ -118,7 +118,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
-                .appName(appName)
+                .appName(buildAppName(serviceBean))
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(contextPath)
@@ -134,7 +134,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
                 .build();
     }
     
-    private URIRegisterDTO buildURIRegisterDTO(final ServiceBean serviceBean) {
+    private URIRegisterDTO buildURIRegisterDTO(@NonNull final ServiceBean serviceBean) {
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(buildAppName(serviceBean))
@@ -158,7 +158,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         return GsonUtils.getInstance().toJson(builder);
     }
     
-    private String buildAppName(final ServiceBean serviceBean) {
+    private String buildAppName(@NonNull final ServiceBean serviceBean) {
         return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
     }
     
@@ -166,7 +166,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
     }
     
-    private int buildPort(final ServiceBean serviceBean) {
+    private int buildPort(@NonNull final ServiceBean serviceBean) {
         return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
 }

@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.register.server.api;
 
+import org.apache.shenyu.register.common.type.DataTypeParent;
+
+import java.util.Collection;
+
 /**
  * The interface Shenyu server register publisher.
  */
@@ -25,10 +29,16 @@ public interface ShenyuServerRegisterPublisher {
     /**
      * Publish.
      *
-     * @param <T> the type parameter
      * @param t the t
      */
-    <T> void publish(T t);
+    void publish(Collection<? extends DataTypeParent> t);
+    
+    /**
+     * Publish.
+     *
+     * @param dataList the dataList
+     */
+    void publish(DataTypeParent dataList);
     
     /**
      * Close.
