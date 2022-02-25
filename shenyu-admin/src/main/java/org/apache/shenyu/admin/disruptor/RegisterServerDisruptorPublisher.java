@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.disruptor;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.shenyu.admin.disruptor.executor.RegisterServerConsumerExecutor.RegisterServerExecutorFactory;
 import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
@@ -27,7 +28,9 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The type Disruptor publisher.
@@ -36,7 +39,7 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
     
     private static final RegisterServerDisruptorPublisher INSTANCE = new RegisterServerDisruptorPublisher();
     
-    private DisruptorProviderManage<Object> providerManage;
+    private DisruptorProviderManage<Collection<DataTypeParent>> providerManage;
     
     /**
      * Gets instance.
@@ -56,21 +59,21 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
         RegisterServerExecutorFactory factory = new RegisterServerExecutorFactory();
         factory.addSubscribers(new URIRegisterExecutorSubscriber(shenyuClientRegisterService));
         factory.addSubscribers(new MetadataExecutorSubscriber(shenyuClientRegisterService));
-        providerManage = new DisruptorProviderManage(factory);
+        providerManage = new DisruptorProviderManage<>(factory);
         providerManage.startup();
     }
     
     @Override
     public void publish(final DataTypeParent data) {
-        DisruptorProvider<Object> provider = providerManage.getProvider();
-        provider.onData(data);
+        DisruptorProvider<Collection<DataTypeParent>> provider = providerManage.getProvider();
+        provider.onData(Collections.singleton(data));
     }
     
     @Override
     public void publish(final Collection<? extends DataTypeParent> dataList) {
-        DisruptorProvider<Object> provider = providerManage.getProvider();
-        provider.onData(dataList);
-
+        DisruptorProvider<Collection<DataTypeParent>> provider = providerManage.getProvider();
+        provider.onData(dataList.stream().map(DataTypeParent.class::cast).collect(Collectors.toList()));
+        
     }
     
     @Override

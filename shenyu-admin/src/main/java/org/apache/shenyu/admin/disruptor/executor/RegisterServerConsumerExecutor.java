@@ -20,9 +20,9 @@ package org.apache.shenyu.admin.disruptor.executor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
+import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.subsriber.AbstractQueueConsumerFactory;
 import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
@@ -30,16 +30,17 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * The type Consumer executor.
  */
-public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<List<DataTypeParent>> {
+public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<Collection<DataTypeParent>> {
     
     private final Map<DataType, ExecutorSubscriber<DataTypeParent>> subscribers;
     
@@ -81,20 +82,46 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
         return subscribers.get(first.orElseThrow(() -> new RuntimeException("the data type is not found")).getType());
     }
     
-    public static class RegisterServerExecutorFactory extends AbstractQueueConsumerFactory {
-        
+    public static class RegisterServerExecutorFactory implements QueueConsumerFactory<Collection<DataTypeParent>> {
+    
+        /**
+         * The Subscribers.
+         */
+        private final Set<ExecutorTypeSubscriber<? extends DataTypeParent>> subscribers = new HashSet<>();
+    
         @Override
-        public QueueConsumerExecutor create() {
+        public QueueConsumerExecutor<Collection<DataTypeParent>> create() {
             Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> maps = getSubscribers()
                     .stream()
                     .map(e -> (ExecutorTypeSubscriber<DataTypeParent>) e)
                     .collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
             return new RegisterServerConsumerExecutor(maps);
         }
-        
+    
         @Override
         public String fixName() {
             return "shenyu_register_server";
+        }
+    
+    
+        /**
+         * Add subscribers abstract queue consumer factory.
+         *
+         * @param subscriber the subscriber
+         * @return the abstract queue consumer factory
+         */
+        public RegisterServerExecutorFactory addSubscribers(final ExecutorTypeSubscriber<? extends DataTypeParent> subscriber) {
+            subscribers.add(subscriber);
+            return this;
+        }
+    
+        /**
+         * Gets subscribers.
+         *
+         * @return the subscribers
+         */
+        public Set<ExecutorTypeSubscriber<? extends DataTypeParent>> getSubscribers() {
+            return subscribers;
         }
     }
 }

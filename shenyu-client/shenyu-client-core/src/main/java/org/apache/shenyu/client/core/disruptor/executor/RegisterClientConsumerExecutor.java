@@ -20,7 +20,6 @@ package org.apache.shenyu.client.core.disruptor.executor;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
 import org.apache.shenyu.register.common.subsriber.AbstractQueueConsumerFactory;
-import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
@@ -32,33 +31,32 @@ import java.util.stream.Collectors;
 /**
  * The type Consumer executor.
  */
-public final class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTypeParent> {
+public final class RegisterClientConsumerExecutor<T extends DataTypeParent> extends QueueConsumerExecutor<T> {
     
-    private final Map<DataType, ExecutorSubscriber<DataTypeParent>> subscribers;
+    private final Map<DataType, ExecutorTypeSubscriber<T>> subscribers;
     
-    private RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> executorSubscriberMap) {
-        this.subscribers = new HashMap<>(executorSubscriberMap.size());
-        this.subscribers.putAll(executorSubscriberMap);
+    private RegisterClientConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<T>> executorSubscriberMap) {
+        this.subscribers = new HashMap<>(executorSubscriberMap);
     }
 
     @Override
     public void run() {
-        DataTypeParent dataTypeParent = getData();
-        subscribers.get(dataTypeParent.getType()).executor(Lists.newArrayList(dataTypeParent));
+        final T data = getData();
+        subscribers.get(data.getType()).executor(Lists.newArrayList(data));
     }
     
     /**
      * The type Register client executor factory.
      */
-    public static class RegisterClientExecutorFactory extends AbstractQueueConsumerFactory {
+    public static class RegisterClientExecutorFactory<T extends DataTypeParent> extends AbstractQueueConsumerFactory<T> {
         
         @Override
-        public RegisterClientConsumerExecutor create() {
-            Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> map = getSubscribers()
+        public RegisterClientConsumerExecutor<T> create() {
+            Map<DataType, ExecutorTypeSubscriber<T>> map = getSubscribers()
                     .stream()
-                    .map(e -> (ExecutorTypeSubscriber<DataTypeParent>) e)
+                    .map(e -> (ExecutorTypeSubscriber<T>) e)
                     .collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
-            return new RegisterClientConsumerExecutor(map);
+            return new RegisterClientConsumerExecutor<>(map);
         }
 
         @Override
