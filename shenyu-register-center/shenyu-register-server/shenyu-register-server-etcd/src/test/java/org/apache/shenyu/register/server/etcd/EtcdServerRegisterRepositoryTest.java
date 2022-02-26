@@ -19,6 +19,7 @@ package org.apache.shenyu.register.server.etcd;
 
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.apache.shenyu.register.server.etcd.client.EtcdClient;
 import org.apache.shenyu.register.server.etcd.client.EtcdListenHandler;
@@ -29,6 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -43,30 +45,30 @@ import static org.mockito.Mockito.times;
  * test for EtcdServerRegisterRepository.
  */
 public class EtcdServerRegisterRepositoryTest {
-
+    
     private EtcdServerRegisterRepository repository;
-
+    
     private ShenyuServerRegisterPublisher publisher;
-
+    
     private EtcdListenHandler watchHandler;
-
+    
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.publisher = mockPublish();
         this.repository = new EtcdServerRegisterRepository();
         Class<? extends EtcdServerRegisterRepository> clazz = this.repository.getClass();
-
+        
         String fieldClientString = "client";
         Field fieldClient = clazz.getDeclaredField(fieldClientString);
         fieldClient.setAccessible(true);
         fieldClient.set(repository, mockEtcdClient());
-
+        
         String fieldPublisherString = "publisher";
         Field fieldPublisher = clazz.getDeclaredField(fieldPublisherString);
         fieldPublisher.setAccessible(true);
         fieldPublisher.set(repository, publisher);
     }
-
+    
     @Test
     public void testSubscribe() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class<? extends EtcdServerRegisterRepository> clazz = this.repository.getClass();
@@ -74,31 +76,36 @@ public class EtcdServerRegisterRepositoryTest {
         Method method = clazz.getDeclaredMethod(methodString, String.class);
         method.setAccessible(true);
         method.invoke(repository, "http");
-        verify(publisher, times(2)).publish(any());
-
+        
+        verify(publisher, times(2)).publish(localAny());
+        
         String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
         watchHandler.updateHandler("/path", data);
-        verify(publisher, times(3)).publish(any());
+        verify(publisher, times(3)).publish(localAny());
     }
-
+    
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        doNothing().when(publisher).publish(any());
+        doNothing().when(publisher).publish(localAny());
         return publisher;
     }
-
+    
     private EtcdClient mockEtcdClient() {
         MetaDataRegisterDTO data = MetaDataRegisterDTO.builder().build();
         EtcdClient client = mock(EtcdClient.class);
-
+        
         when(client.getChildren(anyString())).thenReturn(Arrays.asList("/path1", "/path2"));
         when(client.read(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
-
+        
         doAnswer(invocationOnMock -> {
             this.watchHandler = invocationOnMock.getArgument(1);
             return null;
         }).when(client).subscribeChildChanges(anyString(), any(EtcdListenHandler.class));
-
+        
         return client;
+    }
+    
+    private List<DataTypeParent> localAny() {
+        return any();
     }
 }

@@ -44,7 +44,7 @@ public class ShenyuAlibabaDubboClientConfigurationTest {
     @Test
     public void testShenyuAlibabaDubboClientConfiguration() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
-        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(ShenyuAlibabaDubboClientConfiguration.class))
             .withBean(ShenyuAlibabaDubboClientConfigurationTest.class)

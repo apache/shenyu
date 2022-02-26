@@ -33,7 +33,7 @@ public abstract class AbstractRetryTask extends TimerTask {
     
     private int tickCount = 1;
     
-    private final Boolean retryLimit;
+    private final boolean retryLimit;
     
     /**
      * Instantiates a new Timer task.
