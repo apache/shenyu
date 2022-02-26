@@ -93,7 +93,7 @@ public class DivideRuleHandle implements RuleHandle {
      *
      * @param retryStrategy retryStrategy
      */
-    public void setRetryStrategy(String retryStrategy) {
+    public void setRetryStrategy(final String retryStrategy) {
         this.retryStrategy = retryStrategy;
     }
 

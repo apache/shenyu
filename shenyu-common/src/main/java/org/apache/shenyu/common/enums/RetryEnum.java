@@ -30,8 +30,7 @@ public enum RetryEnum {
     /**
      * Retry other servers when failed.
      */
-    FAILOVER(2, "failover", true),
-    ;
+    FAILOVER(2, "failover", true);
 
     private final int code;
 
