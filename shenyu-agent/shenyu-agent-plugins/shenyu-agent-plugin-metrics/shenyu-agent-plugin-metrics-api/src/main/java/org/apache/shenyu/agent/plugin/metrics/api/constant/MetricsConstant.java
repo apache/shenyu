@@ -47,6 +47,9 @@ public final class MetricsConstant {
      */
     public static final String SHENYU_REQUEST_UNDONE = "shenyu_request_undone";
 
-
+    /**
+     * The constant SHENYU_EXECUTE_LATENCY_MILLIS.
+     */
+    public static final String SHENYU_EXECUTE_LATENCY_MILLIS = "shenyu_execute_latency_millis";
 
 }

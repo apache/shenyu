@@ -22,7 +22,7 @@ supports:
 #    - opentelemetry
 #     - zipkin
   metrics:
-#    - prometheus
+    - prometheus
   logging:
 #    - rocketmq
   
@@ -50,7 +50,7 @@ plugins:
         SAMPLER_PARAM: "1"
   metrics:
     prometheus:
-      host: "localhost"
+      host: "192.168.31.123"
       port: 8081
       props:
         jvm_enabled: false

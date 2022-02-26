@@ -18,8 +18,8 @@
 package org.apache.shenyu.agent.plugin.metrics.prometheus.recorder;
 
 import io.prometheus.client.Histogram;
-import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorder;
 import org.apache.shenyu.agent.api.config.MetricsConfig.Metric;
+import org.apache.shenyu.agent.plugin.metrics.api.MetricsRecorder;
 
 import java.util.Objects;
 
@@ -44,9 +44,14 @@ public final class HistogramRecorder implements MetricsRecorder {
         }
         this.histogram = builder.register();
     }
-    
+
     @Override
-    public void observe(final double value) {        
+    public void observe(final double value) {
         histogram.observe(value);
+    }
+
+    @Override
+    public void observe(final double value, final String... labels) {
+        histogram.labels(labels).observe(value);
     }
 }
