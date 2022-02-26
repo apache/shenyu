@@ -23,8 +23,10 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.ApplicationConfig;
+import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -53,6 +55,8 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     private ApplicationConfig applicationConfig;
     
     private RegistryConfig registryConfig;
+
+    private ConsumerConfig consumerConfig;
     
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
@@ -100,6 +104,17 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfigTemp::setGroup);
             registryConfig = registryConfigTemp;
         }
+        if (Objects.isNull(consumerConfig)) {
+            consumerConfig = ApplicationModel.getConfigManager().getDefaultConsumer().orElseGet(() -> {
+                ConsumerConfig consumerConfig = new ConsumerConfig();
+                consumerConfig.refresh();
+                return consumerConfig;
+            });
+            Optional.ofNullable(dubboRegisterConfig.getThreadpool()).ifPresent(consumerConfig::setThreadpool);
+            Optional.ofNullable(dubboRegisterConfig.getCorethreads()).ifPresent(consumerConfig::setCorethreads);
+            Optional.ofNullable(dubboRegisterConfig.getThreads()).ifPresent(consumerConfig::setThreads);
+            Optional.ofNullable(dubboRegisterConfig.getQueues()).ifPresent(consumerConfig::setQueues);
+        }
     }
     
     private boolean needUpdateRegistryConfig(final DubboRegisterConfig dubboRegisterConfig) {
@@ -146,6 +161,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
+        reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
         reference.setCheck(false);
