@@ -30,3 +30,17 @@ pointCuts:
     handlers:
       prometheus:
         - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusDividePluginHandler
+  - targetClass: org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin
+    points:
+      - type: instanceMethod
+        name: doDubboInvoker
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusDubboPluginHandler
+  - targetClass: org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin
+    points:
+      - type: instanceMethod
+        name: doDubboInvoker
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusDubboPluginHandler
