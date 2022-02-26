@@ -75,9 +75,6 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         resultSet.add(resp2.get().getCode());
         resultSet.add(resp3.get().getCode());
         assertTrue(resultSet.contains(202));
-
-        Future<ResultBean> resp4 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
-        assertEquals(202, resp4.get().getCode());
     }
 
     @Test
@@ -96,13 +93,10 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         resultSet.add(resp3.get().getCode());
         assertTrue(resultSet.contains(202));
         assertTrue(resultSet.contains(429));
-
-        Future<ResultBean> resp4 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class));
-        assertEquals(202, resp4.get().getCode());
     }
 
     @Test
-    public void testCircuitBreaker() throws IOException, ExecutionException, InterruptedException {
+    public void testCircuitBreaker() throws IOException, InterruptedException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
                         buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, null));
@@ -115,7 +109,6 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         }
         for (int i = 0; i < 5; i++) {
             ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
-            Thread.sleep(50);
             rets.add(resp.getCode());
         }
         assertEquals(2, rets.stream().filter(c -> c == 202).count());
@@ -125,7 +118,7 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
     }
 
     @Test
-    public void testCircuitBreakerFallbackUri() throws IOException, ExecutionException, InterruptedException {
+    public void testCircuitBreakerFallbackUri() throws IOException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
                         buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, TEST_RESILIENCE4J_SUCCESS_OUT_SCOPE_PATH));
@@ -138,7 +131,6 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         }
         for (int i = 0; i < 5; i++) {
             ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
-            Thread.sleep(50);
             rets.add(resp.getCode());
         }
         assertEquals(2, rets.stream().filter(c -> c == 202).count());
@@ -165,7 +157,7 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         Resilience4JHandle resilience4JHandle = new Resilience4JHandle();
         // set parameters for rate limiter
         resilience4JHandle.setTimeoutDuration(5000);
-        resilience4JHandle.setLimitRefreshPeriod(5000);
+        resilience4JHandle.setLimitRefreshPeriod(500000);
         resilience4JHandle.setLimitForPeriod(limitForPeriod);
 
         // set parameters for circuit breaker
