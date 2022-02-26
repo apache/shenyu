@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import com.google.common.collect.Sets;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,6 +56,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -99,7 +101,8 @@ public class WebClientPlugin implements ShenyuPlugin {
                     .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                     .flatMap(e -> doNext(e, exchange, chain));
         }
-        return resend(clientResponse, method, uri, exchange, timeout, shenyuContext, retryTimes)
+        final Set<URI> exclude = Sets.newHashSet(uri);
+        return resend(clientResponse, method, exclude, exchange, timeout, shenyuContext, retryTimes)
                 .flatMap(e -> doNext(e, exchange, chain));
     }
 
@@ -120,30 +123,38 @@ public class WebClientPlugin implements ShenyuPlugin {
 
     private Mono<ClientResponse> resend(final Mono<ClientResponse> clientResponse,
                                         final HttpMethod method,
-                                        final URI uri,
+                                        final Set<URI> exclude,
                                         final ServerWebExchange exchange,
                                         final long timeout,
                                         final ShenyuContext shenyuContext,
                                         final int retryTimes) {
         Mono<ClientResponse> result = clientResponse;
         for (int i = 0; i < retryTimes; i++) {
-            result = resend(result, method, uri, exchange, timeout, shenyuContext);
+            result = resend(result, method, exclude, exchange, timeout, shenyuContext);
         }
         return result;
     }
 
     private Mono<ClientResponse> resend(final Mono<ClientResponse> clientResponse,
                                         final HttpMethod method,
-                                        final URI uri,
+                                        final Set<URI> exclude,
                                         final ServerWebExchange exchange,
                                         final long timeout,
                                         final ShenyuContext shenyuContext) {
         //todo How to add backoff ?
         return clientResponse.onErrorResume(e -> {
-            final String hostAndPort = uri.getHost() + ":" + uri.getPort();
             final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
-            List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
-                    .stream().filter(data -> !hostAndPort.equals(data.getUrl().trim())).collect(Collectors.toList());
+            final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
+                    .stream().filter(data -> {
+                        final String trimUri = data.getUrl().trim();
+                        for (URI uri : exclude) {
+                            // exclude already called
+                            if ((uri.getHost() + ":" + uri.getPort()).equals(trimUri)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(upstreamList)) {
                 LOG.error("upstream configuration error： {}", GsonUtils.getInstance().toJson(upstreamList));
                 return Mono.error(new ShenyuException(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg()));
@@ -156,6 +167,8 @@ public class WebClientPlugin implements ShenyuPlugin {
                 return Mono.error(new ShenyuException(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg()));
             }
             final URI newUri = buildUri(upstream, exchange, shenyuContext);
+            // in order not to affect the next retry call, this uri needs to be excluded
+            exclude.add(newUri);
             return handleRequest(method, newUri, exchange, timeout);
         });
     }
