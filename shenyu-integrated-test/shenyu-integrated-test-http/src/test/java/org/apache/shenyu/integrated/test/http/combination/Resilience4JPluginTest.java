@@ -43,7 +43,6 @@ import java.util.concurrent.Future;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class Resilience4JPluginTest extends AbstractPluginDataInit {
@@ -96,7 +95,7 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
     }
 
     @Test
-    public void testCircuitBreaker() throws IOException, InterruptedException {
+    public void testCircuitBreaker() throws IOException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
                         buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, null));
@@ -111,10 +110,9 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
             ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
             rets.add(resp.getCode());
         }
-        assertEquals(2, rets.stream().filter(c -> c == 202).count());
-        assertEquals(2, rets.stream().filter(c -> c == 400).count());
-        // circuit breaker has been triggered
-        assertEquals(3, rets.stream().filter(c -> c == -103).count());
+        assertTrue(rets.contains(202));
+        assertTrue(rets.contains(400));
+        assertTrue(rets.contains(-103));
     }
 
     @Test
@@ -133,10 +131,9 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
             ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
             rets.add(resp.getCode());
         }
-        assertEquals(2, rets.stream().filter(c -> c == 202).count());
-        assertEquals(2, rets.stream().filter(c -> c == 400).count());
-        // circuit breaker has been triggered
-        assertEquals(3, rets.stream().filter(c -> c == 200).count());
+        assertTrue(rets.contains(202));
+        assertTrue(rets.contains(400));
+        assertTrue(rets.contains(200));
     }
 
     @AfterEach
