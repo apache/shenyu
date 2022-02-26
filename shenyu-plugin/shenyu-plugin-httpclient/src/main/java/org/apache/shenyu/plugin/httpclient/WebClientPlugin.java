@@ -118,17 +118,18 @@ public class WebClientPlugin implements ShenyuPlugin {
         return skipExceptHttpLike(exchange);
     }
 
-    private Mono<ClientResponse> resend(Mono<ClientResponse> clientResponse,
+    private Mono<ClientResponse> resend(final Mono<ClientResponse> clientResponse,
                                         final HttpMethod method,
                                         final URI uri,
                                         final ServerWebExchange exchange,
                                         final long timeout,
                                         final ShenyuContext shenyuContext,
                                         final int retryTimes) {
+        Mono<ClientResponse> result = clientResponse;
         for (int i = 0; i < retryTimes; i++) {
-            clientResponse = resend(clientResponse, method, uri, exchange, timeout, shenyuContext);
+            result = resend(result, method, uri, exchange, timeout, shenyuContext);
         }
-        return clientResponse;
+        return result;
     }
 
     private Mono<ClientResponse> resend(final Mono<ClientResponse> clientResponse,
