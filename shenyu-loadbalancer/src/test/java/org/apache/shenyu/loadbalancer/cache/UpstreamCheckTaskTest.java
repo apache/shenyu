@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.cache;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.awaitility.Awaitility;
@@ -83,7 +84,7 @@ public class UpstreamCheckTaskTest {
          * Wait for the upstream-health-check thread to start.
          */
         Awaitility.await().pollDelay(3, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
-        assertTrue(healthCheckTask.getUnhealthyUpstream().get(selectorId1).size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(healthCheckTask.getUnhealthyUpstream().get(selectorId1)));
         /**
          * Let it coverage line 151~163.
          */
