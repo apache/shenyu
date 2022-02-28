@@ -52,7 +52,6 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @since 2.0.0
  */
-@SuppressWarnings("all")
 public abstract class AbstractDataChangedListener implements DataChangedListener, InitializingBean {
 
     /**
@@ -96,25 +95,13 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache config = CACHE.get(groupKey.name());
         switch (groupKey) {
             case APP_AUTH:
-                List<AppAuthData> appAuthList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<AppAuthData>>() {
+            case PLUGIN:
+            case RULE:
+            case SELECTOR:
+            case META_DATA:
+                List<?> appAuthList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<?>>() {
                 }.getType());
                 return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), appAuthList);
-            case PLUGIN:
-                List<PluginData> pluginList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<PluginData>>() {
-                }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), pluginList);
-            case RULE:
-                List<RuleData> ruleList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<RuleData>>() {
-                }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), ruleList);
-            case SELECTOR:
-                List<SelectorData> selectorList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<SelectorData>>() {
-                }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), selectorList);
-            case META_DATA:
-                List<MetaData> metaList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<MetaData>>() {
-                }.getType());
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), metaList);
             default:
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
