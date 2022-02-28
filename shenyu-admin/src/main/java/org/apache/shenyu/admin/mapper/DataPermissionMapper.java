@@ -30,6 +30,14 @@ import java.util.Set;
  */
 @Mapper
 public interface DataPermissionMapper {
+    
+    /**
+     * user has permission.
+     *
+     * @param userId userId
+     * @return has permission,if not has permission the return null.
+     */
+    Boolean existed(String userId);
 
     /**
      * get list of {@link DataPermissionDO} by user id and data type.
