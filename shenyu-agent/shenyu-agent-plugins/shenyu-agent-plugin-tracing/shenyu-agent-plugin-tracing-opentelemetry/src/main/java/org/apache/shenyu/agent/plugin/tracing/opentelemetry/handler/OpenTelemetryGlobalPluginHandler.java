@@ -41,7 +41,7 @@ public final class OpenTelemetryGlobalPluginHandler implements InstanceMethodHan
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
         final OpenTelemetrySpanManager spanManager = (OpenTelemetrySpanManager) exchange.getAttributes()
-                .getOrDefault(TracingConstants.SHENYU_AGENT, new OpenTelemetrySpanManager());
+                .getOrDefault(TracingConstants.SHENYU_AGENT_TRACE_OPENTELEMETRY, new OpenTelemetrySpanManager());
 
         Map<String, String> attributesMap = new HashMap<>(4);
         attributesMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
@@ -50,7 +50,7 @@ public final class OpenTelemetryGlobalPluginHandler implements InstanceMethodHan
                 .ifPresent(v -> attributesMap.put(TracingConstants.HTTP_METHOD, v.toString()));
 
         Span span = spanManager.startAndRecord(TracingConstants.ROOT_SPAN, attributesMap);
-        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, spanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_OPENTELEMETRY, spanManager);
         target.setContext(span);
     }
 
@@ -59,7 +59,7 @@ public final class OpenTelemetryGlobalPluginHandler implements InstanceMethodHan
         Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        OpenTelemetrySpanManager manager = (OpenTelemetrySpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
+        OpenTelemetrySpanManager manager = (OpenTelemetrySpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_OPENTELEMETRY);
 
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> manager.finish(span, exchange));
@@ -75,7 +75,7 @@ public final class OpenTelemetryGlobalPluginHandler implements InstanceMethodHan
         span.setStatus(StatusCode.ERROR).recordException(throwable);
 
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        OpenTelemetrySpanManager manager = (OpenTelemetrySpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
+        OpenTelemetrySpanManager manager = (OpenTelemetrySpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_OPENTELEMETRY);
 
         manager.finish(span, exchange);
     }
