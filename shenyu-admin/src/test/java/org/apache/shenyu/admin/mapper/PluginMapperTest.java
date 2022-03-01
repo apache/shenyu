@@ -241,8 +241,7 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
         pluginDTO.setEnabled(true);
         pluginDTO.setConfig("test-config");
         pluginDTO.setRole("1");
-        pluginDTO.setName("test-name" + System.currentTimeMillis());
-        System.out.println("pluginDTO:"+pluginDTO.getName());
+        pluginDTO.setName("test-name" + System.nanoTime());
         return pluginDTO;
     }
 }
