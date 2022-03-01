@@ -34,12 +34,13 @@ import org.apache.shenyu.spi.Join;
 public class HashLoadBalancer extends AbstractLoadBalancer {
 
     /**
-     * virtual node used to solve unbalanced load
+     * virtual node used to solve unbalanced load.
      */
     private static final int VIRTUAL_NODE_NUM = 5;
 
     /**
-     * consistent hash with virtual node to select upstream
+     * consistent hash with virtual node to select upstream.
+     *
      * @param upstreamList the upstream list
      * @param ip           the ip
      * @return selected upstream
