@@ -23,7 +23,7 @@ import org.apache.shenyu.spi.SPI;
 import java.util.List;
 
 /**
- * LoadBalancer interface spi .
+ * LoadBalancer interface spi.
  */
 @SPI
 public interface LoadBalancer {
@@ -33,7 +33,7 @@ public interface LoadBalancer {
      *
      * @param upstreamList upstream list
      * @param ip ip
-     * @return divide upstream
+     * @return upstream
      */
     Upstream select(List<Upstream> upstreamList, String ip);
 }
