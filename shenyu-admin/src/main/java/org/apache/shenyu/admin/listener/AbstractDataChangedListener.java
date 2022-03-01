@@ -265,7 +265,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll());
     }
     
-    
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {
         return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), GsonUtils.getInstance().fromList(config.getJson(), dataType));
     }
