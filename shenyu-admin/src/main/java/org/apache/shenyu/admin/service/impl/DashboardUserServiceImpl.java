@@ -147,7 +147,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             if (Objects.nonNull(dashboardUserDO)) {
                 idSet.remove(dashboardUserDO.getId());
             }
-            if (idSet.size() > 0) {
+            if (CollectionUtils.isNotEmpty(ids)) {
                 ret = dashboardUserMapper.deleteByIdSet(idSet);
                 userRoleMapper.deleteByUserIdSet(idSet);
                 dataPermissionMapper.deleteByUserIdSet(idSet);
@@ -168,15 +168,25 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
         DashboardUserVO dashboardUserVO = DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
 
-        Set<String> roleIdSet = Optional.ofNullable(userRoleMapper.findByUserId(id)).orElseGet(() -> new ArrayList<>())
-                .stream().map(userRoleDO -> userRoleDO.getRoleId()).collect(Collectors.toSet());
+        Set<String> roleIdSet = Optional.ofNullable(userRoleMapper.findByUserId(id))
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(UserRoleDO::getRoleId)
+                .collect(Collectors.toSet());
 
-        List<RoleDO> allRoleDOList = Optional.ofNullable(roleMapper.selectAll()).orElseGet(() -> new ArrayList<>());
-        List<RoleVO> allRoles = allRoleDOList.stream().map(RoleVO::buildRoleVO).collect(Collectors.toList());
+        List<RoleDO> allRoleDOList = Optional.ofNullable(roleMapper.selectAll())
+                .orElseGet(ArrayList::new);
+        List<RoleVO> allRoles = allRoleDOList.stream()
+                .map(RoleVO::buildRoleVO).collect(Collectors.toList());
 
-        List<RoleDO> roleDOList = allRoleDOList.stream().filter(roleDO -> roleIdSet.contains(roleDO.getId())).collect(Collectors.toList());
-        List<RoleVO> roles = Optional.ofNullable(roleDOList).orElseGet(() -> new ArrayList<>()).stream()
-                .map(roleDO -> RoleVO.buildRoleVO(roleDO)).filter(Objects::nonNull).collect(Collectors.toList());
+        List<RoleDO> roleDOList = allRoleDOList.stream()
+                .filter(roleDO -> roleIdSet.contains(roleDO.getId()))
+                .collect(Collectors.toList());
+        List<RoleVO> roles = Optional.of(roleDOList)
+                .orElseGet(ArrayList::new).stream()
+                .map(RoleVO::buildRoleVO)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         return DashboardUserEditVO.buildDashboardUserEditVO(dashboardUserVO, roles, allRoles);
     }

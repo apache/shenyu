@@ -125,12 +125,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     public int delete(final List<String> ids) {
 
         int count = 0;
-        Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>())
-                .stream().filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
+        Set<String> idSet = Optional.ofNullable(ids).orElseGet(ArrayList::new)
+                .stream().filter(StringUtils::isNotEmpty).collect(Collectors.toSet());
         if (CollectionUtils.isNotEmpty(idSet)) {
             List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdSet(idSet);
-            List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(() -> new ArrayList<>())
-                    .stream().map(metaDataDO -> MetaDataTransfer.INSTANCE.mapToData(metaDataDO)).collect(Collectors.toList());
+            List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(ArrayList::new)
+                    .stream().map(MetaDataTransfer.INSTANCE::mapToData).collect(Collectors.toList());
 
             count = metaDataMapper.deleteByIdSet(idSet);
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
@@ -142,16 +142,17 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
 
-        Set<String> idSet = Optional.ofNullable(ids).orElseGet(() -> new ArrayList<>())
-                .stream().filter(id -> StringUtils.isNotEmpty(id)).collect(Collectors.toSet());
+        Set<String> idSet = Optional.ofNullable(ids).orElseGet(ArrayList::new)
+                .stream().filter(StringUtils::isNotEmpty).collect(Collectors.toSet());
         if (CollectionUtils.isEmpty(idSet)) {
             return AdminConstants.ID_NOT_EXIST;
         }
-        List<MetaDataDO> metaDataDoList = Optional.ofNullable(metaDataMapper.selectByIdSet(idSet)).orElseGet(() -> new ArrayList<>());
+        List<MetaDataDO> metaDataDoList = Optional.ofNullable(metaDataMapper.selectByIdSet(idSet)).orElseGet(ArrayList::new);
         if (idSet.size() != metaDataDoList.size()) {
             return AdminConstants.ID_NOT_EXIST;
         }
-        List<MetaData> metaDataList = metaDataDoList.stream().map(metaDataDO -> MetaDataTransfer.INSTANCE.mapToData(metaDataDO))
+        List<MetaData> metaDataList = metaDataDoList.stream()
+                .map(MetaDataTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
         metaDataMapper.updateEnableBatch(idSet, enabled);
 
@@ -219,8 +220,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     private String checkData(final MetaDataDTO metaDataDTO) {
-        Boolean success = checkParam(metaDataDTO);
-        if (!success) {
+        if (!checkParam(metaDataDTO)) {
             LOG.error("metaData create param is error, {}", metaDataDTO);
             return AdminConstants.PARAMS_ERROR;
         }
@@ -233,7 +233,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         return StringUtils.EMPTY;
     }
 
-    private Boolean checkParam(final MetaDataDTO metaDataDTO) {
+    private boolean checkParam(final MetaDataDTO metaDataDTO) {
         return !StringUtils.isEmpty(metaDataDTO.getAppName())
                 && !StringUtils.isEmpty(metaDataDTO.getPath())
                 && !StringUtils.isEmpty(metaDataDTO.getRpcType())

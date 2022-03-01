@@ -163,7 +163,7 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorConditionMapper.insertSelective(SelectorConditionDO.buildSelectorConditionDO(selectorConditionDTO));
             });
             // check selector add
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
+            if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
                 dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(selectorDO.getId());
