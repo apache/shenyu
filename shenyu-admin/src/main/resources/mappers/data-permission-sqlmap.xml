@@ -89,6 +89,10 @@
         and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from data_permission where user_id = #{userId,jdbcType=VARCHAR} limit 1
+    </select>
+
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DataPermissionDO">
         insert into data_permission
         <trim prefix="(" suffix=")" suffixOverrides=",">

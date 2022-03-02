@@ -202,7 +202,7 @@ public class PluginServiceImpl implements PluginService {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
         List<PluginDO> plugins = Optional.ofNullable(pluginMapper.selectByIds(ids)).orElseGet(ArrayList::new);
-        Set<String> idSet = new HashSet<>(Optional.ofNullable(ids).orElseGet(ArrayList::new));
+        Set<String> idSet = new HashSet<>(Optional.of(ids).orElseGet(ArrayList::new));
         if (idSet.size() > plugins.size()) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }

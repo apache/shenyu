@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.loadbalancer.factory;
 
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -48,7 +48,7 @@ public final class LoadBalancerFactoryTest {
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = LoadBalancerFactory.selector(upstreamList, "roundRobin", "");
+            Upstream result = LoadBalancerFactory.selector(upstreamList, LoadBalanceEnum.ROUND_ROBIN.getName(), "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
@@ -66,7 +66,7 @@ public final class LoadBalancerFactoryTest {
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = LoadBalancerFactory.selector(upstreamList, "roundRobin", "");
+            Upstream result = LoadBalancerFactory.selector(upstreamList, LoadBalanceEnum.ROUND_ROBIN.getName(), "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
@@ -84,7 +84,7 @@ public final class LoadBalancerFactoryTest {
                         .collect(Collectors.toList());
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = LoadBalancerFactory.selector(upstreamList, "roundRobin", "");
+            Upstream result = LoadBalancerFactory.selector(upstreamList, LoadBalanceEnum.ROUND_ROBIN.getName(), "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });

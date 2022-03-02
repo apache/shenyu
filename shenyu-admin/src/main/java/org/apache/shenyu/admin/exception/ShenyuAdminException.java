@@ -15,28 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.loadbalancer.factory;
+package org.apache.shenyu.admin.exception;
 
-import java.util.List;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 /**
- * The type Load balance Factory.
+ * ShenyuAdminException.
+ * <p>shenyu admin module exception root.</p>
  */
-public class LoadBalancerFactory {
-
-    /**
-     * Selector upstream.
-     *
-     * @param upstreamList the upstream list
-     * @param algorithm    the loadBalance algorithm
-     * @param ip           the ip
-     * @return the upstream
-     */
-    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
-        LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, ip);
+public class ShenyuAdminException extends ShenyuException {
+    
+    public ShenyuAdminException(final Throwable e) {
+        super(e);
+    }
+    
+    public ShenyuAdminException(final String message) {
+        super(message);
+    }
+    
+    public ShenyuAdminException(final String message, final Throwable throwable) {
+        super(message, throwable);
     }
 }

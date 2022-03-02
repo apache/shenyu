@@ -15,28 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.loadbalancer.factory;
+package org.apache.shenyu.admin.validation;
 
-import java.util.List;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
-import org.apache.shenyu.spi.ExtensionLoader;
+import java.io.Serializable;
 
 /**
- * The type Load balance Factory.
+ * ExistProvider.
  */
-public class LoadBalancerFactory {
-
+public interface ExistProvider {
+    
     /**
-     * Selector upstream.
+     * not existed.
      *
-     * @param upstreamList the upstream list
-     * @param algorithm    the loadBalance algorithm
-     * @param ip           the ip
-     * @return the upstream
+     * @param key key
+     * @return not exited
      */
-    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
-        LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, ip);
+    default boolean notExisted(final Serializable key) {
+        return !Boolean.TRUE.equals(existed(key));
     }
+    
+    
+    /**
+     * existed.
+     *
+     * @param key key
+     * @return existed, if not existed nullable
+     */
+    Boolean existed(Serializable key);
 }

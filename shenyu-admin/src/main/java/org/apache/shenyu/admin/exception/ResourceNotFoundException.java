@@ -15,28 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.loadbalancer.factory;
-
-import java.util.List;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
-import org.apache.shenyu.spi.ExtensionLoader;
+package org.apache.shenyu.admin.exception;
 
 /**
- * The type Load balance Factory.
+ * ResourceNotFoundException.
+ * <p>resource not found.</p>
+ * <p>the resource maybe is bean,is file,is metadata,is rule ......</p>
  */
-public class LoadBalancerFactory {
-
-    /**
-     * Selector upstream.
-     *
-     * @param upstreamList the upstream list
-     * @param algorithm    the loadBalance algorithm
-     * @param ip           the ip
-     * @return the upstream
-     */
-    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
-        LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, ip);
+public class ResourceNotFoundException extends ShenyuAdminException {
+    
+    public ResourceNotFoundException(final Throwable e) {
+        super(e);
+    }
+    
+    public ResourceNotFoundException(final String message) {
+        super(message);
+    }
+    
+    public ResourceNotFoundException(final String message, final Throwable throwable) {
+        super(message, throwable);
     }
 }

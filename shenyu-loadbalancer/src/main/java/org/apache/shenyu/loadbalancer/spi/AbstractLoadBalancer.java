@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.List;
-import java.util.Objects;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 
 /**
  * The type Abstract load balancer.
@@ -29,17 +27,17 @@ import java.util.Objects;
 public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     /**
-     * Do select divide upstream.
+     * Do select upstream.
      *
      * @param upstreamList the upstream list
      * @param ip           the ip
-     * @return the divide upstream
+     * @return the upstream
      */
     protected abstract Upstream doSelect(List<Upstream> upstreamList, String ip);
 
     @Override
     public Upstream select(final List<Upstream> upstreamList, final String ip) {
-        if (Objects.isNull(upstreamList) || CollectionUtils.isEmpty(upstreamList)) {
+        if (CollectionUtils.isEmpty(upstreamList)) {
             return null;
         }
         if (upstreamList.size() == 1) {

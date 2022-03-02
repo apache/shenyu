@@ -18,20 +18,21 @@
 
 package org.apache.shenyu.agent.core.bytebuddy.interceptor;
 
-import net.bytebuddy.implementation.bind.annotation.AllArguments;
-import net.bytebuddy.implementation.bind.annotation.Origin;
-import net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import net.bytebuddy.implementation.bind.annotation.SuperCall;
-import net.bytebuddy.implementation.bind.annotation.This;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.concurrent.Callable;
+
 import org.apache.shenyu.agent.api.entity.MethodResult;
 import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.concurrent.Callable;
+import net.bytebuddy.implementation.bind.annotation.AllArguments;
+import net.bytebuddy.implementation.bind.annotation.Origin;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.SuperCall;
+import net.bytebuddy.implementation.bind.annotation.This;
 
 /**
  * The type Instance method interceptor.
@@ -63,38 +64,38 @@ public class InstanceMethodInterceptor {
      */
     @RuntimeType
     public Object intercept(@This final Object target, @Origin final Method method, @AllArguments final Object[] args, @SuperCall final Callable<?> callable) throws Exception {
-        Object result = null;
+
         TargetObject instance = (TargetObject) target;
+        MethodResult methodResult = new MethodResult();
         for (InstanceMethodHandler handler : handlerList) {
-            MethodResult methodResult = new MethodResult();
             try {
                 handler.before(instance, method, args, methodResult);
-                // CHECKSTYLE:OFF
             } catch (final Throwable ex) {
-                // CHECKSTYLE:ON
                 LOG.error("Failed to execute the before method of method {} in class {}", method.getName(), target.getClass(), ex);
             }
-            try {
-                if (!methodResult.isReset()) {
-                    methodResult.reset(callable.call());
-                }
-                // CHECKSTYLE:OFF
-            } catch (final Throwable ex) {
-                // CHECKSTYLE:ON
+        }
+        Object result;
+        try {
+            if (!methodResult.isReset()) {
+                result = callable.call();
+                methodResult.reset(result);
+            } else {
+                result = methodResult.getResult();
+            }
+        } catch (final Throwable ex) {
+            for (InstanceMethodHandler handler : handlerList) {
                 try {
                     handler.onThrowing(instance, method, args, ex);
-                    // CHECKSTYLE:OFF
-                } catch (final Throwable ignored) {
-                    // CHECKSTYLE:ON
-                    LOG.error("Failed to execute the error handler of method {} in class {}", method.getName(), target.getClass(), ex);
-                    throw ex;
+                } catch (final Throwable handlerEx) {
+                    LOG.error("Failed to execute the error handler of method {} in class {}", method.getName(), target.getClass(), handlerEx);
                 }
-            } finally {
+            }
+            throw ex;
+        } finally {
+            for (InstanceMethodHandler handler : handlerList) {
                 try {
                     result = handler.after(instance, method, args, methodResult);
-                    // CHECKSTYLE:OFF
                 } catch (final Throwable ex) {
-                    // CHECKSTYLE:ON
                     LOG.error("Failed to execute the after method of method {} in class {}", method.getName(), target.getClass(), ex);
                 }
             }
