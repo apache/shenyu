@@ -18,18 +18,19 @@
 
 package org.apache.shenyu.agent.core.bytebuddy.interceptor;
 
-import net.bytebuddy.implementation.bind.annotation.AllArguments;
-import net.bytebuddy.implementation.bind.annotation.Origin;
-import net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import net.bytebuddy.implementation.bind.annotation.SuperCall;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.concurrent.Callable;
+
 import org.apache.shenyu.agent.api.entity.MethodResult;
 import org.apache.shenyu.agent.api.handler.StaticMethodHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.concurrent.Callable;
+import net.bytebuddy.implementation.bind.annotation.AllArguments;
+import net.bytebuddy.implementation.bind.annotation.Origin;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.SuperCall;
 
 /**
  * The type Static method interceptor.
@@ -61,35 +62,36 @@ public class StaticMethodInterceptor {
      */
     @RuntimeType
     public Object intercept(@Origin final Class<?> klass, @Origin final Method method, @AllArguments final Object[] args, @SuperCall final Callable<?> callable) throws Exception {
-        Object result = null;
+        MethodResult methodResult = new MethodResult();
         for (StaticMethodHandler handler : handlerList) {
-            MethodResult methodResult = new MethodResult();
             try {
                 handler.before(klass, method, args, methodResult);
-                // CHECKSTYLE:OFF
             } catch (final Throwable ex) {
-                // CHECKSTYLE:ON
                 LOG.error("Failed to execute the before method of method {} in class {}", method.getName(), klass, ex);
             }
-            try {
+        }
+        Object result;
+        try {
+            if (!methodResult.isReset()) {
                 result = callable.call();
-                // CHECKSTYLE:OFF
-            } catch (final Throwable ex) {
-                // CHECKSTYLE:ON
+                methodResult.reset(result);
+            } else {
+                result = methodResult.getResult();
+            }
+        } catch (final Throwable ex) {
+            for (StaticMethodHandler handler : handlerList) {
                 try {
                     handler.onThrowing(klass, method, args, ex);
-                    // CHECKSTYLE:OFF
-                } catch (final Throwable ignored) {
-                    // CHECKSTYLE:ON
-                    LOG.error("Failed to execute the error handler of method {} in class {}", method.getName(), klass, ex);
-                    throw ex;
+                } catch (final Throwable handlerEx) {
+                    LOG.error("Failed to execute the error handler of method {} in class {}", method.getName(), klass, handlerEx);
                 }
-            } finally {
+            }
+            throw ex;
+        } finally {
+            for (StaticMethodHandler handler : handlerList) {
                 try {
-                    handler.after(klass, method, args, methodResult);
-                    // CHECKSTYLE:OFF
+                    result = handler.after(klass, method, args, methodResult);
                 } catch (final Throwable ex) {
-                    // CHECKSTYLE:ON
                     LOG.error("Failed to execute the after method of method {} in class {}", method.getName(), klass, ex);
                 }
             }
