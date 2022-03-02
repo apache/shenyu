@@ -25,7 +25,7 @@ import java.io.Serializable;
 public interface ExistProvider {
     
     /**
-     * not existed
+     * not existed.
      *
      * @param key key
      * @return not exited
@@ -36,7 +36,7 @@ public interface ExistProvider {
     
     
     /**
-     * existed
+     * existed.
      *
      * @param key key
      * @return existed, if not existed nullable
