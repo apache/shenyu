@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.agent.api.handler;
 
-import org.apache.shenyu.agent.api.entity.MethodResult;
-
 import java.lang.reflect.Method;
+
+import org.apache.shenyu.agent.api.entity.MethodResult;
 
 /**
  * The interface Class static method handler.
@@ -44,8 +44,10 @@ public interface StaticMethodHandler {
      * @param method the method
      * @param args the args
      * @param result the result
+     * @return method result
      */
-    default void after(final Class<?> clazz, final Method method, final Object[] args, final MethodResult result) {
+    default Object after(final Class<?> clazz, final Method method, final Object[] args, final MethodResult result) {
+        return result.getResult();
     }
     
     /**
