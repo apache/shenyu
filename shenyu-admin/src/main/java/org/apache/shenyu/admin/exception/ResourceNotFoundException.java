@@ -32,7 +32,7 @@ public class ResourceNotFoundException extends ShenyuAdminException {
         super(message);
     }
     
-    public ResourceNotFoundException(final String message, Throwable throwable) {
+    public ResourceNotFoundException(final String message, final Throwable throwable) {
         super(message, throwable);
     }
 }

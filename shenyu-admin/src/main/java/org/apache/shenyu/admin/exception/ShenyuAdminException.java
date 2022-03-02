@@ -33,7 +33,7 @@ public class ShenyuAdminException extends ShenyuException {
         super(message);
     }
     
-    public ShenyuAdminException(final String message, Throwable throwable) {
+    public ShenyuAdminException(final String message, final Throwable throwable) {
         super(message, throwable);
     }
 }
