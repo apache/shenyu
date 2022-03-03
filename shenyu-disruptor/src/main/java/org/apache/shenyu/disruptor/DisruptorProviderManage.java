@@ -56,8 +56,6 @@ public class DisruptorProviderManage<T> {
     
     private DisruptorProvider<T> provider;
     
-    private OrderlyExecutor executor;
-    
     /**
      * Instantiates a new Disruptor provider manage.
      *
@@ -106,13 +104,12 @@ public class DisruptorProviderManage<T> {
      *
      * @param isOrderly the orderly Whether to execute sequentially.
      */
-    @SuppressWarnings("all")
     public void startup(final boolean isOrderly) {
-        this.executor = new OrderlyExecutor(isOrderly, consumerSize, consumerSize, 0, TimeUnit.MILLISECONDS,
+        OrderlyExecutor executor = new OrderlyExecutor(isOrderly, consumerSize, consumerSize, 0, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
                 DisruptorThreadFactory.create("shenyu_disruptor_consumer_", false), new ThreadPoolExecutor.AbortPolicy());
         int newConsumerSize = this.consumerSize;
-        EventFactory eventFactory;
+        EventFactory<DataEvent<T>> eventFactory;
         if (isOrderly) {
             newConsumerSize = 1;
             eventFactory = new OrderlyDisruptorEventFactory<>();
@@ -124,6 +121,7 @@ public class DisruptorProviderManage<T> {
                 DisruptorThreadFactory.create("shenyu_disruptor_provider_" + consumerFactory.fixName(), false),
                 ProducerType.MULTI,
                 new BlockingWaitStrategy());
+        @SuppressWarnings("all")
         QueueConsumer<T>[] consumers = new QueueConsumer[newConsumerSize];
         for (int i = 0; i < newConsumerSize; i++) {
             consumers[i] = new QueueConsumer<>(executor, consumerFactory);

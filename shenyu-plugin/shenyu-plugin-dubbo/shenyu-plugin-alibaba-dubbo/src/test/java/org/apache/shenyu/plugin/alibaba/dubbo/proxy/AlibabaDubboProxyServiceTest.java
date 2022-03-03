@@ -30,15 +30,18 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.AlibabaDubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -46,7 +49,8 @@ import static org.mockito.Mockito.when;
 /**
  * AlibabaDubboProxyServiceTest.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class AlibabaDubboProxyServiceTest {
     private static final String PATH = "/sofa/findAll";
 
@@ -61,7 +65,7 @@ public final class AlibabaDubboProxyServiceTest {
     @Mock
     private ReferenceConfig<GenericService> referenceConfig;
 
-    @Before
+    @BeforeEach
     public void setup() {
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
@@ -72,7 +76,7 @@ public final class AlibabaDubboProxyServiceTest {
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
     }
 
-    @After
+    @AfterEach
     public void after() {
         AlibabaDubboConfigCache.getInstance().invalidateAll();
     }
@@ -95,8 +99,8 @@ public final class AlibabaDubboProxyServiceTest {
             AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new BodyParamResolveServiceImpl());
 
             ResponseFuture responseFuture = alibabaDubboProxyService.genericInvoker("", metaData);
-            Assert.assertNotNull(responseFuture);
-            Assert.assertEquals(sample, RpcContext.getContext().getFuture().get());
+            assertNotNull(responseFuture);
+            assertEquals(sample, RpcContext.getContext().getFuture().get());
         }
     }
 

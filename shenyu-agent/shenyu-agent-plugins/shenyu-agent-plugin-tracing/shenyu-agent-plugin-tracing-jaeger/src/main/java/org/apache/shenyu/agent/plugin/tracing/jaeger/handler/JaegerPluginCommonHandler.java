@@ -22,9 +22,8 @@ import io.opentracing.tag.Tags;
 import org.apache.shenyu.agent.api.entity.MethodResult;
 import org.apache.shenyu.agent.api.entity.TargetObject;
 import org.apache.shenyu.agent.api.handler.InstanceMethodHandler;
-import org.apache.shenyu.agent.plugin.tracing.jaeger.constant.JaegerConstants;
+import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 import org.apache.shenyu.agent.plugin.tracing.jaeger.span.JaegerSpanManager;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -41,25 +40,22 @@ public final class JaegerPluginCommonHandler implements InstanceMethodHandler {
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
         final JaegerSpanManager jaegerSpanManager = (JaegerSpanManager) exchange.getAttributes()
-                .getOrDefault(JaegerConstants.ROOT_SPAN, new JaegerSpanManager());
+                .getOrDefault(TracingConstants.SHENYU_AGENT_TRACE_JAEGER, new JaegerSpanManager());
 
-        Map<String, String> tagMap = new HashMap<>(8);
-        tagMap.put(Tags.COMPONENT.getKey(), JaegerConstants.NAME);
-        tagMap.put(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
-        for (int i = 2; i < args.length; i++) {
-            tagMap.put(args[i].getClass().getName(), GsonUtils.getGson().toJson(args[i]));
-        }
+        Map<String, String> tagMap = new HashMap<>(2, 1);
+        tagMap.put(Tags.COMPONENT.getKey(), TracingConstants.NAME);
 
         Span span = jaegerSpanManager.add(method.getDeclaringClass().getSimpleName(), tagMap);
-        exchange.getAttributes().put(JaegerConstants.RESPONSE_SPAN, jaegerSpanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_JAEGER, jaegerSpanManager);
         target.setContext(span);
     }
 
     @Override
-    public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult, final Object result) {
+    public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult) {
+        Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(JaegerConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_JAEGER);
 
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> {
@@ -76,7 +72,7 @@ public final class JaegerPluginCommonHandler implements InstanceMethodHandler {
         Span span = (Span) target.getContext();
 
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(JaegerConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_JAEGER);
 
         manager.error(span, exchange, throwable);
     }

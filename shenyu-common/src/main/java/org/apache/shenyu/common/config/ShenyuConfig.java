@@ -49,7 +49,27 @@ public class ShenyuConfig {
     private CrossFilterConfig cross = new CrossFilterConfig();
     
     private InstanceConfig instance = new InstanceConfig();
-    
+
+    private RibbonConfig ribbon = new RibbonConfig();
+
+    /**
+     * Gets ribbon.
+     *
+     * @return the ribbon
+     */
+    public RibbonConfig getRibbon() {
+        return ribbon;
+    }
+
+    /**
+     * Sets ribbon.
+     *
+     * @param ribbon the ribbon
+     */
+    public void setRibbon(final RibbonConfig ribbon) {
+        this.ribbon = ribbon;
+    }
+
     /**
      * Gets instance.
      *
@@ -984,6 +1004,50 @@ public class ShenyuConfig {
          */
         public void setProps(final Properties props) {
             this.props = props;
+        }
+    }
+
+    /**
+     * The Ribbon Config.
+     */
+    public static class RibbonConfig {
+
+        /**
+         * see {@code com.netflix.client.config.CommonClientConfigKey#ServerListRefreshInterval}.
+         */
+        private Integer serverListRefreshInterval = 10000;
+
+        /**
+         * Instantiates a new RibbonConfig.
+         */
+        public RibbonConfig() {
+        }
+
+        /**
+         * Instantiates a new RibbonConfig.
+         *
+         * @param serverListRefreshInterval serverListRefreshInterval
+         */
+        public RibbonConfig(final Integer serverListRefreshInterval) {
+            this.serverListRefreshInterval = serverListRefreshInterval;
+        }
+
+        /**
+         * Gets serverListRefreshInterval.
+         *
+         * @return the serverListRefreshInterval
+         */
+        public Integer getServerListRefreshInterval() {
+            return serverListRefreshInterval;
+        }
+
+        /**
+         * setServerListRefreshInterval.
+         *
+         * @param serverListRefreshInterval serverListRefreshInterval
+         */
+        public void setServerListRefreshInterval(final Integer serverListRefreshInterval) {
+            this.serverListRefreshInterval = serverListRefreshInterval;
         }
     }
 }

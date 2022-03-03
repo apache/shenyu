@@ -44,7 +44,7 @@ public class Resilience4JHandle {
     /**
      * circuitBreaker circuitEnable.
      */
-    private int circuitEnable = Constants.CIRCUIT_ENABLE;
+    private int circuitEnable = Constants.CIRCUIT_DISABLE;
 
     /**
      * circuitBreaker timeoutDuration.
@@ -388,17 +388,21 @@ public class Resilience4JHandle {
      * @param resilience4JHandle {@linkplain Resilience4JHandle}
      */
     public void checkData(final Resilience4JHandle resilience4JHandle) {
-        resilience4JHandle.setTimeoutDurationRate(Math.max(resilience4JHandle.getTimeoutDurationRate(), Constants.TIMEOUT_DURATION_RATE));
-        resilience4JHandle.setLimitRefreshPeriod(Math.max(resilience4JHandle.getLimitRefreshPeriod(), Constants.LIMIT_REFRESH_PERIOD));
-        resilience4JHandle.setLimitForPeriod(Math.max(resilience4JHandle.getLimitForPeriod(), Constants.LIMIT_FOR_PERIOD));
-        resilience4JHandle.setCircuitEnable(Math.max(resilience4JHandle.getCircuitEnable(), Constants.CIRCUIT_ENABLE));
-        resilience4JHandle.setTimeoutDuration(Math.max(resilience4JHandle.getTimeoutDuration(), Constants.TIMEOUT_DURATION));
+        resilience4JHandle.setTimeoutDurationRate(resilience4JHandle.getTimeoutDurationRate() < 0 ? Constants.TIMEOUT_DURATION_RATE : resilience4JHandle.getTimeoutDurationRate());
+        resilience4JHandle.setLimitRefreshPeriod(resilience4JHandle.getLimitRefreshPeriod() < 0 ? Constants.LIMIT_REFRESH_PERIOD : resilience4JHandle.getLimitRefreshPeriod());
+        resilience4JHandle.setLimitForPeriod(resilience4JHandle.getLimitForPeriod() < 0 ? Constants.LIMIT_FOR_PERIOD : resilience4JHandle.getLimitForPeriod());
+        resilience4JHandle.setCircuitEnable(resilience4JHandle.getCircuitEnable() != Constants.CIRCUIT_ENABLE ? Constants.CIRCUIT_DISABLE : Constants.CIRCUIT_ENABLE);
+        resilience4JHandle.setTimeoutDuration(resilience4JHandle.getTimeoutDuration() < 0 ? Constants.TIMEOUT_DURATION : resilience4JHandle.getTimeoutDuration());
         resilience4JHandle.setFallbackUri(!"0".equals(resilience4JHandle.getFallbackUri()) ? resilience4JHandle.getFallbackUri() : "");
-        resilience4JHandle.setSlidingWindowSize(Math.max(resilience4JHandle.getSlidingWindowSize(), Constants.SLIDING_WINDOW_SIZE));
-        resilience4JHandle.setSlidingWindowType(Math.max(resilience4JHandle.getSlidingWindowType(), Constants.SLIDING_WINDOW_TYPE));
-        resilience4JHandle.setMinimumNumberOfCalls(Math.max(resilience4JHandle.getMinimumNumberOfCalls(), Constants.MINIMUM_NUMBER_OF_CALLS));
-        resilience4JHandle.setWaitIntervalFunctionInOpenState(Math.max(resilience4JHandle.getWaitIntervalFunctionInOpenState(), Constants.WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE));
-        resilience4JHandle.setPermittedNumberOfCallsInHalfOpenState(Math.max(resilience4JHandle.getPermittedNumberOfCallsInHalfOpenState(), Constants.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE));
-        resilience4JHandle.setFailureRateThreshold(Math.max(resilience4JHandle.getFailureRateThreshold(), Constants.FAILURE_RATE_THRESHOLD));
+        resilience4JHandle.setSlidingWindowSize(resilience4JHandle.getSlidingWindowSize() < 0 ? Constants.SLIDING_WINDOW_SIZE : resilience4JHandle.getSlidingWindowSize());
+        resilience4JHandle.setSlidingWindowType(resilience4JHandle.getSlidingWindowType() < 0 ? Constants.SLIDING_WINDOW_TYPE : resilience4JHandle.getSlidingWindowType());
+        resilience4JHandle.setMinimumNumberOfCalls(resilience4JHandle.getMinimumNumberOfCalls() < 0 ? Constants.MINIMUM_NUMBER_OF_CALLS : resilience4JHandle.getMinimumNumberOfCalls());
+        resilience4JHandle.setWaitIntervalFunctionInOpenState(resilience4JHandle.getWaitIntervalFunctionInOpenState() < 0
+                ? Constants.WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE : resilience4JHandle.getWaitIntervalFunctionInOpenState());
+        resilience4JHandle.setPermittedNumberOfCallsInHalfOpenState(resilience4JHandle.getPermittedNumberOfCallsInHalfOpenState() < 0
+                ? Constants.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE : resilience4JHandle.getPermittedNumberOfCallsInHalfOpenState());
+        resilience4JHandle.setFailureRateThreshold(
+                resilience4JHandle.getFailureRateThreshold() < 0 || resilience4JHandle.getFailureRateThreshold() > 100
+                        ? Constants.FAILURE_RATE_THRESHOLD : resilience4JHandle.getFailureRateThreshold());
     }
 }

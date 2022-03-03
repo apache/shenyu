@@ -129,7 +129,7 @@ public class RuleServiceImpl implements RuleService {
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleCount = ruleMapper.insertSelective(ruleDO);
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
+            if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
                 dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(ruleDO.getId());
@@ -274,7 +274,7 @@ public class RuleServiceImpl implements RuleService {
                         return list1;
                     }));
 
-        return Optional.ofNullable(ruleDOList).orElseGet(ArrayList::new)
+        return Optional.of(ruleDOList).orElseGet(ArrayList::new)
                 .stream().filter(Objects::nonNull).map(ruleDO -> {
                     String ruleId = ruleDO.getId();
                     List<ConditionData> conditions = conditionMap.get(ruleId);

@@ -20,14 +20,14 @@ package org.apache.shenyu.agent.core;
 import org.apache.shenyu.agent.api.config.ShenyuAgentConfig;
 import org.apache.shenyu.agent.api.entity.PointCutConfig;
 import org.apache.shenyu.agent.core.yaml.ShenyuYamlEngine;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Objects;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The type Shenyu yaml engine test.

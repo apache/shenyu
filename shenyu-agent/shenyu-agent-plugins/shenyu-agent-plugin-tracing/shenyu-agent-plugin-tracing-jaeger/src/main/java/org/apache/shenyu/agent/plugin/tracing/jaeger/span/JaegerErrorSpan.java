@@ -19,7 +19,7 @@ package org.apache.shenyu.agent.plugin.tracing.jaeger.span;
 
 import io.opentracing.Span;
 import io.opentracing.tag.Tags;
-import org.apache.shenyu.agent.plugin.tracing.jaeger.constant.JaegerConstants;
+import org.apache.shenyu.agent.plugin.tracing.common.constant.TracingConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,9 +41,9 @@ public final class JaegerErrorSpan {
     
     private static Map<String, ?> getReason(final Throwable cause) {
         Map<String, String> result = new HashMap<>(3, 1);
-        result.put(JaegerConstants.ErrorLogTags.EVENT, JaegerConstants.ErrorLogTags.EVENT_ERROR_TYPE);
-        result.put(JaegerConstants.ErrorLogTags.ERROR_KIND, cause.getClass().getName());
-        result.put(JaegerConstants.ErrorLogTags.MESSAGE, cause.getMessage());
+        result.put(TracingConstants.ErrorLogTags.EVENT, TracingConstants.ErrorLogTags.EVENT_ERROR_TYPE);
+        result.put(TracingConstants.ErrorLogTags.ERROR_KIND, cause.getClass().getName());
+        result.put(TracingConstants.ErrorLogTags.MESSAGE, cause.getMessage());
         return result;
     }
 }

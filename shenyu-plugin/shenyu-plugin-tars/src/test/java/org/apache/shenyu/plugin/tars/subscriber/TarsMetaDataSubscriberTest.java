@@ -19,22 +19,22 @@ package org.apache.shenyu.plugin.tars.subscriber;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Test case for {@link TarsMetaDataSubscriber}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TarsMetaDataSubscriberTest {
 
     private TarsMetaDataSubscriber tarsMetaDataSubscriber;
 
     private MetaData metaData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",

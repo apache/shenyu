@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractRoundTask extends AbstractRetryTask {
     
-    private final Logger logger = LoggerFactory.getLogger(AbstractRetryTask.class);
+    private final Logger logger = LoggerFactory.getLogger(AbstractRoundTask.class);
     
     /**
      * Instantiates a new Timer task.

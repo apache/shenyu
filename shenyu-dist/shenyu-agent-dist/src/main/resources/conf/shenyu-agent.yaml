@@ -18,13 +18,13 @@
 appName: shenyu-agent
 supports:
   tracing:
-    - jaeger
+#    - jaeger
 #    - opentelemetry
 #     - zipkin
   metrics:
-    - 
+#    - prometheus
   logging:
-    - 
+#    - rocketmq
   
 plugins:
   tracing:
@@ -53,6 +53,8 @@ plugins:
       host: "localhost"
       port: 8081
       props:
+        jvm_enabled: false
+        jmx_config:
   logging:
     elasticSearch:
       host: "localhost"
@@ -62,3 +64,8 @@ plugins:
       host: "localhost"
       port: 8082
       props:
+    rocketmq:
+      props:
+        topic: "shenyu-agent-logging"
+        namesrvAddr: "localhost:9876"
+        producerGroup: "shenyu-agent-logging-producer"

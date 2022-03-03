@@ -23,11 +23,12 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -35,13 +36,16 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for AbstractMatchStrategy.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class AbstractMatchStrategyTest {
 
     private ConditionData conditionData;
@@ -50,11 +54,12 @@ public final class AbstractMatchStrategyTest {
 
     private AbstractMatchStrategy abstractMatchStrategy;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(context.getBean(RemoteAddressResolver.class)).thenReturn(new RemoteAddressResolver() { });
+        when(context.getBean(RemoteAddressResolver.class)).thenReturn(new RemoteAddressResolver() {
+        });
         conditionData = new ConditionData();
         conditionData.setParamName("shenyu");
         conditionData.setParamType("uri");
@@ -72,39 +77,39 @@ public final class AbstractMatchStrategyTest {
     @Test
     public void testBuildRealDataHeaderBranch() {
         conditionData.setParamType(ParamTypeEnum.HEADER.getName());
-        Assert.assertEquals("shenyuHeader", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("shenyuHeader", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     @Test
     public void testBuildRealDataUriBranch() {
         conditionData.setParamType(ParamTypeEnum.URI.getName());
-        Assert.assertEquals("/http", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("/http", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     @Test
     public void testBuildRealDataQueryBranch() {
         conditionData.setParamType(ParamTypeEnum.QUERY.getName());
-        Assert.assertEquals("shenyuQueryParam", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("shenyuQueryParam", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     @Test
     public void testBuildRealDataHostBranch() {
         conditionData.setParamType(ParamTypeEnum.HOST.getName());
-        Assert.assertEquals("localhost", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("localhost", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     @Test
     public void testBuildRealDataIpBranch() {
         conditionData.setParamType(ParamTypeEnum.IP.getName());
-        Assert.assertEquals("127.0.0.1", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("127.0.0.1", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     @Test
     public void testBuildRealDataPostBranch() {
         conditionData.setParamType(ParamTypeEnum.POST.getName());
-        Assert.assertNull(abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertNull(abstractMatchStrategy.buildRealData(conditionData, exchange));
         conditionData.setParamName("method");
-        Assert.assertEquals("testMethod", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("testMethod", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
     private static class TestMatchStrategy extends AbstractMatchStrategy {

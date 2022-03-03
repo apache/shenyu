@@ -23,15 +23,15 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.http.HttpSyncDataService;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
@@ -47,13 +47,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test cases for {@link HttpSyncDataConfiguration}.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = {
                 HttpSyncDataConfiguration.class
@@ -76,7 +76,7 @@ public final class HttpClientPluginConfigurationTest {
     @Autowired
     private HttpSyncDataService httpSyncDataService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpWireMock() throws Exception {
         WireMockServer wireMockServer = new WireMockServer(options().port(18848));
 

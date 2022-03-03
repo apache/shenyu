@@ -52,8 +52,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -238,10 +236,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     }
 
     private Optional<Object> doLogin(final String server) {
-        Map<String, Object> loginMap = new HashMap<>(2);
-        loginMap.put(Constants.LOGIN_NAME, httpConfig.getUsername());
-        loginMap.put(Constants.PASS_WORD, httpConfig.getPassword());
-        String param = toQuery(loginMap);
+        String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();
         String url = String.join("?", server + Constants.LOGIN_PATH, param);
         String result = this.httpClient.getForObject(url, String.class);
         Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
@@ -252,23 +247,6 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         LOG.info("login success: {} ", tokenJson);
         Map<String, Object> tokenMap = GsonUtils.getInstance().convertToMap(tokenJson);
         return Optional.ofNullable(tokenMap.get(Constants.ADMIN_RESULT_TOKEN));
-    }
-
-    private String toQuery(final Object o) {
-        Map<String, Object> map = null;
-        if (o instanceof Map) {
-            map = (Map) o;
-        } else {
-            map = GsonUtils.getInstance().convertToMap(GsonUtils.getInstance().toJson(o));
-        }
-        String[] list = new String[((Map) map).size()];
-        int i = 0;
-
-        Map.Entry e;
-        for (Iterator var = ((Map) map).entrySet().iterator(); var.hasNext(); list[i++] = (String) e.getKey() + "=" + e.getValue().toString()) {
-            e = (Map.Entry) var.next();
-        }
-        return StringUtils.join(list, '&');
     }
 
     class HttpLongPollingTask implements Runnable {

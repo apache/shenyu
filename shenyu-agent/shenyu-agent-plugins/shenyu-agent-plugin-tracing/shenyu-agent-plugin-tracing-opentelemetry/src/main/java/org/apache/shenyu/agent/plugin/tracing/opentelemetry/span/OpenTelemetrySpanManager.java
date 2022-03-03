@@ -47,7 +47,7 @@ public class OpenTelemetrySpanManager {
      * @return {@linkplain Span}
      */
     public Span startAndRecord(final String spanName, final Map<String, String> attributesMap) {
-        SpanBuilder spanBuilder = GlobalOpenTelemetry.getTracer(TracingConstants.SHENYU_AGENT)
+        SpanBuilder spanBuilder = GlobalOpenTelemetry.getTracer(TracingConstants.SHENYU_AGENT_TRACE_OPENTELEMETRY)
                 .spanBuilder(spanName)
                 .setSpanKind(SpanKind.INTERNAL);
         Optional.ofNullable(attributesMap).ifPresent(attributes -> attributes.forEach(spanBuilder::setAttribute));
@@ -69,7 +69,7 @@ public class OpenTelemetrySpanManager {
     public void finish(final Span span, final ServerWebExchange exchange) {
         span.end();
         if (count.decrementAndGet() == 0) {
-            exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT);
+            exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT_TRACE_OPENTELEMETRY);
         }
     }
 }

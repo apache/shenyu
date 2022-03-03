@@ -19,7 +19,6 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -27,6 +26,8 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * The type Plugin data refresh.

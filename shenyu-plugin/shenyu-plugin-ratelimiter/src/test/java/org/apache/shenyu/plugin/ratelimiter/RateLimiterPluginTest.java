@@ -29,11 +29,12 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.apache.shenyu.plugin.ratelimiter.response.RateLimiterResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -42,6 +43,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -50,7 +52,8 @@ import static org.mockito.Mockito.when;
 /**
  * RateLimiterPlugin test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class RateLimiterPluginTest {
 
     private ShenyuPluginChain chain;
@@ -65,7 +68,7 @@ public final class RateLimiterPluginTest {
 
     private ServerWebExchange exchange;
 
-    @Before
+    @BeforeEach
     public void setup() {
         this.redisRateLimiter = mock(RedisRateLimiter.class);
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -100,7 +103,7 @@ public final class RateLimiterPluginTest {
         SpringBeanUtils.getInstance().setApplicationContext(context);
         Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
-        Assert.assertEquals(HttpStatus.TOO_MANY_REQUESTS, exchange.getResponse().getStatusCode());
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, exchange.getResponse().getStatusCode());
     }
 
     /**
@@ -108,7 +111,7 @@ public final class RateLimiterPluginTest {
      */
     @Test
     public void namedTest() {
-        Assert.assertEquals(PluginEnum.RATE_LIMITER.getName(), rateLimiterPlugin.named());
+        assertEquals(PluginEnum.RATE_LIMITER.getName(), rateLimiterPlugin.named());
     }
 
     /**
@@ -116,7 +119,7 @@ public final class RateLimiterPluginTest {
      */
     @Test
     public void getOrderTest() {
-        Assert.assertEquals(PluginEnum.RATE_LIMITER.getCode(), rateLimiterPlugin.getOrder());
+        assertEquals(PluginEnum.RATE_LIMITER.getCode(), rateLimiterPlugin.getOrder());
     }
 
     /**

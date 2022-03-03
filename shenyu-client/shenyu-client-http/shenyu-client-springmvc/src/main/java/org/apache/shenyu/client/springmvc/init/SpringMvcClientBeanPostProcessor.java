@@ -82,12 +82,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     public SpringMvcClientBeanPostProcessor(final PropertiesConfig clientConfig,
                                             final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
-        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
-        if (port <= 0) {
-            String errorMsg = "http register param must config the port must > 0";
-            LOG.error(errorMsg);
-            throw new ShenyuClientIllegalArgumentException(errorMsg);
-        }
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH, "");
         if (StringUtils.isBlank(appName) && StringUtils.isBlank(contextPath)) {

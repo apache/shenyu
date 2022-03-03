@@ -18,13 +18,15 @@
 package org.apache.shenyu.plugin.mqtt.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.Socket;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link MqttPluginDataHandler}.
@@ -33,13 +35,13 @@ public class MqttPluginDataHandlerTest {
 
     private MqttPluginDataHandler mqttPluginDataHandlerUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         mqttPluginDataHandlerUnderTest = new MqttPluginDataHandler();
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testEnableConfiguration() {
         final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
@@ -53,7 +55,7 @@ public class MqttPluginDataHandlerTest {
                 + "  \"leakDetectorLevel\": \"DISABLED\""
                 + "}", "0", true);
         mqttPluginDataHandlerUnderTest.handlerPlugin(enablePluginData);
-        Assert.assertTrue(isPortUsing());
+        assertTrue(isPortUsing());
 
         final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
@@ -67,7 +69,7 @@ public class MqttPluginDataHandlerTest {
                 + "  \"leakDetectorLevel\": \"DISABLED\""
                 + "}", "0", false);
         mqttPluginDataHandlerUnderTest.handlerPlugin(disablePluginData);
-        Assert.assertFalse(isPortUsing());
+        assertFalse(isPortUsing());
     }
 
     private boolean isPortUsing() {

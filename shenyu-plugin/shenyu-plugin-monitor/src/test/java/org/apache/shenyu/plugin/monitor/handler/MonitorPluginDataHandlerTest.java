@@ -20,12 +20,12 @@ package org.apache.shenyu.plugin.monitor.handler;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.metrics.facade.MetricsTrackerFacade;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for MonitorPluginHandler.
@@ -66,7 +66,7 @@ public final class MonitorPluginDataHandlerTest {
         assertEquals(PluginEnum.MONITOR.getName(), monitorPluginDataHandler.pluginNamed());
     }
     
-    @AfterClass
+    @AfterAll
     public static void close() {
         MetricsTrackerFacade.getInstance().stop();
     }

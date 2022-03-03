@@ -18,18 +18,18 @@
 package org.apache.shenyu.register.instance.core;
 
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 public final class ShenyuInstanceRegisterRepositoryFactoryTest {
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         final Field field = ShenyuInstanceRegisterRepositoryFactory.class.getDeclaredField("REPOSITORY_MAP");
         field.setAccessible(true);

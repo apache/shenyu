@@ -164,10 +164,10 @@ public class UpstreamCheckService {
     /**
      * Remove by key.
      *
-     * @param selectorName the selector name
+     * @param selectorId the selector id
      */
-    public static void removeByKey(final String selectorName) {
-        UPSTREAM_MAP.remove(selectorName);
+    public static void removeByKey(final String selectorId) {
+        UPSTREAM_MAP.remove(selectorId);
     }
 
     /**

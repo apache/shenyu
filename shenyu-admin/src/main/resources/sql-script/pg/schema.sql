@@ -201,7 +201,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "dashboard_user"."enabled" IS ''' || 'delete or not' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "dashboard_user"."date_created" IS ''' || 'create time' || '''');
 	PERFORM public.dblink_exec('init_conn', ' COMMENT ON COLUMN "dashboard_user"."date_updated" IS ''' || 'update time' || '''');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "dashboard_user" VALUES (''' || '1' || ''', ''' || 'admin' || ''', ''' || 'bbiB8zbUo3z3oA0VqEB/IA==' || ''', 1, 1, ''' || '2018-06-23 15:12:22' || ''', ''' || '2018-06-23 15:12:23' || ''');');
+	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "dashboard_user" VALUES (''' || '1' || ''', ''' || 'admin' || ''', ''' || 'ba3253876aed6bc22d4a6ff53d846c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413' || ''', 1, 1, ''' || '2018-06-23 15:12:22' || ''', ''' || '2018-06-23 15:12:23' || ''');');
 
 	-- ----------------------------
 	-- Indexes structure for table dashboard_user
@@ -394,8 +394,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '8' || ''', ''' || 'springCloud' || ''', NULL, ''' || 'Proxy' || ''', 200, 0, ''' || '2018-06-25 13:47:57' || ''', ''' || '2018-06-25 13:47:57' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '9' || ''', ''' || 'hystrix' || ''', NULL, ''' || 'FaultTolerance' || ''', 130, 0, ''' || '2020-01-15 10:19:10' || ''', ''' || '2020-01-15 10:19:10' || ''');');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '27' || ''', ''' || 'generalContext' || ''', NULL, ''' || 'Common' || ''', 125, 0, ''' || '2021-11-24 21:38:48' || ''', ''' || '2021-11-24 21:38:48' || ''');');
-    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '28' || ''', ''' || 'mqtt' || ''', ''' || 'Proxy' || ''', 125, 0, ''' || '2022-01-12 20:33:50' || ''', ''' || '2022-01-12 20:34:07' || ''');');
-    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '28' || ''', ''' || 'mqtt' || ''', ''' || '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}' || ''', ''' || 'Proxy' || ''', 310, 0, ''' || '2022-01-12 20:33:50' || ''', ''' || '2022-01-12 20:33:50' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '28' || ''', ''' || 'mqtt' || ''', ''' || '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}' || ''', ''' || 'Proxy' || ''', 125, 0, ''' || '2022-01-12 20:33:50' || ''', ''' || '2022-01-12 20:33:50' || ''');');
 
 
 PERFORM public.dblink_exec('init_conn', 'COMMIT');
@@ -1067,7 +1066,7 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'gray' || ''', ''' || 'GRAY_STATUS' || ''', ''' || 'open' || ''', ''' || 'true' || ''', ''' || 'open' || ''', ''' || '0' || ''', ''' || '1' || ''');');
 
     /* insert dict for init resource,permission table */
-    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'table'|| ''', ''' || 'INIT_FLAG' || ''', ''' || 'status' || ''',''' ||  'false' ||''',''' || 'table(resource,permission) init status' ||''',''' || '0' || ''',''' || '1' || ''');');;
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'table'|| ''', ''' || 'INIT_FLAG' || ''', ''' || 'status' || ''',''' ||  'false' ||''',''' || 'table(resource,permission) init status' ||''',''' || '0' || ''',''' || '1' || ''');');
 
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;

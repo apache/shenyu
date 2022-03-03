@@ -54,7 +54,7 @@ public class RegisterCenterConfiguration {
      * @param shenyuClientRegisterService the shenyu client register service
      * @return the shenyu server register repository
      */
-    @Bean
+    @Bean(destroyMethod = "close")
     public ShenyuServerRegisterRepository shenyuServerRegisterRepository(final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig,
                                                                          final List<ShenyuClientRegisterService> shenyuClientRegisterService) {
         String registerType = shenyuRegisterCenterConfig.getRegisterType();

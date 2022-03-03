@@ -36,9 +36,14 @@ public final class TracingConstants {
 
     public static final String HTTP_URL = "http.url";
 
-    public static final String HTTP_STATUS = "http.status_code";
+    public static final String HTTP_METHOD = "http.method";
 
-    public static final String SHENYU_AGENT = "shenyu-agent";
+    public static final String SHENYU_AGENT_TRACE_JAEGER = "shenyu-agent-trace-jaeger";
+
+    public static final String SHENYU_AGENT_TRACE_OPENTELEMETRY = "shenyu-agent-trace-opentelemetry";
+
+    public static final String SHENYU_AGENT_TRACE_ZIPKIN = "shenyu-agent-trace-zipkin";
+
 
     /**
      * The type Error log tags.

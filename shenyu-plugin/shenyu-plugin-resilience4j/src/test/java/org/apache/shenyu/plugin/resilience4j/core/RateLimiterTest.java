@@ -22,18 +22,21 @@ import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * RateLimiter test.
  */
+@ExtendWith(MockitoExtension.class)
 public final class RateLimiterTest {
 
     private RateLimiter rateLimiter;
@@ -47,7 +50,7 @@ public final class RateLimiterTest {
     public void normalTest() {
         when(rateLimiter.reservePermission()).thenReturn(Duration.ofSeconds(0).toNanos());
         StepVerifier.create(Mono.just("SHENYU")
-                .transformDeferred(RateLimiterOperator.of(rateLimiter)))
+                        .transformDeferred(RateLimiterOperator.of(rateLimiter)))
                 .expectSubscription()
                 .expectNext("SHENYU")
                 .verifyComplete();
@@ -57,7 +60,7 @@ public final class RateLimiterTest {
     public void errorTest() {
         when(rateLimiter.reservePermission()).thenReturn(Duration.ofSeconds(0).toNanos());
         StepVerifier.create(Mono.error(new RuntimeException("SHENYU"))
-                .transformDeferred(RateLimiterOperator.of(rateLimiter)))
+                        .transformDeferred(RateLimiterOperator.of(rateLimiter)))
                 .expectSubscription()
                 .expectError(RuntimeException.class)
                 .verify();
@@ -67,7 +70,7 @@ public final class RateLimiterTest {
     public void limitTest() {
         when(rateLimiter.reservePermission()).thenReturn(-1L);
         StepVerifier.create(Mono.just("SHENYU")
-                .transformDeferred(RateLimiterOperator.of(rateLimiter)))
+                        .transformDeferred(RateLimiterOperator.of(rateLimiter)))
                 .expectError(RequestNotPermitted.class)
                 .verify();
     }

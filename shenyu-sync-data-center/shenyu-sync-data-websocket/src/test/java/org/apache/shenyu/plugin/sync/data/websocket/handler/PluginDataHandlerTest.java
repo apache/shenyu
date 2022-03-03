@@ -20,12 +20,12 @@ package org.apache.shenyu.plugin.sync.data.websocket.handler;
 import com.google.gson.Gson;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
