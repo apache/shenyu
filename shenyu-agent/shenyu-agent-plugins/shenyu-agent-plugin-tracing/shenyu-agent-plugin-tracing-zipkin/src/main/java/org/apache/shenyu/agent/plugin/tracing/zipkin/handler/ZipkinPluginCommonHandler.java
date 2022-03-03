@@ -39,13 +39,13 @@ public final class ZipkinPluginCommonHandler implements InstanceMethodHandler {
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
         final ZipkinSpanManager zipkinSpanManager = (ZipkinSpanManager) exchange.getAttributes()
-                .getOrDefault(TracingConstants.SHENYU_AGENT, new ZipkinSpanManager());
+                .getOrDefault(TracingConstants.SHENYU_AGENT_TRACE_ZIPKIN, new ZipkinSpanManager());
 
         Map<String, String> tagMap = new HashMap<>(2, 1);
         tagMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
 
         Span span = zipkinSpanManager.start(method.getDeclaringClass().getSimpleName(), tagMap);
-        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, zipkinSpanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_ZIPKIN, zipkinSpanManager);
         target.setContext(span);
     }
 
@@ -54,7 +54,7 @@ public final class ZipkinPluginCommonHandler implements InstanceMethodHandler {
         Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        ZipkinSpanManager manager = (ZipkinSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
+        ZipkinSpanManager manager = (ZipkinSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_ZIPKIN);
 
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> manager.finish(span, exchange));
@@ -70,7 +70,7 @@ public final class ZipkinPluginCommonHandler implements InstanceMethodHandler {
         span.error(throwable);
 
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        ZipkinSpanManager manager = (ZipkinSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
+        ZipkinSpanManager manager = (ZipkinSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_ZIPKIN);
 
         manager.finish(span, exchange);
     }

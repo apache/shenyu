@@ -40,13 +40,13 @@ public final class JaegerPluginCommonHandler implements InstanceMethodHandler {
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
         final JaegerSpanManager jaegerSpanManager = (JaegerSpanManager) exchange.getAttributes()
-                .getOrDefault(TracingConstants.ROOT_SPAN, new JaegerSpanManager());
+                .getOrDefault(TracingConstants.SHENYU_AGENT_TRACE_JAEGER, new JaegerSpanManager());
 
         Map<String, String> tagMap = new HashMap<>(2, 1);
         tagMap.put(Tags.COMPONENT.getKey(), TracingConstants.NAME);
 
         Span span = jaegerSpanManager.add(method.getDeclaringClass().getSimpleName(), tagMap);
-        exchange.getAttributes().put(TracingConstants.ROOT_SPAN, jaegerSpanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_JAEGER, jaegerSpanManager);
         target.setContext(span);
     }
 
@@ -55,7 +55,7 @@ public final class JaegerPluginCommonHandler implements InstanceMethodHandler {
         Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_JAEGER);
 
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> {
@@ -72,7 +72,7 @@ public final class JaegerPluginCommonHandler implements InstanceMethodHandler {
         Span span = (Span) target.getContext();
 
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_JAEGER);
 
         manager.error(span, exchange, throwable);
     }
