@@ -31,12 +31,12 @@ public class AppKeyProvider implements ExistProvider {
     
     private final AppAuthMapper appAuthMapper;
     
-    public AppKeyProvider(AppAuthMapper appAuthMapper) {
+    public AppKeyProvider(final AppAuthMapper appAuthMapper) {
         this.appAuthMapper = appAuthMapper;
     }
     
     @Override
-    public Boolean existed(Serializable key) {
+    public Boolean existed(final Serializable key) {
         return appAuthMapper.existed(key);
     }
 }
