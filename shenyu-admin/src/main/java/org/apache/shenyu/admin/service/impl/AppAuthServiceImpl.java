@@ -166,9 +166,6 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult updateDetail(final AppAuthDTO appAuthDTO) {
-        if (StringUtils.isAnyBlank(appAuthDTO.getAppKey(), appAuthDTO.getAppSecret(), appAuthDTO.getId())) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
-        }
         AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuthDTO);
         appAuthMapper.update(appAuthDO);
         List<AuthParamDTO> authParamDTOList = appAuthDTO.getAuthParamDTOList();
@@ -205,9 +202,6 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult updateDetailPath(final AuthPathWarpDTO authPathWarpDTO) {
         AppAuthDO appAuthDO = appAuthMapper.selectById(authPathWarpDTO.getId());
-        if (Objects.isNull(appAuthDO)) {
-            return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);
-        }
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
             authPathMapper.deleteByAuthId(authPathWarpDTO.getId());

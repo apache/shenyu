@@ -54,7 +54,7 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
         if (Objects.isNull(annotation.provider())) {
             throw new ResourceNotFoundException("the validation ExistProvider is not found");
         }
-        return !getExistProvider().notExisted(value);
+        return Boolean.TRUE.equals(getExistProvider().existed(value));
     }
     
     private ExistProvider getExistProvider() {

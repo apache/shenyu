@@ -58,6 +58,10 @@
         and app_name = #{appName,jdbcType=VARCHAR}
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from auth_path where id = #{id} limit 1
+    </select>
+
 
     <insert id="save" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
         insert into auth_path
