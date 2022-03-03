@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * Test cases for UriUtils.
  */
-class UriUtilsTest {
+public final class UriUtilsTest {
 
     @Test
     void createUri() {
