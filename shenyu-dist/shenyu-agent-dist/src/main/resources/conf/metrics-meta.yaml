@@ -31,4 +31,9 @@ metrics:
   - name: shenyu_request_undone
     type: gauge
     help: ShenYu gateway request is not completed.
+  - name: shenyu_execute_latency_millis
+    type: histogram
+    labelNames:
+      - path
+    help: ShenYu gateway execute time interval.
   
