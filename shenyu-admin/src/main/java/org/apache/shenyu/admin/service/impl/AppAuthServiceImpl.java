@@ -202,6 +202,9 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult updateDetailPath(final AuthPathWarpDTO authPathWarpDTO) {
         AppAuthDO appAuthDO = appAuthMapper.selectById(authPathWarpDTO.getId());
+        if (Objects.isNull(appAuthDO)) {
+            return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);
+        }
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
             authPathMapper.deleteByAuthId(authPathWarpDTO.getId());
