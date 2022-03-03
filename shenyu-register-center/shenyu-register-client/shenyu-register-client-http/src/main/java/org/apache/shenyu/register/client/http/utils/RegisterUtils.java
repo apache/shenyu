@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -85,14 +86,17 @@ public final class RegisterUtils {
     /**
      * Do login.
      *
-     * @param userName the userName
-     * @param passWord the passWord
+     * @param username the username
+     * @param password the password
      * @param url      the ulr
      * @return Optional token
      * @throws IOException the io exception
      */
-    public static Optional<Object> doLogin(final String userName, final String passWord, final String url) throws IOException {
-        String result = OkHttpTools.getInstance().get(url, userName, passWord);
+    public static Optional<Object> doLogin(final String username, final String password, final String url) throws IOException {
+        Map<String, Object> loginMap = new HashMap<>(2);
+        loginMap.put(Constants.LOGIN_NAME, username);
+        loginMap.put(Constants.PASS_WORD, password);
+        String result = OkHttpTools.getInstance().get(url, loginMap);
         Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
         if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
             return Optional.empty();
