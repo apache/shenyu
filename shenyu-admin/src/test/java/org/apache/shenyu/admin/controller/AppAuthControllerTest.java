@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathDTO;
@@ -29,6 +31,8 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.service.SyncDataService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -42,6 +46,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -55,6 +61,8 @@ import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -71,6 +79,12 @@ public final class AppAuthControllerTest {
 
     @Mock
     private AppAuthService appAuthService;
+    
+    @Mock
+    private AuthPathMapper authPathMapper;
+    
+    @Mock
+    private AppAuthMapper appAuthMapper;
 
     private final AppAuthVO appAuthVO = new AppAuthVO("0001", "testAppKey", "testAppSecret",
             "testUser", "18600000000", "{\"extInfo\": \"test\"}",
@@ -79,7 +93,10 @@ public final class AppAuthControllerTest {
 
     @BeforeEach
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(appAuthController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(appAuthController)
+                .setControllerAdvice(appAuthMapper)
+                .setControllerAdvice(authPathMapper)
+                .build();
     }
 
     @Test
@@ -168,9 +185,15 @@ public final class AppAuthControllerTest {
     public void testUpdateDetail() throws Exception {
         AppAuthDTO appAuthDTO = new AppAuthDTO();
         appAuthDTO.setId("0001");
+        appAuthDTO.setAppKey("app key");
+        appAuthDTO.setAppSecret("app secret");
         appAuthDTO.setPhone("18600000001");
         given(this.appAuthService.updateDetail(appAuthDTO)).willReturn(
                 ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        when(SpringBeanUtils.getInstance().getBean(AppAuthMapper.class)).thenReturn(appAuthMapper);
+        when(appAuthMapper.existed(appAuthDTO.getId())).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateDetail")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(appAuthDTO)))
@@ -206,7 +229,10 @@ public final class AppAuthControllerTest {
         final AuthPathWarpDTO authPathWarpDTO = new AuthPathWarpDTO();
         authPathWarpDTO.setId("0001");
         authPathWarpDTO.setAuthPathDTOList(authPathDTOS);
-
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        when(SpringBeanUtils.getInstance().getBean(AuthPathMapper.class)).thenReturn(authPathMapper);
+        when(authPathMapper.existed(authPathWarpDTO.getId())).thenReturn(true);
         given(this.appAuthService.updateDetailPath(authPathWarpDTO)).willReturn(ShenyuAdminResult.success());
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateDetailPath")
                 .contentType(MediaType.APPLICATION_JSON)
