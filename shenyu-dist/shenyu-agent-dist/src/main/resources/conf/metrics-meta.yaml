@@ -19,21 +19,60 @@ metrics:
   - name: shenyu_request_total
     type: counter
     help: ShenYu gateway request total.
+
   - name: shenyu_request_throw_total
     type: counter
     help: ShenYu gateway request total when an exception occurs.
+
   - name: shenyu_http_request_total
     type: counter
     labelNames:
       - path
       - method
     help: ShenYu gateway request total of http.
+
+  - name: shenyu_dubbo_request_total
+    type: counter
+    labelNames:
+      - path
+    help: ShenYu gateway request total of dubbo.
+
+  - name: shenyu_grpc_request_total
+    type: counter
+    labelNames:
+      - path
+    help: ShenYu gateway request total of grpc.
+
+  - name: shenyu_motan_request_total
+    type: counter
+    labelNames:
+      - path
+    help: ShenYu gateway request total of motan.
+
+  - name: shenyu_sofa_request_total
+    type: counter
+    labelNames:
+      - path
+    help: ShenYu gateway request total of sofa.
+
+  - name: shenyu_tars_request_total
+    type: counter
+    labelNames:
+      - path
+    help: ShenYu gateway request total of tars.
+
+  - name: shenyu_spring_cloud_request_total
+    type: counter
+    labelNames:
+      - path
+    help: ShenYu gateway request total of spring cloud.
+
   - name: shenyu_request_undone
     type: gauge
     help: ShenYu gateway request is not completed.
+
   - name: shenyu_execute_latency_millis
     type: histogram
     labelNames:
       - path
     help: ShenYu gateway execute time interval.
-  

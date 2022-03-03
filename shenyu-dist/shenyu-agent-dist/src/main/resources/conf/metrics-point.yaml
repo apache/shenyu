@@ -30,3 +30,52 @@ pointCuts:
     handlers:
       prometheus:
         - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusDividePluginHandler
+  - targetClass: org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin
+    points:
+      - type: instanceMethod
+        name: doDubboInvoker
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusDubboPluginHandler
+  - targetClass: org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin
+    points:
+      - type: instanceMethod
+        name: doDubboInvoker
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusDubboPluginHandler
+  - targetClass: org.apache.shenyu.plugin.grpc.GrpcPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusGrpcPluginHandler
+  - targetClass: org.apache.shenyu.plugin.motan.MotanPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusMotanPluginHandler
+  - targetClass: org.apache.shenyu.plugin.sofa.SofaPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusSofaPluginHandler
+  - targetClass: org.apache.shenyu.plugin.tars.TarsPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusTarsPluginHandler
+  - targetClass: org.apache.shenyu.plugin.springcloud.SpringCloudPlugin
+    points:
+      - type: instanceMethod
+        name: doExecute
+    handlers:
+      prometheus:
+        - org.apache.shenyu.agent.plugin.metrics.prometheus.handler.PrometheusSpringCloudPluginHandler
