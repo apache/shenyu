@@ -84,7 +84,7 @@ public class JaegerSpanManager {
         span.finish();
         if (count.decrementAndGet() == 0) {
             scopeList.forEach(Scope::close);
-            exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT);
+            exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT_TRACE_JAEGER);
         }
     }
 

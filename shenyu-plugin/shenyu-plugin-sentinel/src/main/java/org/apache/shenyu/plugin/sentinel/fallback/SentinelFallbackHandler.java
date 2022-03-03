@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono;
 public class SentinelFallbackHandler implements FallbackHandler {
 
     @Override
-    public Mono<Void> generateError(final ServerWebExchange exchange, final Throwable throwable) {
+    public Mono<Void> withoutFallback(final ServerWebExchange exchange, final Throwable throwable) {
         Object error;
         if (throwable instanceof DegradeException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);

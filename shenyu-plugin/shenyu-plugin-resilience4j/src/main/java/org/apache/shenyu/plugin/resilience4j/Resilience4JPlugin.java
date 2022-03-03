@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.Resilience4JHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -87,7 +88,7 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
 
     private Function<Throwable, Mono<Void>> fallback(final Executor executor,
                                                      final ServerWebExchange exchange, final String uri) {
-        return throwable -> executor.fallback(exchange, uri, throwable);
+        return throwable -> executor.fallback(exchange, UriUtils.createUri(uri), throwable);
     }
 
     @Override

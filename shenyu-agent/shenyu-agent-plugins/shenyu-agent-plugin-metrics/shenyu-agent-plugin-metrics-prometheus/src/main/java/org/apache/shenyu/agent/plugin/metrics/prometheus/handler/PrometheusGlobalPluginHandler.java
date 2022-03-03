@@ -38,23 +38,23 @@ public final class PrometheusGlobalPluginHandler implements InstanceMethodHandle
     @Override
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         MetricsRecorderPool.get(MetricsConstant.REQUEST_TOTAL, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
-        MetricsRecorderPool.get(MetricsConstant.SHENYU_REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
+        MetricsRecorderPool.get(MetricsConstant.REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
 
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
-        exchange.getAttributes().put(MetricsConstant.SHENYU_EXECUTE_LATENCY_MILLIS, LocalDateTime.now());
+        exchange.getAttributes().put(MetricsConstant.EXECUTE_LATENCY_MILLIS, LocalDateTime.now());
     }
 
     @Override
     public Object after(final TargetObject target, final Method method, final Object[] args, final MethodResult methodResult) {
-        MetricsRecorderPool.get(MetricsConstant.SHENYU_REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::dec);
+        MetricsRecorderPool.get(MetricsConstant.REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::dec);
 
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
         final String path = exchange.getRequest().getURI().getPath();
-        LocalDateTime startTime = (LocalDateTime) exchange.getAttributes().get(MetricsConstant.SHENYU_EXECUTE_LATENCY_MILLIS);
+        LocalDateTime startTime = (LocalDateTime) exchange.getAttributes().get(MetricsConstant.EXECUTE_LATENCY_MILLIS);
         Object result = methodResult.getResult();
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> {
-                MetricsRecorderPool.get(MetricsConstant.SHENYU_EXECUTE_LATENCY_MILLIS, MetricsConstant.PROMETHEUS)
+                MetricsRecorderPool.get(MetricsConstant.EXECUTE_LATENCY_MILLIS, MetricsConstant.PROMETHEUS)
                         .ifPresent(metricsRecorder -> metricsRecorder.observe(DateUtils.acquireMillisBetween(startTime, LocalDateTime.now()), path));
             });
         }
@@ -65,7 +65,7 @@ public final class PrometheusGlobalPluginHandler implements InstanceMethodHandle
     @Override
     public void onThrowing(final TargetObject target, final Method method, final Object[] args, final Throwable throwable) {
         MetricsRecorderPool.get(MetricsConstant.REQUEST_THROW_TOTAL, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
-        MetricsRecorderPool.get(MetricsConstant.SHENYU_REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::dec);
+        MetricsRecorderPool.get(MetricsConstant.REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::dec);
     }
 
 }

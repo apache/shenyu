@@ -41,7 +41,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
     public void before(final TargetObject target, final Method method, final Object[] args, final MethodResult result) {
         final ServerWebExchange exchange = (ServerWebExchange) args[0];
         final JaegerSpanManager jaegerSpanManager = (JaegerSpanManager) exchange.getAttributes()
-                .getOrDefault(TracingConstants.SHENYU_AGENT, new JaegerSpanManager());
+                .getOrDefault(TracingConstants.SHENYU_AGENT_TRACE_JAEGER, new JaegerSpanManager());
 
         Map<String, String> tagMap = new HashMap<>(4);
         tagMap.put(TracingConstants.COMPONENT, TracingConstants.NAME);
@@ -49,7 +49,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
                 .ifPresent(v -> tagMap.put(Tags.HTTP_METHOD.getKey(), v.toString()));
 
         Span span = jaegerSpanManager.add(TracingConstants.ROOT_SPAN, tagMap);
-        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT, jaegerSpanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_JAEGER, jaegerSpanManager);
         target.setContext(span);
     }
 
@@ -58,7 +58,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
         Object result = methodResult.getResult();
         Span span = (Span) target.getContext();
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_JAEGER);
 
         if (result instanceof Mono) {
             return ((Mono) result).doFinally(s -> {
@@ -75,7 +75,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
         Span span = (Span) target.getContext();
 
         ServerWebExchange exchange = (ServerWebExchange) args[0];
-        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.ROOT_SPAN);
+        JaegerSpanManager manager = (JaegerSpanManager) exchange.getAttributes().get(TracingConstants.SHENYU_AGENT_TRACE_JAEGER);
 
         manager.error(span, exchange, throwable);
     }
