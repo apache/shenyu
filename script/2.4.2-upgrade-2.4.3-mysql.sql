@@ -19,7 +19,10 @@
 -- update admin password
 UPDATE dashboard_user SET password='ba3253876aed6bc22d4a6ff53d846c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413' WHERE user_name = 'admin';
 
--- Note: user should update `dubbo row` in `plugin` by self !
+-- Note: it doesn't matter if you don't execute this SQL, the default configuration will be compatible with the old version
+-- Note: because most users have changed ZK configuration, this SQL is annotated to prevent erroneous execution
+-- UPDATE plugin SET config='{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"cached","corethreads":0,"threads":2147483647,"queues":0}' WHERE `name` = 'dubbo';
+--                                                    ^^^^^^^^^ if you want to execute this SQL, please replace it with your ZK configuration
 
 -- insert plugin_handle data for dubbo
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'threadpool', 'threadpool', '3', '3', '0', '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}');
