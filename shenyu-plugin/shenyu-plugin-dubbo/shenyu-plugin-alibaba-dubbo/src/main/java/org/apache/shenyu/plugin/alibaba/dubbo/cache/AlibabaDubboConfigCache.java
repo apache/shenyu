@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.alibaba.dubbo.cache;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
+import com.alibaba.dubbo.config.ConsumerConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.rpc.service.GenericService;
@@ -52,6 +53,8 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
     private ApplicationConfig applicationConfig;
     
     private RegistryConfig registryConfig;
+
+    private ConsumerConfig consumerConfig;
     
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
@@ -101,6 +104,13 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
             Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfigTemp::setGroup);
             registryConfig = registryConfigTemp;
         }
+        if (Objects.isNull(consumerConfig)) {
+            consumerConfig = new ConsumerConfig();
+            Optional.ofNullable(dubboRegisterConfig.getThreadpool()).ifPresent(consumerConfig::setThreadpool);
+            Optional.ofNullable(dubboRegisterConfig.getCorethreads()).ifPresent(consumerConfig::setCorethreads);
+            Optional.ofNullable(dubboRegisterConfig.getThreads()).ifPresent(consumerConfig::setThreads);
+            Optional.ofNullable(dubboRegisterConfig.getQueues()).ifPresent(consumerConfig::setQueues);
+        }
     }
     
     private boolean needUpdateRegistryConfig(final DubboRegisterConfig dubboRegisterConfig) {
@@ -144,6 +154,7 @@ public final class AlibabaDubboConfigCache extends DubboConfigCache {
         reference.setGeneric(true);
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
+        reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
         reference.setAsync(true);
