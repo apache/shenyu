@@ -66,7 +66,7 @@ public class LocalDispatcherFilter implements WebFilter {
         String path = exchange.getRequest().getURI().getPath();
         if (PathMatchUtils.match(DISPATCHER_PATH, path)) {
             String localKey = exchange.getRequest().getHeaders().getFirst(Constants.LOCAL_KEY);
-            if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey))) {
+            if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey)) || Objects.isNull(localKey)) {
                 return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));
             }
             return dispatcherHandler.handle(exchange);
