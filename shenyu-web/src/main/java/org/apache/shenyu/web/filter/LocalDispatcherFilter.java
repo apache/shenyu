@@ -41,7 +41,7 @@ public class LocalDispatcherFilter implements WebFilter {
 
     private final DispatcherHandler dispatcherHandler;
     
-    @Value("${shenyu.api.sha512Key}")
+    @Value("${shenyu.localAPI.sha512Key}")
     private String sha512Key;
     
     /**

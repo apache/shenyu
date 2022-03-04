@@ -52,26 +52,6 @@ public class ShenyuConfig {
 
     private RibbonConfig ribbon = new RibbonConfig();
     
-    private ApiKey apiKey = new ApiKey();
-    
-    /**
-     * Gets the api key config.
-     *
-     * @return the api key config
-     */
-    public ApiKey getApiKey() {
-        return apiKey;
-    }
-    
-    /**
-     * Sets the api key config.
-     *
-     * @param apiKey the api key config
-     */
-    public void setApiKey(final ApiKey apiKey) {
-        this.apiKey = apiKey;
-    }
-
     /**
      * Gets ribbon.
      *
@@ -1068,59 +1048,6 @@ public class ShenyuConfig {
          */
         public void setServerListRefreshInterval(final Integer serverListRefreshInterval) {
             this.serverListRefreshInterval = serverListRefreshInterval;
-        }
-    }
-    
-    /**
-     * The api key config.
-     */
-    public static class ApiKey {
-    
-        private Boolean enabled = true;
-    
-        private String sha512Key;
-    
-        public ApiKey() {
-        }
-    
-        public ApiKey(final String sha512Key) {
-            this.sha512Key = sha512Key;
-        }
-    
-        /**
-         * Gets enabled.
-         *
-         * @return the enabled
-         */
-        public Boolean getEnabled() {
-            return enabled;
-        }
-    
-        /**
-         * Sets enabled.
-         *
-         * @param enabled the enabled
-         */
-        public void setEnabled(final Boolean enabled) {
-            this.enabled = enabled;
-        }
-    
-        /**
-         * Gets key.
-         *
-         * @return the key
-         */
-        public String getSha512Key() {
-            return sha512Key;
-        }
-        
-        /**
-         * setSha512Key.
-         *
-         * @param sha512Key sha512Key
-         */
-        public void setSha512Key(final String sha512Key) {
-            this.sha512Key = sha512Key;
         }
     }
 }
