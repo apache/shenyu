@@ -23,6 +23,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -57,6 +58,8 @@ public class HttpHelper {
     private static final Gson GSON = new Gson();
 
     private final OkHttpClient client = new OkHttpClient.Builder().build();
+    
+    private final String localKey = "123456";
 
     /**
      * Send a post http request to shenyu gateway.
@@ -157,7 +160,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S> S postGateway(final String path, final RequestBody requestBody, final Class<S> respType) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().post(requestBody).url(GATEWAY_END_POINT + path);
+        Request.Builder requestBuilder = new Request.Builder().post(requestBody).url(GATEWAY_END_POINT + path).addHeader(Constants.LOCAL_KEY, localKey);
         Response response = client.newCall(requestBuilder.build()).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         try {
@@ -168,7 +171,7 @@ public class HttpHelper {
     }
 
     private <Q> String post(final String path, final Map<String, Object> headers, final Q req) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().post(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path);
+        Request.Builder requestBuilder = new Request.Builder().post(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path).addHeader(Constants.LOCAL_KEY, localKey);
         if (!CollectionUtils.isEmpty(headers)) {
             headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
         }
@@ -188,7 +191,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S, Q> S putGateway(final String path, final Q req, final Class<S> respType) throws IOException {
-        Request request = new Request.Builder().put(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path).build();
+        Request request = new Request.Builder().put(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path).addHeader(Constants.LOCAL_KEY, localKey).build();
         Response response = client.newCall(request).execute();
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("postGateway({}) resp({})", path, respBody);
@@ -254,7 +257,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public Response getHttpService(final String url, final Map<String, Object> headers) throws IOException {
-        Request.Builder requestBuilder = new Request.Builder().url(url);
+        Request.Builder requestBuilder = new Request.Builder().url(url).addHeader(Constants.LOCAL_KEY, localKey);
         if (!CollectionUtils.isEmpty(headers)) {
             headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
         }
