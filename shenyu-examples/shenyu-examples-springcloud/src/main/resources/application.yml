@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: nacos
+    active: eureka
   application:
     name: springCloud-test
 

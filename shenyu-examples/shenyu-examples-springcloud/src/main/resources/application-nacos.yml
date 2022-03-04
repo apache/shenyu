@@ -13,13 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# Please active this project pom like this .
-#<dependency>
-#  <groupId>com.alibaba.cloud</groupId>
-#  <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-#  <version>2.2.6.RELEASE</version>
-#</dependency>
 spring:
   cloud:
     nacos:

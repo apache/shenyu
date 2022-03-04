@@ -13,13 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# Please active this project pom like this .
-#<dependency>
-#  <groupId>org.springframework.cloud</groupId>
-#  <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-#  <version>${spring-cloud.version}</version>
-#</dependency>
 eureka:
   client:
     serviceUrl:
