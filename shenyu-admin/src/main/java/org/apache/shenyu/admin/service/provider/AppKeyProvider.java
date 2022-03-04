@@ -15,22 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.validation;
+package org.apache.shenyu.admin.service.provider;
+
+import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.validation.ExistProvider;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
 /**
- * ExistProvider.
+ * AppKeyProvider.
  */
-public interface ExistProvider {
+@Component
+public class AppKeyProvider implements ExistProvider {
     
+    private final AppAuthMapper appAuthMapper;
     
+    public AppKeyProvider(final AppAuthMapper appAuthMapper) {
+        this.appAuthMapper = appAuthMapper;
+    }
     
-    /**
-     * existed.
-     *
-     * @param key key
-     * @return existed, if not existed nullable
-     */
-    Boolean existed(Serializable key);
+    @Override
+    public Boolean existed(final Serializable key) {
+        return appAuthMapper.existed(key);
+    }
 }
