@@ -34,7 +34,7 @@ import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
-import org.apache.shenyu.admin.utils.ShaUtils;
+import org.apache.shenyu.common.utils.ShaUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

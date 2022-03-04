@@ -156,6 +156,8 @@ shenyu:
     printInterval: 60000
   ribbon:
     serverListRefreshInterval: 10000
+  api:
+    sha512Key: "your_plaintext_password"
 
 eureka:
   client:

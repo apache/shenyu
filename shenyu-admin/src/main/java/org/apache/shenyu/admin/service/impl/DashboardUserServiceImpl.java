@@ -42,7 +42,7 @@ import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 import org.apache.shenyu.admin.utils.JwtUtils;
-import org.apache.shenyu.admin.utils.ShaUtils;
+import org.apache.shenyu.common.utils.ShaUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
