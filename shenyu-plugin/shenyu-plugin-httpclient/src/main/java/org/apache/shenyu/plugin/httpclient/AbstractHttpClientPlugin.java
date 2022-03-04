@@ -51,7 +51,7 @@ public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractHttpClientPlugin.class);
 
     @Override
-    public final Mono<Void> execute(ServerWebExchange exchange, ShenyuPluginChain chain) {
+    public final Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         final URI uri = exchange.getAttribute(Constants.HTTP_URI);
@@ -80,7 +80,7 @@ public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
      * @param exchange the current server exchange
      * @return HttpHeaders
      */
-    protected abstract H buildHttpHeaders(final ServerWebExchange exchange);
+    protected abstract H buildHttpHeaders(ServerWebExchange exchange);
 
     /**
      * Process the Web request.
@@ -92,7 +92,7 @@ public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
      * @param body        the request body
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
-    protected abstract Mono<?> doRequest(final ServerWebExchange exchange, final String httpMethod,
-                                         final URI uri, final H httpHeaders, final Flux<DataBuffer> body);
+    protected abstract Mono<?> doRequest(ServerWebExchange exchange, String httpMethod,
+                                         URI uri, H httpHeaders, Flux<DataBuffer> body);
 
 }

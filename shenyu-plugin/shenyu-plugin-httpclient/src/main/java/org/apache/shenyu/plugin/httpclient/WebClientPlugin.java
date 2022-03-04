@@ -67,7 +67,7 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<HttpHeaders> {
     }
 
     @Override
-    protected Mono<?> doRequest(ServerWebExchange exchange, final String httpMethod, final URI uri,
+    protected Mono<?> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
                                 final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
