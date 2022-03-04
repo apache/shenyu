@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.resilience4j.executor;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,7 +88,7 @@ public final class CombinedExecutorTest {
 
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
 
-        StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), t -> combinedExecutor.fallback(exchange, "https://example.com", t),
+        StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), t -> combinedExecutor.fallback(exchange, UriUtils.createUri("https://example.com"), t),
                         conf))
                 .expectSubscription()
                 .expectComplete()
