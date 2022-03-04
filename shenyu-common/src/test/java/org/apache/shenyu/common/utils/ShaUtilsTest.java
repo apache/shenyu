@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.utils.ShaUtils;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test cases for ShaUtils.
