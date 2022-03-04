@@ -29,6 +29,7 @@
 
     <properties>
         <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
+        <nacos-discovery.version>2.2.6.RELEASE</nacos-discovery.version>
     </properties>
 
     <dependencies>
@@ -86,7 +87,7 @@
                 <dependency>
                     <groupId>com.alibaba.cloud</groupId>
                     <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-                    <version>2.2.6.RELEASE</version>
+                    <version>${nacos-discovery.version}</version>
                 </dependency>
             </dependencies>
             <activation>
