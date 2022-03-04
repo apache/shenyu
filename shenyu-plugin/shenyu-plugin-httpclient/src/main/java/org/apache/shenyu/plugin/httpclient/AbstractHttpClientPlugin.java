@@ -42,6 +42,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 /**
  * The type abstract http client plugin.
@@ -71,7 +72,7 @@ public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
                         .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .doOnError(e -> LOG.error(e.getMessage(), e))
                 .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
-        return response.then(chain.execute(exchange));
+        return response.flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
     }
 
     /**
