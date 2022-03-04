@@ -156,6 +156,8 @@ shenyu:
     printInterval: 60000
   ribbon:
     serverListRefreshInterval: 10000
+#  httpclient:
+#    strategy: netty
 
 eureka:
   client:
