@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 /**
  * The type Web client plugin.
  */
-public class WebClientPlugin extends AbstractHttpClientPlugin<HttpHeaders> {
+public class WebClientPlugin extends AbstractHttpClientPlugin {
 
     private final WebClient webClient;
 

@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -47,7 +48,7 @@ import java.util.function.Function;
 /**
  * The type abstract http client plugin.
  */
-public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
+public abstract class AbstractHttpClientPlugin implements ShenyuPlugin {
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractHttpClientPlugin.class);
 
@@ -64,7 +65,7 @@ public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
         final Duration duration = Duration.ofMillis(timeout);
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         LOG.info("The request urlPath is {}, retryTimes is {}", uri.toASCIIString(), retryTimes);
-        final H httpHeaders = buildHttpHeaders(exchange);
+        final HttpHeaders httpHeaders = buildHttpHeaders(exchange);
         final Mono<?> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, httpHeaders, exchange.getRequest().getBody())
                 .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
                 .retryWhen(Retry.anyOf(TimeoutException.class, ConnectTimeoutException.class, ReadTimeoutException.class, IllegalStateException.class)
@@ -81,7 +82,7 @@ public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
      * @param exchange the current server exchange
      * @return HttpHeaders
      */
-    protected abstract H buildHttpHeaders(ServerWebExchange exchange);
+    protected abstract HttpHeaders buildHttpHeaders(ServerWebExchange exchange);
 
     /**
      * Process the Web request.
@@ -94,6 +95,6 @@ public abstract class AbstractHttpClientPlugin<H> implements ShenyuPlugin {
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     protected abstract Mono<?> doRequest(ServerWebExchange exchange, String httpMethod,
-                                         URI uri, H httpHeaders, Flux<DataBuffer> body);
+                                         URI uri, HttpHeaders httpHeaders, Flux<DataBuffer> body);
 
 }

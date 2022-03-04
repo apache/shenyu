@@ -17,15 +17,13 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
-import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -42,7 +40,7 @@ import java.util.stream.Stream;
 /**
  * The type Netty http client plugin.
  */
-public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpHeaders> {
+public class NettyHttpClientPlugin extends AbstractHttpClientPlugin {
 
     private final HttpClient httpClient;
 
@@ -57,14 +55,14 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpHeaders>
 
     @Override
     protected HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
-        final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
-        exchange.getRequest().getHeaders().forEach(httpHeaders::set);
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.addAll(exchange.getRequest().getHeaders());
         // remove gzip
-        String acceptEncoding = httpHeaders.get(HttpHeaderNames.ACCEPT_ENCODING);
+        String acceptEncoding = httpHeaders.getFirst(HttpHeaders.ACCEPT_ENCODING);
         if (StringUtils.isNotBlank(acceptEncoding)) {
             List<String> acceptEncodings = Stream.of(acceptEncoding.trim().split(",")).collect(Collectors.toList());
             acceptEncodings.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
-            httpHeaders.set(HttpHeaderNames.ACCEPT_ENCODING, String.join(",", acceptEncodings));
+            httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncodings));
         }
         return httpHeaders;
     }
@@ -72,16 +70,16 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpHeaders>
     @Override
     protected Mono<?> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
                                 final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
-        return Mono.from(httpClient.headers(headers -> headers.add(httpHeaders))
+        return Mono.from(httpClient.headers(headers -> httpHeaders.forEach(headers::add))
                 .request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
                 .send((req, nettyOutbound) -> nettyOutbound.send(body.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
                 .responseConnection((res, connection) -> {
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
                     ServerHttpResponse response = exchange.getResponse();
-                    org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                    HttpHeaders headers = new HttpHeaders();
                     res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
-                    String contentTypeValue = headers.getFirst(HttpHeaderNames.CONTENT_TYPE.toString());
+                    String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
