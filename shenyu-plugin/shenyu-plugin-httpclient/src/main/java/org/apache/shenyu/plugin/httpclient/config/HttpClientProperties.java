@@ -374,7 +374,7 @@ public class HttpClientProperties {
          * Time in millis after which the channel will be closed,
          * if NULL there is no max idle time.
          */
-        private Long maxIdleTime;
+        private Long maxIdleTime = 3000L;
 
         /**
          * Gets type.

@@ -102,6 +102,7 @@ shenyu:
   #      name: proxy
   #      maxConnections: 16
   #      acquireTimeout: 45000
+  #      maxIdleTime: 3000
   #    proxy:
   #      host:
   #      port:
@@ -113,6 +114,7 @@ shenyu:
   #      keyStoreType: PKCS12
   #      keyStorePath: classpath:keystore.p12
   #      keyStorePassword: 123456
+  #      keyStoreProvider: 
   #      keyPassword: 123456
   #      trustedX509Certificates:
   #      handshakeTimeout:
