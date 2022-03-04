@@ -20,7 +20,6 @@ package org.apache.shenyu.web.filter;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.common.utils.ShaUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,7 +40,6 @@ public class LocalDispatcherFilter implements WebFilter {
 
     private final DispatcherHandler dispatcherHandler;
     
-    @Value("${shenyu.localAPI.sha512Key}")
     private String sha512Key;
     
     /**
@@ -49,8 +47,9 @@ public class LocalDispatcherFilter implements WebFilter {
      *
      * @param dispatcherHandler the dispatcher handler
      */
-    public LocalDispatcherFilter(final DispatcherHandler dispatcherHandler) {
+    public LocalDispatcherFilter(final DispatcherHandler dispatcherHandler, final String sha512Key) {
         this.dispatcherHandler = dispatcherHandler;
+        this.sha512Key = sha512Key;
     }
     
     /**
@@ -67,7 +66,7 @@ public class LocalDispatcherFilter implements WebFilter {
         String path = exchange.getRequest().getURI().getPath();
         if (PathMatchUtils.match(DISPATCHER_PATH, path)) {
             String key = exchange.getRequest().getHeaders().getFirst(Constants.X_ACCESS_TOKEN);
-            if (Objects.isNull(sha512Key) || !ShaUtils.shaEncryption(sha512Key).equals(key)) {
+            if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(key))) {
                 return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));
             }
             return dispatcherHandler.handle(exchange);
