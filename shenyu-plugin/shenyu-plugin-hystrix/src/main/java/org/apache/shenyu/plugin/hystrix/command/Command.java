@@ -98,11 +98,14 @@ public interface Command {
         ServerWebExchange mutated = exchange.mutate().request(request).build();
         return dispatcherHandler.handle(mutated);
     }
+    default void reset(String commandKey){}
 
     /**
      * get call back uri.
      * @return when some error occurs in hystrix invoke it will forward to this
      */
     URI getCallBackUri();
+
+
 
 }
