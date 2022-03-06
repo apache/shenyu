@@ -49,6 +49,8 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(HystrixPlugin.class);
 
+    private int lastMaxConcurrentRequests;
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -76,12 +78,20 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
     }
 
     private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        Command command;
         if (hystrixHandle.getExecutionIsolationStrategy() == HystrixIsolationModeEnum.SEMAPHORE.getCode()) {
-            return new HystrixCommand(HystrixBuilder.build(hystrixHandle),
+            command = new HystrixCommand(HystrixBuilder.build(hystrixHandle),
+                    exchange, chain, hystrixHandle.getCallBackUri());
+        } else {
+            command = new HystrixCommandOnThread(HystrixBuilder.buildForHystrixCommand(hystrixHandle),
                     exchange, chain, hystrixHandle.getCallBackUri());
         }
-        return new HystrixCommandOnThread(HystrixBuilder.buildForHystrixCommand(hystrixHandle),
-                exchange, chain, hystrixHandle.getCallBackUri());
+        int maxConcurrentRequests = hystrixHandle.getMaxConcurrentRequests();
+        if (lastMaxConcurrentRequests !=  hystrixHandle.getMaxConcurrentRequests()) {
+            lastMaxConcurrentRequests = maxConcurrentRequests;
+            command.reset(hystrixHandle.getCommandKey());
+        }
+        return command;
     }
 
     @Override
