@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.base.condition.judge;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -113,6 +114,14 @@ public final class PredicateJudgeFactoryTest {
         conditionData.setParamValue("/http/test");
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
+    }
+
+    @Test
+    public void testContainsJudge() {
+        conditionData.setOperator(OperatorEnum.CONTAINS.getAlias());
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
     }
 
 }

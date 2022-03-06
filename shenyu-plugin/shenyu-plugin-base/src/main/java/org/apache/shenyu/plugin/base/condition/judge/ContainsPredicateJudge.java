@@ -28,6 +28,6 @@ public class ContainsPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return conditionData.getParamValue().trim().contains(realData);
+        return realData.contains(conditionData.getParamValue().trim());
     }
 }
