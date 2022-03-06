@@ -59,13 +59,6 @@
           "enabled": false
         },
         {
-          "id": "7",
-          "name": "monitor",
-          "config": "{\"metricsName\":\"prometheus\",\"host\":\"localhost\",\"port\":\"9190\",\"async\":\"true\"}",
-          "role": 0,
-          "enabled": false
-        },
-        {
           "id": "8",
           "name": "springCloud",
           "config": null,
