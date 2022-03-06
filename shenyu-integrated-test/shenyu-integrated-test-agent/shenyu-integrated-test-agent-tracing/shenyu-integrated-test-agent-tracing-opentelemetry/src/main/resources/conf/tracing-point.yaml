@@ -93,13 +93,6 @@ pointCuts:
     handlers:
       opentelemetry:
         - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
-  - targetClass: org.apache.shenyu.plugin.monitor.MonitorPlugin
-    points:
-      - type: instanceMethod
-        name: doExecute
-    handlers:
-      opentelemetry:
-        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
   - targetClass: org.apache.shenyu.plugin.motan.MotanPlugin
     points:
       - type: instanceMethod

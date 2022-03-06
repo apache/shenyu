@@ -349,7 +349,6 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_crea
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('4','rateLimiter','FaultTolerance', 60,'{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('5','divide', 'Proxy', 200,'{"multiSelectorHandle":"1","multiRuleHandle":"0"}','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('6','dubbo','Proxy', 310,'{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"cached","corethreads":0,"threads":2147483647,"queues":0}', '0', '2018-06-23 10:26:41', '2018-06-11 10:11:47');;
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('7','monitor', 'Monitor', 170,'{"metricsName":"prometheus","host":"localhost","port":"9190","async":"true"}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('8','springCloud','Proxy', 200, '0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('9','hystrix', 'FaultTolerance', 130,'0', '2020-01-15 10:19:10', '2020-01-15 10:19:10');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('10','sentinel', 'FaultTolerance', 140,'0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');;
@@ -431,10 +430,6 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `t
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('11', 'register', 'register', 2, 3, 2, NULL);;
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('2', 'model', 'model', 2, 3, 1, NULL);;
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'register', 'register', 2, 3, 1, NULL);;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('7', 'metricsName', 'metricsName', 2, 3, 1, NULL);;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('7', 'host', 'host', 2, 3, 2, NULL);;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('7', 'port', 'port', 2, 3, 3, '{"rule":"/^[0-9]*$/"}');;
-INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('7', 'async', 'async', 2, 3, 4, NULL);;
 
 /*insert plugin_handle data for plugin rateLimiter*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('4' ,'algorithmName','algorithmName','3', 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}');;
