@@ -65,7 +65,6 @@ public final class PrometheusGlobalPluginHandler implements InstanceMethodHandle
     @Override
     public void onThrowing(final TargetObject target, final Method method, final Object[] args, final Throwable throwable) {
         MetricsRecorderPool.get(MetricsConstant.REQUEST_THROW_TOTAL, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::inc);
-        MetricsRecorderPool.get(MetricsConstant.REQUEST_UNDONE, MetricsConstant.PROMETHEUS).ifPresent(MetricsRecorder::dec);
     }
 
 }
