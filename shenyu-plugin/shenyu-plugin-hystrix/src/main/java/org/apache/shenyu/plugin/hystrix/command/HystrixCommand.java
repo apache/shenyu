@@ -90,7 +90,7 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
     }
 
     @Override
-    public void reset(String commandKey) {
+    public void reset(final String commandKey) {
         HystrixPropertiesFactory.reset();
         executionSemaphorePerCircuit.remove(commandKey);
     }

@@ -105,6 +105,10 @@ public interface Command {
      */
     URI getCallBackUri();
 
-    void reset(String commandKey);
+    /**
+     * reset rule data
+     * @param commandKey commandKey
+     */
+    void reset(final String commandKey);
 
 }

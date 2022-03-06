@@ -87,7 +87,7 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
                     exchange, chain, hystrixHandle.getCallBackUri());
         }
         int maxConcurrentRequests = hystrixHandle.getMaxConcurrentRequests();
-        if (lastMaxConcurrentRequests !=  hystrixHandle.getMaxConcurrentRequests()) {
+        if (lastMaxConcurrentRequests != hystrixHandle.getMaxConcurrentRequests()) {
             lastMaxConcurrentRequests = maxConcurrentRequests;
             command.reset(hystrixHandle.getCommandKey());
         }

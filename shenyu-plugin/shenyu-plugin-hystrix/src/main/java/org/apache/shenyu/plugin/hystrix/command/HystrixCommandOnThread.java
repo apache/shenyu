@@ -87,7 +87,7 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
     }
 
     @Override
-    public void reset(String commandKey) {
+    public void reset(final String commandKey) {
         HystrixPropertiesFactory.reset();
         executionSemaphorePerCircuit.remove(commandKey);
     }
