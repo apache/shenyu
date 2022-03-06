@@ -20,7 +20,6 @@ package org.apache.shenyu.common.exception;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link ShenyuException}.
@@ -32,8 +31,6 @@ public final class ShenyuExceptionTest {
         String message = "error throwable";
         Throwable throwable = new Throwable(message);
         ShenyuException shenyuException = new ShenyuException(throwable);
-
-        assertTrue(shenyuException instanceof ShenyuException);
         assertEquals(shenyuException.getCause().getMessage(), message);
         assertEquals(shenyuException.getCause(), throwable);
     }
@@ -42,8 +39,6 @@ public final class ShenyuExceptionTest {
     public void testAcquireByMessage() {
         String message = "error";
         ShenyuException shenyuException = new ShenyuException(message);
-
-        assertTrue(shenyuException instanceof ShenyuException);
         assertEquals(shenyuException.getMessage(), message);
     }
 
@@ -53,8 +48,6 @@ public final class ShenyuExceptionTest {
         String throwableMessage = "error throwable";
         Throwable throwable = new Throwable(throwableMessage);
         ShenyuException shenyuException = new ShenyuException(message, throwable);
-
-        assertTrue(shenyuException instanceof ShenyuException);
         assertEquals(shenyuException.getMessage(), message);
         assertEquals(shenyuException.getCause().getMessage(), throwableMessage);
         assertEquals(shenyuException.getCause(), throwable);

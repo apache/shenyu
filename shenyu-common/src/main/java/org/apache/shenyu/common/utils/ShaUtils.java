@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
+package org.apache.shenyu.common.utils;
 
 import java.security.MessageDigest;
 
@@ -47,6 +47,9 @@ public class ShaUtils {
                 StringBuffer strHexString = new StringBuffer();
                 for (byte b:byteBuffer) {
                     String hex = Integer.toHexString(0xff & b);
+                    if (hex.length() == 1) {
+                        strHexString.append('0');
+                    }
                     strHexString.append(hex);
                 }
                 return strHexString.toString();

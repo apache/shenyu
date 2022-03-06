@@ -15,33 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
+package org.apache.shenyu.admin.service.provider;
 
-import org.junit.jupiter.api.Test;
+import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.validation.ExistProvider;
+import org.springframework.stereotype.Component;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import java.io.Serializable;
 
 /**
- * Test cases for ShaUtils.
+ * AppKeyProvider.
  */
-public final class ShaUtilsTest {
-
-    @Test
-    public void testShaEncryption() {
-        assertThat(ShaUtils.shaEncryption("123456"), is("ba3253876aed6bc22d4a6ff53d846c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413"));
+@Component
+public class AppKeyProvider implements ExistProvider {
+    
+    private final AppAuthMapper appAuthMapper;
+    
+    public AppKeyProvider(final AppAuthMapper appAuthMapper) {
+        this.appAuthMapper = appAuthMapper;
     }
-
-    @Test
-    public void testShaEncryptionForNull() {
-        assertThat(ShaUtils.shaEncryption(null), nullValue());
+    
+    @Override
+    public Boolean existed(final Serializable key) {
+        return appAuthMapper.existed(key);
     }
-
-    @Test
-    public void testShaDecryptionForEmptyString() {
-        assertThat(ShaUtils.shaEncryption(""), nullValue());
-    }
-
 }
-

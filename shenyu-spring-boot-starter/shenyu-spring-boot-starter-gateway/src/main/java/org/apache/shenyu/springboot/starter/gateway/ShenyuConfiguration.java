@@ -152,13 +152,15 @@ public class ShenyuConfiguration {
      * Local dispatcher filter web filter.
      *
      * @param dispatcherHandler the dispatcher handler
+     * @param shenyuConfig the shenyuConfig
+     *
      * @return the web filter
      */
     @Bean
     @Order(-200)
-    @ConditionalOnProperty(name = "shenyu.switchConfig.local", havingValue = "true", matchIfMissing = true)
-    public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler) {
-        return new LocalDispatcherFilter(dispatcherHandler);
+    @ConditionalOnProperty(name = "shenyu.local.enable", havingValue = "false", matchIfMissing = true)
+    public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler, final ShenyuConfig shenyuConfig) {
+        return new LocalDispatcherFilter(dispatcherHandler, shenyuConfig.getLocal().getSha512Key());
     }
     
     /**

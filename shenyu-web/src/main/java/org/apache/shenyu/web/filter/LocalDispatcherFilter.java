@@ -17,14 +17,19 @@
 
 package org.apache.shenyu.web.filter;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.common.utils.ShaUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * The type Local dispatcher filter.
@@ -35,13 +40,16 @@ public class LocalDispatcherFilter implements WebFilter {
 
     private final DispatcherHandler dispatcherHandler;
     
+    private String sha512Key;
+    
     /**
      * Instantiates a new Local dispatcher filter.
      *
      * @param dispatcherHandler the dispatcher handler
      */
-    public LocalDispatcherFilter(final DispatcherHandler dispatcherHandler) {
+    public LocalDispatcherFilter(final DispatcherHandler dispatcherHandler, final String sha512Key) {
         this.dispatcherHandler = dispatcherHandler;
+        this.sha512Key = sha512Key;
     }
     
     /**
@@ -57,6 +65,10 @@ public class LocalDispatcherFilter implements WebFilter {
     public Mono<Void> filter(@Nonnull final ServerWebExchange exchange, @Nonnull final WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
         if (PathMatchUtils.match(DISPATCHER_PATH, path)) {
+            String localKey = exchange.getRequest().getHeaders().getFirst(Constants.LOCAL_KEY);
+            if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey)) || Objects.isNull(localKey)) {
+                return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));
+            }
             return dispatcherHandler.handle(exchange);
         }
         return chain.filter(exchange);

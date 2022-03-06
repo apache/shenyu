@@ -69,7 +69,7 @@ public class ZipkinSpanManager {
     public void finish(final Span span, final ServerWebExchange exchange) {
         span.finish();
         if (count.decrementAndGet() == 0) {
-            exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT);
+            exchange.getAttributes().remove(TracingConstants.SHENYU_AGENT_TRACE_ZIPKIN);
         }
     }
 }

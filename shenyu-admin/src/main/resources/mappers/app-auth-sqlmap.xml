@@ -94,6 +94,14 @@
         from app_auth
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from app_auth where id = #{id} limit 1
+    </select>
+
+    <select id="appKeyExisted" resultType="java.lang.Boolean">
+        select true from app_auth where app_key = #{appKey} limit 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
         insert into app_auth
         (id,

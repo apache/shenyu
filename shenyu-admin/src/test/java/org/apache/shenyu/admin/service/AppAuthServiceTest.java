@@ -19,26 +19,26 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.mapper.AuthParamMapper;
+import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
-import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.dto.AuthParamDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathDTO;
+import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.AuthParamMapper;
-import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
+import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.exception.CommonErrorCode;
@@ -57,11 +57,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -108,10 +108,7 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testUpdateDetail() {
-        AppAuthDTO appAuthDTO = new AppAuthDTO();
-        ShenyuAdminResult parameterErrorResult = this.appAuthService.updateDetail(appAuthDTO);
-        assertEquals(ShenyuResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
-        appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
+        AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
         appAuthDTO.setAuthParamDTOList(authParamDTOList);
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);

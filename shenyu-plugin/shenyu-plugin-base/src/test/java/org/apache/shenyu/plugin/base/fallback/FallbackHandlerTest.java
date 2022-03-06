@@ -69,7 +69,7 @@ public final class FallbackHandlerTest {
      */
     @Test
     public void generateErrorTest() {
-        StepVerifier.create(testFallbackHandler.generateError(exchange, new RuntimeException())).expectSubscription().verifyComplete();
+        StepVerifier.create(testFallbackHandler.withoutFallback(exchange, new RuntimeException())).expectSubscription().verifyComplete();
     }
 
     /**
@@ -83,7 +83,7 @@ public final class FallbackHandlerTest {
 
     static class TestFallbackHandler implements FallbackHandler {
         @Override
-        public Mono<Void> generateError(final ServerWebExchange exchange, final Throwable throwable) {
+        public Mono<Void> withoutFallback(final ServerWebExchange exchange, final Throwable throwable) {
             return Mono.empty();
         }
     }

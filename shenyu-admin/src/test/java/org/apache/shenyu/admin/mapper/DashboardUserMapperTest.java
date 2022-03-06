@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
-import org.apache.shenyu.admin.utils.ShaUtils;
+import org.apache.shenyu.common.utils.ShaUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 

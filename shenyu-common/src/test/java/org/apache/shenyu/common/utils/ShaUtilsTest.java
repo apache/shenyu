@@ -15,22 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.validation;
+package org.apache.shenyu.common.utils;
 
-import java.io.Serializable;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
- * ExistProvider.
+ * Test cases for ShaUtils.
  */
-public interface ExistProvider {
-    
-    
-    
-    /**
-     * existed.
-     *
-     * @param key key
-     * @return existed, if not existed nullable
-     */
-    Boolean existed(Serializable key);
+public final class ShaUtilsTest {
+
+    @Test
+    public void testShaEncryption() {
+        assertThat(ShaUtils.shaEncryption("123456"), is("ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413"));
+    }
+
+    @Test
+    public void testShaEncryptionForNull() {
+        assertThat(ShaUtils.shaEncryption(null), nullValue());
+    }
+
+    @Test
+    public void testShaDecryptionForEmptyString() {
+        assertThat(ShaUtils.shaEncryption(""), nullValue());
+    }
+
 }
+

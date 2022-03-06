@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS `data_permission` (
     );;
 
 /**default admin user**/
-INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','ba3253876aed6bc22d4a6ff53d846c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');;
+INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');;
 
 /** insert admin role */
 INSERT IGNORE INTO `user_role` (`id`, `user_id`, `role_id`, `date_created`, `date_updated`) VALUES ('1351007709096976384', '1', '1346358560427216896', '2021-01-18 11:25:13', '2021-01-18 11:25:13');;
@@ -321,6 +321,10 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 /*insert dict for dubbo plugin*/
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('gray', 'GRAY_STATUS', 'close', 'false', 'close', '1', '1');;
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('gray', 'GRAY_STATUS', 'open', 'true', 'open', '0', '1');;
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'fixed', 'fixed', '', '3', '1');
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'eager', 'eager', '', '2', '1');
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'cached', 'cached', '', '0', '1');
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'limited', 'limited', '', '1', '1');
 
 /* insert dict for init resource,permission table */
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('table', 'INIT_FLAG', 'status', 'false', 'table(resource,permission) init status', '0', '1');;
@@ -331,7 +335,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`,`config`,`enabled`, `d
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('3','rewrite', 'HttpProcess', 90,'0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('4','rateLimiter','FaultTolerance', 60,'{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('5','divide', 'Proxy', 200,'{"multiSelectorHandle":"1","multiRuleHandle":"0"}','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');;
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('6','dubbo','Proxy', 310,'{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1"}', '0', '2018-06-23 10:26:41', '2018-06-11 10:11:47');;
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('6','dubbo','Proxy', 310,'{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"cached","corethreads":0,"threads":2147483647,"queues":0}', '0', '2018-06-23 10:26:41', '2018-06-11 10:11:47');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`, `date_created`, `date_updated`) VALUES ('7','monitor', 'Monitor', 170,'{"metricsName":"prometheus","host":"localhost","port":"9190","async":"true"}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('8','springCloud','Proxy', 200, '0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');;
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('9','hystrix', 'FaultTolerance', 130,'0', '2020-01-15 10:19:10', '2020-01-15 10:19:10');;
@@ -496,6 +500,10 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `t
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'version', 'version', '2', '1', '4', '{"required":"0","placeholder":"version","rule":""}');;
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'warmup', 'warmupTime', '1', '1', '6', '{"defaultValue":"0","placeholder":"warmup time (ms)","rule":""}');;
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'weight', 'weight', '1', '1', '5', '{"defaultValue":"50","rule":""}');;
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'threadpool', 'threadpool', '3', '3', '0', '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}');
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'corethreads', 'corethreads', '1', '3', '0', '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}');
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'threads', 'threads', '1', '3', '0', '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}');
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'queues', 'queues', '1', '3', '0', '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}');
 
 /*insert plugin_handle data for websocket*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('26', 'host', 'host', 2, 1, 0, null);;

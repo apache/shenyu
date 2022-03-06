@@ -20,7 +20,9 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -28,8 +30,17 @@ import java.util.Set;
  * The interface Auth path mapper.
  */
 @Mapper
-public interface AuthPathMapper {
-
+public interface AuthPathMapper extends ExistProvider {
+    
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+    
     /**
      * Save int.
      *
@@ -37,7 +48,7 @@ public interface AuthPathMapper {
      * @return the int
      */
     int save(AuthPathDO authPathDO);
-
+    
     /**
      * Batch save int.
      *
@@ -45,7 +56,7 @@ public interface AuthPathMapper {
      * @return the int
      */
     int batchSave(@Param("authPathDOList") List<AuthPathDO> authPathDOList);
-
+    
     /**
      * Update int.
      *
@@ -53,7 +64,7 @@ public interface AuthPathMapper {
      * @return the int
      */
     int update(AuthPathDO authPathDO);
-
+    
     /**
      * Find by auth id list.
      *
@@ -61,14 +72,15 @@ public interface AuthPathMapper {
      * @return the list
      */
     List<AuthPathDO> findByAuthId(String authId);
-
+    
     /**
      * find all the {@link AuthPathDO} by authIdList.
+     *
      * @param authIdSet batch auth id
      * @return the list
      */
     List<AuthPathDO> findByAuthIdList(@Param("authIdSet") Set<String> authIdSet);
-
+    
     /**
      * Find by auth id and app name list.
      *
@@ -77,8 +89,8 @@ public interface AuthPathMapper {
      * @return the list
      */
     List<AuthPathDO> findByAuthIdAndAppName(@Param("authId") String authId, @Param("appName") String appName);
-
-
+    
+    
     /**
      * Delete by auth id and app name int.
      *
@@ -87,7 +99,7 @@ public interface AuthPathMapper {
      * @return the int
      */
     int deleteByAuthIdAndAppName(@Param("authId") String authId, @Param("appName") String appName);
-
+    
     /**
      * Delete by auth id int.
      *
@@ -95,7 +107,7 @@ public interface AuthPathMapper {
      * @return the int
      */
     int deleteByAuthId(@Param("authId") String authId);
-
+    
     /**
      * Delete by auth id int.
      *

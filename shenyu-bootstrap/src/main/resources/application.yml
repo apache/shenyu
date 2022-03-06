@@ -86,6 +86,41 @@ shenyu:
         writeSpinCount: 16
         autoRead: true
         allocType: "pooled"
+  #  httpclient:
+  #    strategy: webClient
+  #    connectTimeout: 45000
+  #    responseTimeout: 3000
+  #    readerIdleTime: 3000
+  #    writerIdleTime: 3000
+  #    allIdleTime: 3000
+  #    readTimeout: 3000
+  #    writeTimeout: 3000
+  #    wiretap: false
+  #    keepAlive: false
+  #    pool:
+  #      type: ELASTIC
+  #      name: proxy
+  #      maxConnections: 16
+  #      acquireTimeout: 45000
+  #      maxIdleTime: 3000
+  #    proxy:
+  #      host:
+  #      port:
+  #      username:
+  #      password:
+  #      nonProxyHostsPattern:
+  #    ssl:
+  #      useInsecureTrustManager: true
+  #      keyStoreType: PKCS12
+  #      keyStorePath: classpath:keystore.p12
+  #      keyStorePassword: 123456
+  #      keyStoreProvider: 
+  #      keyPassword: 123456
+  #      trustedX509Certificates:
+  #      handshakeTimeout:
+  #      closeNotifyFlushTimeout:
+  #      closeNotifyReadTimeout:
+  #      defaultConfigurationType:      
   instance:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -156,6 +191,9 @@ shenyu:
     printInterval: 60000
   ribbon:
     serverListRefreshInterval: 10000
+  local:
+    enabled: true
+    sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
 
 eureka:
   client:
