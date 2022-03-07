@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.config;
+package org.apache.shenyu.plugin.cache.base.redis;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
 
@@ -24,9 +24,9 @@ import java.time.Duration;
 import java.util.Objects;
 
 /**
- * The rateLimiter configuration for redis.
+ * The configuration for redis.
  */
-public class RateLimiterConfig implements Serializable {
+public class RedisConfigProperties implements Serializable {
 
     private static final long serialVersionUID = -3535286136370323953L;
 
@@ -241,7 +241,7 @@ public class RateLimiterConfig implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RateLimiterConfig that = (RateLimiterConfig) o;
+        RedisConfigProperties that = (RedisConfigProperties) o;
         return maxIdle == that.maxIdle && minIdle == that.minIdle && maxActive == that.maxActive
                 && Objects.equals(database, that.database) && Objects.equals(master, that.master)
                 && Objects.equals(mode, that.mode) && Objects.equals(url, that.url)

@@ -22,7 +22,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
-import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
+import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -57,7 +57,7 @@ public class RedisRateLimiterScriptsTest {
                 .build();
         redisServer.start();
         RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
-        RateLimiterConfig config = new RateLimiterConfig();
+        RedisConfigProperties config = new RedisConfigProperties();
         config.setUrl("127.0.0.1:63792");
         PluginData pluginData = PluginData.builder()
                 .enabled(true)

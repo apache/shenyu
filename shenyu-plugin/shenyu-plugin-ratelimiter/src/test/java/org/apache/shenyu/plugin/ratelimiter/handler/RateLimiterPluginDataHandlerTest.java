@@ -23,7 +23,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
+import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,12 +82,12 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void handlerPluginTest() {
-        RateLimiterConfig rateLimiterConfig = generateRateLimiterConfig(generateDefaultUrl());
+        RedisConfigProperties redisConfigProperties = generateRedisConfig(generateDefaultUrl());
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
-        pluginData.setConfig(GsonUtils.getInstance().toJson(rateLimiterConfig));
+        pluginData.setConfig(GsonUtils.getInstance().toJson(redisConfigProperties));
         rateLimiterPluginDataHandler.handlerPlugin(pluginData);
-        assertEquals(rateLimiterConfig.getUrl(), Singleton.INST.get(RateLimiterConfig.class).getUrl());
+        assertEquals(redisConfigProperties.getUrl(), Singleton.INST.get(RedisConfigProperties.class).getUrl());
         assertNotNull(Singleton.INST.get(ReactiveRedisTemplate.class));
     }
 
@@ -97,7 +97,7 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void redisStandaloneConfigurationErrorTest() {
         assertThrows(Throwable.class, () -> {
-            ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration", new RateLimiterConfig());
+            ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration", new RedisConfigProperties());
         });
     }
 
@@ -107,7 +107,7 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void redisStandaloneConfigurationPropertiesTest() {
         RedisStandaloneConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration",
-                generateRateLimiterConfig(generateDefaultUrl()));
+                generateRedisConfig(generateDefaultUrl()));
         assertNotNull(configuration);
         assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
         assertEquals(LOCALHOST, configuration.getHostName());
@@ -121,7 +121,7 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void redisRedisClusterConfigurationPropertiesTest() {
         RedisClusterConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisClusterConfiguration",
-                generateRateLimiterConfig("localhost:2181;localhost:2182"));
+                generateRedisConfig("localhost:2181;localhost:2182"));
         assertNotNull(configuration);
         assertEquals(RedisPassword.of(PASSWORD_TEST_VALUE), configuration.getPassword());
         assertEquals(Collections.unmodifiableSet(Sets.newHashSet(generateRedisNode(PORT_TEST_VALUE_1),
@@ -134,10 +134,10 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void getPoolConfigPropertyTest() {
         Duration duration = Duration.ofHours(1);
-        RateLimiterConfig rateLimiterConfig = new RateLimiterConfig();
-        rateLimiterConfig.setMaxWait(duration);
-        GenericObjectPoolConfig<RateLimiterConfig> poolConfig = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler,
-                "getPoolConfig", rateLimiterConfig);
+        RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
+        redisConfigProperties.setMaxWait(duration);
+        GenericObjectPoolConfig<RedisConfigProperties> poolConfig = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler,
+                "getPoolConfig", redisConfigProperties);
         assertNotNull(poolConfig);
         assertEquals(DEFAULT_MAX_IDLE, poolConfig.getMaxIdle());
         assertEquals(DEFAULT_MAX_ACTIVE, poolConfig.getMaxTotal());
@@ -151,7 +151,7 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void redisSentinelConfigurationPropertyTest() {
         RedisSentinelConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisSentinelConfiguration",
-                generateRateLimiterConfig("localhost:2181;localhost:2182"));
+                generateRedisConfig("localhost:2181;localhost:2182"));
         assertNotNull(configuration);
         assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
         assertEquals(RedisPassword.of(PASSWORD_TEST_VALUE), configuration.getPassword());
@@ -182,14 +182,14 @@ public final class RateLimiterPluginDataHandlerTest {
     }
 
     /**
-     * generate RateLimiterConfig.
+     * generate RedisConfigProperties.
      */
-    private RateLimiterConfig generateRateLimiterConfig(final String url) {
-        RateLimiterConfig rateLimiterConfig = new RateLimiterConfig();
-        rateLimiterConfig.setDatabase(DATABASE_TEST_VALUE);
-        rateLimiterConfig.setUrl(url);
-        rateLimiterConfig.setMaster(MASTER_TEST_VALUE);
-        rateLimiterConfig.setPassword(PASSWORD_TEST_VALUE);
-        return rateLimiterConfig;
+    private RedisConfigProperties generateRedisConfig(final String url) {
+        RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
+        redisConfigProperties.setDatabase(DATABASE_TEST_VALUE);
+        redisConfigProperties.setUrl(url);
+        redisConfigProperties.setMaster(MASTER_TEST_VALUE);
+        redisConfigProperties.setPassword(PASSWORD_TEST_VALUE);
+        return redisConfigProperties;
     }
 }
