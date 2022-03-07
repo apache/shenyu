@@ -29,6 +29,7 @@
         <curator.version>4.0.1</curator.version>
         <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
         <nacos-discovery.version>2.2.6.RELEASE</nacos-discovery.version>
+        <eureka-client.version>2.1.2.RELEASE</eureka-client.version>
     </properties>
 
     <dependencies>
@@ -429,7 +430,7 @@
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-                    <version>${spring-cloud.version}</version>
+                    <version>${eureka-client.version}</version>
                 </dependency>
             </dependencies>
             <activation>

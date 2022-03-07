@@ -31,7 +31,7 @@ spring:
       ribbon:
         enabled: false
     discovery:
-      enabled: false
+      enabled: true
 
 #  security:
 #    oauth2:
