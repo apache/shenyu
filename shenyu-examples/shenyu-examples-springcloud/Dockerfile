@@ -26,6 +26,4 @@ ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8761
 
-ENV spring.profiles.active="eureka"
-
 CMD java -jar ${APP_NAME}.jar
