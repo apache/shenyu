@@ -254,6 +254,11 @@ public final class Upstream {
         this.version = version;
     }
 
+    /**
+     * build request domain.
+     *
+     * @return domain
+     */
     public String buildDomain() {
         String protocol = this.getProtocol();
         if (StringUtils.isBlank(protocol)) {
