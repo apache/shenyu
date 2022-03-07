@@ -107,11 +107,14 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 }
 ```
 
-* Set routing rules（Standalone）
+* Set routing rules (Standalone)
+
+Add `localKey: 123456` to Headers. If you need to customize the localKey, you can use the sha512 tool to generate the key based on plaintext and update the `shenyu.local.sha512Key` property.
 
 ```
 curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndRules' \
 --header 'Content-Type: application/json' \
+--header 'localKey: 123456' \
 --data-raw '{
     "pluginName": "divide",
     "selectorHandler": "[{\"upstreamUrl\":\"127.0.0.1:8080\"}]",
