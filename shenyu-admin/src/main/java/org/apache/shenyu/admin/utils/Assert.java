@@ -33,7 +33,7 @@ public class Assert {
     }
     
     /**
-     * assert obj is not null
+     * assert obj is not null.
      *
      * @param obj     obj
      * @param message error message
@@ -45,7 +45,7 @@ public class Assert {
     }
     
     /**
-     * assert string is not black
+     * assert string is not black.
      *
      * @param str     string
      * @param message error message
@@ -57,7 +57,7 @@ public class Assert {
     }
     
     /**
-     * assert collection is not empty
+     * assert collection is not empty.
      *
      * @param collection obj
      * @param message    error message
