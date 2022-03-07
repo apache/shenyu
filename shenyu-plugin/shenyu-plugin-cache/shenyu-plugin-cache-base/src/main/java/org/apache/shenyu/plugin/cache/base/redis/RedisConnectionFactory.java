@@ -55,9 +55,16 @@ public class RedisConnectionFactory {
         return this.lettuceConnectionFactory;
     }
 
-    public RedisSerializationContext<String, String> getSerializationContext() {
+    public RedisSerializationContext<String, String> getStringSerializationContext() {
         RedisSerializer<String> serializer = new StringRedisSerializer();
-        return RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer).hashKey(serializer).hashValue(serializer).build();
+        return RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer)
+                .hashKey(serializer).hashValue(serializer).build();
+    }
+
+    public RedisSerializationContext<String, byte[]> getBytesSerializationContext() {
+        RedisSerializer<String> serializer = new StringRedisSerializer();
+        final ByteArrayRedisSerializer bytesRedisSerializer = new ByteArrayRedisSerializer();
+        return RedisSerializationContext.<String, byte[]>newSerializationContext().key(serializer).value(bytesRedisSerializer).build();
     }
 
     private LettuceConnectionFactory createLettuceConnectionFactory(final RedisConfigProperties redisConfigProperties) {
