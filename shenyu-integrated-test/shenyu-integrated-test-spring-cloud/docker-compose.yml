@@ -98,8 +98,8 @@ services:
     healthcheck:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-spring-cloud:9195/actuator/health" ]
       timeout: 2s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - shenyu
 
