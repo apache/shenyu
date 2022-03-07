@@ -67,8 +67,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8884/actuator/health | grep UP || exit 1"]
       timeout: 2s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 15s
     ports:
       - "8884:8884"
     networks:
@@ -98,8 +98,8 @@ services:
     healthcheck:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-spring-cloud:9195/actuator/health" ]
       timeout: 2s
-      retries: 5
-      start_period: 15s
+      retries: 3
+      start_period: 5s
     networks:
       - shenyu
 
