@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.loadbalancer.entity;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Objects;
 
 /**
@@ -250,6 +252,14 @@ public final class Upstream {
      */
     public void setVersion(final String version) {
         this.version = version;
+    }
+
+    public String buildDomain() {
+        String protocol = this.getProtocol();
+        if (StringUtils.isBlank(protocol)) {
+            protocol = "http://";
+        }
+        return protocol + this.getUrl().trim();
     }
 
     /**
