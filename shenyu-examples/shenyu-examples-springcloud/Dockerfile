@@ -26,4 +26,7 @@ ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8761
 
-CMD java -jar ${APP_NAME}.jar
+ENV JAVA_OPTS="\
+--spring.profiles.active=eureka \
+
+CMD java ${JAVA_OPTS} -jar ${APP_NAME}.jar
