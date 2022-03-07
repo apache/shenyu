@@ -22,8 +22,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.utils.RequestQueryCodecUtil;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -36,25 +35,12 @@ public class URIPlugin implements ShenyuPlugin {
 
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        String path = exchange.getAttribute(Constants.HTTP_DOMAIN);
-        if (StringUtils.isBlank(path)) {
+        String domain = exchange.getAttribute(Constants.HTTP_DOMAIN);
+        if (StringUtils.isBlank(domain)) {
             return chain.execute(exchange);
         }
-        String rewriteUri = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        if (StringUtils.isNoneBlank(rewriteUri)) {
-            path = path + rewriteUri;
-        } else {
-            String realUrl = shenyuContext.getRealUrl();
-            if (StringUtils.isNoneBlank(realUrl)) {
-                path = path + realUrl;
-            }
-        }
-        if (StringUtils.isNoneBlank(exchange.getRequest().getURI().getQuery())) {
-            path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
-        }
-        exchange.getAttributes().put(Constants.HTTP_URI, URI.create(path));
+        final URI uri = RequestUrlUtils.buildRequestUri(exchange, domain);
+        exchange.getAttributes().put(Constants.HTTP_URI, uri);
         return chain.execute(exchange);
     }
 
