@@ -37,7 +37,6 @@
         <module>shenyu-client</module>
         <module>shenyu-plugin</module>
         <module>shenyu-sync-data-center</module>
-        <module>shenyu-metrics</module>
         <module>shenyu-spi</module>
         <module>shenyu-register-center</module>
         <module>shenyu-disruptor</module>
