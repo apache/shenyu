@@ -29,9 +29,6 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -53,18 +50,6 @@ public class RedisConnectionFactory {
 
     public LettuceConnectionFactory getLettuceConnectionFactory() {
         return this.lettuceConnectionFactory;
-    }
-
-    public RedisSerializationContext<String, String> getStringSerializationContext() {
-        RedisSerializer<String> serializer = new StringRedisSerializer();
-        return RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer)
-                .hashKey(serializer).hashValue(serializer).build();
-    }
-
-    public RedisSerializationContext<String, byte[]> getBytesSerializationContext() {
-        RedisSerializer<String> serializer = new StringRedisSerializer();
-        final ByteArrayRedisSerializer bytesRedisSerializer = new ByteArrayRedisSerializer();
-        return RedisSerializationContext.<String, byte[]>newSerializationContext().key(serializer).value(bytesRedisSerializer).build();
     }
 
     private LettuceConnectionFactory createLettuceConnectionFactory(final RedisConfigProperties redisConfigProperties) {

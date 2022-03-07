@@ -17,16 +17,45 @@
 
 package org.apache.shenyu.plugin.cache.base.redis;
 
+import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuSerializationContext;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 /**
  * ShenyuCacheReactiveRedisTemplate.
  */
 public class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<String, byte[]> {
 
-    public ShenyuCacheReactiveRedisTemplate(final ReactiveRedisConnectionFactory connectionFactory, final RedisSerializationContext<String, byte[]> serializationContext) {
-        super(connectionFactory, serializationContext);
+    public ShenyuCacheReactiveRedisTemplate(final ReactiveRedisConnectionFactory connectionFactory) {
+        super(connectionFactory, ShenyuSerializationContext.bytesSerializationContext());
+    }
+
+    /**
+     * Cache the data with the key.
+     * @param key the cache key
+     * @param bytes the data
+     * @param timeoutSeconds the timeout seconds
+     * @return success or not
+     */
+    public boolean cache(final String key, final byte[] bytes, final long timeoutSeconds) {
+        return true;
+    }
+
+    /**
+     * Check the cache is exist or not.
+     * @param key the cache key
+     * @return true exist
+     */
+    public boolean isExist(final String key) {
+        return false;
+    }
+
+    /**
+     * Get data with the key.
+     * @param key the cache key
+     * @return the data
+     */
+    public byte[] getData(final String key) {
+        return new byte[0];
     }
 }

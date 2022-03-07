@@ -25,10 +25,11 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
-import org.apache.shenyu.plugin.cache.base.redis.RedisConnectionFactory;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
+import org.apache.shenyu.plugin.cache.base.redis.RedisConnectionFactory;
+import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuSerializationContext;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import java.util.Objects;
@@ -54,7 +55,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
                 final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
                 ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
                         redisConnectionFactory.getLettuceConnectionFactory(),
-                        redisConnectionFactory.getStringSerializationContext());
+                        ShenyuSerializationContext.stringSerializationContext());
                 Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
                 Singleton.INST.single(RedisConfigProperties.class, redisConfigProperties);
             }
