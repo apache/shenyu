@@ -115,4 +115,12 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
     }
 
+    @Test
+    public void testContainsJudge() {
+        conditionData.setOperator(OperatorEnum.CONTAINS.getAlias());
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
+    }
+
 }
