@@ -96,7 +96,10 @@
             </activation>
         </profile>
         <profile>
-            <id>eureka</id>
+            <id>example</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
@@ -104,15 +107,6 @@
                     <version>${eureka-client.version}</version>
                 </dependency>
             </dependencies>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>example</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>

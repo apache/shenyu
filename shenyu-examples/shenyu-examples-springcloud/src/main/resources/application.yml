@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: eureka
+    active: example
   application:
     name: springCloud-test
 

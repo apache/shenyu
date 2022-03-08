@@ -67,7 +67,6 @@ runs:
         done
 
         echo "SKIP_CI=true" >> $GITHUB_ENV
-        echo "EXAMPLE_SPRINGCLOUD_FLAG=true" >> $GITHUB_ENV
         for file in ${files}; do
           matched=0
           for pattern in $(echo '${{ inputs.ignore-patterns }}'); do

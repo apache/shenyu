@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: eureka
+    active: example
   main:
     allow-bean-definition-overriding: true
   application:

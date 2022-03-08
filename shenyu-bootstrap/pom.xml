@@ -425,7 +425,7 @@
             </activation>
         </profile>
         <profile>
-            <id>eureka</id>
+            <id>example</id>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
