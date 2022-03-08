@@ -44,7 +44,7 @@ public class ConfigController {
     
     private final HttpLongPollingDataChangedListener longPollingListener;
     
-    public ConfigController(HttpLongPollingDataChangedListener longPollingListener) {
+    public ConfigController(final HttpLongPollingDataChangedListener longPollingListener) {
         this.longPollingListener = longPollingListener;
     }
     
