@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.hystrix.command;
 
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.slf4j.Logger;
