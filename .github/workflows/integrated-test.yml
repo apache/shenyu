@@ -61,6 +61,9 @@ jobs:
       - name: Build examples
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+      - name: Build example-springcloud
+        if: env.EXAMPLE_SPRINGCLOUD_FLAG = 'true'
+        run: ./mvnw -B clean install -Peureka -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
       - name: Build integrated tests
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
