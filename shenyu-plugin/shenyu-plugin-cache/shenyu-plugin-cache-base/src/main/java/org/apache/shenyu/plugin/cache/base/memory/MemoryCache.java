@@ -15,51 +15,72 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cache.base.redis;
+package org.apache.shenyu.plugin.cache.base.memory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.shenyu.plugin.cache.base.ICache;
-import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuSerializationContext;
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
- * ShenyuCacheReactiveRedisTemplate.
+ * MemoryCache.
  */
-public class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<String, byte[]> implements ICache {
+public final class MemoryCache implements ICache {
 
-    public ShenyuCacheReactiveRedisTemplate(final ReactiveRedisConnectionFactory connectionFactory) {
-        super(connectionFactory, ShenyuSerializationContext.bytesSerializationContext());
+    private final Map<String, Cache<String, byte[]>> mainCache;
+
+    public MemoryCache() {
+        this.mainCache = new ConcurrentHashMap<>();
     }
 
     /**
      * Cache the data with the key.
-     * @param key the cache key
-     * @param bytes the data
+     *
+     * @param key            the cache key
+     * @param bytes          the data
      * @param timeoutSeconds the timeout seconds
      * @return success or not
      */
     @Override
     public boolean cache(final String key, final byte[] bytes, final long timeoutSeconds) {
+        final Cache<String, byte[]> cache = CacheBuilder.newBuilder().expireAfterWrite(timeoutSeconds, TimeUnit.SECONDS).build();
+        cache.put(key, bytes);
+        this.mainCache.put(key, cache);
         return true;
     }
 
     /**
      * Check the cache is exist or not.
+     *
      * @param key the cache key
      * @return true exist
      */
     @Override
     public boolean isExist(final String key) {
-        return false;
+        final Cache<String, byte[]> cache = this.mainCache.get(key);
+        if (Objects.isNull(cache) || !cache.asMap().containsKey(key)) {
+            // remove from main cache
+            this.mainCache.remove(key);
+            return false;
+        }
+        return true;
     }
 
     /**
      * Get data with the key.
+     *
      * @param key the cache key
      * @return the data
      */
     @Override
     public byte[] getData(final String key) {
-        return new byte[0];
+        if (isExist(key)) {
+            return null;
+        }
+        return this.mainCache.get(key).asMap().get(key);
     }
 }

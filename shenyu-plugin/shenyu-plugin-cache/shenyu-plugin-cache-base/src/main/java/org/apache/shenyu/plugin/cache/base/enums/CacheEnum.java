@@ -15,45 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+package org.apache.shenyu.plugin.cache.base.enums;
 
 /**
- * Singleton.
+ * the Cache Enum.
  */
-public enum Singleton {
+public enum CacheEnum {
 
     /**
-     * Inst singleton.
+     * memory cache enum.
      */
-    INST;
+    MEMORY("mem"),
 
     /**
-     * The Singles.
+     * redis cache enum.
      */
-    private static final Map<String, Object> SINGLES = new ConcurrentHashMap<>();
+    REDIS("redis");
 
-    /**
-     * Single.
-     *
-     * @param clazz the clazz
-     * @param o     the o
-     */
-    public void single(final Class<?> clazz, final Object o) {
-        SINGLES.put(clazz.getName(), o);
+    private final String name;
+
+    CacheEnum(final String name) {
+        this.name = name;
     }
 
     /**
-     * Get t.
-     *
-     * @param <T>   the type parameter
-     * @param clazz the clazz
-     * @return the t
+     * get cache enum name.
+     * @return the cache enum name
      */
-    @SuppressWarnings("unchecked")
-    public <T> T get(final Class<T> clazz) {
-        return (T) SINGLES.get(clazz.getName());
+    public String getName() {
+        return name;
     }
 }

@@ -34,7 +34,12 @@ public enum PluginEnum {
      * Global plugin enum.
      */
     GLOBAL(10, 0, "global"),
-    
+
+    /**
+     * the cache plugin enum.
+     */
+    CACHE(15, 0, "cache"),
+
     /**
      * Sign plugin enum.
      */
@@ -188,7 +193,12 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(420, 0, "response");
+    RESPONSE(420, 0, "response"),
+
+    /**
+     * the cache write plugin enum.
+     */
+    CACHE_WRITE(430, 0, "cacheWrite");
 
     private final int code;
 

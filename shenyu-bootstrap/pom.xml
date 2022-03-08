@@ -175,6 +175,14 @@
         </dependency>
         <!--shenyu websocket plugin end-->
 
+        <!--shenyu cache plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-cache</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu grpc plugin end-->
+
         <!--shenyu grpc plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

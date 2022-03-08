@@ -15,45 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.plugin.cache.base.config;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
+import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
 
 /**
- * Singleton.
+ * CacheConfig.
  */
-public enum Singleton {
+public class CacheConfig extends RedisConfigProperties {
 
     /**
-     * Inst singleton.
+     * the cache mode.
      */
-    INST;
+    private String mode = CacheEnum.MEMORY.getName();
 
     /**
-     * The Singles.
+     * Get cache mode.
+     * @return the cache mode
      */
-    private static final Map<String, Object> SINGLES = new ConcurrentHashMap<>();
-
-    /**
-     * Single.
-     *
-     * @param clazz the clazz
-     * @param o     the o
-     */
-    public void single(final Class<?> clazz, final Object o) {
-        SINGLES.put(clazz.getName(), o);
+    public String getMode() {
+        return mode;
     }
 
     /**
-     * Get t.
-     *
-     * @param <T>   the type parameter
-     * @param clazz the clazz
-     * @return the t
+     * Set cache mode.
+     * @param mode the cache mode
      */
-    @SuppressWarnings("unchecked")
-    public <T> T get(final Class<T> clazz) {
-        return (T) SINGLES.get(clazz.getName());
+    public void setMode(final String mode) {
+        this.mode = mode;
     }
 }

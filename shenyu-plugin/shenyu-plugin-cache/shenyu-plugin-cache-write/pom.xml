@@ -28,4 +28,11 @@
 
     <artifactId>shenyu-plugin-cache-write</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-cache-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
