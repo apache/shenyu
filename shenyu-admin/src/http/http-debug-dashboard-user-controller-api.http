@@ -1,0 +1,79 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# if you debug api, replace your own token
+
+### dashboard user list by page
+GET http://localhost:9095/dashboardUser?currentPage=1&pageSize=10
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2NzQ1ODM0fQ.zf3EHlERZr4o-KcmhSfKa3hk5DV4vbS-naVUI074ii0
+
+### dashboard user get
+GET http://localhost:9095/dashboardUser/2
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2NzQ1ODM0fQ.zf3EHlERZr4o-KcmhSfKa3hk5DV4vbS-naVUI074ii0
+
+### dashboard user add
+POST http://localhost:9095/dashboardUser
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2NzQ1ODM0fQ.zf3EHlERZr4o-KcmhSfKa3hk5DV4vbS-naVUI074ii0
+
+{
+  "userName": "userName-test",
+  "password": "password-test",
+  "role": 0
+}
+
+### dashboard user update
+POST http://localhost:9095/dashboardUser
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2NzQ1ODM0fQ.zf3EHlERZr4o-KcmhSfKa3hk5DV4vbS-naVUI074ii0
+
+{
+  "id": "1500830307467894784",
+  "userName": "userName-test-changed",
+  "password": "password-test",
+  "role": 0
+}
+
+### dashboard user update
+PUT http://localhost:9095/dashboardUser/1500830307467894784
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2NzQ1ODM0fQ.zf3EHlERZr4o-KcmhSfKa3hk5DV4vbS-naVUI074ii0
+
+{
+  "userName": "userName-test-changed",
+  "password": "password-test-changed",
+  "role": 0
+}
+
+### dashboard user update password
+PUT http://localhost:9095/dashboardUser/modify-password/1500830307467894784
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2NzQ1ODM0fQ.zf3EHlERZr4o-KcmhSfKa3hk5DV4vbS-naVUI074ii0
+
+{
+  "userName": "userName-test",
+  "password": "password-test-changed",
+  "role": 0
+}

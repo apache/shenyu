@@ -51,7 +51,27 @@ public class ShenyuConfig {
     private InstanceConfig instance = new InstanceConfig();
 
     private RibbonConfig ribbon = new RibbonConfig();
-
+    
+    private Local local = new Local();
+    
+    /**
+     * Gets the local config.
+     *
+     * @return the local config
+     */
+    public Local getLocal() {
+        return local;
+    }
+    
+    /**
+     * Sets the local config.
+     *
+     * @param local the local config
+     */
+    public void setLocal(final Local local) {
+        this.local = local;
+    }
+    
     /**
      * Gets ribbon.
      *
@@ -1048,6 +1068,59 @@ public class ShenyuConfig {
          */
         public void setServerListRefreshInterval(final Integer serverListRefreshInterval) {
             this.serverListRefreshInterval = serverListRefreshInterval;
+        }
+    }
+    
+    /**
+     * The local config.
+     */
+    public static class Local {
+        
+        private Boolean enabled = true;
+        
+        private String sha512Key;
+        
+        public Local() {
+        }
+        
+        public Local(final String sha512Key) {
+            this.sha512Key = sha512Key;
+        }
+        
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+        
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+        
+        /**
+         * Get Sha512Key.
+         *
+         * @return the key
+         */
+        public String getSha512Key() {
+            return sha512Key;
+        }
+        
+        /**
+         * Set Sha512Key.
+         *
+         * @param sha512Key sha512Key
+         */
+        public void setSha512Key(final String sha512Key) {
+            this.sha512Key = sha512Key;
         }
     }
 }

@@ -33,12 +33,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-metrics-facade</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>

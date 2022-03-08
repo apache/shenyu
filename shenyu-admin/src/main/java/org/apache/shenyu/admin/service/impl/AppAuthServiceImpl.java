@@ -166,9 +166,6 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult updateDetail(final AppAuthDTO appAuthDTO) {
-        if (StringUtils.isAnyBlank(appAuthDTO.getAppKey(), appAuthDTO.getAppSecret(), appAuthDTO.getId())) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
-        }
         AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuthDTO);
         appAuthMapper.update(appAuthDO);
         List<AuthParamDTO> authParamDTOList = appAuthDTO.getAuthParamDTOList();

@@ -31,7 +31,6 @@
         <module>shenyu-plugin-base</module>
         <module>shenyu-plugin-divide</module>
         <module>shenyu-plugin-ratelimiter</module>
-        <module>shenyu-plugin-monitor</module>
         <module>shenyu-plugin-sign</module>
         <module>shenyu-plugin-hystrix</module>
         <module>shenyu-plugin-springcloud</module>

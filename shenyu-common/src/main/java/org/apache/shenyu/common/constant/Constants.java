@@ -331,6 +331,11 @@ public interface Constants {
      * jwt handle key for secretKey.
      */
     String SECRET_KEY = "secretKey";
+    
+    /**
+     * local key.
+     */
+    String LOCAL_KEY = "localKey";
 
     /**
      * jwt handle key for filterPath.

@@ -116,11 +116,6 @@ public enum PluginEnum {
     LOGGING(160, 0, "logging"),
     
     /**
-     * Monitor plugin enum.
-     */
-    MONITOR(170, 0, "monitor"),
-    
-    /**
      * Divide plugin enum.
      */
     DIVIDE(200, 0, "divide"),

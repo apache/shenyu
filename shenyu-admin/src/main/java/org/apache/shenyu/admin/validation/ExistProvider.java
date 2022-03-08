@@ -24,15 +24,6 @@ import java.io.Serializable;
  */
 public interface ExistProvider {
     
-    /**
-     * not existed.
-     *
-     * @param key key
-     * @return not exited
-     */
-    default boolean notExisted(final Serializable key) {
-        return !Boolean.TRUE.equals(existed(key));
-    }
     
     
     /**

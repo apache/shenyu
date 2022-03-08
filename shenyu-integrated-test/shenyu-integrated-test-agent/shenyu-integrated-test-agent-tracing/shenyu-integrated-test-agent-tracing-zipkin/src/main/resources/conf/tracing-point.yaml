@@ -93,13 +93,6 @@ pointCuts:
     handlers:
       zipkin:
         - org.apache.shenyu.agent.plugin.tracing.zipkin.handler.ZipkinPluginCommonHandler
-  - targetClass: org.apache.shenyu.plugin.monitor.MonitorPlugin
-    points:
-      - type: instanceMethod
-        name: doExecute
-    handlers:
-      zipkin:
-        - org.apache.shenyu.agent.plugin.tracing.zipkin.handler.ZipkinPluginCommonHandler
   - targetClass: org.apache.shenyu.plugin.motan.MotanPlugin
     points:
       - type: instanceMethod
