@@ -31,6 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
 import java.util.List;
@@ -40,7 +41,7 @@ import java.util.stream.Stream;
 /**
  * The type Netty http client plugin.
  */
-public class NettyHttpClientPlugin extends AbstractHttpClientPlugin {
+public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientResponse> {
 
     private final HttpClient httpClient;
 
@@ -68,7 +69,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin {
     }
 
     @Override
-    protected Mono<?> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
+    protected Mono<HttpClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
                                 final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
         return Mono.from(httpClient.headers(headers -> httpHeaders.forEach(headers::add))
                 .request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
