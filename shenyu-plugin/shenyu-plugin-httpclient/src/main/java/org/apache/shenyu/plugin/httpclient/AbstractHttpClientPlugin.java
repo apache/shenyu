@@ -113,7 +113,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                            final Duration duration,
                            final HttpHeaders httpHeaders,
                            final Set<URI> exclude) {
-        //todo add backoff
+        // does it necessary to add backoff interval time ?
         return response.onErrorResume(th -> {
             final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
             final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
