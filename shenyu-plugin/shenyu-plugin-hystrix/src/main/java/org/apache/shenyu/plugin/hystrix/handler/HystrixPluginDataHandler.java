@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.hystrix.handler;
 
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -41,6 +42,7 @@ public class HystrixPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
+        HystrixPropertiesFactory.reset();
         Optional.ofNullable(ruleData.getHandle()).ifPresent(rule -> {
             HystrixHandle hystrixHandle = GsonUtils.getInstance().fromJson(rule, HystrixHandle.class);
             String key = CacheKeyUtils.INST.getKey(ruleData);
@@ -48,7 +50,7 @@ public class HystrixPluginDataHandler implements PluginDataHandler {
                 if (hystrixHandleCache.getMaxConcurrentRequests() != hystrixHandle.getMaxConcurrentRequests()) {
                     String commandKey = hystrixHandle.getCommandKey();
                     Command command = new HystrixCommand(HystrixBuilder.build(hystrixHandle), null, null, null);
-                    command.reset(commandKey);
+                    command.removeCommandKey(commandKey);
                 }
             });
             CACHED_HANDLE.get().cachedHandle(key, hystrixHandle);
