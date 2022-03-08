@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.divide;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -87,7 +86,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
-        String domain = buildDomain(upstream);
+        String domain = upstream.buildDomain();
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
@@ -118,13 +117,5 @@ public class DividePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
-    }
-
-    private String buildDomain(final Upstream upstream) {
-        String protocol = upstream.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        return protocol + upstream.getUrl().trim();
     }
 }
