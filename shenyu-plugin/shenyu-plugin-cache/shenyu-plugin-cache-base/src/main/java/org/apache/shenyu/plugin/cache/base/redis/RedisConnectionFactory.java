@@ -48,6 +48,10 @@ public class RedisConnectionFactory {
         lettuceConnectionFactory.afterPropertiesSet();
     }
 
+    /**
+     * Get Lettuce connection factory.
+     * @return the factory
+     */
     public LettuceConnectionFactory getLettuceConnectionFactory() {
         return this.lettuceConnectionFactory;
     }

@@ -28,13 +28,13 @@ public class ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
 
     @Override
     @Nullable
-    public byte[] serialize(@Nullable byte[] bytes) throws SerializationException {
+    public byte[] serialize(final @Nullable byte[] bytes) throws SerializationException {
         return bytes;
     }
 
     @Override
     @Nullable
-    public byte[] deserialize(@Nullable byte[] bytes) throws SerializationException {
+    public byte[] deserialize(final @Nullable byte[] bytes) throws SerializationException {
         return bytes;
     }
 }

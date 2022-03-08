@@ -29,12 +29,20 @@ public final class ShenyuSerializationContext {
     private ShenyuSerializationContext() {
     }
 
+    /**
+     * string serializer context.
+     * @return the string serializer context.
+     */
     public static RedisSerializationContext<String, String> stringSerializationContext() {
         RedisSerializer<String> serializer = new StringRedisSerializer();
         return RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer)
                 .hashKey(serializer).hashValue(serializer).build();
     }
 
+    /**
+     * bytes serializer context.
+     * @return the bytes serializer context.
+     */
     public static RedisSerializationContext<String, byte[]> bytesSerializationContext() {
         RedisSerializer<String> serializer = new StringRedisSerializer();
         final ByteArrayRedisSerializer bytesRedisSerializer = new ByteArrayRedisSerializer();
