@@ -25,6 +25,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -38,7 +39,7 @@ import java.util.stream.Stream;
 /**
  * The type Web client plugin.
  */
-public class WebClientPlugin extends AbstractHttpClientPlugin {
+public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
 
     private final WebClient webClient;
 
@@ -67,8 +68,8 @@ public class WebClientPlugin extends AbstractHttpClientPlugin {
     }
 
     @Override
-    protected Mono<?> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
-                                final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
+    protected Mono<ClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
+                                             final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
                 .body(BodyInserters.fromDataBuffers(body))
