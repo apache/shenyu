@@ -82,14 +82,22 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-apache-dubbo-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
-    
+
+    /**
+     * notes:When the "servicebean" is not obtained from the context, wait for the subsequent contextrefreshedevent.
+     *
+     * @param contextRefreshedEvent  spring contextRefreshedEvent
+     */
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
+        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
+        if (serviceBean.isEmpty()) {
+            return;
+        }
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
-        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
             handler(entry.getValue());
         }
@@ -113,7 +121,8 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean,
+        final ShenyuDubboClient shenyuDubboClient, final Method method) {
         String appName = buildAppName(serviceBean);
         String path = contextPath + shenyuDubboClient.path();
         String desc = shenyuDubboClient.desc();
@@ -124,54 +133,54 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
-                .appName(appName)
-                .serviceName(serviceName)
-                .methodName(methodName)
-                .contextPath(contextPath)
-                .host(buildHost())
-                .port(buildPort(serviceBean))
-                .path(path)
-                .ruleName(ruleName)
-                .pathDesc(desc)
-                .parameterTypes(parameterTypes)
-                .rpcExt(buildRpcExt(serviceBean))
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .enabled(shenyuDubboClient.enabled())
-                .build();
+            .appName(appName)
+            .serviceName(serviceName)
+            .methodName(methodName)
+            .contextPath(contextPath)
+            .host(buildHost())
+            .port(buildPort(serviceBean))
+            .path(path)
+            .ruleName(ruleName)
+            .pathDesc(desc)
+            .parameterTypes(parameterTypes)
+            .rpcExt(buildRpcExt(serviceBean))
+            .rpcType(RpcTypeEnum.DUBBO.getName())
+            .enabled(shenyuDubboClient.enabled())
+            .build();
     }
-    
+
     private URIRegisterDTO buildURIRegisterDTO(final ServiceBean serviceBean) {
         return URIRegisterDTO.builder()
-                .contextPath(this.contextPath)
-                .appName(buildAppName(serviceBean))
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .host(buildHost())
-                .port(buildPort(serviceBean))
-                .build();
+            .contextPath(this.contextPath)
+            .appName(buildAppName(serviceBean))
+            .rpcType(RpcTypeEnum.DUBBO.getName())
+            .host(buildHost())
+            .port(buildPort(serviceBean))
+            .build();
     }
 
     private String buildRpcExt(final ServiceBean serviceBean) {
         DubboRpcExt build = DubboRpcExt.builder()
-                .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
-                .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
-                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
-                .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
-                .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
-                .sent(Objects.isNull(serviceBean.getSent()) ? Constants.DEFAULT_SENT : serviceBean.getSent())
-                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
-                .url("")
-                .build();
+            .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
+            .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
+            .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
+            .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
+            .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
+            .sent(Objects.isNull(serviceBean.getSent()) ? Constants.DEFAULT_SENT : serviceBean.getSent())
+            .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
+            .url("")
+            .build();
         return GsonUtils.getInstance().toJson(build);
     }
-    
+
     private String buildAppName(final ServiceBean serviceBean) {
         return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
     }
-    
+
     private String buildHost() {
         return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
     }
-    
+
     private int buildPort(final ServiceBean serviceBean) {
         return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
