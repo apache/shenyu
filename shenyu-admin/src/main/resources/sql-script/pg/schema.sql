@@ -453,27 +453,6 @@ ELSE
 	  "type" "pg_catalog"."int2_ops" ASC NULLS LAST
 	);');
 
-	-- ----------------------------
-	-- Primary FUNCTION for table plugin_handle
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE OR REPLACE FUNCTION plugin_handle_insert() RETURNS trigger AS $BODY$
-            BEGIN
-                NEW.ID := nextval('''||'plugin_handle_ID_seq' || ''');
-                RETURN NEW;
-            END;
-            $BODY$
-              LANGUAGE plpgsql;'
-    );
-
-	-- ----------------------------
-	-- Create TRIGGER for table plugin_handle
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_check_insert
-        BEFORE INSERT ON plugin_handle
-        FOR EACH ROW
-        WHEN (NEW.ID IS NULL)
-        EXECUTE PROCEDURE plugin_handle_insert();'
-    );
 	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_trigger
 	          BEFORE UPDATE ON plugin_handle
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()'
@@ -979,26 +958,6 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'CREATE SEQUENCE shenyu_dict_ID_seq;	');
 	PERFORM public.dblink_exec('init_conn',  'ALTER SEQUENCE shenyu_dict_ID_seq OWNED BY shenyu_dict.ID;');
 
-	-- ----------------------------
-	-- Primary FUNCTION for table shenyu_dict
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE OR REPLACE FUNCTION shenyu_dict_insert() RETURNS trigger AS $BODY$
-            BEGIN
-                NEW.ID := nextval('''||'shenyu_dict_ID_seq' || ''');
-                RETURN NEW;
-            END;
-            $BODY$
-              LANGUAGE plpgsql;'
-    );
-
-	-- ----------------------------
-	-- Create TRIGGER for table shenyu_dict
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER shenyu_dict_check_insert
-        BEFORE INSERT ON shenyu_dict
-        FOR EACH ROW
-        WHEN (NEW.ID IS NULL)
-        EXECUTE PROCEDURE shenyu_dict_insert();');
 	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER shenyu_dict_trigger
 	          BEFORE UPDATE ON shenyu_dict
 	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
