@@ -44,20 +44,15 @@ public class MqttFactory {
      * connect.
      */
     public void connect() {
-
         if (msg.fixedHeader() == null) {
             return;
         }
         switch (msg.fixedHeader().messageType()) {
-
             case CONNECT:
                 messageType.connect(ctx, (MqttConnectMessage) msg);
                 break;
-
             case PUBLISH:
                 messageType.publish(ctx, (MqttPublishMessage) msg);
-                break;
-            case PUBACK:
                 break;
             case SUBSCRIBE:
                 messageType.subscribe(ctx, (MqttSubscribeMessage) msg);
@@ -68,8 +63,8 @@ public class MqttFactory {
             case PINGREQ:
                 messageType.pingReq(ctx);
                 break;
+            case PUBACK:
             case DISCONNECT:
-                break;
             default:
                 break;
         }

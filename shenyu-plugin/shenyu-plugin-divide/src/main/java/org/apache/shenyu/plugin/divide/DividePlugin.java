@@ -91,6 +91,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
+        // set retry strategy stuff
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, ruleHandle.getRetryStrategy());
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, ruleHandle.getLoadBalance());
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
         return chain.execute(exchange);
     }
 
