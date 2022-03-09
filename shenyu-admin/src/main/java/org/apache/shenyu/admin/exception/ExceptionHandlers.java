@@ -49,9 +49,9 @@ import java.util.stream.Collectors;
 @ResponseBody
 @ControllerAdvice
 public class ExceptionHandlers {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionHandlers.class);
-
+    
     @ExceptionHandler(Exception.class)
     protected ShenyuAdminResult handleExceptionHandler(final Exception exception) {
         LOG.error(exception.getMessage(), exception);
@@ -64,25 +64,25 @@ public class ExceptionHandlers {
         }
         return ShenyuAdminResult.error(message);
     }
-
+    
     @ExceptionHandler(DuplicateKeyException.class)
     protected ShenyuAdminResult handleDuplicateKeyException(final DuplicateKeyException exception) {
         LOG.error("duplicate key exception ", exception);
         return ShenyuAdminResult.error(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
-
+    
     @ExceptionHandler(UnauthorizedException.class)
     protected ShenyuAdminResult handleUnauthorizedException(final UnauthorizedException exception) {
         LOG.error("unauthorized exception", exception);
         return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
-
+    
     @ExceptionHandler(NullPointerException.class)
     protected ShenyuAdminResult handleNullPointException(final NullPointerException exception) {
         LOG.error("null pointer exception ", exception);
         return ShenyuAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, ShenyuResultMessage.NOT_FOUND_EXCEPTION);
     }
-
+    
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     protected ShenyuAdminResult handleHttpRequestMethodNotSupportedException(final HttpRequestMethodNotSupportedException e) {
         LOG.warn("http request method not supported", e);
@@ -93,7 +93,7 @@ public class ExceptionHandlers {
         Objects.requireNonNull(e.getSupportedHttpMethods()).forEach(t -> sb.append(t).append(" "));
         return ShenyuAdminResult.error(sb.toString());
     }
-
+    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ShenyuAdminResult handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         LOG.warn("method argument not valid", e);
@@ -103,19 +103,19 @@ public class ExceptionHandlers {
                 .collect(Collectors.joining("| "));
         return ShenyuAdminResult.error(String.format("Request error! invalid argument [%s]", errorMsg));
     }
-
+    
     @ExceptionHandler(MissingServletRequestParameterException.class)
     protected ShenyuAdminResult handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
         LOG.warn("missing servlet request parameter", e);
         return ShenyuAdminResult.error(String.format("%s parameter is missing", e.getParameterName()));
     }
-
+    
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     protected ShenyuAdminResult handleMethodArgumentTypeMismatchException(final MethodArgumentTypeMismatchException e) {
         LOG.warn("method argument type mismatch", e);
         return ShenyuAdminResult.error(String.format("%s should be of type %s", e.getName(), Objects.requireNonNull(e.getRequiredType()).getName()));
     }
-
+    
     @ExceptionHandler(ConstraintViolationException.class)
     protected ShenyuAdminResult handleConstraintViolationException(final ConstraintViolationException e) {
         LOG.warn("constraint violation exception", e);
@@ -123,5 +123,11 @@ public class ExceptionHandlers {
         return ShenyuAdminResult.error(violations.stream()
                 .map(v -> v.getPropertyPath().toString().concat(": ").concat(v.getMessage()))
                 .collect(Collectors.joining("| ")));
+    }
+    
+    @ExceptionHandler(ShenyuAdminException.class)
+    protected ShenyuAdminResult handleShenyuException(final ShenyuAdminException exception) {
+        LOG.error("null pointer exception ", exception);
+        return ShenyuAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, exception.getMessage());
     }
 }

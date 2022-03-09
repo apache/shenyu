@@ -27,6 +27,9 @@
 
     <properties>
         <curator.version>4.0.1</curator.version>
+        <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
+        <nacos-discovery.version>2.2.6.RELEASE</nacos-discovery.version>
+        <eureka-client.version>2.1.2.RELEASE</eureka-client.version>
     </properties>
 
     <dependencies>
@@ -110,6 +113,14 @@
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu redirect plugin end-->
+
+        <!-- shenyu request plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu request plugin end-->
 
         <!--shenyu debug plugin start-->
         <dependency>
@@ -217,7 +228,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-   
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
@@ -243,20 +253,6 @@
             <version>2.2.0.RELEASE</version>
         </dependency>
 
-        <!-- springCloud if you config register center is nacos please dependency this-->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-            <version>2.1.0.RELEASE</version>
-        </dependency>
-
-        <!-- springCloud if you config register center is eureka please dependency end-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            <version>2.2.0.RELEASE</version>
-        </dependency>
-        <!--shenyu springCloud plugin start end-->
         <!--shenyu  apache dubbo plugin start-->
          <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -406,7 +402,6 @@
             <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
         <!--shenyu instance start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -415,8 +410,33 @@
         </dependency>
         <!--shenyu instance end-->
     </dependencies>
-    
     <profiles>
+        <profile>
+            <id>nacos</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.alibaba.cloud</groupId>
+                    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                    <version>${nacos-discovery.version}</version>
+                </dependency>
+            </dependencies>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>example</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+                    <version>${eureka-client.version}</version>
+                </dependency>
+            </dependencies>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
         <profile>
             <id>release</id>
             <build>
@@ -432,7 +452,6 @@
             </build>
         </profile>
     </profiles>
-    
     <build>
         <finalName>shenyu-bootstrap</finalName>
         <plugins>
