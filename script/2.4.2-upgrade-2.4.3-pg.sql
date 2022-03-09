@@ -39,3 +39,7 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 -- remove monitor plugin
 DELETE FROM plugin WHERE `id` = '7';
 DELETE FROM plugin_handle WHERE `plugin_id` = '7';
+
+-- remove plugin_handle shenyu_dict trigger
+DROP TRIGGER IF EXISTS `plugin_handle_check_insert` ON plugin_handle;
+DROP TRIGGER IF EXISTS `shenyu_dict_check_insert` ON shenyu_dict;
