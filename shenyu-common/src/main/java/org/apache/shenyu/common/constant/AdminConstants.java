@@ -251,4 +251,9 @@ public final class AdminConstants {
      * The constant sql type for pg.
      */
     public static final String SQL_TYPE_PG = "pg";
+
+    /**
+     * The constant insert sql regex.
+     */
+    public static final String SQL_INSERT_REGEX = "\\s+";
 }

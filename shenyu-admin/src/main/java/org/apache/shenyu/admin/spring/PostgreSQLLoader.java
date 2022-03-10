@@ -55,7 +55,7 @@ public class PostgreSQLLoader implements InstantiationAwareBeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLLoader.class);
 
-    private static final String SQL_COMMAND = "INSERT  INTO";
+    private static final String SQL_COMMAND = "INSERT INTO";
 
     @Resource
     private DataBaseProperties dataBaseProperties;
@@ -109,6 +109,7 @@ public class PostgreSQLLoader implements InstantiationAwareBeanPostProcessor {
         final StringBuilder builder = new StringBuilder();
         String str;
         while (Objects.nonNull(str = reader.readLine())) {
+            str = str.trim().replaceAll(AdminConstants.SQL_INSERT_REGEX, " ");
             str = str.replace("_user TEXT := 'userName'", "_user TEXT := '" + userName + "'")
                     .replace("_password TEXT := 'password'", "_password TEXT := '" + password + "'");
             if (!str.toUpperCase().contains(SQL_COMMAND)) {

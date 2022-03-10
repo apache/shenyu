@@ -133,6 +133,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         }
         String str;
         while (Objects.nonNull(str = reader.readLine())) {
+            str = str.trim().replaceAll(AdminConstants.SQL_INSERT_REGEX, " ");
             if (!str.toUpperCase().contains(SQL_COMMAND)) {
                 builder.append(str).append(System.lineSeparator());
                 continue;
