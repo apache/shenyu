@@ -82,14 +82,22 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-apache-dubbo-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
-    
+
+    /**
+     * notes:When the "servicebean" is not obtained from the context, wait for the subsequent contextrefreshedevent.
+     *
+     * @param contextRefreshedEvent  spring contextRefreshedEvent
+     */
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
+        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
+        if (serviceBean.isEmpty()) {
+            return;
+        }
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
-        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
             handler(entry.getValue());
         }
@@ -139,7 +147,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .enabled(shenyuDubboClient.enabled())
                 .build();
     }
-    
+
     private URIRegisterDTO buildURIRegisterDTO(final ServiceBean serviceBean) {
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
@@ -163,15 +171,15 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .build();
         return GsonUtils.getInstance().toJson(build);
     }
-    
+
     private String buildAppName(final ServiceBean serviceBean) {
         return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
     }
-    
+
     private String buildHost() {
         return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
     }
-    
+
     private int buildPort(final ServiceBean serviceBean) {
         return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
