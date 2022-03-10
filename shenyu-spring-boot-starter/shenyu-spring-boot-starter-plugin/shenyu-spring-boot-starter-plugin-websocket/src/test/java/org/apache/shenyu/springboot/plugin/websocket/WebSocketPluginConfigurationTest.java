@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.plugin.websocket;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -47,6 +48,8 @@ public class WebSocketPluginConfigurationTest {
         applicationContextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(WebSocketPluginConfiguration.class))
             .withBean(WebSocketPluginConfigurationTest.class)
+            .withConfiguration(AutoConfigurations.of(ShenyuConfig.class))
+            .withBean(ShenyuConfig.class)
             .withPropertyValues("debug=true");
     }
 
