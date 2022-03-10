@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.plugin.websocket;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.websocket.WebSocketPlugin;
@@ -60,11 +61,14 @@ public class WebSocketPluginConfiguration {
     /**
      * Reactor netty web socket client reactor netty web socket client.
      *
+     * @param shenyuConfig the shenyu config
      * @return the reactor netty web socket client
      */
     @Bean
-    public ReactorNettyWebSocketClient reactorNettyWebSocketClient() {
-        return new ReactorNettyWebSocketClient();
+    public ReactorNettyWebSocketClient reactorNettyWebSocketClient(final ShenyuConfig shenyuConfig) {
+        final ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient();
+        webSocketClient.setMaxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
+        return webSocketClient;
     }
     
     /**

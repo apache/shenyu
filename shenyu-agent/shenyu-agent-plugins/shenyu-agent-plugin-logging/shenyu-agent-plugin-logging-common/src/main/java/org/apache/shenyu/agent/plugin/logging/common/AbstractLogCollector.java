@@ -18,8 +18,9 @@
 package org.apache.shenyu.agent.plugin.logging.common;
 
 import org.apache.shenyu.agent.plugin.logging.LogCollector;
-import org.apache.shenyu.agent.plugin.logging.spi.LogCollectClient;
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.agent.plugin.logging.LogConsumeClient;
+import org.apache.shenyu.agent.plugin.logging.common.utils.LogCollectConfigUtils;
+import org.apache.shenyu.agent.plugin.logging.entity.ShenyuRequestLog;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,36 +43,36 @@ public abstract class AbstractLogCollector implements LogCollector {
 
     private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
-    private final int bufferSize = 50000;
+    private final int bufferSize;
 
     private final int batchSize = 100;
 
     private final int diffTimeMSForPush = 100;
 
-    private final BlockingQueue<String> bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+    private final BlockingQueue<ShenyuRequestLog> bufferQueue;
 
     private long lastPushTime;
 
     private final AtomicBoolean started = new AtomicBoolean(true);
     
-    private final LogCollectClient logCollectClient;
+    private final LogConsumeClient logCollectClient;
 
-    public AbstractLogCollector(final LogCollectClient logCollectClient) {
+    public AbstractLogCollector(final LogConsumeClient logCollectClient) {
         this.logCollectClient = logCollectClient;
-        threadExecutor.execute(this::consume);
+        bufferSize = LogCollectConfigUtils.getGlobalLogConfig().getBufferQueueSize();
+        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+        if (logCollectClient != null) {
+            threadExecutor.execute(this::consume);
+        }
     }
 
     @Override
-    public void collect(final Object log) {
-        if (log == null) {
+    public void collect(final ShenyuRequestLog log) {
+        if (log == null || logCollectClient == null) {
             return;
         }
         if (bufferQueue.size() < bufferSize) {
-            if (log instanceof String) {
-                bufferQueue.add((String) log);
-            } else {
-                bufferQueue.add(JsonUtils.toJson(log));
-            }
+            bufferQueue.add(log);
         }
     }
 
@@ -81,13 +82,13 @@ public abstract class AbstractLogCollector implements LogCollector {
     private void consume() {
         while (started.get()) {
             try {
-                List<String> logs = new ArrayList<>();
+                List<ShenyuRequestLog> logs = new ArrayList<>();
                 int size = bufferQueue.size();
                 long time = System.currentTimeMillis();
                 long timeDiffMs = time - lastPushTime;
                 if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
                     bufferQueue.drainTo(logs, batchSize);
-                    logCollectClient.collect(logs);
+                    logCollectClient.consume(logs);
                     lastPushTime = time;
                 } else {
                     ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
@@ -102,7 +103,9 @@ public abstract class AbstractLogCollector implements LogCollector {
     @Override
     public void close() throws Exception {
         started.set(false);
-        logCollectClient.close();
+        if (logCollectClient != null) {
+            logCollectClient.close();
+        }
     }
     
 }
