@@ -15,33 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.logging.rocketmq;
+package org.apache.shenyu.agent.plugin.logging;
 
-import org.apache.shenyu.agent.plugin.logging.LogCollector;
-import org.apache.shenyu.agent.plugin.logging.common.AbstractLogCollector;
-import org.apache.shenyu.agent.plugin.logging.spi.LogCollectClient;
+import org.apache.shenyu.agent.plugin.logging.entity.ShenyuRequestLog;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
- * queue-based logging collector.
+ * Used to collect logs, which can be stored in remote or local files or databases, or others.
  */
-public class RocketMQLogCollector extends AbstractLogCollector {
 
-    private static RocketMQLogCollector instance;
+public interface LogConsumeClient extends AutoCloseable {
 
-    public RocketMQLogCollector(final LogCollectClient logCollectClient) {
-        super(logCollectClient);
-        instance = this;
-    }
 
     /**
-     * get RocketMQLogCollector instance.
+     * collect logs.
      *
-     * @return RocketMQLogCollector instance
+     * @param logs list of log
+     * @throws Exception produce exception
      */
-    public static LogCollector getInstance() {
-        return Objects.requireNonNull(instance);
-    }
+    void consume(List<ShenyuRequestLog> logs) throws Exception;
 
 }

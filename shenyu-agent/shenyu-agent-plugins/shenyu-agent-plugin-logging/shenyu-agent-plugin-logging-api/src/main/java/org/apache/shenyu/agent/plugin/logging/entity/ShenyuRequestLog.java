@@ -56,6 +56,13 @@ public class ShenyuRequestLog {
 
     private String module;
 
+    private String traceId;
+
+    /**
+     * path.
+     */
+    private String path;
+
     /**
      * get module.
      *
@@ -362,4 +369,39 @@ public class ShenyuRequestLog {
         this.upstreamResponseTime = upstreamResponseTime;
     }
 
+    /**
+     * get traceId.
+     *
+     * @return traceId
+     */
+    public String getTraceId() {
+        return traceId;
+    }
+
+    /**
+     * set traceId.
+     *
+     * @param traceId tracing id
+     */
+    public void setTraceId(final String traceId) {
+        this.traceId = traceId;
+    }
+
+    /**
+     * get request path.
+     *
+     * @return request path
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * request path.
+     *
+     * @param path request path
+     */
+    public void setPath(final String path) {
+        this.path = path;
+    }
 }

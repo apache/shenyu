@@ -20,12 +20,13 @@ package org.apache.shenyu.agent.plugin.logging.rocketmq;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.client.producer.SendCallback;
-import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.shenyu.agent.api.config.AgentPluginConfig;
+import org.apache.shenyu.agent.plugin.logging.LogConsumeClient;
+import org.apache.shenyu.agent.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.agent.plugin.logging.constant.LoggingConstant;
-import org.apache.shenyu.agent.plugin.logging.spi.LogCollectClient;
+import org.apache.shenyu.agent.plugin.logging.entity.ShenyuRequestLog;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,17 +34,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 /**
  * queue-based logging collector.
  */
-public class RocketMQLogCollectClient implements LogCollectClient {
-    
+public class RocketMQLogCollectClient implements LogConsumeClient {
+
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQLogCollectClient.class);
-    
+
     private DefaultMQProducer producer;
-    
+
     private String topic;
 
     public RocketMQLogCollectClient(final AgentPluginConfig agentPluginConfig) {
@@ -85,25 +85,21 @@ public class RocketMQLogCollectClient implements LogCollectClient {
      * @throws Exception produce exception
      */
     @Override
-    public void collect(final List<String> logs) throws Exception {
+    public void consume(final List<ShenyuRequestLog> logs) throws Exception {
         if (CollectionUtils.isEmpty(logs)) {
             return;
         }
-        List<Message> messageList = logs.stream().map(log -> new Message(topic, log.getBytes(StandardCharsets.UTF_8)))
-                .collect(Collectors.toList());
-        producer.send(messageList, new SendCallback() {
-            @Override
-            public void onSuccess(final SendResult sendResult) {
-                LOG.info("rocketmq push logs success");
-            }
-
-            @Override
-            public void onException(final Throwable e) {
+        logs.stream().forEach(log -> {
+            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath()), topic);
+            Message message = new Message(logTopic, JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8));
+            try {
+                producer.sendOneway(message);
+            } catch (Exception e) {
                 LOG.error("rocketmq push logs error", e);
             }
         });
     }
-    
+
     /**
      * close producer.
      *

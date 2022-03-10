@@ -15,12 +15,17 @@
 # limitations under the License.
 #
 
-pointCuts:
-  - targetClass: org.springframework.web.server.adapter.HttpWebHandlerAdapter
-    points:
-      - type: instanceMethod
-        name: createExchange
-    handlers:
-      rocketmq:
-        - org.apache.shenyu.agent.plugin.logging.common.handler.DefaultLoggingPluginHandler
-    
+logFieldSwitchConfig:
+  requestHeader: true
+  responseHeader: true
+  requestBody: true
+  responseBody: true
+
+globalLogConfig:
+  sampleRate: "1"
+  bufferQueueSize: 50000
+
+logApiSwitchConfigMap:
+  "[/http/test/**]":
+    sampleRate: "0.5"
+    topic: "shenyu-agent-logging-test"

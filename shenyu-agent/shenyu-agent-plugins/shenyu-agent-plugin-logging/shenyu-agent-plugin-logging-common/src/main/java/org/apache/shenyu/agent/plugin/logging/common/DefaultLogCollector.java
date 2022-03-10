@@ -15,22 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.logging.spi;
+package org.apache.shenyu.agent.plugin.logging.common;
 
-import java.util.List;
+import org.apache.shenyu.agent.plugin.logging.LogCollector;
+import org.apache.shenyu.agent.plugin.logging.LogConsumeClient;
+
+import java.util.Objects;
 
 /**
- * Used to collect logs, which can be stored in remote or local files or databases, or others.
+ * default log collector，depend a LogConsumeClient for consume logs.
  */
-public interface LogCollectClient extends AutoCloseable {
+public class DefaultLogCollector extends AbstractLogCollector {
 
+    private static LogCollector instance;
+
+    public DefaultLogCollector(final LogConsumeClient logConsumeClient) {
+        super(logConsumeClient);
+        instance = this;
+    }
 
     /**
-     * collect logs.
+     * get LogCollector instance.
      *
-     * @param logs list of log
-     * @throws Exception produce exception
+     * @return LogCollector instance
      */
-    void collect(List<String> logs) throws Exception;
-
+    public static LogCollector getInstance() {
+        return Objects.requireNonNull(instance);
+    }
 }
