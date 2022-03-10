@@ -58,8 +58,9 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         sentinelHandle.checkData(sentinelHandle);
         return chain.execute(exchange).doOnSuccess(v -> {
             final ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            if (Objects.isNull(clientResponse) || !clientResponse.statusCode().is2xxSuccessful()) {
-                throw new SentinelFallbackException(Objects.isNull(clientResponse) ? HttpStatus.INTERNAL_SERVER_ERROR : clientResponse.statusCode());
+            final HttpStatus status = Objects.isNull(clientResponse) ? HttpStatus.INTERNAL_SERVER_ERROR : clientResponse.statusCode();
+            if (!status.is2xxSuccessful()) {
+                throw new SentinelFallbackException(status);
             }
         }).transform(new SentinelReactorTransformer<>(resourceName)).onErrorResume(throwable ->
                 fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
