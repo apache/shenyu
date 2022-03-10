@@ -32,8 +32,11 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * Sentinel Plugin.
@@ -54,10 +57,9 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
         sentinelHandle.checkData(sentinelHandle);
         return chain.execute(exchange).doOnSuccess(v -> {
-            HttpStatus status = exchange.getResponse().getStatusCode();
-            if (status == null || !status.is2xxSuccessful()) {
-                exchange.getResponse().setStatusCode(null);
-                throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
+            final ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+            if (Objects.isNull(clientResponse) || !clientResponse.statusCode().is2xxSuccessful()) {
+                throw new SentinelFallbackException(Objects.isNull(clientResponse) ? HttpStatus.INTERNAL_SERVER_ERROR : clientResponse.statusCode());
             }
         }).transform(new SentinelReactorTransformer<>(resourceName)).onErrorResume(throwable ->
                 fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));

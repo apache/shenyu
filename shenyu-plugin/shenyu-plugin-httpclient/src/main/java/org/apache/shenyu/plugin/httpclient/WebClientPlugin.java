@@ -74,14 +74,13 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                 .headers(headers -> headers.addAll(httpHeaders))
                 .body(BodyInserters.fromDataBuffers(body))
                 .exchange()
-                .doOnSuccess(res -> {
-                    if (res.statusCode().is2xxSuccessful()) {
+                .doOnSuccess(clientResponse -> {
+                    if (clientResponse.statusCode().is2xxSuccessful()) {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    exchange.getResponse().setStatusCode(res.statusCode());
-                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
+                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
                 });
     }
 

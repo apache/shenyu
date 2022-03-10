@@ -42,6 +42,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -178,6 +179,10 @@ public final class SentinelPluginTest {
         sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
+
+        ClientResponse clientResponse = mock(ClientResponse.class);
+        when(clientResponse.statusCode()).thenReturn(HttpStatus.OK);
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
 
         Mono mono = Mono.empty().doOnSuccess(v -> exchange.getResponse().setStatusCode(HttpStatus.OK));
         when(chain.execute(exchange)).thenReturn(mono);
