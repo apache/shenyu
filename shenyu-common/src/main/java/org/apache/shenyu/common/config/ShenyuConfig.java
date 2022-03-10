@@ -1154,10 +1154,18 @@ public class ShenyuConfig {
          */
         private Integer maxFramePayloadSize = 10;
 
+        /**
+         * Get max frame payload size.
+         * @return the max frame payload szie
+         */
         public Integer getMaxFramePayloadSize() {
             return maxFramePayloadSize;
         }
 
+        /**
+         * Set max frame payload size.
+         * @param maxFramePayloadSize the max frame paylod size
+         */
         public void setMaxFramePayloadSize(final Integer maxFramePayloadSize) {
             this.maxFramePayloadSize = maxFramePayloadSize;
         }
