@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.constant.AdminConstants;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
