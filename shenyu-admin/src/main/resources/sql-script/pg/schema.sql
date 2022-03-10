@@ -30,17 +30,8 @@ BEGIN
     PERFORM public.dblink_exec('CREATE DATABASE ' || _db || ' template template0;');
   END IF;
 
-	PERFORM public.dblink_connect('init_conn','host=localhost user=' || _user || ' password=' || _password || ' dbname=' ||_db);
-	PERFORM public.dblink_exec('init_conn', 'BEGIN');
-    PERFORM public.dblink_exec('init_conn','CREATE OR REPLACE FUNCTION update_timestamp() RETURNS TRIGGER AS
-                                          $$
-                                          BEGIN
-                                          NEW.date_updated = NOW()::TIMESTAMP(0);
-                                          RETURN NEW;
-                                          END
-                                          $$
-                                          language plpgsql;');
-	PERFORM public.dblink_exec('init_conn', 'COMMIT');
+    PERFORM public.dblink_connect('init_conn','host=localhost user=' || _user || ' password=' || _password || ' dbname=' ||_db);
+
 
 -- ----------------------------------------
 -- create table app_auth if not exist ---
@@ -452,11 +443,6 @@ ELSE
 	  "field" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST,
 	  "type" "pg_catalog"."int2_ops" ASC NULLS LAST
 	);');
-
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_trigger
-	          BEFORE UPDATE ON plugin_handle
-	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()'
-    );
 
     ----------------------------
 	-- Records of plugin_handle
@@ -957,10 +943,6 @@ ELSE
 	-- ----------------------------
     PERFORM public.dblink_exec('init_conn',  'CREATE SEQUENCE shenyu_dict_ID_seq;	');
 	PERFORM public.dblink_exec('init_conn',  'ALTER SEQUENCE shenyu_dict_ID_seq OWNED BY shenyu_dict.ID;');
-
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER shenyu_dict_trigger
-	          BEFORE UPDATE ON shenyu_dict
-	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
 
 	-- ----------------------------
 	-- Records of shenyu_dict
