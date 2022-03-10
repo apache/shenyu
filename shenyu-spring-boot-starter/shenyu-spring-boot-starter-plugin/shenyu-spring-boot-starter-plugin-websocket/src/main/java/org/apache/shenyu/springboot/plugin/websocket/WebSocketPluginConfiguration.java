@@ -61,6 +61,7 @@ public class WebSocketPluginConfiguration {
     /**
      * Reactor netty web socket client reactor netty web socket client.
      *
+     * @param shenyuConfig the shenyu config
      * @return the reactor netty web socket client
      */
     @Bean
