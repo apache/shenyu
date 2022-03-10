@@ -50,6 +50,7 @@ public final class JaegerGlobalPluginHandler implements InstanceMethodHandler {
 
         Span span = jaegerSpanManager.add(TracingConstants.ROOT_SPAN, tagMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_JAEGER, jaegerSpanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_ID, span.context().toTraceId());
         target.setContext(span);
     }
 

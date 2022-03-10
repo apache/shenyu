@@ -44,6 +44,8 @@ public final class TracingConstants {
 
     public static final String SHENYU_AGENT_TRACE_ZIPKIN = "shenyu-agent-trace-zipkin";
 
+    public static final String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
+
 
     /**
      * The type Error log tags.

@@ -51,6 +51,7 @@ public final class OpenTelemetryGlobalPluginHandler implements InstanceMethodHan
 
         Span span = spanManager.startAndRecord(TracingConstants.ROOT_SPAN, attributesMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_OPENTELEMETRY, spanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_ID, span.getSpanContext().getTraceId());
         target.setContext(span);
     }
 
