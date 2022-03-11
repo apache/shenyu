@@ -99,11 +99,12 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
                 + "{\"weight\":50,\"warmup\":10,\"protocol\":\"http://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267}]";
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8090).build());
+        list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8091).build());
         SelectorDO selectorDO = mock(SelectorDO.class);
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doNothing().when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         String actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
-        assertEquals(expected, actual);
+        assertEquals(expected.replaceAll("\\d{13}", "0"), actual.replaceAll("\\d{13}", "0"));
         List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 2);
         
@@ -114,15 +115,14 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         doNothing().when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
-        assertEquals(resultList.size(), 3);
+        assertEquals(resultList.size(), 1);
         
         list.clear();
-        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8090).build());
         doNothing().when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         selectorDO = mock(SelectorDO.class);
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
-        assertEquals(resultList.size(), 1);
+        assertEquals(resultList.size(), 0);
     }
     
     @Test

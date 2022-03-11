@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
@@ -25,6 +26,7 @@ import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -41,7 +43,8 @@ public class CommonUpstreamUtils {
      * @return the divide upstream
      */
     public static DivideUpstream buildDefaultDivideUpstream(final String host, final Integer port) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
     
     /**
@@ -53,7 +56,8 @@ public class CommonUpstreamUtils {
      * @return the divide upstream
      */
     public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
     
     /**
@@ -64,7 +68,8 @@ public class CommonUpstreamUtils {
      * @return the dubbo upstream
      */
     public static DubboUpstream buildDefaultDubboUpstream(final String host, final Integer port) {
-        return DubboUpstream.builder().upstreamHost("localhost").protocol("dubbo://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return DubboUpstream.builder().upstreamHost("localhost").protocol("dubbo://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
     
     /**
@@ -75,7 +80,8 @@ public class CommonUpstreamUtils {
      * @return the grpc upstream
      */
     public static GrpcUpstream buildDefaultGrpcUpstream(final String host, final Integer port) {
-        return GrpcUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).timestamp(System.currentTimeMillis()).build();
+        return GrpcUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).timestamp(System.currentTimeMillis())
+                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
     
     /**
@@ -86,7 +92,8 @@ public class CommonUpstreamUtils {
      * @return the tars upstream
      */
     public static TarsUpstream buildDefaultTarsUpstream(final String host, final Integer port) {
-        return TarsUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return TarsUpstream.builder().upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
     
     /**

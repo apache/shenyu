@@ -204,8 +204,9 @@ public class NacosServerRegisterRepository implements ShenyuServerRegisterReposi
                 return;
             }
             if (registerDTOList.isEmpty()) {
-                URIRegisterDTO uriRegisterDTO = new URIRegisterDTO();
-                uriRegisterDTO.setContextPath(Constants.PATH_SEPARATOR + contextPath);
+                URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
+                        .contextPath(Constants.PATH_SEPARATOR + contextPath)
+                        .rpcType(rpcType.getName()).build();
                 registerDTOList.add(uriRegisterDTO);
             }
             publishRegisterURI(registerDTOList);

@@ -28,13 +28,7 @@ import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -64,8 +58,7 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
     private boolean isValidData(final Object data) {
         if (data instanceof URIRegisterDTO) {
             URIRegisterDTO uriRegisterDTO = (URIRegisterDTO) data;
-            return Objects.nonNull(uriRegisterDTO.getPort())
-                    && StringUtils.isNoneBlank(uriRegisterDTO.getAppName(), uriRegisterDTO.getHost());
+            return StringUtils.isNotBlank(uriRegisterDTO.getContextPath());
         }
         if (data instanceof MetaDataRegisterDTO) {
             MetaDataRegisterDTO metaDataRegisterDTO = (MetaDataRegisterDTO) data;
