@@ -66,23 +66,19 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
-        String handleAdd;
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
         List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
         List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isEmpty(existList)) {
-            handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
             List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
-                existList.addAll(diffList);
             }
-            handleAdd = GsonUtils.getInstance().toJson(existList);
         }
         doSubmit(selectorDO.getId(), canAddList);
-        return handleAdd;
+        return GsonUtils.getInstance().toJson(addList);
     }
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
