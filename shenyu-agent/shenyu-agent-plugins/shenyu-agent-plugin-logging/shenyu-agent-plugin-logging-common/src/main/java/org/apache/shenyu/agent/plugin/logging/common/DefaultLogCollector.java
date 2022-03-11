@@ -15,33 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.logging.rocketmq;
+package org.apache.shenyu.agent.plugin.logging.common;
 
 import org.apache.shenyu.agent.plugin.logging.LogCollector;
-import org.apache.shenyu.agent.plugin.logging.common.AbstractLogCollector;
-import org.apache.shenyu.agent.plugin.logging.spi.LogCollectClient;
+import org.apache.shenyu.agent.plugin.logging.LogConsumeClient;
 
 import java.util.Objects;
 
 /**
- * queue-based logging collector.
+ * default log collector，depend a LogConsumeClient for consume logs.
  */
-public class RocketMQLogCollector extends AbstractLogCollector {
+public class DefaultLogCollector extends AbstractLogCollector {
 
-    private static RocketMQLogCollector instance;
+    private static LogCollector instance;
 
-    public RocketMQLogCollector(final LogCollectClient logCollectClient) {
-        super(logCollectClient);
+    public DefaultLogCollector(final LogConsumeClient logConsumeClient) {
+        super(logConsumeClient);
         instance = this;
     }
 
     /**
-     * get RocketMQLogCollector instance.
+     * get LogCollector instance.
      *
-     * @return RocketMQLogCollector instance
+     * @return LogCollector instance
      */
     public static LogCollector getInstance() {
         return Objects.requireNonNull(instance);
     }
-
 }

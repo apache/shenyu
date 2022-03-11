@@ -46,6 +46,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Existed {
     
     /**
+     * if reverse ,it is not existed.
+     *
+     * @return not existed
+     */
+    boolean reverse() default false;
+    
+    /**
      * message.
      *
      * @return string

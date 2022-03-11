@@ -19,8 +19,8 @@ package org.apache.shenyu.agent.plugin.logging.rocketmq.boot;
 
 import org.apache.shenyu.agent.api.config.AgentPluginConfig;
 import org.apache.shenyu.agent.api.spi.AgentPluginBootService;
+import org.apache.shenyu.agent.plugin.logging.common.DefaultLogCollector;
 import org.apache.shenyu.agent.plugin.logging.rocketmq.RocketMQLogCollectClient;
-import org.apache.shenyu.agent.plugin.logging.rocketmq.RocketMQLogCollector;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ public class RocketMQAgentPluginBootService implements AgentPluginBootService {
     public void start(final AgentPluginConfig agentPluginConfig) {
         LOG.info("start RocketMQAgentPluginBootService, config:{}", JsonUtils.toJson(agentPluginConfig));
         RocketMQLogCollectClient client = new RocketMQLogCollectClient(agentPluginConfig);
-        new RocketMQLogCollector(client);
+        new DefaultLogCollector(client);
     }
 
     /**
@@ -50,7 +50,7 @@ public class RocketMQAgentPluginBootService implements AgentPluginBootService {
     @Override
     public void close() {
         try {
-            RocketMQLogCollector.getInstance().close();
+            DefaultLogCollector.getInstance().close();
         } catch (Exception e) {
             LOG.error("close RocketMQLogCollector error", e);
         }

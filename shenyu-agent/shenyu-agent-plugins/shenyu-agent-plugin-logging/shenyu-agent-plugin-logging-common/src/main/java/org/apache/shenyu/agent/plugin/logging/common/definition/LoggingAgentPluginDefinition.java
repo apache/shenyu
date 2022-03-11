@@ -23,6 +23,7 @@ import org.apache.shenyu.agent.api.spi.AbstractAgentPluginDefinition;
 import org.apache.shenyu.agent.core.builder.JoinPointBuilderFactory;
 import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
 import org.apache.shenyu.agent.core.yaml.ShenyuYamlEngine;
+import org.apache.shenyu.agent.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ public class LoggingAgentPluginDefinition extends AbstractAgentPluginDefinition 
      */
     @Override
     protected Collection<JoinPointBuilder> joinPointBuilder() {
+        LogCollectConfigUtils.init();
         PointCutConfig config = null;
         try {
             config = ShenyuYamlEngine.unmarshal(ShenyuAgentLocator.locatorConf("logging-point.yaml"),

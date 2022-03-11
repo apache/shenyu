@@ -84,4 +84,9 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
     public URI getCallBackUri() {
         return callBackUri;
     }
+
+    @Override
+    public void removeCommandKey(final String commandKey) {
+        executionSemaphorePerCircuit.remove(commandKey);
+    }
 }

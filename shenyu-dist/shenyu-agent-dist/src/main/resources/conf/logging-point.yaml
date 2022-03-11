@@ -22,5 +22,5 @@ pointCuts:
         name: createExchange
     handlers:
       rocketmq:
-        - org.apache.shenyu.agent.plugin.logging.rocketmq.handler.RocketMQGlobalPluginHandler
+        - org.apache.shenyu.agent.plugin.logging.common.handler.DefaultLoggingPluginHandler
     

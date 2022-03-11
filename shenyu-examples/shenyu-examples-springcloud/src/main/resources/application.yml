@@ -18,23 +18,13 @@ server:
   address: 0.0.0.0
 
 spring:
+  profiles:
+    active: example
   application:
     name: springCloud-test
-#  cloud:
-#    nacos:
-#      discovery:
-#        server-addr: 127.0.0.1:8848
-
 
 springCloud-test:
   ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
 
 shenyu:
   register:
@@ -47,7 +37,7 @@ shenyu:
     springCloud:
       props:
         contextPath: /springcloud
-#        port: 8884
+        port: 8884
 
 logging:
   level:

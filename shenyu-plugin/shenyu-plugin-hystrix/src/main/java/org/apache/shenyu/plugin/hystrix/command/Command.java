@@ -105,4 +105,10 @@ public interface Command {
      */
     URI getCallBackUri();
 
+    /**
+     * removeCommandKey rule data.
+     * @param commandKey commandKey
+     */
+    void removeCommandKey(String commandKey);
+
 }

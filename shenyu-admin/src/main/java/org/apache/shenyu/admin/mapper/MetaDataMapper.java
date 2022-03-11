@@ -22,6 +22,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +31,7 @@ import java.util.Set;
  */
 @Mapper
 public interface MetaDataMapper {
-
+    
     /**
      * Select by id meta data do.
      *
@@ -38,21 +39,22 @@ public interface MetaDataMapper {
      * @return the meta data do
      */
     MetaDataDO selectById(String id);
-
+    
     /**
      * Select a list of MetaDataDOs by idList.
+     *
      * @param idSet a set of ids
      * @return a list of MetaDataDOs
      */
     List<MetaDataDO> selectByIdSet(@Param("idSet") Set<String> idSet);
-
+    
     /**
      * Find all list.
      *
      * @return the list
      */
     List<MetaDataDO> findAll();
-
+    
     /**
      * Find by path meta data do.
      *
@@ -60,16 +62,16 @@ public interface MetaDataMapper {
      * @return the meta data do
      */
     MetaDataDO findByPath(String path);
-
+    
     /**
      * Find by service name and method meta data do.
      *
      * @param serviceName the service name
-     * @param methodName      the methodName
+     * @param methodName  the methodName
      * @return the meta data do
      */
     MetaDataDO findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName);
-
+    
     /**
      * Select by query list.
      *
@@ -77,14 +79,14 @@ public interface MetaDataMapper {
      * @return the list
      */
     List<MetaDataDO> selectByQuery(MetaDataQuery metaDataQuery);
-
+    
     /**
      * Select all list.
      *
      * @return the list
      */
     List<MetaDataDO> selectAll();
-
+    
     /**
      * Count by query integer.
      *
@@ -92,7 +94,7 @@ public interface MetaDataMapper {
      * @return the integer
      */
     Integer countByQuery(MetaDataQuery metaDataQuery);
-
+    
     /**
      * Insert int.
      *
@@ -100,7 +102,7 @@ public interface MetaDataMapper {
      * @return the int
      */
     int insert(MetaDataDO metaDataDO);
-
+    
     /**
      * Update int.
      *
@@ -108,7 +110,7 @@ public interface MetaDataMapper {
      * @return the int
      */
     int update(MetaDataDO metaDataDO);
-
+    
     /**
      * Update enable int.
      *
@@ -116,16 +118,16 @@ public interface MetaDataMapper {
      * @return the int
      */
     int updateEnable(MetaDataDO metaDataDO);
-
+    
     /**
      * update enable batch.
      *
-     * @param idSet the ids
+     * @param idSet   the ids
      * @param enabled the status
      * @return the count
      */
     int updateEnableBatch(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
-
+    
     /**
      * Delete int.
      *
@@ -133,11 +135,20 @@ public interface MetaDataMapper {
      * @return the int
      */
     int delete(String id);
-
+    
     /**
      * batch delete by a set of ids.
+     *
      * @param idSet a set of ids
      * @return the count of deleted
      */
     int deleteByIdSet(@Param("idSet") Set<String> idSet);
+    
+    /**
+     * the path is existed.
+     *
+     * @param path path
+     * @return existed
+     */
+    Boolean pathExisted(Serializable path);
 }

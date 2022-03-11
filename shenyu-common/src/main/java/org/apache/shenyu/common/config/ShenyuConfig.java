@@ -53,6 +53,8 @@ public class ShenyuConfig {
     private RibbonConfig ribbon = new RibbonConfig();
     
     private Local local = new Local();
+
+    private WebsocketConfig websocket = new WebsocketConfig();
     
     /**
      * Gets the local config.
@@ -241,6 +243,24 @@ public class ShenyuConfig {
      */
     public CrossFilterConfig getCross() {
         return cross;
+    }
+
+    /**
+     * Gets the websocket config.
+     *
+     * @return the websocket config
+     */
+    public WebsocketConfig getWebsocket() {
+        return websocket;
+    }
+
+    /**
+     * Sets the websocket config.
+     *
+     * @param websocket the websocket config
+     */
+    public void setWebsocket(final WebsocketConfig websocket) {
+        this.websocket = websocket;
     }
     
     /**
@@ -1121,6 +1141,33 @@ public class ShenyuConfig {
          */
         public void setSha512Key(final String sha512Key) {
             this.sha512Key = sha512Key;
+        }
+    }
+
+    /**
+     * the websocket config.
+     */
+    public static class WebsocketConfig {
+
+        /**
+         * max frame pay load size mb.
+         */
+        private Integer maxFramePayloadSize = 10;
+
+        /**
+         * Get max frame payload size.
+         * @return the max frame payload szie
+         */
+        public Integer getMaxFramePayloadSize() {
+            return maxFramePayloadSize;
+        }
+
+        /**
+         * Set max frame payload size.
+         * @param maxFramePayloadSize the max frame paylod size
+         */
+        public void setMaxFramePayloadSize(final Integer maxFramePayloadSize) {
+            this.maxFramePayloadSize = maxFramePayloadSize;
         }
     }
 }

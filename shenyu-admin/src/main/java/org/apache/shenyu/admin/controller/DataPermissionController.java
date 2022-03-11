@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
-import org.apache.shenyu.admin.service.DataPermissionService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
+import org.apache.shenyu.admin.service.DataPermissionService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,30 +35,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 
 /**
  * this is dataPermission controller.
  */
+@Validated
 @RestController
 @RequestMapping("/data-permission")
 public class DataPermissionController {
-
+    
     private final DataPermissionService dataPermissionService;
-
-    @Autowired(required = false)
+    
     public DataPermissionController(final DataPermissionService dataPermissionService) {
         this.dataPermissionService = dataPermissionService;
     }
-
+    
     /**
      * Query paginated selectors with data permission.
+     *
      * @param currentPage current page
-     * @param pageSize page size
-     * @param userId user id
-     * @param pluginId plugin id
-     * @param name selector name
+     * @param pageSize    page size
+     * @param userId      user id
+     * @param pluginId    plugin id
+     * @param name        selector name
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/selector")
@@ -71,15 +73,16 @@ public class DataPermissionController {
                 new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)), userId);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);
     }
-
-
+    
+    
     /**
      * Query paginated rules with data permission.
+     *
      * @param currentPage current page
-     * @param pageSize page size
-     * @param userId  user id
-     * @param selectorId selector id
-     * @param name  rule name
+     * @param pageSize    page size
+     * @param userId      user id
+     * @param selectorId  selector id
+     * @param name        rule name
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/rules")
@@ -92,56 +95,49 @@ public class DataPermissionController {
                 new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)), userId);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);
     }
-
-
+    
+    
     /**
      * create selector data permission.
+     *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count
      */
     @PostMapping("/selector")
-    public ShenyuAdminResult saveSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
-        return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO)))
-                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
-
+    public ShenyuAdminResult saveSelector(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO));
     }
-
+    
     /**
      * Delete selector data permission.
+     *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count
      */
     @DeleteMapping("/selector")
-    public ShenyuAdminResult deleteSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
-        return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO)))
-                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
-
+    public ShenyuAdminResult deleteSelector(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO));
     }
-
+    
     /**
      * Delete rule data permission.
+     *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count
      */
     @PostMapping("/rule")
-    public ShenyuAdminResult saveRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
-        return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO)))
-                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
+    public ShenyuAdminResult saveRule(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO));
     }
-
+    
     /**
      * Delete selector data permission.
+     *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count
      */
     @DeleteMapping("/rule")
-    public ShenyuAdminResult deleteRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
-        return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO)))
-                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
-
+    public ShenyuAdminResult deleteRule(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO));
     }
 }
