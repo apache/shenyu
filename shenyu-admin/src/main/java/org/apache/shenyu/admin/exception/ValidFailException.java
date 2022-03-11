@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.logging.spi;
-
-import java.util.List;
+package org.apache.shenyu.admin.exception;
 
 /**
- * Used to collect logs, which can be stored in remote or local files or databases, or others.
+ * ValidFailException.
+ * <p>valid fail.</p>
+ * <p>maybe is valid paramater</p>
  */
-public interface LogCollectClient extends AutoCloseable {
-
-
-    /**
-     * collect logs.
-     *
-     * @param logs list of log
-     * @throws Exception produce exception
-     */
-    void collect(List<String> logs) throws Exception;
-
+public class ValidFailException extends ShenyuAdminException {
+    
+    public ValidFailException(final Throwable e) {
+        super(e);
+    }
+    
+    public ValidFailException(final String message) {
+        super(message);
+    }
+    
+    public ValidFailException(final String message, final Throwable throwable) {
+        super(message, throwable);
+    }
 }

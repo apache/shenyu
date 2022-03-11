@@ -116,6 +116,8 @@ public class DataPermissionControllerTest {
     @Test
     public void saveSelector() throws Exception {
         DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
+        dataPermissionDTO.setDataId("testDataId");
+        dataPermissionDTO.setUserId("testUserId");
         given(this.dataPermissionService.createSelector(dataPermissionDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/data-permission/selector")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -144,6 +146,8 @@ public class DataPermissionControllerTest {
     @Test
     public void saveRule() throws Exception {
         DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
+        dataPermissionDTO.setDataId("testDataId");
+        dataPermissionDTO.setUserId("testUserId");
         given(this.dataPermissionService.createRule(dataPermissionDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/data-permission/rule")
                 .contentType(MediaType.APPLICATION_JSON)

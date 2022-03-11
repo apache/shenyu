@@ -39,3 +39,14 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 -- remove monitor plugin
 DELETE FROM plugin WHERE `id` = '7';
 DELETE FROM plugin_handle WHERE `plugin_id` = '7';
+
+-- remove plugin_handle shenyu_dict trigger
+DROP TRIGGER IF EXISTS `plugin_handle_before_trigger`;
+DROP TRIGGER IF EXISTS `shenyu_dict_before_trigger`;
+
+-- insert plugin_handle data for divide
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('5', 'retryStrategy', 'retryStrategy', '3', '2', '0', '{"required":"0","defaultValue":"current","placeholder":"retryStrategy","rule":""}');
+
+-- insert dict for divide plugin
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('retryStrategy', 'RETRY_STRATEGY', 'current', 'current', 'current', '0', '1');
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('retryStrategy', 'RETRY_STRATEGY', 'failover', 'failover', 'failover', '1', '1');

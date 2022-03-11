@@ -87,4 +87,9 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
     public URI getCallBackUri() {
         return callBackUri;
     }
+
+    @Override
+    public void removeCommandKey(final String commandKey) {
+        executionSemaphorePerCircuit.remove(commandKey);
+    }
 }

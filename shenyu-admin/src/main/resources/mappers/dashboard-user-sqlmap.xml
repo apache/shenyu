@@ -73,6 +73,10 @@
         </where>
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from dashboard_user where id = #{id} limit 1
+    </select>
+
     <sql id="likeUser">
         <if test="userName != null and userName != ''">
             <bind name="nameLike" value="('%' + userName + '%')"/>

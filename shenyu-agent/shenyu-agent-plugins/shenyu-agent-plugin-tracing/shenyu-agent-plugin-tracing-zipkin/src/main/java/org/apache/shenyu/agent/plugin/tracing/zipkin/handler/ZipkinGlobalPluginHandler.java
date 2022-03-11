@@ -50,6 +50,7 @@ public final class ZipkinGlobalPluginHandler implements InstanceMethodHandler {
 
         Span span = zipkinSpanManager.start(TracingConstants.ROOT_SPAN, tagMap);
         exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_ZIPKIN, zipkinSpanManager);
+        exchange.getAttributes().put(TracingConstants.SHENYU_AGENT_TRACE_ID, span.context().traceIdString());
         target.setContext(span);
     }
 

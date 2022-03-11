@@ -30,17 +30,8 @@ BEGIN
     PERFORM public.dblink_exec('CREATE DATABASE ' || _db || ' template template0;');
   END IF;
 
-	PERFORM public.dblink_connect('init_conn','host=localhost user=' || _user || ' password=' || _password || ' dbname=' ||_db);
-	PERFORM public.dblink_exec('init_conn', 'BEGIN');
-    PERFORM public.dblink_exec('init_conn','CREATE OR REPLACE FUNCTION update_timestamp() RETURNS TRIGGER AS
-                                          $$
-                                          BEGIN
-                                          NEW.date_updated = NOW()::TIMESTAMP(0);
-                                          RETURN NEW;
-                                          END
-                                          $$
-                                          language plpgsql;');
-	PERFORM public.dblink_exec('init_conn', 'COMMIT');
+    PERFORM public.dblink_connect('init_conn','host=localhost user=' || _user || ' password=' || _password || ' dbname=' ||_db);
+
 
 -- ----------------------------------------
 -- create table app_auth if not exist ---
@@ -453,32 +444,6 @@ ELSE
 	  "type" "pg_catalog"."int2_ops" ASC NULLS LAST
 	);');
 
-	-- ----------------------------
-	-- Primary FUNCTION for table plugin_handle
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE OR REPLACE FUNCTION plugin_handle_insert() RETURNS trigger AS $BODY$
-            BEGIN
-                NEW.ID := nextval('''||'plugin_handle_ID_seq' || ''');
-                RETURN NEW;
-            END;
-            $BODY$
-              LANGUAGE plpgsql;'
-    );
-
-	-- ----------------------------
-	-- Create TRIGGER for table plugin_handle
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_check_insert
-        BEFORE INSERT ON plugin_handle
-        FOR EACH ROW
-        WHEN (NEW.ID IS NULL)
-        EXECUTE PROCEDURE plugin_handle_insert();'
-    );
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER plugin_handle_trigger
-	          BEFORE UPDATE ON plugin_handle
-	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()'
-    );
-
     ----------------------------
 	-- Records of plugin_handle
 	-- ----------------------------
@@ -561,6 +526,7 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'multiRuleHandle' || ''', ''' || 'multiRuleHandle' || ''', 3, 3, 1, null);');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'headerMaxSize' || ''', ''' || 'headerMaxSize' || ''', 1, 2, 3, ''' || '{"defaultValue":"10240","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'requestMaxSize' || ''', ''' || 'requestMaxSize' || ''', 1, 2, 4, ''' || '{"defaultValue":"102400","rule":""}' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '5' || ''', ''' || 'retryStrategy' || ''', ''' || 'retryStrategy' || ''', 3, 2, 0, ''' || '{"required":"0","defaultValue":"current","placeholder":"retryStrategy","rule":""}' || ''');');
 
     /*insert "plugin_handle" data for tars*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '13' || ''', ''' || 'upstreamHost' || ''', ''' || 'host' || ''', 2, 1, 0, null);');
@@ -613,6 +579,7 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id ,  field ,  label ,  data_type ,  type ,  sort ,  ext_obj ) VALUES (''' || '6' || ''', ''' || 'multiSelectorHandle' || ''', ''' || 'multiSelectorHandle' || ''', ''' || '3' || ''', ''' || '3' || ''', ''' || '0' || ''', NULL);');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id ,  field ,  label ,  data_type ,  type ,  sort ,  ext_obj ) VALUES (''' || '6' || ''', ''' || 'protocol' || ''', ''' || 'protocol' || ''', ''' || '2' || ''', ''' || '1' || ''', ''' || '2' || ''', ''' || '{"required":"0","defaultValue":"","placeholder":"http://","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id ,  field ,  label ,  data_type ,  type ,  sort ,  ext_obj ) VALUES (''' || '6' || ''', ''' || 'status' || ''', ''' || 'status' || ''', ''' || '3' || ''', ''' || '1' || ''', ''' || '8' || ''', ''' || '{"defaultValue":"true","rule":""}' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id ,  field ,  label ,  data_type ,  type ,  sort ,  ext_obj ) VALUES (''' || '6' || ''', ''' || 'timestamp' || ''', ''' || 'startupTime' || ''', ''' || '1' || ''', ''' || '1' || ''', ''' || '7' || ''', ''' || '{"defaultValue":"0","placeholder":"startup timestamp","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id ,  field ,  label ,  data_type ,  type ,  sort ,  ext_obj ) VALUES (''' || '6' || ''', ''' || 'upstreamHost' || ''', ''' || 'host' || ''', ''' || '2' || ''', ''' || '1' || ''', ''' || '0' || ''', NULL);');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id ,  field ,  label ,  data_type ,  type ,  sort ,  ext_obj ) VALUES (''' || '6' || ''', ''' || 'upstreamUrl' || ''', ''' || 'ip:port' || ''', ''' || '2' || ''', ''' || '1' || ''', ''' || '1' || ''', ''' || '{"required":"1","placeholder":"","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id ,  field ,  label ,  data_type ,  type ,  sort ,  ext_obj ) VALUES (''' || '6' || ''', ''' || 'version' || ''', ''' || 'version' || ''', ''' || '2' || ''', ''' || '1' || ''', ''' || '4' || ''', ''' || '{"required":"0","placeholder":"version","rule":""}' || ''');');
@@ -979,30 +946,6 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'ALTER SEQUENCE shenyu_dict_ID_seq OWNED BY shenyu_dict.ID;');
 
 	-- ----------------------------
-	-- Primary FUNCTION for table shenyu_dict
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE OR REPLACE FUNCTION shenyu_dict_insert() RETURNS trigger AS $BODY$
-            BEGIN
-                NEW.ID := nextval('''||'shenyu_dict_ID_seq' || ''');
-                RETURN NEW;
-            END;
-            $BODY$
-              LANGUAGE plpgsql;'
-    );
-
-	-- ----------------------------
-	-- Create TRIGGER for table shenyu_dict
-	-- ----------------------------
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER shenyu_dict_check_insert
-        BEFORE INSERT ON shenyu_dict
-        FOR EACH ROW
-        WHEN (NEW.ID IS NULL)
-        EXECUTE PROCEDURE shenyu_dict_insert();');
-	PERFORM public.dblink_exec('init_conn',  ' CREATE TRIGGER shenyu_dict_trigger
-	          BEFORE UPDATE ON shenyu_dict
-	          FOR EACH ROW EXECUTE PROCEDURE update_timestamp()');
-
-	-- ----------------------------
 	-- Records of shenyu_dict
 	-- ----------------------------
 	PERFORM public.dblink_exec('init_conn',  'INSERT  INTO  shenyu_dict  ( type , dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'degradeRuleGrade' || ''',''' || 'DEGRADE_GRADE_RT' || ''',''' || 'slow call ratio' || ''',''' || '0' || ''',''' || 'degrade type-slow call ratio' || ''',1,1);');
@@ -1067,6 +1010,10 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'threadpool' || ''', ''' || 'THREADPOOL' || ''', ''' || 'eager' || ''', ''' || 'eager' || ''', ''' || '' || ''', ''' || '2' || ''', ''' || '1' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'threadpool' || ''', ''' || 'THREADPOOL' || ''', ''' || 'cached' || ''', ''' || 'cached' || ''', ''' || '' || ''', ''' || '0' || ''', ''' || '1' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'threadpool' || ''', ''' || 'THREADPOOL' || ''', ''' || 'limited' || ''', ''' || 'limited' || ''', ''' || '' || ''', ''' || '1' || ''', ''' || '1' || ''');');
+
+    /*insert dict for divide plugin*/
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'retryStrategy' || ''', ''' || 'RETRY_STRATEGY' || ''', ''' || 'current' || ''', ''' || 'current' || ''', ''' || 'current' || ''', ''' || '0' || ''', ''' || '1' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'retryStrategy' || ''', ''' || 'RETRY_STRATEGY' || ''', ''' || 'failover' || ''', ''' || 'failover' || ''', ''' || 'failover' || ''', ''' || '1' || ''', ''' || '1' || ''');');
 
     /* insert dict for init resource,permission table */
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'table'|| ''', ''' || 'INIT_FLAG' || ''', ''' || 'status' || ''',''' ||  'false' ||''',''' || 'table(resource,permission) init status' ||''',''' || '0' || ''',''' || '1' || ''');');
