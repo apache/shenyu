@@ -292,7 +292,7 @@ public class HttpClientProperties {
      *
      * @param threadPool the thread pool
      */
-    public void setThreadPool(ThreadPool threadPool) {
+    public void setThreadPool(final ThreadPool threadPool) {
         this.threadPool = threadPool;
     }
 
@@ -524,12 +524,12 @@ public class HttpClientProperties {
         private String prefix = "shenyu";
 
         /**
-         * The selector thread count, defaults to -1 (no selector thread)
+         * The selector thread count, defaults to -1 (no selector thread).
          */
         private Integer selectCount = LoopResources.DEFAULT_IO_SELECT_COUNT;
 
         /**
-         * The worker thread count, defaults to available processor (but with a minimum value of 4)
+         * The worker thread count, defaults to available processor (but with a minimum value of 4).
          */
         private Integer workerCount = LoopResources.DEFAULT_IO_WORKER_COUNT;
 
@@ -576,7 +576,7 @@ public class HttpClientProperties {
          *
          * @param selectCount the select count
          */
-        public void setSelectCount(Integer selectCount) {
+        public void setSelectCount(final Integer selectCount) {
             this.selectCount = selectCount;
         }
 
@@ -594,7 +594,7 @@ public class HttpClientProperties {
          *
          * @param workerCount the worker count
          */
-        public void setWorkerCount(Integer workerCount) {
+        public void setWorkerCount(final Integer workerCount) {
             this.workerCount = workerCount;
         }
 
@@ -612,7 +612,7 @@ public class HttpClientProperties {
          *
          * @param daemon the daemon
          */
-        public void setDaemon(Boolean daemon) {
+        public void setDaemon(final Boolean daemon) {
             this.daemon = daemon;
         }
 
@@ -630,7 +630,7 @@ public class HttpClientProperties {
          *
          * @param preferNative the prefer native
          */
-        public void setPreferNative(Boolean preferNative) {
+        public void setPreferNative(final Boolean preferNative) {
             this.preferNative = preferNative;
         }
     }
