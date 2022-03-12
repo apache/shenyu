@@ -17,12 +17,24 @@
 
 package org.apache.shenyu.plugin.cache.read;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.reactive.function.BodyExtractors;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * CacheReadPlugin.
@@ -37,7 +49,7 @@ public class CacheReadPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public int getOrder() {
-        return 0;
+        return PluginEnum.CACHE.getCode();
     }
 
     /**
@@ -49,7 +61,7 @@ public class CacheReadPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public String named() {
-        return super.named();
+        return PluginEnum.CACHE.getName();
     }
 
     /**
@@ -63,6 +75,17 @@ public class CacheReadPlugin extends AbstractShenyuPlugin {
      */
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        return null;
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        String path = shenyuContext.getPath();
+        MemoryCache memoryCache = Singleton.INST.get(MemoryCache.class);
+        byte[] cacheResult = memoryCache.getData(path);
+        if (cacheResult != null && cacheResult.length > 0){
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+           return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                    .bufferFactory().wrap(cacheResult))
+                    .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
+        }
+        return chain.execute(exchange);
     }
 }

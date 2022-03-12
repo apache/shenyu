@@ -78,7 +78,7 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public byte[] getData(final String key) {
-        if (isExist(key)) {
+        if (!isExist(key)) {
             return null;
         }
         return this.mainCache.get(key).asMap().get(key);

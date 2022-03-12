@@ -15,13 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cache.base.config;
+package org.apache.shenyu.common.dto.convert.rule.impl;
 
-import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
-import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
+
+import java.util.Objects;
 
 /**
- * CacheConfig.
+ * The type Divide rule handle.
  */
-public class CacheConfig extends RedisConfigProperties {
+public class CacheWriteRuleHandle implements RuleHandle {
+    private long timeoutSeconds = 60;
+
+    public long getTimeoutSeconds() {
+        return timeoutSeconds;
+    }
+
+    public void setTimeoutSeconds(long timeoutSeconds) {
+        this.timeoutSeconds = timeoutSeconds;
+    }
 }
