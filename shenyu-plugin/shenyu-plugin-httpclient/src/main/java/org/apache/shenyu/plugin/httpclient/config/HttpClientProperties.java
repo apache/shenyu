@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.httpclient.config;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.util.ResourceUtils;
+import reactor.netty.ReactorNetty;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.SslProvider;
@@ -524,9 +525,9 @@ public class HttpClientProperties {
         private String prefix = "shenyu";
 
         /**
-         * The selector thread count, defaults to -1 (no selector thread).
+         * The selector thread count, defaults to 1.
          */
-        private Integer selectCount = LoopResources.DEFAULT_IO_SELECT_COUNT;
+        private Integer selectCount = Integer.parseInt(System.getProperty(ReactorNetty.IO_SELECT_COUNT, "1"));
 
         /**
          * The worker thread count, defaults to available processor (but with a minimum value of 4).

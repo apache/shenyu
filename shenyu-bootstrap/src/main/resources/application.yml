@@ -121,7 +121,7 @@ shenyu:
   #      defaultConfigurationType:
   #    threadPool:
   #      prefix: shenyu
-  #      selectCount: -1
+  #      selectCount: 1
   #      workerCount: 8
   #      daemon: true
   #      preferNative: true
