@@ -36,7 +36,7 @@ public class PluginDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = PluginMapper.class, nullOfIgnore = true , message = "the plugin is not exited")
+    @Existed(provider = PluginMapper.class, nullOfIgnore = true, message = "the plugin is not exited")
     private String id;
     
     /**
