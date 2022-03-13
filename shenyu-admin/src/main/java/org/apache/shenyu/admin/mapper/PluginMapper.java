@@ -21,7 +21,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -29,8 +31,17 @@ import java.util.Set;
  * PluginMapper.
  */
 @Mapper
-public interface PluginMapper {
-
+public interface PluginMapper extends ExistProvider {
+    
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+    
     /**
      * select plugin by id.
      *
@@ -38,7 +49,7 @@ public interface PluginMapper {
      * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
-
+    
     /**
      * select plugin by id.
      *
@@ -46,7 +57,7 @@ public interface PluginMapper {
      * @return {@linkplain PluginDO}
      */
     List<PluginDO> selectByIds(List<String> ids);
-
+    
     /**
      * Select by name plugin do.
      *
@@ -54,7 +65,7 @@ public interface PluginMapper {
      * @return the plugin do
      */
     PluginDO selectByName(String name);
-
+    
     /**
      * Select by names plugin do.
      *
@@ -62,7 +73,7 @@ public interface PluginMapper {
      * @return the plugins do
      */
     List<PluginDO> selectByNames(List<String> names);
-
+    
     /**
      * select plugin by query.
      *
@@ -70,21 +81,21 @@ public interface PluginMapper {
      * @return {@linkplain List}
      */
     List<PluginDO> selectByQuery(PluginQuery pluginQuery);
-
+    
     /**
      * select all.
      *
      * @return {@linkplain List}
      */
     List<PluginDO> selectAll();
-
+    
     /**
      * select all not in resource.
      *
      * @return {@linkplain List}
      */
     List<PluginDO> listAllNotInResource();
-
+    
     /**
      * count plugin by query.
      *
@@ -92,7 +103,7 @@ public interface PluginMapper {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(PluginQuery pluginQuery);
-
+    
     /**
      * insert plugin.
      *
@@ -100,7 +111,7 @@ public interface PluginMapper {
      * @return rows int
      */
     int insert(PluginDO pluginDO);
-
+    
     /**
      * insert selective plugin.
      *
@@ -108,7 +119,7 @@ public interface PluginMapper {
      * @return rows int
      */
     int insertSelective(PluginDO pluginDO);
-
+    
     /**
      * update plugin.
      *
@@ -116,7 +127,7 @@ public interface PluginMapper {
      * @return rows int
      */
     int update(PluginDO pluginDO);
-
+    
     /**
      * Update enable int.
      *
@@ -124,15 +135,16 @@ public interface PluginMapper {
      * @return the int
      */
     int updateEnable(PluginDO pluginDO);
-
+    
     /**
      * enable data by a set of ids.
-     * @param idSet a set of ids
+     *
+     * @param idSet   a set of ids
      * @param enabled status
      * @return the count of enabled datas
      */
     int updateEnableByIdSet(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
-
+    
     /**
      * update selective plugin.
      *
@@ -140,7 +152,7 @@ public interface PluginMapper {
      * @return rows int
      */
     int updateSelective(PluginDO pluginDO);
-
+    
     /**
      * delete plugin.
      *
@@ -148,7 +160,7 @@ public interface PluginMapper {
      * @return rows int
      */
     int delete(String id);
-
+    
     /**
      * delete plugin.
      *
@@ -156,4 +168,12 @@ public interface PluginMapper {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
+    
+    /**
+     * plugin existed.
+     *
+     * @param name name
+     * @return existed
+     */
+    Boolean nameExisted(@Param("name") Serializable name);
 }

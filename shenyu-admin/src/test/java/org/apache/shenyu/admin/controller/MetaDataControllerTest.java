@@ -82,7 +82,6 @@ public final class MetaDataControllerTest {
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(metaDataController)
-//                .setControllerAdvice(pathProvider)
                 .setControllerAdvice(new ExceptionHandlers())
                 .build();
     }
