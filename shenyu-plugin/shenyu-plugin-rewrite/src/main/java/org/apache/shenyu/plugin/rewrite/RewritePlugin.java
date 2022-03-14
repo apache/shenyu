@@ -53,8 +53,8 @@ public class RewritePlugin extends AbstractShenyuPlugin {
         }
         String rewriteUri = exchange.getRequest().getURI().getPath();
         if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())) {
-            rewriteUri = rewriteHandle.getReplace().contains("{") ?
-                    PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
+            rewriteUri = rewriteHandle.getReplace().contains("{")
+                    ? PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
                             rewriteUri.substring(rewriteHandle.getRegex().indexOf("{") + 1))
                     : rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
             exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
