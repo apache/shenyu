@@ -73,16 +73,16 @@ public final class HystrixPluginTest extends AbstractPluginDataInit {
     }
 
     @Test
-    public void testFallbackBySmeaphore() throws IOException, ExecutionException, InterruptedException {
+    public void testFallbackBySemaphore() throws IOException, ExecutionException, InterruptedException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.HYSTRIX.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(TEST_HYSTRIX_BAD_REQUEST_PATH));
         assertThat(selectorAndRulesResult, CoreMatchers.is("success"));
         Set<String> resultSet = new HashSet<>();
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
-        Future<Map<String, Object>> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
+        Future<Map<String, Object>> resp0 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
         Future<Map<String, Object>> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
-        Stream.of(resp.get()).filter(s -> null != s.get("message")).forEach(imp -> {
+        Stream.of(resp0.get()).filter(s -> null != s.get("message")).forEach(imp -> {
             resultSet.add(imp.get("message").toString());
         });
         Stream.of(resp1.get()).filter(s -> null != s.get("message")).forEach(imp -> {
