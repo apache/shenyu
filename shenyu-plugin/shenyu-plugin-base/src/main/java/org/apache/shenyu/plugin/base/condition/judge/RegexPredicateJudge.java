@@ -30,6 +30,6 @@ public class RegexPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Pattern.matches(conditionData.getParamValue(), realData);
+        return Pattern.matches(conditionData.getParamValue().trim(), realData);
     }
 }
