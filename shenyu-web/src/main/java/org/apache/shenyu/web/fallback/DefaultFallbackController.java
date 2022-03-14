@@ -53,6 +53,6 @@ public class DefaultFallbackController {
      */
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {
-        return ShenyuResultWrap.error(null,ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
+        return ShenyuResultWrap.error(null, ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
     }
 }
