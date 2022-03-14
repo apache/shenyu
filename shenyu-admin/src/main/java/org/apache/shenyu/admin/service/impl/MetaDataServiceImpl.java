@@ -36,8 +36,6 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,9 +55,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class MetaDataServiceImpl implements MetaDataService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MetaDataServiceImpl.class);
-
+    
     private final MetaDataMapper metaDataMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -92,10 +88,6 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
-        String msg = checkData(metaDataDTO);
-        if (StringUtils.isNoneBlank(msg)) {
-            return msg;
-        }
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         DataEventTypeEnum eventType;
         String pathDesc = Objects.isNull(metaDataDO.getPathDesc()) ? "" : metaDataDO.getPathDesc();
@@ -191,8 +183,9 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public Map<String, List<MetaDataVO>> findAllGroup() {
-        List<MetaDataVO> metaDataVOS = MetaDataTransfer.INSTANCE.mapToVOList(metaDataMapper.selectAll());
-        return metaDataVOS.stream().collect(Collectors.groupingBy(MetaDataVO::getAppName));
+        return MetaDataTransfer.INSTANCE.mapToVOList(metaDataMapper.selectAll())
+                .stream()
+                .collect(Collectors.groupingBy(MetaDataVO::getAppName));
     }
 
     @Override
@@ -218,26 +211,5 @@ public class MetaDataServiceImpl implements MetaDataService {
     public int insert(final MetaDataDO metaDataDO) {
         return metaDataMapper.insert(metaDataDO);
     }
-
-    private String checkData(final MetaDataDTO metaDataDTO) {
-        if (!checkParam(metaDataDTO)) {
-            LOG.error("metaData create param is error, {}", metaDataDTO);
-            return AdminConstants.PARAMS_ERROR;
-        }
-
-        final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());
-        if (Objects.nonNull(exist) && !exist.getId().equals(metaDataDTO.getId())) {
-            return AdminConstants.DATA_PATH_IS_EXIST;
-        }
-
-        return StringUtils.EMPTY;
-    }
-
-    private boolean checkParam(final MetaDataDTO metaDataDTO) {
-        return !StringUtils.isEmpty(metaDataDTO.getAppName())
-                && !StringUtils.isEmpty(metaDataDTO.getPath())
-                && !StringUtils.isEmpty(metaDataDTO.getRpcType())
-                && !StringUtils.isEmpty(metaDataDTO.getServiceName())
-                && !StringUtils.isEmpty(metaDataDTO.getMethodName());
-    }
+    
 }

@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.agent.plugin.logging;
 
+import org.apache.shenyu.agent.plugin.logging.entity.ShenyuRequestLog;
+
 /**
- * Collect logs and save them.
+ * Collect logs and put into buffer queue.
  */
 public interface LogCollector extends AutoCloseable {
 
@@ -27,5 +29,5 @@ public interface LogCollector extends AutoCloseable {
      *
      * @param log access log
      */
-    void collect(Object log);
+    void collect(ShenyuRequestLog log);
 }

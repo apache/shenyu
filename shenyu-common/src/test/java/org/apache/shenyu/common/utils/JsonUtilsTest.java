@@ -18,6 +18,8 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.shenyu.common.constant.Constants;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -73,7 +75,10 @@ public final class JsonUtilsTest {
                     }
                 })
                 .build();
-        assertEquals(EXPECTED_JSON, JsonUtils.toJson(object));
+        JsonParser parser = new JsonParser();
+        JsonElement expectedJson = parser.parse(EXPECTED_JSON);
+        JsonElement objectJson = parser.parse(JsonUtils.toJson(object));
+        assertEquals(expectedJson, objectJson);
 
         Object o = new Object();
         assertEquals(Constants.EMPTY_JSON, JsonUtils.toJson(o));

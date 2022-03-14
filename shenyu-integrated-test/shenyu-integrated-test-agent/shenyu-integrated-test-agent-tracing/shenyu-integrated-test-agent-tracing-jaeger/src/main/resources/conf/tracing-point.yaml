@@ -93,13 +93,6 @@ pointCuts:
     handlers:
       jaeger:
         - org.apache.shenyu.agent.plugin.tracing.jaeger.handler.JaegerPluginCommonHandler
-  - targetClass: org.apache.shenyu.plugin.monitor.MonitorPlugin
-    points:
-      - type: instanceMethod
-        name: doExecute
-    handlers:
-      jaeger:
-        - org.apache.shenyu.agent.plugin.tracing.jaeger.handler.JaegerPluginCommonHandler
   - targetClass: org.apache.shenyu.plugin.motan.MotanPlugin
     points:
       - type: instanceMethod

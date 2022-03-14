@@ -32,7 +32,6 @@
         <module>shenyu-spring-boot-starter-plugin-httpclient</module>
         <module>shenyu-spring-boot-starter-plugin-springcloud</module>
         <module>shenyu-spring-boot-starter-plugin-hystrix</module>
-        <module>shenyu-spring-boot-starter-plugin-monitor</module>
         <module>shenyu-spring-boot-starter-plugin-ratelimiter</module>
         <module>shenyu-spring-boot-starter-plugin-sign</module>
         <module>shenyu-spring-boot-starter-plugin-waf</module>

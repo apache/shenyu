@@ -163,7 +163,6 @@ public class ReflectUtils {
             } catch (NoSuchFieldException e) {
                 // Field is not defined in the current class and continues to transition up
                 // new add
-                LOG.error("field is not defined in the current class and continues to transition up", e);
             }
         }
         return null;

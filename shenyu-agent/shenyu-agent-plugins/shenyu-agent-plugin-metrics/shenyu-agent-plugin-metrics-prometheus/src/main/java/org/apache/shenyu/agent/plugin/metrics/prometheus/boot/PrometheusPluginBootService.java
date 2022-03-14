@@ -20,11 +20,11 @@ package org.apache.shenyu.agent.plugin.metrics.prometheus.boot;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
-import io.prometheus.jmx.BuildInfoCollector;
 import io.prometheus.jmx.JmxCollector;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.agent.api.config.AgentPluginConfig;
 import org.apache.shenyu.agent.api.spi.AgentPluginBootService;
+import org.apache.shenyu.agent.plugin.metrics.prometheus.collector.BuildInfoCollector;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,13 +76,16 @@ public final class PrometheusPluginBootService implements AgentPluginBootService
             return;
         }
         new BuildInfoCollector().register();
-        boolean enabled = Boolean.parseBoolean(props.getProperty("jvm_enabled"));
-        if (enabled) {
-            DefaultExports.initialize();
+        String jvmEnabled = String.valueOf(props.getProperty("jvm_enabled"));
+        if (StringUtils.isNotEmpty(jvmEnabled)) {
+            boolean enabled = Boolean.parseBoolean(jvmEnabled);
+            if (enabled) {
+                DefaultExports.initialize();
+            }
         }
         try {
             String jmxConfig = String.valueOf(props.get("jmx_config"));
-            if (StringUtils.isNotEmpty(jmxConfig)) {
+            if (!"null".equals(jmxConfig) && StringUtils.isNotEmpty(jmxConfig)) {
                 new JmxCollector(jmxConfig).register();
             }
         } catch (MalformedObjectNameException e) {

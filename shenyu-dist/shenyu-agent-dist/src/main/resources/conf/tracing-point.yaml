@@ -137,17 +137,6 @@ pointCuts:
         - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
       zipkin:
         - org.apache.shenyu.agent.plugin.tracing.zipkin.handler.ZipkinPluginCommonHandler
-  - targetClass: org.apache.shenyu.plugin.monitor.MonitorPlugin
-    points:
-      - type: instanceMethod
-        name: doExecute
-    handlers:
-      jaeger:
-        - org.apache.shenyu.agent.plugin.tracing.jaeger.handler.JaegerPluginCommonHandler
-      opentelemetry:
-        - org.apache.shenyu.agent.plugin.tracing.opentelemetry.handler.OpenTelemetryPluginCommonHandler
-      zipkin:
-        - org.apache.shenyu.agent.plugin.tracing.zipkin.handler.ZipkinPluginCommonHandler
   - targetClass: org.apache.shenyu.plugin.motan.MotanPlugin
     points:
       - type: instanceMethod

@@ -17,18 +17,16 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.service.DashboardUserService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.assertj.core.util.Lists;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +34,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -83,10 +80,6 @@ public final class DashboardUserControllerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        final SecretProperties secretProperties = new SecretProperties();
-        secretProperties.setKey("2095132720951327");
-        secretProperties.setIv("6075877187097700");
-        ReflectionTestUtils.setField(dashboardUserController, "secretProperties", secretProperties);
         mockMvc = MockMvcBuilders.standaloneSetup(dashboardUserController).build();
     }
 

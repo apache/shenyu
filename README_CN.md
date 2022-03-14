@@ -108,9 +108,12 @@ ShenYu (神禹)是我们古代君王夏禹的尊称（后世也尊称大禹）�
 
 * 单机模式设置路由规则
 
+Headers 中添加 `localKey: 123456`。如果需要自定义 localKey，可以使用 sha512 工具根据明文生成 key，并更新 `shenyu.local.sha512Key` 属性。
+
 ```
 curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndRules' \
 --header 'Content-Type: application/json' \
+--header 'localKey: 123456' \
 --data-raw '{
     "pluginName": "divide",
     "selectorHandler": "[{\"upstreamUrl\":\"127.0.0.1:8080\"}]",
