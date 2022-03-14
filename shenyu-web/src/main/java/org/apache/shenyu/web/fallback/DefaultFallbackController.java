@@ -19,8 +19,6 @@ package org.apache.shenyu.web.fallback;
 
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,18 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/fallback")
 public class DefaultFallbackController {
     /**
-     * logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultFallbackController.class);
-
-    /**
      * default fallback for hystrix.
      *
      * @return the shenyu result
      */
     @GetMapping("/hystrix")
     public Object hystrixPluginFallback() {
-        return ShenyuResultWrap.error(null, ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg(), null);
+        return ShenyuResultWrap.error(null, ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
     }
 
     /**
@@ -53,6 +46,6 @@ public class DefaultFallbackController {
      */
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {
-        return ShenyuResultWrap.error(null, ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
+        return ShenyuResultWrap.error(null, ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
     }
 }
