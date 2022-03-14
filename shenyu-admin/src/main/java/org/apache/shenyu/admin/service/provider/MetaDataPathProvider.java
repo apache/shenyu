@@ -15,19 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.logging;
+package org.apache.shenyu.admin.service.provider;
 
-import org.apache.shenyu.agent.plugin.logging.entity.ShenyuRequestLog;
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
+import org.apache.shenyu.admin.validation.ExistProvider;
+import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
 
 /**
- * Collect logs and put into buffer queue.
+ * MetaDataPathProvider.
  */
-public interface LogCollector extends AutoCloseable {
-
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(ShenyuRequestLog log);
+@Component
+public class MetaDataPathProvider implements ExistProvider {
+    
+    private final MetaDataMapper metaDataMapper;
+    
+    public MetaDataPathProvider(final MetaDataMapper metaDataMapper) {
+        this.metaDataMapper = metaDataMapper;
+    }
+    
+    @Override
+    public Boolean existed(final Serializable key) {
+        return metaDataMapper.pathExisted(key);
+    }
 }

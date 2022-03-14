@@ -19,15 +19,21 @@ package org.apache.shenyu.agent.plugin.logging;
 
 import org.apache.shenyu.agent.plugin.logging.entity.ShenyuRequestLog;
 
+import java.util.List;
+
 /**
- * Collect logs and put into buffer queue.
+ * Used to collect logs, which can be stored in remote or local files or databases, or others.
  */
-public interface LogCollector extends AutoCloseable {
+
+public interface LogConsumeClient extends AutoCloseable {
+
 
     /**
-     * collect log.
+     * collect logs.
      *
-     * @param log access log
+     * @param logs list of log
+     * @throws Exception produce exception
      */
-    void collect(ShenyuRequestLog log);
+    void consume(List<ShenyuRequestLog> logs) throws Exception;
+
 }

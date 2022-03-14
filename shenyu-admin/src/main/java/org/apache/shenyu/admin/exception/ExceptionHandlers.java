@@ -127,7 +127,7 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(ShenyuAdminException.class)
     protected ShenyuAdminResult handleShenyuException(final ShenyuAdminException exception) {
-        LOG.error("null pointer exception ", exception);
-        return ShenyuAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, exception.getMessage());
+        LOG.error("shenyu admin exception ", exception);
+        return ShenyuAdminResult.error(CommonErrorCode.ERROR, exception.getMessage());
     }
 }

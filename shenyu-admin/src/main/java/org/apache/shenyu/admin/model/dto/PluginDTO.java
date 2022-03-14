@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.service.provider.PluginNameProvider;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shenyu.common.constant.AdminConstants;
+
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
@@ -25,42 +30,45 @@ import java.util.Objects;
  * this is plugin from by web front.
  */
 public class PluginDTO implements Serializable {
-
+    
     private static final long serialVersionUID = 789913506331671329L;
-
+    
     /**
      * primary key.
      */
+    @Existed(provider = PluginMapper.class, nullOfIgnore = true, message = "the plugin is not exited")
     private String id;
-
+    
     /**
      * plugin name.
      */
     @NotNull
+    @Existed(provider = PluginNameProvider.class, reverse = true, message = AdminConstants.PLUGIN_NAME_IS_EXIST)
     private String name;
-
+    
     /**
      * plugin config.
      */
     private String config;
-
+    
     /**
      * plugin role.
      */
     @NotNull
     private String role;
-
+    
     /**
      * plugin sort.
      */
+    @NotNull
     private Integer sort;
-
+    
     /**
      * whether enabled.
      */
     @NotNull
     private Boolean enabled;
-
+    
     /**
      * Gets the value of id.
      *
@@ -69,7 +77,7 @@ public class PluginDTO implements Serializable {
     public String getId() {
         return id;
     }
-
+    
     /**
      * Sets the id.
      *
@@ -78,7 +86,7 @@ public class PluginDTO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-
+    
     /**
      * Gets the value of name.
      *
@@ -87,7 +95,7 @@ public class PluginDTO implements Serializable {
     public String getName() {
         return name;
     }
-
+    
     /**
      * Sets the name.
      *
@@ -96,7 +104,7 @@ public class PluginDTO implements Serializable {
     public void setName(final String name) {
         this.name = name;
     }
-
+    
     /**
      * Gets the value of config.
      *
@@ -105,7 +113,7 @@ public class PluginDTO implements Serializable {
     public String getConfig() {
         return config;
     }
-
+    
     /**
      * Sets the config.
      *
@@ -114,7 +122,7 @@ public class PluginDTO implements Serializable {
     public void setConfig(final String config) {
         this.config = config;
     }
-
+    
     /**
      * Gets the value of role.
      *
@@ -123,7 +131,7 @@ public class PluginDTO implements Serializable {
     public String getRole() {
         return role;
     }
-
+    
     /**
      * Sets the role.
      *
@@ -132,7 +140,7 @@ public class PluginDTO implements Serializable {
     public void setRole(final String role) {
         this.role = role;
     }
-
+    
     /**
      * Gets the value of sort.
      *
@@ -141,7 +149,7 @@ public class PluginDTO implements Serializable {
     public Integer getSort() {
         return sort;
     }
-
+    
     /**
      * Sets the sort.
      *
@@ -150,7 +158,7 @@ public class PluginDTO implements Serializable {
     public void setSort(final Integer sort) {
         this.sort = sort;
     }
-
+    
     /**
      * Gets the value of enabled.
      *
@@ -159,7 +167,7 @@ public class PluginDTO implements Serializable {
     public Boolean getEnabled() {
         return enabled;
     }
-
+    
     /**
      * Sets the enabled.
      *
@@ -168,7 +176,7 @@ public class PluginDTO implements Serializable {
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -185,7 +193,7 @@ public class PluginDTO implements Serializable {
                 && Objects.equals(sort, pluginDTO.sort)
                 && Objects.equals(enabled, pluginDTO.enabled);
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(id, name, config, role, sort, enabled);

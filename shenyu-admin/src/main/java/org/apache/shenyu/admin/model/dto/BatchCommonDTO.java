@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -32,7 +33,7 @@ public class BatchCommonDTO implements Serializable {
 
     @NotEmpty
     @NotNull
-    private List<String> ids;
+    private List<@NotBlank String> ids;
 
     @NotNull
     private Boolean enabled;

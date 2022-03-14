@@ -15,22 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.agent.plugin.logging.spi;
+package org.apache.shenyu.admin.service.provider;
 
-import java.util.List;
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.validation.ExistProvider;
+import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
 
 /**
- * Used to collect logs, which can be stored in remote or local files or databases, or others.
+ * PluginNameProvider.
  */
-public interface LogCollectClient extends AutoCloseable {
-
-
-    /**
-     * collect logs.
-     *
-     * @param logs list of log
-     * @throws Exception produce exception
-     */
-    void collect(List<String> logs) throws Exception;
-
+@Component
+public class PluginNameProvider implements ExistProvider {
+    
+    private final PluginMapper pluginMapper;
+    
+    public PluginNameProvider(final PluginMapper pluginMapper) {
+        this.pluginMapper = pluginMapper;
+    }
+    
+    @Override
+    public Boolean existed(final Serializable key) {
+        return pluginMapper.nameExisted(key);
+    }
 }
