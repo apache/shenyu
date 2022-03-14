@@ -118,7 +118,13 @@ shenyu:
   #      handshakeTimeout:
   #      closeNotifyFlushTimeout:
   #      closeNotifyReadTimeout:
-  #      defaultConfigurationType:      
+  #      defaultConfigurationType:
+  #    threadPool:
+  #      prefix: shenyu
+  #      selectCount: 1
+  #      workerCount: 8
+  #      daemon: true
+  #      preferNative: true
   instance:
     enabled: false
     registerType: zookeeper #etcd #consul

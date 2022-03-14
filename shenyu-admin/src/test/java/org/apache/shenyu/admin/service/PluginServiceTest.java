@@ -50,9 +50,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -108,10 +106,6 @@ public final class PluginServiceTest {
         publishEvent();
         testCreate();
         testUpdate();
-
-        testCreateShouldPluginNameIsExist();
-        testUpdateShouldPluginNameNotExistWithPluginDO();
-        testUpdateShouldPluginNameNotExistWithDiffId();
     }
 
     @Test
@@ -123,7 +117,7 @@ public final class PluginServiceTest {
         final List<SelectorDO> selectorDOList = new ArrayList<>();
         selectorDOList.add(SelectorDO.builder().id("101").build());
         when(selectorMapper.findByPluginIds(Collections.singletonList("101"))).thenReturn(selectorDOList);
-        assertEquals(pluginService.delete(Collections.singletonList("123")), StringUtils.EMPTY);
+        assertEquals(StringUtils.EMPTY, pluginService.delete(Collections.singletonList("123")));
     }
 
     @Test
@@ -132,14 +126,13 @@ public final class PluginServiceTest {
 
         PluginDO pluginDO = buildPluginDO("123");
         final List<String> ids = Collections.singletonList(pluginDO.getId());
-        assertEquals(pluginService.delete(ids), AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
+        assertEquals(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST, pluginService.delete(ids));
     }
 
     @Test
     public void testEnable() {
 
         List<String> idList = Lists.list("123", "1234");
-        Set<String> idSet = new HashSet<>(idList);
         publishEvent();
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
@@ -205,7 +198,7 @@ public final class PluginServiceTest {
     private void testCreate() {
         PluginDTO pluginDTO = buildPluginDTO("");
         when(pluginMapper.insert(any())).thenReturn(1);
-        assertEquals(this.pluginService.createOrUpdate(pluginDTO), StringUtils.EMPTY);
+        assertEquals(StringUtils.EMPTY, this.pluginService.createOrUpdate(pluginDTO));
     }
 
     private void testUpdate() {
@@ -216,32 +209,9 @@ public final class PluginServiceTest {
         pluginDTO.setId("123");
         pluginDTO.setName("test");
         when(pluginMapper.update(any())).thenReturn(1);
-        assertEquals(this.pluginService.createOrUpdate(pluginDTO), StringUtils.EMPTY);
+        assertEquals(StringUtils.EMPTY, this.pluginService.createOrUpdate(pluginDTO));
     }
-
-    private void testCreateShouldPluginNameIsExist() {
-        PluginDO pluginDO = buildPluginDO();
-        when(pluginMapper.selectByName(any())).thenReturn(pluginDO);
-
-        PluginDTO pluginDTO = buildPluginDTO("");
-        assertEquals(this.pluginService.createOrUpdate(pluginDTO), AdminConstants.PLUGIN_NAME_IS_EXIST);
-    }
-
-    private void testUpdateShouldPluginNameNotExistWithPluginDO() {
-        when(pluginMapper.selectByName(any())).thenReturn(null);
-
-        PluginDTO pluginDTO = buildPluginDTO("123");
-        assertEquals(this.pluginService.createOrUpdate(pluginDTO), AdminConstants.PLUGIN_NAME_NOT_EXIST);
-    }
-
-    private void testUpdateShouldPluginNameNotExistWithDiffId() {
-        PluginDO pluginDO = buildPluginDO();
-        when(pluginMapper.selectByName(any())).thenReturn(pluginDO);
-
-        PluginDTO pluginDTO = buildPluginDTO("456");
-        assertEquals(this.pluginService.createOrUpdate(pluginDTO), AdminConstants.PLUGIN_NAME_NOT_EXIST);
-    }
-
+    
     private PluginDTO buildPluginDTO() {
         return buildPluginDTO("123");
     }

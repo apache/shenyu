@@ -113,6 +113,14 @@
         (select title from resource)
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from plugin where id = #{id} limit 1
+    </select>
+
+    <select id="nameExisted" resultType="java.lang.Boolean">
+        select true from plugin where name = #{name} limit 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         insert into plugin (id, date_created, date_updated,
         name,config,role, sort, enabled)

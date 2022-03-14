@@ -109,11 +109,6 @@ public class PluginServiceImpl implements PluginService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final PluginDTO pluginDTO) {
-        final String msg = checkData(pluginDTO);
-        if (StringUtils.isNoneBlank(msg)) {
-            return msg;
-        }
-
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         DataEventTypeEnum eventType = DataEventTypeEnum.CREATE;
         if (StringUtils.isBlank(pluginDTO.getId())) {
@@ -275,26 +270,6 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public PluginDO findByName(final String name) {
         return pluginMapper.selectByName(name);
-    }
-
-    /**
-     * check plugin Data integrity.
-     *
-     * @param pluginDTO {@linkplain PluginDTO}
-     * @return result description
-     */
-    private String checkData(final PluginDTO pluginDTO) {
-        final PluginDO exist = pluginMapper.selectByName(pluginDTO.getName());
-        if (StringUtils.isBlank(pluginDTO.getId())) {
-            if (Objects.nonNull(exist)) {
-                return AdminConstants.PLUGIN_NAME_IS_EXIST;
-            }
-        } else {
-            if (Objects.isNull(exist) || !exist.getId().equals(pluginDTO.getId())) {
-                return AdminConstants.PLUGIN_NAME_NOT_EXIST;
-            }
-        }
-        return StringUtils.EMPTY;
     }
 
     /**

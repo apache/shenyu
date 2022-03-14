@@ -15,21 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
+package org.apache.shenyu.admin.service.provider;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.spi.Join;
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.validation.ExistProvider;
+import org.springframework.stereotype.Component;
 
-import java.util.regex.Pattern;
+import java.io.Serializable;
 
 /**
- * Regex predicate judge.
+ * PluginNameProvider.
  */
-@Join
-public class RegexPredicateJudge implements PredicateJudge {
-
+@Component
+public class PluginNameProvider implements ExistProvider {
+    
+    private final PluginMapper pluginMapper;
+    
+    public PluginNameProvider(final PluginMapper pluginMapper) {
+        this.pluginMapper = pluginMapper;
+    }
+    
     @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Pattern.matches(conditionData.getParamValue().trim(), realData);
+    public Boolean existed(final Serializable key) {
+        return pluginMapper.nameExisted(key);
     }
 }
