@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public final class PathMatchUtilsTest {
 
-
     @Test
     public void testPathMatch() {
         // test exact matching
@@ -56,8 +55,8 @@ public final class PathMatchUtilsTest {
         assertTrue(PathMatchUtils.match("1/godfje@", "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1)));
         //test replaceAll result
         final String realPath = PathMatchUtils.replaceAll("demo/order/path/{id}/{name}",
-                "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{"))
-                , "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1));
+                "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{")),
+                "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1));
         assertThat(realPath, is("demo/order/path/1/godfje@"));
     }
 }

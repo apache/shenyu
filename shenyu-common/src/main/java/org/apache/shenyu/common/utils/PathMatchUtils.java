@@ -39,7 +39,7 @@ public class PathMatchUtils {
      * @param replacement the replacement content
      * @return the string
      */
-    public static String replaceAll(String path, String regex, String replacement) {
+    public static String replaceAll(final String path, final String regex, final String replacement) {
         return path.replaceAll(Pattern.quote(regex), Matcher.quoteReplacement(replacement));
     }
 
