@@ -54,18 +54,6 @@ public final class ShenyuResultWrap {
     /**
      * Error object.
      *
-     * @param code    the code
-     * @param message the message
-     * @param object  the object
-     * @return the object
-     */
-    public static Object error(final int code, final String message, final Object object) {
-        return SpringBeanUtils.getInstance().getBean(ShenyuResult.class).error(code, message, object);
-    }
-
-    /**
-     * Error object.
-     *
      * @param exchange the exchange
      * @param code    the code
      * @param message the message
