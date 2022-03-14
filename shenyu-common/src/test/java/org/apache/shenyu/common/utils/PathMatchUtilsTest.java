@@ -54,6 +54,12 @@ public final class PathMatchUtilsTest {
         final String REPLACE = "demo/order/path/{id}/{name}";
         final String REWRITE_URI = "/internal-api/demo/order/path/1/godfje@";
         final String REAL_URI = "demo/order/path/1/godfje@";
+
+        //test filter PathVariable
+        assertTrue(PathMatchUtils.match("{id}/{name}",REGEX.substring(REGEX.indexOf("{"))));
+        //test filter original param
+        assertTrue(PathMatchUtils.match("1/godfje@", REWRITE_URI.substring(REGEX.indexOf("{")+1)));
+        //test replaceAll result
         final String realPath = PathMatchUtils.replaceAll(REPLACE, REGEX.substring(REGEX.indexOf("{")), REWRITE_URI.substring(REGEX.indexOf("{")+1));
         assertThat(realPath, is(REAL_URI));
     }
