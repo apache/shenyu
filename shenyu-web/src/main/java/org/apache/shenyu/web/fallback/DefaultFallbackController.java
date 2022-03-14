@@ -36,7 +36,7 @@ public class DefaultFallbackController {
      */
     @GetMapping("/hystrix")
     public Object hystrixPluginFallback() {
-        return ShenyuResultWrap.error(null, ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
+        return ShenyuResultWrap.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
     }
 
     /**
@@ -46,6 +46,6 @@ public class DefaultFallbackController {
      */
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {
-        return ShenyuResultWrap.error(null, ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
+        return ShenyuResultWrap.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
     }
 }
