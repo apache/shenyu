@@ -29,10 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public final class PathMatchUtilsTest {
 
-    private static final String regex = "internal-api/demo/order/path/{id}/{name}";
-    private static final String replace = "demo/order/path/{id}/{name}";
-    private static final String rewriteUri = "/internal-api/demo/order/path/1/godfje@";
-    private static final String REAL_URI = "demo/order/path/1/godfje@";
 
     @Test
     public void testPathMatch() {
@@ -54,7 +50,11 @@ public final class PathMatchUtilsTest {
 
     @Test
     public void testPathVariableHandle() {
-        final String realPath = PathMatchUtils.replaceAll(replace, regex.substring(regex.indexOf("{")), rewriteUri.substring(regex.indexOf("{") +1));
+        final String REGEX = "internal-api/demo/order/path/{id}/{name}";
+        final String REPLACE = "demo/order/path/{id}/{name}";
+        final String REWRITE_URI = "/internal-api/demo/order/path/1/godfje@";
+        final String REAL_URI = "demo/order/path/1/godfje@";
+        final String realPath = PathMatchUtils.replaceAll(REPLACE, REGEX.substring(REGEX.indexOf("{")), REWRITE_URI.substring(REGEX.indexOf("{")+1));
         assertThat(realPath, is(REAL_URI));
     }
 }
