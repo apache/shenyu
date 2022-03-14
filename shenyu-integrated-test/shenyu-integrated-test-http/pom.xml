@@ -130,6 +130,14 @@
         </dependency>
         <!-- apache shenyu resilience4j plugin end-->
 
+        <!-- apache shenyu hystrix plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- apache shenyu hystrix plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
