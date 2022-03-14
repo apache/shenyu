@@ -31,8 +31,7 @@ public class PathMatchUtils {
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
     /**
-     * replace url {id} -> real path.
-     * a/{a}/b -> a/real/b
+     * replace url {id} to real param.
      *
      * @param path        the total path
      * @param regex       the regex content
