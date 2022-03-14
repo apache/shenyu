@@ -50,17 +50,14 @@ public final class PathMatchUtilsTest {
 
     @Test
     public void testPathVariableHandle() {
-        final String REGEX = "internal-api/demo/order/path/{id}/{name}";
-        final String REPLACE = "demo/order/path/{id}/{name}";
-        final String REWRITE_URI = "/internal-api/demo/order/path/1/godfje@";
-        final String REAL_URI = "demo/order/path/1/godfje@";
-
         //test filter PathVariable
-        assertTrue(PathMatchUtils.match("{id}/{name}",REGEX.substring(REGEX.indexOf("{"))));
+        assertTrue(PathMatchUtils.match("{id}/{name}", "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{"))));
         //test filter original param
-        assertTrue(PathMatchUtils.match("1/godfje@", REWRITE_URI.substring(REGEX.indexOf("{")+1)));
+        assertTrue(PathMatchUtils.match("1/godfje@", "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1)));
         //test replaceAll result
-        final String realPath = PathMatchUtils.replaceAll(REPLACE, REGEX.substring(REGEX.indexOf("{")), REWRITE_URI.substring(REGEX.indexOf("{")+1));
-        assertThat(realPath, is(REAL_URI));
+        final String realPath = PathMatchUtils.replaceAll("demo/order/path/{id}/{name}",
+                "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{"))
+                , "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1));
+        assertThat(realPath, is("demo/order/path/1/godfje@"));
     }
 }

@@ -34,12 +34,12 @@ public class PathMatchUtils {
      * replace url {id} -> real path.
      * a/{a}/b -> a/real/b
      *
-     * @param path the total path
-     * @param regex the regex content
+     * @param path        the total path
+     * @param regex       the regex content
      * @param replacement the replacement content
      * @return the string
      */
-    public static String replaceAll(String path,String regex,String replacement){
+    public static String replaceAll(String path, String regex, String replacement) {
         return path.replaceAll(Pattern.quote(regex), Matcher.quoteReplacement(replacement));
     }
 
