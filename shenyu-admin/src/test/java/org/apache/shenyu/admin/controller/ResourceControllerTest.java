@@ -213,7 +213,7 @@ public class ResourceControllerTest {
                 .andReturn();
     }
     
-    private void fill(ResourceDTO resourceDTO) {
+    private void fill(final ResourceDTO resourceDTO) {
         resourceDTO.setTitle("test");
         resourceDTO.setName("test");
         resourceDTO.setParentId("test");
