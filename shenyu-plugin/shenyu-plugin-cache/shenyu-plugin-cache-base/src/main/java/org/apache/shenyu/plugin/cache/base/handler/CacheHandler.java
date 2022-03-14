@@ -62,13 +62,19 @@ public class CacheHandler implements PluginDataHandler {
         Singleton.INST.single(CacheConfig.class, cacheConfig);
         // use redis cache
         if (CacheEnum.REDIS.getName().equals(cacheConfig.getMode())) {
-            final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
-            ShenyuCacheReactiveRedisTemplate cacheReactiveRedisTemplate = new ShenyuCacheReactiveRedisTemplate(redisConnectionFactory.getLettuceConnectionFactory());
-            Singleton.INST.single(ShenyuCacheReactiveRedisTemplate.class, cacheReactiveRedisTemplate);
+            ShenyuCacheReactiveRedisTemplate shenyuCacheReactiveRedisTemplate = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
+            if (Objects.isNull(shenyuCacheReactiveRedisTemplate)) {
+                final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
+                ShenyuCacheReactiveRedisTemplate cacheReactiveRedisTemplate = new ShenyuCacheReactiveRedisTemplate(redisConnectionFactory.getLettuceConnectionFactory());
+                Singleton.INST.single(ShenyuCacheReactiveRedisTemplate.class, cacheReactiveRedisTemplate);
+            }
         }
         // use memory
         if (CacheEnum.MEMORY.getName().equals(cacheConfig.getMode())) {
-            Singleton.INST.single(MemoryCache.class, new MemoryCache());
+            MemoryCache memoryCache = Singleton.INST.get(MemoryCache.class);
+            if (Objects.isNull(memoryCache)) {
+                Singleton.INST.single(MemoryCache.class, new MemoryCache());
+            }
         }
     }
 

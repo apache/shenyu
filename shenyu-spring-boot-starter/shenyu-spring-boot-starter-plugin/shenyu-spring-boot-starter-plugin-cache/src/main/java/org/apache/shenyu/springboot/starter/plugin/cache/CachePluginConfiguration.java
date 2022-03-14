@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.springboot.starter.plugin.cache;
 
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.cache.base.handler.CacheHandler;
 import org.apache.shenyu.plugin.cache.read.CacheReadPlugin;
 import org.apache.shenyu.plugin.cache.write.CacheWritePlugin;
+import org.apache.shenyu.plugin.cache.write.handler.CacheWritePluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,6 +38,15 @@ public class CachePluginConfiguration {
     @Bean
     public CacheReadPlugin cacheReadPlugin() {
         return new CacheReadPlugin();
+    }
+
+    /**
+     * the cache write handler.
+     * @return the shenyu handler
+     */
+    @Bean
+    public PluginDataHandler cacheWritePluginDataHandler() {
+        return new CacheWritePluginDataHandler();
     }
 
     /**

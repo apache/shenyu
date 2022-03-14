@@ -119,6 +119,11 @@ public enum PluginEnum {
      * Logging plugin enum.
      */
     LOGGING(160, 0, "logging"),
+
+    /**
+     * the cache write plugin enum.
+     */
+    CACHE_WRITE(170, 0, "cacheWrite"),
     
     /**
      * Divide plugin enum.
@@ -189,16 +194,13 @@ public enum PluginEnum {
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
-    
+
     /**
      * Response plugin enum.
      */
-    RESPONSE(420, 0, "response"),
+    RESPONSE(420, 0, "response");
 
-    /**
-     * the cache write plugin enum.
-     */
-    CACHE_WRITE(430, 0, "cacheWrite");
+
 
     private final int code;
 
