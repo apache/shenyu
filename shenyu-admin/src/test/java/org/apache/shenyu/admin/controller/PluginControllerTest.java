@@ -19,15 +19,18 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;
+import org.apache.shenyu.admin.service.provider.PluginNameProvider;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
@@ -38,6 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -50,6 +54,8 @@ import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,20 +64,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @ExtendWith(MockitoExtension.class)
 public final class PluginControllerTest {
-
+    
     private MockMvc mockMvc;
-
+    
     @InjectMocks
     private PluginController pluginController;
-
+    
     @Mock
     private PluginService pluginService;
-
+    
     @Mock
     private SyncDataService syncDataService;
-
+    
+    @Mock
+    private PluginNameProvider nameProvider;
+    
+    @Mock
+    private PluginMapper pluginMapper;
+    
     private PluginVO pluginVO;
-
+    
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(pluginController)
@@ -79,8 +91,10 @@ public final class PluginControllerTest {
                 .build();
         this.pluginVO = new PluginVO("123", "1", "t_n", "1", 1, true,
                 DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
-    }
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
 
+    }
+    
     @Test
     public void testQueryPlugins() throws Exception {
         final PageParameter pageParameter = new PageParameter();
@@ -101,7 +115,7 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.data.dataList[0].name", is(pluginVO.getName())))
                 .andReturn();
     }
-
+    
     @Test
     public void testQueryAllPlugins() throws Exception {
         given(this.pluginService.listAll())
@@ -110,7 +124,7 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
     }
-
+    
     @Test
     public void testDetailPlugin() throws Exception {
         given(this.pluginService.findById("123")).willReturn(pluginVO);
@@ -120,7 +134,7 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.data.id", is(pluginVO.getId())))
                 .andReturn();
     }
-
+    
     @Test
     public void testCreatePlugin() throws Exception {
         PluginDTO pluginDTO = new PluginDTO();
@@ -128,6 +142,12 @@ public final class PluginControllerTest {
         pluginDTO.setName("test");
         pluginDTO.setEnabled(true);
         pluginDTO.setRole("1");
+        pluginDTO.setSort(100);
+        when(SpringBeanUtils.getInstance().getBean(PluginNameProvider.class)).thenReturn(nameProvider);
+        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
+
+        when(nameProvider.existed(pluginDTO.getName())).thenReturn(null);
+        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,25 +155,24 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
-
-        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_IS_EXIST);
+        when(nameProvider.existed(pluginDTO.getName())).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_IS_EXIST)))
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [name: The plugin name already exists and can't be added repeatedly!]")))
                 .andReturn();
-
-        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_NOT_EXIST);
+        when(nameProvider.existed(pluginDTO.getName())).thenReturn(false);
+        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_NOT_EXIST)))
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [id: the plugin is not exited]")))
                 .andReturn();
-
+        
     }
-
+    
     @Test
     public void testUpdatePlugin() throws Exception {
         PluginDTO pluginDTO = new PluginDTO();
@@ -161,6 +180,11 @@ public final class PluginControllerTest {
         pluginDTO.setName("test1");
         pluginDTO.setEnabled(true);
         pluginDTO.setRole("1");
+        pluginDTO.setSort(100);
+        when(SpringBeanUtils.getInstance().getBean(PluginNameProvider.class)).thenReturn(nameProvider);
+        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
+        when(nameProvider.existed(pluginDTO.getName())).thenReturn(false);
+        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -168,7 +192,7 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
-
+        
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_IS_EXIST);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -176,7 +200,7 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_IS_EXIST)))
                 .andReturn();
-
+        
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_NOT_EXIST);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -185,7 +209,7 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_NOT_EXIST)))
                 .andReturn();
     }
-
+    
     @Test
     public void testDeletePlugins() throws Exception {
         given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(StringUtils.EMPTY);
@@ -195,7 +219,7 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
-
+        
         given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -203,7 +227,7 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST)))
                 .andReturn();
-
+        
         given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_NOT_DELETE);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -212,7 +236,7 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_NOT_DELETE)))
                 .andReturn();
     }
-
+    
     @Test
     public void testEnabled() throws Exception {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
@@ -225,7 +249,7 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
                 .andReturn();
-
+        
         given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/enabled")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -234,7 +258,7 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST)))
                 .andReturn();
     }
-
+    
     @Test
     public void testSyncPluginAll() throws Exception {
         given(this.syncDataService.syncAll(DataEventTypeEnum.REFRESH)).willReturn(true);
@@ -242,14 +266,14 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_SUCCESS)))
                 .andReturn();
-
+        
         given(this.syncDataService.syncAll(DataEventTypeEnum.REFRESH)).willReturn(false);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/syncPluginAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_FAIL)))
                 .andReturn();
     }
-
+    
     @Test
     public void testSyncPluginData() throws Exception {
         given(this.syncDataService.syncPluginData("123")).willReturn(true);
@@ -257,12 +281,12 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_SUCCESS)))
                 .andReturn();
-
+        
         given(this.syncDataService.syncPluginData("123")).willReturn(false);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_FAIL)))
                 .andReturn();
     }
-
+    
 }

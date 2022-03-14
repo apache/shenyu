@@ -46,6 +46,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Existed {
     
     /**
+     * if null,valid is ignore.
+     *
+     * @return not existed
+     */
+    boolean nullOfIgnore() default false;
+    
+    /**
      * if reverse ,it is not existed.
      *
      * @return not existed
