@@ -19,6 +19,8 @@ package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,5 +45,18 @@ public final class PathMatchUtilsTest {
         // test matching with **'s
         assertTrue(PathMatchUtils.match("/**", "/testing/testing"));
         assertTrue(PathMatchUtils.match("/test/**", "/test/test"));
+    }
+
+    @Test
+    public void testPathVariableHandle() {
+        //test filter PathVariable
+        assertTrue(PathMatchUtils.match("{id}/{name}", "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{"))));
+        //test filter original param
+        assertTrue(PathMatchUtils.match("1/godfje@", "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1)));
+        //test replaceAll result
+        final String realPath = PathMatchUtils.replaceAll("demo/order/path/{id}/{name}",
+                "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{")),
+                "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1));
+        assertThat(realPath, is("demo/order/path/1/godfje@"));
     }
 }
