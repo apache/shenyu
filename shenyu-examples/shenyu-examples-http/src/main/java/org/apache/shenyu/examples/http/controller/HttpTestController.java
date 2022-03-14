@@ -369,7 +369,7 @@ public class HttpTestController {
     }
 
     /**
-     * the waf pass.
+     * pass endpoint for hystrix plugin.
      *
      * @return response. result bean
      */
@@ -382,12 +382,12 @@ public class HttpTestController {
     }
 
     /**
-     * the waf deny.
+     * fallback endpoint for hystrix plugin.
      *
      * @return response. result bean
      */
     @GetMapping("/hystrix/fallback")
-    public ResultBean hystrixFallback() throws InterruptedException {
+    public ResultBean hystrixFallback() {
         ResultBean response = new ResultBean();
         response.setCode(429);
         response.setMsg("fallback");
