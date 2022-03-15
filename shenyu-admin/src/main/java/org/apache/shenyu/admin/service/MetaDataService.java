@@ -49,7 +49,7 @@ public interface MetaDataService {
      * @param metaDataDTO the meta data dto
      * @return the String
      */
-    default String createOrUpdate(MetaDataDTO metaDataDTO){
+    default String createOrUpdate(MetaDataDTO metaDataDTO) {
         return StringUtils.isBlank(metaDataDTO.getId()) ? create(metaDataDTO) : update(metaDataDTO);
     }
     

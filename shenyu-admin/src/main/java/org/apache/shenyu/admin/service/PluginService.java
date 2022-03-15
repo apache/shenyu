@@ -38,7 +38,7 @@ public interface PluginService {
      * @param pluginDTO the plugin dto
      * @return the string
      */
-    default String createOrUpdate(PluginDTO pluginDTO){
+    default String createOrUpdate(PluginDTO pluginDTO) {
         return StringUtils.isBlank(pluginDTO.getId()) ? create(pluginDTO) : update(pluginDTO);
     }
     
@@ -49,7 +49,7 @@ public interface PluginService {
      * @param pluginDTO plugin info
      * @return success is empty
      */
-    String create(final PluginDTO pluginDTO);
+    String create(PluginDTO pluginDTO);
     
     /**
      * create plugin.<br>
@@ -58,7 +58,7 @@ public interface PluginService {
      * @param pluginDTO plugin
      * @return success is empty
      */
-    String update(final PluginDTO pluginDTO);
+    String update(PluginDTO pluginDTO);
     
     /**
      * Delete string.
@@ -90,7 +90,7 @@ public interface PluginService {
      * @return the list
      */
     List<PluginData> listAll();
-
+    
     /**
      * list all not in resource.
      *
@@ -101,7 +101,7 @@ public interface PluginService {
     /**
      * Enabled string.
      *
-     * @param ids the ids
+     * @param ids     the ids
      * @param enabled the enable
      * @return the string
      */
