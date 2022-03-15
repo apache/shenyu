@@ -27,20 +27,23 @@ import java.util.concurrent.TimeUnit;
  */
 public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
 
-    private static final long serialVersionUID = 1374792064759926198L;
+    private static final long serialVersionUID = -6106022470621447542L;
 
     private final MemoryLimiter memoryLimiter;
 
-    public MemoryLimitedLinkedBlockingQueue(Instrumentation inst) {
+    public MemoryLimitedLinkedBlockingQueue(final Instrumentation inst) {
         this(Integer.MAX_VALUE, inst);
     }
 
-    public MemoryLimitedLinkedBlockingQueue(long memoryLimit, Instrumentation inst) {
+    public MemoryLimitedLinkedBlockingQueue(final long memoryLimit,
+                                            final Instrumentation inst) {
         super(Integer.MAX_VALUE);
         this.memoryLimiter = new MemoryLimiter(memoryLimit, inst);
     }
 
-    public MemoryLimitedLinkedBlockingQueue(Collection<? extends E> c, long memoryLimit, Instrumentation inst) {
+    public MemoryLimitedLinkedBlockingQueue(final Collection<? extends E> c,
+                                            final long memoryLimit,
+                                            final Instrumentation inst) {
         super(c);
         this.memoryLimiter = new MemoryLimiter(memoryLimit, inst);
     }
@@ -50,7 +53,7 @@ public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> 
      *
      * @param memoryLimit the memory limit
      */
-    public void setMemoryLimit(long memoryLimit) {
+    public void setMemoryLimit(final long memoryLimit) {
         memoryLimiter.setMemoryLimit(memoryLimit);
     }
 
@@ -82,18 +85,18 @@ public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> 
     }
 
     @Override
-    public void put(E e) throws InterruptedException {
+    public void put(final E e) throws InterruptedException {
         memoryLimiter.acquireInterruptibly(e);
         super.put(e);
     }
 
     @Override
-    public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean offer(final E e, final long timeout, final TimeUnit unit) throws InterruptedException {
         return memoryLimiter.acquire(e, timeout, unit) && super.offer(e, timeout, unit);
     }
 
     @Override
-    public boolean offer(E e) {
+    public boolean offer(final E e) {
         return memoryLimiter.acquire(e) && super.offer(e);
     }
 
@@ -105,7 +108,7 @@ public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> 
     }
 
     @Override
-    public E poll(long timeout, TimeUnit unit) throws InterruptedException {
+    public E poll(final long timeout, final TimeUnit unit) throws InterruptedException {
         final E e = super.poll(timeout, unit);
         memoryLimiter.releaseInterruptibly(e, timeout, unit);
         return e;
@@ -119,7 +122,7 @@ public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> 
     }
 
     @Override
-    public boolean remove(Object o) {
+    public boolean remove(final Object o) {
         final boolean success = super.remove(o);
         if (success) {
             memoryLimiter.release(o);
