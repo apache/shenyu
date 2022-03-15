@@ -32,10 +32,12 @@ public class MemoryLimitedLinkedBlockingQueueTest {
         final Instrumentation instrumentation = ByteBuddyAgent.getInstrumentation();
         MemoryLimitedLinkedBlockingQueue<Runnable> queue = new MemoryLimitedLinkedBlockingQueue<>(1, instrumentation);
         //an Runnable needs more than 1 byte of space, so it will fail here
-        assertThat(queue.offer(() -> {}), is(false));
+        assertThat(queue.offer(() -> {
+        }), is(false));
 
         //will success
         queue.setMemoryLimit(Integer.MAX_VALUE);
-        assertThat(queue.offer(() -> {}), is(true));
+        assertThat(queue.offer(() -> {
+        }), is(true));
     }
 }
