@@ -42,11 +42,11 @@ public class MemoryLimiter {
 
     private final Condition notEmpty = releaseLock.newCondition();
 
-    public MemoryLimiter(Instrumentation inst) {
+    public MemoryLimiter(final Instrumentation inst) {
         this(Integer.MAX_VALUE, inst);
     }
 
-    public MemoryLimiter(long memoryLimit, Instrumentation inst) {
+    public MemoryLimiter(final long memoryLimit, final Instrumentation inst) {
         if (memoryLimit <= 0) {
             throw new IllegalArgumentException();
         }
@@ -59,7 +59,7 @@ public class MemoryLimiter {
      *
      * @param memoryLimit the memory limit
      */
-    public void setMemoryLimit(long memoryLimit) {
+    public void setMemoryLimit(final long memoryLimit) {
         if (memoryLimit <= 0) {
             throw new IllegalArgumentException();
         }
@@ -134,7 +134,7 @@ public class MemoryLimiter {
      * @param o memory size to be applied by calculating
      * @return true if acquire success
      */
-    public boolean acquire(Object o) {
+    public boolean acquire(final Object o) {
         if (o == null) {
             throw new NullPointerException();
         }
@@ -168,7 +168,7 @@ public class MemoryLimiter {
      * @param o memory size to be applied by calculating
      * @throws InterruptedException the InterruptedException
      */
-    public void acquireInterruptibly(Object o) throws InterruptedException {
+    public void acquireInterruptibly(final Object o) throws InterruptedException {
         if (o == null) {
             throw new NullPointerException();
         }
@@ -201,7 +201,8 @@ public class MemoryLimiter {
      * @return true if acquire success
      * @throws InterruptedException the InterruptedException
      */
-    public boolean acquire(Object o, long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean acquire(final Object o, final long timeout,
+                           final TimeUnit unit) throws InterruptedException {
         if (o == null) {
             throw new NullPointerException();
         }
@@ -234,7 +235,7 @@ public class MemoryLimiter {
      *
      * @param o memory size to be applied by calculating
      */
-    public void release(Object o) {
+    public void release(final Object o) {
         if (null == o) {
             return;
         }
@@ -265,7 +266,7 @@ public class MemoryLimiter {
      * @param o memory size to be applied by calculating
      * @throws InterruptedException the InterruptedException
      */
-    public void releaseInterruptibly(Object o) throws InterruptedException {
+    public void releaseInterruptibly(final Object o) throws InterruptedException {
         if (null == o) {
             return;
         }
@@ -296,7 +297,8 @@ public class MemoryLimiter {
      * @param unit    time unit
      * @throws InterruptedException the InterruptedException
      */
-    public void releaseInterruptibly(Object o, long timeout, TimeUnit unit) throws InterruptedException {
+    public void releaseInterruptibly(final Object o, final long timeout,
+                                     final TimeUnit unit) throws InterruptedException {
         if (null == o) {
             return;
         }
