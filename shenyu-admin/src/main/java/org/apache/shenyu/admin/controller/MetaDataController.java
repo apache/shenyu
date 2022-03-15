@@ -111,8 +111,7 @@ public class MetaDataController {
      */
     @PostMapping("/createOrUpdate")
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final MetaDataDTO metaDataDTO) {
-        metaDataService.createOrUpdate(metaDataDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
+        return ShenyuAdminResult.success(metaDataService.createOrUpdate(metaDataDTO));
     }
 
     /**

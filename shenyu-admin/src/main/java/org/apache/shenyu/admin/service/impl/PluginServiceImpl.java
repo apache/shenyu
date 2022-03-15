@@ -41,6 +41,8 @@ import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
+import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.AdminPluginOperateEnum;
@@ -65,23 +67,23 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PluginServiceImpl implements PluginService {
-
+    
     private final PluginMapper pluginMapper;
-
+    
     private final PluginHandleMapper pluginHandleMapper;
-
+    
     private final SelectorMapper selectorMapper;
-
+    
     private final SelectorConditionMapper selectorConditionMapper;
-
+    
     private final RuleMapper ruleMapper;
-
+    
     private final RuleConditionMapper ruleConditionMapper;
-
+    
     private final ApplicationEventPublisher eventPublisher;
-
+    
     private final ResourceService resourceService;
-
+    
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final PluginHandleMapper pluginHandleMapper,
                              final SelectorMapper selectorMapper,
@@ -99,7 +101,7 @@ public class PluginServiceImpl implements PluginService {
         this.eventPublisher = eventPublisher;
         this.resourceService = resourceService;
     }
-
+    
     /**
      * create or update plugin.
      *
@@ -109,22 +111,49 @@ public class PluginServiceImpl implements PluginService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final PluginDTO pluginDTO) {
-        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-        DataEventTypeEnum eventType = DataEventTypeEnum.CREATE;
-        if (StringUtils.isBlank(pluginDTO.getId())) {
-            insertPluginDataToResource(pluginDTO);
-            pluginMapper.insertSelective(pluginDO);
-        } else {
-            eventType = DataEventTypeEnum.UPDATE;
-            pluginMapper.updateSelective(pluginDO);
-        }
-
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, eventType,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
-        return StringUtils.EMPTY;
+        return PluginService.super.createOrUpdate(pluginDTO);
     }
-
+    
+    /**
+     * create plugin.<br>
+     * insert plugin and insert plugin data.
+     *
+     * @param pluginDTO plugin info
+     * @return success is empty
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String create(final PluginDTO pluginDTO) {
+        Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        insertPluginDataToResource(pluginDTO);
+        pluginMapper.insertSelective(pluginDO);
+        
+        // publish create event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+        return ShenyuResultMessage.CREATE_SUCCESS;
+    }
+    
+    /**
+     * update plugin.<br>
+     *
+     * @param pluginDTO plugin
+     * @return success is empty
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String update(final PluginDTO pluginDTO) {
+        Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        pluginMapper.updateSelective(pluginDO);
+        
+        // publish update event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+        return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
+    
     /**
      * delete plugins.
      *
@@ -142,12 +171,12 @@ public class PluginServiceImpl implements PluginService {
         if (CollectionUtils.isEmpty(pluginIds)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
-
+        
         // 2. delete plugins.
         this.pluginMapper.deleteByIds(pluginIds);
         // 3. delete plugin handle.
         this.pluginHandleMapper.deleteByPluginIds(pluginIds);
-
+        
         // 4. all selectors.
         final List<String> selectorIds = Optional.ofNullable(this.selectorMapper.findByPluginIds(pluginIds))
                 .orElse(Collections.emptyList())
@@ -169,20 +198,20 @@ public class PluginServiceImpl implements PluginService {
                 this.ruleConditionMapper.deleteByRuleIds(ruleIds);
             }
         }
-
+        
         // 5. delete resource & permission.
         final List<ResourceVO> resources = this.resourceService.listByTitles(plugins.stream()
                 .map(PluginDO::getName).collect(Collectors.toList()));
         if (CollectionUtils.isNotEmpty(resources)) {
             this.resourceService.delete(resources.stream().map(ResourceVO::getId).collect(Collectors.toList()));
         }
-
+        
         // 6. publish change event.
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
                 plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
         return StringUtils.EMPTY;
     }
-
+    
     /**
      * plugin enabled.
      *
@@ -192,7 +221,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-
+        
         if (CollectionUtils.isEmpty(ids)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
@@ -210,7 +239,7 @@ public class PluginServiceImpl implements PluginService {
         }
         return StringUtils.EMPTY;
     }
-
+    
     /**
      * find plugin by id.
      *
@@ -221,7 +250,7 @@ public class PluginServiceImpl implements PluginService {
     public PluginVO findById(final String id) {
         return PluginVO.buildPluginVO(pluginMapper.selectById(id));
     }
-
+    
     /**
      * find page of plugin by query.
      *
@@ -234,7 +263,7 @@ public class PluginServiceImpl implements PluginService {
         return PageResultUtils.result(pluginQuery.getPageParameter(), () -> pluginMapper.selectByQuery(pluginQuery)
                 .stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
     }
-
+    
     /**
      * query all plugin.
      *
@@ -246,21 +275,21 @@ public class PluginServiceImpl implements PluginService {
                 .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }
-
+    
     @Override
     public List<PluginData> listAllNotInResource() {
         return pluginMapper.listAllNotInResource().stream()
                 .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }
-
+    
     @Override
     public String selectIdByName(final String name) {
         PluginDO pluginDO = pluginMapper.selectByName(name);
         Objects.requireNonNull(pluginDO);
         return pluginDO.getId();
     }
-
+    
     /**
      * Find by name plugin do.
      *
@@ -271,7 +300,7 @@ public class PluginServiceImpl implements PluginService {
     public PluginDO findByName(final String name) {
         return pluginMapper.selectByName(name);
     }
-
+    
     /**
      * add plugin and add plugin resource.
      *
@@ -299,7 +328,7 @@ public class PluginServiceImpl implements PluginService {
         insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.RULE, AdminPluginOperateEnum.QUERY);
         insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.PLUGIN, AdminPluginOperateEnum.SYNCHRONIZE);
     }
-
+    
     /**
      * insert Resource Data.
      *
@@ -308,7 +337,7 @@ public class PluginServiceImpl implements PluginService {
     private void insertPluginMenuResource(final ResourceDO resourceDO) {
         resourceService.createResource(resourceDO);
     }
-
+    
     /**
      * insert Plugin Selector Button Resource.
      *
@@ -340,7 +369,7 @@ public class PluginServiceImpl implements PluginService {
             default:
                 break;
         }
-
+        
         insertPluginMenuResource(resourceDO);
     }
 }

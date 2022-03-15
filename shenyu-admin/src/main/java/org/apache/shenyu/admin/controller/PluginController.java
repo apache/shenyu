@@ -115,11 +115,7 @@ public class PluginController {
      */
     @PostMapping("")
     public ShenyuAdminResult createPlugin(@Valid @RequestBody final PluginDTO pluginDTO) {
-        String result = pluginService.createOrUpdate(pluginDTO);
-        if (StringUtils.isNoneBlank(result)) {
-            return ShenyuAdminResult.error(result);
-        }
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
+        return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));
     }
     
     /**
@@ -135,11 +131,7 @@ public class PluginController {
                                                   provider = PluginMapper.class) final String id,
                                           @Valid @RequestBody final PluginDTO pluginDTO) {
         pluginDTO.setId(id);
-        final String result = pluginService.createOrUpdate(pluginDTO);
-        if (StringUtils.isNoneBlank(result)) {
-            return ShenyuAdminResult.error(result);
-        }
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS);
+        return createPlugin(pluginDTO);
     }
     
     /**
