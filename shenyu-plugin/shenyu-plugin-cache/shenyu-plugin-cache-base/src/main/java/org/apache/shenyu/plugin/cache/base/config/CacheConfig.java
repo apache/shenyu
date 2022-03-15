@@ -24,4 +24,8 @@ import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
  * CacheConfig.
  */
 public class CacheConfig extends RedisConfigProperties {
+
+    public CacheConfig() {
+        setMode(CacheEnum.MEMORY.getName());
+    }
 }
