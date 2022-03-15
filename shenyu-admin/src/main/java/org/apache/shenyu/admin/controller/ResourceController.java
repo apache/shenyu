@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -27,6 +28,7 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,30 +53,32 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/resource")
 public class ResourceController {
-
+    
     private final ResourceService resourceService;
-
+    
     public ResourceController(final ResourceService resourceService) {
         this.resourceService = resourceService;
     }
-
+    
     /**
      * query resource.
      *
-     * @param title resource title
+     * @param title       resource title
      * @param currentPage current Page
-     * @param pageSize page size
+     * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public ShenyuAdminResult queryResource(final String title, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryResource(final String title,
+                                           @NotNull final Integer currentPage,
+                                           @NotNull final Integer pageSize) {
         CommonPager<ResourceVO> commonPager = resourceService.listByPage(new ResourceQuery(title, new PageParameter(currentPage, pageSize)));
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
             return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
         }
         return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
     }
-
+    
     /**
      * get menu tree.
      *
@@ -87,7 +92,7 @@ public class ResourceController {
         }
         return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
     }
-
+    
     /**
      * get button by parentId.
      *
@@ -102,7 +107,7 @@ public class ResourceController {
         }
         return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
     }
-
+    
     /**
      * detail resource info.
      *
@@ -115,7 +120,7 @@ public class ResourceController {
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
                 .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
     }
-
+    
     /**
      * create resource.
      *
@@ -126,20 +131,23 @@ public class ResourceController {
     public ShenyuAdminResult createResource(@Valid @RequestBody final ResourceDTO resourceDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
-
+    
     /**
      * update resource.
      *
-     * @param id primary key.
+     * @param id          primary key.
      * @param resourceDTO resource info
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateResource(@PathVariable("id") final String id, @Valid @RequestBody final ResourceDTO resourceDTO) {
+    public ShenyuAdminResult updateResource(@PathVariable("id") @Valid
+                                            @Existed(provider = ResourceMapper.class,
+                                                    message = "resource not existed") final String id,
+                                            @Valid @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
-
+    
     /**
      * delete resource info.
      *
