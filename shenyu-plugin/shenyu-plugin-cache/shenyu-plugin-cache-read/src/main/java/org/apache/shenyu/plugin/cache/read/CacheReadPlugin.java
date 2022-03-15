@@ -17,25 +17,53 @@
 
 package org.apache.shenyu.plugin.cache.read;
 
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.cache.base.ICache;
+import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
 import org.apache.shenyu.plugin.cache.base.redis.ShenyuCacheReactiveRedisTemplate;
-import org.springframework.http.MediaType;
+import org.apache.shenyu.plugin.cache.base.utils.CacheKeys;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * CacheReadPlugin.
  */
-public class CacheReadPlugin extends AbstractShenyuPlugin {
+public class CacheReadPlugin implements ShenyuPlugin {
+
+    /**
+     * Process the Web request and (optionally) delegate to the next
+     * {@code WebFilter} through the given {@link ShenyuPluginChain}.
+     *
+     * @param exchange the current server exchange
+     * @param chain    provides a way to delegate to the next filter
+     * @return {@code Mono<Void>} to indicate when request processing is complete
+     */
+    @Override
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
+        assert cacheConfig != null;
+        ICache cache = null;
+        if (CacheEnum.MEMORY.getName().equals(cacheConfig.getMode())) {
+            cache = Singleton.INST.get(MemoryCache.class);
+        } else if(CacheEnum.REDIS.getName().equals(cacheConfig.getMode())){
+            cache = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
+        }
+        byte[] bytes;
+        if (Objects.nonNull(cache) && Objects.nonNull(bytes = cache.getData(CacheKeys.dataKey(exchange)))) {
+            exchange.getResponse().getHeaders().setContentType(cache.getContextType(CacheKeys.contextTypeKey(exchange)));
+            return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                            .bufferFactory().wrap(bytes))
+                    .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
+        }
+        return chain.execute(exchange);
+    }
 
     /**
      * return plugin order .
@@ -58,36 +86,5 @@ public class CacheReadPlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.CACHE.getName();
-    }
-
-    /**
-     * this is Template Method child has Implement your own logic.
-     *
-     * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
-     * @param chain    chain the current chain  {@linkplain ServerWebExchange}
-     * @param selector selector    {@linkplain SelectorData}
-     * @param rule     rule    {@linkplain RuleData}
-     * @return {@code Mono<Void>} to indicate when request handling is complete
-     */
-    @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        String path = shenyuContext.getPath();
-        byte[] cacheResult = null;
-        if (CacheEnum.MEMORY.getName().equals(shenyuContext.getModule())) {
-            MemoryCache memoryCache = Singleton.INST.get(MemoryCache.class);
-            cacheResult = memoryCache.getData(path);
-        } else if(CacheEnum.REDIS.getName().equals(shenyuContext.getModule())){
-            ShenyuCacheReactiveRedisTemplate shenyuCacheReactiveRedisTemplate = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
-            cacheResult = shenyuCacheReactiveRedisTemplate.getData(path);
-        }
-        if (cacheResult != null && cacheResult.length > 0) {
-            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                    .bufferFactory().wrap(cacheResult))
-                    .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
-        }
-        return chain.execute(exchange);
     }
 }

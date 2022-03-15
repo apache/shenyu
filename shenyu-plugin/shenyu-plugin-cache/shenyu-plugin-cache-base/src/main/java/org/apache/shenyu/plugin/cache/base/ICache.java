@@ -1,4 +1,26 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.plugin.cache.base;
+
+import org.springframework.http.MediaType;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * ICache.
@@ -12,7 +34,7 @@ public interface ICache {
      * @param timeoutSeconds the timeout seconds
      * @return success or not
      */
-    boolean cache(final String key, final byte[] bytes, final long timeoutSeconds);
+    boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds);
 
     /**
      * Check the cache is exist or not.
@@ -27,4 +49,37 @@ public interface ICache {
      * @return the data
      */
     byte[] getData(final String key);
+
+    /**
+     * cache the context type.
+     * @param key the key
+     * @param mediaType the media type
+     * @param timeoutSeconds the timeout seconds
+     * @return success or not
+     */
+    default boolean cacheContextType(final String key, final MediaType mediaType, final long timeoutSeconds) {
+        return cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds);
+    }
+
+    /**
+     * Media type to bytes.
+     * @param mediaType the media type
+     * @return the media type bytes
+     */
+    default byte[] mediaTypeToBytes(final MediaType mediaType) {
+        return mediaType.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Get context type.
+     * @param key the context type key
+     * @return context type
+     */
+    default MediaType getContextType(final String key) {
+        final byte[] data = getData(key);
+        if (Objects.isNull(data) || data.length == 0) {
+            return MediaType.APPLICATION_JSON;
+        }
+        return MediaType.valueOf(new String(data, StandardCharsets.UTF_8));
+    }
 }

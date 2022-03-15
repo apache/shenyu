@@ -27,9 +27,8 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-
 /**
- * The type Divide plugin data handler.
+ * The type Cache write plugin data handler.
  */
 public class CacheWritePluginDataHandler implements PluginDataHandler {
     
@@ -37,15 +36,15 @@ public class CacheWritePluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            CacheWriteRuleHandle cacheWriteRuleHandle = GsonUtils.getInstance().fromJson(s, CacheWriteRuleHandle.class);
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(json -> {
+            final CacheWriteRuleHandle cacheWriteRuleHandle = GsonUtils.getInstance().fromJson(json, CacheWriteRuleHandle.class);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), cacheWriteRuleHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(json -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

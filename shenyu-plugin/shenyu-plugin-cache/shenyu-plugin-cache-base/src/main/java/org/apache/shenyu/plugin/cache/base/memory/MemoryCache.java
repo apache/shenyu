@@ -46,7 +46,7 @@ public final class MemoryCache implements ICache {
      * @return success or not
      */
     @Override
-    public boolean cache(final String key, final byte[] bytes, final long timeoutSeconds) {
+    public boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
         final Cache<String, byte[]> cache = CacheBuilder.newBuilder().expireAfterWrite(timeoutSeconds, TimeUnit.SECONDS).build();
         cache.put(key, bytes);
         this.mainCache.put(key, cache);

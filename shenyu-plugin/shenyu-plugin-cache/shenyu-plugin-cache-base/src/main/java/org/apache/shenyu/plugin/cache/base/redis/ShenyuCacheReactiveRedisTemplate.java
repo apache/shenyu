@@ -39,7 +39,7 @@ public class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<Stri
      * @return success or not
      */
     @Override
-    public boolean cache(final String key, final byte[] bytes, final long timeoutSeconds) {
+    public boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
         return true;
     }
 
