@@ -165,36 +165,6 @@ public class MemoryLimiter {
      * acquire memory by {@link Object}.
      * this method response to interrupts.
      *
-     * @param o memory size to be applied by calculating
-     * @throws InterruptedException the InterruptedException
-     */
-    public void acquireInterruptibly(final Object o) throws InterruptedException {
-        if (o == null) {
-            throw new NullPointerException();
-        }
-        acquireLock.lockInterruptibly();
-        try {
-            final long sum = memory.sum();
-            final long objectSize = inst.getObjectSize(o);
-            while (sum + objectSize >= memoryLimit) {
-                notLimited.await();
-            }
-            memory.add(objectSize);
-            if (sum < memoryLimit) {
-                notLimited.signal();
-            }
-        } finally {
-            acquireLock.unlock();
-        }
-        if (memory.sum() > 0) {
-            signalNotEmpty();
-        }
-    }
-
-    /**
-     * acquire memory by {@link Object}.
-     * this method response to interrupts.
-     *
      * @param o       memory size to be applied by calculating
      * @param timeout max time to wait
      * @param unit    time unit
@@ -227,6 +197,36 @@ public class MemoryLimiter {
             signalNotEmpty();
         }
         return true;
+    }
+
+    /**
+     * acquire memory by {@link Object}.
+     * this method response to interrupts.
+     *
+     * @param o memory size to be applied by calculating
+     * @throws InterruptedException the InterruptedException
+     */
+    public void acquireInterruptibly(final Object o) throws InterruptedException {
+        if (o == null) {
+            throw new NullPointerException();
+        }
+        acquireLock.lockInterruptibly();
+        try {
+            final long sum = memory.sum();
+            final long objectSize = inst.getObjectSize(o);
+            while (sum + objectSize >= memoryLimit) {
+                notLimited.await();
+            }
+            memory.add(objectSize);
+            if (sum < memoryLimit) {
+                notLimited.signal();
+            }
+        } finally {
+            acquireLock.unlock();
+        }
+        if (memory.sum() > 0) {
+            signalNotEmpty();
+        }
     }
 
     /**
