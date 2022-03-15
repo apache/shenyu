@@ -105,7 +105,6 @@ public final class PluginServiceTest {
     @Test
     public void testCreateOrUpdate() {
         publishEvent();
-        // TODO
         testCreate();
         testUpdate();
     }
