@@ -144,7 +144,12 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     public void persistURI(final URIRegisterDTO registerDTO) {
         registerURI(registerDTO);
     }
-    
+
+    @Override
+    public void close() {
+        consulClient.agentServiceDeregister(this.service.getId());
+    }
+
     private void registerMetadata(final String rpcType,
                                   final String contextPath,
                                   final MetaDataRegisterDTO metadata) {
