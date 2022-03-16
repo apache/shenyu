@@ -34,7 +34,6 @@ import org.apache.shenyu.plugin.cache.base.utils.CacheKeys;
 import org.apache.shenyu.plugin.cache.write.handler.CacheWritePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -62,7 +61,7 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
         assert cacheConfig != null;
         CacheWriteRuleHandle cacheWriteRuleHandle = CacheWritePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         return chain.execute(exchange.mutate()
-                .response(new CacheWriteHttpResponse(exchange, exchange.getResponse(), cacheConfig, cacheWriteRuleHandle)).build());
+                .response(new CacheWriteHttpResponse(exchange, cacheConfig, cacheWriteRuleHandle)).build());
     }
 
     /**
@@ -89,8 +88,8 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
 
         private final CacheWriteRuleHandle cacheWriteRuleHandle;
 
-        CacheWriteHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final CacheConfig cacheConfig, final CacheWriteRuleHandle cacheWriteRuleHandle) {
-            super(delegate);
+        CacheWriteHttpResponse(final ServerWebExchange exchange, final CacheConfig cacheConfig, final CacheWriteRuleHandle cacheWriteRuleHandle) {
+            super(exchange.getResponse());
             this.exchange = exchange;
             this.cacheConfig = cacheConfig;
             this.cacheWriteRuleHandle = cacheWriteRuleHandle;
