@@ -93,7 +93,7 @@ public final class SelectorDTO implements Serializable {
     private Boolean continued;
     
     /**
-     * handle
+     * handle.
      */
     private String handle;
     
