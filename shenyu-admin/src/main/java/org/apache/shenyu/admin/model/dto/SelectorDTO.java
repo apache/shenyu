@@ -92,7 +92,9 @@ public final class SelectorDTO implements Serializable {
     @NotNull
     private Boolean continued;
     
-    
+    /**
+     * handle
+     */
     private String handle;
     
     /**
