@@ -370,9 +370,9 @@ public class SelectorServiceImpl implements SelectorService {
                     dataList.add(selectorConditionDO);
                     return dataList;
                 }, (list1, list2) -> {
-                    list1.addAll(list2);
-                    return list1;
-                }));
+                        list1.addAll(list2);
+                        return list1;
+                    }));
         
         Map<String, PluginDO> pluginDOMap = Optional.ofNullable(pluginMapper.selectByIds(Lists.newArrayList(idMap.values()))).orElseGet(ArrayList::new)
                 .stream().filter(Objects::nonNull).collect(Collectors.toMap(PluginDO::getId, Function.identity(), (value1, value2) -> value1));
