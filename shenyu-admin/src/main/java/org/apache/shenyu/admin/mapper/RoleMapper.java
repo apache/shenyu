@@ -18,17 +18,29 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.query.RoleQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * The Role Mapper.
  */
 @Mapper
-public interface RoleMapper {
-
+public interface RoleMapper extends ExistProvider {
+    
+    /**
+     * role existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+    
     /**
      * select role by id.
      *
@@ -36,15 +48,15 @@ public interface RoleMapper {
      * @return {@linkplain RoleDO}
      */
     RoleDO selectById(String id);
-
+    
     /**
      * select role by query.
      *
      * @param roleQuery {@linkplain RoleQuery}
-     * @return  {@linkplain List}
+     * @return {@linkplain List}
      */
     List<RoleDO> selectByQuery(RoleQuery roleQuery);
-
+    
     /**
      * Find by Role Name list.
      *
@@ -52,7 +64,7 @@ public interface RoleMapper {
      * @return The role
      */
     RoleDO findByRoleName(String roleName);
-
+    
     /**
      * count role by query.
      *
@@ -60,7 +72,7 @@ public interface RoleMapper {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(RoleQuery roleQuery);
-
+    
     /**
      * insert role.
      *
@@ -68,7 +80,7 @@ public interface RoleMapper {
      * @return rows int
      */
     int insert(RoleDO roleDO);
-
+    
     /**
      * insert selective role.
      *
@@ -76,7 +88,7 @@ public interface RoleMapper {
      * @return rows int
      */
     int insertSelective(RoleDO roleDO);
-
+    
     /**
      * update role.
      *
@@ -84,7 +96,7 @@ public interface RoleMapper {
      * @return rows int
      */
     int update(RoleDO roleDO);
-
+    
     /**
      * update selective role.
      *
@@ -92,7 +104,7 @@ public interface RoleMapper {
      * @return rows int
      */
     int updateSelective(RoleDO roleDO);
-
+    
     /**
      * delete role.
      *
@@ -100,7 +112,7 @@ public interface RoleMapper {
      * @return rows int
      */
     int delete(List<String> ids);
-
+    
     /**
      * list All.
      *

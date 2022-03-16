@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -26,6 +27,7 @@ import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.RoleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,15 +52,15 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/role")
 public class RoleController {
-
+    
     private static final String SUPER = "super";
-
+    
     private final RoleService roleService;
-
+    
     public RoleController(final RoleService roleService) {
         this.roleService = roleService;
     }
-
+    
     /**
      * get all roles.
      *
@@ -67,7 +70,7 @@ public class RoleController {
     public ShenyuAdminResult selectAll() {
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, roleService.selectAll());
     }
-
+    
     /**
      * query role.
      *
@@ -77,11 +80,13 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public ShenyuAdminResult queryRole(final String roleName, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryRole(final String roleName,
+                                       @NotNull final Integer currentPage,
+                                       @NotNull final Integer pageSize) {
         CommonPager<RoleVO> commonPager = roleService.listByPage(new RoleQuery(roleName, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
-
+    
     /**
      * detail role and permission info.
      *
@@ -89,13 +94,15 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public ShenyuAdminResult detailRole(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailRole(@PathVariable("id") @Valid
+                                        @Existed(provider = RoleMapper.class,
+                                                message = "role is not existed") final String id) {
         RoleEditVO roleEditVO = roleService.findById(id);
         return Optional.ofNullable(roleEditVO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
                 .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
     }
-
+    
     /**
      * create role.
      *
@@ -109,7 +116,7 @@ public class RoleController {
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, roleService.createOrUpdate(roleDTO));
     }
-
+    
     /**
      * update role and permission info.
      *
@@ -118,11 +125,14 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateRole(@PathVariable("id") final String id, @Valid @RequestBody final RoleDTO roleDTO) {
+    public ShenyuAdminResult updateRole(@PathVariable("id") @Valid
+                                        @Existed(provider = RoleMapper.class,
+                                                message = "role is not existed") final String id,
+                                        @Valid @RequestBody final RoleDTO roleDTO) {
         roleDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, roleService.createOrUpdate(roleDTO));
     }
-
+    
     /**
      * delete role info.
      *

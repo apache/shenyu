@@ -137,6 +137,10 @@
         from selector
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from selector where id = #{id} limit 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
         insert into selector (id, date_created, date_updated,
         plugin_id, name, match_mode, type, sort, enabled,
