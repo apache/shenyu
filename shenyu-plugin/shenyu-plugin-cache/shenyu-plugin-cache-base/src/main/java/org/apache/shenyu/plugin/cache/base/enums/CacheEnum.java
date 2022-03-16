@@ -25,7 +25,7 @@ public enum CacheEnum {
     /**
      * memory cache enum.
      */
-    MEMORY("mem"),
+    MEMORY("memory"),
 
     /**
      * redis cache enum.
