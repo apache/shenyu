@@ -86,6 +86,7 @@ public final class RuleDTO implements Serializable {
     /**
      * rule conditions.
      */
+    @Valid
     @NotEmpty
     private List<@Valid RuleConditionDTO> ruleConditions;
     
