@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -37,7 +38,27 @@ public interface PluginService {
      * @param pluginDTO the plugin dto
      * @return the string
      */
-    String createOrUpdate(PluginDTO pluginDTO);
+    default String createOrUpdate(PluginDTO pluginDTO) {
+        return StringUtils.isBlank(pluginDTO.getId()) ? create(pluginDTO) : update(pluginDTO);
+    }
+    
+    /**
+     * create plugin.<br>
+     * insert plugin and insert plugin data.
+     *
+     * @param pluginDTO plugin info
+     * @return success is empty
+     */
+    String create(PluginDTO pluginDTO);
+    
+    /**
+     * create plugin.<br>
+     * insert plugin and insert plugin data.
+     *
+     * @param pluginDTO plugin
+     * @return success is empty
+     */
+    String update(PluginDTO pluginDTO);
     
     /**
      * Delete string.
@@ -69,7 +90,7 @@ public interface PluginService {
      * @return the list
      */
     List<PluginData> listAll();
-
+    
     /**
      * list all not in resource.
      *
@@ -80,7 +101,7 @@ public interface PluginService {
     /**
      * Enabled string.
      *
-     * @param ids the ids
+     * @param ids     the ids
      * @param enabled the enable
      * @return the string
      */

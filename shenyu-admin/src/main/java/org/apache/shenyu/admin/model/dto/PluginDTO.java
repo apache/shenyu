@@ -18,9 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.service.provider.PluginNameProvider;
 import org.apache.shenyu.admin.validation.annotation.Existed;
-import org.apache.shenyu.common.constant.AdminConstants;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -43,7 +41,6 @@ public class PluginDTO implements Serializable {
      * plugin name.
      */
     @NotNull
-    @Existed(provider = PluginNameProvider.class, reverse = true, message = AdminConstants.PLUGIN_NAME_IS_EXIST)
     private String name;
     
     /**

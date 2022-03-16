@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -26,7 +27,6 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.service.provider.MetaDataPathProvider;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -73,7 +73,7 @@ public final class MetaDataControllerTest {
     private MetaDataService metaDataService;
     
     @Mock
-    private MetaDataPathProvider pathProvider;
+    private MetaDataMapper metaDataMapper;
 
     private final MetaDataVO metaDataVO = new MetaDataVO("appName", "appPath", "desc", "rpcType", "serviceName", "methodName", "types", "rpcExt",
             "1", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()),
@@ -156,14 +156,14 @@ public final class MetaDataControllerTest {
         metaDataDTO.setRuleName("ruleName");
         metaDataDTO.setEnabled(false);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(MetaDataPathProvider.class)).thenReturn(pathProvider);
-        when(pathProvider.existed(metaDataDTO.getPath())).thenReturn(null);
-        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(StringUtils.EMPTY);
+        when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
+        when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(true);
+        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -180,14 +180,14 @@ public final class MetaDataControllerTest {
         metaDataDTO.setRuleName("ruleName");
         metaDataDTO.setEnabled(false);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(MetaDataPathProvider.class)).thenReturn(pathProvider);
-        when(pathProvider.existed(metaDataDTO.getPath())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
+        when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(null);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(500)))
-                .andExpect(jsonPath("$.message", is("Request error! invalid argument [path: The path already exists and can't be added repeatedly!]")))
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [id: meta data is not existed]")))
                 .andReturn();
     }
 

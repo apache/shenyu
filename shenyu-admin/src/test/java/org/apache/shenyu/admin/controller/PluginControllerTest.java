@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.admin.service.provider.PluginNameProvider;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -75,9 +74,6 @@ public final class PluginControllerTest {
     
     @Mock
     private SyncDataService syncDataService;
-    
-    @Mock
-    private PluginNameProvider nameProvider;
     
     @Mock
     private PluginMapper pluginMapper;
@@ -138,31 +134,30 @@ public final class PluginControllerTest {
     @Test
     public void testCreatePlugin() throws Exception {
         PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setId("123");
         pluginDTO.setName("test");
         pluginDTO.setEnabled(true);
         pluginDTO.setRole("1");
         pluginDTO.setSort(100);
-        when(SpringBeanUtils.getInstance().getBean(PluginNameProvider.class)).thenReturn(nameProvider);
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-
-        when(nameProvider.existed(pluginDTO.getName())).thenReturn(null);
-        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
-        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
+        
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
-        when(nameProvider.existed(pluginDTO.getName())).thenReturn(true);
+        // update success
+        pluginDTO.setId("123");
+        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("Request error! invalid argument [name: The plugin name already exists and can't be added repeatedly!]")))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
-        when(nameProvider.existed(pluginDTO.getName())).thenReturn(false);
+        // update fail
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -181,32 +176,29 @@ public final class PluginControllerTest {
         pluginDTO.setEnabled(true);
         pluginDTO.setRole("1");
         pluginDTO.setSort(100);
-        when(SpringBeanUtils.getInstance().getBean(PluginNameProvider.class)).thenReturn(nameProvider);
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-        when(nameProvider.existed(pluginDTO.getName())).thenReturn(false);
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
-        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(StringUtils.EMPTY);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
-        
-        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_IS_EXIST);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
+        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(null);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_IS_EXIST)))
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [id: the plugin is not exited]")))
                 .andReturn();
-        
-        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_NOT_EXIST);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
+        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_NOT_EXIST)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
     }
     

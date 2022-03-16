@@ -39,9 +39,17 @@ public final class Assert {
      * @param message error message
      */
     public static void notNull(final Object obj, final String message) {
-        if (Objects.isNull(obj)) {
-            throw new ValidFailException(message);
-        }
+        isTrue(Objects.nonNull(obj), message);
+    }
+    
+    /**
+     * assert obj is null.
+     *
+     * @param obj     obj
+     * @param message error message
+     */
+    public static void isNull(final Object obj, final String message) {
+        isTrue(Objects.isNull(obj), message);
     }
     
     /**
@@ -51,9 +59,7 @@ public final class Assert {
      * @param message error message
      */
     public static void notBlack(final String str, final String message) {
-        if (StringUtils.isBlank(str)) {
-            throw new ValidFailException(message);
-        }
+        isTrue(StringUtils.isNoneBlank(str), message);
     }
     
     /**
@@ -63,7 +69,18 @@ public final class Assert {
      * @param message    error message
      */
     public static void notEmpty(final Collection<?> collection, final String message) {
-        if (CollectionUtils.isEmpty(collection)) {
+        isTrue(!CollectionUtils.isEmpty(collection), message);
+    }
+    
+    
+    /**
+     * assert test is true.
+     *
+     * @param test    string
+     * @param message error message
+     */
+    public static void isTrue(final Boolean test, final String message) {
+        if (!Boolean.TRUE.equals(test)) {
             throw new ValidFailException(message);
         }
     }

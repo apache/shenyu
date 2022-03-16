@@ -176,4 +176,14 @@ public interface PluginMapper extends ExistProvider {
      * @return existed
      */
     Boolean nameExisted(@Param("name") Serializable name);
+    
+    
+    /**
+     * plugin existed.
+     *
+     * @param name name
+     * @param exclude exclude
+     * @return existed
+     */
+    Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude);
 }

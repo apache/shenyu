@@ -121,6 +121,18 @@
         select true from plugin where name = #{name} limit 1
     </select>
 
+    <select id="nameExistedExclude" resultType="java.lang.Boolean">
+        select true
+        from plugin
+        where name = #{name}
+        and id not in
+        <foreach collection="exclude" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        limit 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         insert into plugin (id, date_created, date_updated,
         name,config,role, sort, enabled)
