@@ -26,7 +26,6 @@ import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -51,21 +50,21 @@ import java.util.zip.ZipEntry;
  * The type Shenyu agent plugin loader.
  */
 public final class ShenyuAgentPluginLoader extends ClassLoader implements Closeable {
-    
+
     static {
         registerAsParallelCapable();
     }
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuAgentPluginLoader.class);
-    
+
     private static final ShenyuAgentPluginLoader AGENT_PLUGIN_LOADER = new ShenyuAgentPluginLoader();
-    
+
     private final List<PluginJar> jars = new ArrayList<>();
-    
+
     private ShenyuAgentPluginLoader() {
         super(ShenyuAgentPluginLoader.class.getClassLoader());
     }
-    
+
     /**
      * Gets instance.
      *
@@ -74,7 +73,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
     public static ShenyuAgentPluginLoader getInstance() {
         return AGENT_PLUGIN_LOADER;
     }
-    
+
     /**
      * Load all plugins.
      *
@@ -86,18 +85,15 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
             return;
         }
         Map<String, ShenyuAgentJoinPoint> pointMap = new HashMap<>();
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            for (File each : jarFiles) {
-                outputStream.reset();
-                JarFile jar = new JarFile(each, true);
-                jars.add(new PluginJar(jar, each));
-            }
+        for (File each : jarFiles) {
+            JarFile jar = new JarFile(each, true);
+            jars.add(new PluginJar(jar, each));
         }
         loadAgentPluginDefinition(pointMap);
         Map<String, ShenyuAgentJoinPoint> joinPointMap = ImmutableMap.<String, ShenyuAgentJoinPoint>builder().putAll(pointMap).build();
         ShenyuAgentTypeMatcher.getInstance().setJoinPointMap(joinPointMap);
     }
-    
+
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
         String path = classNameToPath(name);
@@ -119,7 +115,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
         }
         throw new ClassNotFoundException(String.format("Class name is %s not found", name));
     }
-    
+
     @Override
     protected Enumeration<URL> findResources(final String name) {
         Collection<URL> resources = new LinkedList<>();
@@ -134,7 +130,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
         }
         return Collections.enumeration(resources);
     }
-    
+
     @Override
     protected URL findResource(final String name) {
         for (PluginJar each : jars) {
@@ -148,7 +144,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
         }
         return null;
     }
-    
+
     @Override
     public void close() {
         for (PluginJar each : jars) {
@@ -159,7 +155,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
             }
         }
     }
-    
+
     private void loadAgentPluginDefinition(final Map<String, ShenyuAgentJoinPoint> pointMap) {
         SPILoader.loadList(AgentPluginDefinition.class)
                 .forEach(each -> each.collector().forEach(def -> {
@@ -174,11 +170,11 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
                     }
                 }));
     }
-    
+
     private String classNameToPath(final String className) {
         return String.join("", className.replace(".", "/"), ".class");
     }
-    
+
     private void definePackageInternal(final String packageName, final Manifest manifest) {
         if (Objects.isNull(getPackage(packageName))) {
             return;
@@ -192,13 +188,13 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
         String implVendor = attributes.getValue(Attributes.Name.IMPLEMENTATION_VENDOR);
         definePackage(packageName, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, null);
     }
-    
+
     private static class PluginJar {
-        
+
         private final JarFile jarFile;
-        
+
         private final File sourcePath;
-    
+
         /**
          * Instantiates a new Plugin jar.
          *
