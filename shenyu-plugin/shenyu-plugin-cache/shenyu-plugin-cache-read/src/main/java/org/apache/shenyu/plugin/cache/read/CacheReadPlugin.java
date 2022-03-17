@@ -26,7 +26,7 @@ import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
 import org.apache.shenyu.plugin.cache.base.redis.ShenyuCacheReactiveRedisTemplate;
-import org.apache.shenyu.plugin.cache.base.utils.CacheKeys;
+import org.apache.shenyu.plugin.cache.base.utils.CacheUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -47,17 +47,10 @@ public class CacheReadPlugin implements ShenyuPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
-        assert cacheConfig != null;
-        ICache cache = null;
-        if (CacheEnum.MEMORY.getName().equals(cacheConfig.getMode())) {
-            cache = Singleton.INST.get(MemoryCache.class);
-        } else if(CacheEnum.REDIS.getName().equals(cacheConfig.getMode())){
-            cache = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
-        }
+        ICache cache = CacheUtils.getCache();
         byte[] bytes;
-        if (Objects.nonNull(cache) && Objects.nonNull(bytes = cache.getData(CacheKeys.dataKey(exchange)))) {
-            exchange.getResponse().getHeaders().setContentType(cache.getContextType(CacheKeys.contextTypeKey(exchange)));
+        if (Objects.nonNull(cache) && Objects.nonNull(bytes = cache.getData(CacheUtils.dataKey(exchange)))) {
+            exchange.getResponse().getHeaders().setContentType(cache.getContentType(CacheUtils.contentTypeKey(exchange)));
             return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory().wrap(bytes))
                     .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));

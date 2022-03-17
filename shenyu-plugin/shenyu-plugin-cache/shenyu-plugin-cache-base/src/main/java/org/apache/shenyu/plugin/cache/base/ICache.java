@@ -51,13 +51,13 @@ public interface ICache {
     byte[] getData(final String key);
 
     /**
-     * cache the context type.
+     * cache the content type.
      * @param key the key
      * @param mediaType the media type
      * @param timeoutSeconds the timeout seconds
      * @return success or not
      */
-    default boolean cacheContextType(final String key, final MediaType mediaType, final long timeoutSeconds) {
+    default boolean cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {
         return cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds);
     }
 
@@ -75,7 +75,7 @@ public interface ICache {
      * @param key the context type key
      * @return context type
      */
-    default MediaType getContextType(final String key) {
+    default MediaType getContentType(final String key) {
         final byte[] data = getData(key);
         if (Objects.isNull(data) || data.length == 0) {
             return MediaType.APPLICATION_JSON;

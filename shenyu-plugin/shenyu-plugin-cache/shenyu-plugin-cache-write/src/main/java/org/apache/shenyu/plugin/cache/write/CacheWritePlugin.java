@@ -30,10 +30,11 @@ import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
 import org.apache.shenyu.plugin.cache.base.redis.ShenyuCacheReactiveRedisTemplate;
-import org.apache.shenyu.plugin.cache.base.utils.CacheKeys;
+import org.apache.shenyu.plugin.cache.base.utils.CacheUtils;
 import org.apache.shenyu.plugin.cache.write.handler.CacheWritePluginDataHandler;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
@@ -58,11 +59,9 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
      */
     @Override
     protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule) {
-        CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
-        assert cacheConfig != null;
         CacheWriteRuleHandle cacheWriteRuleHandle = CacheWritePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         return chain.execute(exchange.mutate()
-                .response(new CacheWriteHttpResponse(exchange, exchange.getResponse(), cacheConfig, cacheWriteRuleHandle)).build());
+                .response(new CacheWriteHttpResponse(exchange, exchange.getResponse(), cacheWriteRuleHandle)).build());
     }
 
     /**
@@ -85,14 +84,11 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
 
         private final ServerWebExchange exchange;
 
-        private final CacheConfig cacheConfig;
-
         private final CacheWriteRuleHandle cacheWriteRuleHandle;
 
-        CacheWriteHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final CacheConfig cacheConfig, final CacheWriteRuleHandle cacheWriteRuleHandle) {
+        CacheWriteHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final CacheWriteRuleHandle cacheWriteRuleHandle) {
             super(delegate);
             this.exchange = exchange;
-            this.cacheConfig = cacheConfig;
             this.cacheWriteRuleHandle = cacheWriteRuleHandle;
         }
 
@@ -104,18 +100,13 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
 
         @NonNull
         private Flux<? extends DataBuffer> cacheWriteResponse(final Publisher<? extends DataBuffer> body) {
-            final String dataKey = CacheKeys.dataKey(this.exchange);
-            ICache cache = null;
-            if (CacheEnum.REDIS.getName().equals(cacheConfig.getMode())) {
-                cache = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
-            } else if (CacheEnum.MEMORY.getName().equals(cacheConfig.getMode())) {
-                cache = Singleton.INST.get(MemoryCache.class);
-            }
+            final ICache cache = CacheUtils.getCache();
             if (Objects.nonNull(cache)) {
-                final ICache finalCache = cache;
-                // TODO @z cache context type from client response
-                // cache.cacheContextType()
-                return Flux.from(body).doOnNext(buffer -> finalCache.cacheData(dataKey, buffer.asByteBuffer().array(), this.cacheWriteRuleHandle.getTimeoutSeconds()));
+                final MediaType contentType = this.getHeaders().getContentType();
+                return Flux.from(body).doOnNext(buffer -> {
+                    cache.cacheData(CacheUtils.dataKey(this.exchange), buffer.asByteBuffer().array(), this.cacheWriteRuleHandle.getTimeoutSeconds());
+                    cache.cacheContentType(CacheUtils.contentTypeKey(this.exchange), contentType, this.cacheWriteRuleHandle.getTimeoutSeconds());
+                });
             }
             return Flux.from(body);
         }
