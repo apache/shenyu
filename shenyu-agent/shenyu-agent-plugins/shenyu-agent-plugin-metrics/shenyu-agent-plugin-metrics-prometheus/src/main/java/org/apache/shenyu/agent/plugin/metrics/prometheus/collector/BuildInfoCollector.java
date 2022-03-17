@@ -49,7 +49,7 @@ public final class BuildInfoCollector extends Collector {
             Package pkg = Class.forName(CLASS_NAME).getPackage();
             String version = StringUtils.isBlank(pkg.getImplementationVersion()) ? UNKNOWN : pkg.getImplementationVersion();
             String name = StringUtils.isBlank(pkg.getImplementationTitle()) ? UNKNOWN : pkg.getImplementationTitle();
-            gaugeMetricFamily.addMetric(Arrays.asList(version , name), 1L);
+            gaugeMetricFamily.addMetric(Arrays.asList(version, name), 1L);
         } catch (ClassNotFoundException ex) {
             LOG.error("No shenyu gateway class find :{}", CLASS_NAME);
         }

@@ -92,6 +92,14 @@ public interface MetricsRecorder {
      * Observe to histogram and summary.
      *
      * @param value the value
+     */
+    default void observe(double value) {
+    }
+
+    /**
+     * Observe to histogram and summary.
+     *
+     * @param value the value
      * @param labels the labels
      */
     default void observe(double value, String... labels) {
