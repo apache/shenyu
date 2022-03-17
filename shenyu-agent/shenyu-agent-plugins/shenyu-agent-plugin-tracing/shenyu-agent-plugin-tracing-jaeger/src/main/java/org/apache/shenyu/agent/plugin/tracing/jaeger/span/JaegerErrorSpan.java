@@ -40,7 +40,7 @@ public final class JaegerErrorSpan {
     }
     
     private static Map<String, ?> getReason(final Throwable cause) {
-        Map<String, String> result = new HashMap<>(3, 1);
+        Map<String, String> result = new HashMap<>();
         result.put(TracingConstants.ErrorLogTags.EVENT, TracingConstants.ErrorLogTags.EVENT_ERROR_TYPE);
         result.put(TracingConstants.ErrorLogTags.ERROR_KIND, cause.getClass().getName());
         result.put(TracingConstants.ErrorLogTags.MESSAGE, cause.getMessage());
