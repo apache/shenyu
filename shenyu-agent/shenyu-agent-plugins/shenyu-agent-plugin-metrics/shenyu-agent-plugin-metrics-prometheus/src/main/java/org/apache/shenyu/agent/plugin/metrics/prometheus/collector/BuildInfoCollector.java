@@ -19,6 +19,7 @@ package org.apache.shenyu.agent.plugin.metrics.prometheus.collector;
 
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,8 @@ public final class BuildInfoCollector extends Collector {
     
     private static final String CLASS_NAME = "org.apache.shenyu.web.handler.ShenyuWebHandler";
     
+    private static final String UNKNOWN = "unknown";
+    
     @Override
     public List<MetricFamilySamples> collect() {
         List<String> labels = new ArrayList<>();
@@ -43,12 +46,12 @@ public final class BuildInfoCollector extends Collector {
         labels.add("name");
         GaugeMetricFamily gaugeMetricFamily = new GaugeMetricFamily("build_info", "build information", labels);
         try {
-            Package proxyPkg = Class.forName(CLASS_NAME).getPackage();
-            final String proxyVersion = proxyPkg.getImplementationVersion();
-            final String proxyName = proxyPkg.getImplementationTitle();
-            gaugeMetricFamily.addMetric(Arrays.asList(null != proxyVersion ? proxyVersion : "unknown", null != proxyName ? proxyName : "unknown"), 1L);
+            Package pkg = Class.forName(CLASS_NAME).getPackage();
+            String version = StringUtils.isBlank(pkg.getImplementationVersion()) ? UNKNOWN : pkg.getImplementationVersion();
+            String name = StringUtils.isBlank(pkg.getImplementationTitle()) ? UNKNOWN : pkg.getImplementationTitle();
+            gaugeMetricFamily.addMetric(Arrays.asList(version, name), 1L);
         } catch (ClassNotFoundException ex) {
-            LOG.error("No proxy class find :{}", CLASS_NAME);
+            LOG.error("No shenyu gateway class find :{}", CLASS_NAME);
         }
         return Collections.singletonList(gaugeMetricFamily);
     }
