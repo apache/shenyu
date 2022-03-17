@@ -58,7 +58,9 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     private List<String> pluginNames;
 
     private boolean registerMetaData;
-    
+
+    private long timeMillis;
+
     /**
      * Instantiates a new Meta data register dto.
      *
@@ -101,6 +103,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.port = port;
         this.pluginNames = pluginNames;
         this.registerMetaData = registerMetaData;
+        this.timeMillis = System.currentTimeMillis();
     }
     
     /**
@@ -125,6 +128,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         port = builder.port;
         pluginNames = builder.pluginNames;
         registerMetaData = builder.registerMetaData;
+        timeMillis = System.currentTimeMillis();
     }
     
     /**
@@ -410,7 +414,25 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public void setRegisterMetaData(final boolean registerMetaData) {
         this.registerMetaData = registerMetaData;
     }
-    
+
+    /**
+     * getTimeMillis.
+     *
+     * @return long timeMillis
+     */
+    public long getTimeMillis() {
+        return timeMillis;
+    }
+
+    /**
+     * setTimeMillis.
+     *
+     * @param timeMillis timeMillis
+     */
+    public void setTimeMillis(final long timeMillis) {
+        this.timeMillis = timeMillis;
+    }
+
     @Override
     public String toString() {
         return "MetaDataRegisterDTO{" 
@@ -444,6 +466,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                 + pluginNames
                 + ", registerMetaData=" 
                 + registerMetaData
+                + ", timeMillis="
+                + timeMillis
                 + '}';
     }
     
@@ -481,6 +505,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         private List<String> pluginNames = Collections.emptyList();
 
         private boolean registerMetaData;
+
+        private long timeMillis;
 
         private Builder() {
         }
@@ -649,7 +675,18 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.registerMetaData = registerMetaData;
             return this;
         }
-    
+
+        /**
+         * timeMillis.
+         *
+         * @param timeMillis timeMillis
+         * @return Builder builder
+         */
+        public Builder timeMillis(final long timeMillis) {
+            this.timeMillis = timeMillis;
+            return this;
+        }
+
         /**
          * build.
          *
