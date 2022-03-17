@@ -71,9 +71,9 @@ public interface ICache {
     }
 
     /**
-     * Get context type.
-     * @param key the context type key
-     * @return context type
+     * Get content type.
+     * @param key the content type key
+     * @return content type
      */
     default MediaType getContentType(final String key) {
         final byte[] data = getData(key);
