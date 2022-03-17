@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.cache.base.memory;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 
 import java.nio.charset.StandardCharsets;
 
@@ -39,5 +40,14 @@ public class MemoryCacheTest {
         final byte[] data = memoryCache.getData(key);
         assert data != null;
         assertEquals("data", new String(data, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testCacheContextType() {
+        final MemoryCache memoryCache = new MemoryCache();
+        final String key = "contextType";
+        memoryCache.cacheContextType(key, MediaType.TEXT_PLAIN, 10);
+        final MediaType contextType = memoryCache.getContextType(key);
+        assertEquals(contextType, MediaType.TEXT_PLAIN);
     }
 }
