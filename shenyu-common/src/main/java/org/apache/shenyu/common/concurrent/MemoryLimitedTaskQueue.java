@@ -80,7 +80,7 @@ public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLin
      * @param unit    timeout unit
      * @return offer success or not
      * @throws java.util.concurrent.RejectedExecutionException if executor is terminated.
-     * @throws java.lang.InterruptedException if the current thread is interrupted.
+     * @throws java.lang.InterruptedException                  if the current thread is interrupted.
      */
     public boolean retryOffer(final Runnable o, final long timeout, final TimeUnit unit) throws InterruptedException {
         if (executor.isShutdown()) {
