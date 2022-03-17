@@ -25,6 +25,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * memory limiter.
+ *
+ * @see org.apache.shenyu.common.concurrent.MemoryLimitCalculator
  */
 public class MemoryLimiter {
 

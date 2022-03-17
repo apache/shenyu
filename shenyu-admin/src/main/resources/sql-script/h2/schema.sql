@@ -312,6 +312,7 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 /*insert dict for dubbo plugin*/
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('gray', 'GRAY_STATUS', 'close', 'false', 'close', '1', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('gray', 'GRAY_STATUS', 'open', 'true', 'open', '0', '1');
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'shared', 'shared', '', '4', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'fixed', 'fixed', '', '3', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'eager', 'eager', '', '2', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'cached', 'cached', '', '0', '1');

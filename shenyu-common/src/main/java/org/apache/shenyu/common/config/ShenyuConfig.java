@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -55,7 +56,27 @@ public class ShenyuConfig {
     private Local local = new Local();
 
     private WebsocketConfig websocket = new WebsocketConfig();
-    
+
+    private SharedPool sharedPool = new SharedPool();
+
+    /**
+     * Gets the shared thread pool config.
+     *
+     * @return the shared thread pool config
+     */
+    public SharedPool getSharedPool() {
+        return sharedPool;
+    }
+
+    /**
+     * Sets the shared thread pool config.
+     *
+     * @param sharedPool the shared thread pool config
+     */
+    public void setSharedPool(final SharedPool sharedPool) {
+        this.sharedPool = sharedPool;
+    }
+
     /**
      * Gets the local config.
      *
@@ -1168,6 +1189,159 @@ public class ShenyuConfig {
          */
         public void setMaxFramePayloadSize(final Integer maxFramePayloadSize) {
             this.maxFramePayloadSize = maxFramePayloadSize;
+        }
+    }
+
+    /**
+     * The type Shared Thread Pool.
+     */
+    public static class SharedPool {
+
+        /**
+         * Whether to enable shared thread pool, defaults to false.
+         * Note: it is planned to be enabled by default when all RPC/HTTP
+         * plugins support this shared thread pool.
+         */
+        private Boolean enable = Boolean.FALSE;
+
+        /**
+         * The the thread name prefix, defaults to shenyu-shared.
+         */
+        private String prefix = "shenyu-shared";
+
+        /**
+         * the number of threads to keep in the thread pool.
+         */
+        private Integer corePoolSize = 200;
+
+        /**
+         * the maximum number of threads to allow in the thread pool.
+         */
+        private Integer maximumPoolSize = Integer.MAX_VALUE;
+
+        /**
+         * when the number of threads is greater than the core,
+         * this is the maximum time that excess idle threads
+         * will wait for new tasks before terminating.
+         * Note: the unit of time is {@link java.util.concurrent.TimeUnit#MILLISECONDS}
+         */
+        private Long keepAliveTime = 60000L;
+
+        /**
+         * Maximum memory allowed to be used by a blocking queue, yes, unlike other
+         * implementations of {@link java.util.concurrent.BlockingQueue}
+         * (which all control memory based on the length of the blocking queue),
+         * {@link org.apache.shenyu.common.concurrent.MemoryLimitedLinkedBlockingQueue}
+         * controls memory directly by calculating the memory size used by the blocking queue.
+         */
+        private Long maxWorkQueueMemory = MemoryLimitCalculator.defaultLimit();
+
+        /**
+         * Whether to enable shared thread pool.
+         *
+         * @return whether to enable
+         */
+        public Boolean getEnable() {
+            return enable;
+        }
+
+        /**
+         * Set enable.
+         *
+         * @param enable the enable
+         */
+        public void setEnable(final Boolean enable) {
+            this.enable = enable;
+        }
+
+        /**
+         * Get shared thread pool name prefix.
+         *
+         * @return the shared thread pool name prefix
+         */
+        public String getPrefix() {
+            return prefix;
+        }
+
+        /**
+         * Set prefix.
+         *
+         * @param prefix the prefix
+         */
+        public void setPrefix(final String prefix) {
+            this.prefix = prefix;
+        }
+
+        /**
+         * Get shared thread pool core size.
+         *
+         * @return the shared thread pool core size
+         */
+        public Integer getCorePoolSize() {
+            return corePoolSize;
+        }
+
+        /**
+         * Set core pool size.
+         *
+         * @param corePoolSize the core pool size
+         */
+        public void setCorePoolSize(final Integer corePoolSize) {
+            this.corePoolSize = corePoolSize;
+        }
+
+        /**
+         * Get shared thread pool maximum size.
+         *
+         * @return the shared thread pool name prefix
+         */
+        public Integer getMaximumPoolSize() {
+            return maximumPoolSize;
+        }
+
+        /**
+         * Set max pool size.
+         *
+         * @param maximumPoolSize the max pool size
+         */
+        public void setMaximumPoolSize(final Integer maximumPoolSize) {
+            this.maximumPoolSize = maximumPoolSize;
+        }
+
+        /**
+         * Get shared thread pool keep alive time.
+         *
+         * @return the shared thread pool keep alive time
+         */
+        public Long getKeepAliveTime() {
+            return keepAliveTime;
+        }
+
+        /**
+         * Set keep alive time.
+         *
+         * @param keepAliveTime the keep alive time
+         */
+        public void setKeepAliveTime(final Long keepAliveTime) {
+            this.keepAliveTime = keepAliveTime;
+        }
+
+        /**
+         * Get shared thread pool max work queue memory.
+         *
+         * @return the shared thread pool max work queue memory
+         */
+        public Long getMaxWorkQueueMemory() {
+            return maxWorkQueueMemory;
+        }
+
+        /**
+         * Set max work queue memory.
+         *
+         * @param maxWorkQueueMemory the max work queue memory
+         */
+        public void setMaxWorkQueueMemory(final Long maxWorkQueueMemory) {
+            this.maxWorkQueueMemory = maxWorkQueueMemory;
         }
     }
 }
