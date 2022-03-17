@@ -122,6 +122,10 @@
         from rule
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from rule where id = #{id} limit 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
         insert into rule (id, date_created, date_updated,
         selector_id, name, match_mode, sort, enabled,
