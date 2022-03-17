@@ -22,10 +22,12 @@ import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuSerializationC
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
+import java.time.Duration;
+
 /**
  * ShenyuCacheReactiveRedisTemplate.
  */
-public class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<String, byte[]> implements ICache {
+public final class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<String, byte[]> implements ICache {
 
     public ShenyuCacheReactiveRedisTemplate(final ReactiveRedisConnectionFactory connectionFactory) {
         super(connectionFactory, ShenyuSerializationContext.bytesSerializationContext());
@@ -35,12 +37,12 @@ public class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<Stri
      * Cache the data with the key.
      * @param key the cache key
      * @param bytes the data
-     * @param timeoutSeconds the timeout seconds
+     * @param timeoutSeconds value valid time
      * @return success or not
      */
     @Override
     public boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
-        return true;
+        return Boolean.TRUE.equals(this.opsForValue().set(key, bytes, Duration.ofSeconds(timeoutSeconds)).block());
     }
 
     /**
@@ -50,7 +52,7 @@ public class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<Stri
      */
     @Override
     public boolean isExist(final String key) {
-        return false;
+        return Boolean.TRUE.equals(this.hasKey(key).block());
     }
 
     /**
@@ -60,6 +62,6 @@ public class ShenyuCacheReactiveRedisTemplate extends ReactiveRedisTemplate<Stri
      */
     @Override
     public byte[] getData(final String key) {
-        return new byte[0];
+        return this.opsForValue().get(key).block();
     }
 }

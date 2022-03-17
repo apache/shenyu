@@ -31,7 +31,7 @@ public interface ICache {
      * Cache the data with the key.
      * @param key the cache key
      * @param bytes the data
-     * @param timeoutSeconds the timeout seconds
+     * @param timeoutSeconds value valid time
      * @return success or not
      */
     boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds);
@@ -54,7 +54,7 @@ public interface ICache {
      * cache the content type.
      * @param key the key
      * @param mediaType the media type
-     * @param timeoutSeconds the timeout seconds
+     * @param timeoutSeconds value valid time
      * @return success or not
      */
     default boolean cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {

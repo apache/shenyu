@@ -69,9 +69,9 @@ public final class CacheUtils {
         final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
         assert cacheConfig != null;
         ICache cache = null;
-        if (CacheEnum.MEMORY.getName().equals(cacheConfig.getMode())) {
+        if (CacheEnum.MEMORY.getName().equals(cacheConfig.getCacheType())) {
             cache = Singleton.INST.get(MemoryCache.class);
-        } else if (CacheEnum.REDIS.getName().equals(cacheConfig.getMode())) {
+        } else if (CacheEnum.REDIS.getName().equals(cacheConfig.getCacheType())) {
             cache = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
         }
         return cache;

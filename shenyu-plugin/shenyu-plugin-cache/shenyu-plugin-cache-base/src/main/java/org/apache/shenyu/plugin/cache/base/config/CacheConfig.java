@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.cache.base.config;
 
+import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
 
@@ -25,7 +26,16 @@ import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
  */
 public class CacheConfig extends RedisConfigProperties {
 
-    public CacheConfig() {
-        setMode(CacheEnum.MEMORY.getName());
+    /**
+     * the type of config cache, default memory {@linkplain CacheEnum}.
+     */
+    private String cacheType = CacheEnum.MEMORY.getName();
+
+    public String getCacheType() {
+        return cacheType;
+    }
+
+    public void setCacheType(String cacheType) {
+        this.cacheType = cacheType;
     }
 }
