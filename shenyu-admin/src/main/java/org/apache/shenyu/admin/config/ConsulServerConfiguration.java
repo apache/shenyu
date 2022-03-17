@@ -30,8 +30,9 @@ import org.springframework.context.annotation.Configuration;
 public class ConsulServerConfiguration {
     /**
      * Register consul client, distinguished from sync consul client.
-     * @param config
-     * @return
+
+     * @param config the shenyu register center config
+     * @return the consulClient
      */
     @Bean(name = "registerConsulClient")
     public ConsulClient consulClient(final ShenyuRegisterCenterConfig config) {
