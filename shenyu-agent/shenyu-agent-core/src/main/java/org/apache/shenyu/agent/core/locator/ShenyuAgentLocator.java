@@ -33,6 +33,8 @@ public final class ShenyuAgentLocator {
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuAgentLocator.class);
     
+    private static final String PRE_FILE = "file:";
+    
     private ShenyuAgentLocator() {
     }
     
@@ -42,13 +44,12 @@ public final class ShenyuAgentLocator {
      * @return the file
      */
     public static File locatorAgent() {
-        String classResourcePath = String.join("", ShenyuAgentLocator.class.getName().replaceAll("\\.", "/"), ".class");
-        URL resource = ClassLoader.getSystemClassLoader().getResource(classResourcePath);
+        String path = String.join("", ShenyuAgentLocator.class.getName().replaceAll("\\.", "/"), ".class");
+        URL resource = ClassLoader.getSystemClassLoader().getResource(path);
         assert resource != null;
         String url = resource.toString();
-        int existFileInJarIndex = url.indexOf('!');
-        boolean isInJar = existFileInJarIndex > -1;
-        return isInJar ? getFileInJar(url, existFileInJarIndex) : getFileInResource(url, classResourcePath);
+        int index = url.indexOf('!');
+        return index > -1 ? buildFileInJar(url, index) : buildFileInResource(url, path);
     }
     
     /**
@@ -80,17 +81,17 @@ public final class ShenyuAgentLocator {
         return new File(String.join("/", file.getPath(), "conf", fileName));
     }
     
-    private static File getFileInResource(final String url, final String classResourcePath) {
-        int prefixLength = "file:".length();
-        String classLocation = url.substring(prefixLength, url.length() - classResourcePath.length());
-        return new File(classLocation);
+    private static File buildFileInResource(final String url, final String path) {
+        return new File(url.substring(PRE_FILE.length(), url.length() - path.length()));
     }
     
-    private static File getFileInJar(final String url, final int fileInJarIndex) {
-        String realUrl = url.substring(url.indexOf("file:"), fileInJarIndex);
+    private static File buildFileInJar(final String url, final int index) {
         try {
-            File agentJarFile = new File(new URL(realUrl).toURI());
-            return agentJarFile.exists() ? agentJarFile.getParentFile() : null;
+            final File jarFile = new File(new URL(url.substring(url.indexOf(PRE_FILE), index)).toURI());
+            if (jarFile.exists()) {
+                return jarFile.getParentFile();
+            }
+            return null;
         } catch (final MalformedURLException | URISyntaxException ex) {
             return null;
         }

@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  */
 public final class ShenyuAgentTransformer implements Transformer {
     
-    private static final String EXTRA_DATA = "_$EXTRA_DATA$_";
+    private static final String EXT_OBJECT = "_$EXT_OBJECT$_";
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuAgentTransformer.class);
     
@@ -64,7 +64,7 @@ public final class ShenyuAgentTransformer implements Transformer {
         if (!MATCHER.containsType(typeDescription)) {
             return builder;
         }
-        Builder<?> result = builder.defineField(EXTRA_DATA, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE).implement(TargetObject.class).intercept(FieldAccessor.ofField(EXTRA_DATA));
+        Builder<?> result = builder.defineField(EXT_OBJECT, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE).implement(TargetObject.class).intercept(FieldAccessor.ofField(EXT_OBJECT));
         ShenyuAgentJoinPoint joinPoint = MATCHER.loadShenyuAgentJoinPoint(typeDescription);
         result = interceptorConstructorPoint(typeDescription, joinPoint.getConstructorPoints(), result);
         result = interceptorStaticMethodPoint(typeDescription, joinPoint.getStaticMethodPoints(), result);

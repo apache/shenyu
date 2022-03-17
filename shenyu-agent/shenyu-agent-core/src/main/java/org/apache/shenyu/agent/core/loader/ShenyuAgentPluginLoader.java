@@ -113,11 +113,11 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
                     byte[] data = ByteStreams.toByteArray(each.jarFile.getInputStream(entry));
                     return defineClass(name, data, 0, data.length);
                 } catch (final IOException ex) {
-                    LOG.error("Failed to load class {}", name, ex);
+                    LOG.error("Failed to load shenyu plugin class {}", name, ex);
                 }
             }
         }
-        throw new ClassNotFoundException(String.format("Class name is %s not found", name));
+        throw new ClassNotFoundException(String.format("shenyu plugin class name is %s not found", name));
     }
     
     @Override
@@ -155,7 +155,7 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
             try {
                 each.jarFile.close();
             } catch (final IOException ex) {
-                LOG.error("Exception occur when closing jar", ex);
+                LOG.error("Exception closing for shenyu plugin jar", ex);
             }
         }
     }

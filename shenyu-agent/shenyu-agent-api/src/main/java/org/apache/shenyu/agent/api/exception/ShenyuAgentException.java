@@ -22,6 +22,12 @@ package org.apache.shenyu.agent.api.exception;
  */
 public final class ShenyuAgentException extends RuntimeException {
     
+    /**
+     * Instantiates a new Shenyu agent exception.
+     *
+     * @param errorMessage the error message
+     * @param args the args
+     */
     public ShenyuAgentException(final String errorMessage, final Object... args) {
         super(String.format(errorMessage, args));
     }
