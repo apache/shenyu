@@ -31,7 +31,7 @@ import java.util.concurrent.Executor;
  */
 public class SharedThreadPool implements ThreadPool {
     @Override
-    public Executor getExecutor(URL url) {
+    public Executor getExecutor(final URL url) {
         try {
             return SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
         } catch (NoSuchBeanDefinitionException t) {
