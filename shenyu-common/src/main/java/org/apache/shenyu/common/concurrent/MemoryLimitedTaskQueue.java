@@ -34,20 +34,20 @@ public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLin
 
     private ShenyuThreadPoolExecutor executor;
 
-    public MemoryLimitedTaskQueue(Instrumentation inst) {
+    public MemoryLimitedTaskQueue(final Instrumentation inst) {
         super(inst);
     }
 
-    public MemoryLimitedTaskQueue(long memoryLimit, Instrumentation inst) {
+    public MemoryLimitedTaskQueue(final long memoryLimit, final Instrumentation inst) {
         super(memoryLimit, inst);
     }
 
-    public void setExecutor(ShenyuThreadPoolExecutor exec) {
+    public void setExecutor(final ShenyuThreadPoolExecutor exec) {
         executor = exec;
     }
 
     @Override
-    public boolean offer(Runnable runnable) {
+    public boolean offer(final Runnable runnable) {
         if (executor == null) {
             throw new RejectedExecutionException("The task queue does not have executor!");
         }
@@ -74,7 +74,7 @@ public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLin
      * @return offer success or not
      * @throws java.util.concurrent.RejectedExecutionException if executor is terminated.
      */
-    public boolean retryOffer(Runnable o, long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean retryOffer(final Runnable o, final long timeout, final TimeUnit unit) throws InterruptedException {
         if (executor.isShutdown()) {
             throw new RejectedExecutionException("Executor is shutdown!");
         }

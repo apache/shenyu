@@ -46,10 +46,11 @@ public class MemoryLimitCalculator {
      * Take the current JVM's maximum available memory
      * as a percentage of the result as the limit.
      *
+     * @param percentage percentage
      * @return available memory
      */
     public static long calculate(final float percentage) {
-        if (percentage <= 0) {
+        if (percentage <= 0 || percentage > 1) {
             throw new IllegalArgumentException();
         }
         return (long) (maxAvailable() * percentage);

@@ -28,34 +28,34 @@ import java.util.concurrent.TimeUnit;
  */
 public class ShenyuThreadPoolExecutor extends ThreadPoolExecutor {
 
-    public ShenyuThreadPoolExecutor(int corePoolSize,
-                                    int maximumPoolSize,
-                                    long keepAliveTime,
-                                    TimeUnit unit,
-                                    MemoryLimitedTaskQueue<Runnable> workQueue,
-                                    ThreadFactory threadFactory,
-                                    RejectedExecutionHandler handler) {
+    public ShenyuThreadPoolExecutor(final int corePoolSize,
+                                    final int maximumPoolSize,
+                                    final long keepAliveTime,
+                                    final TimeUnit unit,
+                                    final MemoryLimitedTaskQueue<Runnable> workQueue,
+                                    final ThreadFactory threadFactory,
+                                    final RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
     }
 
     @Override
-    public void execute(Runnable command) {
+    public void execute(final Runnable command) {
         if (command == null) {
             throw new NullPointerException();
         }
 
         try {
             super.execute(command);
-        } catch (RejectedExecutionException rx) {
+        } catch (RejectedExecutionException e) {
             // retry to offer the task into queue.
             @SuppressWarnings("all")
             final MemoryLimitedTaskQueue queue = (MemoryLimitedTaskQueue) super.getQueue();
             try {
                 if (!queue.retryOffer(command, 0, TimeUnit.MILLISECONDS)) {
-                    throw new RejectedExecutionException("Queue capacity is full.", rx);
+                    throw new RejectedExecutionException("Queue capacity is full.", e);
                 }
-            } catch (InterruptedException x) {
-                throw new RejectedExecutionException(x);
+            } catch (InterruptedException t) {
+                throw new RejectedExecutionException(t);
             }
         }
     }
