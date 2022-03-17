@@ -42,7 +42,7 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuConsulConfigWatch.class);
 
-    @Resource
+    @Resource(name = "registerConsulClient")
     private ConsulClient consul;
 
     private final ScheduledThreadPoolExecutor executor;
