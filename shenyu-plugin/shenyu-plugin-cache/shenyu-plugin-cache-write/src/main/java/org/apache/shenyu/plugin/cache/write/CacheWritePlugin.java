@@ -61,7 +61,7 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule) {
         CacheWriteRuleHandle cacheWriteRuleHandle = CacheWritePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         return chain.execute(exchange.mutate()
-                .response(new CacheWriteHttpResponse(exchange, exchange.getResponse(), cacheWriteRuleHandle)).build());
+                .response(new CacheWriteHttpResponse(exchange, cacheWriteRuleHandle)).build());
     }
 
     /**
@@ -86,8 +86,8 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
 
         private final CacheWriteRuleHandle cacheWriteRuleHandle;
 
-        CacheWriteHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final CacheWriteRuleHandle cacheWriteRuleHandle) {
-            super(delegate);
+        CacheWriteHttpResponse(final ServerWebExchange exchange, final CacheWriteRuleHandle cacheWriteRuleHandle) {
+            super(exchange.getResponse());
             this.exchange = exchange;
             this.cacheWriteRuleHandle = cacheWriteRuleHandle;
         }
