@@ -42,8 +42,13 @@ public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLin
         super(memoryLimit, inst);
     }
 
-    public void setExecutor(final ShenyuThreadPoolExecutor exec) {
-        executor = exec;
+    /**
+     * set the executor.
+     *
+     * @param executor executor
+     */
+    public void setExecutor(final ShenyuThreadPoolExecutor executor) {
+        this.executor = executor;
     }
 
     @Override
@@ -68,9 +73,11 @@ public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLin
     }
 
     /**
-     * retry offer task
+     * retry offer task.
      *
-     * @param o task
+     * @param o       task
+     * @param timeout timeout
+     * @param unit    timeout unit
      * @return offer success or not
      * @throws java.util.concurrent.RejectedExecutionException if executor is terminated.
      */
