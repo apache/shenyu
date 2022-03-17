@@ -26,7 +26,6 @@ import org.apache.shenyu.agent.core.locator.ShenyuAgentLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -86,12 +85,9 @@ public final class ShenyuAgentPluginLoader extends ClassLoader implements Closea
             return;
         }
         Map<String, ShenyuAgentJoinPoint> pointMap = new HashMap<>();
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            for (File each : jarFiles) {
-                outputStream.reset();
-                JarFile jar = new JarFile(each, true);
-                jars.add(new PluginJar(jar, each));
-            }
+        for (File each : jarFiles) {
+            JarFile jar = new JarFile(each, true);
+            jars.add(new PluginJar(jar, each));
         }
         loadAgentPluginDefinition(pointMap);
         Map<String, ShenyuAgentJoinPoint> joinPointMap = ImmutableMap.<String, ShenyuAgentJoinPoint>builder().putAll(pointMap).build();
