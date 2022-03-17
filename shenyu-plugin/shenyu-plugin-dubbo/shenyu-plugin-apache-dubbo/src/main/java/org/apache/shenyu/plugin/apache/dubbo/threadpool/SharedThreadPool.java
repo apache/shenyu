@@ -35,7 +35,7 @@ public class SharedThreadPool implements ThreadPool {
         try {
             return SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
         } catch (NoSuchBeanDefinitionException t) {
-            throw new ShenyuException("shared thread pool not enable, try to config ${shenyu.sharedPool.enable}=true in your xml/yml !", t);
+            throw new ShenyuException("shared thread pool is not enable, config ${shenyu.sharedPool.enable} in your xml/yml !", t);
         }
     }
 }
