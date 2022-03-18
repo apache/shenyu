@@ -32,7 +32,7 @@ import java.util.Random;
 /**
  * The type Dubbo service.
  */
-@Service
+@Service(protocol = {"tri"})
 public class DubboTestServiceImpl implements DubboTestService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboTestServiceImpl.class);

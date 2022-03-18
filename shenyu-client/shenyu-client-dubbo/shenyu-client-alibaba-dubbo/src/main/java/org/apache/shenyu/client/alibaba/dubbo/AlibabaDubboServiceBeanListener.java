@@ -62,8 +62,6 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
 
     private final String host;
 
-    private final String port;
-
     public AlibabaDubboServiceBeanListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
@@ -73,7 +71,6 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         this.contextPath = contextPath;
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
-        this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
     }
     
@@ -123,7 +120,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
                 .methodName(methodName)
                 .contextPath(contextPath)
                 .host(buildHost())
-                .port(buildPort(serviceBean))
+                .port(serviceBean.getProtocol().getPort())
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -140,7 +137,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
                 .appName(buildAppName(serviceBean))
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .host(buildHost())
-                .port(buildPort(serviceBean))
+                .port(serviceBean.getProtocol().getPort())
                 .build();
     }
 
@@ -164,9 +161,5 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     
     private String buildHost() {
         return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-    }
-    
-    private int buildPort(@NonNull final ServiceBean serviceBean) {
-        return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
 }

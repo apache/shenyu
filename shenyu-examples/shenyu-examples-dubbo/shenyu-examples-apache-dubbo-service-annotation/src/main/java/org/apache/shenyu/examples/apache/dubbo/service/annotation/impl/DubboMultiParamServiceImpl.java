@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 /**
  * The type Dubbo multi param service.
  */
-@Service
+@Service(protocol = {"dubbo"})
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     
     @Override

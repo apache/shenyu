@@ -66,8 +66,6 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
 
     private final String host;
 
-    private final String port;
-
     public ApacheDubboServiceBeanListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
@@ -78,7 +76,6 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         this.contextPath = contextPath;
         this.appName = appName;
         this.host = props.getProperty(ShenyuClientConstants.HOST);
-        this.port = props.getProperty(ShenyuClientConstants.PORT);
         executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-apache-dubbo-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
@@ -137,7 +134,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .methodName(methodName)
                 .contextPath(contextPath)
                 .host(buildHost())
-                .port(buildPort(serviceBean))
+                .port(serviceBean.getProtocol().getPort())
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -154,7 +151,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .appName(buildAppName(serviceBean))
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .host(buildHost())
-                .port(buildPort(serviceBean))
+                .port(serviceBean.getProtocol().getPort())
                 .build();
     }
 
@@ -178,9 +175,5 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
 
     private String buildHost() {
         return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-    }
-
-    private int buildPort(final ServiceBean serviceBean) {
-        return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
 }
