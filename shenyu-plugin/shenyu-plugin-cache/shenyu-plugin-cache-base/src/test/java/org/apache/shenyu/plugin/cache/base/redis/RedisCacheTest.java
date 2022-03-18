@@ -41,11 +41,6 @@ public class RedisCacheTest {
     @Before
     public void prepare() {
 
-//        final CacheHandler cacheHandler = new CacheHandler();
-//        final PluginData pluginData = new PluginData();
-//        cacheHandler.handlerPlugin(pluginData);
-//        shenyuCacheRedisTemplate = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
-
         CacheConfig redisConfigProperties = new CacheConfig();
         redisConfigProperties.setMode(RedisModeEnum.STANDALONE.getName());
         redisConfigProperties.setUrl("shenyu-redis:6379");
@@ -58,9 +53,10 @@ public class RedisCacheTest {
     public void testRedisCache() {
 
         final String testKey = "testRedisCache";
-        assertEquals(Boolean.FALSE, shenyuCacheRedisTemplate.hasKey(testKey).block());
+        assertEquals(Boolean.FALSE, shenyuCacheRedisTemplate.isExist(testKey));
         boolean flag = shenyuCacheRedisTemplate.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
-        assertEquals(Boolean.TRUE, shenyuCacheRedisTemplate.hasKey(testKey).block());
+        assertEquals(Boolean.TRUE, flag);
+        assertEquals(Boolean.TRUE, shenyuCacheRedisTemplate.isExist(testKey));
         final byte[] value = shenyuCacheRedisTemplate.getData(testKey);
         assert null != value;
         assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
