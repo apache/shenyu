@@ -31,6 +31,7 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `t
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'queues', 'queues', '1', '3', '0', '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}');
 
 -- insert dict for dubbo plugin
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'shared', 'shared', '', '4', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'fixed', 'fixed', '', '3', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'eager', 'eager', '', '2', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'cached', 'cached', '', '0', '1');

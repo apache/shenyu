@@ -24,6 +24,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Can completely solve the OOM problem caused by {@link java.util.concurrent.LinkedBlockingQueue}.
+ *
+ * @see org.apache.shenyu.common.concurrent.MemoryLimiter
+ * @see org.apache.shenyu.common.concurrent.MemoryLimitCalculator
  */
 public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
 
