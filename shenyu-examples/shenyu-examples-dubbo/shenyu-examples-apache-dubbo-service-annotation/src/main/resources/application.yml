@@ -34,14 +34,20 @@ shenyu:
       props:
         contextPath: /dubbo
         appName: dubbo
+        # should not config shenyu.client.dubbo.props.port when you export multi protocols
+        # port: 20888
 
 dubbo:
   application:
     name: test-dubbo-service
   registry:
     address: zookeeper://127.0.0.1:2181
-  protocol:
-    name: dubbo
-    port: 20888
+  protocols:
+    dubbo:
+      name: dubbo
+      port: 20888
+    thrift:
+      name: thrift
+      port: 20889
   scan:
     base-packages: org.apache.shenyu.examples.apache.dubbo.service.annotation.impl
