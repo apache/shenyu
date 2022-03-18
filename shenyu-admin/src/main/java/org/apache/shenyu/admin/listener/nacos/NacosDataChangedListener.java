@@ -212,9 +212,11 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                if (CollectionUtils.isNotEmpty(changed)){
-                    RULE_MAP.remove(changed.get(0).getSelectorId());
-                }
+                Set<String> selectIdSet = changed
+                        .stream()
+                        .map(RuleData::getSelectorId)
+                        .collect(Collectors.toSet());
+                RULE_MAP.keySet().removeAll(selectIdSet);
                 changed.forEach(rule -> {
                     List<RuleData> ls = new ArrayList<>(RULE_MAP.getOrDefault(rule.getSelectorId(),
                             new ArrayList<>()));
