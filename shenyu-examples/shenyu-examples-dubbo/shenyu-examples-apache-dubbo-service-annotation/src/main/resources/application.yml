@@ -45,8 +45,8 @@ dubbo:
     dubbo:
       name: dubbo
       port: 20888
-    tri:
-      name: tri
+    thrift:
+      name: thrift
       port: 20889
   scan:
     base-packages: org.apache.shenyu.examples.apache.dubbo.service.annotation.impl
