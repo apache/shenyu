@@ -137,7 +137,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                if (CollectionUtils.isNotEmpty(changed)){
+                if (CollectionUtils.isNotEmpty(changed)) {
                     SELECTOR_MAP.remove(changed.get(0).getPluginName());
                 }
                 changed.forEach(selector -> {

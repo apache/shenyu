@@ -61,9 +61,9 @@ public class NacosDataInit implements CommandLineRunner {
     private boolean dataIdNotExist(final String pluginDataId) {
         try {
             return Objects.isNull(
-                    configService.getConfig(pluginDataId
-                            , NacosPathConstants.GROUP
-                            , NacosPathConstants.DEFAULT_TIME_OUT));
+                    configService.getConfig(pluginDataId,
+                            NacosPathConstants.GROUP,
+                            NacosPathConstants.DEFAULT_TIME_OUT));
         } catch (NacosException e) {
             LOG.error("Get data from nacos error.", e);
             throw new ShenyuException(e.getMessage());
