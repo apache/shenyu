@@ -26,6 +26,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import java.util.Objects;
 
 /**
  * The type Nacos data init.
@@ -50,19 +51,19 @@ public class NacosDataInit implements CommandLineRunner {
 
     @Override
     public void run(final String... args) {
-        String pluginDataId = NacosPathConstants.PLUGIN_DATA_ID;
-        String authDataId = NacosPathConstants.AUTH_DATA_ID;
-        String metaDataId = NacosPathConstants.META_DATA_ID;
-        if (dataIdNotExist(pluginDataId) && dataIdNotExist(authDataId) && dataIdNotExist(metaDataId)) {
+        if (dataIdNotExist(NacosPathConstants.PLUGIN_DATA_ID)
+                && dataIdNotExist(NacosPathConstants.AUTH_DATA_ID)
+                && dataIdNotExist(NacosPathConstants.META_DATA_ID)) {
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         }
     }
 
     private boolean dataIdNotExist(final String pluginDataId) {
         try {
-            String group = NacosPathConstants.GROUP;
-            long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
-            return configService.getConfig(pluginDataId, group, timeout) == null;
+            return Objects.isNull(
+                    configService.getConfig(pluginDataId,
+                            NacosPathConstants.GROUP,
+                            NacosPathConstants.DEFAULT_TIME_OUT));
         } catch (NacosException e) {
             LOG.error("Get data from nacos error.", e);
             throw new ShenyuException(e.getMessage());
