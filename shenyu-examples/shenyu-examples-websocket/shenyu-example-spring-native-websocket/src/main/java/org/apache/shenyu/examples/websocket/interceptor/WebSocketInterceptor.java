@@ -32,10 +32,10 @@ import java.util.Map;
  * MyInterceptor for websocket.
  */
 @Component
-public class MyInterceptor implements HandshakeInterceptor {
+public class WebSocketInterceptor implements HandshakeInterceptor {
 
     /**
-     * 握手前
+     * Before handshake.
      *
      * @param request
      * @param response

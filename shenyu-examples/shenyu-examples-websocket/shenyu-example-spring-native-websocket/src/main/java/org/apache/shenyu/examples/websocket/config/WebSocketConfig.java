@@ -18,7 +18,7 @@
 package org.apache.shenyu.examples.websocket.config;
 
 import org.apache.shenyu.examples.websocket.handler.HttpAuthHandler;
-import org.apache.shenyu.examples.websocket.interceptor.MyInterceptor;
+import org.apache.shenyu.examples.websocket.interceptor.WebSocketInterceptor;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +28,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 /**
  * The type Web socket configuration.
+ * eg:   ws://127.0.0.1:9195/ws-native/myWebSocket?token=shenyu
  */
 @Configuration
 @EnableWebSocket
@@ -37,7 +38,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private HttpAuthHandler httpAuthHandler;
     @Autowired
-    private MyInterceptor myInterceptor;
+    private WebSocketInterceptor myInterceptor;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {

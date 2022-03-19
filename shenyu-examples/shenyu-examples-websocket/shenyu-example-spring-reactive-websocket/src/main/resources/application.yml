@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 8003
+  port: 8004
   address: 0.0.0.0
 
 
@@ -30,7 +30,7 @@ shenyu:
       props:
         contextPath: /ws-reactive
         appName: ws-reactive
-        port: 8003
+        port: 8004
 
 
 logging:
