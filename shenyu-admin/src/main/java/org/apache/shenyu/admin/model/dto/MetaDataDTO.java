@@ -42,7 +42,6 @@ public class MetaDataDTO implements Serializable {
     /**
      * context path is not null.
      */
-    @NotBlank
     private String contextPath;
     
     /**
@@ -54,7 +53,6 @@ public class MetaDataDTO implements Serializable {
     /**
      * rule name is not null.
      */
-    @NotBlank
     private String ruleName;
     
     /**
@@ -65,7 +63,6 @@ public class MetaDataDTO implements Serializable {
     /**
      * rpc tyoe is not null.
      */
-    @NotBlank
     private String rpcType;
     
     /**
