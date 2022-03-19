@@ -52,21 +52,21 @@ public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> 
     }
 
     /**
-     * get the memory limit.
-     *
-     * @return the memory limit
-     */
-    public long getMemoryLimit() {
-        return memoryLimiter.getMemoryLimit();
-    }
-
-    /**
      * set the memory limit.
      *
      * @param memoryLimit the memory limit
      */
     public void setMemoryLimit(final long memoryLimit) {
         memoryLimiter.setMemoryLimit(memoryLimit);
+    }
+
+    /**
+     * get the memory limit.
+     *
+     * @return the memory limit
+     */
+    public long getMemoryLimit() {
+        return memoryLimiter.getMemoryLimit();
     }
 
     /**

@@ -31,12 +31,18 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MemoryLimiter {
 
     private final Instrumentation inst;
-    private final LongAdder memory = new LongAdder();
-    private final ReentrantLock acquireLock = new ReentrantLock();
-    private final Condition notLimited = acquireLock.newCondition();
-    private final ReentrantLock releaseLock = new ReentrantLock();
-    private final Condition notEmpty = releaseLock.newCondition();
+
     private long memoryLimit;
+
+    private final LongAdder memory = new LongAdder();
+
+    private final ReentrantLock acquireLock = new ReentrantLock();
+
+    private final Condition notLimited = acquireLock.newCondition();
+
+    private final ReentrantLock releaseLock = new ReentrantLock();
+
+    private final Condition notEmpty = releaseLock.newCondition();
 
     public MemoryLimiter(final Instrumentation inst) {
         this(Integer.MAX_VALUE, inst);
@@ -51,15 +57,6 @@ public class MemoryLimiter {
     }
 
     /**
-     * get the memory limit.
-     *
-     * @return the memory limit
-     */
-    public long getMemoryLimit() {
-        return memoryLimit;
-    }
-
-    /**
      * set the memory limit.
      *
      * @param memoryLimit the memory limit
@@ -69,6 +66,15 @@ public class MemoryLimiter {
             throw new IllegalArgumentException();
         }
         this.memoryLimit = memoryLimit;
+    }
+
+    /**
+     * get the memory limit.
+     *
+     * @return the memory limit
+     */
+    public long getMemoryLimit() {
+        return memoryLimit;
     }
 
     /**

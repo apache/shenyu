@@ -56,6 +56,16 @@ public enum SamplerTypeEnum {
     }
     
     /**
+     * get name.
+     *
+     * @return name name
+     */
+    public String getName() {
+        return name;
+    }
+
+
+    /**
      * Gets enum by name.
      *
      * @param name the name
@@ -65,14 +75,5 @@ public enum SamplerTypeEnum {
         return Arrays.stream(SamplerTypeEnum.values())
                 .filter(e -> e.getName().equals(name)).findFirst()
                 .orElse(SamplerTypeEnum.ALWAYS_SAMPLE);
-    }
-    
-    /**
-     * get name.
-     *
-     * @return name name
-     */
-    public String getName() {
-        return name;
     }
 }
