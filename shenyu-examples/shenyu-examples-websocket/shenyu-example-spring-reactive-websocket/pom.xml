@@ -87,7 +87,7 @@
     </dependencies>
 
     <build>
-        <finalName>shenyu-examples-websocket</finalName>
+        <finalName>shenyu-example-spring-reactive-websocket</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -114,17 +114,17 @@
                         <version>${dockerfile-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>shenyu-examples-websocket</id>
+                                <id>shenyu-example-spring-reactive-websocket</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>shenyu-examples-websocket</repository>
+                            <repository>shenyu-example-spring-reactive-websocket</repository>
                             <tag>latest</tag>
                             <buildArgs>
-                                <APP_NAME>shenyu-examples-websocket</APP_NAME>
+                                <APP_NAME>shenyu-example-spring-reactive-websocket</APP_NAME>
                             </buildArgs>
                         </configuration>
                     </plugin>
