@@ -24,6 +24,6 @@ RUN mkdir -p ${LOCAL_PATH}
 ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
-EXPOSE 8002
+EXPOSE 8848
 
 CMD java -jar ${APP_NAME}.jar
