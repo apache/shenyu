@@ -41,7 +41,12 @@ public final class ShenyuClientConstants {
      * The constant HTTP.
      */
     public static final String HTTP = "http://";
-    
+
+    /**
+     * The constant Websocket.
+     */
+    public static final String WS = "ws://";
+
     /**
      * The constant PROTOCOL.
      */

@@ -17,32 +17,31 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
-
 /**
- * spring mvc http service register.
+ * spring mvc websocket service register.
  */
 @Service
-public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRegisterService {
+public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPathRegisterService {
 
     @Override
     public String rpcType() {
-        return RpcTypeEnum.HTTP.getName();
+        return RpcTypeEnum.WEB_SOCKET.getName();
     }
 
     @Override
@@ -52,7 +51,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     @Override
     protected String ruleHandler() {
-        return new DivideRuleHandle().toJson();
+        return new WebSocketRuleHandle().toJson();
     }
 
     @Override
@@ -67,14 +66,14 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         String handleAdd;
-        List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
-        List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
-        List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
+        List<WebSocketUpstream> addList = buildWebSocketUpstreamList(uriList);
+        List<WebSocketUpstream> canAddList = new CopyOnWriteArrayList<>();
+        List<WebSocketUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), WebSocketUpstream.class);
         if (CollectionUtils.isEmpty(existList)) {
             handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
-            List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
+            List<WebSocketUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
@@ -85,9 +84,9 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         return handleAdd;
     }
 
-    private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
+    private List<WebSocketUpstream> buildWebSocketUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
-                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+            .map(dto -> CommonUpstreamUtils.buildWebSocketUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
+            .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }

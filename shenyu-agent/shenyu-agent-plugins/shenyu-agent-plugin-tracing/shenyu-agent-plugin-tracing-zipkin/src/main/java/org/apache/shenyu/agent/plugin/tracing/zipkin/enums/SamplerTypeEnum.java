@@ -63,8 +63,8 @@ public enum SamplerTypeEnum {
     public String getName() {
         return name;
     }
-    
-    
+
+
     /**
      * Gets enum by name.
      *
