@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * MyInterceptor.
+ * MyInterceptor for websocket.
  */
 @Component
 public class MyInterceptor implements HandshakeInterceptor {
@@ -54,7 +54,7 @@ public class MyInterceptor implements HandshakeInterceptor {
             System.out.println("user token " + uid + " shook hands successfully！");
             return true;
         }
-        System.out.println("User login has expired");
+        System.out.println("user login has expired");
         return false;
     }
 
