@@ -19,8 +19,8 @@ server:
 
 shenyu:
   common:
-    contextPath: /http-ws-native
-    appName: http-ws-native
+    contextPath: /ws-native
+    appName: ws-native
     port: 8002
   register:
     registerType: http

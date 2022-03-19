@@ -62,7 +62,7 @@ public class HttpAuthHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         Object token = session.getAttributes().get("token");
         System.out.println("server received " + token + " sent " + payload);
-        session.sendMessage(new TextMessage("server send to " + token + " message " + payload + " " + LocalDateTime.now().toString()));
+        session.sendMessage(new TextMessage("apache shenyu server send to " + token + " message : -> " + payload));
     }
 
     /**
@@ -80,6 +80,5 @@ public class HttpAuthHandler extends TextWebSocketHandler {
             WsSessionManager.remove(token.toString());
         }
     }
-
 
 }
