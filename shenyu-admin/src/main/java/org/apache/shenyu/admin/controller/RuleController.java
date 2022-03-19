@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.mapper.RoleMapper;
+import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -83,7 +83,7 @@ public class RuleController {
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
-                                        @Existed(provider = RoleMapper.class,
+                                        @Existed(provider = RuleMapper.class,
                                                 message = "rule is not existed") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
@@ -110,7 +110,7 @@ public class RuleController {
      */
     @PutMapping("/{id}")
     public ShenyuAdminResult updateRule(@PathVariable("id") @Valid
-                                        @Existed(provider = RoleMapper.class,
+                                        @Existed(provider = RuleMapper.class,
                                                 message = "rule is not existed") final String id,
                                         @Valid @RequestBody final RuleDTO ruleDTO) {
         ruleDTO.setId(id);
