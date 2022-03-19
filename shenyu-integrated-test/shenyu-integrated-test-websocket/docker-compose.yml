@@ -32,13 +32,13 @@ services:
       retries: 30
       start_period: 5s
 
-  shenyu-examples-websocket:
+  shenyu-example-spring-native-websocket:
     deploy:
       resources:
         limits:
           memory: 2048M
-    container_name: shenyu-examples-websocket
-    image: shenyu-examples-websocket:latest
+    container_name: shenyu-example-spring-native-websocket
+    image: shenyu-example-spring-native-websocket:latest
     restart: always
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095

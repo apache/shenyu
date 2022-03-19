@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:11
 
 ENV APP_NAME shenyu-example-spring-reactive-websocket
 ENV LOCAL_PATH /opt/${APP_NAME}
