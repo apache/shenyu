@@ -18,6 +18,10 @@ server:
   address: 0.0.0.0
 
 shenyu:
+  common:
+    contextPath: /http-ws-native
+    appName: http-ws-native
+    port: 8002
   register:
     registerType: http
     serverLists: http://127.0.0.1:9095
@@ -27,9 +31,16 @@ shenyu:
   client:
     websocket:
       props:
-        contextPath: /ws-native
-        appName: ws-native
-        port: 8002
+        contextPath: ${shenyu.common.contextPath}
+        appName: ${shenyu.common.appName}
+        port: ${shenyu.common.port}
+    http:
+      props:
+        contextPath: ${shenyu.common.contextPath}
+        appName: ${shenyu.common.appName}
+        port: ${shenyu.common.port}
+
+
 
 logging:
   level:

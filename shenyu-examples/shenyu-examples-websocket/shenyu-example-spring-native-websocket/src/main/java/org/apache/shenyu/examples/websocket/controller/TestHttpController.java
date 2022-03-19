@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.websocket.controller;
 
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.websocket.config.WsSessionManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +31,9 @@ import java.io.IOException;
  * TestController.
  */
 @Controller
-public class TestController {
+@RequestMapping("/ws")
+@ShenyuSpringMvcClient(path = "/ws/**")
+public class TestHttpController {
 
     @RequestMapping("/sendMsg")
     public @ResponseBody
