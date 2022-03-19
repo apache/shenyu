@@ -104,5 +104,4 @@ public interface MetricsRecorder {
      */
     default void observe(double value, String... labels) {
     }
-
 }

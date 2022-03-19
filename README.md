@@ -64,11 +64,11 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
 # Features
 
-   * ShenYu provides ability such as current limiting, fusing, forwarding, routing monitoring and so on by its plugins.
+   * ShenYu provides ability such as current limiting, fusing, forwarding, routing, monitoring and so on by its plugins.
    
-   * Support HTTP, RESTFul, WebSocket, Dubbo, GRPC, Tars and Spring Cloud Proxy.
+   * Support HTTP, RESTFul, WebSocket, Dubbo, gRPC, Tars and Spring Cloud Proxy.
    
-   * Plug-in hot plug, users can customize the development.
+   * Plugin hot plug, users can customize the development.
    
    * Selectors and rules are dynamically configured for flexible matching.
 
@@ -154,11 +154,11 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
  
  Of course, users can also customize plugins to meet their own needs.
  
- If you want to customize, see [custom-plugin](https://shenyu.apache.org/docs/developer/custom-plugin/)
+ If you want to customize, see [custom-plugin](https://shenyu.apache.org/docs/developer/custom-plugin/) .
  
 --------------------------------------------------------------------------------  
  
-# Selector & rule 
+# Selector & Rule 
 
   According to your HTTP request headers, selectors and rules are used to route your requests.
   
@@ -174,7 +174,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
  
   Since all data have been cached using ConcurrentHashMap in the JVM, it's very fast.
   
-  When user have changed the configuration in the background management, ShenYu will dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
+  ShenYu dynamically updates the cache by listening to the ZooKeeper node (or WebSocket push, HTTP long polling) when the user changes configuration information in the background management.
   
   ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-en.png)
   
@@ -203,6 +203,6 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at [https://github.com/apache/incubator-shenyu/issues/68](https://github.com/apache/incubator-shenyu/issues/68) (For open source users only)
+In order of registration, More access companies are welcome to register at [https://github.com/apache/incubator-shenyu/issues/68](https://github.com/apache/incubator-shenyu/issues/68) (For open source users only) .
 
 All Users : [Known Users](https://shenyu.apache.org/community/user-registration)

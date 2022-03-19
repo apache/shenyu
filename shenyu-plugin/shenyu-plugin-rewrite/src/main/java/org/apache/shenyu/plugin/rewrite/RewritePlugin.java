@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -52,7 +53,10 @@ public class RewritePlugin extends AbstractShenyuPlugin {
         }
         String rewriteUri = exchange.getRequest().getURI().getPath();
         if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())) {
-            rewriteUri = rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+            rewriteUri = rewriteHandle.getReplace().contains("{")
+                    ? PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
+                            rewriteUri.substring(rewriteHandle.getRegex().indexOf("{") + 1))
+                    : rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
             exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
         }
         return chain.execute(exchange);

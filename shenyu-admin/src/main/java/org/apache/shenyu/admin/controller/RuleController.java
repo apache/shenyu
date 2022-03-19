@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -25,6 +26,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -47,13 +50,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/rule")
 public class RuleController {
-
+    
     private final RuleService ruleService;
-
+    
     public RuleController(final RuleService ruleService) {
         this.ruleService = ruleService;
     }
-
+    
     /**
      * query rules.
      *
@@ -64,12 +67,14 @@ public class RuleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public ShenyuAdminResult queryRules(final String selectorId, final String name, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryRules(final String selectorId, final String name,
+                                        @NotNull final Integer currentPage,
+                                        @NotNull final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
-
+        
     }
-
+    
     /**
      * detail rule.
      *
@@ -77,11 +82,13 @@ public class RuleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public ShenyuAdminResult detailRule(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
+                                        @Existed(provider = RoleMapper.class,
+                                                message = "rule is not existed") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
     }
-
+    
     /**
      * create rule.
      *
@@ -93,7 +100,7 @@ public class RuleController {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
-
+    
     /**
      * update rule.
      *
@@ -102,12 +109,15 @@ public class RuleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateRule(@PathVariable("id") final String id, @Valid @RequestBody final RuleDTO ruleDTO) {
+    public ShenyuAdminResult updateRule(@PathVariable("id") @Valid
+                                        @Existed(provider = RoleMapper.class,
+                                                message = "rule is not existed") final String id,
+                                        @Valid @RequestBody final RuleDTO ruleDTO) {
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
-
+    
     /**
      * delete rules.
      *
