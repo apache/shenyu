@@ -367,4 +367,30 @@ public class HttpTestController {
         userDTO.setUserName(name);
         return userDTO;
     }
+
+    /**
+     * pass endpoint for hystrix plugin.
+     *
+     * @return response. result bean
+     */
+    @GetMapping ("/hystrix/pass")
+    public ResultBean hystrixPass() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+        return response;
+    }
+
+    /**
+     * fallback endpoint for hystrix plugin.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/hystrix/fallback")
+    public ResultBean hystrixFallback() {
+        ResultBean response = new ResultBean();
+        response.setCode(429);
+        response.setMsg("fallback");
+        return response;
+    }
 }

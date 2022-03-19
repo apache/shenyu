@@ -29,7 +29,6 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -110,22 +109,21 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             return Collections.emptyList();
         }
         List<ShenyuLoaderResult> results = new ArrayList<>();
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            for (File each : jarFiles) {
-                outputStream.reset();
-                JarFile jar = new JarFile(each, true);
-                jars.add(new PluginJar(jar, each));
-                Enumeration<JarEntry> entries = jar.entries();
-                while (entries.hasMoreElements()) {
-                    JarEntry jarEntry = entries.nextElement();
-                    String entryName = jarEntry.getName();
-                    if (entryName.endsWith(".class") && !entryName.contains("$")) {
-                        String className = entryName.substring(0, entryName.length() - 6).replaceAll("/", ".");
-                        names.add(className);
-                    }
+        for (File each : jarFiles) {
+
+            JarFile jar = new JarFile(each, true);
+            jars.add(new PluginJar(jar, each));
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry jarEntry = entries.nextElement();
+                String entryName = jarEntry.getName();
+                if (entryName.endsWith(".class") && !entryName.contains("$")) {
+                    String className = entryName.substring(0, entryName.length() - 6).replaceAll("/", ".");
+                    names.add(className);
                 }
             }
         }
+
         names.forEach(className -> {
             Object instance;
             try {

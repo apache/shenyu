@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.service.provider.MetaDataPathProvider;
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
-import org.apache.shenyu.common.constant.AdminConstants;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -30,6 +29,7 @@ public class MetaDataDTO implements Serializable {
     
     private static final long serialVersionUID = 7476312364813536366L;
     
+    @Existed(provider = MetaDataMapper.class, nullOfIgnore = true, message = "meta data is not existed")
     private String id;
     
     /**
@@ -42,20 +42,17 @@ public class MetaDataDTO implements Serializable {
     /**
      * context path is not null.
      */
-    @NotBlank
     private String contextPath;
     
     /**
      * the path is not null.
      */
     @NotBlank
-    @Existed(provider = MetaDataPathProvider.class, reverse = true, message = AdminConstants.DATA_PATH_IS_EXIST)
     private String path;
     
     /**
      * rule name is not null.
      */
-    @NotBlank
     private String ruleName;
     
     /**
@@ -66,7 +63,6 @@ public class MetaDataDTO implements Serializable {
     /**
      * rpc tyoe is not null.
      */
-    @NotBlank
     private String rpcType;
     
     /**

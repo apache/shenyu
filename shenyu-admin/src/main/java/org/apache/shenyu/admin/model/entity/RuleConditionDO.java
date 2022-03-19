@@ -181,7 +181,7 @@ public final class RuleConditionDO extends BaseDO {
                     .ruleId(item.getRuleId())
                     .operator(item.getOperator())
                     .paramName(item.getParamName())
-                    .paramValue(item.getParamValue())
+                    .paramValue(StringUtils.defaultIfBlank(item.getParamValue(), "").trim())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {

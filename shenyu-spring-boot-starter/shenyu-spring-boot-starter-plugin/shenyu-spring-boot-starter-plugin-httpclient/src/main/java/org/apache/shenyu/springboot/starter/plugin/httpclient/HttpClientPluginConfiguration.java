@@ -41,6 +41,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.tcp.TcpResources;
 
 import java.security.cert.X509Certificate;
 import java.util.Objects;
@@ -113,7 +114,7 @@ public class HttpClientPluginConfiguration {
                     if (StringUtils.isNotEmpty(threadPool.getPrefix())) {
                         LoopResources resources = LoopResources.create(threadPool.getPrefix(),
                                 threadPool.getSelectCount(), threadPool.getWorkerCount(), threadPool.getDaemon());
-                        tcpClient = tcpClient.runOn(resources, threadPool.getPreferNative());
+                        TcpResources.set(resources);
                     }
                     return tcpClient;
                 });

@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.agent.api.config.AgentPluginConfig;
 import org.apache.shenyu.agent.api.exception.ShenyuAgentException;
 import org.apache.shenyu.agent.api.spi.AgentPluginBootService;
+import org.apache.shenyu.agent.plugin.tracing.zipkin.enums.SamplerTypeEnum;
 import org.apache.shenyu.spi.Join;
 import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
 import zipkin2.reporter.okhttp3.OkHttpSender;
@@ -38,6 +39,7 @@ import java.util.Properties;
  */
 @Join
 public class ZipkinAgentPluginBootService implements AgentPluginBootService {
+    
     private static final String DEFAULT_URL_VERSION = "/api/v2/spans";
 
     private static final String DEFAULT_SERVICE_NAME = "shenyu-agent";
@@ -62,14 +64,13 @@ public class ZipkinAgentPluginBootService implements AgentPluginBootService {
         if (StringUtils.isEmpty(agentPluginConfig.getHost()) || agentPluginConfig.getPort() < 0) {
             throw new ShenyuAgentException("zipkin config error, host can not config or port is %s", agentPluginConfig.getPort());
         }
-
         Properties props = agentPluginConfig.getProps();
-        String urlVersion = Optional.ofNullable(props.getProperty("URL_VERSION")).orElse(DEFAULT_URL_VERSION);
+        String urlVersion = Optional.ofNullable(props.getProperty("version")).orElse(DEFAULT_URL_VERSION);
         sender = OkHttpSender.create(String.format("http://%s:%s%s", agentPluginConfig.getHost(), agentPluginConfig.getPort(), urlVersion));
         zipkinSpanHandler = AsyncZipkinSpanHandler.create(sender);
 
         Sampler sampler = createSampler(agentPluginConfig);
-        String serviceName = Optional.ofNullable(props.getProperty("SERVICE_NAME")).orElse(DEFAULT_SERVICE_NAME);
+        String serviceName = Optional.ofNullable(props.getProperty("name")).orElse(DEFAULT_SERVICE_NAME);
         tracing = Tracing.newBuilder()
                 .localServiceName(serviceName)
                 .sampler(sampler)
@@ -83,11 +84,9 @@ public class ZipkinAgentPluginBootService implements AgentPluginBootService {
         if (Objects.nonNull(tracing)) {
             tracing.close();
         }
-
         if (Objects.nonNull(zipkinSpanHandler)) {
             zipkinSpanHandler.close();
         }
-
         if (Objects.nonNull(sender)) {
             sender.close();
         }
@@ -100,23 +99,23 @@ public class ZipkinAgentPluginBootService implements AgentPluginBootService {
      * @return sample.
      */
     private Sampler createSampler(final AgentPluginConfig agentPluginConfig) {
-        String samplerType = Optional.ofNullable(agentPluginConfig.getProps().getProperty("SAMPLER_TYPE")).orElse(DEFAULT_SAMPLER_TYPE);
-        String samplerParam = Optional.ofNullable(agentPluginConfig.getProps().getProperty("SAMPLER_PARAM")).orElse(DEFAULT_SAMPLER_PARAM);
-        switch (samplerType) {
-            case "const":
-                if (Objects.equals(samplerParam, "0")) {
+        String type = Optional.ofNullable(agentPluginConfig.getProps().getProperty("type")).orElse(DEFAULT_SAMPLER_TYPE);
+        String param = Optional.ofNullable(agentPluginConfig.getProps().getProperty("param")).orElse(DEFAULT_SAMPLER_PARAM);
+        SamplerTypeEnum typeEnum = SamplerTypeEnum.getEnumByName(type);
+        switch (typeEnum) {
+            case CONS:
+                if (Objects.equals(param, "0")) {
                     return Sampler.NEVER_SAMPLE;
                 }
                 return Sampler.ALWAYS_SAMPLE;
-            case "counting":
-                return Sampler.create(Float.parseFloat(samplerParam));
-            case "ratelimiting":
-                return RateLimitingSampler.create(Integer.parseInt(samplerParam));
-            case "boundary":
-                return BoundarySampler.create(Float.parseFloat(samplerParam));
+            case COUNTING:
+                return Sampler.create(Float.parseFloat(param));
+            case RATE_LIMITING:
+                return RateLimitingSampler.create(Integer.parseInt(param));
+            case BOUNDARY:
+                return BoundarySampler.create(Float.parseFloat(param));
             default:
-                break;
+                return Sampler.ALWAYS_SAMPLE;
         }
-        return Sampler.ALWAYS_SAMPLE;
     }
 }

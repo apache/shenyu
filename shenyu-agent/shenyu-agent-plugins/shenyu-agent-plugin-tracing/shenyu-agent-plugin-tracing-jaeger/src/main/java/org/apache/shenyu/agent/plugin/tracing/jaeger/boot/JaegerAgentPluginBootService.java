@@ -44,7 +44,7 @@ public class JaegerAgentPluginBootService implements AgentPluginBootService {
         Configuration.SamplerConfiguration samplerConfig = Configuration.SamplerConfiguration.fromEnv();
         Configuration.ReporterConfiguration reporterConfig = Configuration.ReporterConfiguration.fromEnv()
                 .withSender(Configuration.SenderConfiguration.fromEnv().withAgentHost(agentPluginConfig.getHost()).withAgentPort(agentPluginConfig.getPort()));
-        String serviceName = Optional.ofNullable(agentPluginConfig.getProps().getProperty("SERVICE_NAME")).orElse("shenyu-agent");
+        String serviceName = Optional.ofNullable(agentPluginConfig.getProps().getProperty("name")).orElse("shenyu-agent");
         configuration = new Configuration(serviceName).withSampler(samplerConfig).withReporter(reporterConfig);
         if (!GlobalTracer.isRegistered()) {
             GlobalTracer.registerIfAbsent(configuration.getTracer());

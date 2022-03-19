@@ -241,6 +241,10 @@
         order by `type`,sort asc
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from shenyu_dict where id = #{id} limit 1
+    </select>
+
     <update id="enabled">
         update shenyu_dict set enabled = #{enabled,jdbcType=TINYINT} where id in
         <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">

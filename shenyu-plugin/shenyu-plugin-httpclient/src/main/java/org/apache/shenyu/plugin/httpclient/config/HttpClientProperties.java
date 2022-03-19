@@ -540,12 +540,6 @@ public class HttpClientProperties {
         private Boolean daemon = true;
 
         /**
-         * Whether the native transport (epoll, kqueue) will be preferred,
-         * fallback it will be preferred when available.
-         */
-        private Boolean preferNative = LoopResources.DEFAULT_NATIVE;
-
-        /**
          * Gets prefix.
          *
          * @return the prefix
@@ -615,24 +609,6 @@ public class HttpClientProperties {
          */
         public void setDaemon(final Boolean daemon) {
             this.daemon = daemon;
-        }
-
-        /**
-         * Gets prefer native.
-         *
-         * @return the prefer native
-         */
-        public Boolean getPreferNative() {
-            return preferNative;
-        }
-
-        /**
-         * Sets prefer native.
-         *
-         * @param preferNative the prefer native
-         */
-        public void setPreferNative(final Boolean preferNative) {
-            this.preferNative = preferNative;
         }
     }
     

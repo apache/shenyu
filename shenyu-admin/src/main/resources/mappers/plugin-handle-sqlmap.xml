@@ -228,4 +228,8 @@
         </where>
         order by plugin_id,sort
     </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from plugin_handle where id = #{id} limit 1
+    </select>
 </mapper>

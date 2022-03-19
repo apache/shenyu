@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
@@ -25,56 +28,58 @@ import java.util.Objects;
  * this shenyu dict from web front.
  */
 public class ShenyuDictDTO implements Serializable {
-
+    
     private static final long serialVersionUID = -8639439741130267709L;
-
+    
     /**
      * primary key.
      */
+    @Existed(provider = ShenyuDictMapper.class, nullOfIgnore = true, message = "dict is not existed")
     private String id;
-
+    
     /**
      * dict type.
      */
     @NotNull
     private String type;
-
+    
     /**
      * dict code.
      */
+    @NotNull
     private String dictCode;
-
+    
     /**
      * dict name.
      */
     @NotNull
     private String dictName;
-
+    
     /**
      * dict value.
      */
     @NotNull
     private String dictValue;
-
+    
     /**
      * dict desc.
      */
     private String desc;
-
+    
     /**
      * sort no.
      */
     @NotNull
     private Integer sort;
-
+    
     /**
      * whether enabled.
      */
     private Boolean enabled;
-
+    
     public ShenyuDictDTO() {
     }
-
+    
     public ShenyuDictDTO(final String id,
                          @NotNull final String type,
                          final String dictCode,
@@ -92,7 +97,7 @@ public class ShenyuDictDTO implements Serializable {
         this.sort = sort;
         this.enabled = enabled;
     }
-
+    
     /**
      * Gets the value of id.
      *
@@ -101,7 +106,7 @@ public class ShenyuDictDTO implements Serializable {
     public String getId() {
         return id;
     }
-
+    
     /**
      * Sets the id.
      *
@@ -110,7 +115,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-
+    
     /**
      * Gets the value of type.
      *
@@ -119,7 +124,7 @@ public class ShenyuDictDTO implements Serializable {
     public String getType() {
         return type;
     }
-
+    
     /**
      * Sets the type.
      *
@@ -128,7 +133,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setType(final String type) {
         this.type = type;
     }
-
+    
     /**
      * Gets the value of dictCode.
      *
@@ -137,7 +142,7 @@ public class ShenyuDictDTO implements Serializable {
     public String getDictCode() {
         return dictCode;
     }
-
+    
     /**
      * Sets the dictCode.
      *
@@ -146,7 +151,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setDictCode(final String dictCode) {
         this.dictCode = dictCode;
     }
-
+    
     /**
      * Gets the value of dictName.
      *
@@ -155,7 +160,7 @@ public class ShenyuDictDTO implements Serializable {
     public String getDictName() {
         return dictName;
     }
-
+    
     /**
      * Sets the dictName.
      *
@@ -164,7 +169,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setDictName(final String dictName) {
         this.dictName = dictName;
     }
-
+    
     /**
      * Gets the value of dictValue.
      *
@@ -173,7 +178,7 @@ public class ShenyuDictDTO implements Serializable {
     public String getDictValue() {
         return dictValue;
     }
-
+    
     /**
      * Sets the dictValue.
      *
@@ -182,7 +187,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setDictValue(final String dictValue) {
         this.dictValue = dictValue;
     }
-
+    
     /**
      * Gets the value of desc.
      *
@@ -191,7 +196,7 @@ public class ShenyuDictDTO implements Serializable {
     public String getDesc() {
         return desc;
     }
-
+    
     /**
      * Sets the desc.
      *
@@ -200,7 +205,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setDesc(final String desc) {
         this.desc = desc;
     }
-
+    
     /**
      * Gets the value of sort.
      *
@@ -209,7 +214,7 @@ public class ShenyuDictDTO implements Serializable {
     public Integer getSort() {
         return sort;
     }
-
+    
     /**
      * Sets the sort.
      *
@@ -218,7 +223,7 @@ public class ShenyuDictDTO implements Serializable {
     public void setSort(final Integer sort) {
         this.sort = sort;
     }
-
+    
     /**
      * Gets the value of enabled.
      *
@@ -227,7 +232,7 @@ public class ShenyuDictDTO implements Serializable {
     public Boolean getEnabled() {
         return enabled;
     }
-
+    
     /**
      * Sets the enabled.
      *
@@ -255,7 +260,7 @@ public class ShenyuDictDTO implements Serializable {
                 && Objects.equals(sort, that.sort)
                 && Objects.equals(enabled, that.enabled);
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(id, type, dictCode, dictName, dictValue, desc, sort, enabled);

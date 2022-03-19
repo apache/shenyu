@@ -1,0 +1,96 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# if you debug api, replace your own token
+
+### resource list by page
+GET http://localhost:9095/resource?currentPage=1&pageSize=140
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+### menu list
+GET http://localhost:9095/resource/menu
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+### button get
+GET http://localhost:9095/resource/button?id=1503363718753005571
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+### get
+GET http://localhost:9095/resource/1503363718753005571
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+### create
+POST http://localhost:9095/resource
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+{
+
+  "parentId": "test-create-parent",
+  "title": "test-create-title",
+  "name": "test-create-name",
+  "url": "test-create-rul",
+  "component": "test-create-component",
+  "icon": "test-create-icon",
+  "perms": "test-create-perms",
+  "isLeaf": true,
+  "isRoute": 100,
+  "resourceType": 100,
+  "status": 100,
+  "sort": 100
+}
+
+### update
+PUT http://localhost:9095/resource/1503364631588745216
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+{
+
+  "parentId": "test-update-parent",
+  "title": "test-update-title",
+  "name": "test-update-name",
+  "url": "test-update-rul",
+  "component": "test-update-component",
+  "icon": "test-update-icon",
+  "perms": "test-update-perms",
+  "isLeaf": true,
+  "isRoute": 100,
+  "resourceType": 100,
+  "status": 100,
+  "sort": 100
+}
+
+### delete
+DELETE http://localhost:9095/resource/batch
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+[
+  "1503021118890123264"
+]
