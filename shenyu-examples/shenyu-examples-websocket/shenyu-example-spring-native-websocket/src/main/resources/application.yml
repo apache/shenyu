@@ -14,8 +14,22 @@
 # limitations under the License.
 
 server:
-  port: 8868
+  port: 8002
   address: 0.0.0.0
+
+shenyu:
+  register:
+    registerType: http
+    serverLists: http://127.0.0.1:9095
+    props:
+      username: admin
+      password: iov_1024
+  client:
+    websocket:
+      props:
+        contextPath: /ws-native
+        appName: ws-native
+        port: 8002
 
 logging:
   level:
@@ -25,4 +39,3 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: debug
     org.apache.shenyu: debug
-

@@ -21,10 +21,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * ShenyuWebsocketApplication.
+ * TestReactiveWebsocketApplication.
  */
 @SpringBootApplication
-public class ShenyuWebsocketApplication {
+public class TestReactiveWebsocketApplication {
 
     /**
      * main.
@@ -32,6 +32,6 @@ public class ShenyuWebsocketApplication {
      * @param args args
      */
     public static void main(final String[] args) {
-        SpringApplication.run(ShenyuWebsocketApplication.class, args);
+        SpringApplication.run(TestReactiveWebsocketApplication.class, args);
     }
 }
