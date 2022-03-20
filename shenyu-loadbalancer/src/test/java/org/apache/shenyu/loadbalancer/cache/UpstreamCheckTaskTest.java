@@ -82,7 +82,7 @@ public class UpstreamCheckTaskTest {
         // Let it coverage line 151~163.
         when(upstream.isHealthy()).thenReturn(false).thenReturn(true);
         // Even if the address could not connect, it will return false, that mean it will not coverage 151~163.
-        when(upstream.getUrl()).thenReturn("http://www.baidu.com");
+        when(upstream.getUrl()).thenReturn("https://www.baidu.com");
         // Manually run one time
         healthCheckTask.run();
         Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
