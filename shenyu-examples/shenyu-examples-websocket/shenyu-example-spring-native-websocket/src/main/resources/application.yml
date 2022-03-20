@@ -23,8 +23,8 @@ shenyu:
     appName: ws-native
     port: 8002
   register:
-    registerType: http
-    serverLists: http://127.0.0.1:9095
+    registerType: http #zookeeper #etcd #nacos #consul
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       username: admin
       password: 123456

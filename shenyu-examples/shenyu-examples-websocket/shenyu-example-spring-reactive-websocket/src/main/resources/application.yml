@@ -21,7 +21,7 @@ server:
 shenyu:
   register:
     registerType: http
-    serverLists: http://127.0.0.1:9095
+    serverLists: http://localhost:9095
     props:
       username: admin
       password: 123456
