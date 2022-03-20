@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.cache.base.config;
 
-import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
 
