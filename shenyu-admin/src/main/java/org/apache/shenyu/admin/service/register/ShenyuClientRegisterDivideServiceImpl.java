@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRegisterService {
 
     @Resource
-    DivideSelectorHandleConverter divideSelectorHandleConverter;
+    private DivideSelectorHandleConverter divideSelectorHandleConverter;
 
     @Override
     public String rpcType() {
