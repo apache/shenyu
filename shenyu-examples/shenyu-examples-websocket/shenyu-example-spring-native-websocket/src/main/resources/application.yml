@@ -14,14 +14,14 @@
 # limitations under the License.
 
 server:
-  port: 8002
+  port: 8868
   address: 0.0.0.0
 
 shenyu:
   common:
     contextPath: /ws-native
     appName: ws-native
-    port: 8002
+    port: 8868
   register:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
