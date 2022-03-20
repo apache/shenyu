@@ -73,6 +73,8 @@ public class UpstreamCheckService {
 
     private static final Map<String, List<CommonUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
+    private static final Set<Integer> PENDING_SYNC = Sets.newConcurrentHashSet();
+
     private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
 
     private static final String REGISTER_TYPE_HTTP = "http";
@@ -181,17 +183,26 @@ public class UpstreamCheckService {
             return;
         }
 
-        if (UPSTREAM_MAP.containsKey(selectorId)) {
-            List<CommonUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList());
-            Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
-                    && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
-            if (!exists.isPresent()) {
-                upstreams.add(commonUpstream);
+        if (commonUpstream.isStatus()) {
+            if (UPSTREAM_MAP.containsKey(selectorId)) {
+                List<CommonUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList());
+                Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
+                        && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
+                if (!exists.isPresent()) {
+                    upstreams.add(commonUpstream);
+                } else {
+                    LOG.info("upstream host {} is exists.", commonUpstream.getUpstreamHost());
+                }
             } else {
-                LOG.info("upstream host {} is exists.", commonUpstream.getUpstreamHost());
+                UPSTREAM_MAP.put(selectorId, Lists.newArrayList(commonUpstream));
             }
-        } else {
-            UPSTREAM_MAP.put(selectorId, Lists.newArrayList(commonUpstream));
+            PENDING_SYNC.add(commonUpstream.hashCode());
+        }
+
+        List<CommonUpstream> upstreamList = UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList());
+        if (!commonUpstream.isStatus()) {
+            List<CommonUpstream> successList = upstreamList.stream().filter(item -> !item.equals(commonUpstream)).collect(Collectors.toList());
+            executor.execute(() -> updateHandler(selectorId, upstreamList, successList));
         }
     }
 
@@ -211,7 +222,7 @@ public class UpstreamCheckService {
     private void scheduled() {
         try {
             if (ZOMBIE_SET.size() > 0) {
-                ZOMBIE_SET.forEach(this::checkZombie);
+                ZOMBIE_SET.parallelStream().forEach(this::checkZombie);
             }
             if (UPSTREAM_MAP.size() > 0) {
                 UPSTREAM_MAP.forEach(this::check);
@@ -264,16 +275,26 @@ public class UpstreamCheckService {
 
     private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList, final List<CommonUpstream> successList) {
         //No node changes, including zombie node resurrection and live node death
-        if (successList.size() == upstreamList.size()) {
+        if (successList.size() == upstreamList.size() && PENDING_SYNC.size() == 0) {
             return;
         }
         if (successList.size() > 0) {
             UPSTREAM_MAP.put(selectorId, successList);
             updateSelectorHandler(selectorId, successList);
+            removePendingSync(successList);
         } else {
             UPSTREAM_MAP.remove(selectorId);
-            updateSelectorHandler(selectorId, null);
+            updateSelectorHandler(selectorId, Collections.EMPTY_LIST);
         }
+    }
+
+    private void removePendingSync(final List<CommonUpstream> successList) {
+        PENDING_SYNC.removeIf(item -> NumberUtils.INTEGER_ZERO.equals(item));
+        if (successList.stream().anyMatch(commonUpstream -> PENDING_SYNC.contains(commonUpstream.hashCode()))) {
+            PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
+        }
+        successList.stream().forEach(commonUpstream -> PENDING_SYNC.remove(commonUpstream.hashCode()));
+
     }
 
     private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {
@@ -316,6 +337,7 @@ public class UpstreamCheckService {
                     List<CommonUpstream> commonUpstreams = converterFactor.newInstance(name).convertUpstream(selectorDO.getHandle());
                     if (CollectionUtils.isNotEmpty(commonUpstreams)) {
                         UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
+                        PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
                     }
                 });
     }
