@@ -14,8 +14,24 @@
 # limitations under the License.
 
 server:
-  port: 8868
+  port: 8004
   address: 0.0.0.0
+
+
+shenyu:
+  register:
+    registerType: http
+    serverLists: http://localhost:9095
+    props:
+      username: admin
+      password: 123456
+  client:
+    websocket:
+      props:
+        contextPath: /ws-reactive
+        appName: ws-reactive
+        port: 8004
+
 
 logging:
   level:
