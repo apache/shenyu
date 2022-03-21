@@ -73,30 +73,6 @@
                 <exclude>**/*</exclude>
             </excludes>
         </fileSet>
-
-        <!--agent-->
-        <fileSet>
-            <directory>${project.basedir}/../../shenyu-agent/target</directory>
-            <includes>
-                <include>shenyu-agent.jar</include>
-            </includes>
-            <outputDirectory>agent</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>${project.basedir}/../shenyu-agent-dist/src/main/resources/conf</directory>
-            <includes>
-                <include>*.yaml</include>
-            </includes>
-            <outputDirectory>agent/conf</outputDirectory>
-        </fileSet>
-
-        <fileSet>
-            <directory>${project.basedir}/../../shenyu-agent/shenyu-agent-plugins/shenyu-agent-plugin-tracing/target/plugins</directory>
-            <outputDirectory>agent/plugins</outputDirectory>
-            <includes>
-                <include>**.jar</include>
-            </includes>
-        </fileSet>
     </fileSets>
     
     <dependencySets>

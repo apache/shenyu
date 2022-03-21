@@ -40,7 +40,6 @@
         <module>shenyu-integrated-test-sofa</module>
         <module>shenyu-integrated-test-websocket</module>
         <module>shenyu-integrated-test-combination</module>
-        <module>shenyu-integrated-test-agent</module>
     </modules>
 
     <properties>
