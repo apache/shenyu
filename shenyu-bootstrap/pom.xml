@@ -410,6 +410,18 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu instance end-->
+
+        <!--shenyu logging-rocketmq plugin start-->
+        <!--
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-rocketmq</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        -->
+        <!--shenyu logging-rocketmq plugin end-->
+
+
     </dependencies>
     <profiles>
         <profile>
