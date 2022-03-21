@@ -40,7 +40,7 @@ public abstract class AbstractServer implements Server, ChannelHandler {
     /**
      * start a server.
      *
-     * @param config 启动的config处理.
+     * @param config Started config processing.
      */
     @Override
     public void start(final ServerConfig config) {
