@@ -186,6 +186,15 @@
         </dependency>
         <!--shenyu websocket plugin end-->
 
+
+        <!--shenyu websocket plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-metrics</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu websocket plugin end-->
+
         <!--shenyu grpc plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

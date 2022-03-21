@@ -36,6 +36,11 @@ public enum PluginEnum {
     GLOBAL(10, 0, "global"),
     
     /**
+     * Monitor plugin enum.
+     */
+    METRICS(15, 0, "metrics"),
+    
+    /**
      * Sign plugin enum.
      */
     SIGN(20, 0, "sign"),
