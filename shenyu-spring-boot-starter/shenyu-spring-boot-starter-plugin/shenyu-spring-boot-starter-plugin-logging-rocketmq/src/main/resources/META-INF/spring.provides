@@ -1,3 +1,4 @@
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,19 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
 #
-#shenyu:
-#  logging:
-#    rocketmq:
-#      rocketmqProps:
-#        topic: "shenyu-access-logging"
-#        namesrvAddr: "localhost:9876"
 
+provides: shenyu-spring-boot-starter-plugin-logging-rocketmq

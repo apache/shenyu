@@ -353,6 +353,8 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_crea
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('26', 'websocket', 'Proxy', 200, '{"multiSelectorHandle":"1"}', '1', '2021-08-27 13:55:30', '2021-08-27 16:03:40');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('27', 'generalContext', 'Common', 125, '1', '2021-11-24 21:38:48', '2021-11-24 11:47:01');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('28', 'mqtt', 'Proxy', 125, '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}', '0', '2022-01-12 20:33:50', '2022-01-12 20:34:07');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('29', 'loggingRocketMQ', 'Logging', 170,'{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876"}', '0', '2022-03-19 09:00:00', '2022-03-19 09:00:00');
+
 
 /*insert plugin_handle data for sentinel*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('10' ,'flowRuleGrade','flowRuleGrade','3', 2, 8, '{"required":"1","defaultValue":"1","rule":""}');

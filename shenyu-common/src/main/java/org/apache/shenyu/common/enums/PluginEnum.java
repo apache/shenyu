@@ -121,10 +121,15 @@ public enum PluginEnum {
     LOGGING(160, 0, "logging"),
 
     /**
+     * Logging RocketMQ plugin enum.
+     */
+    LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
+
+    /**
      * the cache write plugin enum.
      */
-    CACHE_WRITE(170, 0, "cacheWrite"),
-    
+     CACHE_WRITE(180, 0, "cacheWrite"),
+
     /**
      * Divide plugin enum.
      */
