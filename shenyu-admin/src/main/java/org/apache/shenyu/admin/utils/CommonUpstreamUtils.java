@@ -81,7 +81,8 @@ public class CommonUpstreamUtils {
      * @return the websocket upstream
      */
     public static WebSocketUpstream buildWebSocketUpstream(final String protocol, final String host, final Integer port) {
-        return WebSocketUpstream.builder().host("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return WebSocketUpstream.builder().host("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
 
     /**
