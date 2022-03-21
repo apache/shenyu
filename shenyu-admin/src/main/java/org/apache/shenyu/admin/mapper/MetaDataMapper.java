@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
@@ -30,7 +31,16 @@ import java.util.Set;
  * The interface Meta data mapper.
  */
 @Mapper
-public interface MetaDataMapper {
+public interface MetaDataMapper extends ExistProvider {
+    
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
     
     /**
      * Select by id meta data do.
@@ -150,5 +160,14 @@ public interface MetaDataMapper {
      * @param path path
      * @return existed
      */
-    Boolean pathExisted(Serializable path);
+    Boolean pathExisted(@Param("path") Serializable path);
+    
+    /**
+     * the path is existed.
+     *
+     * @param path    path
+     * @param exclude exclude
+     * @return existed
+     */
+    Boolean pathExistedExclude(@Param("path") Serializable path, @Param("exclude") List<String> exclude);
 }

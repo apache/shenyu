@@ -60,8 +60,9 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
                         generalContextMapWithRpcType.put(each.getGeneralContextKey(), each.getGeneralContextValue());
                         break;
                     case Constants.TRANSMIT_HEADER_TO_GENERAL_CONTEXT_TYPE:
+                        final List<String> header = headers.get(each.getGeneralContextKey());
                         generalContextMapWithRpcType.put(StringUtils.isBlank(each.getGeneralContextValue()) ? each.getGeneralContextKey() : each.getGeneralContextValue(),
-                                headers.getFirst(each.getGeneralContextKey()));
+                                CollectionUtils.isEmpty(header) ? null : String.join(", ", header));
                         break;
                     default:
                         break;

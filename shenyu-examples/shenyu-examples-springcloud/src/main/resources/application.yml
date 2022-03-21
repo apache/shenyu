@@ -37,7 +37,7 @@ shenyu:
     springCloud:
       props:
         contextPath: /springcloud
-        port: 8884
+#        port: 8884
 
 logging:
   level:

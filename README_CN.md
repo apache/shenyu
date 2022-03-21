@@ -2,7 +2,7 @@
     <a href="https://dromara.org"><img src="https://shenyu.apache.org/img/logo/apache-shenyu.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>应用于所有微服务场景的，可扩展、高性能、响应式的 API 网关解决方案</strong>
+  <strong>应用于所有微服务场景，可扩展、高性能、响应式的 API 网关解决方案</strong>
 </p>
 <p align="center">
   <a href="https://shenyu.apache.org/">https://shenyu.apache.org/</a>
@@ -48,22 +48,22 @@
 
 --------------------------------------------------------------------------------
 
-# 为什么叫ShenYu
+# 为什么叫 ShenYu
 
 ShenYu (神禹)是我们古代君王夏禹的尊称（后世也尊称大禹），为造福百姓，成功治理黄河水患，留下了三过家门而不入的感人故事。其和尧舜并称为中国古代最伟大的三位君王。
 
-   * 首先，取名为ShenYu是弘扬我们中华文明的传统美德。
+   * 首先，取名为 ShenYu 是弘扬我们中华文明的传统美德。
 
    * 其次，网关最最重要的是对流量的治理。
 
-   * 最后，社区将会以公平，公正，公开，任人唯贤的做事方式，致敬神禹的同时也符合Apache Way。
+   * 最后，社区将会以公平，公正，公开，任人唯贤的做事方式，致敬神禹的同时也符合 Apache Way。
 
 -------------------------------------------------------------------------------- 
 
 # 功能特点
 
-   * 提供了诸如限流、熔断、转发 、重写、重定向、和路由监控等插件；
-   * 支持 HTTP、RESTFul、WebSocket、Dubbo、 GRPC、 Tars、 Spring Cloud 代理；
+   * 提供了诸如限流、熔断、转发 、重写、重定向、路由、监控等插件；
+   * 支持 HTTP、RESTFul、WebSocket、Dubbo、 gRPC、 Tars、 Spring Cloud 代理；
    * 支持热插拔，用户可以定制化开发；
    * 为了灵活的适配，选择器和规则可以动态的适配；
    * 支持集群部署；
@@ -154,7 +154,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 当然，用户也可以定制化插件去满足他们自己的需求。
 
-如果你有定制化插件的需求，请参看这里：[custom-plugin](https://shenyu.apache.org/zh/docs/developer/custom-plugin)
+如果你有定制化插件的需求，请参看这里：[custom-plugin](https://shenyu.apache.org/zh/docs/developer/custom-plugin) 。
 
 --------------------------------------------------------------------------------
 
@@ -174,7 +174,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 所有的数据都被缓存在 JVM 的 ConcurrentHashMap 中，所以它非常快。
 
-当用户在后台界面改变配置信息时，ShenYu 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
+当用户在后台界面改变配置信息时，ShenYu 通过监听 ZooKeeper 节点（或 WebSocket 推送，HTTP长轮询）来动态更新缓存。
 
   ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-zh.png)
 

@@ -15,6 +15,7 @@
 # limitations under the License.
 version: "3.9"
 services:
+
   shenyu-admin:
     image: apache/shenyu-admin:latest
     container_name: shenyu-admin
@@ -32,18 +33,18 @@ services:
       retries: 30
       start_period: 5s
 
-  shenyu-examples-websocket:
+  shenyu-example-spring-native-websocket:
     deploy:
       resources:
         limits:
           memory: 2048M
-    container_name: shenyu-examples-websocket
-    image: shenyu-examples-websocket:latest
+    container_name: shenyu-example-spring-native-websocket
+    image: shenyu-example-spring-native-websocket:latest
     restart: always
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
     healthcheck:
-      test: [ "CMD-SHELL", "curl --no-buffer  -H 'Connection: keep-alive, Upgrade' -H 'Upgrade: websocket' -v -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: websocket' http://localhost:8848/websocket || exit 1" ]
+      test: [ "CMD-SHELL", "curl --no-buffer  -H 'Connection: keep-alive, Upgrade' -H 'Upgrade: websocket' -v -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: websocket' http://shenyu-example-spring-native-websocket:8848/myWebSocket?token=Jack || exit 1" ]
       timeout: 2s
       retries: 3
       start_period: 5s

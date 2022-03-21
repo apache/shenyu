@@ -18,13 +18,15 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
-import org.apache.shenyu.admin.service.PluginHandleService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
+import org.apache.shenyu.admin.service.PluginHandleService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,16 +34,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,6 +65,9 @@ public final class PluginHandleControllerTest {
 
     @Mock
     private PluginHandleService pluginHandleService;
+    
+    @Mock
+    private PluginHandleMapper handleMapper;
 
     private final PluginHandleVO pluginHandleVO = new PluginHandleVO("1", "2", "3", "label",
             1, 1, 1, null, DateUtils.localDateTimeToString(LocalDateTime.now()),
@@ -121,6 +131,9 @@ public final class PluginHandleControllerTest {
         pluginHandleDTO.setPluginId("1213");
         pluginHandleDTO.setDataType(1);
         pluginHandleDTO.setField("f");
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(PluginHandleMapper.class)).thenReturn(handleMapper);
+        when(handleMapper.existed(pluginHandleDTO.getId())).thenReturn(true);
         given(this.pluginHandleService.createOrUpdate(pluginHandleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-handle/{id}", "1")
                 .contentType(MediaType.APPLICATION_JSON)

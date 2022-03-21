@@ -18,6 +18,8 @@
 package org.apache.shenyu.loadbalancer.cache;
 
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.awaitility.Awaitility;
@@ -78,7 +80,7 @@ public class UpstreamCheckTaskTest {
         healthCheckTask.schedule();
         // Wait for the upstream-health-check thread to start.
         Awaitility.await().pollDelay(3, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
-        assertTrue(healthCheckTask.getUnhealthyUpstream().get(selectorId1).size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(healthCheckTask.getUnhealthyUpstream().get(selectorId1)));
         // Let it coverage line 151~163.
         when(upstream.isHealthy()).thenReturn(false).thenReturn(true);
         // Even if the address could not connect, it will return false, that mean it will not coverage 151~163.

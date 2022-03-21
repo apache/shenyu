@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -25,6 +26,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -47,39 +50,42 @@ import java.util.List;
 @RestController
 @RequestMapping("/plugin-handle")
 public class PluginHandleController {
-
+    
     private final PluginHandleService pluginHandleService;
-
+    
     public PluginHandleController(final PluginHandleService pluginHandleService) {
         this.pluginHandleService = pluginHandleService;
     }
-
+    
     /**
      * query plugin handle by plugin id.
-     * @param pluginId  plugin id.
-     * @param field  plugin field.
-     * @param currentPage  current page.
-     * @param pageSize page size
+     *
+     * @param pluginId    plugin id.
+     * @param field       plugin field.
+     * @param currentPage current page.
+     * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public ShenyuAdminResult queryPluginHandles(final String pluginId, final String field, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryPluginHandles(final String pluginId, final String field,
+                                                @NotNull final Integer currentPage,
+                                                @NotNull final Integer pageSize) {
         CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, field, null, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
-
+    
     /**
      * query plugin handle by plugin id.
-     * @param pluginId  plugin id.
-     * @param type type 1:selector,2:rule
+     *
+     * @param pluginId plugin id.
+     * @param type     type 1:selector,2:rule
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all/{pluginId}/{type}")
     public ShenyuAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId, @PathVariable("type") final Integer type) {
-        List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId, type);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginHandleVOS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginHandleService.list(pluginId, type));
     }
-
+    
     /**
      * get plugin handle detail.
      *
@@ -87,13 +93,16 @@ public class PluginHandleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public ShenyuAdminResult detailRule(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
+                                        @Existed(provider = PluginHandleMapper.class,
+                                                message = "rule not exited") final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginHandleVO);
     }
-
+    
     /**
      * create plugin handle.
+     *
      * @param pluginHandleDTO {@link PluginHandleDTO}
      * @return {@link ShenyuAdminResult}
      */
@@ -102,21 +111,26 @@ public class PluginHandleController {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
-
+    
     /**
      * update plugin handle by id.
-     * @param id plugin handle id
+     *
+     * @param id              plugin handle id
      * @param pluginHandleDTO {@linkplain PluginHandleDTO}
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updatePluginHandle(@PathVariable("id") final String id, @Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
+    public ShenyuAdminResult updatePluginHandle(@PathVariable("id") @Valid
+                                                @Existed(provider = PluginHandleMapper.class,
+                                                        message = "rule not exited") final String id,
+                                                @Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         pluginHandleDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, pluginHandleService.createOrUpdate(pluginHandleDTO));
     }
-
+    
     /**
      * batch delete some plugin handles by some id list.
+     *
      * @param ids plugin handle id list.
      * @return {@linkplain ShenyuAdminResult}
      */

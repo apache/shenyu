@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -25,6 +26,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -47,13 +50,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/selector")
 public class SelectorController {
-
+    
     private final SelectorService selectorService;
-
+    
     public SelectorController(final SelectorService selectorService) {
         this.selectorService = selectorService;
     }
-
+    
     /**
      * query Selectors.
      *
@@ -64,11 +67,13 @@ public class SelectorController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public ShenyuAdminResult querySelectors(final String pluginId, final String name, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult querySelectors(final String pluginId, final String name,
+                                            @NotNull final Integer currentPage,
+                                            @NotNull final Integer pageSize) {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
-
+    
     /**
      * detail selector.
      *
@@ -76,11 +81,13 @@ public class SelectorController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public ShenyuAdminResult detailSelector(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
+                                            @Existed(provider = SelectorMapper.class,
+                                                    message = "selector is not existed") final String id) {
         SelectorVO selectorVO = selectorService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
-
+    
     /**
      * create selector.
      *
@@ -92,7 +99,7 @@ public class SelectorController {
         Integer createCount = selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
-
+    
     /**
      * update Selector.
      *
@@ -101,12 +108,15 @@ public class SelectorController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateSelector(@PathVariable("id") final String id, @Valid @RequestBody final SelectorDTO selectorDTO) {
+    public ShenyuAdminResult updateSelector(@PathVariable("id") @Valid
+                                            @Existed(provider = SelectorMapper.class,
+                                                    message = "selector is not existed") final String id,
+                                            @Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
-
+    
     /**
      * delete Selectors.
      *
