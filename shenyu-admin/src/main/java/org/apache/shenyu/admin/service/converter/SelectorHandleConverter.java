@@ -53,9 +53,10 @@ public interface SelectorHandleConverter {
     /**
      * Update upstream status and remove invalid.
      *
-     * @param <T> existList the existList
+     * @param <T> the type parameter
+     * @param existList the existList
      * @param aliveList the aliveList
-     * @return <T> the valid existList
+     * @return the valid existList
      */
     <T extends CommonUpstream> List<T> updateStatusAndFilter(List<T> existList, List<? extends CommonUpstream> aliveList);
 }
