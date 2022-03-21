@@ -81,7 +81,7 @@ public class NettyServer extends AbstractServer {
      */
     @Override
     protected void start0(final int port) {
-        //判断Linux系统
+        //Judge Linux system
         if (isLinux()) {
             boosGroup = new EpollEventLoopGroup(1, ShenyuThreadFactory.create("shenyu_proxy_server_boss_epoll", false));
             workGroup = new EpollEventLoopGroup(threads, ShenyuThreadFactory.create("shenyu_proxy_server_work_epoll", false));
@@ -110,7 +110,7 @@ public class NettyServer extends AbstractServer {
                         channel.pipeline().addLast(nettyServerHandler);
                     }
                 });
-        //设置信息
+        //setup information
         try {
             Channel channel = server.bind(port).sync().channel();
             logger.info("Network listening,ip:{},port:{}", ((InetSocketAddress) channel.localAddress()).getHostString(), port);

@@ -48,7 +48,7 @@ public abstract class AbstractServer implements Server, ChannelHandler {
     }
     
     /**
-     * 发送一个消息.
+     * send a message.
      *
      * @param channel the channel
      * @param message the message

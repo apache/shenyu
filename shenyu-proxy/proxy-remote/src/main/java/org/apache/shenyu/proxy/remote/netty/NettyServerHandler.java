@@ -26,7 +26,7 @@ import io.netty.handler.timeout.IdleStateEvent;
 
 /**
  * NettyServerHandler .
- * netty服务器的处理.
+ * Processing of netty server.
  *
  * @author sixh chenbin
  */
