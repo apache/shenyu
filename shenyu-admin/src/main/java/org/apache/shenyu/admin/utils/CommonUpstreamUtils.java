@@ -59,7 +59,18 @@ public class CommonUpstreamUtils {
         return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
-    
+
+    /**
+     * Build divide upstream.
+     *
+     * @param protocol the protocol
+     * @param upstreamUrl the upstreamUrl
+     * @return the divide upstream
+     */
+    public static DivideUpstream buildDivideUpstream(final String protocol, final String upstreamUrl) {
+        return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+    }
+
     /**
      * Build default dubbo upstream dubbo upstream.
      *

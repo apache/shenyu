@@ -72,7 +72,6 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
-        String handleAdd;
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
         List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
         boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
@@ -81,7 +80,6 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         }
         List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isEmpty(existList)) {
-            handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
             List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
@@ -89,21 +87,31 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
             }
-            List<DivideUpstream> diffStatusList = addList.stream().filter(divideUpstream -> existList.stream()
-                    .anyMatch(e -> e.equals(divideUpstream) && e.isStatus() != divideUpstream.isStatus())).collect(Collectors.toList());
+            List<DivideUpstream> diffStatusList = addList.stream().filter(divideUpstream -> !divideUpstream.isStatus()
+                    || existList.stream().anyMatch(e -> e.equals(divideUpstream) && e.isStatus() != divideUpstream.isStatus())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffStatusList)) {
                 canAddList.addAll(diffStatusList);
             }
+        }
+
+        boolean submitted = doSubmit(selectorDO.getId(), canAddList);
+        if (submitted) {
+            return null;
+        }
+
+        List<DivideUpstream> handleList;
+        if (CollectionUtils.isEmpty(existList)) {
+            handleList = addList;
+        } else {
             List<DivideUpstream> aliveList;
             if (isEventDeleted) {
                 aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
             } else {
                 aliveList = addList;
             }
-            handleAdd = GsonUtils.getInstance().toJson(divideSelectorHandleConverter.updateStatusAndFilter(existList, aliveList));
+            handleList = divideSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
         }
-        doSubmit(selectorDO.getId(), canAddList);
-        return handleAdd;
+        return GsonUtils.getInstance().toJson(handleList);
     }
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {

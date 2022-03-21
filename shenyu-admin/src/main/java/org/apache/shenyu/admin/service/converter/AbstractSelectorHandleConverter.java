@@ -55,7 +55,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
         if ((StringUtils.isEmpty(handle) || EMPTY_LIST_JSON.equals(handle)) && CollectionUtils.isEmpty(aliveList)) {
             return EMPTY_LIST_JSON;
         }
-        return GsonUtils.getInstance().toJson(doHandle(handle, aliveList));
+        return GsonUtils.getInstance().toJson(doHandle(StringUtils.isEmpty(handle) ? EMPTY_LIST_JSON : handle, aliveList));
     }
 
     /**
@@ -66,13 +66,14 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
      * @return the valid existList
      */
     @Override
-    public List<? extends CommonUpstream> updateStatusAndFilter(final List<? extends CommonUpstream> existList, final List<? extends CommonUpstream> aliveList) {
+    public <T extends CommonUpstream> List<T> updateStatusAndFilter(final List<T> existList, final List<? extends CommonUpstream> aliveList) {
         if (aliveList == null) {
             return Collections.EMPTY_LIST;
         }
         long currentTimeMillis = System.currentTimeMillis();
-        List<? extends CommonUpstream> validExistList = existList.stream()
-                .filter(e -> e.isStatus() || e.getTimestamp() > currentTimeMillis - TimeUnit.HOURS.toMillis(1))
+        List<T> validExistList = existList.stream()
+                .filter(e -> e.isStatus() || e.getTimestamp() > currentTimeMillis - TimeUnit.HOURS.toMillis(1)
+                        || aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
         validExistList.stream()
                 .filter(divideUpstream -> !divideUpstream.isStatus() && aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())))
@@ -80,12 +81,12 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
                     divideUpstream.setStatus(true);
                     divideUpstream.setTimestamp(currentTimeMillis);
                 });
-        existList.stream()
+        validExistList.stream()
                 .filter(divideUpstream -> !aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())))
                 .forEach(divideUpstream -> {
                     divideUpstream.setStatus(false);
                     divideUpstream.setTimestamp(currentTimeMillis);
                 });
-        return existList;
+        return validExistList;
     }
 }
