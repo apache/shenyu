@@ -25,7 +25,6 @@ services:
     volumes:
     - ./shenyu-bootstrap/logs/:/opt/shenyu-bootstrap/logs
     - ./shenyu-bootstrap/conf/:/opt/shenyu-bootstrap/conf
-    - ./shenyu-bootstrap/agent/conf/:/opt/shenyu-bootstrap/agent/conf
     links:
       - shenyu-admin:admin
     depends_on:
