@@ -57,19 +57,19 @@ public class CacheHandler implements PluginDataHandler {
         if (Objects.isNull(cacheConfig)) {
             return;
         }
-        Singleton.INST.single(CacheConfig.class, cacheConfig);
         // use redis cache
         if (CacheEnum.REDIS.getName().equals(cacheConfig.getCacheType())) {
             LOG.info("use the redis cache.");
             RedisCache redisCache = Singleton.INST.get(RedisCache.class);
-            // close the last redis cache to create new one.
-            if (Objects.nonNull(redisCache)) {
+            if (Objects.isNull(redisCache)) {
+                final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
+                redisCache = new RedisCache(redisConnectionFactory.getLettuceConnectionFactory());
+                Singleton.INST.single(RedisCache.class, redisCache);
+            } else if (!cacheConfig.equals(Singleton.INST.get(CacheConfig.class))) {
+                // close the last redis cache to create new one.
                 LOG.info("close the last redis cache");
                 redisCache.close();
             }
-            final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
-            redisCache = new RedisCache(redisConnectionFactory.getLettuceConnectionFactory());
-            Singleton.INST.single(RedisCache.class, redisCache);
         }
         // use memory
         if (CacheEnum.MEMORY.getName().equals(cacheConfig.getCacheType())) {
@@ -79,6 +79,7 @@ public class CacheHandler implements PluginDataHandler {
                 Singleton.INST.single(MemoryCache.class, new MemoryCache());
             }
         }
+        Singleton.INST.single(CacheConfig.class, cacheConfig);
     }
 
     /**

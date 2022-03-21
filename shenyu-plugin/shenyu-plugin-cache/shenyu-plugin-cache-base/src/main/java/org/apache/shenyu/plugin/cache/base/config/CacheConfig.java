@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.cache.base.config;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
 
+import java.util.Objects;
+
 /**
  * CacheConfig.
  */
@@ -36,5 +38,25 @@ public class CacheConfig extends RedisConfigProperties {
 
     public void setCacheType(String cacheType) {
         this.cacheType = cacheType;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        final CacheConfig that = (CacheConfig) o;
+        return Objects.equals(cacheType, that.cacheType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), cacheType);
     }
 }
