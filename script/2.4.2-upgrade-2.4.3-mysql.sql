@@ -56,7 +56,7 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 UPDATE shenyu_dict SET dict_value = 'false' WHERE dict_code = 'INIT_FLAG';
 
 -- insert plugin data for cache
-INSERT INTO plugin (id, name, config, role, sort, enabled) VALUES ('1505394366310285312', 'cache', '{"cacheType":"memory"}', ''Cache', 1, 0);
+INSERT INTO plugin (id, name, config, role, sort, enabled) VALUES ('1505394366310285312', 'cache', '{"cacheType":"memory"}', 'Cache', 1, 0);
 
 -- insert plugin_handle data for cache
 INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj) VALUES ('1505397799121616896', '1505394366310285312', 'cacheType', 'cacheType', 2, 3, 1, '{"required":"1","defaultValue":"memory","rule":""}');
