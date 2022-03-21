@@ -119,6 +119,11 @@ public enum PluginEnum {
      * Logging plugin enum.
      */
     LOGGING(160, 0, "logging"),
+
+    /**
+     * Logging RocketMQ plugin enum.
+     */
+    LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
     
     /**
      * Divide plugin enum.
