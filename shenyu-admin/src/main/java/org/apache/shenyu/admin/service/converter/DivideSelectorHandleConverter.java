@@ -51,8 +51,11 @@ public class DivideSelectorHandleConverter extends AbstractSelectorHandleConvert
      */
     @Override
     protected Object doHandle(final String handle, final List<CommonUpstream> aliveList) {
-        List<DivideUpstream> existList = convert(handle);
-        return updateStatusAndFilter(existList, aliveList);
+        List<DivideUpstream> existList = updateStatusAndFilter(convert(handle), aliveList);
+        aliveList.stream()
+                .filter(alive -> !existList.stream().anyMatch(valid -> valid.getUpstreamUrl().equals(alive.getUpstreamUrl())))
+                .forEach(alive -> existList.add(CommonUpstreamUtils.buildDivideUpstream(alive.getProtocol(), alive.getUpstreamUrl())));
+        return existList;
     }
     
     private List<DivideUpstream> convert(final String handle) {

@@ -57,5 +57,5 @@ public interface SelectorHandleConverter {
      * @param aliveList the aliveList
      * @return the valid existList
      */
-    List<? extends CommonUpstream> updateStatusAndFilter(List<? extends CommonUpstream> existList, List<? extends CommonUpstream> aliveList);
+    <T extends CommonUpstream> List<T> updateStatusAndFilter(List<T> existList, List<? extends CommonUpstream> aliveList);
 }
