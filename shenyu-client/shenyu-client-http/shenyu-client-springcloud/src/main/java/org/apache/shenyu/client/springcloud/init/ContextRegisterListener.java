@@ -22,8 +22,8 @@ import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
+import org.apache.shenyu.common.utils.PortUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -37,8 +37,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -101,38 +99,8 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
-        final int mergedPort = port <= 0 ? findPort() : port;
+        final int mergedPort = port <= 0 ? PortUtils.findPort(beanFactory) : port;
         publisher.publishEvent(buildUriRegisterDTO(mergedPort));
-    }
-
-    /**
-     * Note: springboot 1.x version has been made compatible.
-     * Note: In this way, no matter what container is actually used,
-     * you can get the port that is actually started in the end.
-     *
-     * @see org.springframework.boot.context.embedded.AbstractConfigurableEmbeddedServletContainer#getPort()
-     * @see org.springframework.boot.web.server.AbstractConfigurableWebServerFactory#getPort()
-     */
-    @SuppressWarnings("all")
-    private int findPort() {
-        try {
-            //works fine for springboot 2.x
-            return getPort("org.springframework.boot.web.server.AbstractConfigurableWebServerFactory");
-        } catch (Exception e) {
-            try {
-                //works fine for springboot 1.x
-                return getPort("org.springframework.boot.context.embedded.AbstractConfigurableEmbeddedServletContainer");
-            } catch (Exception exception) {
-                throw new ShenyuException("can not find port automatically ! try to config ${shenyu.client.springCloud.props.port}");
-            }
-        }
-    }
-
-    private int getPort(final String className) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        final Class<?> clazz = Class.forName(className);
-        final Method method = clazz.getMethod("getPort");
-        final Object bean = beanFactory.getBean(clazz);
-        return (int) method.invoke(bean);
     }
 
     private URIRegisterDTO buildUriRegisterDTO(final int port) {

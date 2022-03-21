@@ -34,8 +34,8 @@ public class TimerAfterPredicateJudge implements PredicateJudge {
     public Boolean judge(final ConditionData conditionData, final String realData) {
         String paramName = conditionData.getParamName();
         if (Objects.isNull(paramName)) {
-            return LocalDateTime.now().isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
+            return LocalDateTime.now().isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue().trim()));
         }
-        return DateUtils.parseLocalDateTime(realData).isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
+        return DateUtils.parseLocalDateTime(realData).isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue().trim()));
     }
 }

@@ -22,6 +22,7 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -136,14 +137,14 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                SELECTOR_MAP.keySet().removeAll(SELECTOR_MAP.keySet());
+                if (CollectionUtils.isNotEmpty(changed)) {
+                    SELECTOR_MAP.remove(changed.get(0).getPluginName());
+                }
                 changed.forEach(selector -> {
-                    List<SelectorData> ls = SELECTOR_MAP
-                            .getOrDefault(selector.getPluginName(), new ArrayList<>())
-                            .stream()
-                            .sorted(SELECTOR_DATA_COMPARATOR)
-                            .collect(Collectors.toList());
+                    List<SelectorData> ls = new ArrayList<>(SELECTOR_MAP.getOrDefault(selector.getPluginName(),
+                            new ArrayList<>()));
                     ls.add(selector);
+                    ls.sort(SELECTOR_DATA_COMPARATOR);
                     SELECTOR_MAP.put(selector.getPluginName(), ls);
                 });
                 break;
@@ -153,9 +154,9 @@ public class NacosDataChangedListener implements DataChangedListener {
                             .getOrDefault(selector.getPluginName(), new ArrayList<>())
                             .stream()
                             .filter(s -> !s.getId().equals(selector.getId()))
-                            .sorted(SELECTOR_DATA_COMPARATOR)
                             .collect(Collectors.toList());
                     ls.add(selector);
+                    ls.sort(SELECTOR_DATA_COMPARATOR);
                     SELECTOR_MAP.put(selector.getPluginName(), ls);
                 });
                 break;
@@ -211,14 +212,16 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                RULE_MAP.keySet().removeAll(RULE_MAP.keySet());
+                Set<String> selectIdSet = changed
+                        .stream()
+                        .map(RuleData::getSelectorId)
+                        .collect(Collectors.toSet());
+                RULE_MAP.keySet().removeAll(selectIdSet);
                 changed.forEach(rule -> {
-                    List<RuleData> ls = RULE_MAP
-                            .getOrDefault(rule.getSelectorId(), new ArrayList<>())
-                            .stream()
-                            .sorted(RULE_DATA_COMPARATOR)
-                            .collect(Collectors.toList());
+                    List<RuleData> ls = new ArrayList<>(RULE_MAP.getOrDefault(rule.getSelectorId(),
+                            new ArrayList<>()));
                     ls.add(rule);
+                    ls.sort(RULE_DATA_COMPARATOR);
                     RULE_MAP.put(rule.getSelectorId(), ls);
                 });
                 break;

@@ -22,6 +22,7 @@ import org.apache.shenyu.common.enums.RedisModeEnum;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The configuration for redis.
@@ -50,26 +51,26 @@ public class RedisConfigProperties implements Serializable {
      * Maximum number of "idle" connections in the pool. Use a negative value to
      * indicate an unlimited number of idle connections.
      */
-    private int maxIdle = 8;
+    private Integer maxIdle = 8;
 
     /**
      * Target for the minimum number of idle connections to maintain in the pool. This
      * setting only has an effect if it is positive.
      */
-    private int minIdle;
+    private Integer minIdle;
 
     /**
      * Maximum number of connections that can be allocated by the pool at a given
      * time. Use a negative value for no limit.
      */
-    private int maxActive = 8;
+    private Integer maxActive = 8;
 
     /**
      * Maximum amount of time a connection allocation should block before throwing an
      * exception when the pool is exhausted. Use a negative value to block
      * indefinitely.
      */
-    private Duration maxWait = Duration.ofMillis(-1);
+    private Integer maxWait = -1;
 
     /**
      * Gets database.
@@ -184,7 +185,7 @@ public class RedisConfigProperties implements Serializable {
      *
      * @return the min idle
      */
-    public int getMinIdle() {
+    public Integer getMinIdle() {
         return minIdle;
     }
 
@@ -202,7 +203,7 @@ public class RedisConfigProperties implements Serializable {
      *
      * @return the max active
      */
-    public int getMaxActive() {
+    public Integer getMaxActive() {
         return maxActive;
     }
 
@@ -221,7 +222,8 @@ public class RedisConfigProperties implements Serializable {
      * @return the max wait
      */
     public Duration getMaxWait() {
-        return maxWait;
+        return Optional.ofNullable(maxWait)
+                .map(it -> Duration.ofMillis(maxWait)).orElse(Duration.ofMillis(-1));
     }
 
     /**
@@ -229,7 +231,7 @@ public class RedisConfigProperties implements Serializable {
      *
      * @param maxWait the max wait
      */
-    public void setMaxWait(final Duration maxWait) {
+    public void setMaxWait(final Integer maxWait) {
         this.maxWait = maxWait;
     }
 
@@ -242,7 +244,7 @@ public class RedisConfigProperties implements Serializable {
             return false;
         }
         RedisConfigProperties that = (RedisConfigProperties) o;
-        return maxIdle == that.maxIdle && minIdle == that.minIdle && maxActive == that.maxActive
+        return maxIdle.equals(that.maxIdle) && minIdle.equals(that.minIdle) && maxActive.equals(that.maxActive)
                 && Objects.equals(database, that.database) && Objects.equals(master, that.master)
                 && Objects.equals(mode, that.mode) && Objects.equals(url, that.url)
                 && Objects.equals(password, that.password)

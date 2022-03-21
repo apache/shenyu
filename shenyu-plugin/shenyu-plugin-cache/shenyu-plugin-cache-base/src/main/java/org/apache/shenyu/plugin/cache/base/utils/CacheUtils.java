@@ -24,7 +24,7 @@ import org.apache.shenyu.plugin.cache.base.ICache;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
-import org.apache.shenyu.plugin.cache.base.redis.ShenyuCacheReactiveRedisTemplate;
+import org.apache.shenyu.plugin.cache.base.redis.RedisCache;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -72,7 +72,7 @@ public final class CacheUtils {
         if (CacheEnum.MEMORY.getName().equals(cacheConfig.getCacheType())) {
             cache = Singleton.INST.get(MemoryCache.class);
         } else if (CacheEnum.REDIS.getName().equals(cacheConfig.getCacheType())) {
-            cache = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
+            cache = Singleton.INST.get(RedisCache.class);
         }
         return cache;
     }

@@ -29,29 +29,26 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 /**
  * RedisCacheTest
  */
 @ExtendWith(MockitoExtension.class)
 public class RedisCacheTest {
 
-    private ShenyuCacheReactiveRedisTemplate shenyuCacheRedisTemplate;
+    private RedisCache shenyuCacheRedisTemplate;
 
     @Before
     public void prepare() {
-
-        CacheConfig redisConfigProperties = new CacheConfig();
-        redisConfigProperties.setMode(RedisModeEnum.STANDALONE.getName());
-        redisConfigProperties.setUrl("shenyu-redis:6379");
-        redisConfigProperties.setCacheType(CacheEnum.REDIS.getName());
-        final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
-        shenyuCacheRedisTemplate = new ShenyuCacheReactiveRedisTemplate(redisConnectionFactory.getLettuceConnectionFactory());
+        CacheConfig cacheConfig = new CacheConfig();
+        cacheConfig.setMode(RedisModeEnum.STANDALONE.getName());
+        cacheConfig.setUrl("shenyu-redis:6379");
+        cacheConfig.setCacheType(CacheEnum.REDIS.getName());
+        final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
+        shenyuCacheRedisTemplate = new RedisCache(redisConnectionFactory.getLettuceConnectionFactory());
     }
 
     @Test
     public void testRedisCache() {
-
         final String testKey = "testRedisCache";
         assertEquals(Boolean.FALSE, shenyuCacheRedisTemplate.isExist(testKey));
         boolean flag = shenyuCacheRedisTemplate.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);

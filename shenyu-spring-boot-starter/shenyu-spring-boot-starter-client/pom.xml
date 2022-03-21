@@ -36,5 +36,6 @@
         <module>shenyu-spring-boot-starter-client-grpc</module>
         <module>shenyu-spring-boot-starter-client-common</module>
         <module>shenyu-spring-boot-starter-client-motan</module>
+        <module>shenyu-spring-boot-starter-client-spring-websocket</module>
     </modules>
 </project>

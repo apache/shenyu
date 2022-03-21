@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -45,6 +46,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -111,8 +113,6 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testCreateOrUpdate() {
-        testCreateOrUpdateForParamsError();
-        testCreateOrUpdateForPathExist();
         testCreateOrUpdateForInsert();
         testCreateOrUpdateForUpdate();
     }
@@ -237,71 +237,17 @@ public final class MetaDataServiceTest {
         metaDataService.saveOrUpdateMetaData(MetaDataDO.builder().id("1").build(), new MetaDataRegisterDTO());
         verify(metaDataMapper).update(any(MetaDataDO.class));
     }
-
-    /**
-     * Cases where the params error.
-     */
-    private void testCreateOrUpdateForParamsError() {
-        when(metaDataDTO.getAppName())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("AppName");
-        when(metaDataDTO.getPath())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("path");
-        when(metaDataDTO.getRpcType())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("rpcType");
-        when(metaDataDTO.getServiceName())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("serviceName");
-        when(metaDataDTO.getMethodName())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("methodName");
-
-        for (int i = 0; i < 2 * 5; i++) {
-            String msg = metaDataService.createOrUpdate(metaDataDTO);
-            assertEquals(AdminConstants.PARAMS_ERROR, msg);
-        }
-    }
-
-    /**
-     * Cases where check passed or the data path already exists.<br>
-     * The stub declared in createOrUpdateCase1 will not be repeated.
-     */
-    private void testCreateOrUpdateForPathExist() {
-        MetaDataDO metaDataDO = MetaDataDO.builder().id("id1").build();
-        when(metaDataDTO.getId())
-                .thenReturn(null)
-                .thenReturn("id1");
-        when(metaDataMapper.findByPath(anyString()))
-                .thenReturn(null)
-                .thenReturn(metaDataDO);
-
-        for (int i = 0; i < 2; i++) {
-            String msg = metaDataService.createOrUpdate(metaDataDTO);
-            assertEquals(StringUtils.EMPTY, msg);
-        }
-
-        when(metaDataDTO.getId()).thenReturn("id2");
-        String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(AdminConstants.DATA_PATH_IS_EXIST, msg);
-    }
-
+    
     /**
      * Cases where check passed and insert operation.<br>
      * The stub declared in createOrUpdateCase1 will not be repeated.
      */
     private void testCreateOrUpdateForInsert() {
         when(metaDataDTO.getId()).thenReturn(null);
-        when(metaDataMapper.findByPath(anyString())).thenReturn(null);
         when(metaDataMapper.insert(any())).thenReturn(1);
+        when(metaDataMapper.pathExisted(any())).thenReturn(null);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(StringUtils.EMPTY, msg);
+        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, msg);
     }
 
     /**
@@ -311,10 +257,12 @@ public final class MetaDataServiceTest {
     private void testCreateOrUpdateForUpdate() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         when(metaDataDTO.getId()).thenReturn("id");
-        when(metaDataMapper.selectById("id")).thenReturn(null).thenReturn(metaDataDO);
+        when(metaDataDTO.getPath()).thenReturn("path");
+        when(metaDataMapper.pathExistedExclude("path", Collections.singletonList("id"))).thenReturn(null);
+        when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(StringUtils.EMPTY, msg);
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, msg);
     }
 
     private void assertEquals(final String expected, final String actual) {

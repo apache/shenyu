@@ -135,7 +135,7 @@ public final class RateLimiterPluginDataHandlerTest {
     public void getPoolConfigPropertyTest() {
         Duration duration = Duration.ofHours(1);
         RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
-        redisConfigProperties.setMaxWait(duration);
+        redisConfigProperties.setMaxWait(1);
         GenericObjectPoolConfig<RedisConfigProperties> poolConfig = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler,
                 "getPoolConfig", redisConfigProperties);
         assertNotNull(poolConfig);

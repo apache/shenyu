@@ -9,7 +9,7 @@ import org.apache.shenyu.plugin.cache.base.ICache;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.handler.CacheHandler;
-import org.apache.shenyu.plugin.cache.base.redis.ShenyuCacheReactiveRedisTemplate;
+import org.apache.shenyu.plugin.cache.base.redis.RedisCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +38,7 @@ public class CacheHandlerTest {
         final PluginData pluginData = new PluginData();
         pluginData.setConfig(GsonUtils.getInstance().toJson(cacheConfig));
         cacheHandler.handlerPlugin(pluginData);
-        iCache = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
+        iCache = Singleton.INST.get(RedisCache.class);
 
     }
 

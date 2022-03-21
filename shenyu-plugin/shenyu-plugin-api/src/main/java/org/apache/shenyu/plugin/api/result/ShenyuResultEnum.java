@@ -209,6 +209,11 @@ public enum ShenyuResultEnum {
     INVALID_XML_DATA(-120, "the xml data is invalid."),
 
     /**
+     * cannot find healthy upstream url after failover.
+     */
+    CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER(-121, "Can not find healthy upstream url after failover!"),
+
+    /**
      * Request Header Fields Too Large.
      */
     REQUEST_HEADER_TOO_LARGE(431, "Request Header Fields Too Large"),

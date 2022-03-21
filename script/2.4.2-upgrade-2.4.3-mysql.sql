@@ -31,6 +31,7 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `t
 INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('6', 'queues', 'queues', '1', '3', '0', '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}');
 
 -- insert dict for dubbo plugin
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'shared', 'shared', '', '4', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'fixed', 'fixed', '', '3', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'eager', 'eager', '', '2', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('threadpool', 'THREADPOOL', 'cached', 'cached', '', '0', '1');
@@ -40,8 +41,22 @@ INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, 
 DELETE FROM plugin WHERE `id` = '7';
 DELETE FROM plugin_handle WHERE `plugin_id` = '7';
 
+-- remove plugin_handle shenyu_dict trigger
+DROP TRIGGER IF EXISTS `plugin_handle_before_trigger`;
+DROP TRIGGER IF EXISTS `shenyu_dict_before_trigger`;
+
+-- insert plugin_handle data for divide
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('5', 'retryStrategy', 'retryStrategy', '3', '2', '0', '{"required":"0","defaultValue":"current","placeholder":"retryStrategy","rule":""}');
+
+-- insert dict for divide plugin
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('retryStrategy', 'RETRY_STRATEGY', 'current', 'current', 'current', '0', '1');
+INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('retryStrategy', 'RETRY_STRATEGY', 'failover', 'failover', 'failover', '1', '1');
+
+-- update dict flag
+UPDATE shenyu_dict SET dict_value = 'false' WHERE dict_code = 'INIT_FLAG';
+
 -- insert plugin data for cache
-INSERT INTO plugin (id, name, role, sort, enabled) VALUES ('1505394366310285312', 'cache', 'Cache', 1, 0);
+INSERT INTO plugin (id, name, config, role, sort, enabled) VALUES ('1505394366310285312', 'cache', '{"cacheType":"memory"}', ''Cache', 1, 0);
 
 -- insert plugin_handle data for cache
 INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj) VALUES ('1505397799121616896', '1505394366310285312', 'cacheType', 'cacheType', 2, 3, 1, '{"required":"1","defaultValue":"memory","rule":""}');
@@ -54,5 +69,3 @@ INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, e
 INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj) VALUES ('1505399444706459648', '1505394366310285312', 'minIdle', 'minIdle', 1, 3, 8, '{"required":"0","defaultValue":"0","rule":""}');
 INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj) VALUES ('1505399837066821632', '1505394366310285312', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}');
 INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj) VALUES ('1505400882341904384', '1505394366310285312', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}');
-
-

@@ -25,8 +25,8 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
+import org.apache.shenyu.plugin.cache.base.redis.RedisCache;
 import org.apache.shenyu.plugin.cache.base.redis.RedisConnectionFactory;
-import org.apache.shenyu.plugin.cache.base.redis.ShenyuCacheReactiveRedisTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,15 +60,20 @@ public class CacheHandler implements PluginDataHandler {
         Singleton.INST.single(CacheConfig.class, cacheConfig);
         // use redis cache
         if (CacheEnum.REDIS.getName().equals(cacheConfig.getCacheType())) {
-            ShenyuCacheReactiveRedisTemplate shenyuCacheReactiveRedisTemplate = Singleton.INST.get(ShenyuCacheReactiveRedisTemplate.class);
-            if (Objects.isNull(shenyuCacheReactiveRedisTemplate)) {
-                final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
-                ShenyuCacheReactiveRedisTemplate cacheReactiveRedisTemplate = new ShenyuCacheReactiveRedisTemplate(redisConnectionFactory.getLettuceConnectionFactory());
-                Singleton.INST.single(ShenyuCacheReactiveRedisTemplate.class, cacheReactiveRedisTemplate);
+            LOG.info("use the redis cache.");
+            RedisCache redisCache = Singleton.INST.get(RedisCache.class);
+            // close the last redis cache to create new one.
+            if (Objects.nonNull(redisCache)) {
+                LOG.info("close the last redis cache");
+                redisCache.close();
             }
+            final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
+            redisCache = new RedisCache(redisConnectionFactory.getLettuceConnectionFactory());
+            Singleton.INST.single(RedisCache.class, redisCache);
         }
         // use memory
         if (CacheEnum.MEMORY.getName().equals(cacheConfig.getCacheType())) {
+            LOG.info("use the memory cache.");
             MemoryCache memoryCache = Singleton.INST.get(MemoryCache.class);
             if (Objects.isNull(memoryCache)) {
                 Singleton.INST.single(MemoryCache.class, new MemoryCache());

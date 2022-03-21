@@ -122,6 +122,10 @@
         from resource
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from resource where id = #{id} limit 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ResourceDO">
         insert into resource (id, date_created, date_updated,
         parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)

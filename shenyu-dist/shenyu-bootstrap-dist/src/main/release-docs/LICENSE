@@ -418,6 +418,7 @@ The text of each license is the standard Apache 2.0 license.
     tomcat-annotations-api 9.0.29: https://tomcat.apache.org/, Apache 2.0
     tomcat-embed-core 9.0.29: https://tomcat.apache.org/, Apache 2.0
     jackson-jr-objects 2.10.1: http://wiki.fasterxml.com/JacksonHome, Apache 2.0
+    shardingsphere 5.0.0, https://github.com/apache/shardingsphere,  Apache 2.0
 
 ========================================================================
 BSD licenses

@@ -17,42 +17,82 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
 
 public class MetaDataDTO implements Serializable {
-
+    
     private static final long serialVersionUID = 7476312364813536366L;
-
+    
+    @Existed(provider = MetaDataMapper.class, nullOfIgnore = true, message = "meta data is not existed")
     private String id;
-
+    
+    /**
+     * appName must is not null.
+     */
     @NotNull
+    @NotBlank
     private String appName;
-
+    
+    /**
+     * context path is not null.
+     */
     private String contextPath;
-
+    
+    /**
+     * the path is not null.
+     */
+    @NotBlank
     private String path;
-
+    
+    /**
+     * rule name is not null.
+     */
     private String ruleName;
-
+    
+    /**
+     * path desc.
+     */
     private String pathDesc;
-
+    
+    /**
+     * rpc tyoe is not null.
+     */
     private String rpcType;
-
+    
+    /**
+     * service name is not null.
+     */
+    @NotBlank
     private String serviceName;
-
+    
+    /**
+     * method name is not null.
+     */
+    @NotBlank
     private String methodName;
-
+    
+    /**
+     * parameter typs.
+     */
     private String parameterTypes;
-
+    
+    /**
+     * rpc ext.
+     */
     private String rpcExt;
-
+    
     /**
      * whether enabled.
      */
+    @NotNull
     private Boolean enabled;
-
+    
     /**
      * Gets the value of id.
      *
@@ -61,7 +101,7 @@ public class MetaDataDTO implements Serializable {
     public String getId() {
         return id;
     }
-
+    
     /**
      * Sets the id.
      *
@@ -70,7 +110,7 @@ public class MetaDataDTO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-
+    
     /**
      * Gets the value of appName.
      *
@@ -79,7 +119,7 @@ public class MetaDataDTO implements Serializable {
     public String getAppName() {
         return appName;
     }
-
+    
     /**
      * Sets the appName.
      *
@@ -88,7 +128,7 @@ public class MetaDataDTO implements Serializable {
     public void setAppName(final String appName) {
         this.appName = appName;
     }
-
+    
     /**
      * Gets the value of contextPath.
      *
@@ -97,7 +137,7 @@ public class MetaDataDTO implements Serializable {
     public String getContextPath() {
         return contextPath;
     }
-
+    
     /**
      * Sets the contextPath.
      *
@@ -106,7 +146,7 @@ public class MetaDataDTO implements Serializable {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-
+    
     /**
      * Gets the value of path.
      *
@@ -115,7 +155,7 @@ public class MetaDataDTO implements Serializable {
     public String getPath() {
         return path;
     }
-
+    
     /**
      * Sets the path.
      *
@@ -124,7 +164,7 @@ public class MetaDataDTO implements Serializable {
     public void setPath(final String path) {
         this.path = path;
     }
-
+    
     /**
      * Gets the value of ruleName.
      *
@@ -133,7 +173,7 @@ public class MetaDataDTO implements Serializable {
     public String getRuleName() {
         return ruleName;
     }
-
+    
     /**
      * Sets the ruleName.
      *
@@ -142,7 +182,7 @@ public class MetaDataDTO implements Serializable {
     public void setRuleName(final String ruleName) {
         this.ruleName = ruleName;
     }
-
+    
     /**
      * Gets the value of pathDesc.
      *
@@ -151,7 +191,7 @@ public class MetaDataDTO implements Serializable {
     public String getPathDesc() {
         return pathDesc;
     }
-
+    
     /**
      * Sets the pathDesc.
      *
@@ -160,7 +200,7 @@ public class MetaDataDTO implements Serializable {
     public void setPathDesc(final String pathDesc) {
         this.pathDesc = pathDesc;
     }
-
+    
     /**
      * Gets the value of rpcType.
      *
@@ -169,7 +209,7 @@ public class MetaDataDTO implements Serializable {
     public String getRpcType() {
         return rpcType;
     }
-
+    
     /**
      * Sets the rpcType.
      *
@@ -178,7 +218,7 @@ public class MetaDataDTO implements Serializable {
     public void setRpcType(final String rpcType) {
         this.rpcType = rpcType;
     }
-
+    
     /**
      * Gets the value of serviceName.
      *
@@ -187,7 +227,7 @@ public class MetaDataDTO implements Serializable {
     public String getServiceName() {
         return serviceName;
     }
-
+    
     /**
      * Sets the serviceName.
      *
@@ -196,7 +236,7 @@ public class MetaDataDTO implements Serializable {
     public void setServiceName(final String serviceName) {
         this.serviceName = serviceName;
     }
-
+    
     /**
      * Gets the value of methodName.
      *
@@ -205,7 +245,7 @@ public class MetaDataDTO implements Serializable {
     public String getMethodName() {
         return methodName;
     }
-
+    
     /**
      * Sets the methodName.
      *
@@ -214,7 +254,7 @@ public class MetaDataDTO implements Serializable {
     public void setMethodName(final String methodName) {
         this.methodName = methodName;
     }
-
+    
     /**
      * Gets the value of parameterTypes.
      *
@@ -223,7 +263,7 @@ public class MetaDataDTO implements Serializable {
     public String getParameterTypes() {
         return parameterTypes;
     }
-
+    
     /**
      * Sets the parameterTypes.
      *
@@ -232,7 +272,7 @@ public class MetaDataDTO implements Serializable {
     public void setParameterTypes(final String parameterTypes) {
         this.parameterTypes = parameterTypes;
     }
-
+    
     /**
      * Gets the value of rpcExt.
      *
@@ -241,7 +281,7 @@ public class MetaDataDTO implements Serializable {
     public String getRpcExt() {
         return rpcExt;
     }
-
+    
     /**
      * Sets the rpcExt.
      *
@@ -250,7 +290,7 @@ public class MetaDataDTO implements Serializable {
     public void setRpcExt(final String rpcExt) {
         this.rpcExt = rpcExt;
     }
-
+    
     /**
      * Gets the value of enabled.
      *
@@ -259,7 +299,7 @@ public class MetaDataDTO implements Serializable {
     public Boolean getEnabled() {
         return enabled;
     }
-
+    
     /**
      * Sets the enabled.
      *
@@ -268,7 +308,7 @@ public class MetaDataDTO implements Serializable {
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -291,7 +331,7 @@ public class MetaDataDTO implements Serializable {
                 && Objects.equals(rpcExt, that.rpcExt)
                 && Objects.equals(enabled, that.enabled);
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(id, appName, contextPath, path, ruleName, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled);
