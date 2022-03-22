@@ -41,7 +41,6 @@
         <module>shenyu-register-center</module>
         <module>shenyu-disruptor</module>
         <module>shenyu-protocol</module>
-        <module>shenyu-agent</module>
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
     </modules>

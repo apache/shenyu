@@ -45,14 +45,9 @@ fi
 
 MAIN_CLASS=org.apache.shenyu.bootstrap.ShenyuBootstrapApplication
 
-if [[ "$1" == "agent" ]]; then
-    echo "Starting the $SERVER_NAME with shenyu-agent ..."
-    SHENYU_AGENT=${DEPLOY_DIR}/agent/shenyu-agent.jar
-    nohup java ${JAVA_OPTS} -javaagent:${SHENYU_AGENT} -classpath ${CLASS_PATH} ${MAIN_CLASS} >> ${LOG_FILES} 2>&1 &
-else
-    echo "Starting the $SERVER_NAME ..."
-    nohup java ${JAVA_OPTS} -classpath ${CLASS_PATH} ${MAIN_CLASS} >> ${LOG_FILES} 2>&1 &
-fi
+echo "Starting the $SERVER_NAME ..."
+
+nohup java ${JAVA_OPTS} -classpath ${CLASS_PATH} ${MAIN_CLASS} >> ${LOG_FILES} 2>&1 &
 
 sleep 1
 echo "Please check the log files: $LOG_FILES"

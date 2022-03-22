@@ -41,6 +41,11 @@ public enum PluginEnum {
     CACHE(15, 0, "cache"),
 
     /**
+     * Monitor plugin enum.
+     */
+    METRICS(15, 0, "metrics"),
+    
+    /**
      * Sign plugin enum.
      */
     SIGN(20, 0, "sign"),

@@ -60,6 +60,7 @@
         <module>shenyu-plugin-general-context</module>
         <module>shenyu-plugin-mqtt</module>
         <module>shenyu-plugin-logging-rocketmq</module>
+        <module>shenyu-plugin-metrics</module>
         <module>shenyu-plugin-cache</module>
     </modules>
 </project>

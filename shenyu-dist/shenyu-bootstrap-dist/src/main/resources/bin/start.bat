@@ -39,16 +39,8 @@ echo %version%| findstr "^17" >nul && (
 
 set MAIN_CLASS=org.apache.shenyu.bootstrap.ShenyuBootstrapApplication
 
-set AGENT=%1%
+echo Starting the %SERVER_NAME% ...
 
-set "SHENYU_AGENT=-javaagent:%~dp0/../agent/shenyu-agent.jar"
+java %JAVA_OPTS% -Dfile.encoding=UTF-8 -Dlog.home=%LOG_HOME% -classpath %CLASS_PATH% %MAIN_CLASS%
 
-if "%AGENT%"=="agent" (
-    echo Starting the %SERVER_NAME% with shenyu-agent ...
-    java %JAVA_OPTS%  %SHENYU_AGENT%  -Dfile.encoding=UTF-8 -Dlog.home=%LOG_HOME% -classpath %CLASS_PATH% %MAIN_CLASS%
- ) ^
-else (
-    echo Starting the %SERVER_NAME% ...
-    java %JAVA_OPTS% -Dfile.encoding=UTF-8 -Dlog.home=%LOG_HOME% -classpath %CLASS_PATH% %MAIN_CLASS%
-)
 pause
