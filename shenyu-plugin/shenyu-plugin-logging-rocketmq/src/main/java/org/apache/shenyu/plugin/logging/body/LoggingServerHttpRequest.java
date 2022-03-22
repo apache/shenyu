@@ -30,6 +30,7 @@ import reactor.util.annotation.NonNull;
  * decorate ServerHttpRequest for read body.
  */
 public class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
+    
     private final ShenyuRequestLog logInfo;
 
     public LoggingServerHttpRequest(final ServerHttpRequest delegate, final ShenyuRequestLog logInfo) {
