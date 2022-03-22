@@ -46,7 +46,7 @@ public class NettyServerHandler extends ChannelDuplexHandler {
         try {
             channelHandler.connection(channel);
         } finally {
-            NettyChannel.removeChannelIfDisconnected(ctx.channel());
+            NettyChannel.removeChannel(ctx.channel());
         }
     }
     
@@ -57,7 +57,7 @@ public class NettyServerHandler extends ChannelDuplexHandler {
             NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel());
             channelHandler.disConnection(channel);
         } finally {
-            NettyChannel.removeChannelIfDisconnected(ctx.channel());
+            NettyChannel.removeChannel(ctx.channel());
         }
     }
     
@@ -67,7 +67,7 @@ public class NettyServerHandler extends ChannelDuplexHandler {
         try {
             channelHandler.receive(channel, msg);
         } finally {
-            NettyChannel.removeChannelIfDisconnected(ctx.channel());
+            NettyChannel.removeChannel(ctx.channel());
         }
     }
     
@@ -79,7 +79,7 @@ public class NettyServerHandler extends ChannelDuplexHandler {
         try {
             channelHandler.sent(channel, msg);
         } finally {
-            NettyChannel.removeChannelIfDisconnected(ctx.channel());
+            NettyChannel.removeChannel(ctx.channel());
         }
     }
     
@@ -99,7 +99,7 @@ public class NettyServerHandler extends ChannelDuplexHandler {
                         break;
                 }
             } finally {
-                NettyChannel.removeChannelIfDisconnected(ctx.channel());
+                NettyChannel.removeChannel(ctx.channel());
             }
         }
         super.userEventTriggered(ctx, evt);

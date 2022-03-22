@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.proxy.remote.netty;
 
+import io.netty.channel.ChannelFutureListener;
 import org.apache.shenyu.proxy.remote.Channel;
 import org.apache.shenyu.proxy.remote.ChannelFuture;
 
@@ -33,6 +34,11 @@ public class NettyChannel implements Channel {
     
     private final io.netty.channel.Channel channel;
     
+    /**
+     * Instantiates a new Netty channel.
+     *
+     * @param channel the channel
+     */
     public NettyChannel(final io.netty.channel.Channel channel) {
         this.channel = channel;
     }
@@ -46,7 +52,8 @@ public class NettyChannel implements Channel {
      */
     @Override
     public ChannelFuture send(final Object message) {
-        return null;
+        io.netty.channel.ChannelFuture channelFuture = channel.writeAndFlush(message);
+        return new NettyChannelFuture(channelFuture);
     }
     
     /**
@@ -56,7 +63,7 @@ public class NettyChannel implements Channel {
      */
     @Override
     public boolean isConnected() {
-        return false;
+        return channel.isActive();
     }
     
     /**
@@ -66,7 +73,7 @@ public class NettyChannel implements Channel {
      */
     @Override
     public SocketAddress remoteAddress() {
-        return null;
+        return channel.remoteAddress();
     }
     
     /**
@@ -76,7 +83,7 @@ public class NettyChannel implements Channel {
      */
     @Override
     public SocketAddress localAddress() {
-        return null;
+        return channel.localAddress();
     }
     
     /**
@@ -86,7 +93,7 @@ public class NettyChannel implements Channel {
      */
     @Override
     public boolean isOpened() {
-        return false;
+        return channel.isOpen();
     }
     
     /**
@@ -96,7 +103,7 @@ public class NettyChannel implements Channel {
      */
     @Override
     public boolean isClose() {
-        return false;
+        return !this.isOpened();
     }
     
     /**
@@ -104,7 +111,9 @@ public class NettyChannel implements Channel {
      */
     @Override
     public void close() {
-    
+        channel.close().addListener((ChannelFutureListener) channelFuture -> {
+            removeChannel(channel);
+        });
     }
     
     /**
@@ -115,6 +124,7 @@ public class NettyChannel implements Channel {
      */
     public static NettyChannel getOrAddChannel(final io.netty.channel.Channel channel) {
         NettyChannel nettyChannel = CHANNEL_CACHE.get(channel);
+        
         if (nettyChannel == null) {
             NettyChannel ret = new NettyChannel(channel);
             if (channel.isActive()) {
@@ -132,7 +142,7 @@ public class NettyChannel implements Channel {
      *
      * @param channel the channel
      */
-    public static void removeChannelIfDisconnected(final io.netty.channel.Channel channel) {
+    public static void removeChannel(final io.netty.channel.Channel channel) {
         if (channel != null && !channel.isActive()) {
             CHANNEL_CACHE.remove(channel);
         }
