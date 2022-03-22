@@ -266,16 +266,18 @@ public final class DubboUpstream extends CommonUpstream {
     public String toString() {
         return "DubboUpstream{"
                 + "registry='" + registry
-                + ", appName='" + appName
-                + ", protocol='" + this.getProtocol()
-                + ", port=" + port
+                + "', appName='" + appName
+                + "', protocol='" + this.getProtocol()
+                + "', port=" + port
                 + ", upstreamUrl='" + this.getUpstreamUrl()
-                + ", gray=" + gray
+                + "', gray=" + gray
                 + ", weight=" + weight
                 + ", warmup=" + warmup
+                + ", status=" + isStatus()
+                + ", timestamp=" + getTimestamp()
                 + ", group='" + group
                 + ", version='" + version
-                + '}';
+                + "'}";
     }
     
     /**

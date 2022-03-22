@@ -46,7 +46,9 @@ public class SpringCloudSelectorHandleConverter extends AbstractSelectorHandleCo
     @Override
     protected Object doHandle(final String handle, final List<CommonUpstream> aliveList) {
         SpringCloudSelectorHandle selectorHandle = convert(handle);
-        List<DivideUpstream> existList = selectorHandle.getDivideUpstreams();
+        List<DivideUpstream> existList = updateStatusAndFilter(selectorHandle.getDivideUpstreams(), aliveList);
+        aliveList.stream().filter(alive -> !existList.stream().anyMatch(valid -> valid.getUpstreamUrl().equals(alive.getUpstreamUrl())))
+                .forEach(alive -> existList.add(CommonUpstreamUtils.buildDefaultAliveDivideUpstream(alive.getUpstreamUrl())));
         existList.removeIf(e -> aliveList.stream().noneMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())));
         selectorHandle.setDivideUpstreams(existList);
         return selectorHandle;
