@@ -82,7 +82,7 @@ public class BodyWriter {
      * @return string of stream
      */
     public String output() {
-        if (size() == 0) {
+        if (isEmpty()) {
             return "";
         }
         try {

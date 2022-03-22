@@ -52,7 +52,7 @@ public class HttpClientProperties {
     private String strategy;
 
     /**
-     * The connect timeout in millis, the default is 45s.
+     * The connection timeout in millis, the default is 45s.
      */
     private Integer connectTimeout = 45000;
 

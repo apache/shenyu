@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.CommandLineRunner;
 
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -72,8 +72,6 @@ public class MetricsRunner implements CommandLineRunner, DisposableBean {
     @Override
     public void destroy() {
         this.isStarted.compareAndSet(true, false);
-        if (Objects.nonNull(metricsService)) {
-            metricsService.stop();
-        }
+        Optional.ofNullable(metricsService).ifPresent(MetricsService::stop);
     }
 }
