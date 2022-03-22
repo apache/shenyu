@@ -61,9 +61,9 @@ public class CacheHandler implements PluginDataHandler {
         }
         LOG.info("use the {} cache.", cacheConfig.getCacheType());
         ICache cache = Singleton.INST.get(ICache.class);
-        CacheConfig config = Singleton.INST.get(CacheConfig.class);
-        if (Objects.nonNull(config) && config.equals(cacheConfig)
-            && Objects.nonNull(cache)) {
+        final CacheConfig lastCacheConfig = Singleton.INST.get(CacheConfig.class);
+        if (cacheConfig.equals(lastCacheConfig) && Objects.nonNull(cache)) {
+            LOG.info("cache plugin initialized.");
             return;
         }
 
@@ -77,7 +77,6 @@ public class CacheHandler implements PluginDataHandler {
         }
         Singleton.INST.single(CacheConfig.class, cacheConfig);
         Singleton.INST.single(ICache.class, cache);
-
     }
 
     /**
