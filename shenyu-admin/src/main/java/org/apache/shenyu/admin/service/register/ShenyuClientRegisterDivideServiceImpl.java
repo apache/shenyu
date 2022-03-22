@@ -82,20 +82,19 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         if (CollectionUtils.isEmpty(existList)) {
             canAddList = addList;
         } else {
-            List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
+            List<DivideUpstream> diffList = addList.stream().filter(upstream -> !existList.contains(upstream)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
             }
-            List<DivideUpstream> diffStatusList = addList.stream().filter(divideUpstream -> !divideUpstream.isStatus()
-                    || existList.stream().anyMatch(e -> e.equals(divideUpstream) && e.isStatus() != divideUpstream.isStatus())).collect(Collectors.toList());
+            List<DivideUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
+                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffStatusList)) {
                 canAddList.addAll(diffStatusList);
             }
         }
 
-        boolean submitted = doSubmit(selectorDO.getId(), canAddList);
-        if (submitted) {
+        if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
 

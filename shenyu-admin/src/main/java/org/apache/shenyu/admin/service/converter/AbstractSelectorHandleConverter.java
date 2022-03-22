@@ -76,16 +76,16 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
                         || aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
         validExistList.stream()
-                .filter(divideUpstream -> !divideUpstream.isStatus() && aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())))
-                .forEach(divideUpstream -> {
-                    divideUpstream.setStatus(true);
-                    divideUpstream.setTimestamp(currentTimeMillis);
+                .filter(upstream -> !upstream.isStatus() && aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                .forEach(upstream -> {
+                    upstream.setStatus(true);
+                    upstream.setTimestamp(currentTimeMillis);
                 });
         validExistList.stream()
-                .filter(divideUpstream -> !aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())))
-                .forEach(divideUpstream -> {
-                    divideUpstream.setStatus(false);
-                    divideUpstream.setTimestamp(currentTimeMillis);
+                .filter(upstream -> !aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                .forEach(upstream -> {
+                    upstream.setStatus(false);
+                    upstream.setTimestamp(currentTimeMillis);
                 });
         return validExistList;
     }

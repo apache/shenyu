@@ -127,7 +127,7 @@ public class UpstreamCheckService {
         this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
         this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
         this.registerType = shenyuRegisterCenterConfig.getRegisterType();
-        if (Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
+        if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType)) {
             setup();
         }
     }
