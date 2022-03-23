@@ -29,6 +29,5 @@ public final class LoggingConstant {
     public static final String PRODUCER_GROUP = "producerGroup";
 
     public static final String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
-
 }
 

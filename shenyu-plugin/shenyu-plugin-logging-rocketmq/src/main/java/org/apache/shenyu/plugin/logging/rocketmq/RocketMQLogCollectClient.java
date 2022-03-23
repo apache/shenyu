@@ -86,10 +86,9 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
      * store logs.
      *
      * @param logs list of log
-     * @throws Exception produce exception
      */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) throws Exception {
+    public void consume(final List<ShenyuRequestLog> logs) {
         if (CollectionUtils.isEmpty(logs)) {
             return;
         }

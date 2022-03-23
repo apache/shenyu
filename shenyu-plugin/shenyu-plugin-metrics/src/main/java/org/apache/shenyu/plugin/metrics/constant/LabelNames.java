@@ -30,7 +30,7 @@ public final class LabelNames {
     /**
      * The constant REQUEST_TYPE_TOTAL.
      */
-    public static final String REQUEST_TYPE_TOTAL = "request_type_total";
+    public static final String REQUEST_TYPE_TOTAL = "shenyu_request_type_total";
     
     /**
      * The constant REQUEST_THROW_TOTAL.

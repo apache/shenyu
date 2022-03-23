@@ -24,10 +24,8 @@ import java.util.List;
 /**
  * Used to collect logs, which can be stored in remote or local files or databases, or others.
  */
-
 public interface LogConsumeClient extends AutoCloseable {
-
-
+    
     /**
      * collect logs.
      *
@@ -35,5 +33,4 @@ public interface LogConsumeClient extends AutoCloseable {
      * @throws Exception produce exception
      */
     void consume(List<ShenyuRequestLog> logs) throws Exception;
-
 }

@@ -32,106 +32,117 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, app_key, app_secret,user_id, phone,ext_info,open,enabled,date_created, date_updated
+        id,
+        app_key,
+        app_secret,user_id,
+        phone,
+        ext_info,
+        open,enabled,
+        date_created,
+        date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from app_auth
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM app_auth
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from app_auth
-        where id in
-        <foreach item="id" collection="list" open="(" separator="," close=")">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM app_auth
+         WHERE id IN
+       <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
-        </foreach>
+       </foreach>
     </select>
 
     <select id="findByAppKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from app_auth
-        where app_key = #{appKey,jdbcType=VARCHAR}
-        limit 1
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM app_auth
+         WHERE app_key = #{appKey, jdbcType=VARCHAR}
+         LIMIT 1
     </select>
 
-
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.AppAuthQuery" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from app_auth
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM app_auth
         <where>
             <if test="appKey != null and appKey != ''">
-                and app_key = #{appKey,jdbcType=VARCHAR}
+                AND app_key = #{appKey, jdbcType=VARCHAR}
             </if>
             <if test="phone != null and phone != ''">
-                and phone = #{phone,jdbcType=VARCHAR}
+                AND phone = #{phone, jdbcType=VARCHAR}
             </if>
         </where>
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.AppAuthQuery" resultType="java.lang.Integer">
-        select count(1)
-        from app_auth
+        SELECT count(1)
+          FROM app_auth
         <where>
             <if test="appKey != null and appKey != ''">
-                and app_key = #{appKey,jdbcType=VARCHAR}
+                AND app_key = #{appKey, jdbcType=VARCHAR}
             </if>
             <if test="phone != null and phone != ''">
-                and phone = #{phone,jdbcType=VARCHAR}
+                AND phone = #{phone, jdbcType=VARCHAR}
             </if>
         </where>
     </select>
 
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.AppAuthDO" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from app_auth
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM app_auth
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        select true from app_auth where id = #{id} limit 1
+        SELECT true
+          FROM app_auth
+         WHERE id = #{id}
+         LIMIT 1
     </select>
 
     <select id="appKeyExisted" resultType="java.lang.Boolean">
-        select true from app_auth where app_key = #{appKey} limit 1
+        SELECT true
+          FROM app_auth
+         WHERE app_key = #{appKey}
+         LIMIT 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
-        insert into app_auth
-        (id,
-        app_key,
-        app_secret,
-        user_id,
-        phone,
-        ext_info,
-        open,
-        enabled,
-        date_created,
-        date_updated)
-        values
-         (
-         #{id,jdbcType=VARCHAR},
-         #{appKey,jdbcType=VARCHAR},
-         #{appSecret,jdbcType=VARCHAR},
-         #{userId,jdbcType=VARCHAR},
-         #{phone,jdbcType=VARCHAR},
-         #{extInfo,jdbcType=VARCHAR},
-         #{open,jdbcType=TINYINT},
-         #{enabled,jdbcType=TINYINT},
-         #{dateCreated,jdbcType=TIMESTAMP},
-         #{dateUpdated,jdbcType=TIMESTAMP})
+        INSERT INTO app_auth
+                    (id,
+                    app_key,
+                    app_secret,
+                    user_id,
+                    phone,
+                    ext_info,
+                    open,
+                    enabled,
+                    date_created,
+                    date_updated)
+             VALUES
+                    (#{id, jdbcType=VARCHAR},
+                    #{appKey, jdbcType=VARCHAR},
+                    #{appSecret, jdbcType=VARCHAR},
+                    #{userId, jdbcType=VARCHAR},
+                    #{phone, jdbcType=VARCHAR},
+                    #{extInfo, jdbcType=VARCHAR},
+                    #{open, jdbcType=TINYINT},
+                    #{enabled, jdbcType=TINYINT},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
-        insert into app_auth
+        INSERT INTO app_auth
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
+                id,
             <if test="dateCreated != null">
                 date_created,
             </if>
@@ -161,105 +172,102 @@
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            #{id,jdbcType=VARCHAR},
+                #{id, jdbcType=VARCHAR},
             <if test="dateCreated != null">
-                #{dateCreated,jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                #{dateUpdated,jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="appKey != null">
-                #{appKey,jdbcType=VARCHAR},
+                #{appKey, jdbcType=VARCHAR},
             </if>
             <if test="appSecret != null">
-                #{appSecret,jdbcType=VARCHAR},
+                #{appSecret, jdbcType=VARCHAR},
             </if>
             <if test="open != null">
-                #{open,jdbcType=TINYINT},
+                #{open, jdbcType=TINYINT},
             </if>
             <if test="enabled != null">
-                #{enabled,jdbcType=TINYINT},
+                #{enabled, jdbcType=TINYINT},
             </if>
             <if test="userId != null">
-                #{userId,jdbcType=VARCHAR},
+                #{userId, jdbcType=VARCHAR},
             </if>
             <if test="phone != null">
-                #{phone,jdbcType=VARCHAR},
+                #{phone, jdbcType=VARCHAR},
             </if>
             <if test="extInfo != null">
-                #{extInfo,jdbcType=VARCHAR},
+                #{extInfo, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
-        update app_auth
-        set
-        app_secret = #{appSecret,jdbcType=VARCHAR},
-        phone = #{phone,jdbcType=VARCHAR},
-        ext_info = #{extInfo,jdbcType=VARCHAR},
-        open = #{open,jdbcType=TINYINT},
-        enabled = #{enabled,jdbcType=TINYINT}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE app_auth
+           SET
+               app_secret = #{appSecret, jdbcType=VARCHAR},
+               phone = #{phone, jdbcType=VARCHAR},
+               ext_info = #{extInfo, jdbcType=VARCHAR},
+               open = #{open, jdbcType=TINYINT},
+               enabled = #{enabled, jdbcType=TINYINT}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
-        update app_auth
+        UPDATE app_auth
         <set>
             <if test="appSecret != null">
-                app_secret = #{appSecret,jdbcType=VARCHAR},
+                app_secret = #{appSecret, jdbcType=VARCHAR},
             </if>
             <if test="phone != null">
-                phone = #{phone,jdbcType=VARCHAR},
+                phone = #{phone, jdbcType=VARCHAR},
             </if>
             <if test="extInfo != null">
-                ext_info = #{extInfo,jdbcType=VARCHAR},
+                ext_info = #{extInfo, jdbcType=VARCHAR},
             </if>
             <if test="open != null">
-                open = #{open,jdbcType=TINYINT},
+                open = #{open, jdbcType=TINYINT},
             </if>
             <if test="enabled != null">
-                enabled = #{enabled,jdbcType=TINYINT},
+                enabled = #{enabled, jdbcType=TINYINT},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from app_auth
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM app_auth
+              WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIds" parameterType="java.util.List">
-        delete from app_auth
-        where id in
+        DELETE FROM app_auth
+              WHERE id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>
 
-
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
-        update app_auth
-        set enabled = #{enabled,jdbcType=TINYINT}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE app_auth
+           SET enabled = #{enabled, jdbcType=TINYINT}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnableBatch">
-        update app_auth
-        set enabled = #{enabled,jdbcType=TINYINT}
-        where id in
-        <foreach collection="idSet" index="index" item="id"
-                 open="(" separator="," close=")">
-            #{id, jdbcType=VARCHAR}
+        UPDATE app_auth
+           SET enabled = #{enabled,jdbcType=TINYINT}
+         WHERE id IN
+        <foreach collection="idSet" index="index" item="id" open="(" separator="," close=")">
+               #{id, jdbcType=VARCHAR}
         </foreach>
     </update>
 
     <update id="updateAppSecretByAppKey">
-        update app_auth
-        set app_secret = #{appSecret,jdbcType=VARCHAR}
-        where app_key = #{appKey,jdbcType=VARCHAR}
+        UPDATE app_auth
+           SET app_secret = #{appSecret, jdbcType=VARCHAR}
+         WHERE app_key = #{appKey, jdbcType=VARCHAR}
     </update>
-
 
 </mapper>
