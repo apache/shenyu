@@ -19,7 +19,6 @@
 <configuration>
 
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
-    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
     <property name="LOG_HOME" value="${log.home:-./logs}"/>
     <property name="LOG_APP_NAME" value="${log.app-name:-shenyu-bootstrap}"/>
     <property name="MAX_SINGLE_LOG_FILE_SIZE" value="${log.max-single-log-file-size:-100MB}"/>
@@ -28,7 +27,7 @@
     <property name="ASYNC_DISCARDING_THRESHOLD" value="${log.async.discarding-threshold:-0}"/>
     <property name="ASYNC_LOG_QUEUE_SIZE" value="${log.async.queue-size:-256}"/>
 
-    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n"/>
+    <property name="LOG_PATTERN" value="%red(%d{yyyy-MM-dd HH:mm:ss}) %green([%thread]) %highlight(%-5level) %boldMagenta(%logger) - %cyan(%msg%n)"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
