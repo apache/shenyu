@@ -36,6 +36,11 @@ public enum PluginEnum {
     GLOBAL(10, 0, "global"),
     
     /**
+     * Monitor plugin enum.
+     */
+    METRICS(15, 0, "metrics"),
+    
+    /**
      * Sign plugin enum.
      */
     SIGN(20, 0, "sign"),
@@ -114,6 +119,11 @@ public enum PluginEnum {
      * Logging plugin enum.
      */
     LOGGING(160, 0, "logging"),
+
+    /**
+     * Logging RocketMQ plugin enum.
+     */
+    LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
     
     /**
      * Divide plugin enum.

@@ -222,9 +222,6 @@ The text of each license is the standard Apache 2.0 license.
     audience-annotations 0.5.0: https://yetus.apache.org/audience-annotations, Apache 2.0
     auto-value-annotations 1.7: https://github.com/google/auto/tree/master/value, Apache 2.0
     bolt 1.5.6: https://github.com/alipay/sofa-bolt, Apache 2.0
-    brave 5.1.0: https://github.com/openzipkin/brave/brave, Apache 2.0
-    brave-opentracing 0.31.1: https://github.com/openzipkin-contrib/opentracing-brave, Apache 2.0
-    brave-tests 5.1.0: https://github.com/openzipkin/brave/brave-tests, Apache 2.0
     btf 1.2: https://github.com/fge/btf, LGPL and Apache 2.0
     byte-buddy 1.10.4: https://bytebuddy.net/byte-buddy, Apache 2.0
     classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
@@ -314,10 +311,6 @@ The text of each license is the standard Apache 2.0 license.
     opencensus-api 0.24.0: https://github.com/census-instrumentation/opencensus-java, Apache 2.0
     opencensus-contrib-http-util 0.24.0: https://github.com/census-instrumentation/opencensus-java, Apache 2.0
     opencensus-proto 0.2.0: https://github.com/census-instrumentation/opencensus-proto, Apache 2.0
-    opentracing-api 0.31.0: https://opentracing.io, Apache 2.0
-    opentracing-mock 0.22.0: https://github.com/opentracing/opentracing-java/opentracing-mock, Apache 2.0
-    opentracing-noop 0.22.0: https://opentracing.io, Apache 2.0
-    opentracing-util 0.22.0: https://opentracing.io, Apache 2.0
     perfmark-api 0.19.0: https://github.com/perfmark/perfmark, Apache 2.0
     proto-google-common-protos 1.17.0: https://github.com/googleapis/common-protos-java, Apache 2.0
     reactor-core 3.3.1.RELEASE: https://github.com/reactor/reactor-core, Apache 2.0
@@ -355,34 +348,11 @@ The text of each license is the standard Apache 2.0 license.
     validation-api 2.0.1.Final: http://beanvalidation.org/licensing, Apache 2.0
     vavr 0.10.2: http://vavr.io, Apache 2.0
     vavr-match 0.10.2: http://vavr.io, Apache 2.0
-    zipkin-2.23.1: https://github.com/openzipkin/zipkin, Apache 2.0
-    zipkin-reporter 2.7.4: https://github.com/openzipkin/zipkin-reporter-java/zipkin-reporter, Apache 2.0
-    zipkin-sender-kafka08 2.7.4: https://github.com/openzipkin/zipkin-reporter-java/zipkin-sender-kafka08, Apache 2.0
-    zipkin-sender-kafka11 2.7.4: https://github.com/openzipkin/zipkin-reporter-java/zipkin-sender-kafka11, Apache 2.0
-    zipkin-sender-urlconnection 2.7.4: https://github.com/openzipkin/zipkin-reporter-java/zipkin-sender-urlconnection, Apache 2.0
     zkclient 0.10: https://github.com/sgroschupf/zkclient, Apache 2.0
     zookeeper 3.5.6: https://github.com/apache/zookeeper, Apache 2.0
     zookeeper-jute 3.5.6: https://github.com/apache/zookeeper, Apache 2.0
     byte-buddy 1.12.6: https://github.com/raphw/byte-buddy, Apache 2.0
     byte-buddy-agent 1.12.6: https://github.com/raphw/byte-buddy, Apache 2.0
-    jaeger-client 1.6.0 https://github.com/jaegertracing/jaeger, Apache 2.0
-    opentelemetry-api 1.9.1 https://opentelemetry.io, Apache 2.0
-    opentelemetry-sdk 1.9.1 https://opentelemetry.io, Apache 2.0
-    opentelemetry-sdk-extension-autoconfigure 1.9.1-alpha https://opentelemetry.io, Apache 2.0
-    opentelemetry-exporter-jaeger 1.9.1 https://opentelemetry.io, Apache 2.0
-    opentelemetry-exporter-zipkin 1.9.1 https://opentelemetry.io, Apache 2.0
-    opentelemetry-exporter-otlp-trace 1.9.1 https://opentelemetry.io, Apache 2.0
-    opentelemetry-sdk-testing 1.9.1 https://opentelemetry.io Apache, 2.0
-    opentelemetry-api-metrics 1.9.1-alpha: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    opentelemetry-context 1.9.1: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    opentelemetry-exporter-otlp-common 1.9.1: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    opentelemetry-sdk-common 1.9.1: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    opentelemetry-sdk-extension-autoconfigure-spi 1.9.1: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    opentelemetry-sdk-metrics 1.9.1-alpha: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    opentelemetry-sdk-trace 1.9.1: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    opentelemetry-semconv 1.9.1-alpha: https://github.com/open-telemetry/opentelemetry-java, Apache 2.0
-    zipkin-reporter-brave 2.16.2 https://github.com/openzipkin/zipkin-reporter-java, Apache 2.0
-    zipkin-sender-okhttp3 2.16.2 https://github.com/openzipkin/zipkin-reporter-java, Apache 2.0
     disruptor 3.4.0 https://github.com/LMAX-Exchange/disruptor, Apache 2.0
     eureka-client 1.9.13 https://github.com/Netflix/eureka, Apache 2.0
     eureka-core 1.9.13 https://github.com/Netflix/eureka, Apache 2.0
@@ -413,7 +383,6 @@ The text of each license is the standard Apache 2.0 license.
     servo-internal 0.10.1: https://github.com/Netflix/servo, Apache 2.0
     stax-api 1.0.1: http://stax.codehaus.org/, Apache 2.0
     woodstox-core 5.2.1: https://github.com/FasterXML/woodstox, Apache 2.0
-    opentracing-tracerresolver 0.1.8: https://github.com/opentracing-contrib/java-tracerresolver, Apache 2.0
     libthrift 0.14.1: http://thrift.apache.org, Apache 2.0
     tomcat-annotations-api 9.0.29: https://tomcat.apache.org/, Apache 2.0
     tomcat-embed-core 9.0.29: https://tomcat.apache.org/, Apache 2.0

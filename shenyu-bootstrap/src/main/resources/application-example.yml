@@ -20,3 +20,11 @@ eureka:
   instance:
     prefer-ip-address: true
 
+#
+#shenyu:
+#  logging:
+#    rocketmq:
+#      rocketmqProps:
+#        topic: "shenyu-access-logging"
+#        namesrvAddr: "localhost:9876"
+

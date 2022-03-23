@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -42,10 +41,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/configs")
 public class ConfigController {
-
-    @Resource
-    private HttpLongPollingDataChangedListener longPollingListener;
-
+    
+    private final HttpLongPollingDataChangedListener longPollingListener;
+    
+    public ConfigController(final HttpLongPollingDataChangedListener longPollingListener) {
+        this.longPollingListener = longPollingListener;
+    }
+    
     /**
      * Fetch configs shenyu result.
      *
@@ -61,7 +63,7 @@ public class ConfigController {
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, result);
     }
-
+    
     /**
      * Listener.
      *
@@ -72,5 +74,5 @@ public class ConfigController {
     public void listener(final HttpServletRequest request, final HttpServletResponse response) {
         longPollingListener.doLongPolling(request, response);
     }
-
+    
 }

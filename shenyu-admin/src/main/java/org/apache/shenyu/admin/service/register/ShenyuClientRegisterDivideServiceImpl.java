@@ -35,7 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
- * spring mvc service register.
+ * spring mvc http service register.
  */
 @Service
 public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRegisterService {

@@ -26,79 +26,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-websocket</artifactId>
+    <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
+    <modules>
+        <module>shenyu-example-spring-annotation-websocket</module>
+        <module>shenyu-example-spring-native-websocket</module>
+        <module>shenyu-example-spring-reactive-websocket</module>
+    </modules>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-logging</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <finalName>shenyu-examples-websocket</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>org.apache.shenyu.examples.websocket.ShenyuWebsocketApplication</mainClass>
-                    <executable>true</executable>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>example</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>${dockerfile-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>shenyu-examples-websocket</id>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <repository>shenyu-examples-websocket</repository>
-                            <tag>latest</tag>
-                            <buildArgs>
-                                <APP_NAME>shenyu-examples-websocket</APP_NAME>
-                            </buildArgs>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

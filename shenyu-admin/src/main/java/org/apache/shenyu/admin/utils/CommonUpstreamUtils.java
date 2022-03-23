@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 
 /**
  * Build upstream for rpc plugin.
@@ -54,6 +55,18 @@ public class CommonUpstreamUtils {
      */
     public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port) {
         return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+    }
+
+    /**
+     * Build websocket upstream divide upstream.
+     *
+     * @param protocol the protocol
+     * @param host the host
+     * @param port the port
+     * @return the websocket upstream
+     */
+    public static WebSocketUpstream buildWebSocketUpstream(final String protocol, final String host, final Integer port) {
+        return WebSocketUpstream.builder().host("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
     
     /**

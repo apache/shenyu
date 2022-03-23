@@ -226,4 +226,34 @@ public final class AdminConstants {
      * The constant URI_SUFFIX.
      */
     public static final String URI_SUFFIX = "/**";
+
+    /**
+     * The constant sql script shenyu_dict.
+     */
+    public static final String REGX_SHENYU_DICT = "shenyu_dict";
+
+    /**
+     * The constant sql script plugin_handle.
+     */
+    public static final String REGX_PLUGIN_HANDLE = "plugin_handle";
+
+    /**
+     * The constant sql type for h2.
+     */
+    public static final String SQL_TYPE_H2 = "h2";
+
+    /**
+     * The constant sql type for mysql.
+     */
+    public static final String SQL_TYPE_MYSQL = "mysql";
+
+    /**
+     * The constant sql type for pg.
+     */
+    public static final String SQL_TYPE_PG = "pg";
+
+    /**
+     * The constant insert sql regex.
+     */
+    public static final String SQL_INSERT_REGEX = "\\s+";
 }

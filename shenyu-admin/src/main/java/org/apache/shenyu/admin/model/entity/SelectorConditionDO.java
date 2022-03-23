@@ -181,7 +181,7 @@ public final class SelectorConditionDO extends BaseDO {
                     .selectorId(item.getSelectorId())
                     .operator(item.getOperator())
                     .paramName(item.getParamName())
-                    .paramValue(item.getParamValue())
+                    .paramValue(StringUtils.defaultIfBlank(item.getParamValue(), "").trim())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {

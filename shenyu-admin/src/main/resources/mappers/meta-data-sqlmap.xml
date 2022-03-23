@@ -103,6 +103,26 @@
         from meta_data
     </select>
 
+    <select id="pathExisted" resultType="java.lang.Boolean">
+        select true from meta_data where path = #{path} limit 1
+    </select>
+
+    <select id="pathExistedExclude" resultType="java.lang.Boolean">
+        select true
+        from meta_data
+        where path = #{path}
+        and id not in
+        <foreach collection="exclude" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        limit 1
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from meta_data where id = #{id} limit 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.MetaDataDO">
         insert into meta_data (id, date_created, date_updated, app_name, path,path_desc,rpc_type, service_name,method_name,parameter_types,rpc_ext,enabled )
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},

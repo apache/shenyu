@@ -30,51 +30,69 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, selector_id, param_type,
-        operator, param_name, param_value
+        id,
+        date_created,
+        date_updated,
+        selector_id,
+        param_type,
+        operator,
+        param_name,
+        param_value
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector_condition
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector_condition
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorConditionQuery"
             resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector_condition
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector_condition
         <if test="selectorId != null">
-            where selector_id = #{selectorId,jdbcType=VARCHAR}
+         WHERE selector_id = #{selectorId, jdbcType=VARCHAR}
         </if>
     </select>
 
     <select id="selectBySelectorIds" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector_condition
-        where selector_id in
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector_condition
+         WHERE selector_id IN
         <foreach collection="selectorIds" item="selectorId" index="index"
                  open="(" separator="," close=")">
-            #{selectorId,jdbcType=VARCHAR}
+            #{selectorId, jdbcType=VARCHAR}
         </foreach>
-
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorConditionDO">
-        insert into selector_condition (id, date_created, date_updated,
-        selector_id, param_type, operator, param_name, param_value)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{selectorId,jdbcType=VARCHAR}, #{paramType,jdbcType=VARCHAR}, #{operator,jdbcType=VARCHAR},
-        #{paramName,jdbcType=VARCHAR}, #{paramValue,jdbcType=VARCHAR})
+        INSERT INTO selector_condition
+                    (id,
+                     date_created,
+                     date_updated,
+                     selector_id,
+                     param_type,
+                     operator,
+                     param_name,
+                     param_value)
+             VALUES
+                    (#{id,jdbcType=VARCHAR},
+                     #{dateCreated,jdbcType=TIMESTAMP},
+                     #{dateUpdated,jdbcType=TIMESTAMP},
+                     #{selectorId,jdbcType=VARCHAR},
+                     #{paramType,jdbcType=VARCHAR},
+                     #{operator,jdbcType=VARCHAR},
+                     #{paramName,jdbcType=VARCHAR},
+                     #{paramValue,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorConditionDO">
-        insert into selector_condition
+        INSERT INTO  selector_condition
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
+                id,
             <if test="dateCreated != null">
                 date_created,
             </if>
@@ -98,7 +116,7 @@
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            #{id,jdbcType=VARCHAR},
+                #{id,jdbcType=VARCHAR},
             <if test="dateCreated != null">
                 #{dateCreated,jdbcType=TIMESTAMP},
             </if>
@@ -124,19 +142,19 @@
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.SelectorConditionDO">
-        update selector_condition
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        selector_id = #{selectorId,jdbcType=VARCHAR},
-        param_type = #{paramType,jdbcType=VARCHAR},
-        operator = #{operator,jdbcType=VARCHAR},
-        param_name = #{paramName,jdbcType=VARCHAR},
-        param_value = #{paramValue,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE selector_condition
+           SET date_created = #{dateCreated,jdbcType=TIMESTAMP},
+               date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+               selector_id = #{selectorId,jdbcType=VARCHAR},
+               param_type = #{paramType,jdbcType=VARCHAR},
+               operator = #{operator,jdbcType=VARCHAR},
+               param_name = #{paramName,jdbcType=VARCHAR},
+               param_value = #{paramValue,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorConditionDO">
-        update selector_condition
+        UPDATE  selector_condition
         <set>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
@@ -160,24 +178,27 @@
                 param_value = #{paramValue,jdbcType=VARCHAR},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from selector_condition
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE
+          FROM selector_condition
+         WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteBySelectorIds" parameterType="java.util.List">
-        delete from selector_condition
-        where selector_id in
+        DELETE
+          FROM selector_condition
+         WHERE selector_id in
         <foreach item="selectorId" collection="list" open="(" separator="," close=")">
             #{selectorId,jdbcType=VARCHAR}
         </foreach>
     </delete>
 
     <delete id="deleteByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorConditionQuery">
-        delete from selector_condition
-        where selector_id = #{selectorId,jdbcType=VARCHAR}
+        DELETE
+          FROM selector_condition
+         WHERE selector_id = #{selectorId,jdbcType=VARCHAR}
     </delete>
 </mapper>

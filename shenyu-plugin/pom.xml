@@ -59,5 +59,7 @@
         <module>shenyu-plugin-uri</module>
         <module>shenyu-plugin-general-context</module>
         <module>shenyu-plugin-mqtt</module>
+        <module>shenyu-plugin-logging-rocketmq</module>
+        <module>shenyu-plugin-metrics</module>
     </modules>
 </project>
