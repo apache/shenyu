@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
   ~ Licensed to the Apache Software Foundation (ASF) under one or more
   ~ contributor license agreements.  See the NOTICE file distributed with
@@ -37,42 +37,42 @@
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from rule
-        where id = #{id,jdbcType=VARCHAR}
+        FROM rule
+        WHERE id = #{id,jdbcType=VARCHAR}
     </select>
 
     <select id="findByName" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from rule
-        where name = #{name,jdbcType=VARCHAR}
+        FROM rule
+        WHERE name = #{name,jdbcType=VARCHAR}
     </select>
 
     <select id="findBySelectorIdAndName" resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from rule
-        where 1=1
-        and name = #{name,jdbcType=VARCHAR}
-        and selector_id = #{selectorId,jdbcType=VARCHAR}
+        FROM rule
+        WHERE 1=1
+        AND name = #{name,jdbcType=VARCHAR}
+        AND selector_id = #{selectorId,jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery" resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from rule
+        FROM rule
         <where>
             <if test="selectorId != null">
                 selector_id = #{selectorId,jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
-                and name like #{nameLike,jdbcType=VARCHAR}
+                AND name like #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
-                and id in
+                AND id IN
                 <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
                     #{filterId, jdbcType=VARCHAR}
                 </foreach>
@@ -81,15 +81,15 @@
     </select>
 
     <select id="findBySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from rule where selector_id = #{selectorId,jdbcType=VARCHAR}
+        FROM rule WHERE selector_id = #{selectorId,jdbcType=VARCHAR}
     </select>
 
     <select id="findBySelectorIds" parameterType="java.util.List" resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from rule where selector_id in
+        FROM rule WHERE selector_id IN
         <foreach item="selectId" collection="list" open="(" separator="," close=")">
             #{selectId, jdbcType=VARCHAR}
         </foreach>
@@ -97,47 +97,49 @@
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleQuery"
             resultType="java.lang.Integer">
-        select count(1)
-        from rule
+        SELECT count(1)
+        FROM rule
         <where>
             <if test="selectorId != null">
                 selector_id = #{selectorId,jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                AND name = #{name,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
-                and id in
+                AND id IN
                 <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
                     #{filterId, jdbcType=VARCHAR}
                 </foreach>
             </if>
         </where>
-
     </select>
 
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from rule
+        FROM rule
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        select true from rule where id = #{id} limit 1
+        SELECT TRUE
+        FROM rule
+        WHERE id = #{id}
+        LIMIT 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
-        insert into rule (id, date_created, date_updated,
-        selector_id, name, match_mode, sort, enabled,
-        loged, handle)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{selectorId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
-        #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT}, #{loged,jdbcType=TINYINT},
-        #{handle,jdbcType=VARCHAR})
+        INSERT INTO rule (id, date_created, date_updated,
+                          selector_id, name, match_mode, sort, enabled,
+                          loged, handle)
+        VALUES (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
+                #{selectorId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
+                #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT}, #{loged,jdbcType=TINYINT},
+                #{handle,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
-        insert into rule
+        INSERT INTO rule
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
             <if test="dateCreated != null">
@@ -201,21 +203,21 @@
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
-        update rule
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        selector_id = #{selectorId,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
-        match_mode = #{matchMode,jdbcType=INTEGER},
-        sort = #{sort,jdbcType=INTEGER},
-        enabled = #{enabled,jdbcType=TINYINT},
-        loged = #{loged,jdbcType=TINYINT},
-        handle = #{handle,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE rule
+        SET date_created = #{dateCreated,jdbcType=TIMESTAMP},
+            date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+            selector_id  = #{selectorId,jdbcType=VARCHAR},
+            name         = #{name,jdbcType=VARCHAR},
+            match_mode   = #{matchMode,jdbcType=INTEGER},
+            sort         = #{sort,jdbcType=INTEGER},
+            enabled      = #{enabled,jdbcType=TINYINT},
+            loged        = #{loged,jdbcType=TINYINT},
+            handle       = #{handle,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
-        update rule
+        UPDATE rule
         <set>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
@@ -245,17 +247,18 @@
                 handle = #{handle,jdbcType=VARCHAR},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from rule
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE
+        FROM rule
+        WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIds" parameterType="java.util.List">
-        delete from rule
-        where id in
+        DELETE FROM rule
+        WHERE id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
         </foreach>

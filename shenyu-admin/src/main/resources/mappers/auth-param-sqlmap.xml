@@ -28,99 +28,102 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, auth_id, app_name,app_param,date_created, date_updated
+        id,
+        auth_id,
+        app_name,
+        app_param,
+        date_created,
+        date_updated
     </sql>
 
     <select id="findByAuthId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from auth_param
-        where auth_id = #{authId,jdbcType=VARCHAR}
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM auth_param
+         WHERE auth_id = #{authId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByAuthIdList" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from auth_param
-        where auth_id in
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM auth_param
+         WHERE auth_id IN
         <foreach collection="authIdSet" index="index" item="authId"
-                 open="(" separator="," close=")" >
-            #{authId,jdbcType=VARCHAR}
+                 open="(" separator="," close=")">
+            #{authId, jdbcType=VARCHAR}
         </foreach>
     </select>
 
-    <select id="findByAuthIdAndAppName"  resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from auth_param
-        where auth_id = #{authId,jdbcType=VARCHAR}
-        and app_name = #{appName,jdbcType=VARCHAR}
-        limit 1
+    <select id="findByAuthIdAndAppName" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM auth_param
+         WHERE auth_id = #{authId, jdbcType=VARCHAR}
+            AND app_name = #{appName, jdbcType=VARCHAR}
+         LIMIT 1
     </select>
 
 
     <insert id="save" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
-        insert into auth_param
-        (id,
-        auth_id,
-        app_name,
-        app_param,
-        date_created,
-        date_updated)
-        values
-         (
-         #{id,jdbcType=VARCHAR},
-         #{authId,jdbcType=VARCHAR},
-         #{appName,jdbcType=VARCHAR},
-         #{appParam,jdbcType=VARCHAR},
-         #{dateCreated,jdbcType=TIMESTAMP},
-         #{dateUpdated,jdbcType=TIMESTAMP})
+        INSERT INTO auth_param
+                (id,
+                auth_id,
+                app_name,
+                app_param,
+                date_created,
+                date_updated)
+            VALUES
+                (#{id, jdbcType=VARCHAR},
+                #{authId, jdbcType=VARCHAR},
+                #{appName, jdbcType=VARCHAR},
+                #{appParam, jdbcType=VARCHAR},
+                #{dateCreated, jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
 
     <insert id="batchSave">
         INSERT INTO auth_param
-        (id,
-        auth_id,
-        app_name,
-        app_param,
-        date_created,
-        date_updated)
-        VALUES
+                (id,
+                auth_id,
+                app_name,
+                app_param,
+                date_created,
+                date_updated)
+            VALUES
         <foreach collection="authParamDOList" item="authParamDO" separator=",">
             (
-            #{authParamDO.id,jdbcType=VARCHAR},
-            #{authParamDO.authId,jdbcType=VARCHAR},
-            #{authParamDO.appName,jdbcType=VARCHAR},
-            #{authParamDO.appParam,jdbcType=VARCHAR},
-            #{authParamDO.dateCreated,jdbcType=TIMESTAMP},
-            #{authParamDO.dateUpdated,jdbcType=TIMESTAMP})
+            #{authParamDO.id, jdbcType=VARCHAR},
+            #{authParamDO.authId, jdbcType=VARCHAR},
+            #{authParamDO.appName, jdbcType=VARCHAR},
+            #{authParamDO.appParam, jdbcType=VARCHAR},
+            #{authParamDO.dateCreated, jdbcType=TIMESTAMP},
+            #{authParamDO.dateUpdated, jdbcType=TIMESTAMP})
         </foreach>
     </insert>
 
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
-        update auth_param
-        set
-        app_param = #{appParam,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE auth_param
+            SET app_param = #{appParam, jdbcType=VARCHAR}
+                WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from auth_param
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM auth_param
+            WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByAuthId" parameterType="java.lang.String">
-        delete from auth_param
-        where auth_id = #{authId,jdbcType=VARCHAR}
+        DELETE FROM auth_param
+            WHERE auth_id = #{authId, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByAuthIds" parameterType="java.util.List">
-        delete from auth_param
-        where auth_id in
+        DELETE FROM auth_param
+            WHERE auth_id IN
         <foreach item="authId" collection="list" open="(" separator="," close=")">
-            #{authId,jdbcType=VARCHAR}
+            #{authId, jdbcType=VARCHAR}
         </foreach>
     </delete>
 
