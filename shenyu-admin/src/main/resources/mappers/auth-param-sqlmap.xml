@@ -111,7 +111,7 @@
 
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM auth_param
-            WHERE id = #{id,jdbcType=VARCHAR}
+            WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByAuthId" parameterType="java.lang.String">
@@ -123,7 +123,7 @@
         DELETE FROM auth_param
             WHERE auth_id IN
         <foreach item="authId" collection="list" open="(" separator="," close=")">
-            #{authId,jdbcType=VARCHAR}
+            #{authId, jdbcType=VARCHAR}
         </foreach>
     </delete>
 
