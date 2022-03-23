@@ -50,14 +50,8 @@ public class WebClientMessageWriter implements MessageWriter {
         return chain.execute(exchange).then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
             ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            if (Objects.isNull(clientResponse)
-                    || response.getStatusCode() == HttpStatus.BAD_GATEWAY
-                    || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+            if (Objects.isNull(clientResponse)) {
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR, null);
-                return WebFluxResultUtils.result(exchange, error);
-            }
-            if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
-                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT, null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             response.getCookies().putAll(clientResponse.cookies());
