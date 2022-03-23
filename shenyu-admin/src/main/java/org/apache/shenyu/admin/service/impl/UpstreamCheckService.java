@@ -344,6 +344,9 @@ public class UpstreamCheckService {
                 });
     }
 
+    /**
+     * get the zombie removal time value.
+     */
     public static int getZombieRemovalTimes() {
         return zombieRemovalTimes;
     }
