@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.converter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 
@@ -72,7 +73,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
         }
         long currentTimeMillis = System.currentTimeMillis();
         List<T> validExistList = existList.stream()
-                .filter(e -> e.isStatus() || e.getTimestamp() > currentTimeMillis - TimeUnit.HOURS.toMillis(1)
+                .filter(e -> e.isStatus() || e.getTimestamp() > currentTimeMillis - TimeUnit.SECONDS.toMillis(UpstreamCheckService.getZombieRemovalTimes())
                         || aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
         validExistList.stream()

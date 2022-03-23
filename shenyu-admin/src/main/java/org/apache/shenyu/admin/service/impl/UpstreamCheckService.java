@@ -79,6 +79,8 @@ public class UpstreamCheckService {
 
     private static final String REGISTER_TYPE_HTTP = "http";
 
+    private static int zombieRemovalTimes;
+
     private final int zombieCheckTimes;
 
     private final int scheduledTime;
@@ -100,6 +102,8 @@ public class UpstreamCheckService {
     private ScheduledThreadPoolExecutor executor;
 
     private ScheduledFuture<?> scheduledFuture;
+
+    private final Object lock = new Object();
 
     /**
      * Instantiates a new Upstream check service.
@@ -127,6 +131,7 @@ public class UpstreamCheckService {
         this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
         this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
         this.registerType = shenyuRegisterCenterConfig.getRegisterType();
+        zombieRemovalTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_REMOVAL_TIMES, Constants.ZOMBIE_REMOVAL_TIMES_VALUE));
         if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType)) {
             setup();
         }
@@ -184,9 +189,9 @@ public class UpstreamCheckService {
             return false;
         }
 
-        List<CommonUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorId, Lists.newArrayList());
-        if (!UPSTREAM_MAP.containsKey(selectorId)) {
-            UPSTREAM_MAP.put(selectorId, upstreams);
+        List<CommonUpstream> upstreams;
+        synchronized (lock) {
+            upstreams = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> Lists.newArrayList());
         }
         if (commonUpstream.isStatus()) {
             Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
@@ -317,7 +322,6 @@ public class UpstreamCheckService {
      * fetch upstream data from db.
      */
     public void fetchUpstreamData() {
-
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(PluginEnum.getUpstreamNames());
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return;
@@ -325,15 +329,22 @@ public class UpstreamCheckService {
         Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
                 .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
         final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIds(new ArrayList<>(pluginMap.keySet()));
+        long currentTimeMillis = System.currentTimeMillis();
         Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream()
                 .filter(selectorDO -> Objects.nonNull(selectorDO) && StringUtils.isNotEmpty(selectorDO.getHandle()))
                 .forEach(selectorDO -> {
                     String name = pluginMap.get(selectorDO.getPluginId());
-                    List<CommonUpstream> commonUpstreams = converterFactor.newInstance(name).convertUpstream(selectorDO.getHandle());
+                    List<CommonUpstream> commonUpstreams = converterFactor.newInstance(name).convertUpstream(selectorDO.getHandle())
+                            .stream().filter(upstream -> upstream.isStatus() || upstream.getTimestamp() > currentTimeMillis - TimeUnit.SECONDS.toMillis(zombieRemovalTimes))
+                            .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(commonUpstreams)) {
                         UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
                         PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
                     }
                 });
+    }
+
+    public static int getZombieRemovalTimes() {
+        return zombieRemovalTimes;
     }
 }

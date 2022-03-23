@@ -80,8 +80,6 @@ public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME_2 = "mockSelectorName2";
 
-    private static final String MOCK_SELECTOR_NAME_3 = "mockSelectorName3";
-
     private static final String MOCK_SELECTOR_NAME_OTHER = "mockSelectorNameOther";
 
     private static final String MOCK_PLUGIN_ID = "mockPluginId";
@@ -199,13 +197,13 @@ public final class UpstreamCheckServiceTest {
     }
 
     private void testSubmitOnce(final DivideUpstream divideUpstream) {
-        upstreamCheckService.submit(MOCK_SELECTOR_NAME_3, divideUpstream);
-        assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_3));
+        upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
+        assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
     }
 
     private void testSubmitDeleted(final DivideUpstream divideUpstream) {
-        upstreamCheckService.submit(MOCK_SELECTOR_NAME_3, divideUpstream);
-        assertEquals(0, upstreamMap.containsKey(MOCK_SELECTOR_NAME_3) ? upstreamMap.get(MOCK_SELECTOR_NAME_3).size() : 0);
+        upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
+        assertFalse(upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).contains(divideUpstream));
     }
 
     @Test

@@ -46,6 +46,7 @@ public class LocalDispatcherFilter implements WebFilter {
      * Instantiates a new Local dispatcher filter.
      *
      * @param dispatcherHandler the dispatcher handler
+     * @param sha512Key the sha512 key
      */
     public LocalDispatcherFilter(final DispatcherHandler dispatcherHandler, final String sha512Key) {
         this.dispatcherHandler = dispatcherHandler;

@@ -62,6 +62,7 @@ public class CommonUpstream {
      * @param protocol the protocol
      * @param upstreamHost the upstream host
      * @param upstreamUrl the upstream url
+     * @param status the upstream status
      */
     public CommonUpstream(final String protocol, final String upstreamHost, final String upstreamUrl, final boolean status) {
         this.protocol = protocol;
