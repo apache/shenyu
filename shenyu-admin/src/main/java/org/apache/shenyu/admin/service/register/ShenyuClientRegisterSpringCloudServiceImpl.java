@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextPathRegisterService {
 
     @Resource
-    SpringCloudSelectorHandleConverter springCloudSelectorHandleConverter;
+    private SpringCloudSelectorHandleConverter springCloudSelectorHandleConverter;
 
     @Override
     public String rpcType() {

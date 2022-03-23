@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     @Resource
-    TarsSelectorHandleConverter tarsSelectorHandleConverter;
+    private TarsSelectorHandleConverter tarsSelectorHandleConverter;
 
     @Override
     public String rpcType() {

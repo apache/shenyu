@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     @Resource
-    GrpcSelectorHandleConverter grpcSelectorHandleConverter;
+    private GrpcSelectorHandleConverter grpcSelectorHandleConverter;
 
     @Override
     public String rpcType() {

@@ -198,12 +198,12 @@ public final class UpstreamCheckServiceTest {
         testSubmitDeleted(divideUpstream);
     }
 
-    private void testSubmitOnce(DivideUpstream divideUpstream) {
+    private void testSubmitOnce(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_3, divideUpstream);
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_3));
     }
 
-    private void testSubmitDeleted(DivideUpstream divideUpstream) {
+    private void testSubmitDeleted(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_3, divideUpstream);
         assertEquals(0, upstreamMap.containsKey(MOCK_SELECTOR_NAME_3) ? upstreamMap.get(MOCK_SELECTOR_NAME_3).size() : 0);
     }

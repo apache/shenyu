@@ -120,8 +120,10 @@ public final class ShenyuClientRegisterSpringCloudServiceImplTest {
         assertEquals(expected.replaceAll("\\d{13}", "0"), actual.replaceAll("\\d{13}", "0"));
         SpringCloudSelectorHandle handle = GsonUtils.getInstance().fromJson(actual, SpringCloudSelectorHandle.class);
         assertEquals(handle.getDivideUpstreams().size(), 2);
-        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort())).anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
-        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort())).noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
+        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
+        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
         list.clear();
         list.add(dto1);
@@ -132,8 +134,10 @@ public final class ShenyuClientRegisterSpringCloudServiceImplTest {
         actual = shenyuClientRegisterSpringCloudService.buildHandle(list, selectorDO);
         handle = GsonUtils.getInstance().fromJson(actual, SpringCloudSelectorHandle.class);
         assertEquals(handle.getDivideUpstreams().size(), 2);
-        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort())).anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
-        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort())).noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
+        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
+        assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
         list.clear();
         list.add(dto1);

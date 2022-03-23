@@ -81,6 +81,7 @@ public class CommonUpstreamUtils {
     public static DivideUpstream buildAliveDivideUpstream(final String protocol, final String upstreamUrl) {
         return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
+
     /**
      * Build websocket upstream divide upstream.
      *
