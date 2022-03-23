@@ -46,31 +46,31 @@
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
-              <include refid="Base_Column_List"/>
-         FROM shenyu_dict
-        WHERE id = #{id, jdbcType=VARCHAR}
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByDictCodeAndDictName" resultMap="BaseResultMap">
         SELECT
-              <include refid="Base_Column_List"/>
-         FROM shenyu_dict
-        WHERE dict_code = #{dictCode, jdbcType=VARCHAR}
-          AND dict_name = #{dictName, jdbcType=VARCHAR}
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE dict_code = #{dictCode, jdbcType=VARCHAR}
+           AND dict_name = #{dictName, jdbcType=VARCHAR}
     </select>
 
     <select id="findByType" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
-              <include refid="Base_Column_List"/>
-         FROM shenyu_dict
-        WHERE `type` = #{type, jdbcType=VARCHAR}
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE `type` = #{type, jdbcType=VARCHAR}
     </select>
 
     <select id="findByTypeBatch" resultMap="BaseResultMap">
         SELECT
-              <include refid="Base_Column_List"/>
-         FROM shenyu_dict
-        WHERE `type` IN
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE `type` IN
         <foreach collection="typeSet" item="type" open="(" separator="," close=")">
               #{type,jdbcType=VARCHAR}
         </foreach>
@@ -78,12 +78,12 @@
 
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM shenyu_dict
-        WHERE id = #{id,jdbcType=VARCHAR}
+              WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIdList">
         DELETE FROM shenyu_dict
-        WHERE id IN
+              WHERE id IN
         <foreach collection="idList" item="id" index="index" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
         </foreach>
@@ -211,7 +211,7 @@
                 date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
         </set>
-        WHERE id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
@@ -249,7 +249,7 @@
             resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
-        FROM shenyu_dict
+          FROM shenyu_dict
         <where>
             <if test="type != null and type != ''">
                 AND `type` = #{type,jdbcType=VARCHAR}
