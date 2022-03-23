@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -64,8 +63,7 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
     private boolean isValidData(final Object data) {
         if (data instanceof URIRegisterDTO) {
             URIRegisterDTO uriRegisterDTO = (URIRegisterDTO) data;
-            return Objects.nonNull(uriRegisterDTO.getPort())
-                    && StringUtils.isNoneBlank(uriRegisterDTO.getAppName(), uriRegisterDTO.getHost());
+            return StringUtils.isNoneBlank(uriRegisterDTO.getContextPath(), uriRegisterDTO.getRpcType());
         }
         if (data instanceof MetaDataRegisterDTO) {
             MetaDataRegisterDTO metaDataRegisterDTO = (MetaDataRegisterDTO) data;
