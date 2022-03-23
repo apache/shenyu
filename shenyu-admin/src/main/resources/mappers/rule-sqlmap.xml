@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
   ~ Licensed to the Apache Software Foundation (ASF) under one or more
   ~ contributor license agreements.  See the NOTICE file distributed with
@@ -122,17 +122,20 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true FROM rule WHERE id = #{id} limit 1
+        SELECT TRUE
+        FROM rule
+        WHERE id = #{id}
+        LIMIT 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
         INSERT INTO rule (id, date_created, date_updated,
-        selector_id, name, match_mode, sort, enabled,
-        loged, handle)
+                          selector_id, name, match_mode, sort, enabled,
+                          loged, handle)
         VALUES (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{selectorId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
-        #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT}, #{loged,jdbcType=TINYINT},
-        #{handle,jdbcType=VARCHAR})
+                #{selectorId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
+                #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT}, #{loged,jdbcType=TINYINT},
+                #{handle,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
@@ -202,14 +205,14 @@
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
         UPDATE rule
         SET date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        selector_id = #{selectorId,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
-        match_mode = #{matchMode,jdbcType=INTEGER},
-        sort = #{sort,jdbcType=INTEGER},
-        enabled = #{enabled,jdbcType=TINYINT},
-        loged = #{loged,jdbcType=TINYINT},
-        handle = #{handle,jdbcType=VARCHAR}
+            date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+            selector_id  = #{selectorId,jdbcType=VARCHAR},
+            name         = #{name,jdbcType=VARCHAR},
+            match_mode   = #{matchMode,jdbcType=INTEGER},
+            sort         = #{sort,jdbcType=INTEGER},
+            enabled      = #{enabled,jdbcType=TINYINT},
+            loged        = #{loged,jdbcType=TINYINT},
+            handle       = #{handle,jdbcType=VARCHAR}
         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
@@ -248,7 +251,8 @@
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        DELETE FROM rule
+        DELETE
+        FROM rule
         WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
