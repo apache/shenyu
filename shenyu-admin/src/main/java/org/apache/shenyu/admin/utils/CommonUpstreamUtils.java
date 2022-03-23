@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 
 import java.util.Collections;
 import java.util.List;
