@@ -36,16 +36,16 @@
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
-               <include refid="Base_Column_List"/>
+              <include refid="Base_Column_List"/>
           FROM user_role
-        WHERE id = #{id, jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="findByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
-               <include refid="Base_Column_List"/>
+              <include refid="Base_Column_List"/>
           FROM user_role
-        WHERE user_id = #{userId, jdbcType=VARCHAR}
+         WHERE user_id = #{userId, jdbcType=VARCHAR}
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.UserRoleDO">
@@ -113,20 +113,23 @@
     </insert>
 
     <delete id="delete" parameterType="java.lang.String">
-        DELETE FROM user_role
-        WHERE id = #{id, jdbcType=VARCHAR}
+        DELETE
+          FROM user_role
+         WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserId" parameterType="java.lang.String">
-        DELETE FROM user_role
-        WHERE user_id = #{userId, jdbcType=VARCHAR}
+        DELETE
+          FROM user_role
+         WHERE user_id = #{userId, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserIdSet">
-        DELETE FROM user_role
-        WHERE user_id in
-        <foreach collection="userIdSet" index="index" item="userId" open="(" separator="," close=")">
-                 #{userId, jdbcType=VARCHAR}
-        </foreach>
+        DELETE
+          FROM user_role
+         WHERE user_id in
+         <foreach collection="userIdSet" index="index" item="userId" open="(" separator="," close=")">
+             #{userId, jdbcType=VARCHAR}
+         </foreach>
     </delete>
 </mapper>
