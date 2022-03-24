@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(MotanPlugin.class)
-@ConditionalOnProperty(value = {"shenyu.motan.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.motan.enabled"}, havingValue = "true", matchIfMissing = true)
 public class MotanPluginConfiguration {
 
     /**

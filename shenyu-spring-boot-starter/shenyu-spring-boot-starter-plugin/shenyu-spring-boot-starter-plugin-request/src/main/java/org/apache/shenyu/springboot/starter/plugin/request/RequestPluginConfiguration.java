@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Request plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.request.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.request.enabled"}, havingValue = "true", matchIfMissing = true)
 public class RequestPluginConfiguration {
 
     /**

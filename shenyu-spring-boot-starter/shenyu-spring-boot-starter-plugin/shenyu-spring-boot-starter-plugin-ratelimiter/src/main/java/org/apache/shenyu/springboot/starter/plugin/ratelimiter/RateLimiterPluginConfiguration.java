@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  * The type RateLimiter plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.reteLimiter.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.rete-limiter.enabled"}, havingValue = "true", matchIfMissing = true)
 public class RateLimiterPluginConfiguration {
     
     /**

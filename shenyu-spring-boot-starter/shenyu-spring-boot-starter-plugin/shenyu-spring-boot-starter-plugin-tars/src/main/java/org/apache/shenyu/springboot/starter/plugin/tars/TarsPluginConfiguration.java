@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(TarsPlugin.class)
-@ConditionalOnProperty(value = {"shenyu.tars.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.tars.enabled"}, havingValue = "true", matchIfMissing = true)
 public class TarsPluginConfiguration {
 
     /**

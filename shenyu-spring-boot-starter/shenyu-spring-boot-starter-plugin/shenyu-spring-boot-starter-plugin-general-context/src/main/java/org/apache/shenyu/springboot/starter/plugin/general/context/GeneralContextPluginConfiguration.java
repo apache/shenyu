@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type General Context plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.generalContext.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.general-context.enabled"}, havingValue = "true", matchIfMissing = true)
 public class GeneralContextPluginConfiguration {
 
     /**

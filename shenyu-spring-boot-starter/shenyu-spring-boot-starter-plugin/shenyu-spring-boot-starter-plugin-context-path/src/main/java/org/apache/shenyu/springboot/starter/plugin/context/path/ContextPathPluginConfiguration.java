@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Context path plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.contextPath.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.context-path.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ContextPathPluginConfiguration {
     
     /**

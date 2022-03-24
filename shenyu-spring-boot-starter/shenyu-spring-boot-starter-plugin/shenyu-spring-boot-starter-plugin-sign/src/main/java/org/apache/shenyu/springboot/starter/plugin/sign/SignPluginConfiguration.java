@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Sign plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.sign.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.sign.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SignPluginConfiguration {
     
     /**

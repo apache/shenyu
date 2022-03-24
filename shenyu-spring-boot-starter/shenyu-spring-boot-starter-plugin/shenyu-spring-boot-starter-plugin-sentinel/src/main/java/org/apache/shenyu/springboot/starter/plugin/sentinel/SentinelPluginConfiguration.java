@@ -40,7 +40,7 @@ import java.util.List;
  * Sentinel plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.sentinel.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.sentinel.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SentinelPluginConfiguration {
 
     /**

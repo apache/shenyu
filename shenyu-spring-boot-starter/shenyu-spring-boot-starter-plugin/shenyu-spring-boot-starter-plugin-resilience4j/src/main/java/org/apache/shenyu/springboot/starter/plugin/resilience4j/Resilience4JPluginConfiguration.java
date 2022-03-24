@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * Resilience4j plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.resilience4j.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.resilience4j.enabled"}, havingValue = "true", matchIfMissing = true)
 public class Resilience4JPluginConfiguration {
 
     /**

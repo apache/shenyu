@@ -35,7 +35,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
  * The type Web socket plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.webSocket.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.web-socket.enabled"}, havingValue = "true", matchIfMissing = true)
 public class WebSocketPluginConfiguration {
     
     /**

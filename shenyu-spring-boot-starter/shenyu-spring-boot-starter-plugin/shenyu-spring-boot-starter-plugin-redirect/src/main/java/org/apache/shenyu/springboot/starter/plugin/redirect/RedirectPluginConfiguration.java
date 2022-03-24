@@ -30,7 +30,7 @@ import org.springframework.web.reactive.DispatcherHandler;
  * the type redirect plugin Configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.redirect.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.redirect.enabled"}, havingValue = "true", matchIfMissing = true)
 public class RedirectPluginConfiguration {
 
     /**

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type ModifyResponse plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.modifyResponse.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.modify-response.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ModifyResponsePluginConfiguration {
 
     /**

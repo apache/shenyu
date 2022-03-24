@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
  * ShenyuConfiguration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.divide.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.divide.enabled"}, havingValue = "true", matchIfMissing = true)
 public class DividePluginConfiguration {
 
     /**

@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(ApacheDubboPlugin.class)
 @ImportAutoConfiguration(DubboCommonConfiguration.class)
-@ConditionalOnProperty(value = {"shenyu.apacheDubbo.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.apache-dubbo.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ApacheDubboPluginConfiguration {
 
     /**

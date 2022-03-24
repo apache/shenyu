@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Waf plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.waf.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.waf.enabled"}, havingValue = "true", matchIfMissing = true)
 public class WafPluginConfiguration {
     
     /**

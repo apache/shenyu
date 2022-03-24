@@ -37,7 +37,7 @@ import java.util.Map;
  * The type response plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.response.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.response.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ResponsePluginConfiguration {
     
     /**

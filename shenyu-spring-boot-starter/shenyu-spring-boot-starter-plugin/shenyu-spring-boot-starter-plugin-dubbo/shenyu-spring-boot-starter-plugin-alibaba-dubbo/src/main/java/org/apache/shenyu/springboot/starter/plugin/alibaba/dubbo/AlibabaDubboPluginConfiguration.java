@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(AlibabaDubboPlugin.class)
 @ImportAutoConfiguration(DubboCommonConfiguration.class)
-@ConditionalOnProperty(value = {"shenyu.alibabaDubbo.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.alibaba-dubbo.enabled"}, havingValue = "true", matchIfMissing = true)
 public class AlibabaDubboPluginConfiguration {
     
     /**

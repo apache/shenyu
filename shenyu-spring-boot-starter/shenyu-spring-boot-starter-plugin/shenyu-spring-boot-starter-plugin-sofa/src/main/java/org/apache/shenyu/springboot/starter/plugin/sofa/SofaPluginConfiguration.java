@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(SofaPlugin.class)
-@ConditionalOnProperty(value = {"shenyu.sofa.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.sofa.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SofaPluginConfiguration {
     
     /**

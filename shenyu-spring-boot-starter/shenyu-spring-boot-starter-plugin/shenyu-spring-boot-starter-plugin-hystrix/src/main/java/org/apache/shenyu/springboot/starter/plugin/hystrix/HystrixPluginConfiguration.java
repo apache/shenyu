@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Hystrix plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.hystrix.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.hystrix.enabled"}, havingValue = "true", matchIfMissing = true)
 public class HystrixPluginConfiguration {
     
     /**

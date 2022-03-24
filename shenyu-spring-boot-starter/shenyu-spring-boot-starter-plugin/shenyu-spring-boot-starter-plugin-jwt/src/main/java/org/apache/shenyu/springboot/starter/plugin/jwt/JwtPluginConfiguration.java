@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Jwt plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.jwt.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.jwt.enabled"}, havingValue = "true", matchIfMissing = true)
 public class JwtPluginConfiguration {
 
     /**

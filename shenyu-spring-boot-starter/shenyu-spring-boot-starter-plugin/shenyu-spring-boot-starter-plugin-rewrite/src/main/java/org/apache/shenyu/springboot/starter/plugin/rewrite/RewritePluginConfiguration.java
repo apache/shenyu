@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Rewrite plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.rewrite.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.rewrite.enabled"}, havingValue = "true", matchIfMissing = true)
 public class RewritePluginConfiguration {
 
     /**

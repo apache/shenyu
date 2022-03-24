@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
  *  Cryptor plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.cryptor.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.cryptor.enabled"}, havingValue = "true", matchIfMissing = true)
 public class CryptorPluginConfiguration {
 
     /**

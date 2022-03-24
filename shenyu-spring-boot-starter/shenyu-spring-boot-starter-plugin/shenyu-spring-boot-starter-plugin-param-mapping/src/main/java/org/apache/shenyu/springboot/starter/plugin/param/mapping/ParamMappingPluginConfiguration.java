@@ -38,7 +38,7 @@ import java.util.Map;
  * The type param mapping plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.paramMapping.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.param-mapping.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ParamMappingPluginConfiguration {
 
     /**
