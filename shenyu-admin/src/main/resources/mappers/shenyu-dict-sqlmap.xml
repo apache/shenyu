@@ -104,7 +104,7 @@
              VALUES (#{id,jdbcType=VARCHAR},
                     #{type,jdbcType=VARCHAR},
                     #{dictCode,jdbcType=VARCHAR},
-                    #{dictName,jbcType=VARCHAR},
+                    #{dictName,jdbcType=VARCHAR},
                     #{dictValue,jdbcType=VARCHAR},
                     #{desc,jdbcType=VARCHAR},
                     #{sort,jdbcType=INTEGER},
