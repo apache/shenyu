@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
+import com.ecwid.consul.v1.ConsulClient;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.server.consul.ShenyuConsulConfigWatch;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,7 +28,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(prefix = "shenyu.register", name = "registerType", havingValue = "consul")
 public class ConsulServerConfiguration {
-    
+    /**
+     * Register consul client, distinguished from sync consul client.
+
+     * @param config the shenyu register center config
+     * @return the consulClient
+     */
+    @Bean(name = "registerConsulClient")
+    public ConsulClient consulClient(final ShenyuRegisterCenterConfig config) {
+        return new ConsulClient(config.getServerLists());
+    }
+
     /**
      * Register shenyuConsulConfigWatch for ConsulServerRegisterRepository to monitor metadata.
      *

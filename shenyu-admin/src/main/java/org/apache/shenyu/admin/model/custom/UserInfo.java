@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.custom;
 
-/*
+/**
  * this is user info.
  */
 public class UserInfo {

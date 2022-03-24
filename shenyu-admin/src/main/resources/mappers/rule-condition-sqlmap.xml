@@ -30,32 +30,38 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, rule_id, param_type,
-        operator, param_name, param_value
+        id,
+        date_created,
+        date_updated,
+        rule_id,
+        param_type,
+        operator,
+        param_name,
+        param_value
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from rule_condition
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM rule_condition
+         WHERE id = #{id,jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleConditionQuery"
             resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from rule_condition
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM rule_condition
         <if test="ruleId != null">
-            where rule_id = #{ruleId,jdbcType=VARCHAR}
+            WHERE rule_id = #{ruleId,jdbcType=VARCHAR}
         </if>
     </select>
 
     <select id="selectByRuleIdSet" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from rule_condition
-        where rule_id in
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM rule_condition
+         WHERE rule_id IN
         <foreach collection="ruleIdSet" item="ruleId" index="index"
                  open="(" separator="," close=")">
             #{ruleId,jdbcType=VARCHAR}
@@ -63,15 +69,26 @@
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RuleConditionDO">
-        insert into rule_condition (id, date_created, date_updated,
-        rule_id, param_type, operator, param_name, param_value)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{ruleId,jdbcType=VARCHAR}, #{paramType,jdbcType=VARCHAR}, #{operator,jdbcType=VARCHAR},
-        #{paramName,jdbcType=VARCHAR}, #{paramValue,jdbcType=VARCHAR})
+        INSERT INTO rule_condition (id,
+                                    date_created,
+                                    date_updated,
+                                    rule_id,
+                                    param_type,
+                                    operator,
+                                    param_name,
+                                    param_value)
+               VALUES (#{id,jdbcType=VARCHAR},
+                       #{dateCreated,jdbcType=TIMESTAMP},
+                       #{dateUpdated,jdbcType=TIMESTAMP},
+                       #{ruleId,jdbcType=VARCHAR},
+                       #{paramType,jdbcType=VARCHAR},
+                       #{operator,jdbcType=VARCHAR},
+                       #{paramName,jdbcType=VARCHAR},
+                       #{paramValue,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleConditionDO">
-        insert into rule_condition
+        INSERT INTO rule_condition
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
             <if test="dateCreated != null">
@@ -123,19 +140,19 @@
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.RuleConditionDO">
-        update rule_condition
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        rule_id = #{ruleId,jdbcType=VARCHAR},
-        param_type = #{paramType,jdbcType=VARCHAR},
-        operator = #{operator,jdbcType=VARCHAR},
-        param_name = #{paramName,jdbcType=VARCHAR},
-        param_value = #{paramValue,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE rule_condition
+          SET date_created = #{dateCreated,jdbcType=TIMESTAMP},
+              date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+              rule_id = #{ruleId,jdbcType=VARCHAR},
+              param_type = #{paramType,jdbcType=VARCHAR},
+              operator = #{operator,jdbcType=VARCHAR},
+              param_name = #{paramName,jdbcType=VARCHAR},
+              param_value = #{paramValue,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleConditionDO">
-        update rule_condition
+        UPDATE rule_condition
         <set>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
@@ -159,24 +176,24 @@
                 param_value = #{paramValue,jdbcType=VARCHAR},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from rule_condition
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM rule_condition
+               WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByRuleIds" parameterType="java.util.List">
-        delete from rule_condition
-        where rule_id in
+        DELETE FROM rule_condition
+               WHERE rule_id IN
         <foreach item="ruleId" collection="list" open="(" separator="," close=")">
             #{ruleId, jdbcType=VARCHAR}
         </foreach>
     </delete>
 
     <delete id="deleteByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleConditionQuery">
-        delete from rule_condition
-        where rule_id = #{ruleId,jdbcType=VARCHAR}
+        DELETE FROM rule_condition
+               WHERE rule_id = #{ruleId,jdbcType=VARCHAR}
     </delete>
 </mapper>
