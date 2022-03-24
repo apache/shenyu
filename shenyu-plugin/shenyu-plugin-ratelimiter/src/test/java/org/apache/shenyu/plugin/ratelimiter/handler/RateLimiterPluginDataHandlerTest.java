@@ -24,6 +24,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
+import org.apache.shenyu.plugin.cache.base.redis.RedisConnectionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +39,6 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Duration;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -133,16 +133,16 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void getPoolConfigPropertyTest() {
-        Duration duration = Duration.ofHours(1);
         RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
+        redisConfigProperties.setUrl("localhost:6793");
         redisConfigProperties.setMaxWait(1);
-        GenericObjectPoolConfig<RedisConfigProperties> poolConfig = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler,
+        GenericObjectPoolConfig<RedisConnectionFactory> poolConfig = ReflectionTestUtils.invokeMethod(new RedisConnectionFactory(redisConfigProperties),
                 "getPoolConfig", redisConfigProperties);
         assertNotNull(poolConfig);
         assertEquals(DEFAULT_MAX_IDLE, poolConfig.getMaxIdle());
         assertEquals(DEFAULT_MAX_ACTIVE, poolConfig.getMaxTotal());
         assertEquals(DEFAULT_MIN_IDLE, poolConfig.getMinIdle());
-        assertEquals(duration.toMillis(), poolConfig.getMaxWaitMillis());
+        assertEquals(1, poolConfig.getMaxWaitMillis());
     }
 
     /**

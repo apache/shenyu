@@ -52,7 +52,10 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange,
+                                   final ShenyuPluginChain chain,
+                                   final SelectorData selector,
+                                   final RuleData rule) {
         CacheWriteRuleHandle cacheWriteRuleHandle = CacheWritePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         return chain.execute(exchange.mutate()
                 .response(new CacheWriteHttpResponse(exchange, cacheWriteRuleHandle)).build());
@@ -80,7 +83,8 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
 
         private final CacheWriteRuleHandle cacheWriteRuleHandle;
 
-        CacheWriteHttpResponse(final ServerWebExchange exchange, final CacheWriteRuleHandle cacheWriteRuleHandle) {
+        CacheWriteHttpResponse(final ServerWebExchange exchange,
+                               final CacheWriteRuleHandle cacheWriteRuleHandle) {
             super(exchange.getResponse());
             this.exchange = exchange;
             this.cacheWriteRuleHandle = cacheWriteRuleHandle;

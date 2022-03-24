@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.cache.base.redis;
 
 import org.apache.shenyu.plugin.cache.base.ICache;
-import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuSerializationContext;
+import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuRedisSerializationContext;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -33,7 +33,7 @@ public final class RedisCache implements ICache {
     private final ReactiveRedisTemplate<String, byte[]> redisTemplate;
 
     public RedisCache(final ReactiveRedisConnectionFactory connectionFactory) {
-        this.redisTemplate = new ReactiveRedisTemplate<>(connectionFactory, ShenyuSerializationContext.bytesSerializationContext());
+        this.redisTemplate = new ReactiveRedisTemplate<>(connectionFactory, ShenyuRedisSerializationContext.bytesSerializationContext());
     }
 
     /**

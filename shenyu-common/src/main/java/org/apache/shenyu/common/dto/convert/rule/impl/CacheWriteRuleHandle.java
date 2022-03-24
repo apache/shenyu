@@ -17,23 +17,31 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
-import org.apache.shenyu.common.enums.LoadBalanceEnum;
-
-import java.util.Objects;
 
 /**
  * The type Divide rule handle.
  */
 public class CacheWriteRuleHandle implements RuleHandle {
-    private long timeoutSeconds = 60;
 
-    public long getTimeoutSeconds() {
+    /**
+     * the cache timeout seconds.
+     */
+    private Long timeoutSeconds = 60L;
+
+    /**
+     * Get the timeout seconds.
+     * @return the timeout seconds
+     */
+    public Long getTimeoutSeconds() {
         return timeoutSeconds;
     }
 
-    public void setTimeoutSeconds(long timeoutSeconds) {
+    /**
+     * Set timeout seconds.
+     * @param timeoutSeconds the timeout seconds
+     */
+    public void setTimeoutSeconds(final Long timeoutSeconds) {
         this.timeoutSeconds = timeoutSeconds;
     }
 }

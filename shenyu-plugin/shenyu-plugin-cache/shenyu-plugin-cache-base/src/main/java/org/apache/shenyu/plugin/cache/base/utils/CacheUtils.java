@@ -44,7 +44,7 @@ public final class CacheUtils {
      * @return data key
      */
     public static String dataKey(final ServerWebExchange exchange) {
-        // TODO: 2022/3/16 暂定为path路径，后面可以通过页面配置中设置key
+        //// todo 2022/3/16 current use the request path, maybe use the key from admin config.
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         return shenyuContext.getPath();

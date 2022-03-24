@@ -32,11 +32,19 @@ public class CacheConfig extends RedisConfigProperties {
      */
     private String cacheType = CacheEnum.MEMORY.getName();
 
+    /**
+     * Get cache type.
+     * @return the cache type
+     */
     public String getCacheType() {
         return cacheType;
     }
 
-    public void setCacheType(String cacheType) {
+    /**
+     * Set cache type.
+     * @param cacheType the cache type
+     */
+    public void setCacheType(final String cacheType) {
         this.cacheType = cacheType;
     }
 

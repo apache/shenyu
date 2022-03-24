@@ -57,7 +57,7 @@ public class RedisConfigProperties implements Serializable {
      * Target for the minimum number of idle connections to maintain in the pool. This
      * setting only has an effect if it is positive.
      */
-    private Integer minIdle;
+    private Integer minIdle = 0;
 
     /**
      * Maximum number of connections that can be allocated by the pool at a given
@@ -243,11 +243,15 @@ public class RedisConfigProperties implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RedisConfigProperties that = (RedisConfigProperties) o;
-        return maxIdle.equals(that.maxIdle) && minIdle.equals(that.minIdle) && maxActive.equals(that.maxActive)
-                && Objects.equals(database, that.database) && Objects.equals(master, that.master)
-                && Objects.equals(mode, that.mode) && Objects.equals(url, that.url)
+        final RedisConfigProperties that = (RedisConfigProperties) o;
+        return Objects.equals(database, that.database)
+                && Objects.equals(master, that.master)
+                && Objects.equals(mode, that.mode)
+                && Objects.equals(url, that.url)
                 && Objects.equals(password, that.password)
+                && Objects.equals(maxIdle, that.maxIdle)
+                && Objects.equals(minIdle, that.minIdle)
+                && Objects.equals(maxActive, that.maxActive)
                 && Objects.equals(maxWait, that.maxWait);
     }
 

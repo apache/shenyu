@@ -34,21 +34,21 @@ public interface ICache {
      * @param timeoutSeconds value valid time
      * @return success or not
      */
-    boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds);
+    boolean cacheData(String key, byte[] bytes, long timeoutSeconds);
 
     /**
      * Check the cache is exist or not.
      * @param key the cache key
      * @return true exist
      */
-    boolean isExist(final String key);
+    boolean isExist(String key);
 
     /**
      * Get data with the key.
      * @param key the cache key
      * @return the data
      */
-    byte[] getData(final String key);
+    byte[] getData(String key);
 
     /**
      * cache the content type.

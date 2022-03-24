@@ -17,46 +17,67 @@
 
 package org.apache.shenyu.plugin.cache.base.redis;
 
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.RedisModeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.cache.base.ICache;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.shenyu.plugin.cache.base.handler.CacheHandler;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import redis.embedded.RedisServer;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * RedisCacheTest
+ * RedisCacheTest.
  */
 @ExtendWith(MockitoExtension.class)
 public class RedisCacheTest {
 
-    private RedisCache shenyuCacheRedisTemplate;
+    private static RedisServer redisServer;
 
-    @Before
-    public void prepare() {
-        CacheConfig cacheConfig = new CacheConfig();
-        cacheConfig.setMode(RedisModeEnum.STANDALONE.getName());
-        cacheConfig.setUrl("shenyu-redis:6379");
-        cacheConfig.setCacheType(CacheEnum.REDIS.getName());
-        final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
-        shenyuCacheRedisTemplate = new RedisCache(redisConnectionFactory.getLettuceConnectionFactory());
+    @BeforeAll
+    public static void startup() {
+        redisServer = RedisServer.builder()
+                .port(63793)
+                .setting("maxmemory 64m")
+                .build();
+        redisServer.start();
+        CacheConfig config = new CacheConfig();
+        config.setCacheType(CacheEnum.REDIS.getName());
+        config.setMode(RedisModeEnum.STANDALONE.getName());
+        config.setUrl("127.0.0.1:63793");
+        PluginData pluginData = PluginData.builder()
+                .enabled(true)
+                .config(GsonUtils.getInstance().toJson(config))
+                .build();
+
+        new CacheHandler().handlerPlugin(pluginData);
+    }
+
+    @AfterAll
+    public static void end() {
+        redisServer.stop();
     }
 
     @Test
     public void testRedisCache() {
         final String testKey = "testRedisCache";
-        assertEquals(Boolean.FALSE, shenyuCacheRedisTemplate.isExist(testKey));
-        boolean flag = shenyuCacheRedisTemplate.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
+        final ICache cache = Singleton.INST.get(ICache.class);
+        assertEquals(Boolean.FALSE, cache.isExist(testKey));
+        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
         assertEquals(Boolean.TRUE, flag);
-        assertEquals(Boolean.TRUE, shenyuCacheRedisTemplate.isExist(testKey));
-        final byte[] value = shenyuCacheRedisTemplate.getData(testKey);
+        assertEquals(Boolean.TRUE, cache.isExist(testKey));
+        final byte[] value = cache.getData(testKey);
         assert null != value;
         assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
-
     }
 }

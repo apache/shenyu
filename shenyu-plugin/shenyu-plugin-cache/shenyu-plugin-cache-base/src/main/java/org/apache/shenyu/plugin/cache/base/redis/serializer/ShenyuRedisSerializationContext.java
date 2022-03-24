@@ -22,11 +22,11 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * ShenyuSerializationContext.
+ * ShenyuRedisSerializationContext.
  */
-public final class ShenyuSerializationContext {
+public final class ShenyuRedisSerializationContext {
 
-    private ShenyuSerializationContext() {
+    private ShenyuRedisSerializationContext() {
     }
 
     /**
