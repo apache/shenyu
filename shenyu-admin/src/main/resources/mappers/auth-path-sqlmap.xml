@@ -62,6 +62,10 @@
         select true from auth_path where id = #{id} limit 1
     </select>
 
+    <select id="existedByAuthId" resultType="java.lang.Boolean">
+        select true from auth_path where auth_id = #{authId} limit 1
+    </select>
+
 
     <insert id="save" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
         insert into auth_path
@@ -131,4 +135,5 @@
             #{authId,jdbcType=VARCHAR}
         </foreach>
     </delete>
+
 </mapper>
