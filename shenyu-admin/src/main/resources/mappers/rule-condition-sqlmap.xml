@@ -43,15 +43,15 @@
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
             <include refid="Base_Column_List"/>
-        FROM rule_condition
-        WHERE id = #{id,jdbcType=VARCHAR}
+          FROM rule_condition
+         WHERE id = #{id,jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleConditionQuery"
             resultMap="BaseResultMap">
         SELECT
             <include refid="Base_Column_List"/>
-        FROM rule_condition
+          FROM rule_condition
         <if test="ruleId != null">
             WHERE rule_id = #{ruleId,jdbcType=VARCHAR}
         </if>
@@ -60,8 +60,8 @@
     <select id="selectByRuleIdSet" resultMap="BaseResultMap">
         SELECT
             <include refid="Base_Column_List"/>
-        FROM rule_condition
-        WHERE rule_id IN
+          FROM rule_condition
+         WHERE rule_id IN
         <foreach collection="ruleIdSet" item="ruleId" index="index"
                  open="(" separator="," close=")">
             #{ruleId,jdbcType=VARCHAR}
@@ -77,14 +77,14 @@
                                     operator,
                                     param_name,
                                     param_value)
-        VALUES (#{id,jdbcType=VARCHAR},
-                #{dateCreated,jdbcType=TIMESTAMP},
-                #{dateUpdated,jdbcType=TIMESTAMP},
-                #{ruleId,jdbcType=VARCHAR},
-                #{paramType,jdbcType=VARCHAR},
-                #{operator,jdbcType=VARCHAR},
-                #{paramName,jdbcType=VARCHAR},
-                #{paramValue,jdbcType=VARCHAR})
+               VALUES (#{id,jdbcType=VARCHAR},
+                       #{dateCreated,jdbcType=TIMESTAMP},
+                       #{dateUpdated,jdbcType=TIMESTAMP},
+                       #{ruleId,jdbcType=VARCHAR},
+                       #{paramType,jdbcType=VARCHAR},
+                       #{operator,jdbcType=VARCHAR},
+                       #{paramName,jdbcType=VARCHAR},
+                       #{paramValue,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleConditionDO">
@@ -141,14 +141,14 @@
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.RuleConditionDO">
         UPDATE rule_condition
-        SET date_created = #{dateCreated,jdbcType=TIMESTAMP},
-            date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-            rule_id = #{ruleId,jdbcType=VARCHAR},
-            param_type = #{paramType,jdbcType=VARCHAR},
-            operator = #{operator,jdbcType=VARCHAR},
-            param_name = #{paramName,jdbcType=VARCHAR},
-            param_value = #{paramValue,jdbcType=VARCHAR}
-        WHERE id = #{id,jdbcType=VARCHAR}
+          SET date_created = #{dateCreated,jdbcType=TIMESTAMP},
+              date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+              rule_id = #{ruleId,jdbcType=VARCHAR},
+              param_type = #{paramType,jdbcType=VARCHAR},
+              operator = #{operator,jdbcType=VARCHAR},
+              param_name = #{paramName,jdbcType=VARCHAR},
+              param_value = #{paramValue,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleConditionDO">
@@ -176,17 +176,17 @@
                 param_value = #{paramValue,jdbcType=VARCHAR},
             </if>
         </set>
-        WHERE id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM rule_condition
-        WHERE id = #{id,jdbcType=VARCHAR}
+               WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByRuleIds" parameterType="java.util.List">
         DELETE FROM rule_condition
-        WHERE rule_id IN
+               WHERE rule_id IN
         <foreach item="ruleId" collection="list" open="(" separator="," close=")">
             #{ruleId, jdbcType=VARCHAR}
         </foreach>
@@ -194,6 +194,6 @@
 
     <delete id="deleteByQuery" parameterType="org.apache.shenyu.admin.model.query.RuleConditionQuery">
         DELETE FROM rule_condition
-        WHERE rule_id = #{ruleId,jdbcType=VARCHAR}
+               WHERE rule_id = #{ruleId,jdbcType=VARCHAR}
     </delete>
 </mapper>
