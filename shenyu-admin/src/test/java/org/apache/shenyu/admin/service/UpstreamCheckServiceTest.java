@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
@@ -55,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -178,23 +180,36 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testSubmit() {
-        // Test submit when selector name not exists
-        testSubmitOnce();
-        // Test submit when selector name exists
-        testSubmitOnce();
-    }
-
-    private void testSubmitOnce() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamUrl("divide-upstream-60")
                 .weight(60)
                 .build();
+        // Test submit when selector name not exists
+        testSubmitOnce(divideUpstream);
+        // Test submit when selector name exists
+        testSubmitOnce(divideUpstream);
+        // Test service deleted
+        divideUpstream.setStatus(false);
+        testSubmitDeleted(divideUpstream);
+        testSubmitDeleted(divideUpstream);
+    }
+
+    private void testSubmitOnce(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
     }
 
+    private void testSubmitDeleted(final DivideUpstream divideUpstream) {
+        upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
+        assertFalse(upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).contains(divideUpstream));
+    }
+
     @Test
     public void testReplace() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamHost("localhost")
                 .build();
@@ -202,6 +217,8 @@ public final class UpstreamCheckServiceTest {
                 .upstreamHost("localhost2")
                 .build();
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_2, divideUpstream);
+        assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
+        assertEquals("localhost", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());
         upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, Collections.singletonList(divideUpstream2));
         assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
         assertEquals("localhost2", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());

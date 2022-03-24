@@ -48,6 +48,8 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdServerRegisterRepository.class);
 
+    private static final int CONTEXT_INDEX = 5;
+
     private ShenyuServerRegisterPublisher publisher;
 
     private EtcdClient client;
@@ -100,33 +102,30 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
         String rpcPath = RegisterPathConstants.buildURIContextPathParent(rpcType);
         Set<String> contextList = new HashSet<>();
         client.getChildren(rpcPath).forEach(dataPath -> {
-            String context = dataPath.split(Constants.PATH_SEPARATOR)[4];
-            contextList.add(context);
+            contextList.add(getContext(dataPath));
         });
-        contextList.forEach(context -> registerUriChildrenList(rpcPath, context));
+        contextList.forEach(context -> registerUriChildrenList(rpcPath, context, rpcType));
         LOGGER.info("subscribe uri change: {}", rpcPath);
         client.subscribeChildChanges(rpcPath, new EtcdListenHandler() {
 
             @Override
             public void updateHandler(final String path, final String value) {
-                String[] paths = path.split(Constants.PATH_SEPARATOR);
-                registerUriChildrenList(rpcPath, paths[4]);
+                registerUriChildrenList(rpcPath, getContext(path), rpcType);
             }
 
             @Override
             public void deleteHandler(final String path, final String value) {
-                String[] paths = path.split(Constants.PATH_SEPARATOR);
-                registerUriChildrenList(rpcPath, paths[4]);
+                registerUriChildrenList(rpcPath, getContext(path), rpcType);
             }
         });
     }
 
-    private void registerUriChildrenList(final String rpcPath, final String context) {
+    private void registerUriChildrenList(final String rpcPath, final String context, final String rpcType) {
         String contextPath = String.join(Constants.PATH_SEPARATOR, rpcPath, context);
         List<URIRegisterDTO> uriRegisterDTOList = new LinkedList<>();
         client.getChildren(contextPath).forEach(path -> uriRegisterDTOList.add(GsonUtils.getInstance().fromJson(client.read(path), URIRegisterDTO.class)));
         if (CollectionUtils.isEmpty(uriRegisterDTOList)) {
-            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + context).build();
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + context).rpcType(rpcType).build();
             uriRegisterDTOList.add(uriRegisterDTO);
         }
         publishURI(uriRegisterDTOList);
@@ -134,6 +133,11 @@ public class EtcdServerRegisterRepository implements ShenyuServerRegisterReposit
 
     private void publishURI(final List<URIRegisterDTO> registerDTOList) {
         publisher.publish(registerDTOList);
+    }
+
+    private String getContext(final String path) {
+        String[] paths = path.split(Constants.PATH_SEPARATOR);
+        return paths[path.startsWith(Constants.PATH_SEPARATOR) ? CONTEXT_INDEX : (CONTEXT_INDEX - 1)];
     }
 }
 

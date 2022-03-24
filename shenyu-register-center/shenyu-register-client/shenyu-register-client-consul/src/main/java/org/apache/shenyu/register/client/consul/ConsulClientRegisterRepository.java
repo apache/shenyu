@@ -49,6 +49,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     private static final char SEPARATOR = '-';
 
+    private static MetaDataRegisterDTO metaDataRegisterDTO;
+
     private ConsulClient consulClient;
 
     private NewService service;
@@ -129,12 +131,9 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
-        String rpcType = metadata.getRpcType();
-        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
-        registerMetadata(rpcType, contextPath, metadata);
-        LogUtils.info(LOGGER, "{} Consul client register success: {}", rpcType, metadata);
+        metaDataRegisterDTO = metadata;
     }
-    
+
     /**
      * Persist uri.
      *
@@ -143,18 +142,31 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
         registerURI(registerDTO);
+        registerMetadata(metaDataRegisterDTO);
+        LogUtils.info(LOGGER, "{} Consul client register success: {}", metaDataRegisterDTO.getRpcType(), metaDataRegisterDTO);
     }
-    
-    private void registerMetadata(final String rpcType,
-                                  final String contextPath,
-                                  final MetaDataRegisterDTO metadata) {
+
+    @Override
+    public void close() {
+        try {
+            consulClient.agentServiceDeregister(this.service.getId());
+        } finally {
+            metaDataRegisterDTO.setTimeMillis(System.currentTimeMillis());
+            registerMetadata(metaDataRegisterDTO);
+            LogUtils.info(LOGGER, "{} Consul client deregister success: {}", metaDataRegisterDTO.getRpcType(), metaDataRegisterDTO);
+        }
+    }
+
+    private void registerMetadata(final MetaDataRegisterDTO metadata) {
+        String rpcType = metadata.getRpcType();
+        String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         String metadataJson = GsonUtils.getInstance().toJson(metadata);
         consulClient.setKVValue(realNode, metadataJson);
     }
-    
+
     private void registerURI(final URIRegisterDTO metadata) {
         this.service.getMeta().put(Constants.URI, GsonUtils.getInstance().toJson(metadata));
         consulClient.agentServiceRegister(this.service);
