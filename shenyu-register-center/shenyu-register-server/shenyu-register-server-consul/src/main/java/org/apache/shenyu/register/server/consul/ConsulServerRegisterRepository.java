@@ -49,13 +49,13 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
 
     private ConsulClient consulClient;
 
-    private long index;
-
     private Map<String, List<URIRegisterDTO>> uriRegisterDTOMap = new HashMap<>();
 
     private ShenyuServerRegisterPublisher publisher;
 
     private final Map<String, Long> indexMap = new HashMap<>();
+
+    private Map<String, String> uriRpcTypeMap = new HashMap<>();
 
     @Override
     public void init(final ShenyuServerRegisterPublisher publisher,
@@ -101,8 +101,10 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
 
     private void publishRegisterURI(final String contextPath, final List<URIRegisterDTO> registerDTOList) {
         if (registerDTOList.isEmpty()) {
-            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(contextPath).build();
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(contextPath).rpcType(uriRpcTypeMap.get(contextPath)).build();
             registerDTOList.add(uriRegisterDTO);
+        } else {
+            uriRpcTypeMap.put(contextPath, registerDTOList.get(0).getRpcType());
         }
         publisher.publish(registerDTOList);
     }
