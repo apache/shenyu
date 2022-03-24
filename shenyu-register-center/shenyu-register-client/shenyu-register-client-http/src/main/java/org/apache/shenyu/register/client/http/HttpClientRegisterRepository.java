@@ -27,6 +27,7 @@ import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,9 @@ import java.util.Optional;
 public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientRegisterRepository.class);
-    
+
+    private static URIRegisterDTO uriRegisterDTO;
+
     private String username;
     
     private String password;
@@ -81,13 +84,22 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     @Override
     public void doPersistURI(final URIRegisterDTO registerDTO) {
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
+        uriRegisterDTO = registerDTO;
     }
     
     @Override
     public void doPersistInterface(final MetaDataRegisterDTO metadata) {
         doRegister(metadata, Constants.META_PATH, Constants.META_TYPE);
     }
-    
+
+    @Override
+    public void close() {
+        if (uriRegisterDTO != null) {
+            uriRegisterDTO.setEventType(EventType.DELETED);
+            doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);
+        }
+    }
+
     private void setAccessToken() {
         for (String server : serverList) {
             try {
