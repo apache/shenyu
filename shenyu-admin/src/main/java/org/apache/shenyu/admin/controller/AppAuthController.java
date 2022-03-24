@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;

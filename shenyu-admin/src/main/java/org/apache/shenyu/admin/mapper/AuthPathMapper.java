@@ -42,11 +42,11 @@ public interface AuthPathMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
 
     /**
-     * existedByAuthId
+     * existedByAuthId.
      *
      * @param authId authId
      * @return java.lang.Boolean
-    **/
+    */
     Boolean existedByAuthId(String authId);
 
     /**
