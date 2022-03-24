@@ -79,7 +79,7 @@ public class UpstreamCheckTaskTest {
         healthCheckTask.triggerAddOne(selectorData4.getId(), upstream);
         healthCheckTask.schedule();
         // Wait for the upstream-health-check thread to start.
-        Awaitility.await().pollDelay(3, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
+        Awaitility.await().pollDelay(3500, TimeUnit.MILLISECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
         assertTrue(CollectionUtils.isNotEmpty(healthCheckTask.getUnhealthyUpstream().get(selectorId1)));
         // Let it coverage line 151~163.
         when(upstream.isHealthy()).thenReturn(false).thenReturn(true);
@@ -87,7 +87,7 @@ public class UpstreamCheckTaskTest {
         when(upstream.getUrl()).thenReturn("http://www.baidu.com");
         // Manually run one time
         healthCheckTask.run();
-        Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
+        Awaitility.await().pollDelay(1500, TimeUnit.MILLISECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
         assertTrue(healthCheckTask.getHealthyUpstream().get(selectorId1).size() > 0);
     }
     
