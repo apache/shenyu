@@ -33,26 +33,26 @@ public class SQLInitUtils {
      * @return {@linkplain String}
      */
     public static String concatCharacter(final String originStr, final String regxValue, final String sqlType) {
-        String str = originStr;
+        StringBuilder str;
         String[] splitStr = originStr.split("\\(");
         if (sqlType.equals(AdminConstants.SQL_TYPE_H2) || sqlType.equals(AdminConstants.SQL_TYPE_MYSQL)) {
-            str = splitStr[0] + "(`" + regxValue + "`," + splitStr[1] + "('"
-                   + UUIDUtils.getInstance().generateShortUuid() + "'," + splitStr[2];
+            str = new StringBuilder(splitStr[0] + "(`" + regxValue + "`," + splitStr[1] + "('"
+                    + UUIDUtils.getInstance().generateShortUuid() + "'," + splitStr[2]);
             if (splitStr.length > 3) {
                 for (int i = 3; i < splitStr.length; i++) {
-                    str += splitStr[i];
+                    str.append(splitStr[i]);
                 }
             }
         } else {
 
-            str = splitStr[0] + "(" + splitStr[1] + " ( " + regxValue + "," + splitStr[2] + "(''' || '"
-                   + UUIDUtils.getInstance().generateShortUuid() + "' || '''," + splitStr[3];
+            str = new StringBuilder(splitStr[0] + "(" + splitStr[1] + " ( " + regxValue + "," + splitStr[2] + "(''' || '"
+                    + UUIDUtils.getInstance().generateShortUuid() + "' || '''," + splitStr[3]);
             if (splitStr.length > 4) {
                 for (int i = 4; i < splitStr.length; i++) {
-                    str += splitStr[4];
+                    str.append(splitStr[4]);
                 }
             }
         }
-        return str;
+        return str.toString();
     }
 }
