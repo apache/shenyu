@@ -144,6 +144,12 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         assertEquals(resultList.size(), 1);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
                 .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
+
+        list.clear();
+        doReturn(false).when(shenyuClientRegisterTarsService).doSubmit(any(), any());
+        actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        assertEquals(resultList.stream().allMatch(r -> !r.isStatus()), true);
     }
     
     @Test
