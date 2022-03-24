@@ -70,11 +70,11 @@ public final class RateLimiterPluginDataHandlerTest {
 
     private static final int DEFAULT_MIN_IDLE = 0;
 
-    private RateLimiterPluginDataHandler rateLimiterPluginDataHandler;
+    private RedisConnectionFactory redisConnectionFactory;
 
     @BeforeEach
     public void setUp() {
-        this.rateLimiterPluginDataHandler = new RateLimiterPluginDataHandler();
+        this.redisConnectionFactory = new RedisConnectionFactory(generateRedisConfig(generateDefaultUrl()));
     }
 
     /**
@@ -86,7 +86,7 @@ public final class RateLimiterPluginDataHandlerTest {
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
         pluginData.setConfig(GsonUtils.getInstance().toJson(redisConfigProperties));
-        rateLimiterPluginDataHandler.handlerPlugin(pluginData);
+        new RateLimiterPluginDataHandler().handlerPlugin(pluginData);
         assertEquals(redisConfigProperties.getUrl(), Singleton.INST.get(RedisConfigProperties.class).getUrl());
         assertNotNull(Singleton.INST.get(ReactiveRedisTemplate.class));
     }
@@ -97,7 +97,7 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void redisStandaloneConfigurationErrorTest() {
         assertThrows(Throwable.class, () -> {
-            ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration", new RedisConfigProperties());
+            ReflectionTestUtils.invokeMethod(redisConnectionFactory, "redisStandaloneConfiguration", new RedisConfigProperties());
         });
     }
 
@@ -106,7 +106,7 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void redisStandaloneConfigurationPropertiesTest() {
-        RedisStandaloneConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration",
+        RedisStandaloneConfiguration configuration = ReflectionTestUtils.invokeMethod(redisConnectionFactory, "redisStandaloneConfiguration",
                 generateRedisConfig(generateDefaultUrl()));
         assertNotNull(configuration);
         assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
@@ -120,7 +120,7 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void redisRedisClusterConfigurationPropertiesTest() {
-        RedisClusterConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisClusterConfiguration",
+        RedisClusterConfiguration configuration = ReflectionTestUtils.invokeMethod(redisConnectionFactory, "redisClusterConfiguration",
                 generateRedisConfig("localhost:2181;localhost:2182"));
         assertNotNull(configuration);
         assertEquals(RedisPassword.of(PASSWORD_TEST_VALUE), configuration.getPassword());
@@ -133,10 +133,9 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void getPoolConfigPropertyTest() {
-        RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
-        redisConfigProperties.setUrl("localhost:6793");
+        RedisConfigProperties redisConfigProperties = generateRedisConfig(generateDefaultUrl());
         redisConfigProperties.setMaxWait(1);
-        GenericObjectPoolConfig<RedisConnectionFactory> poolConfig = ReflectionTestUtils.invokeMethod(new RedisConnectionFactory(redisConfigProperties),
+        GenericObjectPoolConfig<RedisConnectionFactory> poolConfig = ReflectionTestUtils.invokeMethod(redisConnectionFactory,
                 "getPoolConfig", redisConfigProperties);
         assertNotNull(poolConfig);
         assertEquals(DEFAULT_MAX_IDLE, poolConfig.getMaxIdle());
@@ -150,7 +149,7 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void redisSentinelConfigurationPropertyTest() {
-        RedisSentinelConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisSentinelConfiguration",
+        RedisSentinelConfiguration configuration = ReflectionTestUtils.invokeMethod(redisConnectionFactory, "redisSentinelConfiguration",
                 generateRedisConfig("localhost:2181;localhost:2182"));
         assertNotNull(configuration);
         assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
@@ -164,7 +163,7 @@ public final class RateLimiterPluginDataHandlerTest {
      */
     @Test
     public void pluginNamedTest() {
-        assertEquals(PluginEnum.RATE_LIMITER.getName(), rateLimiterPluginDataHandler.pluginNamed());
+        assertEquals(PluginEnum.RATE_LIMITER.getName(), new RateLimiterPluginDataHandler().pluginNamed());
     }
 
     /**
