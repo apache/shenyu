@@ -87,7 +87,7 @@ public class UpstreamCheckTaskTest {
         when(upstream.getUrl()).thenReturn("http://www.baidu.com");
         // Manually run one time
         healthCheckTask.run();
-        Awaitility.await().pollDelay(1500, TimeUnit.MILLISECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
+        Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
         assertTrue(healthCheckTask.getHealthyUpstream().get(selectorId1).size() > 0);
     }
     
