@@ -371,7 +371,8 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AuthPathVO> detailPath(final String id) {
-        if(!authPathMapper.existedByAuthId(id)){
+        Boolean isExistedByAuthId = Optional.ofNullable(authPathMapper.existedByAuthId(id)).orElse(Boolean.FALSE);
+        if(!isExistedByAuthId){
             throw new ValidFailException("detailPath.id: app key not existed");
         }
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthId(id);
