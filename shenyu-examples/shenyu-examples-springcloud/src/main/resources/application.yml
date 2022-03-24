@@ -23,9 +23,9 @@ spring:
   cloud:
     loadbalancer:
       ribbon:
-        enabled: false
+        enabled: true
     discovery:
-      enabled: false
+      enabled: true
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
