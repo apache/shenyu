@@ -25,9 +25,12 @@ import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
 import org.apache.shenyu.plugin.cache.base.handler.CacheHandler;
 import org.apache.shenyu.spi.ExtensionLoader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import redis.embedded.RedisServer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -40,7 +43,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(MockitoExtension.class)
 public class CacheHandlerTest {
 
+    private static RedisServer redisServer;
+
     private ICache iCache;
+
+    @BeforeAll
+    public static void startup() {
+        redisServer = RedisServer.builder()
+                .port(63794)
+                .setting("maxmemory 64m")
+                .build();
+        redisServer.start();
+    }
+
+    @AfterAll
+    public static void end() {
+        redisServer.stop();
+    }
 
     /**
      * set redis with db.
@@ -50,7 +69,7 @@ public class CacheHandlerTest {
 
         final CacheConfig cacheConfig = new CacheConfig();
         cacheConfig.setCacheType(CacheEnum.REDIS.getName());
-        cacheConfig.setUrl("127.0.0.1:6379");
+        cacheConfig.setUrl("127.0.0.1:63794");
         cacheConfig.setMode(RedisModeEnum.STANDALONE.getName());
         cacheConfig.setDatabase(db);
         cacheConfig.setMinIdle(1);
