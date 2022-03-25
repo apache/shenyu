@@ -153,7 +153,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
-        String handler = buildHandle(uriList, selectorDO);
+        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
+        String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
             selectorDO.setHandle(handler);
             SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));

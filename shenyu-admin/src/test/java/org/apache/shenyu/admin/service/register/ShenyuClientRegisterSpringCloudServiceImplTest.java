@@ -41,7 +41,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-    
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -159,5 +159,11 @@ public final class ShenyuClientRegisterSpringCloudServiceImplTest {
         handle = GsonUtils.getInstance().fromJson(actual, SpringCloudSelectorHandle.class);
         assertEquals(handle.getDivideUpstreams().size(), 1);
         assertEquals(handle.getDivideUpstreams().stream().anyMatch(r -> !r.isStatus() && r.getUpstreamUrl().equals(CommonUpstreamUtils.buildUrl(dto1.getHost(), dto1.getPort()))), true);
+
+        list.clear();
+        doReturn(false).when(shenyuClientRegisterSpringCloudService).doSubmit(any(), any());
+        actual = shenyuClientRegisterSpringCloudService.buildHandle(list, selectorDO);
+        handle = GsonUtils.getInstance().fromJson(actual, SpringCloudSelectorHandle.class);
+        assertEquals(handle.getDivideUpstreams().stream().allMatch(r -> !r.isStatus()), true);
     }
 }

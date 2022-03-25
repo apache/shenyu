@@ -105,7 +105,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         
         final String returnStr = "[{protocol:'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',warmup:10,weight:50,status:false,timestamp:1637826588267},"
                 + "{protocol:'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8091',warmup:10,weight:50,status:true,timestamp:1637826588267},"
-                + "{protocol:'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8092',warmup:10,weight:50,status:false,timestamp:" + System.currentTimeMillis() + "}]";
+                + "{protocol:'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8092',warmup:10,weight:50,status:false,timestamp:" + (System.currentTimeMillis() + 60000) + "}]";
         final String expected = "[{\"weight\":50,\"warmup\":10,\"protocol\":\"http://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
                 + "{\"weight\":50,\"warmup\":10,\"protocol\":\"http://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267},"
                 + "{\"weight\":50,\"warmup\":10,\"protocol\":\"http://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8092\",\"status\":false,\"timestamp\":1637826588267}]";
@@ -162,6 +162,12 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         doReturn(true).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
         assertEquals(actual, null);
+
+        list.clear();
+        doReturn(false).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
+        actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
+        assertEquals(resultList.stream().allMatch(r -> !r.isStatus()), true);
     }
     
     @Test
