@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.cache.base.memory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.shenyu.plugin.cache.base.ICache;
+import org.apache.shenyu.spi.Join;
 
 import java.util.Map;
 import java.util.Objects;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * MemoryCache.
  */
+@Join
 public final class MemoryCache implements ICache {
 
     private final Map<String, Cache<String, byte[]>> mainCache;

@@ -24,10 +24,7 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.cache.base.ICache;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
-import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
-import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
-import org.apache.shenyu.plugin.cache.base.redis.RedisCache;
-import org.apache.shenyu.plugin.cache.base.redis.RedisConnectionFactory;
+import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +46,7 @@ public class CacheHandler implements PluginDataHandler {
      * @param pluginData the plugin data
      */
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
+    public void handlerPlugin(final PluginData pluginData) {if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
             LOG.info("the plugin {} is disabled", this.pluginNamed());
             return;
         }
@@ -60,23 +56,16 @@ public class CacheHandler implements PluginDataHandler {
             return;
         }
         LOG.info("use the {} cache.", cacheConfig.getCacheType());
-        ICache cache = Singleton.INST.get(ICache.class);
         final CacheConfig lastCacheConfig = Singleton.INST.get(CacheConfig.class);
-        if (cacheConfig.equals(lastCacheConfig) && Objects.nonNull(cache)) {
+        if (cacheConfig.equals(lastCacheConfig)) {
             LOG.info("cache plugin initialized.");
             return;
         }
-
-        if (CacheEnum.REDIS.getName().equals(cacheConfig.getCacheType())) {
-            LOG.info("prepare the redis cache.");
-            final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
-            cache = new RedisCache(redisConnectionFactory.getLettuceConnectionFactory());
-        } else if (CacheEnum.MEMORY.getName().equals(cacheConfig.getCacheType())) {
-            LOG.info("prepare the memory cache.");
-            cache = new MemoryCache();
-        }
         Singleton.INST.single(CacheConfig.class, cacheConfig);
-        Singleton.INST.single(ICache.class, cache);
+        if (Objects.nonNull(lastCacheConfig)) {
+            final ICache cache = ExtensionLoader.getExtensionLoader(ICache.class).getJoin(cacheConfig.getCacheType());
+            cache.refresh();
+        }
     }
 
     /**

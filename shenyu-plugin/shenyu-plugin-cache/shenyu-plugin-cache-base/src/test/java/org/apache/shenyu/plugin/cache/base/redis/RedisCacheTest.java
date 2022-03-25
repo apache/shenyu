@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.cache.base.redis;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.cache.base.ICache;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
@@ -54,7 +53,7 @@ public class RedisCacheTest {
         CacheConfig config = new CacheConfig();
         config.setCacheType(CacheEnum.REDIS.getName());
         config.setMode(RedisModeEnum.STANDALONE.getName());
-        config.setUrl("127.0.0.1:63793");
+        config.setUrl("127.0.0.1:6379");
         PluginData pluginData = PluginData.builder()
                 .enabled(true)
                 .config(GsonUtils.getInstance().toJson(config))
@@ -71,7 +70,7 @@ public class RedisCacheTest {
     @Test
     public void testRedisCache() {
         final String testKey = "testRedisCache";
-        final ICache cache = Singleton.INST.get(ICache.class);
+        final ICache cache = new RedisCache();
         assertEquals(Boolean.FALSE, cache.isExist(testKey));
         boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
         assertEquals(Boolean.TRUE, flag);

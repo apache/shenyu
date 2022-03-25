@@ -17,15 +17,16 @@
 
 package org.apache.shenyu.plugin.cache.base.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.cache.base.ICache;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
-import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
-import org.apache.shenyu.plugin.cache.base.memory.MemoryCache;
-import org.apache.shenyu.plugin.cache.base.redis.RedisCache;
+import org.apache.shenyu.spi.ExtensionLoader;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Objects;
 
 /**
  * CacheUtils.
@@ -66,14 +67,11 @@ public final class CacheUtils {
      * @return cache
      */
     public static ICache getCache() {
+
         final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
-        assert cacheConfig != null;
-        ICache cache = null;
-        if (CacheEnum.MEMORY.getName().equals(cacheConfig.getCacheType())) {
-            cache = Singleton.INST.get(MemoryCache.class);
-        } else if (CacheEnum.REDIS.getName().equals(cacheConfig.getCacheType())) {
-            cache = Singleton.INST.get(RedisCache.class);
-        }
-        return cache;
+        assert Objects.nonNull(cacheConfig);
+        assert StringUtils.isNotEmpty(cacheConfig.getCacheType());
+
+        return ExtensionLoader.getExtensionLoader(ICache.class).getJoin(cacheConfig.getCacheType());
     }
 }

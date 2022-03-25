@@ -17,23 +17,38 @@
 
 package org.apache.shenyu.plugin.cache.base.redis;
 
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.cache.base.ICache;
+import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuRedisSerializationContext;
+import org.apache.shenyu.spi.Join;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import java.time.Duration;
+import java.util.Objects;
 
 /**
  * RedisCache.
  */
+@Join
 public final class RedisCache implements ICache {
 
-    private final ReactiveRedisTemplate<String, byte[]> redisTemplate;
+    private ReactiveRedisTemplate<String, byte[]> redisTemplate;
 
-    public RedisCache(final ReactiveRedisConnectionFactory connectionFactory) {
-        this.redisTemplate = new ReactiveRedisTemplate<>(connectionFactory, ShenyuRedisSerializationContext.bytesSerializationContext());
+    public RedisCache() {
+        this.prepareRedis();
+    }
+
+    /**
+     * init redis connection
+     */
+    private void prepareRedis() {
+        final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
+        final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
+        this.redisTemplate = new ReactiveRedisTemplate<>(redisConnectionFactory.getLettuceConnectionFactory()
+                , ShenyuRedisSerializationContext.bytesSerializationContext());
     }
 
     /**
@@ -71,7 +86,11 @@ public final class RedisCache implements ICache {
     /**
      * close the redis cache.
      */
-    public void close() {
+    private void close() {
+
+        if (Objects.isNull(this.redisTemplate)) {
+            return;
+        }
         final ReactiveRedisConnectionFactory connectionFactory = this.redisTemplate.getConnectionFactory();
         try {
             ReactiveRedisConnection connection = connectionFactory.getReactiveConnection();
@@ -80,5 +99,15 @@ public final class RedisCache implements ICache {
             connection.close();
         } catch (Exception ignored) {
         }
+    }
+
+    /**
+     * refresh the cache.
+     */
+    @Override
+    public void refresh() {
+
+        this.close();
+        prepareRedis();
     }
 }

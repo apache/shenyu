@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.cache.base;
 
+import org.apache.shenyu.spi.SPI;
 import org.springframework.http.MediaType;
 
 import java.nio.charset.StandardCharsets;
@@ -25,6 +26,7 @@ import java.util.Objects;
 /**
  * ICache.
  */
+@SPI("memory")
 public interface ICache {
 
     /**
@@ -81,5 +83,12 @@ public interface ICache {
             return MediaType.APPLICATION_JSON;
         }
         return MediaType.valueOf(new String(data, StandardCharsets.UTF_8));
+    }
+
+    /**
+     * refresh the cache.
+     */
+    default void refresh() {
+
     }
 }
