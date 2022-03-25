@@ -68,12 +68,13 @@ public class ExistedValidator implements ConstraintValidator<Existed, Object> {
     }
     
     private Boolean checkValue(final Object value) {
-        Object bean = SpringBeanUtils.getInstance().getBean(annotation.provider());
+        Boolean result;
         try {
-            bean.getClass().getDeclaredMethod(annotation.providerMethonName(), Serializable.class).invoke(bean, value);
+            Object bean = SpringBeanUtils.getInstance().getBean(annotation.provider());
+            result = (Boolean) bean.getClass().getDeclaredMethod(annotation.providerMethonName(), Serializable.class).invoke(bean, value);
         } catch (Exception e) {
             throw new ResourceNotFoundException("the validation ExistProviderMethon invoked error");
         }
-        return false;
+        return result;
     }
 }
