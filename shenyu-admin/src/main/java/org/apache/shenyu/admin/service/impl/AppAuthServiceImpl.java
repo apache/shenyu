@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
@@ -370,12 +369,8 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public List<AuthPathVO> detailPath(final String id) {
-        Boolean isExistedByAuthId = Optional.ofNullable(authPathMapper.existedByAuthId(id)).orElse(Boolean.FALSE);
-        if (!isExistedByAuthId) {
-            throw new ValidFailException("detailPath.id: auth path not existed");
-        }
-        List<AuthPathDO> authPathDOList = authPathMapper.findByAuthId(id);
+    public List<AuthPathVO> detailPath(final String authId) {
+        List<AuthPathDO> authPathDOList = authPathMapper.findByAuthId(authId);
         if (CollectionUtils.isEmpty(authPathDOList)) {
             return new ArrayList<>();
         }

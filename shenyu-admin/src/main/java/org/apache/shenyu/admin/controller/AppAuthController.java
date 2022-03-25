@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
@@ -142,14 +143,17 @@ public class AppAuthController {
     /**
      * Detail path of App auth.
      *
-     * @param id the id
+     * @param authId the authId
      * @return the shenyu result
      */
     @GetMapping("/detailPath")
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detailPath(@RequestParam("id")
-                                        @NotBlank final String id) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(id));
+                                            @Existed(message = "app key not existed",
+                                                    provider = AuthPathMapper.class,
+                                                    providerMethonName = "existedByAuthId")
+                                        @NotBlank final String authId) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(authId));
     }
     
     /**
