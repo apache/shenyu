@@ -43,8 +43,8 @@ public class CacheHandlerTest {
     private ICache iCache;
 
     /**
-     * set redis with db
-     * @param db
+     * set redis with db.
+     * @param db the database of redis.
      */
     private void prepareRedis(final Integer db) {
 
@@ -68,7 +68,8 @@ public class CacheHandlerTest {
     public void prepareRedis() {
 
         prepareRedis(0);
-        testCacheHandler();
+        final String testKey = "testCacheHandler9";
+        testCacheHandler(testKey);
         prepareRedis(1);
         prepareMemory();
     }
@@ -83,20 +84,18 @@ public class CacheHandlerTest {
         pluginData.setConfig(GsonUtils.getInstance().toJson(cacheConfig));
         cacheHandler.handlerPlugin(pluginData);
         iCache = ExtensionLoader.getExtensionLoader(ICache.class).getJoin(cacheConfig.getCacheType());
-
-        testCacheHandler();
+        final String testKey = "prepareMemory" + System.currentTimeMillis();
+        testCacheHandler(testKey);
     }
 
-    private void testCacheHandler() {
+    private void testCacheHandler(final String testKey) {
 
-        final String testKey = "testCacheHandler3";
         assertEquals(Boolean.FALSE, iCache.isExist(testKey));
-        boolean flag = iCache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 100);
+        boolean flag = iCache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 10);
         assertEquals(Boolean.TRUE, flag);
         assertEquals(Boolean.TRUE, iCache.isExist(testKey));
         final byte[] value = iCache.getData(testKey);
         assert null != value;
         assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
-
     }
 }
