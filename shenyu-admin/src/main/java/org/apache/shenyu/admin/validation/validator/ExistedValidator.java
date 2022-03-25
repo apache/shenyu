@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.validation.validator;
 
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.shenyu.admin.exception.ResourceNotFoundException;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.validation.ExistProvider;
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * ExistedValidator.
  */
 @Component
-public class ExistedValidator implements ConstraintValidator<Existed, Object> {
+public class ExistedValidator implements ConstraintValidator<Existed, Serializable> {
     
     /**
      * target annotation.
@@ -52,7 +53,7 @@ public class ExistedValidator implements ConstraintValidator<Existed, Object> {
     }
     
     @Override
-    public boolean isValid(final Object value, final ConstraintValidatorContext context) {
+    public boolean isValid(final Serializable value, final ConstraintValidatorContext context) {
         if (Objects.isNull(annotation.provider())) {
             throw new ResourceNotFoundException("the validation ExistProvider is not found");
         }
@@ -62,19 +63,30 @@ public class ExistedValidator implements ConstraintValidator<Existed, Object> {
             return true;
         }
         if (annotation.reverse()) {
-            return !Boolean.TRUE.equals(checkValue(value));
+            return !doValid(value);
         }
-        return Boolean.TRUE.equals(checkValue(value));
+        return doValid(value);
+    }
+
+    private ExistProvider getExistProvider() {
+        ExistProvider provider = providerCacheMap.get(annotation.provider().getName());
+        if (!Objects.isNull(provider)) {
+            return provider;
+        }
+        provider = SpringBeanUtils.getInstance().getBean(annotation.provider());
+        providerCacheMap.put(annotation.provider().getName(), provider);
+        return provider;
     }
     
-    private Boolean checkValue(final Object value) {
-        Boolean result;
-        try {
-            Object bean = SpringBeanUtils.getInstance().getBean(annotation.provider());
-            result = (Boolean) bean.getClass().getDeclaredMethod(annotation.providerMethonName(), Serializable.class).invoke(bean, value);
-        } catch (Exception e) {
-            throw new ResourceNotFoundException("the validation ExistProviderMethon invoked error");
+    private Boolean doValid(final Serializable value) {
+        Object provider = getExistProvider();
+        if (!"existed".equals(annotation.providerMethonName())) {
+            try {
+                return Boolean.TRUE.equals(MethodUtils.invokeMethod(provider, annotation.providerMethonName(), value));
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("the validation ExistProviderMethon invoked error");
+            }
         }
-        return result;
+        return Boolean.TRUE.equals(getExistProvider().existed(value));
     }
 }

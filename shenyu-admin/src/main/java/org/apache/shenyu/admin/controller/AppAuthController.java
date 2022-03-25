@@ -150,8 +150,8 @@ public class AppAuthController {
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detailPath(@RequestParam("id")
                                             @Existed(message = "app key not existed",
-                                                    provider = AuthPathMapper.class,
-                                                    providerMethonName = "existedByAuthId")
+                                                    providerMethonName = "existedByAuthId",
+                                                    provider = AuthPathMapper.class)
                                         @NotBlank final String authId) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(authId));
     }

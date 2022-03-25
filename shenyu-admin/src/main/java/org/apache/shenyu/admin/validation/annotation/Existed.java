@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.validation.annotation;
 
+import org.apache.shenyu.admin.validation.ExistProvider;
 import org.apache.shenyu.admin.validation.validator.ExistedValidator;
 
 import javax.validation.Constraint;
@@ -70,7 +71,7 @@ public @interface Existed {
      *
      * @return class
      */
-    Class<?> provider();
+    Class<? extends ExistProvider> provider();
 
     /**
      * existed provider.
