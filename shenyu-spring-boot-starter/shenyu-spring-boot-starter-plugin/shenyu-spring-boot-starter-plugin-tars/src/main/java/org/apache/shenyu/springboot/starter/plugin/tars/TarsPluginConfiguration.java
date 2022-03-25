@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.tars.handler.TarsPluginDataHandler;
 import org.apache.shenyu.plugin.tars.subscriber.TarsMetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,6 +36,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(TarsPlugin.class)
+@ConditionalOnProperty(value = {"shenyu.plugins.tars.enabled"}, havingValue = "true", matchIfMissing = true)
 public class TarsPluginConfiguration {
 
     /**

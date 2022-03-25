@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.websocket.WebSocketPlugin;
 import org.apache.shenyu.plugin.websocket.context.WebSocketShenyuContextDecorator;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -34,6 +35,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
  * The type Web socket plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.websocket.enabled"}, havingValue = "true", matchIfMissing = true)
 public class WebSocketPluginConfiguration {
     
     /**

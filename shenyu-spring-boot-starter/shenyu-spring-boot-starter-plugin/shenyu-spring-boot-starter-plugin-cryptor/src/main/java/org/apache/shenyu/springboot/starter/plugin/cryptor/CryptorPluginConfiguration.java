@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.request.CryptorRequestPlugin;
 import org.apache.shenyu.plugin.cryptor.response.CryptorResponsePlugin;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
  *  Cryptor plugin.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.cryptor.enabled"}, havingValue = "true", matchIfMissing = true)
 public class CryptorPluginConfiguration {
 
     /**
