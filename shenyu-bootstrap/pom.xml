@@ -252,16 +252,29 @@
         </dependency>
 
         <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <version>${nacos-discovery.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <version>${eureka-client.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-commons</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring-cloud.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring-cloud.version}</version>
         </dependency>
-
+        <!--shenyu springCloud plugin start-->
+        
         <!--shenyu  apache dubbo plugin start-->
          <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -420,44 +433,15 @@
         <!--shenyu instance end-->
 
         <!--shenyu logging-rocketmq plugin start-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-rocketmq</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!--shenyu logging-rocketmq plugin end-->
-
-
+        
     </dependencies>
     <profiles>
-        <profile>
-            <id>nacos</id>
-            <dependencies>
-                <dependency>
-                    <groupId>com.alibaba.cloud</groupId>
-                    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-                    <version>${nacos-discovery.version}</version>
-                </dependency>
-            </dependencies>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>example</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-                    <version>${eureka-client.version}</version>
-                </dependency>
-            </dependencies>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-        </profile>
         <profile>
             <id>release</id>
             <build>

@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -56,6 +57,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Configuration
 @ConditionalOnClass(OAuth2Plugin.class)
 @EnableWebFluxSecurity
+@ConditionalOnProperty(value = {"shenyu.plugins.oauth2.enabled"}, havingValue = "true", matchIfMissing = true)
 public class OAuth2PluginConfiguration {
 
     private static final String DEFAULT_CLIENT_REGISTRATION_BEAN = "org.apache.shenyu.springboot.starter.plugin.oauth2.defaultReactiveClientRegistrationRepository";

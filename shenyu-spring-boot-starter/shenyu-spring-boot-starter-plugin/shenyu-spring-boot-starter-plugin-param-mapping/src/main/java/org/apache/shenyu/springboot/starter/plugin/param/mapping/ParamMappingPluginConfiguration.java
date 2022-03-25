@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.param.mapping.strategy.FormDataOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.JsonOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.DefaultOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.Operator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -37,6 +38,7 @@ import java.util.Map;
  * The type param mapping plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.param-mapping.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ParamMappingPluginConfiguration {
 
     /**
