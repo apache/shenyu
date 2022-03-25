@@ -42,7 +42,11 @@ public class CacheHandlerTest {
 
     private ICache iCache;
 
-    public void prepareRedis(Integer db) {
+    /**
+     * set redis with db
+     * @param db
+     */
+    private void prepareRedis(final Integer db) {
 
         final CacheConfig cacheConfig = new CacheConfig();
         cacheConfig.setCacheType(CacheEnum.REDIS.getName());

@@ -42,13 +42,13 @@ public final class RedisCache implements ICache {
     }
 
     /**
-     * init redis connection
+     * init redis connection.
      */
     private void prepareRedis() {
         final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
         final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
-        this.redisTemplate = new ReactiveRedisTemplate<>(redisConnectionFactory.getLettuceConnectionFactory()
-                , ShenyuRedisSerializationContext.bytesSerializationContext());
+        this.redisTemplate = new ReactiveRedisTemplate<>(redisConnectionFactory.getLettuceConnectionFactory(),
+                ShenyuRedisSerializationContext.bytesSerializationContext());
     }
 
     /**

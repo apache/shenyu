@@ -46,7 +46,8 @@ public class CacheHandler implements PluginDataHandler {
      * @param pluginData the plugin data
      */
     @Override
-    public void handlerPlugin(final PluginData pluginData) {if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
+    public void handlerPlugin(final PluginData pluginData) {
+        if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
             LOG.info("the plugin {} is disabled", this.pluginNamed());
             return;
         }
