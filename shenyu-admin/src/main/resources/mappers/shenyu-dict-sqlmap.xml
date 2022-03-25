@@ -32,65 +32,89 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created, date_updated
+        id,
+        `type`,
+        dict_code,
+        dict_name,
+        dict_value,
+        `desc`,
+        sort,
+        enabled,
+        date_created,
+        date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from shenyu_dict
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByDictCodeAndDictName" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from shenyu_dict
-        where dict_code = #{dictCode,jdbcType=VARCHAR} and dict_name = #{dictName,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE dict_code = #{dictCode, jdbcType=VARCHAR}
+           AND dict_name = #{dictName, jdbcType=VARCHAR}
     </select>
 
     <select id="findByType" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from shenyu_dict where `type` = #{type,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE `type` = #{type, jdbcType=VARCHAR}
     </select>
 
     <select id="findByTypeBatch" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from shenyu_dict where `type` in
-        <foreach collection="typeSet" item="type"
-                 open="(" separator="," close=")">
-            #{type,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM shenyu_dict
+         WHERE `type` IN
+        <foreach collection="typeSet" item="type" open="(" separator="," close=")">
+              #{type,jdbcType=VARCHAR}
         </foreach>
     </select>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from shenyu_dict
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM shenyu_dict
+              WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIdList">
-        delete from shenyu_dict
-        where id in
-        <foreach collection="idList" item="id" index="index"
-                 open="(" separator="," close=")">
+        DELETE FROM shenyu_dict
+              WHERE id IN
+        <foreach collection="idList" item="id" index="index" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
         </foreach>
     </delete>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
-        insert into shenyu_dict (id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created,
-        date_updated
-        )
-        values (#{id,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{dictCode,jdbcType=VARCHAR},
-        #{dictName,jdbcType=VARCHAR}, #{dictValue,jdbcType=VARCHAR}, #{desc,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER},
-        #{enabled,jdbcType=TINYINT}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
-        )
+        INSERT INTO shenyu_dict
+                    (id,
+                    `type`,
+                    dict_code,
+                    dict_name,
+                    dict_value,
+                    `desc`,
+                    sort,
+                    enabled,
+                    date_created,
+                    date_updated)
+             VALUES (#{id,jdbcType=VARCHAR},
+                    #{type,jdbcType=VARCHAR},
+                    #{dictCode,jdbcType=VARCHAR},
+                    #{dictName,jdbcType=VARCHAR},
+                    #{dictValue,jdbcType=VARCHAR},
+                    #{desc,jdbcType=VARCHAR},
+                    #{sort,jdbcType=INTEGER},
+                    #{enabled,jdbcType=TINYINT},
+                    #{dateCreated,jdbcType=TIMESTAMP},
+                    #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
-        insert into shenyu_dict
+        INSERT INTO shenyu_dict
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -157,7 +181,7 @@
         </trim>
     </insert>
     <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
-        update shenyu_dict
+        UPDATE shenyu_dict
         <set>
             <if test="type != null">
                 `type` = #{type,jdbcType=VARCHAR},
@@ -187,66 +211,71 @@
                 date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
-        update shenyu_dict
-        set `type` = #{type,jdbcType=VARCHAR},
-        dict_code = #{dictCode,jdbcType=VARCHAR},
-        dict_name = #{dictName,jdbcType=VARCHAR},
-        dict_value = #{dictValue,jdbcType=VARCHAR},
-        `desc` = #{desc,jdbcType=VARCHAR},
-        sort = #{sort,jdbcType=INTEGER},
-        enabled = #{enabled,jdbcType=TINYINT},
-        date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE shenyu_dict
+           SET `type` = #{type,jdbcType=VARCHAR},
+               dict_code = #{dictCode,jdbcType=VARCHAR},
+               dict_name = #{dictName,jdbcType=VARCHAR},
+               dict_value = #{dictValue,jdbcType=VARCHAR},
+               `desc` = #{desc,jdbcType=VARCHAR},
+               sort = #{sort,jdbcType=INTEGER},
+               enabled = #{enabled,jdbcType=TINYINT},
+               date_created = #{dateCreated,jdbcType=TIMESTAMP},
+               date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery"
             resultType="java.lang.Integer">
-        select count(1)
-        from shenyu_dict
+        SELECT count(1)
+          FROM shenyu_dict
         <where>
             <if test="type != null and type != ''">
-                and `type` = #{type,jdbcType=VARCHAR}
+                AND `type` = #{type,jdbcType=VARCHAR}
             </if>
             <if test="dictCode != null and dictCode != ''">
-                and dict_code = #{dictCode,jdbcType=VARCHAR}
+                AND dict_code = #{dictCode,jdbcType=VARCHAR}
             </if>
             <if test="dictName != null and dictName != ''">
-                and dict_name = #{dictName,jdbcType=VARCHAR}
+                AND dict_name = #{dictName,jdbcType=VARCHAR}
             </if>
         </where>
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery"
             resultMap="BaseResultMap">
-        select
+        SELECT
         <include refid="Base_Column_List"/>
-        from shenyu_dict
+          FROM shenyu_dict
         <where>
             <if test="type != null and type != ''">
-                and `type` = #{type,jdbcType=VARCHAR}
+                AND `type` = #{type,jdbcType=VARCHAR}
             </if>
             <if test="dictCode != null and dictCode != ''">
-                and dict_code = #{dictCode,jdbcType=VARCHAR}
+                AND dict_code = #{dictCode,jdbcType=VARCHAR}
             </if>
             <if test="dictName != null and dictName != ''">
                 <bind name="dictNameLike" value="('%' + dictName + '%')"/>
-                and dict_name like #{dictNameLike,jdbcType=VARCHAR}
+                AND dict_name LIKE #{dictNameLike,jdbcType=VARCHAR}
             </if>
         </where>
-        order by `type`,sort asc
+        ORDER BY `type`,sort ASC
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        select true from shenyu_dict where id = #{id} limit 1
+        SELECT true
+          FROM shenyu_dict
+         WHERE id = #{id}
+         LIMIT 1
     </select>
 
     <update id="enabled">
-        update shenyu_dict set enabled = #{enabled,jdbcType=TINYINT} where id in
+        UPDATE shenyu_dict
+           SET enabled = #{enabled,jdbcType=TINYINT}
+         WHERE id IN
         <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
             #{item}
         </foreach>

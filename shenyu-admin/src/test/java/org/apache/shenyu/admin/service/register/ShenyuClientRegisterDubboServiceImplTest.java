@@ -105,7 +105,7 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
         shenyuClientRegisterDubboService = spy(shenyuClientRegisterDubboService);
     
         final String returnStr = "[{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',warmup:10,weight:50,status:true,timestamp:1637826588267},"
-                + "{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8091',warmup:10,weight:50,status:false,timestamp:" + System.currentTimeMillis() + "}]";
+                + "{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8091',warmup:10,weight:50,status:false,timestamp:" + (System.currentTimeMillis() + 60000) + "}]";
         final String expected = "[{\"port\":0,\"weight\":50,\"warmup\":10,\"protocol\":\"dubbo://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8090\","
                 + "\"status\":true,\"timestamp\":1637826588267},{\"port\":0,\"weight\":50,\"warmup\":10,\"protocol\":\"dubbo://\",\"upstreamHost\":\"localhost\","
                 + "\"upstreamUrl\":\"localhost:8091\",\"status\":false,\"timestamp\":1637826588267}]";
@@ -155,6 +155,12 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
         resultList = GsonUtils.getInstance().fromCurrentList(actual, DubboUpstream.class);
         assertEquals(resultList.size(), 2);
         assertEquals(resultList.stream().anyMatch(r -> !r.isStatus()), true);
+
+        list.clear();
+        doReturn(false).when(shenyuClientRegisterDubboService).doSubmit(any(), any());
+        actual = shenyuClientRegisterDubboService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, DubboUpstream.class);
+        assertEquals(resultList.stream().allMatch(r -> !r.isStatus()), true);
     }
 
     @Test

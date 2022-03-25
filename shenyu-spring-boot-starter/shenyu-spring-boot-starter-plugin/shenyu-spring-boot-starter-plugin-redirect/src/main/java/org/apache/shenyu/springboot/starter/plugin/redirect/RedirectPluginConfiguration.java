@@ -21,6 +21,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.redirect.RedirectPlugin;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -29,6 +30,7 @@ import org.springframework.web.reactive.DispatcherHandler;
  * the type redirect plugin Configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.redirect.enabled"}, havingValue = "true", matchIfMissing = true)
 public class RedirectPluginConfiguration {
 
     /**

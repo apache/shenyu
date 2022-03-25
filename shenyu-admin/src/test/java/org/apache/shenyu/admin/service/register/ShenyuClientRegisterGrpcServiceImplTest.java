@@ -151,6 +151,12 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         assertEquals(resultList.size(), 2);
         assertEquals(resultList.stream().anyMatch(r -> !r.isStatus() && r.getUpstreamUrl().equals("localhost:8090")), true);
         assertEquals(resultList.stream().anyMatch(r -> r.isStatus() && !r.getUpstreamUrl().equals("localhost:8090")), true);
+
+        list.clear();
+        doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
+        actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
+        assertEquals(resultList.stream().allMatch(r -> !r.isStatus()), true);
     }
     
     @Test
