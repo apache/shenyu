@@ -20,21 +20,25 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>shenyu-plugin</artifactId>
+        <artifactId>shenyu-plugin-cache</artifactId>
         <groupId>org.apache.shenyu</groupId>
         <version>2.4.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shenyu-plugin-cache</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>shenyu-plugin-cache-read</module>
-        <module>shenyu-plugin-cache-write</module>
-        <module>shenyu-plugin-cache-base</module>
-        <module>shenyu-plugin-cache-spi</module>
-        <module>shenyu-plugin-cache-memory</module>
-        <module>shenyu-plugin-cache-redis</module>
-    </modules>
+    <artifactId>shenyu-plugin-cache-memory</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-cache-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>
