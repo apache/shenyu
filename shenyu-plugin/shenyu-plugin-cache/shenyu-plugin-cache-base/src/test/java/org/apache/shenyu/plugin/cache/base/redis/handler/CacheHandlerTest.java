@@ -50,7 +50,7 @@ public class CacheHandlerTest {
 
         final CacheConfig cacheConfig = new CacheConfig();
         cacheConfig.setCacheType(CacheEnum.REDIS.getName());
-        cacheConfig.setUrl("shenyu-redis:6379");
+        cacheConfig.setUrl("127.0.0.1:6379");
         cacheConfig.setMode(RedisModeEnum.STANDALONE.getName());
         cacheConfig.setDatabase(db);
         cacheConfig.setMinIdle(1);
