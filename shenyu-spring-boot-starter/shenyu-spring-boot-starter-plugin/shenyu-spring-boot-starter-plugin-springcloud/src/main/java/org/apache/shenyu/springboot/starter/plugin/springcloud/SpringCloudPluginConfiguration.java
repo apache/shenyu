@@ -45,7 +45,7 @@ import java.util.Optional;
  * The type Spring cloud plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.springCloud.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.spring-cloud.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SpringCloudPluginConfiguration {
 
     /**
