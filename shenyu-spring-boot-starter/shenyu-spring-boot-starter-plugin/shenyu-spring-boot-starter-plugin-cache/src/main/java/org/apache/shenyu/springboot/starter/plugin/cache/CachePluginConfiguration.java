@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.cache.base.handler.CacheHandler;
 import org.apache.shenyu.plugin.cache.read.CacheReadPlugin;
 import org.apache.shenyu.plugin.cache.write.CacheWritePlugin;
 import org.apache.shenyu.plugin.cache.write.handler.CacheWritePluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
  * CachePluginConfiguration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.cache.enabled"}, havingValue = "true", matchIfMissing = true)
 public class CachePluginConfiguration {
 
     /**
