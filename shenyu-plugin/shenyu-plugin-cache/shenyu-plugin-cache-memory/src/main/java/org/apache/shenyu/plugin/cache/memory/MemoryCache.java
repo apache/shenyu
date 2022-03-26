@@ -83,4 +83,12 @@ public final class MemoryCache implements ICache {
         }
         return this.mainCache.get(key).asMap().get(key);
     }
+
+    /**
+     * close the cache.
+     */
+    @Override
+    public void close() {
+        this.mainCache.clear();
+    }
 }
