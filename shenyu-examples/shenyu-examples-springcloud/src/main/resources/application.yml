@@ -18,10 +18,28 @@ server:
   address: 0.0.0.0
 
 spring:
-  profiles:
-    active: example
   application:
     name: springCloud-test
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: true
+    discovery:
+      enabled: true
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
+        enabled: false
+        namespace: ShenyuRegisterCenter
+
+eureka:
+  client:
+    enabled: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true   
+    
 
 springCloud-test:
   ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule

@@ -18,10 +18,10 @@
 package org.apache.shenyu.admin.service.register;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.converter.DubboSelectorHandleConverter;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
@@ -29,8 +29,10 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -40,6 +42,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
+
+    @Resource
+    private DubboSelectorHandleConverter dubboSelectorHandleConverter;
 
     @Override
     public String rpcType() {
@@ -65,23 +70,45 @@ public class ShenyuClientRegisterDubboServiceImpl extends AbstractShenyuClientRe
 
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
-        String handleAdd;
         List<DubboUpstream> addList = buildDubboUpstreamList(uriList);
         List<DubboUpstream> canAddList = new CopyOnWriteArrayList<>();
-        if (StringUtils.isBlank(selectorDO.getHandle())) {
-            handleAdd = GsonUtils.getInstance().toJson(addList);
+        boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
+        if (isEventDeleted) {
+            addList.get(0).setStatus(false);
+        }
+        List<DubboUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DubboUpstream.class);
+        if (CollectionUtils.isEmpty(existList)) {
             canAddList = addList;
         } else {
-            List<DubboUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DubboUpstream.class);
-            List<DubboUpstream> diffList = addList.stream().filter(dubboUpstream -> !existList.contains(dubboUpstream)).collect(Collectors.toList());
+            List<DubboUpstream> diffList = addList.stream().filter(upstream -> !existList.contains(upstream)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
             }
-            handleAdd = GsonUtils.getInstance().toJson(existList);
+            List<DubboUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
+                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffStatusList)) {
+                canAddList.addAll(diffStatusList);
+            }
         }
-        doSubmit(selectorDO.getId(), canAddList);
-        return handleAdd;
+
+        if (doSubmit(selectorDO.getId(), canAddList)) {
+            return null;
+        }
+
+        List<DubboUpstream> handleList;
+        if (CollectionUtils.isEmpty(existList)) {
+            handleList = addList;
+        } else {
+            List<DubboUpstream> aliveList;
+            if (isEventDeleted) {
+                aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
+            } else {
+                aliveList = addList;
+            }
+            handleList = dubboSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
+        }
+        return GsonUtils.getInstance().toJson(handleList);
     }
 
     private List<DubboUpstream> buildDubboUpstreamList(final List<URIRegisterDTO> uriList) {

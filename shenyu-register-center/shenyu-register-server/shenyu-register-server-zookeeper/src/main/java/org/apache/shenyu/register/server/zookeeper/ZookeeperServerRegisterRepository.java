@@ -129,18 +129,18 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
         String uriParentPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         List<String> childrenList = zkClientGetChildren(uriParentPath);
         if (CollectionUtils.isNotEmpty(childrenList)) {
-            registerURIChildrenList(childrenList, uriParentPath);
+            registerURIChildrenList(childrenList, uriParentPath, rpcType);
         }
         zkClient.subscribeChildChanges(uriParentPath, (parentPath, currentChildren) -> {
             if (CollectionUtils.isNotEmpty(currentChildren)) {
-                registerURIChildrenList(currentChildren, parentPath);
+                registerURIChildrenList(currentChildren, parentPath, rpcType);
             } else {
-                registerURIChildrenList(new ArrayList<>(), parentPath);
+                registerURIChildrenList(new ArrayList<>(), parentPath, rpcType);
             }
         });
     }
     
-    private void registerURIChildrenList(final List<String> childrenList, final String uriParentPath) {
+    private void registerURIChildrenList(final List<String> childrenList, final String uriParentPath, final String rpcType) {
         List<URIRegisterDTO> registerDTOList = new LinkedList<>();
         childrenList.forEach(addPath -> {
             String realPath = RegisterPathConstants.buildRealNode(uriParentPath, addPath);
@@ -149,7 +149,7 @@ public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRe
 
         if (CollectionUtils.isEmpty(registerDTOList)) {
             String contextPath = StringUtils.substringAfterLast(uriParentPath, Constants.PATH_SEPARATOR);
-            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + contextPath).build();
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(Constants.PATH_SEPARATOR + contextPath).rpcType(rpcType).build();
             registerDTOList.add(uriRegisterDTO);
         }
         publishRegisterURI(registerDTOList);

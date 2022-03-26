@@ -62,11 +62,13 @@ public class CommonUpstream {
      * @param protocol the protocol
      * @param upstreamHost the upstream host
      * @param upstreamUrl the upstream url
+     * @param status the upstream status
      */
-    public CommonUpstream(final String protocol, final String upstreamHost, final String upstreamUrl) {
+    public CommonUpstream(final String protocol, final String upstreamHost, final String upstreamUrl, final boolean status) {
         this.protocol = protocol;
         this.upstreamHost = upstreamHost;
         this.upstreamUrl = upstreamUrl;
+        this.status = status;
     }
     
     /**
@@ -187,15 +189,20 @@ public class CommonUpstream {
 
     @Override
     public String toString() {
-        return "DivideUpstream{"
-                + "upstreamHost='"
-                + upstreamHost
-                + '\''
-                + ", protocol='"
+        return "CommonUpstream{"
+                + "protocol='"
                 + protocol
+                + '\''
+                + ", upstreamHost='"
+                + upstreamHost
                 + '\''
                 + ", upstreamUrl='"
                 + upstreamUrl
+                + '\''
+                + ", status="
+                + status
+                + ", timestamp="
+                + timestamp
                 + '}';
     }
 }

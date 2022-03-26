@@ -272,22 +272,26 @@ public class URIRegisterDTO implements DataTypeParent {
         return "URIRegisterDTO{"
                 + "protocol='"
                 + protocol
-                + "appName='"
+                + '\''
+                + ", appName='"
                 + appName
+                + '\''
                 + ", contextPath='"
                 + contextPath
+                + '\''
                 + ", rpcType='"
                 + rpcType
+                + '\''
                 + ", host='"
                 + host
+                + '\''
                 + ", port="
                 + port
                 + ", eventType="
                 + eventType
                 + '}';
-
     }
-    
+
     /**
      * The type Builder.
      */

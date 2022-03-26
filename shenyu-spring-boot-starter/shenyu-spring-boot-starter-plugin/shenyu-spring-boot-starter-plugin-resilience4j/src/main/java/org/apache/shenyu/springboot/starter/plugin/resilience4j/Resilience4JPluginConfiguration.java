@@ -21,6 +21,7 @@ import org.apache.shenyu.plugin.resilience4j.Resilience4JPlugin;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
 import org.apache.shenyu.plugin.resilience4j.handler.Resilience4JHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * Resilience4j plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.resilience4j.enabled"}, havingValue = "true", matchIfMissing = true)
 public class Resilience4JPluginConfiguration {
 
     /**

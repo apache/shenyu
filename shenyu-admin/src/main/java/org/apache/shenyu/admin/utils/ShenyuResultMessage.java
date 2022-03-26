@@ -72,7 +72,5 @@ public final class ShenyuResultMessage {
 
     public static final String SAVE_SUCCESS = "save success";
 
-    public static final String SAVE_FAILED = "save failed";
-
     public static final String NOT_FOUND_EXCEPTION = "not found exception";
 }

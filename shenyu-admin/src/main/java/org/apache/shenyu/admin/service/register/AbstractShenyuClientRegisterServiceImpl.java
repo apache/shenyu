@@ -47,6 +47,7 @@ import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Abstract strategy.
@@ -152,14 +153,17 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
-        String handler = buildHandle(uriList, selectorDO);
-        selectorDO.setHandle(handler);
-        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
-        selectorData.setHandle(handler);
-        // update db
-        selectorService.updateSelective(selectorDO);
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
+        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
+        String handler = buildHandle(validUriList, selectorDO);
+        if (handler != null) {
+            selectorDO.setHandle(handler);
+            SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+            selectorData.setHandle(handler);
+            // update db
+            selectorService.updateSelective(selectorDO);
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
+        }
         return ShenyuResultMessage.SUCCESS;
     }
     
@@ -195,10 +199,12 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      *
      * @param selectorId   the selector id
      * @param upstreamList the upstream list
+     * @return whether this module handles
      */
-    protected void doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
+    protected boolean doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
         List<CommonUpstream> commonUpstreamList = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
-        commonUpstreamList.forEach(upstream -> upstreamCheckService.submit(selectorId, upstream));
+        return commonUpstreamList.stream().map(upstream -> upstreamCheckService.submit(selectorId, upstream))
+                .collect(Collectors.toList()).stream().findAny().orElse(false);
     }
     
     /**
