@@ -24,6 +24,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.base.utils.CacheUtils;
 import org.apache.shenyu.plugin.cache.write.handler.CacheWritePluginDataHandler;
 import org.reactivestreams.Publisher;

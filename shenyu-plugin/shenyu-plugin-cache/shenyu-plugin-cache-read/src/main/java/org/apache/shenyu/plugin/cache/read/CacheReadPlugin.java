@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.cache.read;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.base.utils.CacheUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
