@@ -24,9 +24,7 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.body.LoggingServerHttpResponse;
-import org.apache.shenyu.plugin.logging.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rocketmq.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.utils.LogCollectUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -44,19 +42,6 @@ public class LoggingRocketMQPlugin extends AbstractShenyuPlugin {
 
     private static final String HOST = "Host";
 
-    private final LogCollectConfig logCollectConfig;
-
-    public LoggingRocketMQPlugin(final LogCollectConfig logCollectConfig) {
-        this.logCollectConfig = logCollectConfig;
-        init();
-    }
-
-    private void init() {
-        LogCollectConfigUtils.setLogCollectConfig(logCollectConfig);
-        RocketMQLogCollectClient client = new RocketMQLogCollectClient(logCollectConfig.getRocketmqProps());
-        new DefaultLogCollector(client);
-    }
-
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -69,7 +54,7 @@ public class LoggingRocketMQPlugin extends AbstractShenyuPlugin {
         ShenyuRequestLog requestInfo = new ShenyuRequestLog();
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());
-        requestInfo.setRequestHeader(LogCollectUtils.getRequestHeaders(request.getHeaders()));
+        requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
         requestInfo.setQueryParams(request.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(request.getHeaders().getFirst(USER_AGENT));

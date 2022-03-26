@@ -47,9 +47,8 @@ public class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
     @NonNull
     public Flux<DataBuffer> getBody() {
         BodyWriter writer = new BodyWriter();
-        boolean collectRequestBody = LogCollectConfigUtils.getLogFieldSwitchConfig().isRequestBody();
         return super.getBody().doOnNext(dataBuffer -> {
-            if (LogCollectUtils.isNotBinaryType(getHeaders()) && collectRequestBody) {
+            if (LogCollectUtils.isNotBinaryType(getHeaders())) {
                 writer.write(dataBuffer.asByteBuffer().asReadOnlyBuffer());
             }
         }).doFinally(signal -> {

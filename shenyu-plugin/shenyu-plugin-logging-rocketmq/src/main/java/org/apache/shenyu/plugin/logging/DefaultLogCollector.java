@@ -17,19 +17,14 @@
 
 package org.apache.shenyu.plugin.logging;
 
-import java.util.Objects;
+import org.apache.shenyu.plugin.logging.handler.LoggingRocketMQPluginDataHandler;
 
 /**
  * default log collector，depend a LogConsumeClient for consume logs.
  */
 public class DefaultLogCollector extends AbstractLogCollector {
 
-    private static LogCollector instance;
-
-    public DefaultLogCollector(final LogConsumeClient logConsumeClient) {
-        super(logConsumeClient);
-        instance = this;
-    }
+    private static final LogCollector INSTANCE = new DefaultLogCollector();
 
     /**
      * get LogCollector instance.
@@ -37,6 +32,11 @@ public class DefaultLogCollector extends AbstractLogCollector {
      * @return LogCollector instance
      */
     public static LogCollector getInstance() {
-        return Objects.requireNonNull(instance);
+        return INSTANCE;
+    }
+
+    @Override
+    protected LogConsumeClient getLogConsumeClient() {
+        return LoggingRocketMQPluginDataHandler.getRocketMqLogCollectClient();
     }
 }

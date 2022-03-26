@@ -18,9 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.logging.rocketmq;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.logging.LoggingRocketMQPlugin;
-import org.apache.shenyu.plugin.logging.config.LogCollectConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.apache.shenyu.plugin.logging.handler.LoggingRocketMQPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,24 +31,21 @@ import org.springframework.context.annotation.Configuration;
 public class LoggingRocketMQPluginConfiguration {
 
     /**
-     * LogCollectConfig, include logging RocketMQ properties.
-     *
-     * @return LogCollectConfig properties
+     * logging rocketmq plugin data handler.
+     * @return logging rocketmq PluginDataHandler
      */
     @Bean
-    @ConfigurationProperties(prefix = "shenyu.logging.rocketmq")
-    public LogCollectConfig logCollectConfig() {
-        return new LogCollectConfig();
+    public PluginDataHandler loggingRocketMQPluginDataHandler() {
+        return new LoggingRocketMQPluginDataHandler();
     }
 
     /**
      * Logging RocketMQ plugin.
-     * @param logCollectConfig log collect config.
      * @return LoggingRocketMQPlugin
      */
     @Bean
-    public ShenyuPlugin loggingRocketMQPlugin(final LogCollectConfig logCollectConfig) {
-        return new LoggingRocketMQPlugin(logCollectConfig);
+    public ShenyuPlugin loggingRocketMQPlugin() {
+        return new LoggingRocketMQPlugin();
     }
 
 }

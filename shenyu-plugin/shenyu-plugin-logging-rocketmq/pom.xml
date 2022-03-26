@@ -30,6 +30,7 @@
 
     <properties>
         <rocketmq-client.version>4.9.2</rocketmq-client.version>
+        <lz4-java.version>1.8.0</lz4-java.version>
     </properties>
 
     <dependencies>
@@ -42,6 +43,11 @@
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-client</artifactId>
             <version>${rocketmq-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lz4</groupId>
+            <artifactId>lz4-java</artifactId>
+            <version>${lz4-java.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
