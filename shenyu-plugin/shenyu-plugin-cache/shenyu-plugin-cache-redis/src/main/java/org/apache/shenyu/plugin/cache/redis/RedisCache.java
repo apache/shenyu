@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.plugin.cache.redis;
 
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.cache.ICache;
-import org.apache.shenyu.plugin.cache.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.redis.serializer.ShenyuRedisSerializationContext;
 import org.apache.shenyu.spi.Join;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
@@ -35,19 +33,10 @@ import java.util.Objects;
 @Join
 public final class RedisCache implements ICache {
 
-    private ReactiveRedisTemplate<String, byte[]> redisTemplate;
+    private final ReactiveRedisTemplate<String, byte[]> redisTemplate;
 
-    public RedisCache() {
-        this.prepareRedis();
-    }
-
-    /**
-     * init redis connection.
-     */
-    private void prepareRedis() {
-        final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
-        final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(cacheConfig);
-        this.redisTemplate = new ReactiveRedisTemplate<>(redisConnectionFactory.getLettuceConnectionFactory(),
+    public RedisCache(final RedisConfigProperties redisConfigProperties) {
+        this.redisTemplate = new ReactiveRedisTemplate<>(new RedisConnectionFactory(redisConfigProperties).getLettuceConnectionFactory(),
                 ShenyuRedisSerializationContext.bytesSerializationContext());
     }
 
@@ -86,8 +75,8 @@ public final class RedisCache implements ICache {
     /**
      * close the redis cache.
      */
-    private void close() {
-
+    @Override
+    public void close() {
         if (Objects.isNull(this.redisTemplate)) {
             return;
         }
@@ -99,15 +88,5 @@ public final class RedisCache implements ICache {
             connection.close();
         } catch (Exception ignored) {
         }
-    }
-
-    /**
-     * refresh the cache.
-     */
-    @Override
-    public void refresh() {
-
-        this.close();
-        prepareRedis();
     }
 }

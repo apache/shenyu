@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.cache.redis.serializer;
 
-import org.apache.shenyu.plugin.cache.base.redis.serializer.ByteArrayRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;

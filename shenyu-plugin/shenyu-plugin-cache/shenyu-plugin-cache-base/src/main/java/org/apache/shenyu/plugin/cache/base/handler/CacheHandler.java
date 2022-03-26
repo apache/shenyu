@@ -22,8 +22,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.cache.base.ICache;
+import org.apache.shenyu.plugin.cache.ICache;
+import org.apache.shenyu.plugin.cache.ICacheBuilder;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
+import org.apache.shenyu.plugin.cache.base.utils.CacheUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +53,8 @@ public class CacheHandler implements PluginDataHandler {
             LOG.info("the plugin {} is disabled", this.pluginNamed());
             return;
         }
-        CacheConfig cacheConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), CacheConfig.class);
+        final String config = pluginData.getConfig();
+        CacheConfig cacheConfig = GsonUtils.getInstance().fromJson(config, CacheConfig.class);
         if (Objects.isNull(cacheConfig)) {
             LOG.info("invalid cacheConfig.");
             return;
@@ -63,10 +66,14 @@ public class CacheHandler implements PluginDataHandler {
             return;
         }
         Singleton.INST.single(CacheConfig.class, cacheConfig);
-        if (Objects.nonNull(lastCacheConfig)) {
-            final ICache cache = ExtensionLoader.getExtensionLoader(ICache.class).getJoin(cacheConfig.getCacheType());
-            cache.refresh();
+        ICache lastCache = CacheUtils.getCache();
+        if (Objects.nonNull(lastCache)) {
+            // close last cache.
+            LOG.info("close the last cache {}", lastCache);
+            lastCache.close();
         }
+        final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
+        Singleton.INST.single(ICache.class, cacheBuilder.builderCache(config));
     }
 
     /**

@@ -28,5 +28,11 @@
 
     <artifactId>shenyu-plugin-cache-spi</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

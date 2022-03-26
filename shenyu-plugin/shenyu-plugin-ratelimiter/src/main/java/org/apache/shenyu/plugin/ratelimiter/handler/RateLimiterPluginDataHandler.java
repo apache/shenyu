@@ -27,9 +27,9 @@ import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
-import org.apache.shenyu.plugin.cache.base.redis.RedisConnectionFactory;
-import org.apache.shenyu.plugin.cache.base.redis.serializer.ShenyuRedisSerializationContext;
+import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;
+import org.apache.shenyu.plugin.cache.redis.RedisConnectionFactory;
+import org.apache.shenyu.plugin.cache.redis.serializer.ShenyuRedisSerializationContext;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import java.util.Objects;

@@ -33,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-cache-base</artifactId>
+            <artifactId>shenyu-plugin-cache-redis</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

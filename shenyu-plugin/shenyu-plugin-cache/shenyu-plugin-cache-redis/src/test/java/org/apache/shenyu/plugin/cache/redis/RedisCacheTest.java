@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cache.base.redis.handler;
+package org.apache.shenyu.plugin.cache.redis;
 
-import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.cache.ICache;
-import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
-import org.apache.shenyu.plugin.cache.base.handler.CacheHandler;
-import org.apache.shenyu.plugin.cache.base.utils.CacheUtils;
-import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;
+import org.apache.shenyu.plugin.cache.ICacheBuilder;
+import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,17 +34,17 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * CacheHandlerTest.
+ * RedisCacheTest.
  */
 @ExtendWith(MockitoExtension.class)
-public class CacheHandlerTest {
+public class RedisCacheTest {
 
     private static RedisServer redisServer;
 
     @BeforeAll
     public static void startup() {
         redisServer = RedisServer.builder()
-                .port(63794)
+                .port(63793)
                 .setting("maxmemory 64m")
                 .build();
         redisServer.start();
@@ -59,35 +57,35 @@ public class CacheHandlerTest {
 
     @Test
     public void testRedisCache() {
-        final CacheHandler cacheHandler = new CacheHandler();
-        final PluginData pluginData = new PluginData();
-        RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
-        redisConfigProperties.setUrl("127.0.0.1:63794");
-        pluginData.setConfig(GsonUtils.getInstance().toJson(redisConfigProperties));
-        cacheHandler.handlerPlugin(pluginData);
-        testCacheData("redis-cache-data");
-    }
-
-    @Test
-    public void testMemoryCache() {
-        final CacheConfig cacheConfig = new CacheConfig();
-        cacheConfig.setCacheType("memory");
-        final CacheHandler cacheHandler = new CacheHandler();
-        final PluginData pluginData = new PluginData();
-        pluginData.setConfig(GsonUtils.getInstance().toJson(cacheConfig));
-        cacheHandler.handlerPlugin(pluginData);
-        testCacheData("memory-cache-data");
-    }
-
-    private void testCacheData(final String testKey) {
-        ICache cache = CacheUtils.getCache();
-        assert null != cache;
+        final String testKey = "testRedisCache";
+        final ICache cache = new RedisCache(getConfig());
         assertEquals(Boolean.FALSE, cache.isExist(testKey));
-        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 10);
+        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
         assertEquals(Boolean.TRUE, flag);
         assertEquals(Boolean.TRUE, cache.isExist(testKey));
         final byte[] value = cache.getData(testKey);
         assert null != value;
         assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testLoadRedisCache() {
+        final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin("redis");
+        ICache cache = cacheBuilder.builderCache(GsonUtils.getInstance().toJson(getConfig()));
+        final String testKey = "testLoadRedisCache";
+        assertEquals(Boolean.FALSE, cache.isExist(testKey));
+        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
+        assertEquals(Boolean.TRUE, flag);
+        assertEquals(Boolean.TRUE, cache.isExist(testKey));
+        final byte[] value = cache.getData(testKey);
+        assert null != value;
+        assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
+    }
+
+    private RedisConfigProperties getConfig() {
+        RedisConfigProperties config = new RedisConfigProperties();
+        config.setMode(RedisModeEnum.STANDALONE.getName());
+        config.setUrl("127.0.0.1:63793");
+        return config;
     }
 }

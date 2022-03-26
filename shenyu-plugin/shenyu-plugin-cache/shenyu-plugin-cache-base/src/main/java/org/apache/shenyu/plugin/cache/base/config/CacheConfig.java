@@ -17,20 +17,18 @@
 
 package org.apache.shenyu.plugin.cache.base.config;
 
-import org.apache.shenyu.plugin.cache.base.enums.CacheEnum;
-import org.apache.shenyu.plugin.cache.base.redis.RedisConfigProperties;
-
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * CacheConfig.
  */
-public class CacheConfig extends RedisConfigProperties {
+public class CacheConfig implements Serializable {
 
     /**
-     * the type of config cache, default memory {@linkplain CacheEnum}.
+     * the type of config cache, default memory.
      */
-    private String cacheType = CacheEnum.MEMORY.getName();
+    private String cacheType = "memory";
 
     /**
      * Get cache type.

@@ -28,13 +28,14 @@
 
     <artifactId>shenyu-plugin-cache</artifactId>
     <packaging>pom</packaging>
+
     <modules>
         <module>shenyu-plugin-cache-read</module>
         <module>shenyu-plugin-cache-write</module>
-        <module>shenyu-plugin-cache-base</module>
         <module>shenyu-plugin-cache-spi</module>
         <module>shenyu-plugin-cache-memory</module>
         <module>shenyu-plugin-cache-redis</module>
+        <module>shenyu-plugin-cache-base</module>
     </modules>
 
 </project>
