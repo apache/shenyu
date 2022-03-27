@@ -59,7 +59,7 @@ public abstract class AbstractLogCollector implements LogCollector {
 
     @Override
     public void collect(final ShenyuRequestLog log) {
-        if (Objects.isNull(log) ||  Objects.isNull(getLogConsumeClient())) {
+        if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient())) {
             return;
         }
         if (bufferQueue.size() < bufferSize) {
