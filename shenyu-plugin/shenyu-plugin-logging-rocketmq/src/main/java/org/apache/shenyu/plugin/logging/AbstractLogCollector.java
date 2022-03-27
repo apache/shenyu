@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,7 +59,7 @@ public abstract class AbstractLogCollector implements LogCollector {
 
     @Override
     public void collect(final ShenyuRequestLog log) {
-        if (log == null || getLogConsumeClient() == null) {
+        if (Objects.isNull(log) ||  Objects.isNull(getLogConsumeClient())) {
             return;
         }
         if (bufferQueue.size() < bufferSize) {
