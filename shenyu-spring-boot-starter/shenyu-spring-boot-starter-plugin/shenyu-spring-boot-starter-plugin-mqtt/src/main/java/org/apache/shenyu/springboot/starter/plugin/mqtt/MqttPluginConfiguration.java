@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.mqtt;
 
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.mqtt.handler.MqttPluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
  * The type mqtt plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.mqtt.enabled"}, havingValue = "true", matchIfMissing = true)
 public class MqttPluginConfiguration {
 
     /**

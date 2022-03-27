@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.logging;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.logging.LoggingPlugin;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Logging plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.logging.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingPluginConfiguration {
 
     /**

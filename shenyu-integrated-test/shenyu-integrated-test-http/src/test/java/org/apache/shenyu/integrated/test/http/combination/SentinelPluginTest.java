@@ -98,7 +98,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
     private static List<RuleLocalData> buildRuleLocalDataList(final String fallbackUri) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
         SentinelHandle sentinelHandle = new SentinelHandle();
-        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleCount(1d);
         sentinelHandle.setDegradeRuleEnable(1);
         sentinelHandle.setFlowRuleEnable(1);
         sentinelHandle.setFlowRuleCount(1);

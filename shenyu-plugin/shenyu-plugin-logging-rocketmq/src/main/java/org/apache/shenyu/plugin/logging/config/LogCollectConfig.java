@@ -30,6 +30,8 @@ public class LogCollectConfig {
     /**
      * rocketmq props.
      */
+    private boolean enabled;
+
     private Properties rocketmqProps;
 
     private LogFieldSwitchConfig logFieldSwitchConfig;
@@ -37,6 +39,23 @@ public class LogCollectConfig {
     private GlobalLogConfig globalLogConfig;
 
     private Map<String, LogApiConfig> logApiSwitchConfigMap;
+
+    /**
+     * get is enabled.
+     * @return is enabled.
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * set enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
 
     /**
      * get LogFieldSwitchConfig.
