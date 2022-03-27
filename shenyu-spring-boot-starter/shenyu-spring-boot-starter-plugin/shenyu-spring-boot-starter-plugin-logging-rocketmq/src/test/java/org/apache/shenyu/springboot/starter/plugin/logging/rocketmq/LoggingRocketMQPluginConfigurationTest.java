@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.logging.rocketmq;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.logging.config.LogCollectConfig;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -53,12 +53,11 @@ public class LoggingRocketMQPluginConfigurationTest {
                 .withBean(LoggingRocketMQPluginConfigurationTest.class)
                 .withPropertyValues(
                         "debug=true",
-                        "shenyu.logging.rocketmq.rocketmqProps.key1=value1",
-                        "shenyu.logging.rocketmq.rocketmqProps.key2=value2"
+                        "shenyu.logging.rocketmq.enabled=true"
                 )
                 .run(context -> {
-                    LogCollectConfig logCollectConfig = context.getBean("logCollectConfig", LogCollectConfig.class);
-                    assertNotNull(logCollectConfig);
+                    PluginDataHandler pluginDataHandler = context.getBean("loggingRocketMQPluginDataHandler", PluginDataHandler.class);
+                    assertNotNull(pluginDataHandler);
 
                     ShenyuPlugin plugin = context.getBean("loggingRocketMQPlugin", ShenyuPlugin.class);
                     assertNotNull(plugin);
