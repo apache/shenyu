@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.exception.ResourceNotFoundException;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.validation.ExistProvider;
 import org.apache.shenyu.admin.validation.annotation.Existed;
-import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -34,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * ExistedValidator.
  */
-@Component
 public class ExistedValidator implements ConstraintValidator<Existed, Serializable> {
     
     /**
