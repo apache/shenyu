@@ -78,7 +78,7 @@ public @interface Existed {
      *
      * @return class
      */
-    String providerMethonName() default "existed";
+    String providerMethodName() default "existed";
 
     /**
      * support groups.
