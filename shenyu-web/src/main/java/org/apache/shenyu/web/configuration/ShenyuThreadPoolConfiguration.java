@@ -22,9 +22,12 @@ import org.apache.shenyu.common.concurrent.MemoryLimitedTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextClosedEvent;
 
 import java.lang.instrument.Instrumentation;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,5 +58,27 @@ public class ShenyuThreadPoolConfiguration {
                 TimeUnit.MILLISECONDS, new MemoryLimitedTaskQueue<>(maxWorkQueueMemory, instrumentation),
                 ShenyuThreadFactory.create(sharedPool.getPrefix(), true),
                 new ThreadPoolExecutor.AbortPolicy());
+    }
+
+    /**
+     * destroy the shenyu shared thread pool executor.
+     *
+     * @return the shenyu thread pool executor destructor
+     */
+    @Bean
+    @ConditionalOnProperty(name = "shenyu.sharedPool.enable", havingValue = "true")
+    public ShenyuThreadPoolExecutorDestructor shenyuThreadPoolExecutorDestructor() {
+        return new ShenyuThreadPoolExecutorDestructor();
+    }
+
+    /**
+     * The type shenyu thread pool executor destructor.
+     */
+    public static class ShenyuThreadPoolExecutorDestructor implements ApplicationListener<ContextClosedEvent> {
+
+        @Override
+        public void onApplicationEvent(final ContextClosedEvent event) {
+            SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class).shutdown();
+        }
     }
 }

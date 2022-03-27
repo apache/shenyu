@@ -52,6 +52,14 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `t
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('retryStrategy', 'RETRY_STRATEGY', 'current', 'current', 'current', '0', '1');
 INSERT IGNORE INTO shenyu_dict (`type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('retryStrategy', 'RETRY_STRATEGY', 'failover', 'failover', 'failover', '1', '1');
 
+-- Note: it doesn't matter if you don't execute this SQL, the default configuration will be compatible with the old version
+-- Note: because most users have changed ZK configuration, this SQL is annotated to prevent erroneous execution
+-- UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"cached"}' WHERE `name` = 'grpc';
+--                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ if you want to execute this SQL, please replace these with your own configuration
+
+-- insert plugin_handle data for grpc
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('15', 'threadpool', 'threadpool', '3', '3', '0', '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}');
+
 -- update dict flag
 UPDATE shenyu_dict SET dict_value = 'false' WHERE dict_code = 'INIT_FLAG';
 
@@ -69,3 +77,4 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_typ
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('1505399444706459648', '1505394366310285312', 'minIdle', 'minIdle', 1, 3, 8, '{"required":"0","defaultValue":"0","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('1505399837066821632', '1505394366310285312', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('1505400882341904384', '1505394366310285312', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}');
+
