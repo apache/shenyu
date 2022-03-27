@@ -70,3 +70,10 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`
 
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('29', 'topic', 'topic', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}');
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('29', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}');
+-- Note: it doesn't matter if you don't execute this SQL, the default configuration will be compatible with the old version
+-- Note: because most users have changed ZK configuration, this SQL is annotated to prevent erroneous execution
+-- UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"cached"}' WHERE `name` = 'grpc';
+--                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ if you want to execute this SQL, please replace these with your own configuration
+
+-- insert plugin_handle data for grpc
+INSERT IGNORE INTO plugin_handle (`plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('15', 'threadpool', 'threadpool', '3', '3', '0', '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}');

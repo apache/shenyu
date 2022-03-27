@@ -343,7 +343,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('12','resilience4j', 'FaultTolerance', 310,'0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('13', 'tars', 'Proxy', 310,'{"multiSelectorHandle":"1","multiRuleHandle":"0"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('14', 'contextPath', 'HttpProcess', 80,'1', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('15', 'grpc', 'Proxy', 310,'{"multiSelectorHandle":"1","multiRuleHandle":"0"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('15', 'grpc', 'Proxy', 310,'{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"cached"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('16', 'redirect', 'HttpProcess', 110,'0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('17', 'motan', 'Proxy', 310,'{"register":"127.0.0.1:2181"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('18', 'logging', 'Logging', 160, '0', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
@@ -461,6 +461,7 @@ INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('15', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}');
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('15', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null);
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('15', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null);
+INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('15', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}');
 
 /*insert plugin_handle data for context path*/
 INSERT IGNORE INTO plugin_handle (`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('14', 'contextPath', 'contextPath', 2, 2, 0);
