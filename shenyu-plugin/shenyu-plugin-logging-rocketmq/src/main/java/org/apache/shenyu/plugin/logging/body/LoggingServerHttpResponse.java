@@ -114,12 +114,11 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         if (getStatusCode() != null) {
             logInfo.setStatus(getStatusCode().value());
         }
-        logInfo.setResponseHeader(LogCollectUtils.getResponseHeaders(getHeaders()));
+        logInfo.setResponseHeader(LogCollectUtils.getHeaders(getHeaders()));
         BodyWriter writer = new BodyWriter();
         logInfo.setTraceId(getTraceId());
-        boolean collectResponseBody = LogCollectConfigUtils.getLogFieldSwitchConfig().isResponseBody();
         return Flux.from(body).doOnNext(buffer -> {
-            if (LogCollectUtils.isNotBinaryType(getHeaders()) && collectResponseBody) {
+            if (LogCollectUtils.isNotBinaryType(getHeaders())) {
                 writer.write(buffer.asByteBuffer().asReadOnlyBuffer());
             }
         }).doFinally(signal -> logResponse(shenyuContext, writer));
@@ -222,17 +221,16 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         logInfo.setModule(shenyuContext.getModule());
         long costTime = DateUtils.acquireMillisBetween(shenyuContext.getStartDateTime(), LocalDateTime.now());
         logInfo.setUpstreamResponseTime(costTime);
-        logInfo.setResponseHeader(LogCollectUtils.getResponseHeaders(exchange.getResponse().getHeaders()));
+        logInfo.setResponseHeader(LogCollectUtils.getHeaders(exchange.getResponse().getHeaders()));
         logInfo.setRpcType(shenyuContext.getRpcType());
         logInfo.setMethod(shenyuContext.getMethod());
         if (StringUtils.isNotBlank(shenyuContext.getRpcType())) {
             logInfo.setUpstreamIp(getUpstreamIp());
         }
 
-        boolean collectResponseBody = LogCollectConfigUtils.getLogFieldSwitchConfig().isResponseBody();
         int size = bytes.length;
         String body = new String(bytes, StandardCharsets.UTF_8);
-        if (size > 0 && collectResponseBody && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+        if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
             logInfo.setResponseBody(body);
         }
         // collect log

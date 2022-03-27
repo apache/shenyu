@@ -25,6 +25,11 @@ import org.apache.shenyu.plugin.logging.entity.ShenyuRequestLog;
 public interface LogCollector extends AutoCloseable {
 
     /**
+     * start log collector.
+     */
+    void start();
+
+    /**
      * collect log.
      *
      * @param log access log

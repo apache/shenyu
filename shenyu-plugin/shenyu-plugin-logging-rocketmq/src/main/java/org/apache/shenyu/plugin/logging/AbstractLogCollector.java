@@ -39,30 +39,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class AbstractLogCollector implements LogCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
-    
-    private final int bufferSize;
-    
-    private final BlockingQueue<ShenyuRequestLog> bufferQueue;
+
+    private int bufferSize;
+
+    private BlockingQueue<ShenyuRequestLog> bufferQueue;
 
     private long lastPushTime;
 
     private final AtomicBoolean started = new AtomicBoolean(true);
 
-    private final LogConsumeClient logCollectClient;
-
-    public AbstractLogCollector(final LogConsumeClient logCollectClient) {
-        this.logCollectClient = logCollectClient;
+    @Override
+    public void start() {
         bufferSize = LogCollectConfigUtils.getGlobalLogConfig().getBufferQueueSize();
         bufferQueue = new LinkedBlockingDeque<>(bufferSize);
-        if (logCollectClient != null) {
-            ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
-            threadExecutor.execute(this::consume);
-        }
+        ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+        started.set(true);
+        threadExecutor.execute(this::consume);
     }
 
     @Override
     public void collect(final ShenyuRequestLog log) {
-        if (Objects.isNull(log) || Objects.isNull(logCollectClient)) {
+        if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient())) {
             return;
         }
         if (bufferQueue.size() < bufferSize) {
@@ -84,7 +81,10 @@ public abstract class AbstractLogCollector implements LogCollector {
                 int batchSize = 100;
                 if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
                     bufferQueue.drainTo(logs, batchSize);
-                    logCollectClient.consume(logs);
+                    LogConsumeClient logCollectClient = getLogConsumeClient();
+                    if (logCollectClient != null) {
+                        logCollectClient.consume(logs);
+                    }
                     lastPushTime = time;
                 } else {
                     ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
@@ -96,9 +96,17 @@ public abstract class AbstractLogCollector implements LogCollector {
         }
     }
 
+    /**
+     * get log consume client.
+     *
+     * @return log consume client
+     */
+    protected abstract LogConsumeClient getLogConsumeClient();
+
     @Override
     public void close() throws Exception {
         started.set(false);
+        LogConsumeClient logCollectClient = getLogConsumeClient();
         if (logCollectClient != null) {
             logCollectClient.close();
         }
