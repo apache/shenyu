@@ -21,26 +21,44 @@ import io.grpc.LoadBalancerRegistry;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.NameResolverRegistry;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.grpc.intercept.ContextClientInterceptor;
 import org.apache.shenyu.plugin.grpc.loadbalance.LoadBalancerStrategy;
 import org.apache.shenyu.plugin.grpc.loadbalance.RandomLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.loadbalance.RoundRobinLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+
+import java.util.concurrent.Executor;
 
 /**
  * Grpc client Builder.
  */
 public final class GrpcClientBuilder {
-    
+
+    private static final String SHARED = "shared";
+
+    private static final String FIXED = "fixed";
+
+    private static final String EAGER = "eager";
+
+    private static final String LIMITED = "limited";
+
+    private static final String CACHED = "cached";
+
     static {
         LoadBalancerRegistry.getDefaultRegistry().register(new RandomLoadBalancerProvider());
         LoadBalancerRegistry.getDefaultRegistry().register(new RoundRobinLoadBalancerProvider());
         NameResolverRegistry.getDefaultRegistry().register(new ShenyuNameResolverProvider());
     }
-    
+
     private GrpcClientBuilder() {
     }
-    
+
     /**
      * Build the client.
      *
@@ -53,9 +71,33 @@ public final class GrpcClientBuilder {
                 .defaultLoadBalancingPolicy(LoadBalancerStrategy.RANDOM.getStrategy())
                 .usePlaintext()
                 .maxInboundMessageSize(100 * 1024 * 1024)
+                .executor(buildExecutor())
                 .disableRetry();
         ManagedChannel channel = builder.build();
         channel.getState(true);
         return new ShenyuGrpcClient(channel);
+    }
+
+    private static Executor buildExecutor() {
+        GrpcRegisterConfig config = Singleton.INST.get(GrpcRegisterConfig.class);
+        if (null == config) {
+            return null;
+        }
+        final String threadpool = config.getThreadpool();
+        switch (threadpool) {
+            case SHARED:
+                try {
+                    return SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
+                } catch (NoSuchBeanDefinitionException t) {
+                    throw new ShenyuException("shared thread pool is not enable, config ${shenyu.sharedPool.enable} in your xml/yml !", t);
+                }
+            case FIXED:
+            case EAGER:
+            case LIMITED:
+                throw new UnsupportedOperationException();
+            case CACHED:
+            default:
+                return null;
+        }
     }
 }
