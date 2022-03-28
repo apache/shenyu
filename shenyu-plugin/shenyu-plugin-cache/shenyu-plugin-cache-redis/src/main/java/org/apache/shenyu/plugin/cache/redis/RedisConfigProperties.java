@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.config;
+package org.apache.shenyu.plugin.cache.redis;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
 
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
- * The rateLimiter configuration for redis.
+ * The configuration for redis.
  */
-public class RateLimiterConfig implements Serializable {
+public class RedisConfigProperties implements Serializable {
 
     private static final long serialVersionUID = -3535286136370323953L;
 
@@ -50,26 +51,26 @@ public class RateLimiterConfig implements Serializable {
      * Maximum number of "idle" connections in the pool. Use a negative value to
      * indicate an unlimited number of idle connections.
      */
-    private int maxIdle = 8;
+    private Integer maxIdle = 8;
 
     /**
      * Target for the minimum number of idle connections to maintain in the pool. This
      * setting only has an effect if it is positive.
      */
-    private int minIdle;
+    private Integer minIdle = 0;
 
     /**
      * Maximum number of connections that can be allocated by the pool at a given
      * time. Use a negative value for no limit.
      */
-    private int maxActive = 8;
+    private Integer maxActive = 8;
 
     /**
      * Maximum amount of time a connection allocation should block before throwing an
      * exception when the pool is exhausted. Use a negative value to block
      * indefinitely.
      */
-    private Duration maxWait = Duration.ofMillis(-1);
+    private Integer maxWait = -1;
 
     /**
      * Gets database.
@@ -184,7 +185,7 @@ public class RateLimiterConfig implements Serializable {
      *
      * @return the min idle
      */
-    public int getMinIdle() {
+    public Integer getMinIdle() {
         return minIdle;
     }
 
@@ -202,7 +203,7 @@ public class RateLimiterConfig implements Serializable {
      *
      * @return the max active
      */
-    public int getMaxActive() {
+    public Integer getMaxActive() {
         return maxActive;
     }
 
@@ -221,7 +222,8 @@ public class RateLimiterConfig implements Serializable {
      * @return the max wait
      */
     public Duration getMaxWait() {
-        return maxWait;
+        return Optional.ofNullable(maxWait)
+                .map(it -> Duration.ofMillis(maxWait)).orElse(Duration.ofMillis(-1));
     }
 
     /**
@@ -229,7 +231,7 @@ public class RateLimiterConfig implements Serializable {
      *
      * @param maxWait the max wait
      */
-    public void setMaxWait(final Duration maxWait) {
+    public void setMaxWait(final Integer maxWait) {
         this.maxWait = maxWait;
     }
 
@@ -241,11 +243,15 @@ public class RateLimiterConfig implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RateLimiterConfig that = (RateLimiterConfig) o;
-        return maxIdle == that.maxIdle && minIdle == that.minIdle && maxActive == that.maxActive
-                && Objects.equals(database, that.database) && Objects.equals(master, that.master)
-                && Objects.equals(mode, that.mode) && Objects.equals(url, that.url)
+        final RedisConfigProperties that = (RedisConfigProperties) o;
+        return Objects.equals(database, that.database)
+                && Objects.equals(master, that.master)
+                && Objects.equals(mode, that.mode)
+                && Objects.equals(url, that.url)
                 && Objects.equals(password, that.password)
+                && Objects.equals(maxIdle, that.maxIdle)
+                && Objects.equals(minIdle, that.minIdle)
+                && Objects.equals(maxActive, that.maxActive)
                 && Objects.equals(maxWait, that.maxWait);
     }
 
