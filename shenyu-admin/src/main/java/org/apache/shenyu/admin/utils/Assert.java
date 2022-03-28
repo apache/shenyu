@@ -73,7 +73,6 @@ public final class Assert {
         isTrue(!CollectionUtils.isEmpty(collection), message);
     }
 
-
     /**
      * assert test is true.
      *
