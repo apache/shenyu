@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 /**
  * The type Divide rule handle.
  */
-public class CacheWriteRuleHandle implements RuleHandle {
+public class CacheRuleHandle implements RuleHandle {
 
     /**
      * the cache timeout seconds.

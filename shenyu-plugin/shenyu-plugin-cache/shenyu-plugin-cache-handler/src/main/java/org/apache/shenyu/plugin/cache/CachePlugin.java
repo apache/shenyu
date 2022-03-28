@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.cache;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.CacheWriteRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -47,9 +47,9 @@ public class CachePlugin extends AbstractShenyuPlugin {
                                    final ShenyuPluginChain chain,
                                    final SelectorData selector,
                                    final RuleData rule) {
-        CacheWriteRuleHandle cacheWriteRuleHandle = CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        CacheRuleHandle cacheRuleHandle = CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         return chain.execute(exchange.mutate()
-                .response(new CacheWriteHttpResponse(exchange, cacheWriteRuleHandle)).build());
+                .response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());
     }
 
     @Override
@@ -62,33 +62,33 @@ public class CachePlugin extends AbstractShenyuPlugin {
         return PluginEnum.CACHE.getName();
     }
 
-    static class CacheWriteHttpResponse extends ServerHttpResponseDecorator {
+    static class CacheHttpResponse extends ServerHttpResponseDecorator {
 
         private final ServerWebExchange exchange;
 
-        private final CacheWriteRuleHandle cacheWriteRuleHandle;
+        private final CacheRuleHandle cacheRuleHandle;
 
-        CacheWriteHttpResponse(final ServerWebExchange exchange,
-                               final CacheWriteRuleHandle cacheWriteRuleHandle) {
+        CacheHttpResponse(final ServerWebExchange exchange,
+                          final CacheRuleHandle cacheRuleHandle) {
             super(exchange.getResponse());
             this.exchange = exchange;
-            this.cacheWriteRuleHandle = cacheWriteRuleHandle;
+            this.cacheRuleHandle = cacheRuleHandle;
         }
 
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            return super.writeWith(cacheWriteResponse(body));
+            return super.writeWith(cacheResponse(body));
         }
 
         @NonNull
-        private Flux<? extends DataBuffer> cacheWriteResponse(final Publisher<? extends DataBuffer> body) {
+        private Flux<? extends DataBuffer> cacheResponse(final Publisher<? extends DataBuffer> body) {
             final ICache cache = CacheUtils.getCache();
             if (Objects.nonNull(cache)) {
                 final MediaType contentType = this.getHeaders().getContentType();
                 return Flux.from(body).doOnNext(buffer -> {
-                    cache.cacheData(CacheUtils.dataKey(this.exchange), buffer.asByteBuffer().array(), this.cacheWriteRuleHandle.getTimeoutSeconds());
-                    cache.cacheContentType(CacheUtils.contentTypeKey(this.exchange), contentType, this.cacheWriteRuleHandle.getTimeoutSeconds());
+                    cache.cacheData(CacheUtils.dataKey(this.exchange), buffer.asByteBuffer().array(), this.cacheRuleHandle.getTimeoutSeconds());
+                    cache.cacheContentType(CacheUtils.contentTypeKey(this.exchange), contentType, this.cacheRuleHandle.getTimeoutSeconds());
                 });
             }
             return Flux.from(body);

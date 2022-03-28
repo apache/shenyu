@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.cache.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.CacheWriteRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
@@ -44,7 +44,7 @@ import java.util.function.Supplier;
  */
 public class CachePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, CacheWriteRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, CacheRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     /**
      * the log.
@@ -83,8 +83,8 @@ public class CachePluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(json -> {
-            final CacheWriteRuleHandle cacheWriteRuleHandle = GsonUtils.getInstance().fromJson(json, CacheWriteRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), cacheWriteRuleHandle);
+            final CacheRuleHandle cacheRuleHandle = GsonUtils.getInstance().fromJson(json, CacheRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), cacheRuleHandle);
         });
     }
 
