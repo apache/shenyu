@@ -72,7 +72,14 @@ public @interface Existed {
      * @return class
      */
     Class<? extends ExistProvider> provider();
-    
+
+    /**
+     * existed provider.
+     *
+     * @return class
+     */
+    String providerMethodName() default "existed";
+
     /**
      * support groups.
      *

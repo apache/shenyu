@@ -70,7 +70,18 @@
          WHERE id = #{id}
          LIMIT 1
     </select>
-    
+
+    <select id="existedByAuthId" resultType="java.lang.Boolean">
+        SELECT
+            true
+        FROM
+            auth_path
+        WHERE
+            auth_id = #{authId}
+        LIMIT 1
+    </select>
+
+
     <insert id="save" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
         INSERT INTO auth_path
                     (id,
@@ -89,7 +100,7 @@
                     #{dateCreated, jdbcType=TIMESTAMP},
                     #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
-    
+
     <insert id="batchSave">
         INSERT INTO auth_path
                     (id,
@@ -139,5 +150,5 @@
                     #{authId, jdbcType=VARCHAR}
                </foreach>
     </delete>
-    
+
 </mapper>
