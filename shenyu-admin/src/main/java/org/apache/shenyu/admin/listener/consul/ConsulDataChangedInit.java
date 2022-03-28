@@ -7,14 +7,17 @@ import org.apache.shenyu.common.constant.ConsulConstants;
 import java.util.Objects;
 
 /**
- * TODO
- *
- * @author KevinClair
- **/
+ * The type Consul data changed init.
+ */
 public class ConsulDataChangedInit extends AbstractDataChangedInit {
 
     private final ConsulClient consulClient;
 
+    /**
+     * Instantiates a new Consul data changed init.
+     *
+     * @param consulClient the Consul client
+     */
     public ConsulDataChangedInit(final ConsulClient consulClient) {
         this.consulClient = consulClient;
     }

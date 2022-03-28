@@ -2,15 +2,17 @@ package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.springframework.boot.CommandLineRunner;
 
 import javax.annotation.Resource;
 
 /**
- * TODO
+ * AbstractDataChangedInit.
  */
-public abstract class AbstractDataChangedInit implements CommandLineRunner {
+public abstract class AbstractDataChangedInit implements DataChangedInit {
 
+    /**
+     * SyncDataService, sync all data.
+     */
     @Resource
     public SyncDataService syncDataService;
 
@@ -21,5 +23,10 @@ public abstract class AbstractDataChangedInit implements CommandLineRunner {
         }
     }
 
+    /**
+     * check exist.
+     *
+     * @return boolean.
+     */
     protected abstract boolean notExist();
 }

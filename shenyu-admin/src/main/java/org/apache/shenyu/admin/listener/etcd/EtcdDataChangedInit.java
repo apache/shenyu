@@ -2,20 +2,19 @@ package org.apache.shenyu.admin.listener.etcd;
 
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * TODO
- *
- * @author KevinClair
- **/
+ * The type Etcd data changed init.
+ */
 public class EtcdDataChangedInit extends AbstractDataChangedInit {
-
-    private static final Logger LOG = LoggerFactory.getLogger(EtcdDataChangedInit.class);
 
     private final EtcdClient etcdClient;
 
+    /**
+     * Instantiates a new Etcd data changed init.
+     *
+     * @param etcdClient the etcdClient client
+     */
     public EtcdDataChangedInit(final EtcdClient etcdClient) {
         this.etcdClient = etcdClient;
     }

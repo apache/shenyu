@@ -5,12 +5,17 @@ import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 
 /**
- * TODO
+ * The type Zookeeper data changed init.
  */
 public class ZookeeperDataChangedInit extends AbstractDataChangedInit {
 
     private final ZkClient zkClient;
 
+    /**
+     * Instantiates a new Zookeeper data changed init.
+     *
+     * @param zkClient        the zk client
+     */
     public ZookeeperDataChangedInit(final ZkClient zkClient) {
         this.zkClient = zkClient;
     }

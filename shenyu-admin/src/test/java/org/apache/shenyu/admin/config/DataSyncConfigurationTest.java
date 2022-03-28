@@ -105,7 +105,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         final SyncDataService syncDataService = new SyncDataServiceImpl(appAuthService, pluginService, selectorService,
                 ruleService, eventPublisher, metaDataService);
         DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
-        assertNotNull(zookeeperListener.zookeeperDataInit(zkClient, syncDataService));
+        assertNotNull(zookeeperListener.zookeeperDataChangedInit(zkClient));
     }
 
     @Test
@@ -138,7 +138,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
         NacosConfigService configService = mock(NacosConfigService.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(nacosListener.nacosDataInit(configService, syncDataService));
+        assertNotNull(nacosListener.nacosDataChangedInit(configService));
     }
 
     @Test
@@ -153,7 +153,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
         EtcdClient client = mock(EtcdClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(etcdListener.etcdDataInit(client, syncDataService));
+        assertNotNull(etcdListener.etcdDataChangedInit(client));
     }
 
     @Test
@@ -176,7 +176,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
         ConsulClient consulClient = mock(ConsulClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(consulListener.consulDataInit(consulClient, syncDataService));
+        assertNotNull(consulListener.consulDataChangedInit(consulClient));
     }
 
     @AfterEach

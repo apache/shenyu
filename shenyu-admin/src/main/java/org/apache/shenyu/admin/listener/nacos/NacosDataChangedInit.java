@@ -11,16 +11,19 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
- * TODO
- *
- * @author KevinClair
- **/
+ * The type Nacos data changed init.
+ */
 public class NacosDataChangedInit extends AbstractDataChangedInit {
 
     private static final Logger LOG = LoggerFactory.getLogger(NacosDataChangedInit.class);
 
     private final ConfigService configService;
 
+    /**
+     * Instantiates a new Nacos data changed init.
+     *
+     * @param configService the configService
+     */
     public NacosDataChangedInit(final ConfigService configService) {
         this.configService = configService;
     }
