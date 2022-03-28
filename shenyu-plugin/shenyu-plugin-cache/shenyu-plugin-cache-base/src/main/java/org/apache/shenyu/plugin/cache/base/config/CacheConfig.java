@@ -17,13 +17,12 @@
 
 package org.apache.shenyu.plugin.cache.base.config;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * CacheConfig.
  */
-public class CacheConfig implements Serializable {
+public class CacheConfig {
 
     /**
      * the type of config cache, default memory.

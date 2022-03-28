@@ -41,12 +41,7 @@ public class CacheHandler implements PluginDataHandler {
      * the log.
      */
     private static final Logger LOG = LoggerFactory.getLogger(CacheHandler.class);
-
-    /**
-     * Handler plugin.
-     *
-     * @param pluginData the plugin data
-     */
+    
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
@@ -75,12 +70,7 @@ public class CacheHandler implements PluginDataHandler {
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
         Singleton.INST.single(ICache.class, cacheBuilder.builderCache(config));
     }
-
-    /**
-     * Plugin named string.
-     *
-     * @return the string
-     */
+    
     @Override
     public String pluginNamed() {
         return PluginEnum.CACHE.getName();

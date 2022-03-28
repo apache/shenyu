@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.plugin.cache.base.utils;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.base.config.CacheConfig;
+import org.apache.shenyu.plugin.cache.memory.MemoryCache;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * CacheUtils.
@@ -66,9 +66,7 @@ public final class CacheUtils {
      * @return cache
      */
     public static ICache getCache() {
-        final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
-        assert Objects.nonNull(cacheConfig);
-        assert StringUtils.isNotEmpty(cacheConfig.getCacheType());
-        return Singleton.INST.get(ICache.class);
+        CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
+        return Optional.ofNullable(cacheConfig).map(config -> Singleton.INST.get(ICache.class)).orElse(new MemoryCache());
     }
 }
