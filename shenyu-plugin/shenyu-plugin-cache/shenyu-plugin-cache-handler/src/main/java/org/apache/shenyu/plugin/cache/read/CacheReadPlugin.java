@@ -32,14 +32,6 @@ import java.util.Objects;
  */
 public class CacheReadPlugin implements ShenyuPlugin {
 
-    /**
-     * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link ShenyuPluginChain}.
-     *
-     * @param exchange the current server exchange
-     * @param chain    provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
-     */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ICache cache = CacheUtils.getCache();
@@ -53,24 +45,11 @@ public class CacheReadPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    /**
-     * return plugin order .
-     * This attribute To determine the plugin execution order in the same type plugin.
-     *
-     * @return int order
-     */
     @Override
     public int getOrder() {
         return PluginEnum.CACHE_READ.getCode();
     }
 
-    /**
-     * acquire plugin name.
-     * this is plugin name define you must Provide the right name.
-     * if you impl AbstractShenyuPlugin this attribute not use.
-     *
-     * @return plugin name.
-     */
     @Override
     public String named() {
         return PluginEnum.CACHE_READ.getName();

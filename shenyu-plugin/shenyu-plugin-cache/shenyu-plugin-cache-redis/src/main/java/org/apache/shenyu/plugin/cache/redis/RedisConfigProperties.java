@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.cache.redis;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,9 +26,7 @@ import java.util.Optional;
 /**
  * The configuration for redis.
  */
-public class RedisConfigProperties implements Serializable {
-
-    private static final long serialVersionUID = -3535286136370323953L;
+public class RedisConfigProperties {
 
     private Integer database = 0;
 

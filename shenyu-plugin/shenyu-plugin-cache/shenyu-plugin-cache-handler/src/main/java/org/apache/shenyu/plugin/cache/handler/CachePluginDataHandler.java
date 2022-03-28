@@ -51,11 +51,6 @@ public class CachePluginDataHandler implements PluginDataHandler {
      */
     private static final Logger LOG = LoggerFactory.getLogger(CachePluginDataHandler.class);
 
-    /**
-     * Handler plugin.
-     *
-     * @param pluginData the plugin data
-     */
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
