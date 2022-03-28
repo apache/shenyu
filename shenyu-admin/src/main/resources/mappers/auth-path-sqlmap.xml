@@ -72,7 +72,13 @@
     </select>
 
     <select id="existedByAuthId" resultType="java.lang.Boolean">
-        select true from auth_path where auth_id = #{authId} limit 1
+        SELECT
+            true
+        FROM
+            auth_path
+        WHERE
+            auth_id = #{authId}
+        LIMIT 1
     </select>
 
 
