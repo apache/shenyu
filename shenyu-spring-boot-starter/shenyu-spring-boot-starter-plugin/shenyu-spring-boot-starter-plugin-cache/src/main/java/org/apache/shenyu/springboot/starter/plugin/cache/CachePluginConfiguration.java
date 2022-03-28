@@ -18,10 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.cache;
 
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.cache.base.handler.CacheHandler;
+import org.apache.shenyu.plugin.cache.CachePlugin;
+import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.apache.shenyu.plugin.cache.read.CacheReadPlugin;
-import org.apache.shenyu.plugin.cache.write.CacheWritePlugin;
-import org.apache.shenyu.plugin.cache.write.handler.CacheWritePluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,30 +42,20 @@ public class CachePluginConfiguration {
     }
 
     /**
-     * the cache write handler.
+     * the cache handler.
      * @return the shenyu handler
      */
     @Bean
-    public PluginDataHandler cacheWritePluginDataHandler() {
-        return new CacheWritePluginDataHandler();
+    public PluginDataHandler cachePluginDataHandler() {
+        return new CachePluginDataHandler();
     }
 
     /**
-     * the cache write plugin.
+     * the cache plugin.
      * @return the shenyu plugin
      */
     @Bean
-    public CacheWritePlugin cacheWritePlugin() {
-        return new CacheWritePlugin();
-    }
-
-    /**
-     * Cache plugin data handler plugin data handler.
-     *
-     * @return the plugin data handler
-     */
-    @Bean
-    public CacheHandler cacheHandler() {
-        return new CacheHandler();
+    public CachePlugin cachePlugin() {
+        return new CachePlugin();
     }
 }

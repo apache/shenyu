@@ -27,7 +27,7 @@ import java.util.Optional;
  * The configuration for redis.
  */
 public class RedisConfigProperties {
-    
+
     private Integer database = 0;
 
     private String master;
