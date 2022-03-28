@@ -17,14 +17,14 @@
 
 package org.apache.shenyu.loadbalancer.cache;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
