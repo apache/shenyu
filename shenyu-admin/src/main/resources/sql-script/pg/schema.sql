@@ -387,7 +387,7 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '28' || ''', ''' || 'mqtt' || ''', ''' || '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}' || ''', ''' || 'Proxy' || ''', 125, 0, ''' || '2022-01-12 20:33:50' || ''', ''' || '2022-01-12 20:33:50' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '29' || ''', ''' || 'loggingRocketMQ' || ''', ''' || '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876","producerGroup":"shenyu-plugin-logging-rocketmq"}' || ''', ''' || 'Logging' || ''', 170, 0, ''' || '2022-03-20 09:33:50' || ''', ''' || '2022-03-20 09:33:50' || ''');');
    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '29' || ''', ''' || 'loggingRocketMQ' || ''', ''' || '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876"}' || ''', ''' || 'Logging' || ''', 170, 0, ''' || '2022-03-20 09:33:50' || ''', ''' || '2022-03-20 09:33:50' || ''');');
-    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '30' || ''', ''' || 'cache' || ''', ''' || '{"cacheType":"memory"}' || ''', ''' || 'Cache' || ''', 1, 0, null, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '30' || ''', ''' || 'cache' || ''', ''' || '{"cacheType":"memory"}' || ''', ''' || 'Cache' || ''', 180, 0, null, null);');
 
 
 
@@ -633,7 +633,7 @@ ELSE
 
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '29' || ''', ''' || 'topic' || ''', ''' || 'topic' || ''', 2, 1, 1, ''' || '{"required":"0","defaultValue":"","placeholder":"optional"}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '29' || ''', ''' || 'sampleRate' || ''', ''' || 'sampleRate' || ''', 2, 1, 2, ''' || '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}' || ''');');
-    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'cacheType' || ''', ''' || 'cacheType' || ''', 2, 3, 1, ''' || '{"required":"1","defaultValue":"memory","rule":""}' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'cacheType' || ''', ''' || 'cacheType' || ''', 3, 3, 1, ''' || '{"required":"1","defaultValue":"memory","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'database' || ''', ''' || 'database' || ''', 1, 3, 2, ''' || '{"required":"0","defaultValue":"0","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'master' || ''', ''' || 'master' || ''', 2, 3, 3, ''' || '{"required":"0","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'mode' || ''', ''' || 'mode' || ''', 2, 3, 4, ''' || '{"required":"0","defaultValue":"standalone","rule":""}' || ''');');
@@ -643,6 +643,7 @@ ELSE
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'minIdle' || ''', ''' || 'minIdle' || ''', 1, 3, 8, ''' || '{"required":"0","defaultValue":"0","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'maxActive' || ''', ''' || 'maxActive' || ''', 1, 3, 9, ''' || '{"required":"0","defaultValue":"8","rule":""}' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'maxWait' || ''', ''' || 'maxWait' || ''', 3, 3, 10, ''' || '{"required":"0","defaultValue":"-1","rule":""}' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '30' || ''', ''' || 'timeoutSeconds' || ''', ''' || 'timeoutSeconds' || ''', 1, 2, 0, ''' || '{"required":"0","defaultValue":"60","rule":""}' || ''');');
 
 
 PERFORM public.dblink_exec('init_conn', 'COMMIT');
@@ -1050,6 +1051,10 @@ ELSE
     /* insert dict for compress algorithm  */
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'compressAlg'|| ''', ''' || 'COMPRESS_ALG' || ''', ''' || 'none' || ''',''' ||  'none' ||''',''' || '' ||''',''' || '0' || ''',''' || '1' || ''');');
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'compressAlg'|| ''', ''' || 'COMPRESS_ALG' || ''', ''' || 'LZ4' || ''',''' ||  'LZ4' ||''',''' || '' ||''',''' || '1' || ''',''' || '1' || ''');');
+
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'cacheType'|| ''', ''' || 'CACHE_TYPE_MEMORY' || ''', ''' || 'memory' || ''',''' ||  'memory' ||''',''' || 'use memory to cache data' ||''',''' || '0' || ''',''' || '1' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO shenyu_dict ( type ,  dict_code ,  dict_name ,  dict_value ,  "desc" ,  sort ,  enabled ) VALUES (''' || 'cacheType'|| ''', ''' || 'CACHE_TYPE_REDIS'  || ''', ''' || 'redis'  || ''',''' ||  'redis' ||''','''  || 'use redis to cache data' ||''',''' || '1' || ''',''' || '1' || ''');');
+
 
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
