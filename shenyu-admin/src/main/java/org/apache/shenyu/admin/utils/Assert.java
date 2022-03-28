@@ -32,7 +32,7 @@ public final class Assert {
 
     private Assert() {
     }
-
+    
     /**
      * assert obj is not null.
      *
@@ -42,7 +42,7 @@ public final class Assert {
     public static void notNull(final Object obj, final String message) {
         isTrue(Objects.nonNull(obj), message);
     }
-
+    
     /**
      * assert obj is null.
      *
@@ -52,7 +52,7 @@ public final class Assert {
     public static void isNull(final Object obj, final String message) {
         isTrue(Objects.isNull(obj), message);
     }
-
+    
     /**
      * assert string is not black.
      *
@@ -62,7 +62,7 @@ public final class Assert {
     public static void notBlack(final String str, final String message) {
         isTrue(StringUtils.isNoneBlank(str), message);
     }
-
+    
     /**
      * assert collection is not empty.
      *
@@ -72,7 +72,7 @@ public final class Assert {
     public static void notEmpty(final Collection<?> collection, final String message) {
         isTrue(!CollectionUtils.isEmpty(collection), message);
     }
-
+    
     /**
      * assert test is true.
      *
@@ -84,7 +84,7 @@ public final class Assert {
             throw new ValidFailException(message);
         }
     }
-
+    
     /**
      * throw ResourceNotFoundException with default message
      *
