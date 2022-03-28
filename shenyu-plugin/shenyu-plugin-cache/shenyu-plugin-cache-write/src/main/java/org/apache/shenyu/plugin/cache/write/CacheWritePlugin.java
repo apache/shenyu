@@ -42,15 +42,7 @@ import java.util.Objects;
  * CacheWritePlugin.
  */
 public class CacheWritePlugin extends AbstractShenyuPlugin {
-
-    /**
-     * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link ShenyuPluginChain}.
-     *
-     * @param exchange the current server exchange
-     * @param chain    provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
-     */
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange,
                                    final ShenyuPluginChain chain,
@@ -60,13 +52,7 @@ public class CacheWritePlugin extends AbstractShenyuPlugin {
         return chain.execute(exchange.mutate()
                 .response(new CacheWriteHttpResponse(exchange, cacheWriteRuleHandle)).build());
     }
-
-    /**
-     * return plugin order .
-     * This attribute To determine the plugin execution order in the same type plugin.
-     *
-     * @return int order
-     */
+    
     @Override
     public int getOrder() {
         return PluginEnum.CACHE_WRITE.getCode();
