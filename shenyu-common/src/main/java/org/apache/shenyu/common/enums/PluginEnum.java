@@ -34,7 +34,12 @@ public enum PluginEnum {
      * Global plugin enum.
      */
     GLOBAL(10, 0, "global"),
-    
+
+    /**
+     * the cache plugin enum.
+     */
+    CACHE(15, 0, "cache"),
+
     /**
      * Monitor plugin enum.
      */
@@ -124,7 +129,12 @@ public enum PluginEnum {
      * Logging RocketMQ plugin enum.
      */
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
-    
+
+    /**
+     * the cache write plugin enum.
+     */
+     CACHE_WRITE(180, 0, "cacheWrite"),
+
     /**
      * Divide plugin enum.
      */
@@ -194,11 +204,13 @@ public enum PluginEnum {
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
-    
+
     /**
      * Response plugin enum.
      */
     RESPONSE(420, 0, "response");
+
+
 
     private final int code;
 
