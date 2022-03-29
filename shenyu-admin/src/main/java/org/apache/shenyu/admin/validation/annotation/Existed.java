@@ -48,7 +48,7 @@ public @interface Existed {
     /**
      * default provider method name.
      */
-    String EXISTED ="existed";
+    String EXISTED = "existed";
     /**
      * if null,valid is ignore.
      *

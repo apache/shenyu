@@ -86,11 +86,11 @@ public final class Assert {
     }
     
     /**
-     * throw ResourceNotFoundException with default message
+     * throw ResourceNotFoundException with default message.
      *
      * @param e exception
      */
-    public static void throwException(Exception e) {
-      throw new ResourceNotFoundException("the validation ExistProviderMethod invoked error", e);
+    public static void throwException(final Exception e) {
+        throw new ResourceNotFoundException("the validation ExistProviderMethod invoked error", e);
     }
 }
