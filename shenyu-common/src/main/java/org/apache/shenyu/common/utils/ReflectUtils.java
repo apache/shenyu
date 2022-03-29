@@ -37,13 +37,13 @@ import org.slf4j.LoggerFactory;
  */
 public final class ReflectUtils {
 
-    private ReflectUtils() {
-    }
-
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ReflectUtils.class);
+
+    private ReflectUtils() {
+    }
 
     /**
      * Get field.
@@ -120,7 +120,7 @@ public final class ReflectUtils {
      * @return Method object
      */
     public static Object invokeMethod(final Object object, final String method,
-        Consumer<ReflectiveOperationException> errorCallBack, Object... args) {
+        final Consumer<ReflectiveOperationException> errorCallBack, final Object... args) {
         try {
             return MethodUtils.invokeMethod(object, method, args);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -137,7 +137,7 @@ public final class ReflectUtils {
      * @param args   param
      * @return Method object
      */
-    public static Object invokeMethod(final Object object, final String method, Object... args) {
+    public static Object invokeMethod(final Object object, final String method, final Object... args) {
         return invokeMethod(object, method, e -> LOG.error("invoke method error"), args);
     }
 
