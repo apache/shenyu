@@ -30,7 +30,6 @@ import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.service.AppAuthService;
-import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.provider.AppKeyProvider;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -55,7 +54,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/appAuth")
-public class AppAuthController implements PagedController<AppAuthQuery, AppAuthVO> {
+public class AppAuthController {
     
     private final AppAuthService appAuthService;
     
@@ -207,10 +206,5 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @RequiresPermissions("system:authen:modify")
     public ShenyuAdminResult syncData() {
         return appAuthService.syncData();
-    }
-    
-    @Override
-    public PageService<AppAuthQuery, AppAuthVO> pageService() {
-        return appAuthService;
     }
 }

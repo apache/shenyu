@@ -42,20 +42,6 @@
         date_updated
     </sql>
 
-    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.AppAuthVO">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM app_auth
-        <where>
-            <if test="condition.appKey != null and condition.appKey != ''">
-                AND app_key = #{condition.appKey, jdbcType=VARCHAR}
-            </if>
-            <if test="condition.phone != null and condition.phone != ''">
-                AND phone = #{condition.phone, jdbcType=VARCHAR}
-            </if>
-        </where>
-    </select>
-
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
