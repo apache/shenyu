@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -39,6 +40,7 @@ import java.util.List;
  * Sentinel plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.sentinel.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SentinelPluginConfiguration {
 
     /**

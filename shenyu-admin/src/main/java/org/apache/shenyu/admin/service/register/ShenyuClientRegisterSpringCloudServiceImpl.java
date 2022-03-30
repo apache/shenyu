@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.converter.SpringCloudSelectorHandleConverter;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
@@ -30,8 +31,10 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -41,6 +44,9 @@ import java.util.stream.Collectors;
  */
 @Service("springCloud")
 public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextPathRegisterService {
+
+    @Resource
+    private SpringCloudSelectorHandleConverter springCloudSelectorHandleConverter;
 
     @Override
     public String rpcType() {
@@ -68,26 +74,46 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
+        List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
+        boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
+        if (isEventDeleted) {
+            addList.get(0).setStatus(false);
+        }
+
         SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class);
         List<DivideUpstream> existList = springCloudSelectorHandle.getDivideUpstreams();
         if (CollectionUtils.isEmpty(existList)) {
-            return doHandler(springCloudSelectorHandle, addList, addList, selectorDO);
+            canAddList = addList;
+        } else {
+            List<DivideUpstream> diffList = addList.stream().filter(upstream -> !existList.contains(upstream)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffList)) {
+                canAddList.addAll(diffList);
+                existList.addAll(diffList);
+            }
+            List<DivideUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
+                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffStatusList)) {
+                canAddList.addAll(diffStatusList);
+            }
         }
-        List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
-        List<DivideUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(diffList)) {
-            canAddList.addAll(diffList);
-            existList.addAll(diffList);
-        }
-        return doHandler(springCloudSelectorHandle, existList, canAddList, selectorDO);
-    }
 
-    private String doHandler(final SpringCloudSelectorHandle springCloudSelectorHandle,
-                             final List<DivideUpstream> existList,
-                             final List<DivideUpstream> canAddList,
-                             final SelectorDO selectorDO) {
-        springCloudSelectorHandle.setDivideUpstreams(existList);
-        doSubmit(selectorDO.getId(), canAddList);
+        if (doSubmit(selectorDO.getId(), canAddList)) {
+            return null;
+        }
+
+        List<DivideUpstream> handleList;
+        if (CollectionUtils.isEmpty(existList)) {
+            handleList = addList;
+        } else {
+            List<DivideUpstream> aliveList;
+            if (isEventDeleted) {
+                aliveList = existList.stream().filter(e -> e.isStatus() && !e.equals(addList.get(0))).collect(Collectors.toList());
+            } else {
+                aliveList = addList;
+            }
+            handleList = springCloudSelectorHandleConverter.updateStatusAndFilter(existList, aliveList);
+        }
+        springCloudSelectorHandle.setDivideUpstreams(handleList);
         return GsonUtils.getInstance().toJson(springCloudSelectorHandle);
     }
 

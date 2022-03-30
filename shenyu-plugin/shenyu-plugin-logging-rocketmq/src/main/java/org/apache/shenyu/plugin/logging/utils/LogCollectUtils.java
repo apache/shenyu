@@ -53,27 +53,7 @@ public class LogCollectUtils {
      * @param headers request headers
      * @return header string
      */
-    public static String getRequestHeaders(final HttpHeaders headers) {
-        boolean requestHeader = LogCollectConfigUtils.getLogFieldSwitchConfig().isRequestHeader();
-        if (!requestHeader) {
-            return null;
-        }
-        Map<String, String> map = headers.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(",", entry.getValue())));
-        return JsonUtils.toJson(map);
-    }
-
-    /**
-     * get response header string.
-     *
-     * @param headers response headers
-     * @return response headers
-     */
-    public static String getResponseHeaders(final HttpHeaders headers) {
-        boolean responseHeader = LogCollectConfigUtils.getLogFieldSwitchConfig().isResponseHeader();
-        if (!responseHeader) {
-            return null;
-        }
+    public static String getHeaders(final HttpHeaders headers) {
         Map<String, String> map = headers.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(",", entry.getValue())));
         return JsonUtils.toJson(map);

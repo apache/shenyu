@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import javax.management.MalformedObjectNameException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -54,11 +54,11 @@ public final class PrometheusMetricsService implements MetricsService {
     
     @Override
     public void stop() {
-        if (Objects.nonNull(server)) {
+        Optional.ofNullable(server).ifPresent(server -> {
             server.stop();
             registered.set(false);
             CollectorRegistry.defaultRegistry.clear();
-        }
+        });
     }
 
     /**
@@ -101,7 +101,6 @@ public final class PrometheusMetricsService implements MetricsService {
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-    
         String jvmEnabled = String.valueOf(config.getProps().getProperty("jvm_enabled"));
         if (StringUtils.isNotEmpty(jvmEnabled)) {
             boolean enabled = Boolean.parseBoolean(jvmEnabled);

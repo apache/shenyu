@@ -59,7 +59,7 @@ public final class SentinelRuleHandleTest {
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);
         sentinelHandle.setFlowRuleControlBehavior(0);
-        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleCount(1d);
         sentinelHandle.setDegradeRuleGrade(0);
         sentinelHandle.setDegradeRuleTimeWindow(5);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);

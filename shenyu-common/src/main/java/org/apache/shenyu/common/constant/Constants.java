@@ -588,6 +588,16 @@ public interface Constants {
     String SHENYU_ADMIN_PATH_CONFIGS_LISTENER = "/configs/listener";
 
     /**
+     * zombie removal times.
+     */
+    String ZOMBIE_REMOVAL_TIMES = "zombieRemovalTimes";
+
+    /**
+     * The default zombie removal time value, unit is second.
+     */
+    String ZOMBIE_REMOVAL_TIMES_VALUE = "60";
+
+    /**
      * String q.
      */
     default void findConstants() {

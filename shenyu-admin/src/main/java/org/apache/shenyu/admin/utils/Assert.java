@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ResourceNotFoundException;
 import org.apache.shenyu.admin.exception.ValidFailException;
 import org.springframework.util.CollectionUtils;
 
@@ -72,7 +73,6 @@ public final class Assert {
         isTrue(!CollectionUtils.isEmpty(collection), message);
     }
     
-    
     /**
      * assert test is true.
      *
@@ -83,5 +83,14 @@ public final class Assert {
         if (!Boolean.TRUE.equals(test)) {
             throw new ValidFailException(message);
         }
+    }
+    
+    /**
+     * throw ResourceNotFoundException with default message.
+     *
+     * @param e exception
+     */
+    public static void throwException(final Exception e) {
+        throw new ResourceNotFoundException("the validation ExistProviderMethod invoked error", e);
     }
 }

@@ -44,7 +44,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Constraint(validatedBy = ExistedValidator.class)
 public @interface Existed {
-    
+
+    /**
+     * default provider method name.
+     */
+    String EXISTED = "existed";
     /**
      * if null,valid is ignore.
      *
@@ -72,7 +76,14 @@ public @interface Existed {
      * @return class
      */
     Class<? extends ExistProvider> provider();
-    
+
+    /**
+     * existed provider.
+     *
+     * @return class
+     */
+    String providerMethodName() default EXISTED;
+
     /**
      * support groups.
      *

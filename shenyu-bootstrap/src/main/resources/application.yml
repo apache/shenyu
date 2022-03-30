@@ -18,8 +18,6 @@ server:
   address: 0.0.0.0
 
 spring:
-  profiles:
-    active: example
   main:
     allow-bean-definition-overriding: true
   application:
@@ -31,7 +29,20 @@ spring:
       ribbon:
         enabled: false
     discovery:
-      enabled: true
+      enabled: false
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
+        enabled: false
+        namespace: ShenyuRegisterCenter
+
+eureka:
+  client:
+    enabled: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
 
 #  security:
 #    oauth2:
@@ -201,6 +212,8 @@ shenyu:
     port: 8090
     jmxConfig:
     props:
+#  plugins:
+#    rate-limiter.enabled: false
   local:
     enabled: true
     sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"

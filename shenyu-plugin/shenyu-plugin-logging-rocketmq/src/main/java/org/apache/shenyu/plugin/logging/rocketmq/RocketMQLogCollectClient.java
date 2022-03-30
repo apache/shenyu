@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq;
 
+import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +27,7 @@ import org.apache.rocketmq.common.message.Message;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.constant.LoggingConstant;
+import org.apache.shenyu.plugin.logging.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
@@ -33,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
@@ -47,19 +51,20 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
 
     private String topic;
 
-    public RocketMQLogCollectClient(final Properties rocketmqProps) {
-        initProducer(rocketmqProps);
-    }
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     /**
      * init producer.
      *
      * @param props rocketmq props
      */
-    private void initProducer(final Properties props) {
+    public void initProducer(final Properties props) {
         if (MapUtils.isEmpty(props)) {
             LOG.error("RocketMQ props is empty. failed init RocketMQ producer");
             return;
+        }
+        if (isStarted.get()) {
+            close();
         }
         String topic = props.getProperty(LoggingConstant.TOPIC);
         String nameserverAddress = props.getProperty(LoggingConstant.NAMESERVER_ADDRESS);
@@ -76,6 +81,7 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
         try {
             producer.start();
             LOG.info("init RocketMQLogCollectClient success");
+            isStarted.set(true);
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         } catch (Exception e) {
             LOG.error("init RocketMQLogCollectClient error", e);
@@ -86,31 +92,48 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
      * store logs.
      *
      * @param logs list of log
-     * @throws Exception produce exception
      */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) throws Exception {
-        if (CollectionUtils.isEmpty(logs)) {
+    public void consume(final List<ShenyuRequestLog> logs) {
+        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
             return;
         }
         logs.forEach(log -> {
             String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath()), topic);
-            Message message = new Message(logTopic, JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8));
             try {
-                producer.sendOneway(message);
+                producer.sendOneway(toMessage(logTopic, log));
             } catch (Exception e) {
                 LOG.error("rocketmq push logs error", e);
             }
         });
     }
 
+    private Message toMessage(final String logTopic, final ShenyuRequestLog log) {
+        byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
+        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfigUtils.getGlobalLogConfig().getCompressAlg(), "");
+        if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
+            LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
+            return new Message(logTopic, JsonUtils.toJson(lz4CompressData).getBytes(StandardCharsets.UTF_8));
+        } else {
+            return new Message(logTopic, bytes);
+        }
+    }
+
+    private byte[] compressedByte(final byte[] srcByte) {
+        LZ4Factory factory = LZ4Factory.fastestInstance();
+        LZ4Compressor compressor = factory.fastCompressor();
+        return compressor.compress(srcByte);
+    }
+
+
     /**
      * close producer.
      */
     @Override
     public void close() {
-        if (producer != null) {
+        if (producer != null && isStarted.get()) {
             producer.shutdown();
+            isStarted.set(false);
         }
     }
 }

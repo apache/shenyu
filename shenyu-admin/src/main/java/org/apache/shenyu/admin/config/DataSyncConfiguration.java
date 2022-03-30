@@ -25,20 +25,20 @@ import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
+import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.consul.ConsulDataChangedInit;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedListener;
-import org.apache.shenyu.admin.listener.consul.ConsulDataInit;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
+import org.apache.shenyu.admin.listener.etcd.EtcdDataChangedInit;
 import org.apache.shenyu.admin.listener.etcd.EtcdDataDataChangedListener;
-import org.apache.shenyu.admin.listener.etcd.EtcdDataInit;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
+import org.apache.shenyu.admin.listener.nacos.NacosDataChangedInit;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
-import org.apache.shenyu.admin.listener.nacos.NacosDataInit;
 import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
+import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
-import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataInit;
-import org.apache.shenyu.admin.service.SyncDataService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -92,13 +92,12 @@ public class DataSyncConfiguration {
          * Zookeeper data init zookeeper data init.
          *
          * @param zkClient        the zk client
-         * @param syncDataService the sync data service
          * @return the zookeeper data init
          */
         @Bean
-        @ConditionalOnMissingBean(ZookeeperDataInit.class)
-        public ZookeeperDataInit zookeeperDataInit(final ZkClient zkClient, final SyncDataService syncDataService) {
-            return new ZookeeperDataInit(zkClient, syncDataService);
+        @ConditionalOnMissingBean(ZookeeperDataChangedInit.class)
+        public DataChangedInit zookeeperDataChangedInit(final ZkClient zkClient) {
+            return new ZookeeperDataChangedInit(zkClient);
         }
     }
 
@@ -123,16 +122,15 @@ public class DataSyncConfiguration {
         }
 
         /**
-         * Nacos data init zookeeper data init.
+         * Nacos data init nacos data init.
          *
          * @param configService the config service
-         * @param syncDataService the sync data service
          * @return the nacos data init
          */
         @Bean
-        @ConditionalOnMissingBean(NacosDataInit.class)
-        public NacosDataInit nacosDataInit(final ConfigService configService, final SyncDataService syncDataService) {
-            return new NacosDataInit(configService, syncDataService);
+        @ConditionalOnMissingBean(NacosDataChangedInit.class)
+        public DataChangedInit nacosDataChangedInit(final ConfigService configService) {
+            return new NacosDataChangedInit(configService);
         }
     }
 
@@ -210,13 +208,12 @@ public class DataSyncConfiguration {
          * data init.
          *
          * @param etcdClient        the etcd client
-         * @param syncDataService the sync data service
          * @return the etcd data init
          */
         @Bean
-        @ConditionalOnMissingBean(EtcdDataInit.class)
-        public EtcdDataInit etcdDataInit(final EtcdClient etcdClient, final SyncDataService syncDataService) {
-            return new EtcdDataInit(etcdClient, syncDataService);
+        @ConditionalOnMissingBean(EtcdDataChangedInit.class)
+        public DataChangedInit etcdDataChangedInit(final EtcdClient etcdClient) {
+            return new EtcdDataChangedInit(etcdClient);
         }
     }
 
@@ -254,13 +251,12 @@ public class DataSyncConfiguration {
          * Consul data init.
          *
          * @param consulClient the consul client
-         * @param syncDataService the sync data service
          * @return the consul data init
          */
         @Bean
-        @ConditionalOnMissingBean(ConsulDataInit.class)
-        public ConsulDataInit consulDataInit(final ConsulClient consulClient, final SyncDataService syncDataService) {
-            return new ConsulDataInit(consulClient, syncDataService);
+        @ConditionalOnMissingBean(ConsulDataChangedInit.class)
+        public DataChangedInit consulDataChangedInit(final ConsulClient consulClient) {
+            return new ConsulDataChangedInit(consulClient);
         }
     }
 }
