@@ -7,8 +7,6 @@ import javax.validation.constraints.NotNull;
 
 /**
  * page condition.
- *
- * @author likeugo
  */
 public class PageCondition<T> {
     
@@ -33,26 +31,56 @@ public class PageCondition<T> {
     @NotNull
     private T condition;
     
+    /**
+     * get page num.
+     *
+     * @return page num
+     */
     public Integer getPageNum() {
         return pageNum;
     }
     
+    /**
+     * set page num.
+     *
+     * @param pageNum page num
+     */
     public void setPageNum(final Integer pageNum) {
         this.pageNum = pageNum;
     }
     
+    /**
+     * get page size.
+     *
+     * @return page size
+     */
     public Integer getPageSize() {
         return pageSize;
     }
     
+    /**
+     * page size.
+     *
+     * @param pageSize page size
+     */
     public void setPageSize(final Integer pageSize) {
         this.pageSize = pageSize;
     }
     
+    /**
+     * get condition.
+     *
+     * @return condition
+     */
     public T getCondition() {
         return condition;
     }
     
+    /**
+     * set condition.
+     *
+     * @param condition condition
+     */
     public void setCondition(final T condition) {
         this.condition = condition;
     }
