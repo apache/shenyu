@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.admin.validation.validator;
 
-import org.apache.commons.lang3.reflect.MethodUtils;
-import org.apache.shenyu.admin.exception.ResourceNotFoundException;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.validation.ExistProvider;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
@@ -29,6 +28,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.shenyu.common.utils.ReflectUtils;
 
 /**
  * ExistedValidator.
@@ -52,9 +52,7 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
     
     @Override
     public boolean isValid(final Serializable value, final ConstraintValidatorContext context) {
-        if (Objects.isNull(annotation.provider())) {
-            throw new ResourceNotFoundException("the validation ExistProvider is not found");
-        }
+        Assert.notNull(annotation.provider(), "the validation ExistProvider is not found");
 
         if (annotation.nullOfIgnore() && Objects.isNull(value)) {
             // null of ignore
@@ -79,12 +77,8 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
     private Boolean doValid(final Serializable value) {
         Object provider = getExistProvider();
         // custom providerMethod
-        if (!"existed".equals(annotation.providerMethodName())) {
-            try {
-                return Boolean.TRUE.equals(MethodUtils.invokeMethod(provider, annotation.providerMethodName(), value));
-            } catch (Exception e) {
-                throw new ResourceNotFoundException("the validation ExistProviderMethod invoked error");
-            }
+        if (!Existed.EXISTED.equals(annotation.providerMethodName())) {
+            return Boolean.TRUE.equals(ReflectUtils.invokeMethod(provider, annotation.providerMethodName(), Assert::throwException, value));
         }
         return Boolean.TRUE.equals(getExistProvider().existed(value));
     }
