@@ -471,6 +471,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     Java-WebSocket 1.5.0: https://github.com/TooTallNate/Java-WebSocket, MIT
     jcl-over-slf4j 1.7.29: https://www.slf4j.org, MIT
     jul-to-slf4j 1.7.29: http://www.slf4j.org, MIT
+    mockito 3.5.15: https://github.com/mockito/mockito MIT
     slf4j-api 1.7.29: https://www.slf4j.org, MIT
     content-type 2.0: http://webjars.org, MIT
 
