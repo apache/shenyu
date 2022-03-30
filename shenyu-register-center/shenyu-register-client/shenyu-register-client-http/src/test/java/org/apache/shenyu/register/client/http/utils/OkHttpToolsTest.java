@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.http;
+package org.apache.shenyu.register.client.http.utils;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
-import org.apache.shenyu.register.client.http.utils.OkHttpTools;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import wiremock.com.google.common.net.HttpHeaders;
