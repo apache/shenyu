@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.cache.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.memory.MemoryCache;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.URI;
 import java.util.Optional;
 
 /**
@@ -45,9 +46,8 @@ public final class CacheUtils {
      */
     public static String dataKey(final ServerWebExchange exchange) {
         //// todo 2022/3/16 current use the request path, maybe use the key from admin config.
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return shenyuContext.getPath();
+        URI uri = exchange.getRequest().getURI();
+        return uri.getPath()+uri.getQuery();
     }
 
     /**
