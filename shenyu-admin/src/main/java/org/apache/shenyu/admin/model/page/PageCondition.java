@@ -25,7 +25,7 @@ public class PageCondition<T> {
     private Integer pageSize;
     
     /**
-     * 查询条件
+     * condition.
      */
     @Valid
     @NotNull
