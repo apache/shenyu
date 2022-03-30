@@ -25,9 +25,8 @@ import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.logging.config.LogCollectConfig;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -41,7 +40,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
-import java.util.Properties;
 
 /**
  * The Test Case For LoggingRocketMQPlugin.
@@ -49,29 +47,22 @@ import java.util.Properties;
 @ExtendWith(MockitoExtension.class)
 public final class LoggingRocketMQPluginTest {
 
-    private static LoggingRocketMQPlugin loggingRocketMQPlugin;
+    private LoggingRocketMQPlugin loggingRocketMQPlugin;
 
-    private static ServerWebExchange exchange;
+    private ServerWebExchange exchange;
 
-    private static RuleData ruleData;
+    private RuleData ruleData;
 
-    private static ShenyuPluginChain chain;
+    private ShenyuPluginChain chain;
 
-    private static SelectorData selectorData;
+    private SelectorData selectorData;
 
-    private static Properties rocketmqProps = new Properties();
-
-    private static LogCollectConfig logCollectConfig = new LogCollectConfig();
-
-    @BeforeAll
-    public static void setUp() {
-        rocketmqProps.setProperty("topic", "shenyu-access-logging");
-        rocketmqProps.setProperty("namesrvAddr", "localhost:9876");
-        logCollectConfig.setRocketmqProps(rocketmqProps);
-        loggingRocketMQPlugin = new LoggingRocketMQPlugin(logCollectConfig);
-        ruleData = Mockito.mock(RuleData.class);
-        chain = Mockito.mock(ShenyuPluginChain.class);
-        selectorData = Mockito.mock(SelectorData.class);
+    @BeforeEach
+    public void setUp() {
+        this.loggingRocketMQPlugin = new LoggingRocketMQPlugin();
+        this.ruleData = Mockito.mock(RuleData.class);
+        this.chain = Mockito.mock(ShenyuPluginChain.class);
+        this.selectorData = Mockito.mock(SelectorData.class);
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
@@ -83,7 +74,7 @@ public final class LoggingRocketMQPluginTest {
         RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
         };
         Mockito.lenient().when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
-        exchange = Mockito.spy(MockServerWebExchange.from(request));
+        this.exchange = Mockito.spy(MockServerWebExchange.from(request));
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
     }
