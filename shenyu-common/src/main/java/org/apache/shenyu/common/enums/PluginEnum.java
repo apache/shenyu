@@ -36,9 +36,9 @@ public enum PluginEnum {
     GLOBAL(5, 0, "global"),
 
     /**
-     * the cache read plugin enum.
+     * the cache plugin enum.
      */
-    CACHE_READ(10, 0, "cacheRead"),
+    CACHE(180, 0, "cache"),
 
     /**
      * Monitor plugin enum.
@@ -129,11 +129,6 @@ public enum PluginEnum {
      * Logging RocketMQ plugin enum.
      */
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
-
-    /**
-     * the cache plugin enum.
-     */
-     CACHE(180, 0, "cache"),
 
     /**
      * Divide plugin enum.
