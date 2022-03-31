@@ -380,6 +380,7 @@ The text of each license is the standard Apache 2.0 license.
     ribbon-httpclient 2.3.0: https://github.com/Netflix/ribbon, Apache 2.0
     ribbon-loadbalancer 2.3.0: https://github.com/Netflix/ribbon, Apache 2.0
     ribbon-transport 2.3.0: https://github.com/Netflix/ribbon, Apache 2.0
+    rocketmq-client 4.9.2: https://github.com/apache/rocketmq, Apache 2.0
     rxnetty 0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
     rxnetty contexts-0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
     rxnetty servo-0.4.9: https://github.com/ReactiveX/RxNetty, Apache 2.0
