@@ -67,7 +67,7 @@ public final class RuntimeUtils {
 
         Process process;
         try {
-            process = Runtime.getRuntime().exec("netstat " + getNestatOptions());
+            process = Runtime.getRuntime().exec(new String[] {"netstat", getNestatOptions()});
         } catch (Exception e) {
             LOGGER.warn("exec netstat fail. {}", e.getMessage());
             return Optional.empty();
