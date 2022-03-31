@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.validation.validator;
 
-import org.apache.shenyu.admin.exception.ResourceNotFoundException;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.validation.ExistProvider;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.shenyu.common.utils.ReflectUtils;
 
 /**
  * ExistedValidator.
@@ -38,7 +39,7 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
      * target annotation.
      */
     private Existed annotation;
-    
+
     /**
      * provider cache.
      */
@@ -51,19 +52,18 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
     
     @Override
     public boolean isValid(final Serializable value, final ConstraintValidatorContext context) {
-        if (Objects.isNull(annotation.provider())) {
-            throw new ResourceNotFoundException("the validation ExistProvider is not found");
-        }
+        Assert.notNull(annotation.provider(), "the validation ExistProvider is not found");
+
         if (annotation.nullOfIgnore() && Objects.isNull(value)) {
             // null of ignore
             return true;
         }
         if (annotation.reverse()) {
-            return !Boolean.TRUE.equals(getExistProvider().existed(value));
+            return !doValid(value);
         }
-        return Boolean.TRUE.equals(getExistProvider().existed(value));
+        return doValid(value);
     }
-    
+
     private ExistProvider getExistProvider() {
         ExistProvider provider = providerCacheMap.get(annotation.provider().getName());
         if (!Objects.isNull(provider)) {
@@ -72,5 +72,14 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
         provider = SpringBeanUtils.getInstance().getBean(annotation.provider());
         providerCacheMap.put(annotation.provider().getName(), provider);
         return provider;
+    }
+    
+    private Boolean doValid(final Serializable value) {
+        Object provider = getExistProvider();
+        // custom providerMethod
+        if (!Existed.EXISTED.equals(annotation.providerMethodName())) {
+            return Boolean.TRUE.equals(ReflectUtils.invokeMethod(provider, annotation.providerMethodName(), Assert::throwException, value));
+        }
+        return Boolean.TRUE.equals(getExistProvider().existed(value));
     }
 }

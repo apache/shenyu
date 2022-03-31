@@ -105,7 +105,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleGrade(1);
         sentinelHandle.setFlowRuleControlBehavior(0);
         sentinelHandle.setDegradeRuleEnable(0);
-        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleCount(1d);
         sentinelHandle.setDegradeRuleGrade(1);
         sentinelHandle.setDegradeRuleTimeWindow(10);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);
@@ -136,7 +136,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleGrade(1);
         sentinelHandle.setFlowRuleControlBehavior(0);
         sentinelHandle.setDegradeRuleEnable(1);
-        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleCount(1d);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(10);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);
@@ -170,7 +170,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);
         sentinelHandle.setFlowRuleControlBehavior(0);
-        sentinelHandle.setDegradeRuleCount(2);
+        sentinelHandle.setDegradeRuleCount(2d);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(5);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);
@@ -201,7 +201,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);
         sentinelHandle.setFlowRuleControlBehavior(0);
-        sentinelHandle.setDegradeRuleCount(2);
+        sentinelHandle.setDegradeRuleCount(2d);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(5);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);

@@ -21,6 +21,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.modify.response.ModifyResponsePlugin;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type ModifyResponse plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.modify-response.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ModifyResponsePluginConfiguration {
 
     /**

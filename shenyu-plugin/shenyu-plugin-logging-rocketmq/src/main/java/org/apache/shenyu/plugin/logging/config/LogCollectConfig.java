@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.config;
 
-import java.util.Map;
-import java.util.Properties;
-
 /**
  * log collect config, include rocketmq config.
  * Topic and nameserver must be included, and others are optional.
@@ -27,34 +24,7 @@ import java.util.Properties;
  */
 public class LogCollectConfig {
 
-    /**
-     * rocketmq props.
-     */
-    private Properties rocketmqProps;
-
-    private LogFieldSwitchConfig logFieldSwitchConfig;
-
     private GlobalLogConfig globalLogConfig;
-
-    private Map<String, LogApiConfig> logApiSwitchConfigMap;
-
-    /**
-     * get LogFieldSwitchConfig.
-     *
-     * @return LogFieldSwitchConfig
-     */
-    public LogFieldSwitchConfig getLogFieldSwitchConfig() {
-        return logFieldSwitchConfig;
-    }
-
-    /**
-     * set LogFieldSwitchConfig.
-     *
-     * @param logFieldSwitchConfig LogFieldSwitchConfig
-     */
-    public void setLogFieldSwitchConfig(final LogFieldSwitchConfig logFieldSwitchConfig) {
-        this.logFieldSwitchConfig = logFieldSwitchConfig;
-    }
 
     /**
      * get global log config.
@@ -75,50 +45,18 @@ public class LogCollectConfig {
     }
 
     /**
-     * get log api switch config map.
-     *
-     * @return log api switch config map
-     */
-    public Map<String, LogApiConfig> getLogApiSwitchConfigMap() {
-        return logApiSwitchConfigMap;
-    }
-
-    /**
-     * set log api switch config.
-     *
-     * @param logApiSwitchConfigMap log api switch config
-     */
-    public void setLogApiSwitchConfigMap(final Map<String, LogApiConfig> logApiSwitchConfigMap) {
-        this.logApiSwitchConfigMap = logApiSwitchConfigMap;
-    }
-
-    /**
-     * get rocketmq props.
-     *
-     * @return rocketmq props
-     */
-    public Properties getRocketmqProps() {
-        return rocketmqProps;
-    }
-
-    /**
-     * set rocketmq props.
-     *
-     * @param rocketmqProps rocketmq props
-     */
-    public void setRocketmqProps(final Properties rocketmqProps) {
-        this.rocketmqProps = rocketmqProps;
-    }
-
-    /**
      * global log config.
      */
     public static class GlobalLogConfig {
         private String topic;
 
+        private String namesrvAddr;
+
+        private String producerGroup;
+
         private String sampleRate = "1";
 
-        private boolean compress;
+        private String compressAlg;
 
         /**
          * default 512KB.
@@ -155,17 +93,17 @@ public class LogCollectConfig {
          *
          * @return compress or not
          */
-        public boolean isCompress() {
-            return compress;
+        public String getCompressAlg() {
+            return compressAlg;
         }
 
         /**
          * set compress.
          *
-         * @param compress true: compress, false not compress
+         * @param compressAlg compress alg.
          */
-        public void setCompress(final boolean compress) {
-            this.compress = compress;
+        public void setCompressAlg(final String compressAlg) {
+            this.compressAlg = compressAlg;
         }
 
         /**
@@ -239,6 +177,38 @@ public class LogCollectConfig {
         public void setBufferQueueSize(final int bufferQueueSize) {
             this.bufferQueueSize = bufferQueueSize;
         }
+
+        /**
+         * get rocketmq nameserver address.
+         * @return rocketmq nameserver address
+         */
+        public String getNamesrvAddr() {
+            return namesrvAddr;
+        }
+
+        /**
+         * set rocketmq nameserver address.
+         * @param namesrvAddr rocketmq nameserver address
+         */
+        public void setNamesrvAddr(final String namesrvAddr) {
+            this.namesrvAddr = namesrvAddr;
+        }
+
+        /**
+         * get producer group.
+         * @return producer group
+         */
+        public String getProducerGroup() {
+            return producerGroup;
+        }
+
+        /**
+         * set producer group.
+         * @param producerGroup producer group
+         */
+        public void setProducerGroup(final String producerGroup) {
+            this.producerGroup = producerGroup;
+        }
     }
 
     /**
@@ -293,93 +263,4 @@ public class LogCollectConfig {
         }
     }
 
-
-    /**
-     * log field switch config, default value is true.
-     */
-    public static class LogFieldSwitchConfig {
-
-        private boolean requestHeader = true;
-
-        private boolean responseHeader = true;
-
-        private boolean requestBody = true;
-
-        private boolean responseBody = true;
-
-        /**
-         * whether to collect request header.
-         *
-         * @return true: collect , false:not collect
-         */
-        public boolean isRequestHeader() {
-            return requestHeader;
-        }
-
-
-        /**
-         * set  whether to collect request header.
-         *
-         * @param requestHeader whether collect
-         */
-        public void setRequestHeader(final boolean requestHeader) {
-            this.requestHeader = requestHeader;
-        }
-
-        /**
-         * whether collect response header.
-         *
-         * @return collect or not
-         */
-        public boolean isResponseHeader() {
-            return responseHeader;
-        }
-
-        /**
-         * whether collect response header.
-         *
-         * @param responseHeader boolean
-         */
-        public void setResponseHeader(final boolean responseHeader) {
-            this.responseHeader = responseHeader;
-        }
-
-
-        /**
-         * whether collect request body.
-         *
-         * @return collect or not
-         */
-        public boolean isRequestBody() {
-            return requestBody;
-        }
-
-        /**
-         * whether collect request body.
-         *
-         * @param requestBody boolean
-         */
-        public void setRequestBody(final boolean requestBody) {
-            this.requestBody = requestBody;
-        }
-
-        /**
-         * whether collect response body.
-         *
-         * @return collect or not
-         */
-        public boolean isResponseBody() {
-            return responseBody;
-        }
-
-        /**
-         * whether collect response body.
-         *
-         * @param responseBody boolean
-         */
-        public void setResponseBody(final boolean responseBody) {
-            this.responseBody = responseBody;
-        }
-
-    }
 }

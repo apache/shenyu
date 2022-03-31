@@ -369,8 +369,8 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public List<AuthPathVO> detailPath(final String id) {
-        List<AuthPathDO> authPathDOList = authPathMapper.findByAuthId(id);
+    public List<AuthPathVO> detailPath(final String authId) {
+        List<AuthPathDO> authPathDOList = authPathMapper.findByAuthId(authId);
         if (CollectionUtils.isEmpty(authPathDOList)) {
             return new ArrayList<>();
         }

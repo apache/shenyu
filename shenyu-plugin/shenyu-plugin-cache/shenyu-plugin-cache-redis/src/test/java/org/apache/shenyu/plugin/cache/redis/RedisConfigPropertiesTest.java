@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.config;
+package org.apache.shenyu.plugin.cache.redis;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,10 +26,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * RateLimiterConfig default value test.
+ * RedisConfigProperties default value test.
  */
 @ExtendWith(MockitoExtension.class)
-public final class RateLimiterConfigTest {
+public final class RedisConfigPropertiesTest {
 
     private static final int DEFAULT_MAX_IDLE = 8;
 
@@ -37,11 +37,11 @@ public final class RateLimiterConfigTest {
 
     private static final int DEFAULT_MIN_IDLE = 0;
 
-    private RateLimiterConfig rateLimiterConfig;
+    private RedisConfigProperties redisConfigProperties;
 
     @BeforeEach
     public void setUp() {
-        this.rateLimiterConfig = new RateLimiterConfig();
+        this.redisConfigProperties = new RedisConfigProperties();
     }
 
     /**
@@ -49,7 +49,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void modeDefaultValueTest() {
-        assertEquals(RedisModeEnum.STANDALONE.getName(), rateLimiterConfig.getMode());
+        assertEquals(RedisModeEnum.STANDALONE.getName(), redisConfigProperties.getMode());
     }
 
     /**
@@ -57,7 +57,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void maxIdleDefaultValueTest() {
-        assertEquals(DEFAULT_MAX_IDLE, rateLimiterConfig.getMaxIdle());
+        assertEquals(DEFAULT_MAX_IDLE, redisConfigProperties.getMaxIdle());
     }
 
     /**
@@ -65,7 +65,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void maxActiveDefaultValueTest() {
-        assertEquals(DEFAULT_MAX_ACTIVE, rateLimiterConfig.getMaxActive());
+        assertEquals(DEFAULT_MAX_ACTIVE, redisConfigProperties.getMaxActive());
     }
 
     /**
@@ -73,7 +73,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void minIdleDefaultValueTest() {
-        assertEquals(DEFAULT_MIN_IDLE, rateLimiterConfig.getMinIdle());
+        assertEquals(DEFAULT_MIN_IDLE, redisConfigProperties.getMinIdle());
     }
 
     /**
@@ -81,7 +81,7 @@ public final class RateLimiterConfigTest {
      */
     @Test
     public void equalsTest() {
-        RateLimiterConfig defaultConfig = new RateLimiterConfig();
-        assertEquals(defaultConfig, this.rateLimiterConfig);
+        RedisConfigProperties defaultConfig = new RedisConfigProperties();
+        assertEquals(defaultConfig, this.redisConfigProperties);
     }
 }

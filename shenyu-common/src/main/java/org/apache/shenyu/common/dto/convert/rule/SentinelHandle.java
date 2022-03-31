@@ -59,7 +59,7 @@ public class SentinelHandle {
     /**
      * Degrade rule count.
      */
-    private Integer degradeRuleCount;
+    private Double degradeRuleCount;
 
     /**
      * Degrade rule time window.
@@ -199,7 +199,7 @@ public class SentinelHandle {
      *
      * @return degradeRuleCount
      */
-    public Integer getDegradeRuleCount() {
+    public Double getDegradeRuleCount() {
         return degradeRuleCount;
     }
 
@@ -208,7 +208,7 @@ public class SentinelHandle {
      *
      * @param degradeRuleCount degradeRuleCount
      */
-    public void setDegradeRuleCount(final Integer degradeRuleCount) {
+    public void setDegradeRuleCount(final Double degradeRuleCount) {
         this.degradeRuleCount = degradeRuleCount;
     }
 

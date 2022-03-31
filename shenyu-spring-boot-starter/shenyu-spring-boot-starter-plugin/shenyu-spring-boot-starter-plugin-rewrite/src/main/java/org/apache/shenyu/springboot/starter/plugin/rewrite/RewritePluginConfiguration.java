@@ -21,6 +21,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.rewrite.RewritePlugin;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Rewrite plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.rewrite.enabled"}, havingValue = "true", matchIfMissing = true)
 public class RewritePluginConfiguration {
 
     /**

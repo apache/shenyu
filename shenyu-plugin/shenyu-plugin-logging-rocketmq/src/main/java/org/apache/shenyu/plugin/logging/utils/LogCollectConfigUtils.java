@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.utils;
 
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.logging.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.sampler.CountSampler;
@@ -37,15 +36,14 @@ public final class LogCollectConfigUtils {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    private static LogCollectConfig logCollectConfig;
-
-    private static final LogCollectConfig.LogFieldSwitchConfig DEFAULT_LOG_FIELD_SWITCH_CONFIG =
-            new LogCollectConfig.LogFieldSwitchConfig();
+    private static LogCollectConfig.GlobalLogConfig globalLogConfig;
 
     private static final LogCollectConfig.GlobalLogConfig DEFAULT_GLOBAL_LOG_CONFIG =
             new LogCollectConfig.GlobalLogConfig();
 
-    private static final Map<String, Sampler> API_SAMPLER_MAP = new HashMap<>();
+    private static Map<String, Sampler> apiSamplerMap = new HashMap<>();
+
+    private static Map<String, String> apiTopicMap = new HashMap<>();
 
     private static Sampler globalSampler = Sampler.ALWAYS_SAMPLE;
 
@@ -53,29 +51,48 @@ public final class LogCollectConfigUtils {
     }
 
     /**
-     * set log collect config.
-     * @param logCollectConfig log collect config.
+     * set global config.
+     * @param config global config
      */
-    public static void setLogCollectConfig(final LogCollectConfig logCollectConfig) {
-        LogCollectConfigUtils.logCollectConfig = logCollectConfig;
-        init();
+    public static void setGlobalConfig(final LogCollectConfig.GlobalLogConfig config) {
+        globalLogConfig = config;
     }
 
     /**
-     * init logging config.
+     * set api sample.
+     * @param uriSampleMap api sample map
      */
-    public static void init() {
-        if (MapUtils.isNotEmpty(logCollectConfig.getLogApiSwitchConfigMap())) {
-            logCollectConfig.getLogApiSwitchConfigMap().forEach((path, config) -> {
-                if (StringUtils.isBlank(config.getSampleRate())) {
-                    API_SAMPLER_MAP.put(path, globalSampler);
-                } else {
-                    API_SAMPLER_MAP.put(path, CountSampler.create(config.getSampleRate()));
-                }
-            });
-        }
-        if (Objects.nonNull(logCollectConfig.getGlobalLogConfig())) {
-            globalSampler = CountSampler.create(logCollectConfig.getGlobalLogConfig().getSampleRate());
+    public static void setSampler(final Map<String, String> uriSampleMap) {
+        Map<String, Sampler> samplerMap = new HashMap<>();
+        uriSampleMap.forEach((path, sampler) -> {
+            if (StringUtils.isBlank(sampler)) {
+                samplerMap.put(path, globalSampler);
+            } else {
+                samplerMap.put(path, CountSampler.create(sampler));
+            }
+        });
+        apiSamplerMap = samplerMap;
+    }
+
+    /**
+     * set api topic map.
+     * @param uriTopicMap api topic map
+     */
+    public static void setTopic(final Map<String, String> uriTopicMap) {
+        apiTopicMap = uriTopicMap;
+    }
+
+    /**
+     * set global Sampler.
+     * @param sampler global sampler
+     */
+    public static void setGlobalSampler(final String sampler) {
+        if (StringUtils.isNotBlank(sampler)) {
+            try {
+                globalSampler = CountSampler.create(sampler);
+            } catch (Exception e) {
+                globalSampler = Sampler.ALWAYS_SAMPLE;
+            }
         }
     }
 
@@ -86,18 +103,15 @@ public final class LogCollectConfigUtils {
      * @return whether sample
      */
     public static boolean isSampled(final ServerHttpRequest request) {
-        if (Objects.isNull(logCollectConfig) || MapUtils.isEmpty(logCollectConfig.getLogApiSwitchConfigMap())) {
-            return true;
-        }
         String path = request.getURI().getPath();
-        Map<String, LogCollectConfig.LogApiConfig> apiConfigMap = logCollectConfig.getLogApiSwitchConfigMap();
-        for (Map.Entry<String, LogCollectConfig.LogApiConfig> entry : apiConfigMap.entrySet()) {
+        for (Map.Entry<String, Sampler> entry : apiSamplerMap.entrySet()) {
             String pattern = entry.getKey();
             if (MATCHER.match(pattern, path)) {
-                return Optional.ofNullable(API_SAMPLER_MAP.get(pattern))
-                        .map(sampler -> sampler.isSampled(request))
-                        .orElse(globalSampler.isSampled(request));
+                return entry.getValue().isSampled(request);
             }
+        }
+        if (globalSampler != null) {
+            return globalSampler.isSampled(request);
         }
         return true;
     }
@@ -109,10 +123,10 @@ public final class LogCollectConfigUtils {
      * @return whether request body too large
      */
     public static boolean isRequestBodyTooLarge(final int bodySize) {
-        if (Objects.isNull(logCollectConfig) || Objects.isNull(logCollectConfig.getGlobalLogConfig())) {
+        if (Objects.isNull(globalLogConfig)) {
             return false;
         }
-        return bodySize > logCollectConfig.getGlobalLogConfig().getMaxRequestBody();
+        return bodySize > globalLogConfig.getMaxRequestBody();
     }
 
     /**
@@ -122,20 +136,10 @@ public final class LogCollectConfigUtils {
      * @return whether response body too large
      */
     public static boolean isResponseBodyTooLarge(final int bodySize) {
-        if (Objects.isNull(logCollectConfig) || Objects.isNull(logCollectConfig.getGlobalLogConfig())) {
+        if (Objects.isNull(globalLogConfig)) {
             return false;
         }
-        return bodySize > logCollectConfig.getGlobalLogConfig().getMaxResponseBody();
-    }
-
-    /**
-     * get log field switch config.
-     *
-     * @return log field switch config
-     */
-    public static LogCollectConfig.LogFieldSwitchConfig getLogFieldSwitchConfig() {
-        return Optional.ofNullable(logCollectConfig).map(LogCollectConfig::getLogFieldSwitchConfig)
-                .orElse(DEFAULT_LOG_FIELD_SWITCH_CONFIG);
+        return bodySize > globalLogConfig.getMaxResponseBody();
     }
 
     /**
@@ -144,8 +148,7 @@ public final class LogCollectConfigUtils {
      * @return global log config
      */
     public static LogCollectConfig.GlobalLogConfig getGlobalLogConfig() {
-        return Optional.ofNullable(logCollectConfig).map(LogCollectConfig::getGlobalLogConfig)
-                .orElse(DEFAULT_GLOBAL_LOG_CONFIG);
+        return Optional.ofNullable(globalLogConfig).orElse(DEFAULT_GLOBAL_LOG_CONFIG);
     }
 
     /**
@@ -155,17 +158,10 @@ public final class LogCollectConfigUtils {
      * @return topic
      */
     public static String getTopic(final String path) {
-        if (StringUtils.isBlank(path)) {
-            return "";
-        }
-        Map<String, LogCollectConfig.LogApiConfig> apiConfigMap = logCollectConfig.getLogApiSwitchConfigMap();
-        if (MapUtils.isEmpty(apiConfigMap)) {
-            return "";
-        }
-        for (Map.Entry<String, LogCollectConfig.LogApiConfig> entry : apiConfigMap.entrySet()) {
-            String pattern = entry.getKey().replace("[", "").replace("]", "");
+        for (Map.Entry<String, String> entry : apiTopicMap.entrySet()) {
+            String pattern = entry.getKey();
             if (MATCHER.match(pattern, path)) {
-                return entry.getValue().getTopic();
+                return entry.getValue();
             }
         }
         return "";
