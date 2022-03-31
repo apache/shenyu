@@ -24,6 +24,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -83,6 +84,9 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
      */
     @Override
     public void doPersistURI(final URIRegisterDTO registerDTO) {
+        if (RuntimeUtils.listenByOther(registerDTO.getPort())) {
+            return;
+        }
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
         uriRegisterDTO = registerDTO;
     }
