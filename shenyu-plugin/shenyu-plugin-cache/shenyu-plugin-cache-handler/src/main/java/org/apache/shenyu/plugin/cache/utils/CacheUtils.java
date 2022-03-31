@@ -48,7 +48,7 @@ public final class CacheUtils {
     public static String dataKey(final ServerWebExchange exchange) {
         //// todo 2022/3/16 current use the request path, maybe use the key from admin config.
         URI uri = exchange.getRequest().getURI();
-        return Md5Utils.md5(String.join(KEY_JOIN_RULE, uri.getQuery(),uri.getPath()));
+        return Md5Utils.md5(String.join(KEY_JOIN_RULE, uri.getQuery(), uri.getPath()));
     }
 
     /**
@@ -58,7 +58,7 @@ public final class CacheUtils {
      * @return the content type key
      */
     public static String contentTypeKey(final ServerWebExchange exchange) {
-        return String.join(KEY_JOIN_RULE,dataKey(exchange),CONTENT_TYPEKEY_SUFFIX);
+        return String.join(KEY_JOIN_RULE, dataKey(exchange), CONTENT_TYPEKEY_SUFFIX);
     }
 
     /**
