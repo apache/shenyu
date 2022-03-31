@@ -58,6 +58,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -102,8 +103,6 @@ public class UpstreamCheckService {
     private ScheduledThreadPoolExecutor executor;
 
     private ScheduledFuture<?> scheduledFuture;
-
-    private final Object lock = new Object();
 
     /**
      * Instantiates a new Upstream check service.
@@ -189,10 +188,7 @@ public class UpstreamCheckService {
             return false;
         }
 
-        List<CommonUpstream> upstreams;
-        synchronized (lock) {
-            upstreams = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> Lists.newArrayList());
-        }
+        List<CommonUpstream> upstreams = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> new CopyOnWriteArrayList());
         if (commonUpstream.isStatus()) {
             Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
                     && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
@@ -282,10 +278,10 @@ public class UpstreamCheckService {
         if (successList.size() == upstreamList.size() && PENDING_SYNC.size() == 0) {
             return;
         }
+        removePendingSync(successList);
         if (successList.size() > 0) {
             UPSTREAM_MAP.put(selectorId, successList);
             updateSelectorHandler(selectorId, successList);
-            removePendingSync(successList);
         } else {
             UPSTREAM_MAP.remove(selectorId);
             updateSelectorHandler(selectorId, Collections.EMPTY_LIST);
