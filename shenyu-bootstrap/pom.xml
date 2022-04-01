@@ -394,6 +394,12 @@
             <groupId>com.weibo</groupId>
             <artifactId>motan-registry-zookeeper</artifactId>
             <version>${motan.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
