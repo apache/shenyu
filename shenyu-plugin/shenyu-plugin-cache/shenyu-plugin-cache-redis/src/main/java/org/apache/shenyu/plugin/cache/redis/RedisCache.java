@@ -52,7 +52,7 @@ public final class RedisCache implements ICache {
     }
 
     /**
-     * Check the cache is exist or not.
+     * Check the cache is existed or not.
      * @param key the cache key
      * @return true exist
      */
