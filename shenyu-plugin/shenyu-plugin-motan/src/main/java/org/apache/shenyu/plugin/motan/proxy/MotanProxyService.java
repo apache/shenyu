@@ -22,6 +22,7 @@ import com.weibo.api.motan.proxy.CommonHandler;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.api.motan.rpc.RpcContext;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -38,6 +39,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Motan proxy service.
@@ -45,6 +48,8 @@ import java.util.concurrent.CompletableFuture;
 public class MotanProxyService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MotanProxyService.class);
+
+    private final ExecutorService threadPool = Executors.newCachedThreadPool(ShenyuThreadFactory.create("shenyu-motan", true));
 
     /**
      * Generic invoker object.
@@ -89,7 +94,7 @@ public class MotanProxyService {
         }
         //CHECKSTYLE:ON IllegalCatch
         ResponseFuture finalResponseFuture = responseFuture;
-        CompletableFuture<Object> future = CompletableFuture.supplyAsync(finalResponseFuture::getValue);
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(finalResponseFuture::getValue, threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.MOTAN_RPC_RESULT_EMPTY;
