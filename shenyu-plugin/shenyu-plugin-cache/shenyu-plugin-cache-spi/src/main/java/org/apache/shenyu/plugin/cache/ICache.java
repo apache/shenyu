@@ -37,7 +37,7 @@ public interface ICache {
     boolean cacheData(String key, byte[] bytes, long timeoutSeconds);
 
     /**
-     * Check the cache is exist or not.
+     * Check the cache is existed or not.
      * @param key the cache key
      * @return true exist
      */
