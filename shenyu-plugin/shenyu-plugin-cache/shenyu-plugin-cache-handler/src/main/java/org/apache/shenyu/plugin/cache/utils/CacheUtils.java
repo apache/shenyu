@@ -67,7 +67,6 @@ public final class CacheUtils {
      * @return cache
      */
     public static ICache getCache() {
-        final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
-        return Optional.ofNullable(cacheConfig).map(config -> Singleton.INST.get(ICache.class)).orElse(new MemoryCache());
+        return Singleton.INST.get(ICache.class);
     }
 }

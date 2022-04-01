@@ -47,11 +47,13 @@ public final class RedisCache implements ICache {
      */
     @Override
     public boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
-        return Boolean.TRUE.equals(this.redisTemplate.opsForValue().set(key, bytes, Duration.ofSeconds(timeoutSeconds)).block());
+        this.redisTemplate.opsForValue().set(key, bytes, Duration.ofSeconds(timeoutSeconds)).subscribe();
+        return true;
     }
 
     /**
      * Check the cache is exist or not.
+     *
      * @param key the cache key
      * @return true exist
      */

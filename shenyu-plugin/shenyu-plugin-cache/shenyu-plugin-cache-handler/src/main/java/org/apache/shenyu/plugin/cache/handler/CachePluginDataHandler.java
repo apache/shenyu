@@ -53,31 +53,28 @@ public class CachePluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
-            LOG.info("the plugin {} is disabled", this.pluginNamed());
-            return;
+        closeLastCache();
+        if (isPluginEnabled(pluginData)) {
+            final String config = pluginData.getConfig();
+            CacheConfig cacheConfig = GsonUtils.getInstance().fromJson(config, CacheConfig.class);
+            if (Objects.nonNull(cacheConfig)) {
+                LOG.info("use the {} cache.", cacheConfig.getCacheType());
+                final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
+                Singleton.INST.single(ICache.class, cacheBuilder.builderCache(config));
+            }
         }
-        final String config = pluginData.getConfig();
-        CacheConfig cacheConfig = GsonUtils.getInstance().fromJson(config, CacheConfig.class);
-        if (Objects.isNull(cacheConfig)) {
-            LOG.info("invalid cacheConfig.");
-            return;
-        }
-        LOG.info("use the {} cache.", cacheConfig.getCacheType());
-        final CacheConfig lastCacheConfig = Singleton.INST.get(CacheConfig.class);
-        if (cacheConfig.equals(lastCacheConfig)) {
-            LOG.info("cache plugin initialized.");
-            return;
-        }
-        Singleton.INST.single(CacheConfig.class, cacheConfig);
-        ICache lastCache = CacheUtils.getCache();
+    }
+
+    private boolean isPluginEnabled(PluginData pluginData) {
+        return Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled());
+    }
+
+    private void closeLastCache() {
+        final ICache lastCache = CacheUtils.getCache();
         if (Objects.nonNull(lastCache)) {
-            // close last cache.
             LOG.info("close the last cache {}", lastCache);
             lastCache.close();
         }
-        final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
-        Singleton.INST.single(ICache.class, cacheBuilder.builderCache(config));
     }
 
     @Override
