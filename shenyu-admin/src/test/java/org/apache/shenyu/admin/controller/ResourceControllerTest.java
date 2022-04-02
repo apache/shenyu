@@ -48,7 +48,6 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 /**
@@ -190,8 +189,6 @@ public class ResourceControllerTest {
         resourceDTO.setId(mockId);
         fill(resourceDTO);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(ResourceMapper.class)).thenReturn(resourceMapper);
-        when(resourceMapper.existed(resourceDTO.getId())).thenReturn(true);
         given(resourceService.createOrUpdate(resourceDTO)).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.put("/resource/" + mockId)

@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.RoleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,6 +68,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/getAllRoles")
+    @RequiresPermissions("system:role:list")
     public ShenyuAdminResult selectAll() {
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, roleService.selectAll());
     }
@@ -80,6 +82,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
+    @RequiresPermissions("system:role:list")
     public ShenyuAdminResult queryRole(final String roleName,
                                        @NotNull final Integer currentPage,
                                        @NotNull final Integer pageSize) {
@@ -94,6 +97,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
+    @RequiresPermissions("system:role:edit")
     public ShenyuAdminResult detailRole(@PathVariable("id") @Valid
                                         @Existed(provider = RoleMapper.class,
                                                 message = "role is not existed") final String id) {
@@ -110,6 +114,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
+    @RequiresPermissions("system:role:add")
     public ShenyuAdminResult createRole(@Valid @RequestBody final RoleDTO roleDTO) {
         if (SUPER.equals(roleDTO.getRoleName())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.ROLE_CREATE_ERROR);
@@ -125,6 +130,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
+    @RequiresPermissions("system:role:edit")
     public ShenyuAdminResult updateRole(@PathVariable("id") @Valid
                                         @Existed(provider = RoleMapper.class,
                                                 message = "role is not existed") final String id,
@@ -140,6 +146,7 @@ public class RoleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:role:delete")
     public ShenyuAdminResult deleteRole(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, roleService.delete(ids));
     }

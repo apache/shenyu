@@ -30,6 +30,11 @@ public class CacheConfig {
     private String cacheType = "memory";
 
     /**
+     * the origin config.
+     */
+    private String config;
+
+    /**
      * Get cache type.
      * @return the cache type
      */
@@ -45,6 +50,22 @@ public class CacheConfig {
         this.cacheType = cacheType;
     }
 
+    /**
+     * Get config.
+     * @return the config
+     */
+    public String getConfig() {
+        return config;
+    }
+
+    /**
+     * Set the config.
+     * @param config the config
+     */
+    public void setConfig(final String config) {
+        this.config = config;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -53,15 +74,12 @@ public class CacheConfig {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
         final CacheConfig that = (CacheConfig) o;
-        return Objects.equals(cacheType, that.cacheType);
+        return cacheType.equals(that.cacheType) && config.equals(that.config);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), cacheType);
+        return Objects.hash(cacheType, config);
     }
 }

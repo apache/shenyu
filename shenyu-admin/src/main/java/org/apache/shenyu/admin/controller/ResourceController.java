@@ -29,6 +29,8 @@ import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,6 +71,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
+    @RequiresPermissions("system:resource:list")
     public ShenyuAdminResult queryResource(final String title,
                                            @NotNull final Integer currentPage,
                                            @NotNull final Integer pageSize) {
@@ -85,6 +88,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/menu")
+    @RequiresPermissions("system:manager:configureDataPermission")
     public ShenyuAdminResult getMenuTree() {
         List<MenuInfo> menuInfoList = resourceService.getMenuTree();
         if (CollectionUtils.isNotEmpty(menuInfoList)) {
@@ -100,6 +104,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/button")
+    @RequiresPermissions("system:resource:addButton")
     public ShenyuAdminResult getButton(final String id) {
         List<ResourceVO> resourceVOList = resourceService.findByParentId(id);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
@@ -115,6 +120,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
+    @RequiresPermissions(value = {"system:resource:editButton", "system:resource:editMenu"}, logical = Logical.OR)
     public ShenyuAdminResult detailResource(@PathVariable("id") final String id) {
         return Optional.ofNullable(resourceService.findById(id))
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
@@ -128,6 +134,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
+    @RequiresPermissions(value = {"system:resource:addMenu", "system:resource:addButton"}, logical = Logical.OR)
     public ShenyuAdminResult createResource(@Valid @RequestBody final ResourceDTO resourceDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
@@ -140,10 +147,11 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
+    @RequiresPermissions(value = {"system:resource:editMenu", "system:resource:editButton"}, logical = Logical.OR)
     public ShenyuAdminResult updateResource(@PathVariable("id") @Valid
                                             @Existed(provider = ResourceMapper.class,
                                                     message = "resource not existed") final String id,
-                                            @Valid @RequestBody final ResourceDTO resourceDTO) {
+                                            @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
@@ -155,6 +163,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions(value = {"system:resource:deleteMenu", "system:resource:deleteButton"}, logical = Logical.OR)
     public ShenyuAdminResult deleteResource(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, resourceService.delete(ids));
     }

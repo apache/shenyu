@@ -32,6 +32,7 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,6 +76,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
+    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
@@ -88,6 +90,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all")
+    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
@@ -100,6 +103,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
+    @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult detailPlugin(@PathVariable("id")
                                           @Existed(message = "plugin is not existed",
                                                   provider = PluginMapper.class) final String id) {
@@ -114,6 +118,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
+    @RequiresPermissions("system:plugin:add")
     public ShenyuAdminResult createPlugin(@Valid @RequestBody final PluginDTO pluginDTO) {
         return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));
     }
@@ -126,6 +131,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
+    @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult updatePlugin(@PathVariable("id")
                                           @Existed(message = "plugin is not existed",
                                                   provider = PluginMapper.class) final String id,
@@ -141,6 +147,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:plugin:delete")
     public ShenyuAdminResult deletePlugins(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         final String result = pluginService.delete(ids);
         if (StringUtils.isNoneBlank(result)) {
@@ -156,6 +163,7 @@ public class PluginController {
      * @return the mono
      */
     @PostMapping("/enabled")
+    @RequiresPermissions("system:plugin:disable")
     public ShenyuAdminResult enabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         final String result = pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
@@ -170,6 +178,7 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/syncPluginAll")
+    @RequiresPermissions("system:plugin:modify")
     public ShenyuAdminResult syncPluginAll() {
         boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         if (success) {
@@ -186,6 +195,7 @@ public class PluginController {
      * @return the mono
      */
     @PutMapping("/syncPluginData/{id}")
+    @RequiresPermissions("system:plugin:modify")
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
