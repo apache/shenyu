@@ -25,10 +25,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,11 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Motan proxy service.
@@ -49,12 +56,14 @@ public class MotanProxyService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MotanProxyService.class);
 
-    private final ExecutorService threadPool = Executors.newCachedThreadPool(ShenyuThreadFactory.create("shenyu-motan", true));
+    private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-motan", true);
+
+    private ExecutorService threadPool;
 
     /**
      * Generic invoker object.
      *
-     * @param body the body
+     * @param body     the body
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
@@ -93,8 +102,20 @@ public class MotanProxyService {
             return null;
         }
         //CHECKSTYLE:ON IllegalCatch
-        ResponseFuture finalResponseFuture = responseFuture;
-        CompletableFuture<Object> future = CompletableFuture.supplyAsync(finalResponseFuture::getValue, threadPool);
+        if (Objects.isNull(threadPool)) {
+            MotanRegisterConfig config = Singleton.INST.get(MotanRegisterConfig.class);
+            if (Objects.isNull(config)) {
+                // should not execute to here
+                threadPool = Executors.newCachedThreadPool(factory);
+            } else {
+                int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
+                int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
+                int queueSize = Optional.ofNullable(config.getThreads()).orElse(0);
+                threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
+                        queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
+            }
+        }
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(responseFuture::getValue, threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.MOTAN_RPC_RESULT_EMPTY;
