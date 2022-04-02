@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `plugin` (
 );
 
 CREATE TABLE IF NOT EXISTS `plugin_handle` (
-  `id` varchar(128),
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
   `field` varchar(100) NOT NULL COMMENT 'field',
   `label` varchar(100) DEFAULT NULL COMMENT 'label',
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `rule_condition` (
 );
 
 CREATE TABLE  IF NOT EXISTS `meta_data` (
-  `id` varchar(128) NOT NULL COMMENT 'id',
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `app_name` varchar(255) NOT NULL COMMENT 'application name',
   `path` varchar(255) NOT NULL COMMENT 'path, cannot be repeated',
   `path_desc` varchar(255) COMMENT 'path description',
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS `auth_path`  (
 );
 
 CREATE TABLE IF NOT EXISTS `shenyu_dict` (
-   `id` varchar(128),
+   `id` varchar(128) NOT NULL COMMENT 'primary key id',
    `type` varchar(100) NOT NULL COMMENT 'type',
    `dict_code` varchar(100) NOT NULL COMMENT 'dictionary encoding',
    `dict_name` varchar(100) NOT NULL COMMENT 'dictionary name',

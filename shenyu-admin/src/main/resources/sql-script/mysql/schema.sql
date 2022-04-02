@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `plugin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `plugin_handle` (
-  `id` varchar(128) NOT NULL,
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
   `field` varchar(100) NOT NULL COMMENT 'field',
   `label` varchar(100) DEFAULT NULL COMMENT 'label',
