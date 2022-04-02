@@ -53,7 +53,7 @@ public class LogCollectConfigUtilsTest {
     private Map<String, String> apiTopicMap = new HashMap<>();
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         config.setBufferQueueSize(5000);
         LogCollectConfigUtils.setGlobalConfig(config);
         uriSampleMap.put("const", "1");
@@ -77,7 +77,7 @@ public class LogCollectConfigUtilsTest {
     }
 
     @Test
-    public void testSetGlobalConfig(){
+    public void testSetGlobalConfig() {
         assertEquals(LogCollectConfigUtils.getGlobalLogConfig().getBufferQueueSize(), 5000);
     }
 
@@ -90,29 +90,29 @@ public class LogCollectConfigUtilsTest {
     }
 
     @Test
-    public void testIsSampled(){
+    public void testIsSampled() {
         assertEquals(LogCollectConfigUtils.isSampled(request), false);
     }
 
     @Test
-    public void TestIsRequestBodyTooLarge(){
+    public void testIsRequestBodyTooLarge() {
         assertEquals(LogCollectConfigUtils.isRequestBodyTooLarge(524289), true);
         assertEquals(LogCollectConfigUtils.isRequestBodyTooLarge(524288), false);
     }
 
     @Test
-    public void TestIsResponseBodyTooLarge(){
+    public void testIsResponseBodyTooLarge() {
         assertEquals(LogCollectConfigUtils.isResponseBodyTooLarge(524289), true);
         assertEquals(LogCollectConfigUtils.isResponseBodyTooLarge(524288), false);
     }
 
     @Test
-    public void testGetTopic(){
+    public void testGetTopic() {
         assertEquals(LogCollectConfigUtils.getTopic("topic"), "");
     }
 
     @Test
-    public void testSetTopic(){
+    public void testSetTopic() {
         LogCollectConfigUtils.setTopic(apiTopicMap);
         assertEquals(LogCollectConfigUtils.getTopic("topic"), "shenyu-access-logging");
     }

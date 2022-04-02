@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * The Test Case For LogCollectUtils.
  */
-public class LogCollectUtilsTest  {
+public class LogCollectUtilsTest {
 
     private ServerWebExchange exchange;
 
@@ -55,12 +55,12 @@ public class LogCollectUtilsTest  {
     }
 
     @Test
-    public void testIsNotBinaryType(){
+    public void testIsNotBinaryType() {
         assertEquals(LogCollectUtils.isNotBinaryType(request.getHeaders()), true);
     }
 
     @Test
-    public void testGetHeaders(){
+    public void testGetHeaders() {
         assertEquals(LogCollectUtils.getHeaders(request.getHeaders()), "{\"X-source\":\"mock test\"}");
     }
 }
