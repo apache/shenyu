@@ -72,8 +72,8 @@ public class DashboardUserController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
-    @RequiresPermissions("system:manager:list")
     @GetMapping("")
+    @RequiresPermissions("system:manager:list")
     public ShenyuAdminResult queryDashboardUsers(final String userName,
                                                  @NotNull(message = "currentPage not null") final Integer currentPage,
                                                  @NotNull(message = "pageSize not null") final Integer pageSize) {
@@ -93,8 +93,8 @@ public class DashboardUserController {
      * @param id dashboard user id.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @RequiresPermissions("system:manager:list")
     @GetMapping("/{id}")
+    @RequiresPermissions("system:manager:list")
     public ShenyuAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserEditVO)
@@ -108,8 +108,8 @@ public class DashboardUserController {
      * @param dashboardUserDTO dashboard user.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @RequiresPermissions("system:manager:add")
     @PostMapping("")
+    @RequiresPermissions("system:manager:add")
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO)
                 .map(item -> {
@@ -129,8 +129,8 @@ public class DashboardUserController {
      * @param dashboardUserDTO dashboard user.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @RequiresPermissions("system:manager:edit")
     @PutMapping("/{id}")
+    @RequiresPermissions("system:manager:edit")
     public ShenyuAdminResult updateDashboardUser(@PathVariable("id")
                                                  @Existed(provider = DashboardUserMapper.class,
                                                          message = "user is not found") final String id,
@@ -152,6 +152,7 @@ public class DashboardUserController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/modify-password/{id}")
+    @RequiresPermissions("system:manager:edit")
     public ShenyuAdminResult modifyPassword(@PathVariable("id")
                                             @Existed(provider = DashboardUserMapper.class,
                                                     message = "user is not found") final String id,
@@ -165,8 +166,8 @@ public class DashboardUserController {
      * @param ids primary key.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @RequiresPermissions("system:manager:delete")
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:manager:delete")
     public ShenyuAdminResult deleteDashboardUser(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = dashboardUserService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
