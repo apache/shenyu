@@ -212,6 +212,7 @@ shenyu:
     port: 8090
     jmxConfig:
     props:
+      jvm_enabled: true
 #  plugins:
 #    rate-limiter.enabled: false
   local:
