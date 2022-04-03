@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.http;
+package org.apache.shenyu.register.client.http.utils;
 
 import com.google.gson.Gson;
-import org.apache.shenyu.register.client.http.utils.OkHttpTools;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -55,6 +55,7 @@ public class CachePluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.isNull(pluginData) || Boolean.FALSE.equals(pluginData.getEnabled())) {
             LOG.info("the plugin {} is disabled", this.pluginNamed());
+            this.closeCacheIfNeed();
             return;
         }
         final String config = pluginData.getConfig();
@@ -64,18 +65,15 @@ public class CachePluginDataHandler implements PluginDataHandler {
             return;
         }
         LOG.info("use the {} cache.", cacheConfig.getCacheType());
+        // set the config to compare with lastConfig.
+        cacheConfig.setConfig(config);
         final CacheConfig lastCacheConfig = Singleton.INST.get(CacheConfig.class);
         if (cacheConfig.equals(lastCacheConfig)) {
             LOG.info("cache plugin initialized.");
             return;
         }
         Singleton.INST.single(CacheConfig.class, cacheConfig);
-        ICache lastCache = CacheUtils.getCache();
-        if (Objects.nonNull(lastCache)) {
-            // close last cache.
-            LOG.info("close the last cache {}", lastCache);
-            lastCache.close();
-        }
+        this.closeCacheIfNeed();
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
         Singleton.INST.single(ICache.class, cacheBuilder.builderCache(config));
     }
@@ -96,5 +94,17 @@ public class CachePluginDataHandler implements PluginDataHandler {
     @Override
     public String pluginNamed() {
         return PluginEnum.CACHE.getName();
+    }
+
+    /**
+     * close the cache if you need.
+     */
+    private void closeCacheIfNeed() {
+        ICache lastCache = CacheUtils.getCache();
+        if (Objects.nonNull(lastCache)) {
+            // close last cache.
+            LOG.info("close the last cache {}", lastCache);
+            lastCache.close();
+        }
     }
 }

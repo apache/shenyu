@@ -17,22 +17,21 @@
 
 package org.apache.shenyu.plugin.cache.utils;
 
-import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.Md5Utils;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.cache.ICache;
-import org.apache.shenyu.plugin.cache.config.CacheConfig;
-import org.apache.shenyu.plugin.cache.memory.MemoryCache;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Optional;
+import java.net.URI;
 
 /**
  * CacheUtils.
  */
 public final class CacheUtils {
 
-    private static final String CONTENT_TYPEKEY_SUFFIX = "-contentType";
+    private static final String CONTENT_TYPEKEY_SUFFIX = "contentType";
+
+    private static final String KEY_JOIN_RULE = "-";
 
     private CacheUtils() {
     }
@@ -45,9 +44,8 @@ public final class CacheUtils {
      */
     public static String dataKey(final ServerWebExchange exchange) {
         //// todo 2022/3/16 current use the request path, maybe use the key from admin config.
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return shenyuContext.getPath();
+        URI uri = exchange.getRequest().getURI();
+        return Md5Utils.md5(String.join(KEY_JOIN_RULE, uri.getQuery(), uri.getPath()));
     }
 
     /**
@@ -57,7 +55,7 @@ public final class CacheUtils {
      * @return the content type key
      */
     public static String contentTypeKey(final ServerWebExchange exchange) {
-        return dataKey(exchange) + CONTENT_TYPEKEY_SUFFIX;
+        return String.join(KEY_JOIN_RULE, dataKey(exchange), CONTENT_TYPEKEY_SUFFIX);
     }
 
     /**
@@ -66,7 +64,6 @@ public final class CacheUtils {
      * @return cache
      */
     public static ICache getCache() {
-        final CacheConfig cacheConfig = Singleton.INST.get(CacheConfig.class);
-        return Optional.ofNullable(cacheConfig).map(config -> Singleton.INST.get(ICache.class)).orElse(new MemoryCache());
+        return Singleton.INST.get(ICache.class);
     }
 }

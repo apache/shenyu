@@ -47,6 +47,14 @@ public class CachePlugin extends AbstractShenyuPlugin {
                                    final ShenyuPluginChain chain,
                                    final SelectorData selector,
                                    final RuleData rule) {
+        ICache cache = CacheUtils.getCache();
+        byte[] bytes;
+        if (Objects.nonNull(cache) && Objects.nonNull(bytes = cache.getData(CacheUtils.dataKey(exchange)))) {
+            exchange.getResponse().getHeaders().setContentType(cache.getContentType(CacheUtils.contentTypeKey(exchange)));
+            return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                    .bufferFactory().wrap(bytes))
+                    .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
+        }
         CacheRuleHandle cacheRuleHandle = CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         return chain.execute(exchange.mutate()
                 .response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());

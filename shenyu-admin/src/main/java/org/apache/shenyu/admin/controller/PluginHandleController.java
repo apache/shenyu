@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,6 +68,7 @@ public class PluginHandleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
+    @RequiresPermissions("system:pluginHandler:list")
     public ShenyuAdminResult queryPluginHandles(final String pluginId, final String field,
                                                 @NotNull final Integer currentPage,
                                                 @NotNull final Integer pageSize) {
@@ -93,6 +95,7 @@ public class PluginHandleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
+    @RequiresPermissions("system:pluginHandler:edit")
     public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
                                         @Existed(provider = PluginHandleMapper.class,
                                                 message = "rule not exited") final String id) {
@@ -107,6 +110,7 @@ public class PluginHandleController {
      * @return {@link ShenyuAdminResult}
      */
     @PostMapping("")
+    @RequiresPermissions("system:pluginHandler:add")
     public ShenyuAdminResult createPluginHandle(@Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
@@ -120,6 +124,7 @@ public class PluginHandleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
+    @RequiresPermissions("system:pluginHandler:edit")
     public ShenyuAdminResult updatePluginHandle(@PathVariable("id") @Valid
                                                 @Existed(provider = PluginHandleMapper.class,
                                                         message = "rule not exited") final String id,
@@ -135,6 +140,7 @@ public class PluginHandleController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:pluginHandler:delete")
     public ShenyuAdminResult deletePluginHandles(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, pluginHandleService.deletePluginHandles(ids));
     }
