@@ -81,14 +81,14 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
     }
 
     private Mono<Void> formData(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
-        return Mono.from(serverHttpRequest.getBody()
+        return Mono.from(DataBufferUtils.join(serverHttpRequest.getBody())
                 .flatMap(map -> {
                     String param = resolveBodyFromRequest(map);
                     LinkedMultiValueMap<String, String> linkedMultiValueMap;
                     try {
                         linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8.name()));
                     } catch (UnsupportedEncodingException e) {
-                        return Flux.error(e);
+                        return Mono.error(e);
                     }
                     exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> linkedMultiValueMap));
                     return chain.execute(exchange);
