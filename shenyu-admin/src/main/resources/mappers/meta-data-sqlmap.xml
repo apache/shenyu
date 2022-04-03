@@ -149,7 +149,8 @@
                     service_name,
                     method_name,
                     parameter_types,
-                    rpc_ext,enabled )
+                    rpc_ext,
+                    enabled)
              VALUES 
                     (#{id,jdbcType=VARCHAR}, 
                     #{dateCreated,jdbcType=TIMESTAMP}, 
