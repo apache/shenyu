@@ -202,7 +202,6 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 # Discussion and Support
 
 * [Mailing Lists](mailto:dev@shenyu.apache.org)
-* QQ Group: 429951241
 
 ---  
 
