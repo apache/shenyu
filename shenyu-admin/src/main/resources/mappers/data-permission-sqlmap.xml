@@ -28,24 +28,34 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, user_id, data_id, data_type
+        id, 
+        date_created, 
+        date_updated, 
+        user_id, 
+        data_id, 
+        data_type
     </sql>
 
     <delete id="deleteByUniqueKey">
-        delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
-        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        delete from data_permission 
+        where data_id = #{dataId, jdbcType=VARCHAR}
+        and user_id = #{userId,jdbcType=VARCHAR} 
+        and data_type = #{dataType,jdbcType=INTEGER}
     </delete>
 
     <delete id="deleteByDataIdsAndUserId" parameterType="java.util.List">
-        delete from data_permission where data_id in
+        delete from data_permission 
+        where data_id in
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
         </foreach>
-        and user_id = #{userId, jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=VARCHAR}
+        and user_id = #{userId, jdbcType=VARCHAR} 
+        and data_type = #{dataType,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserId">
-        delete from data_permission where user_id = #{userId,jdbcType=VARCHAR}
+        delete from data_permission 
+        where user_id = #{userId,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserIdSet">
@@ -59,23 +69,33 @@
     </delete>
 
     <delete id="deleteByDataId">
-        delete from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
+        delete from data_permission 
+        where data_id = #{dataId,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByDataIdList">
-        delete from data_permission where data_id in
+        delete from data_permission 
+        where data_id in
         <foreach item="dataId" collection="dataIdList" open="(" separator="," close=")">
             #{dataId,jdbcType=VARCHAR}
         </foreach>
     </delete>
 
     <select id="listByUserId" resultMap="BaseResultMap">
-        select id, user_id, data_type, data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR}
+        select id, 
+        user_id, 
+        data_type, 
+        data_id 
+        from data_permission 
+        where user_id = #{userId,jdbcType=VARCHAR}
     </select>
 
     <select id="selectDataIds" resultType="java.lang.String">
-        select data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR} and data_type =
-        #{dataType,jdbcType=INTEGER}
+        select data_id 
+        from data_permission 
+        where user_id = #{userId,jdbcType=VARCHAR} 
+        and data_type =
+            #{dataType,jdbcType=INTEGER}
         and data_id in
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
@@ -85,12 +105,16 @@
     <select id="findOneByUniqueKey" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
-        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        from data_permission 
+        where data_id = #{dataId,jdbcType=VARCHAR}
+        and user_id = #{userId,jdbcType=VARCHAR} 
+        and data_type = #{dataType,jdbcType=INTEGER}
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        select true from data_permission where user_id = #{userId,jdbcType=VARCHAR} limit 1
+        select true 
+        from data_permission 
+        where user_id = #{userId,jdbcType=VARCHAR} limit 1
     </select>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DataPermissionDO">
