@@ -12,7 +12,7 @@
   <a href="https://shenyu.apache.org/docs/index" >
     <img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN docs" />
   </a>
-  <a herf="https://shenyu.apache.org/zh/docs/index">
+  <a href="https://shenyu.apache.org/zh/docs/index">
     <img src="https://img.shields.io/badge/文档-简体中文-blue.svg" alt="简体中文文档" />
   </a>
 </p>
