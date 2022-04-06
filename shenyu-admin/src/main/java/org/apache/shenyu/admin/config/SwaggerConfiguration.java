@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -41,10 +40,7 @@ public class SwaggerConfiguration {
     @Value("${shenyu.swagger.enable:false}")
     private boolean enable;
     
-    private final BuildProperties buildProperties;
-    
-    public SwaggerConfiguration(@Autowired(required = false) final BuildProperties buildProperties) {
-        this.buildProperties = buildProperties;
+    public SwaggerConfiguration() {
     }
     
     /**
@@ -70,14 +66,10 @@ public class SwaggerConfiguration {
      * @return Api info
      */
     private ApiInfo apiInfo() {
-        String version = "1.0.0";
-        if (buildProperties != null) {
-            version = buildProperties.getVersion();
-        }
         return new ApiInfoBuilder()
                 .title("Shenyu Admin API Document")
                 .description("")
-                .version(version)
+                .version(VersionUtils.getVersion(getClass(), "2.3.0"))
                 .contact(new Contact("shenyu", "https://github.com/apache/incubator-shenyu", ""))
                 .build();
     }
