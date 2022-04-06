@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.global;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -25,8 +26,6 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.cache.MetaDataCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -40,8 +39,6 @@ import java.util.Optional;
  * The type Default Shenyu context builder.
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
-
-    private static final Logger LOG = LoggerFactory.getLogger(GlobalPlugin.class);
 
     private static final String RPC_TYPE = "rpc_type";
 
@@ -60,22 +57,28 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
 
     @Override
     public ShenyuContext build(final ServerWebExchange exchange) {
+        Pair<String, MetaData> buildData = buildData(exchange);
+        return decoratorMap.get(buildData.getLeft()).decorator(buildDefaultContext(exchange.getRequest()), buildData.getRight());
+    }
+    
+    private Pair<String, MetaData> buildData(final ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
-        String path = request.getURI().getPath();
-        MetaData metaData = MetaDataCache.getInstance().obtain(path);
         HttpHeaders headers = request.getHeaders();
+        String rpcType = headers.getFirst(RPC_TYPE);
+        if (StringUtils.isNotEmpty(rpcType)) {
+            return Pair.of(rpcType, new MetaData());
+        }
         String upgrade = headers.getFirst(UPGRADE);
-        String rpcType;
+        if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
+            return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
+        }
+        MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getPath());
         if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
-            rpcType = metaData.getRpcType();
-        } else if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
-            rpcType = RpcTypeEnum.WEB_SOCKET.getName();
+            return Pair.of(metaData.getRpcType(), metaData);
         } else {
-            String rpcTypeParam = request.getHeaders().getFirst(RPC_TYPE);
-            rpcType = StringUtils.isEmpty(rpcTypeParam) ? RpcTypeEnum.HTTP.getName() : rpcTypeParam;
+            return Pair.of(RpcTypeEnum.HTTP.getName(), new MetaData());
         }
-        return decoratorMap.get(rpcType).decorator(buildDefaultContext(request), metaData);
     }
 
     private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
