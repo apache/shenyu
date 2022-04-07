@@ -9,7 +9,12 @@
 </p>
 
 <p align="center">
-  English | <a href="https://github.com/apache/shenyu/blob/master/README_CN.md">简体中文</a>
+  <a href="https://shenyu.apache.org/docs/index" >
+    <img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN docs" />
+  </a>
+  <a href="https://shenyu.apache.org/zh/docs/index">
+    <img src="https://img.shields.io/badge/文档-简体中文-blue.svg" alt="简体中文文档" />
+  </a>
 </p>
 
 <p align="center">
@@ -40,13 +45,13 @@
 </p>
 <br/>
 
---------------------------------------------------------------------------------
+---
 
 # Architecture
  
  ![](https://shenyu.apache.org/img/architecture/shenyu-framework.png)  
  
--------------------------------------------------------------------------------- 
+---- 
 
 # Why named ShenYu
 
@@ -60,7 +65,7 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
    * Finally, the community will do things in a fair, just, open and meritocratic way, paying tribute to ShenYu while also conforming to the Apache Way.
 
--------------------------------------------------------------------------------- 
+--- 
 
 # Features
 
@@ -76,7 +81,7 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
    
    * Support A/B test and grayscale publishing.
    
---------------------------------------------------------------------------------  
+---  
 
 # Quick Start (docker)
 
@@ -142,7 +147,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
   "data" : "hello world"
 }
 ```
---------------------------------------------------------------------------------
+---
 
 # Plugin
 
@@ -156,7 +161,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
  
  If you want to customize, see [custom-plugin](https://shenyu.apache.org/docs/developer/custom-plugin/) .
  
---------------------------------------------------------------------------------  
+---  
  
 # Selector & Rule 
 
@@ -168,7 +173,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
   
   The selector and the rule match only once, and the match is returned. So the coarsest granularity should be sorted last.
  
---------------------------------------------------------------------------------  
+---  
    
 # Data Caching & Data Sync
  
@@ -180,26 +185,26 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
   
   ![](https://shenyu.apache.org/img/shenyu/dataSync/config-strategy-processor-en.png)
 
---------------------------------------------------------------------------------    
+---    
 
 # Prerequisite
  
    * JDK 1.8+
    
---------------------------------------------------------------------------------    
-    
-# Document & Website
-
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/docs/index)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/docs/index/)
-  
---------------------------------------------------------------------------------  
+--- 
         
 # Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/apache/incubator-shenyu.svg)](https://starchart.cc/apache/incubator-shenyu.svg)
 
---------------------------------------------------------------------------------  
+---  
+
+# Contributor and Support
+
+* [How to Contributor](https://shenyu.apache.org/community/contributor-guide)
+* [Mailing Lists](mailto:dev@shenyu.apache.org)
+
+---  
 
 # Known Users
 
