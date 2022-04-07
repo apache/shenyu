@@ -51,7 +51,7 @@ services:
       db:
         condition: service_healthy
   db:
-    image: docker.io/mysql:5.7
+    image: mariadb:10.2.41
     container_name: db
     environment:
       MYSQL_ROOT_PASSWORD: xyzj1a2y3
