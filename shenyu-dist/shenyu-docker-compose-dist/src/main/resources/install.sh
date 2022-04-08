@@ -32,7 +32,7 @@ function check_sed() {
     fi
 }
 
-version=v${1}
+version=${1}
 
 if [[ $version != v* && $version != 'latest' ]]; then
   echo "The version should start with 'v', such as 'v2.4.2' or 'latest'."
