@@ -48,7 +48,7 @@ cd shenyu-${version}
 mkdir -p {shenyu-bootstrap,shenyu-admin}/{conf,logs}
 
 echo "Downloading docker-compose configuration ..."
-#curl -sSl https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/docker-compose.yaml > docker-compose.yaml
+curl -sSl https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/docker-compose.yaml > docker-compose.yaml
 
 if [ "$version" != "latest" ];then
     check_sed
