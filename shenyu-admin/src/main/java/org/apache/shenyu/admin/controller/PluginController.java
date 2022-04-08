@@ -193,7 +193,6 @@ public class PluginController {
      * @return the mono
      */
     @PutMapping("/syncPluginData/{id}")
-    @RequiresPermissions("system:plugin:modify")
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
