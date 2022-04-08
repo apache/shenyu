@@ -76,7 +76,6 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
@@ -90,7 +89,6 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all")
-    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
