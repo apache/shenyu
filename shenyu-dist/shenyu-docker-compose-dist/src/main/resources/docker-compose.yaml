@@ -21,23 +21,27 @@ services:
     image: apache/shenyu-bootstrap:latest
     container_name: shenyu-bootstrap
     ports:
-    - "9195:9195"
+      - "9195:9195"
     volumes:
-    - ./shenyu-bootstrap/logs/:/opt/shenyu-bootstrap/logs
-    - ./shenyu-bootstrap/conf/:/opt/shenyu-bootstrap/conf
-    links:
-      - shenyu-admin:admin
+      - ./shenyu-bootstrap/logs/:/opt/shenyu-bootstrap/logs
+      - ./shenyu-bootstrap/conf/:/opt/shenyu-bootstrap/conf
     depends_on:
-      - shenyu-admin 
+      - shenyu-admin
     environment:
-      - shenyu.sync.websocket.urls=ws://admin:9095/websocket
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+    healthcheck:
+      test: [ "CMD", "wget", "http://shenyu-bootstrap:9195/actuator/health" ]
+      timeout: 2s
+      retries: 30
   shenyu-admin:
     image: apache/shenyu-admin:latest
     container_name: shenyu-admin
     volumes:
-    - ./shenyu-admin/logs/:/opt/shenyu-admin/logs
-    - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
-    environment:
-      - spring.profiles.active=h2
+      - ./shenyu-admin/logs/:/opt/shenyu-admin/logs
+      - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
     ports:
-    - "9095:9095"
+      - "9095:9095"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 30
