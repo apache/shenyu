@@ -21,19 +21,19 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
-import org.apache.shenyu.admin.utils.AesUtils;
+import org.apache.shenyu.common.utils.ShaUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * test case for DashboardUserMapper.
@@ -160,14 +160,12 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
     }
 
     private DashboardUserDO buildDashboardUserDO() {
-        String aseKey = "2095132720951327";
-        String iv = "6075877187097700";
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
         return DashboardUserDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .userName("adminTest")
-                .password(AesUtils.aesEncryption("123456", aseKey, iv))
+                .password(ShaUtils.shaEncryption("123456"))
                 .enabled(true)
                 .role(1)
                 .dateCreated(now)

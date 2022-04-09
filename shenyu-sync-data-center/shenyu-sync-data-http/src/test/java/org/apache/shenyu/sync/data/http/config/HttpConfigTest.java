@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.sync.data.http.config;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Objects;
 
@@ -40,7 +40,7 @@ public class HttpConfigTest {
 
     private HttpConfig that;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         httpConfig = new HttpConfig();
         httpConfig.setUrl(URL);
@@ -70,7 +70,7 @@ public class HttpConfigTest {
     @Test
     public void testHashCode() {
         assertEquals(Objects.hash(httpConfig.getUrl(), httpConfig.getDelayTime(),
-                        httpConfig.getConnectionTimeout()),
+                        httpConfig.getConnectionTimeout(), httpConfig.getReadTimeout(), httpConfig.getWriteTimeout()),
                 httpConfig.hashCode());
     }
 }

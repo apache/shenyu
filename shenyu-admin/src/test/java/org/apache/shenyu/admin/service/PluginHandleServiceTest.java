@@ -17,23 +17,25 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.mapper.PluginHandleMapper;
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
-import org.apache.shenyu.admin.mapper.PluginHandleMapper;
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
-import org.apache.shenyu.admin.service.impl.PluginHandleServiceImpl;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
+import org.apache.shenyu.admin.service.impl.PluginHandleServiceImpl;
 import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -42,14 +44,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class PluginHandleServiceTest {
 
     @InjectMocks
@@ -61,7 +64,7 @@ public final class PluginHandleServiceTest {
     @Mock
     private ShenyuDictMapper shenyuDictMapper;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         pluginHandleService = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictMapper);
     }

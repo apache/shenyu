@@ -20,18 +20,18 @@ package org.apache.shenyu.admin.listener.etcd;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link EtcdDataInit}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EtcdDataInitTest {
 
     @Mock
@@ -52,7 +52,7 @@ public class EtcdDataInitTest {
     @Test
     public void testRun() throws Exception {
         EtcdDataInit etcdDataInit = new EtcdDataInit(etcdClient, syncDataService);
-        Assert.assertNotNull(etcdDataInit);
+        assertNotNull(etcdDataInit);
 
         when(etcdClient.exists(Mockito.anyString())).thenReturn(false);
         etcdDataInit.run();

@@ -27,24 +27,24 @@ import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,9 +59,10 @@ import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
@@ -69,10 +70,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
- * Test cases for UpstreamCheckService.
+ * Test cases for {@link UpstreamCheckService}.
  */
-@RunWith(MockitoJUnitRunner.class)
-@PrepareForTest(UpstreamCheckService.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class UpstreamCheckServiceTest {
 
     private static final String MOCK_SELECTOR_NAME = "mockSelectorName";
@@ -100,16 +101,16 @@ public final class UpstreamCheckServiceTest {
 
     @Mock
     private SelectorConditionMapper selectorConditionMapper;
-    
+
     private SelectorHandleConverterFactor converterFactor;
 
-    private ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
+    private final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
 
     private Map<String, List<DivideUpstream>> upstreamMap;
 
     private Set<ZombieUpstream> zombieSet;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
@@ -117,12 +118,12 @@ public final class UpstreamCheckServiceTest {
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {
         loggerFactoryMockedStatic.close();
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         shenyuRegisterCenterConfig.setRegisterType("http");
 
@@ -136,7 +137,7 @@ public final class UpstreamCheckServiceTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testScheduled() {
         PluginDO pluginDO = PluginDO.builder()
                 .name(PluginEnum.DIVIDE.getName())
@@ -174,28 +175,41 @@ public final class UpstreamCheckServiceTest {
     public void testRemoveByKey() {
         upstreamMap.put(MOCK_SELECTOR_NAME, Collections.emptyList());
         UpstreamCheckService.removeByKey(MOCK_SELECTOR_NAME);
-        Assert.assertFalse(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
+        assertFalse(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
     }
 
     @Test
     public void testSubmit() {
-        // Test submit when selector name not exists
-        testSubmitOnce();
-        // Test submit when selector name exists
-        testSubmitOnce();
-    }
-
-    private void testSubmitOnce() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamUrl("divide-upstream-60")
                 .weight(60)
                 .build();
+        // Test submit when selector name not exists
+        testSubmitOnce(divideUpstream);
+        // Test submit when selector name exists
+        testSubmitOnce(divideUpstream);
+        // Test service deleted
+        divideUpstream.setStatus(false);
+        testSubmitDeleted(divideUpstream);
+        testSubmitDeleted(divideUpstream);
+    }
+
+    private void testSubmitOnce(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
     }
 
+    private void testSubmitDeleted(final DivideUpstream divideUpstream) {
+        upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
+        assertFalse(upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).contains(divideUpstream));
+    }
+
     @Test
     public void testReplace() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamHost("localhost")
                 .build();
@@ -203,9 +217,11 @@ public final class UpstreamCheckServiceTest {
                 .upstreamHost("localhost2")
                 .build();
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_2, divideUpstream);
+        assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
+        assertEquals("localhost", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());
         upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, Collections.singletonList(divideUpstream2));
-        Assert.assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
-        Assert.assertEquals("localhost2", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());
+        assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
+        assertEquals("localhost2", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());
     }
 
     @Test
@@ -239,11 +255,7 @@ public final class UpstreamCheckServiceTest {
         properties.setProperty(Constants.IS_CHECKED, "true");
         shenyuRegisterCenterConfig.setProps(properties);
         upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig, converterFactor);
-        ScheduledThreadPoolExecutor executor = Whitebox.getInternalState(upstreamCheckService, "executor");
-        assertNotNull(executor);
         upstreamCheckService.close();
-        executor = Whitebox.getInternalState(upstreamCheckService, "executor");
-        assertTrue(executor.isShutdown());
     }
 
     private void setupZombieSet() {

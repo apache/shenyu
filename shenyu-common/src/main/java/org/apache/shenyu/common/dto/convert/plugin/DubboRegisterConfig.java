@@ -33,6 +33,14 @@ public class DubboRegisterConfig implements Serializable {
 
     private String protocol;
 
+    private String threadpool;
+
+    private Integer corethreads;
+
+    private Integer threads;
+
+    private Integer queues;
+
     /**
      * get register.
      *
@@ -87,6 +95,78 @@ public class DubboRegisterConfig implements Serializable {
         this.protocol = protocol;
     }
 
+    /**
+     * get threadpool.
+     *
+     * @return threadpool
+     */
+    public String getThreadpool() {
+        return threadpool;
+    }
+
+    /**
+     * set threadpool.
+     *
+     * @param threadpool threadpool
+     */
+    public void setThreadpool(final String threadpool) {
+        this.threadpool = threadpool;
+    }
+
+    /**
+     * get corethreads.
+     *
+     * @return corethreads
+     */
+    public Integer getCorethreads() {
+        return corethreads;
+    }
+
+    /**
+     * set corethreads.
+     *
+     * @param corethreads corethreads
+     */
+    public void setCorethreads(final Integer corethreads) {
+        this.corethreads = corethreads;
+    }
+
+    /**
+     * get threads.
+     *
+     * @return threads
+     */
+    public Integer getThreads() {
+        return threads;
+    }
+
+    /**
+     * set threads.
+     *
+     * @param threads threads
+     */
+    public void setThreads(final Integer threads) {
+        this.threads = threads;
+    }
+
+    /**
+     * get queues.
+     *
+     * @return queues
+     */
+    public Integer getQueues() {
+        return queues;
+    }
+
+    /**
+     * set queues.
+     *
+     * @param queues queues
+     */
+    public void setQueues(final Integer queues) {
+        this.queues = queues;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -96,12 +176,14 @@ public class DubboRegisterConfig implements Serializable {
             return false;
         }
         DubboRegisterConfig that = (DubboRegisterConfig) o;
-        return Objects.equals(register, that.register) && Objects.equals(group, that.group) && Objects.equals(protocol, that.protocol);
+        return Objects.equals(register, that.register) && Objects.equals(group, that.group) && Objects.equals(protocol, that.protocol)
+                && Objects.equals(threadpool, that.threadpool) && Objects.equals(corethreads, that.corethreads) && Objects.equals(threads, that.threads)
+                && Objects.equals(queues, that.queues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(register, group, protocol);
+        return Objects.hash(register, group, protocol, threadpool, corethreads, threads, queues);
     }
 
     @Override
@@ -115,6 +197,18 @@ public class DubboRegisterConfig implements Serializable {
                 + '\''
                 + ", protocol='"
                 + protocol
+                + '\''
+                + ", threadpool='"
+                + threadpool
+                + '\''
+                + ", corethreads='"
+                + corethreads
+                + '\''
+                + ", threads='"
+                + threads
+                + '\''
+                + ", queues='"
+                + queues
                 + '\''
                 + '}';
     }

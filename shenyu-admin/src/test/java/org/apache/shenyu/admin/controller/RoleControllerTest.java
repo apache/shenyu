@@ -17,43 +17,50 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RoleQuery;
-import org.apache.shenyu.admin.service.RoleService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.apache.shenyu.admin.service.RoleService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test cases for RoleController.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RoleControllerTest {
 
     private static final String SUPER = "super";
@@ -65,8 +72,11 @@ public class RoleControllerTest {
 
     @Mock
     private RoleService roleService;
+    
+    @Mock
+    private RoleMapper roleMapper;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(roleController).build();
     }
@@ -115,6 +125,9 @@ public class RoleControllerTest {
     public void testCreateRole() throws Exception {
         RoleDTO roleDTO = buildRoleDTO();
         given(roleService.createOrUpdate(roleDTO)).willReturn(1);
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(RoleMapper.class)).thenReturn(roleMapper);
+        when(roleMapper.existed(roleDTO.getId())).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/role")
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(roleDTO)))
@@ -135,6 +148,9 @@ public class RoleControllerTest {
     public void testUpdateRole() throws Exception {
         RoleDTO roleDTO = buildRoleDTO();
         given(roleService.createOrUpdate(roleDTO)).willReturn(1);
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(RoleMapper.class)).thenReturn(roleMapper);
+        when(roleMapper.existed(roleDTO.getId())).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/role/{id}", roleDTO.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(roleDTO)))
@@ -165,7 +181,7 @@ public class RoleControllerTest {
     }
 
     private RoleEditVO buildRoleEditVO() {
-        return new RoleEditVO(Arrays.asList(""), buildRoleVO(), null);
+        return new RoleEditVO(Collections.singletonList(""), buildRoleVO(), null);
     }
 
     private RoleDTO buildRoleDTO() {

@@ -27,7 +27,7 @@ import org.springframework.beans.factory.ObjectProvider;
  */
 public class TestObjectProvider<R> implements ObjectProvider<R> {
     
-    private R r;
+    private final R r;
     
     /**
      * Instantiates a new Test object provider.

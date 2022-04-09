@@ -18,17 +18,18 @@
 package org.apache.shenyu.plugin.tars.util;
 
 import org.apache.shenyu.common.dto.MetaData;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test case for {@link PrxInfoUtil}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PrxInfoUtilTest {
 
     @Test
@@ -43,9 +44,11 @@ public class PrxInfoUtilTest {
         assertEquals(Integer.class, PrxInfoUtil.getParamClass("java.lang.Integer"));
     }
 
-    @Test(expected = ClassNotFoundException.class)
+    @Test
     public void testGetParamClassThrowsClassNotFoundException() throws Exception {
-        PrxInfoUtil.getParamClass("className");
+        assertThrows(ClassNotFoundException.class, () -> {
+            PrxInfoUtil.getParamClass("className");
+        });
     }
 
     @Test

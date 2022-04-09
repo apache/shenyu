@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
@@ -58,32 +57,20 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
 
     @Override
     public Integer createOrUpdate(final ShenyuDictDTO shenyuDictDTO) {
-        int count;
-        ShenyuDictDO shenyuDictDO = ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO);
-        if (StringUtils.isEmpty(shenyuDictDTO.getId())) {
-            count = shenyuDictMapper.insertSelective(shenyuDictDO);
-        } else {
-            count = shenyuDictMapper.updateByPrimaryKeySelective(shenyuDictDO);
-        }
-        return count;
+        return StringUtils.isBlank(shenyuDictDTO.getId())
+                ? shenyuDictMapper.insertSelective(ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO))
+                : shenyuDictMapper.updateByPrimaryKeySelective(ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer deleteShenyuDicts(final List<String> ids) {
-
-        int affectedRows = 0;
-        if (CollectionUtils.isNotEmpty(ids)) {
-            affectedRows = shenyuDictMapper.deleteByIdList(ids);
-        }
-        return affectedRows;
+        return shenyuDictMapper.deleteByIdList(ids);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer enabled(final List<String> ids, final Boolean enabled) {
-        if (CollectionUtils.isEmpty(ids)) {
-            return 0;
-        }
         return shenyuDictMapper.enabled(ids, enabled);
     }
 
@@ -102,7 +89,8 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
         ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
         shenyuDictQuery.setType(type);
         return shenyuDictMapper.selectByQuery(shenyuDictQuery).stream()
-                .map(ShenyuDictVO::buildShenyuDictVO).collect(Collectors.toList());
+                .map(ShenyuDictVO::buildShenyuDictVO)
+                .collect(Collectors.toList());
     }
 
 }

@@ -30,38 +30,45 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, name,config,role, sort, enabled
+        id,
+        date_created,
+        date_updated,
+        name,
+        config,
+        role,
+        sort,
+        enabled
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE id = #{id,jdbcType=VARCHAR}
     </select>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin
-        where id in
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
     </select>
 
     <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin
-        where name = #{name,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE name = #{name,jdbcType=VARCHAR}
     </select>
 
     <select id="selectByNames" parameterType="java.util.List" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin
-        where name in
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE name IN
         <foreach item="name" collection="list" open="(" separator="," close=")">
             #{name,jdbcType=VARCHAR}
         </foreach>
@@ -69,60 +76,95 @@
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
             resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
         <where>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
-                and name like #{nameLike,jdbcType=VARCHAR}
+                AND name LIKE #{nameLike,jdbcType=VARCHAR}
             </if>
             <if test="enabled != null">
-                and enabled = #{enabled,jdbcType=TINYINT}
+                AND enabled = #{enabled,jdbcType=TINYINT}
             </if>
         </where>
-
-        order by sort asc
+        ORDER BY sort ASC
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
             resultType="java.lang.Integer">
-        select count(1)
-        from plugin
+        SELECT count(1)
+          FROM plugin
         <where>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                AND name = #{name,jdbcType=VARCHAR}
             </if>
             <if test="enabled != null">
-                and enabled = #{enabled,jdbcType=TINYINT}
+                AND enabled = #{enabled,jdbcType=TINYINT}
             </if>
         </where>
     </select>
 
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
     </select>
 
     <select id="listAllNotInResource" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin
-        where name not in
-        (select title from resource)
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE name NOT IN
+            (SELECT title FROM resource)
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+          FROM plugin
+         WHERE id = #{id} LIMIT 1
+    </select>
+
+    <select id="nameExisted" resultType="java.lang.Boolean">
+        SELECT true
+          FROM plugin
+         WHERE name = #{name} LIMIT 1
+    </select>
+
+    <select id="nameExistedExclude" resultType="java.lang.Boolean">
+        SELECT true
+          FROM plugin
+         WHERE name = #{name}
+           AND id NOT IN
+        <foreach collection="exclude" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        LIMIT 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
-        insert into plugin (id, date_created, date_updated,
-        name,config,role, sort, enabled)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{name,jdbcType=VARCHAR},#{config,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER},
-        #{enabled,jdbcType=TINYINT})
+        INSERT INTO plugin
+                    (id,
+                    date_created,
+                    date_updated,
+                    name,
+                    config,
+                    role,
+                    sort,
+                    enabled)
+             VALUES (#{id,jdbcType=VARCHAR},
+                    #{dateCreated,jdbcType=TIMESTAMP},
+                    #{dateUpdated,jdbcType=TIMESTAMP},
+                    #{name,jdbcType=VARCHAR},
+                    #{config,jdbcType=VARCHAR},
+                    #{role,jdbcType=VARCHAR},
+                    #{sort,jdbcType=INTEGER},
+                    #{enabled,jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
-        insert into plugin
+        INSERT INTO plugin
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
             <if test="dateCreated != null">
@@ -174,27 +216,27 @@
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
-        update plugin
-        set date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        name = #{name,jdbcType=VARCHAR},
-        config = #{config,jdbcType=VARCHAR},
-        role = #{role,jdbcType=VARCHAR},
-        sort = #{sort,jdbcType=INTEGER},
-        enabled = #{enabled,jdbcType=TINYINT}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE plugin
+           SET date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+               name = #{name,jdbcType=VARCHAR},
+               config = #{config,jdbcType=VARCHAR},
+               role = #{role,jdbcType=VARCHAR},
+               sort = #{sort,jdbcType=INTEGER},
+               enabled = #{enabled,jdbcType=TINYINT}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
-        update plugin
-        SET date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        enabled = #{enabled,jdbcType=TINYINT}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE plugin
+           SET date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+               enabled = #{enabled,jdbcType=TINYINT}
+         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnableByIdSet">
-        update plugin
-        SET enabled = #{enabled,jdbcType=TINYINT}
-        where id in
+        UPDATE plugin
+           SET enabled = #{enabled,jdbcType=TINYINT}
+         WHERE id IN
         <foreach collection="idSet" item="id" index="index"
                  open="(" separator="," close=")">
             #{id,jdbcType=VARCHAR}
@@ -202,7 +244,7 @@
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
-        update plugin
+        UPDATE plugin
         <set>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
@@ -226,17 +268,17 @@
                 enabled = #{enabled,jdbcType=TINYINT},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from plugin
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM plugin
+              WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIds" parameterType="java.util.List">
-        delete from plugin
-        where id in
+        DELETE FROM plugin
+              WHERE id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>

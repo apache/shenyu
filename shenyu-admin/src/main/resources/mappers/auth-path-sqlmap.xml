@@ -29,102 +29,126 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, auth_id, app_name, path, enabled, date_created, date_updated
+        id,
+        auth_id,
+        app_name,
+        path,
+        enabled,
+        date_created,
+        date_updated
     </sql>
 
     <select id="findByAuthId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from auth_path
-        where auth_id = #{authId,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM auth_path
+         WHERE auth_id = #{authId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByAuthIdList" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from auth_path
-        where auth_id in
-        <foreach collection="authIdSet" index="index" item="authId"
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM auth_path
+         WHERE auth_id in
+       <foreach collection="authIdSet" index="index" item="authId"
                  open="(" separator="," close=")" >
-            #{authId,jdbcType=VARCHAR}
-        </foreach>
+            #{authId, jdbcType=VARCHAR}
+       </foreach>
     </select>
 
     <select id="findByAuthIdAndAppName" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from auth_path
-        where auth_id = #{authId,jdbcType=VARCHAR}
-        and app_name = #{appName,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM auth_path
+         WHERE auth_id = #{authId, jdbcType=VARCHAR}
+           AND app_name = #{appName, jdbcType=VARCHAR}
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+          FROM auth_path
+         WHERE id = #{id}
+         LIMIT 1
+    </select>
+
+    <select id="existedByAuthId" resultType="java.lang.Boolean">
+        SELECT
+            true
+        FROM
+            auth_path
+        WHERE
+            auth_id = #{authId}
+        LIMIT 1
     </select>
 
 
     <insert id="save" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
-        insert into auth_path
-        (id,
-        auth_id,
-        app_name,
-        path,
-        enabled,
-        date_created,
-        date_updated)
-        values
-        (
-        #{id,jdbcType=VARCHAR},
-        #{authId,jdbcType=VARCHAR},
-        #{appName,jdbcType=VARCHAR},
-        #{path,jdbcType=VARCHAR},
-        #{enabled,jdbcType=TINYINT},
-        #{dateCreated,jdbcType=TIMESTAMP},
-        #{dateUpdated,jdbcType=TIMESTAMP})
+        INSERT INTO auth_path
+                    (id,
+                    auth_id,
+                    app_name,
+                    path,
+                    enabled,
+                    date_created,
+                    date_updated)
+             VALUES
+                    (#{id, jdbcType=VARCHAR},
+                    #{authId, jdbcType=VARCHAR},
+                    #{appName, jdbcType=VARCHAR},
+                    #{path, jdbcType=VARCHAR},
+                    #{enabled, jdbcType=TINYINT},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
-
 
     <insert id="batchSave">
         INSERT INTO auth_path
-        (id,
-        auth_id,
-        app_name,
-        path,
-        enabled,
-        date_created,
-        date_updated)
-        VALUES
-        <foreach collection="authPathDOList" item="authPathDO" separator=",">
-            (
-            #{authPathDO.id,jdbcType=VARCHAR},
-            #{authPathDO.authId,jdbcType=VARCHAR},
-            #{authPathDO.appName,jdbcType=VARCHAR},
-            #{authPathDO.path,jdbcType=VARCHAR},
-            #{authPathDO.enabled,jdbcType=TINYINT},
-            #{authPathDO.dateCreated,jdbcType=TIMESTAMP},
-            #{authPathDO.dateUpdated,jdbcType=TIMESTAMP})
-        </foreach>
+                    (id,
+                    auth_id,
+                    app_name,
+                    path,
+                    enabled,
+                    date_created,
+                    date_updated)
+             VALUES
+                    <foreach collection="authPathDOList" item="authPathDO" separator=",">
+                        (#{authPathDO.id, jdbcType=VARCHAR},
+                        #{authPathDO.authId, jdbcType=VARCHAR},
+                        #{authPathDO.appName, jdbcType=VARCHAR},
+                        #{authPathDO.path, jdbcType=VARCHAR},
+                        #{authPathDO.enabled, jdbcType=TINYINT},
+                        #{authPathDO.dateCreated, jdbcType=TIMESTAMP},
+                        #{authPathDO.dateUpdated, jdbcType=TIMESTAMP})
+                    </foreach>
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">
-        update auth_path
-        set
-        path = #{path,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE auth_path
+           SET
+               path = #{path, jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <delete id="deleteByAuthIdAndAppName">
-        delete from auth_path
-        where auth_id = #{authId,jdbcType=VARCHAR}
-        and app_name = #{appName,jdbcType=VARCHAR}
+        DELETE
+          FROM auth_path
+         WHERE auth_id = #{authId, jdbcType=VARCHAR}
+           AND app_name = #{appName, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByAuthId" parameterType="java.lang.String">
-        delete from auth_path
-        where auth_id = #{authId,jdbcType=VARCHAR}
+        DELETE
+          FROM auth_path
+         WHERE auth_id = #{authId, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByAuthIds" parameterType="java.lang.String">
-        delete from auth_path
-        where auth_id in
-        <foreach item="authId" collection="list" open="(" separator="," close=")">
-            #{authId,jdbcType=VARCHAR}
-        </foreach>
+        DELETE
+          FROM auth_path
+         WHERE auth_id IN
+               <foreach item="authId" collection="list" open="(" separator="," close=")">
+                    #{authId, jdbcType=VARCHAR}
+               </foreach>
     </delete>
+
 </mapper>

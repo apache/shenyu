@@ -21,14 +21,15 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.HttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test cases for {@link PostParameterData}.
@@ -39,7 +40,7 @@ public final class PostParameterDataTest {
 
     private PostParameterData postParameterData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/uri/path")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
@@ -53,7 +54,7 @@ public final class PostParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals("post", this.postParameterData.builder("httpMethod", this.exchange));
-        Assert.assertEquals("http", this.postParameterData.builder("rpcType", this.exchange));
+        assertEquals("post", this.postParameterData.builder("httpMethod", this.exchange));
+        assertEquals("http", this.postParameterData.builder("rpcType", this.exchange));
     }
 }

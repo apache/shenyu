@@ -35,6 +35,8 @@ public class PluginData {
     private String role;
 
     private Boolean enabled;
+    
+    private Integer sort;
 
     /**
      * no args constructor.
@@ -43,7 +45,7 @@ public class PluginData {
     }
 
     /**
-     * all args constructor.
+     * all args constructor without sort.
      *
      * @param id      id
      * @param name    name
@@ -58,6 +60,26 @@ public class PluginData {
         this.role = role;
         this.enabled = enabled;
     }
+    
+    /**
+     * all args constructor.
+     * 
+     * @param id id
+     * @param name name
+     * @param config config
+     * @param role role
+     * @param enabled enabled
+     * @param sort sort
+     */
+    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
+                      final Integer sort) {
+        this.id = id;
+        this.name = name;
+        this.config = config;
+        this.role = role;
+        this.enabled = enabled;
+        this.sort = sort;
+    }
 
     /**
      * builder constructor.
@@ -70,6 +92,7 @@ public class PluginData {
         this.config = builder.config;
         this.role = builder.role;
         this.enabled = builder.enabled;
+        this.sort = builder.sort;
     }
 
     /**
@@ -163,6 +186,25 @@ public class PluginData {
     }
 
     /**
+     * get sort.
+     *
+     * @return enabled
+     */
+    public Integer getSort() {
+        return sort;
+    }
+
+
+    /**
+     * set sort.
+     * 
+     * @param sort sort value
+     */
+    public void setSort(final Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
      * set enabled.
      *
      * @param enabled enabled
@@ -240,6 +282,11 @@ public class PluginData {
         private Boolean enabled;
 
         /**
+         * sort.
+         */
+        private Integer sort;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -306,6 +353,17 @@ public class PluginData {
          */
         public Builder enabled(final Boolean enabled) {
             this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * build sort.
+         *
+         * @param sort sort
+         * @return this
+         */
+        public Builder sort(final Integer sort) {
+            this.sort = sort;
             return this;
         }
     }

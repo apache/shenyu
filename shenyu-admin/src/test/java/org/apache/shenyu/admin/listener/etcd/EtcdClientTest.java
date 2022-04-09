@@ -23,26 +23,27 @@ import io.etcd.jetcd.KV;
 import io.etcd.jetcd.kv.DeleteResponse;
 import io.etcd.jetcd.kv.PutResponse;
 import io.etcd.jetcd.options.DeleteOption;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * The testCase for {@link EtcdClient}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EtcdClientTest {
 
     private static final String TEST_KEY = "KEY";
@@ -54,15 +55,15 @@ public class EtcdClientTest {
 
     private EtcdClient etcdClient;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         KV kvClient = mock(KV.class);
         when(client.getKVClient()).thenReturn(kvClient);
         etcdClient = new EtcdClient(client);
-        Assert.assertNotNull(etcdClient);
+        assertNotNull(etcdClient);
     }
 
-    @Test
+    @AfterEach
     public void close() {
         etcdClient.close();
     }

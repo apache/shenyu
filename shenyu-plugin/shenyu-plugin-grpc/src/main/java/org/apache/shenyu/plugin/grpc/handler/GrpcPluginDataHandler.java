@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.plugin.grpc.handler;
 
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
@@ -29,6 +33,21 @@ import java.util.Objects;
  * The type Grpc plugin data handler.
  */
 public class GrpcPluginDataHandler implements PluginDataHandler {
+
+    @Override
+    public void handlerPlugin(final PluginData pluginData) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
+            GrpcRegisterConfig grpcRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), GrpcRegisterConfig.class);
+            GrpcRegisterConfig exist = Singleton.INST.get(GrpcRegisterConfig.class);
+            if (Objects.isNull(grpcRegisterConfig)) {
+                return;
+            }
+            if (Objects.isNull(exist) || !grpcRegisterConfig.equals(exist)) {
+                // If it is null, cache it
+                Singleton.INST.single(GrpcRegisterConfig.class, grpcRegisterConfig);
+            }
+        }
+    }
 
     @Override
     public void handlerSelector(final SelectorData selectorData) {

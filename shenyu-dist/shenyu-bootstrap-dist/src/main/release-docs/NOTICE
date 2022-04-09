@@ -1,5 +1,5 @@
 Apache ShenYu (incubating)
-Copyright 2021 The Apache Software Foundation
+Copyright 2021-2022 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
@@ -305,6 +305,57 @@ This product includes software developed at CoreOS, Inc.
 
 ========================================================================
 
+byte-buddy NOTICE
+
+========================================================================
+
+Copyright 2014 - 2019 Rafael Winterhalter
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+========================================================================
+
+zipkin NOTICE
+
+========================================================================
+Brave
+
+Copyright 2013-2020 The OpenZipkin Authors
+
+-------------------------------------------------------------------------------
+
+This product contains a modified portion of 'InetAddresses', distributed
+by Google in the Guava Library:
+
+  * Copyright (C) 2008 The Guava Authors
+  * License: Apache License v2.0
+  * Homepage: https://github.com/google/guava
+
+This product contains a modified portion of 'JsonUtf8Writer', distributed
+by Square, Inc in the Moshi Library:
+
+  * Copyright (C) 2010 Google Inc.
+  * License: Apache License v2.0
+  * Homepage: https://github.com/square/moshi
+
+This product contains a modified portion of 'WeakConcurrentMap', distributed
+by Rafael Winterhalter in the weak-lock-free Library:
+
+  * License: Apache License v2.0
+  * Homepage: https://github.com/raphw/weak-lock-free
+
+========================================================================
+
 Netty NOTICE
 
 ========================================================================
@@ -531,3 +582,211 @@ This product contains the Maven wrapper scripts from 'Maven Wrapper', that provi
     * license/LICENSE.mvn-wrapper.txt (Apache License 2.0)
   * HOMEPAGE:
     * https://github.com/takari/maven-wrapper
+
+========================================================================
+
+Apache Commons JXPath NOTICE
+
+========================================================================
+
+Apache Commons JXPath
+Copyright 2001-2016 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+========================================================================
+
+Apache Commons Math NOTICE
+
+========================================================================
+
+Apache Commons Math
+Copyright 2001-2022 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This product includes software developed for Orekit by
+CS Systèmes d'Information (http://www.c-s.fr/)
+Copyright 2010-2012 CS Systèmes d'Information
+
+========================================================================
+
+Nacos NOTICE
+
+========================================================================
+
+Nacos
+Copyright 2018-2020
+
+This product includes software developed at
+The Alibaba MiddleWare Group.
+
+------
+This product has a bundle Spring Boot:
+                            The Spring Boot Project
+                            =================
+
+Please visit the Spring Boot web site for more information:
+
+  * https://spring.io/projects/spring-boot
+
+Copyright 2014 The Spring Boot Project
+
+The Spring Boot Project licenses this file to you under the Apache License,
+version 2.0 (the "License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at:
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+
+Also, please refer to each LICENSE.<component>.txt file, which is located in
+the 'license' directory of the distribution file, for the license terms of the
+components that this product depends on.
+
+
+------
+com.alibaba.nacos.common.utils.InetAddressValidator.java in this product is
+copied from com.dynatrace.openkit.core.util.InetAddressValidator.java  of openkit-java project.
+https://github.com/Dynatrace/openkit-java
+                          openkit-java
+                    ======================
+
+     Copyright 2018-2021 Dynatrace LLC
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+
+------
+This product has a bundle Protocol Buffers��
+                      Protocol Buffers
+                   =======================
+Protocol Buffers for Go with Gadgets
+
+Copyright (c) 2013, The GoGo Authors. All rights reserved.
+http://github.com/gogo/protobuf
+
+------
+This product has a bundle Istio��
+                          Istio
+                   =======================
+
+   Copyright 2018 Istio Authors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+========================================================================
+
+Servo NOTICE
+
+========================================================================
+
+Servo
+Copyright 2011 Netflix, Inc.
+
+This product includes software developed by The Apache Software
+Foundation (http://www.apache.org/).
+
+Alternative collection types provided by Google Guava from
+http://code.google.com/p/guava-libraries/
+Copyright (C) 2007 Google Inc.
+
+========================================================================
+
+Apache Tomcat NOTICE
+
+========================================================================
+
+Apache Tomcat
+Copyright 1999-2022 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (https://www.apache.org/).
+
+This software contains code derived from netty-native
+developed by the Netty project
+(https://netty.io, https://github.com/netty/netty-tcnative/)
+and from finagle-native developed at Twitter
+(https://github.com/twitter/finagle).
+
+This software contains code derived from jgroups-kubernetes
+developed by the JGroups project (http://www.jgroups.org/).
+
+The Windows Installer is built with the Nullsoft
+Scriptable Install System (NSIS), which is
+open source software.  The original software and
+related information is available at
+http://nsis.sourceforge.net.
+
+Java compilation software for JSP pages is provided by the Eclipse
+JDT Core Batch Compiler component, which is open source software.
+The original software and related information is available at
+https://www.eclipse.org/jdt/core/.
+
+org.apache.tomcat.util.json.JSONParser.jj is a public domain javacc grammar
+for JSON written by Robert Fischer.
+https://github.com/RobertFischer/json-parser
+
+For portions of the Tomcat JNI OpenSSL API and the OpenSSL JSSE integration
+The org.apache.tomcat.jni and the org.apache.tomcat.net.openssl packages
+are derivative work originating from the Netty project and the finagle-native
+project developed at Twitter
+* Copyright 2014 The Netty Project
+* Copyright 2014 Twitter
+
+For portions of the Tomcat cloud support
+The org.apache.catalina.tribes.membership.cloud package contains derivative
+work originating from the jgroups project.
+https://github.com/jgroups-extras/jgroups-kubernetes
+Copyright 2002-2018 Red Hat Inc.
+
+The original XML Schemas for Java EE Deployment Descriptors:
+ - javaee_5.xsd
+ - javaee_web_services_1_2.xsd
+ - javaee_web_services_client_1_2.xsd
+ - javaee_6.xsd
+ - javaee_web_services_1_3.xsd
+ - javaee_web_services_client_1_3.xsd
+ - jsp_2_2.xsd
+ - web-app_3_0.xsd
+ - web-common_3_0.xsd
+ - web-fragment_3_0.xsd
+ - javaee_7.xsd
+ - javaee_web_services_1_4.xsd
+ - javaee_web_services_client_1_4.xsd
+ - jsp_2_3.xsd
+ - web-app_3_1.xsd
+ - web-common_3_1.xsd
+ - web-fragment_3_1.xsd
+ - javaee_8.xsd
+ - web-app_4_0.xsd
+ - web-common_4_0.xsd
+ - web-fragment_4_0.xsd
+
+may be obtained from:
+http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/index.html

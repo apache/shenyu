@@ -33,14 +33,14 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 /**
  * The TestCase for {@link DataSyncConfiguration}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @EnableConfigurationProperties(HttpSyncProperties.class)
 public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
@@ -77,12 +77,12 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Mock
     private MetaDataService metaDataService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws Exception {
         zkServer = new TestingServer(21810, true);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() throws Exception {
         zkServer.stop();
     }
@@ -105,7 +105,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         final SyncDataService syncDataService = new SyncDataServiceImpl(appAuthService, pluginService, selectorService,
                 ruleService, eventPublisher, metaDataService);
         DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
-        assertNotNull(zookeeperListener.zookeeperDataInit(zkClient, syncDataService));
+        assertNotNull(zookeeperListener.zookeeperDataChangedInit(zkClient));
     }
 
     @Test
@@ -138,9 +138,9 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
         NacosConfigService configService = mock(NacosConfigService.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(nacosListener.nacosDataInit(configService, syncDataService));
+        assertNotNull(nacosListener.nacosDataChangedInit(configService));
     }
-    
+
     @Test
     public void testEtcdDataChangedListener() {
         DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
@@ -153,7 +153,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         DataSyncConfiguration.EtcdListener etcdListener = new DataSyncConfiguration.EtcdListener();
         EtcdClient client = mock(EtcdClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(etcdListener.etcdDataInit(client, syncDataService));
+        assertNotNull(etcdListener.etcdDataChangedInit(client));
     }
 
     @Test
@@ -170,16 +170,16 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         ConsulClient consulClient = mock(ConsulClient.class);
         assertNotNull(consulListener.consulDataChangedListener(consulClient));
     }
-    
+
     @Test
     public void testConsulDataInit() {
         DataSyncConfiguration.ConsulListener consulListener = new DataSyncConfiguration.ConsulListener();
         ConsulClient consulClient = mock(ConsulClient.class);
         SyncDataService syncDataService = mock(SyncDataService.class);
-        assertNotNull(consulListener.consulDataInit(consulClient, syncDataService));
+        assertNotNull(consulListener.consulDataChangedInit(consulClient));
     }
-    
-    @After
+
+    @AfterEach
     public void after() {
         zkClient.close();
     }

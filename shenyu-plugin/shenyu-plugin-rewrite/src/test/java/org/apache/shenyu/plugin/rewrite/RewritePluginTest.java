@@ -27,26 +27,26 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * RewritePluginTest.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class RewritePluginTest {
 
     private RewritePlugin rewritePlugin;
@@ -56,7 +56,7 @@ public final class RewritePluginTest {
     @Mock
     private ShenyuPluginChain chain;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/shenyu/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
@@ -72,7 +72,7 @@ public final class RewritePluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
-        Assert.assertTrue(StringUtils.isBlank((String) exchange.getAttributes().get(Constants.REWRITE_URI)));
+        assertTrue(StringUtils.isBlank((String) exchange.getAttributes().get(Constants.REWRITE_URI)));
     }
 
     @Test

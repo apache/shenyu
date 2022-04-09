@@ -18,11 +18,11 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.utils.ShenyuDomain;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test case for IndexController.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public final class IndexControllerTest {
 
     private MockMvc mockMvc;
@@ -42,7 +42,7 @@ public final class IndexControllerTest {
     @InjectMocks
     private IndexController indexController;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
         viewResolver.setPrefix("/WEB-INF/jsp/view/");

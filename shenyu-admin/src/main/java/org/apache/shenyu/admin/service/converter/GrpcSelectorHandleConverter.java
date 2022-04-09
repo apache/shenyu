@@ -44,7 +44,9 @@ public class GrpcSelectorHandleConverter extends AbstractSelectorHandleConverter
     
     @Override
     protected Object doHandle(final String handle, final List<CommonUpstream> aliveList) {
-        List<GrpcUpstream> existList = convert(handle);
+        List<GrpcUpstream> existList = updateStatusAndFilter(convert(handle), aliveList);
+        aliveList.stream().filter(alive -> !existList.stream().anyMatch(valid -> valid.getUpstreamUrl().equals(alive.getUpstreamUrl())))
+                .forEach(alive -> existList.add(CommonUpstreamUtils.buildAliveGrpcUpstream(alive.getUpstreamUrl())));
         existList.removeIf(e -> aliveList.stream().noneMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())));
         return existList;
     }

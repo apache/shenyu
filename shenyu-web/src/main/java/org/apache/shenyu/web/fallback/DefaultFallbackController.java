@@ -19,9 +19,6 @@ package org.apache.shenyu.web.fallback;
 
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,13 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
  * The default fallback for hystrix plugin and resilience4j plugin.
  */
 @RestController
-@RequestMapping(value = "/fallback", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+@RequestMapping("/fallback")
 public class DefaultFallbackController {
-    /**
-     * logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultFallbackController.class);
-
     /**
      * default fallback for hystrix.
      *
@@ -44,8 +36,7 @@ public class DefaultFallbackController {
      */
     @GetMapping("/hystrix")
     public Object hystrixPluginFallback() {
-        LOG.error("the default fallback for hystrix");
-        return ShenyuResultWrap.error(null, ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg(), null);
+        return ShenyuResultWrap.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
     }
 
     /**
@@ -55,7 +46,6 @@ public class DefaultFallbackController {
      */
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {
-        LOG.error("the default fallback for resilience4j");
-        return ShenyuResultWrap.error(null, ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
+        return ShenyuResultWrap.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
     }
 }

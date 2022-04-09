@@ -63,6 +63,11 @@ public enum ShenyuResultEnum {
     RESILIENCE4J_PLUGIN_FALLBACK(429, "Resilience4JPlugin fallback success, please check your service status!"),
 
     /**
+     * the default fallback, due to a circuit break.
+     */
+    DEFAULT_FALLBACK(429, "the fallback success, please check your service status!"),
+
+    /**
      * Meta data error shenyu result enum.
      */
     META_DATA_ERROR(430, "Meta data error!"),
@@ -202,6 +207,11 @@ public enum ShenyuResultEnum {
      * the xml data is invalid.
      */
     INVALID_XML_DATA(-120, "the xml data is invalid."),
+
+    /**
+     * cannot find healthy upstream url after failover.
+     */
+    CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER(-121, "Can not find healthy upstream url after failover!"),
 
     /**
      * Request Header Fields Too Large.

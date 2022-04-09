@@ -136,9 +136,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     }
     
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
-        ShenyuSpringCloudClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
-        if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
-            return pathJoin(contextPath, superPath, shenyuSpringMvcClient.path());
+        ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+        if (Objects.nonNull(shenyuSpringCloudClient) && StringUtils.isNotBlank(shenyuSpringCloudClient.path())) {
+            return pathJoin(contextPath, superPath, shenyuSpringCloudClient.path());
         }
         final String path = getPathByMethod(method);
         if (StringUtils.isNotBlank(path)) {
@@ -175,9 +175,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     }
     
     private String buildApiSuperPath(@NonNull final Class<?> method) {
-        ShenyuSpringCloudClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
-        if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
-            return shenyuSpringMvcClient.path();
+        ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+        if (Objects.nonNull(shenyuSpringCloudClient) && StringUtils.isNotBlank(shenyuSpringCloudClient.path())) {
+            return shenyuSpringCloudClient.path();
         }
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
         // Only the first path is supported temporarily

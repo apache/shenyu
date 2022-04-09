@@ -39,7 +39,9 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.tcp.TcpResources;
 
 import java.security.cert.X509Certificate;
 import java.util.Objects;
@@ -108,10 +110,16 @@ public class HttpClientPluginConfiguration {
                         connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
                     });
+                    HttpClientProperties.ThreadPool threadPool = properties.getThreadPool();
+                    if (StringUtils.isNotEmpty(threadPool.getPrefix())) {
+                        LoopResources resources = LoopResources.create(threadPool.getPrefix(),
+                                threadPool.getSelectCount(), threadPool.getWorkerCount(), threadPool.getDaemon());
+                        TcpResources.set(resources);
+                    }
                     return tcpClient;
                 });
         HttpClientProperties.Ssl ssl = properties.getSsl();
-        if (StringUtils.isNotEmpty(ssl.getKeyStorePath()) 
+        if (StringUtils.isNotEmpty(ssl.getKeyStorePath())
                 || ArrayUtils.isNotEmpty(ssl.getTrustedX509CertificatesForTrustManager())
                 || ssl.isUseInsecureTrustManager()) {
             httpClient = httpClient.secure(sslContextSpec -> {

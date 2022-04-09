@@ -37,7 +37,8 @@ fi
 
 if [ "$version" != "master" ];then
     # shellcheck disable=SC2016
-    sed -ir 's/latest/'"${version}"'/g' docker-compose.yaml
+    newVersion=${version#"v"}
+    sed -i 's/latest/'"${newVersion}"'/g' docker-compose.yaml
 fi
 
 if [ "$storage" = "mysql" ];then
@@ -47,8 +48,10 @@ if [ "$storage" = "mysql" ];then
 fi
 
 echo "download shenyu-admin of configuration"
-(cd shenyu-admin/conf/ && curl -OOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-admin/src/main/resources/{application-mysql.yml,logback.xml,application.yml})
+(cd shenyu-admin/conf/ && curl -OOOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-admin/src/main/resources/{application-mysql.yml,application.yml,application-h2.yml,application-pg.yml})
+(cd shenyu-admin/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-admin-dist/src/main/resources/logback.xml)
 echo "download shenyu-bootstrap of configuration"
-(cd shenyu-bootstrap/conf/ && curl -OOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-bootstrap/src/main/resources/{application-local.yml,logback.xml,application.yml})
+(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-bootstrap/src/main/resources/application.yml)
+(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-bootstrap-dist/src/main/resources/logback.xml)
 
 docker-compose up -d

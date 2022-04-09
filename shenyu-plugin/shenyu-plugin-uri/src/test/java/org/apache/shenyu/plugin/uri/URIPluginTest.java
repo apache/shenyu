@@ -22,20 +22,27 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -43,7 +50,8 @@ import static org.mockito.Mockito.when;
 /**
  * The Test Case For {@link URIPlugin}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class URIPluginTest {
 
     private MockServerHttpRequest request;
@@ -56,7 +64,7 @@ public class URIPluginTest {
     
     private ShenyuContext shenyuContext;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.uriPlugin = new URIPlugin();
         this.chain = mock(ShenyuPluginChain.class);
@@ -107,7 +115,7 @@ public class URIPluginTest {
         when(exchange.getAttribute(Constants.HTTP_DOMAIN)).thenReturn("http://localhost:8090/query");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(uriPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
-        assertEquals("http://localhost:8090/query?queryParam=Hello,%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
+        assertEquals("http://localhost:8090/query?queryParam=Hello%2C%20World", exchange.getAttributes().get(Constants.HTTP_URI).toString());
     }
 
     @Test
@@ -123,10 +131,38 @@ public class URIPluginTest {
     @Test
     public void testSkip() {
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.HTTP.getName());
-        Assert.assertFalse(uriPlugin.skip(exchange));
+        assertFalse(uriPlugin.skip(exchange));
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
-        Assert.assertFalse(uriPlugin.skip(exchange));
+        assertFalse(uriPlugin.skip(exchange));
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
-        Assert.assertTrue(uriPlugin.skip(exchange));
+        assertTrue(uriPlugin.skip(exchange));
+    }
+
+    @Test
+    public void testRequestQueryCodec() {
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add("zcq", "01");
+        queryParams.add("zcq", "03");
+        queryParams.add("add", "bj");
+        queryParams.add("name", "b j");
+        queryParams.add("age", "['z','zc','zz']");
+        assertEquals("zcq=01&zcq=03&add=bj&name=b%20j&age=['z','zc','zz']", getCodecQuery(queryParams));
+    }
+
+    /**
+     * Gets codec query string.
+     *
+     * @param queryParams the queryParams
+     * @return codec query string
+     */
+    private static String getCodecQuery(final MultiValueMap<String, String> queryParams) {
+        return queryParams.keySet().stream()
+                .map(key -> queryParams.get(key).stream()
+                        .map(item -> String.join("=", key,
+                                // https://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1
+                                // https://www.ietf.org/rfc/rfc2396.txt
+                                item.replaceAll(" ", "%20")))
+                        .collect(Collectors.joining("&")))
+                .collect(Collectors.joining("&")).trim();
     }
 }

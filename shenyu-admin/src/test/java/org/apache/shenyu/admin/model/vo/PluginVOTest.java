@@ -20,11 +20,11 @@ package org.apache.shenyu.admin.model.vo;
 import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.junit.Test;
 
 import java.sql.Timestamp;
 
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for PluginVO.

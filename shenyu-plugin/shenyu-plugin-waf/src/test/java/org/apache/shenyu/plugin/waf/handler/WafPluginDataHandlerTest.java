@@ -25,11 +25,11 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test case for {@link WafPluginDataHandler}.
@@ -38,7 +38,7 @@ public final class WafPluginDataHandlerTest {
 
     private WafPluginDataHandler wafPluginDataHandlerUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         wafPluginDataHandlerUnderTest = new WafPluginDataHandler();
     }

@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.aspect;
 
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -60,7 +60,7 @@ public class PageableAspect {
             if (Objects.isNull(pageParameter)) {
                 return point.proceed();
             }
-            Page<?> page = PageHelper.startPage(pageParameter.getCurrentPage(), pageParameter.getPageSize());
+            Page<?> page = PageMethod.startPage(pageParameter.getCurrentPage(), pageParameter.getPageSize());
             Object proceed = point.proceed();
             CommonPager<?> commonPager = (CommonPager<?>) proceed;
             PageParameter result = commonPager.getPage();

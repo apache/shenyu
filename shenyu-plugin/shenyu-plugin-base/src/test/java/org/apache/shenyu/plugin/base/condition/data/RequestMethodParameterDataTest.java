@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test cases for {@link RequestMethodParameterData}.
@@ -35,7 +36,7 @@ public final class RequestMethodParameterDataTest {
 
     private RequestMethodParameterData requestMethodParameterData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/uri/path")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
@@ -45,6 +46,6 @@ public final class RequestMethodParameterDataTest {
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals("GET", this.requestMethodParameterData.builder(null, this.exchange));
+        assertEquals("GET", this.requestMethodParameterData.builder(null, this.exchange));
     }
 }

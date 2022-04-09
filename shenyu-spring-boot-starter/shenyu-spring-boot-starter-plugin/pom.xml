@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-spring-boot-starter</artifactId>
-        <version>2.4.2-SNAPSHOT</version>
+        <version>2.4.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
@@ -32,7 +32,6 @@
         <module>shenyu-spring-boot-starter-plugin-httpclient</module>
         <module>shenyu-spring-boot-starter-plugin-springcloud</module>
         <module>shenyu-spring-boot-starter-plugin-hystrix</module>
-        <module>shenyu-spring-boot-starter-plugin-monitor</module>
         <module>shenyu-spring-boot-starter-plugin-ratelimiter</module>
         <module>shenyu-spring-boot-starter-plugin-sign</module>
         <module>shenyu-spring-boot-starter-plugin-waf</module>
@@ -57,5 +56,9 @@
         <module>shenyu-spring-boot-starter-plugin-dubbo</module>
         <module>shenyu-spring-boot-starter-plugin-uri</module>
         <module>shenyu-spring-boot-starter-plugin-general-context</module>
+        <module>shenyu-spring-boot-starter-plugin-mqtt</module>
+        <module>shenyu-spring-boot-starter-plugin-metrics</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-rocketmq</module>
+        <module>shenyu-spring-boot-starter-plugin-cache</module>
     </modules>
 </project>

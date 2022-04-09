@@ -73,7 +73,7 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
     }
 
     private Mono<Void> body(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
-        return Mono.from(serverHttpRequest.getBody()
+        return Mono.from(DataBufferUtils.join(serverHttpRequest.getBody())
                 .flatMap(body -> {
                     exchange.getAttributes().put(Constants.PARAM_TRANSFORM, resolveBodyFromRequest(body));
                     return chain.execute(exchange);

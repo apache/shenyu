@@ -35,11 +35,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TarsContextRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
-    private String contextPath;
+    private final String contextPath;
     
     private final String ipAndPort;
 

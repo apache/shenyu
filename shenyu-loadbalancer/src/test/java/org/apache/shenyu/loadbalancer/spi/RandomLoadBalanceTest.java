@@ -18,13 +18,14 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The type random balance test.
@@ -37,7 +38,7 @@ public class RandomLoadBalanceTest {
 
     private List<Upstream> randomLoadBalancesWeightReversed;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
                 .map(weight -> Upstream.builder()
@@ -68,20 +69,20 @@ public class RandomLoadBalanceTest {
     public void randomLoadBalanceOrderedWeightTest() {
         final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamOrdered = randomLoadBalancer.select(randomLoadBalancesWeightOrdered, "");
-        Assert.assertNotNull(upstreamOrdered);
+        assertNotNull(upstreamOrdered);
     }
 
     @Test
     public void randomLoadBalanceDisOrderedWeightTest() {
         final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamDisordered = randomLoadBalancer.select(randomLoadBalancesWeightDisordered, "");
-        Assert.assertNotNull(upstreamDisordered);
+        assertNotNull(upstreamDisordered);
     }
 
     @Test
     public void randomLoadBalanceReversedWeightTest() {
         final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamReversed = randomLoadBalancer.select(randomLoadBalancesWeightReversed, "");
-        Assert.assertNotNull(upstreamReversed);
+        assertNotNull(upstreamReversed);
     }
 }

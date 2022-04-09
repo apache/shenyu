@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.sign.service.DefaultSignService;
 import org.apache.shenyu.plugin.sign.subscriber.SignAuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Sign plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.sign.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SignPluginConfiguration {
     
     /**

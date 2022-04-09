@@ -27,11 +27,14 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 
@@ -48,15 +51,16 @@ import static org.mockito.Mockito.mock;
 /**
  * The TestCase for {@link ConsulServerRegisterRepository}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ConsulServerRegisterRepositoryTest {
-
+    
     private ShenyuServerRegisterPublisher mockPublish() {
         ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
-        doNothing().when(publisher).publish(any());
+        doNothing().when(publisher).publish(localAny());
         return publisher;
     }
-
+    
     @Bean
     private ConsulClient mockConsulClient() {
         URIRegisterDTO mockServer = URIRegisterDTO.builder().appName("mockServer").contextPath("/mockServer").eventType(EventType.REGISTER).build();
@@ -65,31 +69,31 @@ public class ConsulServerRegisterRepositoryTest {
         map.put("uri", GsonUtils.getInstance().toJson(mockServer));
         newService.setMeta(map);
         ConsulClient client = mock(ConsulClient.class);
-
+        
         Map<String, Service> serviceHashMap = Maps.newHashMap();
         serviceHashMap.put(mockServer.getContextPath(), newService);
         Response<Map<String, Service>> mapResponse = new Response<Map<String, Service>>(serviceHashMap, 1L, true, 1L);
         Mockito.when(client.getAgentServices()).thenReturn(mapResponse);
         return client;
     }
-
+    
     @Bean
     private ConsulServerRegisterRepository mockConsulServerRegisterRepository() throws Exception {
         ConsulServerRegisterRepository consulServerRegisterRepository = new ConsulServerRegisterRepository();
         Class<? extends ConsulServerRegisterRepository> clazz = consulServerRegisterRepository.getClass();
-
+        
         String fieldClientString = "consulClient";
         Field fieldClient = clazz.getDeclaredField(fieldClientString);
         fieldClient.setAccessible(true);
         fieldClient.set(consulServerRegisterRepository, mockConsulClient());
-
+        
         String fieldPublisherString = "publisher";
         Field fieldPublisher = clazz.getDeclaredField(fieldPublisherString);
         fieldPublisher.setAccessible(true);
         fieldPublisher.set(consulServerRegisterRepository, mockPublish());
         return consulServerRegisterRepository;
     }
-
+    
     @Test
     public void testConsulServerRegisterRepository() {
         new ApplicationContextRunner().withUserConfiguration(ConsulServerRegisterRepositoryTest.class)
@@ -105,5 +109,9 @@ public class ConsulServerRegisterRepositoryTest {
                     ConsulConfigChangedEvent consulConfigChangedEvent = new ConsulConfigChangedEvent(this, 1L, mateData);
                     context.publishEvent(consulConfigChangedEvent);
                 });
+    }
+    
+    private DataTypeParent localAny() {
+        return any();
     }
 }

@@ -30,6 +30,50 @@ public class HttpConfig {
 
     private Integer connectionTimeout;
 
+    private Integer readTimeout;
+
+    private Integer writeTimeout;
+
+    private String username;
+
+    private String password;
+
+    /**
+     * get username.
+     *
+     * @return username
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * set username.
+     *
+     * @param username username
+     */
+    public void setUsername(final String username) {
+        this.username = username;
+    }
+
+    /**
+     * get password.
+     *
+     * @return password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * set password.
+     *
+     * @param password password
+     */
+    public void setPassword(final String password) {
+        this.password = password;
+    }
+
     /**
      * get url.
      *
@@ -84,6 +128,42 @@ public class HttpConfig {
         this.connectionTimeout = connectionTimeout;
     }
 
+    /**
+     * Gets the value of readTimeout.
+     *
+     * @return the value of readTimeout
+     */
+    public Integer getReadTimeout() {
+        return readTimeout;
+    }
+
+    /**
+     * Sets the readTimeout.
+     *
+     * @param readTimeout readTimeout
+     */
+    public void setReadTimeout(final Integer readTimeout) {
+        this.readTimeout = readTimeout;
+    }
+
+    /**
+     * Gets the value of writeTimeout.
+     *
+     * @return the value of writeTimeout
+     */
+    public Integer getWriteTimeout() {
+        return writeTimeout;
+    }
+
+    /**
+     * Sets the writeTimeout.
+     *
+     * @param writeTimeout writeTimeout
+     */
+    public void setWriteTimeout(final Integer writeTimeout) {
+        this.writeTimeout = writeTimeout;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -95,12 +175,14 @@ public class HttpConfig {
         HttpConfig that = (HttpConfig) o;
         return Objects.equals(url, that.url)
                 && Objects.equals(delayTime, that.delayTime)
-                && Objects.equals(connectionTimeout, that.connectionTimeout);
+                && Objects.equals(connectionTimeout, that.connectionTimeout)
+                && Objects.equals(readTimeout, that.readTimeout)
+                && Objects.equals(writeTimeout, that.writeTimeout);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url, delayTime, connectionTimeout);
+        return Objects.hash(url, delayTime, connectionTimeout, readTimeout, writeTimeout);
     }
 
     @Override
@@ -113,6 +195,10 @@ public class HttpConfig {
                 + delayTime
                 + ", connectionTimeout="
                 + connectionTimeout
+                + ", readTimeout="
+                + readTimeout
+                + ", writeTimeout="
+                + writeTimeout
                 + '}';
     }
 }

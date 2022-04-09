@@ -21,7 +21,8 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
@@ -29,10 +30,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test cases for PluginMapper.
@@ -240,7 +241,7 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
         pluginDTO.setEnabled(true);
         pluginDTO.setConfig("test-config");
         pluginDTO.setRole("1");
-        pluginDTO.setName("test-name" + System.currentTimeMillis());
+        pluginDTO.setName("test-name" + System.nanoTime());
         return pluginDTO;
     }
 }

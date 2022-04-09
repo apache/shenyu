@@ -20,12 +20,27 @@ package org.apache.shenyu.common.utils;
 import com.google.common.base.Splitter;
 import org.springframework.util.AntPathMatcher;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * The type Path match utils.
  */
 public class PathMatchUtils {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
+
+    /**
+     * replace url {id} to real param.
+     *
+     * @param path        the total path
+     * @param regex       the regex content
+     * @param replacement the replacement content
+     * @return the string
+     */
+    public static String replaceAll(final String path, final String regex, final String replacement) {
+        return path.replaceAll(Pattern.quote(regex), Matcher.quoteReplacement(replacement));
+    }
 
     /**
      * Match boolean.

@@ -40,7 +40,23 @@ public class ShenyuClientPathController {
     public String hello() {
         return "hello! " + HELLO_SUFFIX;
     }
-    
+
+    /**
+     * timeout.
+     *
+     * @return result
+     */
+    @RequestMapping("shenyu/client/timeout")
+    @ShenyuSpringMvcClient(path = "shenyu/client/timeout", desc = "shenyu client annotation register")
+    public String timeout() {
+        System.out.println("timeout");
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ignored) {
+        }
+        return "hello! " + HELLO_SUFFIX;
+    }
+
     /**
      * hello. br
      * no support gateway.
@@ -49,6 +65,7 @@ public class ShenyuClientPathController {
      * @return result
      */
     @RequestMapping("shenyu/client/hi")
+    @ShenyuSpringMvcClient(path = "shenyu/client/hi", desc = "shenyu client annotation register")
     public String hello(final String name) {
         return "hi! " + name + "! " + HELLO_SUFFIX;
     }

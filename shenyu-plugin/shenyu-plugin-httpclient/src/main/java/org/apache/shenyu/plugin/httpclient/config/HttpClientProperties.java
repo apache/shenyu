@@ -20,7 +20,9 @@ package org.apache.shenyu.plugin.httpclient.config;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.util.ResourceUtils;
+import reactor.netty.ReactorNetty;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.SslProvider;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -50,7 +52,7 @@ public class HttpClientProperties {
     private String strategy;
 
     /**
-     * The connect timeout in millis, the default is 45s.
+     * The connection timeout in millis, the default is 45s.
      */
     private Integer connectTimeout = 45000;
 
@@ -88,6 +90,11 @@ public class HttpClientProperties {
      * Pool configuration for Netty HttpClient.
      */
     private Pool pool = new Pool();
+
+    /**
+     * ThreadPool configuration for Netty HttpClient.
+     */
+    private ThreadPool threadPool = new ThreadPool();
 
     /**
      * Proxy configuration for Netty HttpClient.
@@ -271,7 +278,25 @@ public class HttpClientProperties {
     public void setPool(final Pool pool) {
         this.pool = pool;
     }
-    
+
+    /**
+     * Gets thread pool.
+     *
+     * @return the thread pool
+     */
+    public ThreadPool getThreadPool() {
+        return threadPool;
+    }
+
+    /**
+     * Sets thread pool.
+     *
+     * @param threadPool the thread pool
+     */
+    public void setThreadPool(final ThreadPool threadPool) {
+        this.threadPool = threadPool;
+    }
+
     /**
      * Gets proxy.
      *
@@ -486,6 +511,104 @@ public class HttpClientProperties {
              * Disabled pool type.
              */
             DISABLED
+        }
+    }
+
+    /**
+     * The type Thread Pool.
+     */
+    public static class ThreadPool {
+
+        /**
+         * The the event loop thread name prefix, defaults to shenyu.
+         */
+        private String prefix = "shenyu";
+
+        /**
+         * The selector thread count, defaults to 1.
+         */
+        private Integer selectCount = Integer.parseInt(System.getProperty(ReactorNetty.IO_SELECT_COUNT, "1"));
+
+        /**
+         * The worker thread count, defaults to available processor (but with a minimum value of 4).
+         */
+        private Integer workerCount = LoopResources.DEFAULT_IO_WORKER_COUNT;
+
+        /**
+         * Whether the thread created by the thread pool is a daemon thread.
+         */
+        private Boolean daemon = true;
+
+        /**
+         * Gets prefix.
+         *
+         * @return the prefix
+         */
+        public String getPrefix() {
+            return prefix;
+        }
+
+        /**
+         * Sets prefix.
+         *
+         * @param prefix the prefix
+         */
+        public void setPrefix(final String prefix) {
+            this.prefix = prefix;
+        }
+
+        /**
+         * Gets select count.
+         *
+         * @return the select count
+         */
+        public Integer getSelectCount() {
+            return selectCount;
+        }
+
+        /**
+         * Sets select count.
+         *
+         * @param selectCount the select count
+         */
+        public void setSelectCount(final Integer selectCount) {
+            this.selectCount = selectCount;
+        }
+
+        /**
+         * Gets worker count.
+         *
+         * @return the worker count
+         */
+        public Integer getWorkerCount() {
+            return workerCount;
+        }
+
+        /**
+         * Sets worker count.
+         *
+         * @param workerCount the worker count
+         */
+        public void setWorkerCount(final Integer workerCount) {
+            this.workerCount = workerCount;
+        }
+
+        /**
+         * Gets daemon.
+         *
+         * @return the daemon
+         */
+        public Boolean getDaemon() {
+            return daemon;
+        }
+
+        /**
+         * Sets daemon.
+         *
+         * @param daemon the daemon
+         */
+        public void setDaemon(final Boolean daemon) {
+            this.daemon = daemon;
         }
     }
     

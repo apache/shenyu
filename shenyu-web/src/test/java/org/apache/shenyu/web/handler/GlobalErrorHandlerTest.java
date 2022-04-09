@@ -20,13 +20,13 @@ package org.apache.shenyu.web.handler;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -35,7 +35,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -45,9 +45,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * test for GlobalErrorHandler.
- *
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class GlobalErrorHandlerTest {
 
     private static Logger loggerSpy;
@@ -56,7 +55,7 @@ public final class GlobalErrorHandlerTest {
 
     private GlobalErrorHandler globalErrorHandler;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(GlobalErrorHandler.class));
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
@@ -64,16 +63,17 @@ public final class GlobalErrorHandlerTest {
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {
         loggerFactoryMockedStatic.close();
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() { });
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() {
+        });
 
         globalErrorHandler = new GlobalErrorHandler();
     }

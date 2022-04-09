@@ -65,17 +65,17 @@ public interface Command {
             HystrixRuntimeException e = (HystrixRuntimeException) exception;
             if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
                 exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-                error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+                error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT, null);
             } else {
                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+                error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR, null);
             }
         } else if (exception instanceof HystrixTimeoutException) {
             exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT, null);
         } else {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR, null);
         }
         return error;
     }
@@ -104,5 +104,11 @@ public interface Command {
      * @return when some error occurs in hystrix invoke it will forward to this
      */
     URI getCallBackUri();
+
+    /**
+     * removeCommandKey rule data.
+     * @param commandKey commandKey
+     */
+    void removeCommandKey(String commandKey);
 
 }

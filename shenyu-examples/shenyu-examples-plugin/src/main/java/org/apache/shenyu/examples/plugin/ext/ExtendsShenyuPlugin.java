@@ -21,17 +21,35 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
  * The type My custom shenyu plugin.
  */
+@Service
 public class ExtendsShenyuPlugin extends AbstractShenyuPlugin {
+    
+    @Autowired
+    private ExtendsShenyuZerBean zerBean;
+    
+    @Autowired
+    private DispatcherHandler dispatcherHandler;
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         return chain.execute(exchange);
+    }
+    
+    public ExtendsShenyuZerBean getZerBean() {
+        return zerBean;
+    }
+    
+    public DispatcherHandler getDispatcherHandler() {
+        return dispatcherHandler;
     }
     
     @Override

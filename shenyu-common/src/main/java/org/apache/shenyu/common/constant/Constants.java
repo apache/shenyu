@@ -103,6 +103,21 @@ public interface Constants {
     String HTTP_RETRY = "httpRetry";
 
     /**
+     * The constant RETRY_STRATEGY.
+     */
+    String RETRY_STRATEGY = "retryStrategy";
+
+    /**
+     * The constant LOAD_BALANCE.
+     */
+    String LOAD_BALANCE = "loadBalance";
+
+    /**
+     * divide online selector id.
+     */
+    String DIVIDE_SELECTOR_ID = "divideSelectorId";
+
+    /**
      * Original response Content-Type attribute name.
      */
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
@@ -280,7 +295,12 @@ public interface Constants {
     /**
      * circuitBreaker circuitEnable.
      */
-    int CIRCUIT_ENABLE = 0;
+    int CIRCUIT_DISABLE = 0;
+
+    /**
+     * circuitBreaker enable.
+     */
+    int CIRCUIT_ENABLE = 1;
 
     /**
      * circuitBreaker timeoutDuration.
@@ -326,6 +346,11 @@ public interface Constants {
      * jwt handle key for secretKey.
      */
     String SECRET_KEY = "secretKey";
+    
+    /**
+     * local key.
+     */
+    String LOCAL_KEY = "localKey";
 
     /**
      * jwt handle key for filterPath.
@@ -486,6 +511,91 @@ public interface Constants {
      * transmitHeaderToGeneralContext.
      */
     String TRANSMIT_HEADER_TO_GENERAL_CONTEXT_TYPE = "transmitHeaderToGeneralContext";
+
+    /**
+     * When register by http, the meta register path.
+     */
+    String META_PATH = "/shenyu-client/register-metadata";
+
+    /**
+     * When register by http, the meta type.
+     */
+    String META_TYPE = "metadata";
+
+    /**
+     * When register by http, the uri path.
+     */
+    String URI_PATH = "/shenyu-client/register-uri";
+
+    /**
+     * When register by http, the login path.
+     */
+    String LOGIN_PATH = "/platform/login";
+
+    /**
+     * When register by http, admin username.
+     */
+    String USER_NAME = "username";
+
+    /**
+     * Login name.
+     */
+    String LOGIN_NAME = "userName";
+
+    /**
+     * When register by http, admin password.
+     */
+    String PASS_WORD = "password";
+
+    /**
+     * X-Access-Token.
+     */
+    String X_ACCESS_TOKEN = "X-Access-Token";
+
+    /**
+     * The admin return result code.
+     */
+    String ADMIN_RESULT_CODE = "code";
+
+    /**
+     * The admin return result data.
+     */
+    String ADMIN_RESULT_DATA = "data";
+
+    /**
+     * The admin return result token.
+     */
+    String ADMIN_RESULT_TOKEN = "token";
+
+    /**
+     * The admin userName.
+     */
+    String ADMIN_RESULT_USERNAME = "userName";
+
+    /**
+     * The admin password.
+     */
+    String ADMIN_RESULT_PASSWORD = "password";
+
+    /**
+     * shenyu admin path configs fetch.
+     */
+    String SHENYU_ADMIN_PATH_CONFIGS_FETCH = "/configs/fetch";
+
+    /**
+     * shenyu admin path configs listener.
+     */
+    String SHENYU_ADMIN_PATH_CONFIGS_LISTENER = "/configs/listener";
+
+    /**
+     * zombie removal times.
+     */
+    String ZOMBIE_REMOVAL_TIMES = "zombieRemovalTimes";
+
+    /**
+     * The default zombie removal time value, unit is second.
+     */
+    String ZOMBIE_REMOVAL_TIMES_VALUE = "60";
 
     /**
      * String q.

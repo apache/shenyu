@@ -21,8 +21,8 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
@@ -35,8 +35,8 @@ import java.util.stream.Stream;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test case for SelectorConditionMapper.
@@ -48,7 +48,7 @@ public final class SelectorConditionMapperTest extends AbstractSpringIntegration
     @Resource
     private SelectorConditionMapper selectorConditionMapper;
 
-    @Before
+    @BeforeEach
     public void before() {
         int count = selectorConditionMapper.insert(record);
         assertThat(count, greaterThan(0));

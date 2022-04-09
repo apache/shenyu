@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.springboot.plugin.websocket;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.websocket.WebSocketPlugin;
 import org.apache.shenyu.plugin.websocket.context.WebSocketShenyuContextDecorator;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -33,6 +35,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
  * The type Web socket plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.websocket.enabled"}, havingValue = "true", matchIfMissing = true)
 public class WebSocketPluginConfiguration {
     
     /**
@@ -60,11 +63,14 @@ public class WebSocketPluginConfiguration {
     /**
      * Reactor netty web socket client reactor netty web socket client.
      *
+     * @param shenyuConfig the shenyu config
      * @return the reactor netty web socket client
      */
     @Bean
-    public ReactorNettyWebSocketClient reactorNettyWebSocketClient() {
-        return new ReactorNettyWebSocketClient();
+    public ReactorNettyWebSocketClient reactorNettyWebSocketClient(final ShenyuConfig shenyuConfig) {
+        final ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient();
+        webSocketClient.setMaxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
+        return webSocketClient;
     }
     
     /**

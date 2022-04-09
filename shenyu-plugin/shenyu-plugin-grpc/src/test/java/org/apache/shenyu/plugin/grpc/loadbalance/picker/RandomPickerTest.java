@@ -22,27 +22,32 @@ import io.grpc.EquivalentAddressGroup;
 import io.grpc.LoadBalancer;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For {@link RandomPicker}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RandomPickerTest {
 
     private RandomPicker randomPicker;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         Attributes attributes = SubChannels.createAttributes(1, "ok");
         LoadBalancer.Subchannel subchannel =
@@ -54,17 +59,17 @@ public class RandomPickerTest {
 
     @Test
     public void testPickSubchannel() {
-        Assert.assertNotNull(randomPicker.pickSubchannel(null));
+        assertNotNull(randomPicker.pickSubchannel(null));
     }
 
     @Test
     public void testIsEquivalentTo() {
-        Assert.assertTrue(randomPicker.isEquivalentTo(randomPicker));
+        assertTrue(randomPicker.isEquivalentTo(randomPicker));
     }
 
     @Test
     public void testGetSubchannelsInfo() {
-        Assert.assertNotNull(randomPicker.getSubchannelsInfo());
+        assertNotNull(randomPicker.getSubchannelsInfo());
     }
 
     @Test
@@ -73,9 +78,9 @@ public class RandomPickerTest {
         SubChannelCopy secondSubChannelCopy = mock(SubChannelCopy.class);
         when(secondSubChannelCopy.getWeight()).thenReturn(10);
         List<SubChannelCopy> list = Arrays.asList(firstSubChannelCopy, secondSubChannelCopy);
-        Assert.assertNotNull(randomPicker.pick(list));
-        Assert.assertEquals(firstSubChannelCopy, randomPicker.pick(Collections.singletonList(firstSubChannelCopy)));
-        Assert.assertEquals(firstSubChannelCopy, randomPicker.pick(Arrays.asList(firstSubChannelCopy, firstSubChannelCopy)));
-        Assert.assertNull(randomPicker.pick(null));
+        assertNotNull(randomPicker.pick(list));
+        assertEquals(firstSubChannelCopy, randomPicker.pick(Collections.singletonList(firstSubChannelCopy)));
+        assertEquals(firstSubChannelCopy, randomPicker.pick(Arrays.asList(firstSubChannelCopy, firstSubChannelCopy)));
+        assertNull(randomPicker.pick(null));
     }
 }

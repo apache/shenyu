@@ -23,7 +23,6 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -50,14 +49,8 @@ public class WebClientMessageWriter implements MessageWriter {
         return chain.execute(exchange).then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
             ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-            if (Objects.isNull(clientResponse)
-                    || response.getStatusCode() == HttpStatus.BAD_GATEWAY
-                    || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-                return WebFluxResultUtils.result(exchange, error);
-            }
-            if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
-                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+            if (Objects.isNull(clientResponse)) {
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR, null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             response.getCookies().putAll(clientResponse.cookies());
@@ -101,6 +94,7 @@ public class WebClientMessageWriter implements MessageWriter {
         // openxmlformats-officedocument => .pptx .xlsx .docx
         // binary => .bin
         // pdf => .pdf
+        // octet-stream => octet-stream
         Set<String> commonBinaryTypes = new HashSet<String>() {
             {
                 add("image");
@@ -116,6 +110,7 @@ public class WebClientMessageWriter implements MessageWriter {
                 add("openxmlformats-officedocument");
                 add("binary");
                 add("pdf");
+                add("octet-stream");
             }
         };
         StringJoiner regexBuilder = new StringJoiner("|");

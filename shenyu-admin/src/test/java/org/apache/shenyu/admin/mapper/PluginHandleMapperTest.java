@@ -21,7 +21,8 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
@@ -29,8 +30,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for PluginHandleMapper.

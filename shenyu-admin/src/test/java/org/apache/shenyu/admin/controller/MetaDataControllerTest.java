@@ -19,23 +19,26 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
-import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -43,20 +46,22 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test cases for MetaDataController.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class MetaDataControllerTest {
 
     private MockMvc mockMvc;
@@ -66,12 +71,15 @@ public final class MetaDataControllerTest {
 
     @Mock
     private MetaDataService metaDataService;
+    
+    @Mock
+    private MetaDataMapper metaDataMapper;
 
     private final MetaDataVO metaDataVO = new MetaDataVO("appName", "appPath", "desc", "rpcType", "serviceName", "methodName", "types", "rpcExt",
             "1", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()),
             true);
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(metaDataController)
                 .setControllerAdvice(new ExceptionHandlers())
@@ -141,13 +149,21 @@ public final class MetaDataControllerTest {
         metaDataDTO.setId("0001");
         metaDataDTO.setAppName("aname-01");
         metaDataDTO.setContextPath("path");
+        metaDataDTO.setPath("/path");
+        metaDataDTO.setRpcType("rpcType");
+        metaDataDTO.setMethodName("methodName");
+        metaDataDTO.setServiceName("serviceName");
+        metaDataDTO.setRuleName("ruleName");
         metaDataDTO.setEnabled(false);
-        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(StringUtils.EMPTY);
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
+        when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(true);
+        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -157,13 +173,21 @@ public final class MetaDataControllerTest {
         metaDataDTO.setId("0001");
         metaDataDTO.setAppName("aname-01");
         metaDataDTO.setContextPath("path");
+        metaDataDTO.setPath("/path");
+        metaDataDTO.setRpcType("rpcType");
+        metaDataDTO.setMethodName("methodName");
+        metaDataDTO.setServiceName("serviceName");
+        metaDataDTO.setRuleName("ruleName");
         metaDataDTO.setEnabled(false);
-        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(AdminConstants.PARAMS_ERROR);
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
+        when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(null);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.PARAMS_ERROR)))
+                .andExpect(jsonPath("$.code", is(500)))
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [id: meta data is not existed]")))
                 .andReturn();
     }
 

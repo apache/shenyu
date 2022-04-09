@@ -29,6 +29,7 @@ import org.apache.shenyu.web.configuration.ShenyuExtConfiguration;
 import org.apache.shenyu.web.configuration.SpringExtConfiguration;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
+import org.apache.shenyu.web.filter.FallbackFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
@@ -42,6 +43,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -74,7 +76,7 @@ public class ShenyuConfiguration {
      * Init ShenyuWebHandler.
      *
      * @param plugins this plugins is All impl ShenyuPlugin.
-     * @param config the config
+     * @param config  the config
      * @return {@linkplain ShenyuWebHandler}
      */
     @Bean("webHandler")
@@ -110,25 +112,28 @@ public class ShenyuConfiguration {
      * Plugin data subscriber plugin data subscriber.
      *
      * @param pluginDataHandlerList the plugin data handler list
+     * @param eventPublisher event publisher
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
-        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
+    public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList,
+                                                     final ApplicationEventPublisher eventPublisher) {
+        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList), eventPublisher);
     }
     
     /**
      * Shenyu loader service shenyu loader service.
      *
-     * @param shenyuWebHandler the shenyu web handler
+     * @param shenyuWebHandler     the shenyu web handler
      * @param pluginDataSubscriber the plugin data subscriber
-     * @param config the config
+     * @param config               the config
      * @return the shenyu loader service
      */
     @Bean
-    public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler, 
+    public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler,
                                                    final PluginDataSubscriber pluginDataSubscriber,
-                                                   final ShenyuConfig config) {
+                                                   final ShenyuConfig config
+    ) {
         return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config);
     }
     
@@ -147,13 +152,15 @@ public class ShenyuConfiguration {
      * Local dispatcher filter web filter.
      *
      * @param dispatcherHandler the dispatcher handler
+     * @param shenyuConfig the shenyuConfig
+     *
      * @return the web filter
      */
     @Bean
     @Order(-200)
-    @ConditionalOnProperty(name = "shenyu.switchConfig.local", havingValue = "true", matchIfMissing = true)
-    public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler) {
-        return new LocalDispatcherFilter(dispatcherHandler);
+    @ConditionalOnProperty(name = "shenyu.local.enable", havingValue = "false", matchIfMissing = true)
+    public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler, final ShenyuConfig shenyuConfig) {
+        return new LocalDispatcherFilter(dispatcherHandler, shenyuConfig.getLocal().getSha512Key());
     }
     
     /**
@@ -197,6 +204,19 @@ public class ShenyuConfiguration {
     @ConditionalOnProperty(name = "shenyu.exclude.enabled", havingValue = "true")
     public WebFilter excludeFilter(final ShenyuConfig shenyuConfig) {
         return new ExcludeFilter(shenyuConfig.getExclude().getPaths());
+    }
+    
+    /**
+     * fallback filter web filter.
+     *
+     * @param shenyuConfig the shenyu config
+     * @return the fallback web filter
+     */
+    @Bean
+    @Order(-5)
+    @ConditionalOnProperty(name = "shenyu.fallback.enabled", havingValue = "true")
+    public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig) {
+        return new FallbackFilter(shenyuConfig.getFallback().getPaths());
     }
     
     /**

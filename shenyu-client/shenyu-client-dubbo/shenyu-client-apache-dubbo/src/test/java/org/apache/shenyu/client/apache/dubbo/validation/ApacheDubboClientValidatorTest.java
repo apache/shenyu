@@ -21,14 +21,16 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.validation.Validator;
 import org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.validation.ValidationException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test case for {@link ApacheDubboClientValidator}.
@@ -61,16 +63,16 @@ public final class ApacheDubboClientValidatorTest {
                 new Object[]{new TestService.TestObject(1)});
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         URL url = URL.valueOf(MOCK_SERVICE_URL);
         apacheDubboClientValidatorUnderTest = new ApacheDubboClientValidator(url);
     }
 
-    @Test(expected = NoSuchMethodException.class)
+    @Test
     public void testValidateWithNonExistMethod() throws Exception {
-        apacheDubboClientValidatorUnderTest
-                .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
+        assertThrows(NoSuchMethodException.class, () -> apacheDubboClientValidatorUnderTest
+                .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"}));
     }
 
     @Test
@@ -83,13 +85,13 @@ public final class ApacheDubboClientValidatorTest {
                 .validate("methodOne", new Class<?>[]{String.class}, new Object[]{"anything"});
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testValidateWhenMeetsConstraintThenValidationFailed() throws Exception {
-        apacheDubboClientValidatorUnderTest
+        assertThrows(ValidationException.class, () -> apacheDubboClientValidatorUnderTest
                 .validate(
                         "methodTwo",
                         new Class<?>[]{MockValidationParameter.class},
-                        new Object[]{new MockValidationParameter("NotBeNull")});
+                        new Object[]{new MockValidationParameter("NotBeNull")}));
     }
 
     @Test

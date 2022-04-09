@@ -27,24 +27,26 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +64,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for MetaDataService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class MetaDataServiceTest {
 
     private static Logger loggerSpy;
@@ -84,14 +86,14 @@ public final class MetaDataServiceTest {
     @Mock
     private MetaDataQuery metaDataQuery;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(MetaDataServiceImpl.class));
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(MetaDataServiceImpl.class)).thenReturn(loggerSpy);
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {
         loggerFactoryMockedStatic.close();
     }
@@ -111,8 +113,6 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testCreateOrUpdate() {
-        testCreateOrUpdateForParamsError();
-        testCreateOrUpdateForPathExist();
         testCreateOrUpdateForInsert();
         testCreateOrUpdateForUpdate();
     }
@@ -169,14 +169,14 @@ public final class MetaDataServiceTest {
     public void testFindById() {
         when(metaDataMapper.selectById(anyString())).thenReturn(null);
         MetaDataVO dataVo = metaDataService.findById(anyString());
-        Assert.assertEquals(new MetaDataVO(), dataVo);
+        Assertions.assertEquals(new MetaDataVO(), dataVo);
 
         final String appName = "appName";
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         metaDataDO.setAppName(appName);
         when(metaDataMapper.selectById(anyString())).thenReturn(metaDataDO);
         dataVo = metaDataService.findById(anyString());
-        Assert.assertEquals(appName, dataVo.getAppName());
+        assertEquals(appName, dataVo.getAppName());
     }
 
     /**
@@ -188,8 +188,8 @@ public final class MetaDataServiceTest {
         ArrayList<MetaDataDO> metaDataDOList = getMetaDataDOList();
         when(metaDataMapper.selectByQuery(any())).thenReturn(metaDataDOList);
         CommonPager<MetaDataVO> pager = metaDataService.listByPage(metaDataQuery);
-        Assert.assertEquals("The dataList should be contain " + metaDataDOList.size() + " element.",
-                metaDataDOList.size(), pager.getDataList().size());
+        Assertions.assertEquals(metaDataDOList.size(), pager.getDataList().size(),
+                "The dataList should be contain " + metaDataDOList.size() + " element.");
     }
 
     /**
@@ -200,8 +200,8 @@ public final class MetaDataServiceTest {
         ArrayList<MetaDataDO> metaDataDOList = getMetaDataDOList();
         when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
         List<MetaDataVO> all = metaDataService.findAll();
-        Assert.assertEquals("The list should be contain " + metaDataDOList.size() + " element.",
-                metaDataDOList.size(), all.size());
+        Assertions.assertEquals(metaDataDOList.size(), all.size(),
+                "The list should be contain " + metaDataDOList.size() + " element.");
     }
 
     /**
@@ -211,7 +211,8 @@ public final class MetaDataServiceTest {
     public void testFindAllGroup() {
         when(metaDataMapper.selectAll()).thenReturn(getMetaDataDOList());
         Map<String, List<MetaDataVO>> allGroup = metaDataService.findAllGroup();
-        Assert.assertEquals("There should be 3 groups.", 3, allGroup.keySet().size());
+        Assertions.assertEquals(3, allGroup.keySet().size(),
+                "There should be 3 groups.");
     }
 
     /**
@@ -223,8 +224,8 @@ public final class MetaDataServiceTest {
         metaDataDOList.add(null);
         when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
         List<MetaData> all = metaDataService.listAll();
-        Assert.assertEquals("The List should be contain " + (metaDataDOList.size() - 1) + " element.",
-                metaDataDOList.size() - 1, all.size());
+        Assertions.assertEquals(metaDataDOList.size() - 1, all.size(),
+                "The List should be contain " + (metaDataDOList.size() - 1) + " element.");
     }
 
     private void testSaveOrUpdateMetaDataForInsert() {
@@ -236,71 +237,17 @@ public final class MetaDataServiceTest {
         metaDataService.saveOrUpdateMetaData(MetaDataDO.builder().id("1").build(), new MetaDataRegisterDTO());
         verify(metaDataMapper).update(any(MetaDataDO.class));
     }
-
-    /**
-     * Cases where the params error.
-     */
-    private void testCreateOrUpdateForParamsError() {
-        when(metaDataDTO.getAppName())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("AppName");
-        when(metaDataDTO.getPath())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("path");
-        when(metaDataDTO.getRpcType())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("rpcType");
-        when(metaDataDTO.getServiceName())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("serviceName");
-        when(metaDataDTO.getMethodName())
-                .thenReturn(null)
-                .thenReturn(StringUtils.EMPTY)
-                .thenReturn("methodName");
-
-        for (int i = 0; i < 2 * 5; i++) {
-            String msg = metaDataService.createOrUpdate(metaDataDTO);
-            assertEquals(AdminConstants.PARAMS_ERROR, msg);
-        }
-    }
-
-    /**
-     * Cases where check passed or the data path already exists.<br>
-     * The stub declared in createOrUpdateCase1 will not be repeated.
-     */
-    private void testCreateOrUpdateForPathExist() {
-        MetaDataDO metaDataDO = MetaDataDO.builder().id("id1").build();
-        when(metaDataDTO.getId())
-                .thenReturn(null)
-                .thenReturn("id1");
-        when(metaDataMapper.findByPath(anyString()))
-                .thenReturn(null)
-                .thenReturn(metaDataDO);
-
-        for (int i = 0; i < 2; i++) {
-            String msg = metaDataService.createOrUpdate(metaDataDTO);
-            assertEquals(StringUtils.EMPTY, msg);
-        }
-
-        when(metaDataDTO.getId()).thenReturn("id2");
-        String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(AdminConstants.DATA_PATH_IS_EXIST, msg);
-    }
-
+    
     /**
      * Cases where check passed and insert operation.<br>
      * The stub declared in createOrUpdateCase1 will not be repeated.
      */
     private void testCreateOrUpdateForInsert() {
         when(metaDataDTO.getId()).thenReturn(null);
-        when(metaDataMapper.findByPath(anyString())).thenReturn(null);
         when(metaDataMapper.insert(any())).thenReturn(1);
+        when(metaDataMapper.pathExisted(any())).thenReturn(null);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(StringUtils.EMPTY, msg);
+        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, msg);
     }
 
     /**
@@ -310,15 +257,17 @@ public final class MetaDataServiceTest {
     private void testCreateOrUpdateForUpdate() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         when(metaDataDTO.getId()).thenReturn("id");
-        when(metaDataMapper.selectById("id")).thenReturn(null).thenReturn(metaDataDO);
+        when(metaDataDTO.getPath()).thenReturn("path");
+        when(metaDataMapper.pathExistedExclude("path", Collections.singletonList("id"))).thenReturn(null);
+        when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(StringUtils.EMPTY, msg);
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, msg);
     }
 
     private void assertEquals(final String expected, final String actual) {
-        Assert.assertEquals("The msg should be '" + expected + "'.",
-                expected, actual);
+        Assertions.assertEquals(expected, actual,
+                "The msg should be '" + expected + "'.");
     }
 
     /**
@@ -327,8 +276,8 @@ public final class MetaDataServiceTest {
     private void testDeleteForEmptyIds() {
         List<String> ids = Lists.newArrayList();
         int count = metaDataService.delete(ids);
-        Assert.assertEquals("The count of delete should be 0.",
-                0, count);
+        Assertions.assertEquals(0, count,
+                "The count of delete should be 0.");
     }
 
     /**
@@ -340,8 +289,8 @@ public final class MetaDataServiceTest {
         when(metaDataMapper.selectByIdSet(idSet)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
         when(metaDataMapper.deleteByIdSet(idSet)).thenReturn(2);
         int count = metaDataService.delete(ids);
-        Assert.assertEquals("The count of delete should be 2.",
-                2, count);
+        Assertions.assertEquals(2, count,
+                "The count of delete should be 2.");
     }
 
     private ArrayList<MetaDataDO> getMetaDataDOList() {
