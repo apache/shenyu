@@ -162,13 +162,13 @@ public class PluginSnapshotVO {
     
     @Override
     public String toString() {
-        return "PluginSnapshotVO{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", config='" + config + '\'' +
-                ", role='" + role + '\'' +
-                ", handleCount=" + handleCount +
-                ", selectorCount=" + selectorCount +
-                '}';
+        return "PluginSnapshotVO{"
+                + "id='" + id + '\''
+                + ", name='" + name + '\''
+                + ", config='" + config + '\''
+                + ", role='" + role + '\''
+                + ", handleCount=" + handleCount
+                + ", selectorCount=" + selectorCount
+                + '}';
     }
 }
