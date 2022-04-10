@@ -43,60 +43,120 @@ public class PluginSnapshotVO {
     private String role;
     
     /**
-     * plugin handle count
+     * plugin handle count.
      */
     private Integer handleCount;
     
     /**
-     * plugin selector count
+     * plugin selector count.
      */
     private Integer selectorCount;
     
+    /**
+     * get id.
+     *
+     * @return id
+     */
     public String getId() {
         return id;
     }
     
-    public void setId(String id) {
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
         this.id = id;
     }
     
+    /**
+     * get name.
+     *
+     * @return name
+     */
     public String getName() {
         return name;
     }
     
-    public void setName(String name) {
+    /**
+     * set name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
         this.name = name;
     }
     
+    /**
+     * get config.
+     *
+     * @return config
+     */
     public String getConfig() {
         return config;
     }
     
-    public void setConfig(String config) {
+    /**
+     * set config.
+     *
+     * @param config config
+     */
+    public void setConfig(final String config) {
         this.config = config;
     }
     
+    /**
+     * get role.
+     *
+     * @return role
+     */
     public String getRole() {
         return role;
     }
     
-    public void setRole(String role) {
+    /**
+     * set role.
+     *
+     * @param role role
+     */
+    public void setRole(final String role) {
         this.role = role;
     }
     
+    /**
+     * get handle count.
+     *
+     * @return value
+     */
     public Integer getHandleCount() {
         return handleCount;
     }
     
-    public void setHandleCount(Integer handleCount) {
+    /**
+     * set handle count.
+     *
+     * @param handleCount value
+     */
+    public void setHandleCount(final Integer handleCount) {
         this.handleCount = handleCount;
     }
     
+    /**
+     * get selector count.
+     *
+     * @return value
+     */
     public Integer getSelectorCount() {
         return selectorCount;
     }
     
-    public void setSelectorCount(Integer selectorCount) {
+    /**
+     * set selector count.
+     *
+     * @param selectorCount value
+     */
+    public void setSelectorCount(final Integer selectorCount) {
         this.selectorCount = selectorCount;
     }
     
