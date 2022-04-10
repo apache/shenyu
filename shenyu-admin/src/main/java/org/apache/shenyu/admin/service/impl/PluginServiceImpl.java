@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PluginService;
@@ -299,6 +300,11 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public PluginDO findByName(final String name) {
         return pluginMapper.selectByName(name);
+    }
+    
+    @Override
+    public List<PluginSnapshotVO> activePluginSnapshot() {
+        return pluginMapper.activePluginSnapshot();
     }
     
     /**

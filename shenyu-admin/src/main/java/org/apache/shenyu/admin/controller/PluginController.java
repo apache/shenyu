@@ -199,11 +199,16 @@ public class PluginController {
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
-        boolean success = syncDataService.syncPluginData(id);
-        if (success) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
-        } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
-        }
+        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
+    }
+    
+    /**
+     * active plugin snapshot.
+     *
+     * @return list
+     */
+    @GetMapping("/snapshot/active")
+    public ShenyuAdminResult activePluginSnapshot() {
+        return ShenyuAdminResult.success(pluginService.activePluginSnapshot());
     }
 }

@@ -143,6 +143,21 @@
         LIMIT 1
     </select>
 
+    <select id="activePluginSnapshot" resultType="org.apache.shenyu.admin.model.vo.PluginSnapshotVO">
+        select p.id,
+               p.name,
+               config,
+               role,
+               count(ph.id) handleCount,
+               count(s.id)  selectorCount
+        from plugin p
+                 left join plugin_handle ph on p.id = ph.plugin_id
+                 left join selector s on p.id = s.plugin_id
+        where p.enabled = true
+        group by p.id, p.name, config, role, p.sort
+        order by p.sort, p.id
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         INSERT INTO plugin
                     (id,

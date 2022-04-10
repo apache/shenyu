@@ -97,3 +97,8 @@ Accept: application/json
 Content-Type: application/json
 X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MjUzNzg2fQ.37fddsUZRFVNc2pTlACHEI9oZSj9gnE5hhpK5Yaf-6s
 
+### active plugin snapshot
+GET http://localhost:9095/plugin/snapshot/active
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ5NTg4NjYwfQ.SLXVlPz1l4TaARJF7PGbuaeMb4lDQopg4biU9e7XL1w
