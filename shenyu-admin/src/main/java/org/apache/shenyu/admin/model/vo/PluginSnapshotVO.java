@@ -100,7 +100,6 @@ public class PluginSnapshotVO {
         this.selectorCount = selectorCount;
     }
     
-    
     @Override
     public String toString() {
         return "PluginSnapshotVO{" +
