@@ -66,6 +66,7 @@ public class WebSocketPluginConfiguration {
      * Reactor netty web socket client reactor netty web socket client.
      *
      * @param shenyuConfig the shenyu config
+     * @param httpClient   the http client
      * @return the reactor netty web socket client
      */
     @Bean
@@ -75,7 +76,7 @@ public class WebSocketPluginConfiguration {
         webSocketClient.setMaxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
         return webSocketClient;
     }
-    
+
     /**
      * Web socket service web socket service.
      *
@@ -85,7 +86,7 @@ public class WebSocketPluginConfiguration {
     public WebSocketService webSocketService() {
         return new HandshakeWebSocketService();
     }
-    
+
     /**
      * Web socket shenyu context decorator shenyu context decorator.
      *
