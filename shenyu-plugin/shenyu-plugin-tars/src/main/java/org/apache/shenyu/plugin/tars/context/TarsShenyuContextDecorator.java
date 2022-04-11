@@ -31,7 +31,6 @@ public class TarsShenyuContextDecorator implements ShenyuContextDecorator {
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         shenyuContext.setModule(metaData.getAppName());
         shenyuContext.setMethod(metaData.getServiceName());
-        shenyuContext.setRpcType(metaData.getRpcType());
         shenyuContext.setContextPath(metaData.getContextPath());
         shenyuContext.setRpcType(RpcTypeEnum.TARS.getName());
         return shenyuContext;
