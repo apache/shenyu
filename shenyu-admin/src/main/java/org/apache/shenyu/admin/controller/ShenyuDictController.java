@@ -84,7 +84,6 @@ public class ShenyuDictController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all/{type}")
-    @RequiresPermissions("system:dict:list")
     public ShenyuAdminResult findByType(@PathVariable("type") final String type) {
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, shenyuDictService.list(type));
     }

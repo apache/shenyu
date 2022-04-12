@@ -76,7 +76,6 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
@@ -90,7 +89,6 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all")
-    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
@@ -195,7 +193,6 @@ public class PluginController {
      * @return the mono
      */
     @PutMapping("/syncPluginData/{id}")
-    @RequiresPermissions("system:plugin:modify")
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
