@@ -47,10 +47,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -134,8 +132,7 @@ public final class MetaDataServiceTest {
     @Test
     public void testEnabled() {
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
-        Set<String> idSet = new HashSet<>(ids);
-        when(metaDataMapper.selectByIdSet(idSet))
+        when(metaDataMapper.selectByIdList(ids))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
         String msg = metaDataService.enabled(ids, true);
@@ -285,9 +282,8 @@ public final class MetaDataServiceTest {
      */
     private void testDeleteForNotEmptyIds() {
         List<String> ids = Lists.newArrayList("id1", "id1", "id3");
-        Set<String> idSet = new HashSet<>(ids);
-        when(metaDataMapper.selectByIdSet(idSet)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
-        when(metaDataMapper.deleteByIdSet(idSet)).thenReturn(2);
+        when(metaDataMapper.selectByIdList(ids)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+        when(metaDataMapper.deleteByIdList(ids)).thenReturn(2);
         int count = metaDataService.delete(ids);
         Assertions.assertEquals(2, count,
                 "The count of delete should be 2.");

@@ -49,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -131,41 +130,33 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        
-        int count = 0;
-        Set<String> idSet = Optional.ofNullable(ids).orElseGet(ArrayList::new)
-                .stream().filter(StringUtils::isNotEmpty).collect(Collectors.toSet());
-        if (CollectionUtils.isNotEmpty(idSet)) {
-            List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdSet(idSet);
-            List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(ArrayList::new)
-                    .stream().map(MetaDataTransfer.INSTANCE::mapToData).collect(Collectors.toList());
-            
-            count = metaDataMapper.deleteByIdSet(idSet);
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
+        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdList(ids);
+        if (CollectionUtils.isEmpty(metaDataDoList)) {
+            return 0;
         }
-        
+        int count;
+        List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(ArrayList::new)
+                .stream().map(MetaDataTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+            
+        count = metaDataMapper.deleteByIdList(ids);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
+
         return count;
     }
     
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-        
-        Set<String> idSet = Optional.ofNullable(ids).orElseGet(ArrayList::new)
-                .stream().filter(StringUtils::isNotEmpty).collect(Collectors.toSet());
-        if (CollectionUtils.isEmpty(idSet)) {
-            return AdminConstants.ID_NOT_EXIST;
-        }
-        List<MetaDataDO> metaDataDoList = Optional.ofNullable(metaDataMapper.selectByIdSet(idSet)).orElseGet(ArrayList::new);
-        if (idSet.size() != metaDataDoList.size()) {
+        List<MetaDataDO> metaDataDoList = Optional.ofNullable(metaDataMapper.selectByIdList(ids)).orElseGet(ArrayList::new);
+        if (CollectionUtils.isEmpty(metaDataDoList)) {
             return AdminConstants.ID_NOT_EXIST;
         }
         List<MetaData> metaDataList = metaDataDoList.stream()
-                .map(MetaDataTransfer.INSTANCE::mapToData)
-                .collect(Collectors.toList());
-        metaDataMapper.updateEnableBatch(idSet, enabled);
+            .map(metaDataDo -> MetaDataTransfer.INSTANCE.mapToDataEnabled(metaDataDo, enabled))
+            .collect(Collectors.toList());
+        metaDataMapper.updateEnableBatch(ids, enabled);
         
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
-                metaDataList));
+            metaDataList));
         
         return StringUtils.EMPTY;
     }

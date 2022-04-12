@@ -179,4 +179,27 @@ public enum MetaDataTransfer {
                 .map(v -> v.stream().map(this::mapToVO).collect(Collectors.toList()))
                 .orElse(null);
     }
+
+    /**
+     * Map to data meta data.
+     *
+     * @param metaDataDO the meta data dto
+     * @param enabled    the enabled
+     * @return the meta data
+     */
+    public MetaData mapToDataEnabled(final MetaDataDO metaDataDO, final Boolean enabled) {
+        return Optional.ofNullable(metaDataDO)
+                .map(v -> MetaData.builder()
+                        .id(v.getId())
+                        .appName(v.getAppName())
+                        .path(v.getPath())
+                        .rpcType(v.getRpcType())
+                        .serviceName(v.getServiceName())
+                        .methodName(v.getMethodName())
+                        .parameterTypes(v.getParameterTypes())
+                        .rpcExt(v.getRpcExt())
+                        .enabled(enabled)
+                        .build())
+                .orElse(null);
+    }
 }
