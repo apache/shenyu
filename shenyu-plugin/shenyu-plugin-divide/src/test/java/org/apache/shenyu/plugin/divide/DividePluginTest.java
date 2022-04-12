@@ -87,6 +87,8 @@ public final class DividePluginTest {
         this.divideUpstreamList = Stream.of(3)
                 .map(weight -> DivideUpstream.builder()
                         .upstreamUrl("mock-" + weight)
+                        .status(true)
+                        .weight(weight)
                         .build())
                 .collect(Collectors.toList());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
