@@ -132,12 +132,11 @@ public final class MetaDataServiceTest {
     @Test
     public void testEnabled() {
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
+        String msg = metaDataService.enabled(ids, true);
+        assertEquals(AdminConstants.ID_NOT_EXIST, msg);
         when(metaDataMapper.selectByIdList(ids))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
-        String msg = metaDataService.enabled(ids, true);
-        assertEquals(AdminConstants.ID_NOT_EXIST, msg);
-
         msg = metaDataService.enabled(ids, false);
         assertEquals(StringUtils.EMPTY, msg);
     }
@@ -282,9 +281,11 @@ public final class MetaDataServiceTest {
      */
     private void testDeleteForNotEmptyIds() {
         List<String> ids = Lists.newArrayList("id1", "id1", "id3");
+        int count = metaDataService.delete(ids);
+        Assertions.assertEquals(0, count, "The count of delete should be 0.");
         when(metaDataMapper.selectByIdList(ids)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
         when(metaDataMapper.deleteByIdList(ids)).thenReturn(2);
-        int count = metaDataService.delete(ids);
+        count = metaDataService.delete(ids);
         Assertions.assertEquals(2, count,
                 "The count of delete should be 2.");
     }
