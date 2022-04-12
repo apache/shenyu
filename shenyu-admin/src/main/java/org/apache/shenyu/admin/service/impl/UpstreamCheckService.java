@@ -144,6 +144,9 @@ public class UpstreamCheckService {
             this.fetchUpstreamData();
             executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
             scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+        } else {
+            // fix when shenyu.register.props.checked = false, divide plugin selector handle is null
+            executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
         }
     }
 
