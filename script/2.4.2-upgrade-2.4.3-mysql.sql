@@ -105,13 +105,3 @@ INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_va
 -- alert plugin_handle id properties
 ALTER TABLE plugin_handle MODIFY COLUMN id VARCHAR(128) NOT NULL COMMENT 'primary key id';
 ALTER TABLE shenyu_dict MODIFY COLUMN id VARCHAR(128) NOT NULL COMMENT 'primary key id';
-
--- Note: it doesn't matter if you don't execute this SQL
--- Note: because most users have changed ZK configuration, this SQL is annotated to prevent erroneous execution
--- UPDATE plugin SET config='{"register":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0}' WHERE `name` = 'motan';
--- if you want to execute this SQL, please replace it with your ZK configuration
-
--- insert plugin_handle data for motan
-INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('1510270286164094976', '17', 'corethreads', 'corethreads', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}');
-INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('1510270476329644032', '17', 'threads', 'threads', 1, 3, 0, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}');
-INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`) VALUES ('1510270555383885824', '17', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}');
