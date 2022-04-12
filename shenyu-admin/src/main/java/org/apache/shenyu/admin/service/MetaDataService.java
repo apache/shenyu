@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -49,25 +48,7 @@ public interface MetaDataService {
      * @param metaDataDTO the meta data dto
      * @return the String
      */
-    default String createOrUpdate(MetaDataDTO metaDataDTO) {
-        return StringUtils.isBlank(metaDataDTO.getId()) ? create(metaDataDTO) : update(metaDataDTO);
-    }
-    
-    /**
-     * Create.
-     *
-     * @param metaDataDTO the meta data dto
-     * @return the String
-     */
-    String create(MetaDataDTO metaDataDTO);
-    
-    /**
-     * update.
-     *
-     * @param metaDataDTO the meta data dto
-     * @return the String
-     */
-    String update(MetaDataDTO metaDataDTO);
+   String createOrUpdate(MetaDataDTO metaDataDTO);
     
     /**
      * delete application authorities.
