@@ -15,33 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
+package org.apache.shenyu.common.utils;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.junit.jupiter.api.Test;
 
-/**
- * The type Path utils.
- */
-public final class PathUtils {
-    
-    /**
-     * Decorator path string.
-     *
-     * @param contextPath the context path
-     * @return the string
-     */
-    public static String decoratorPath(final String contextPath) {
-        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? contextPath : contextPath + AdminConstants.URI_SUFFIX;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+public class PathUtilsTest {
+    private static final String URI_WRAPPER = "springCloud/test/**";
+
+    private static final String URI = "springCloud/test";
+
+    @Test
+    public void testDecoratorPath() {
+        String uri = PathUtils.decoratorPath(URI);
+        assertThat(uri, is(URI + AdminConstants.URI_SUFFIX));
+
+        uri = PathUtils.decoratorPath(URI_WRAPPER);
+        assertThat(uri, is(URI + AdminConstants.URI_SUFFIX));
     }
-    
-    /**
-     * Decorator context path string.
-     *
-     * @param contextPath the context path
-     * @return the string
-     */
-    public static String decoratorContextPath(final String contextPath) {
-        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? StringUtils.substringBefore(contextPath, AdminConstants.URI_SUFFIX) : contextPath;
+
+    @Test
+    public void decoratorContextPath() {
+        String uri = PathUtils.decoratorContextPath(URI);
+        assertThat(uri, is(URI));
+
+        uri = PathUtils.decoratorContextPath(URI_WRAPPER);
+        assertThat(uri, is(URI));
     }
 }

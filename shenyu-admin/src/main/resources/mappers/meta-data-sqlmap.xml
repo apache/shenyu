@@ -183,8 +183,7 @@
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         UPDATE meta_data
-           SET 
-                enabled = #{enabled,jdbcType=TINYINT}
+           SET enabled = #{enabled,jdbcType=TINYINT}
          WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
@@ -199,15 +198,14 @@
 
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM meta_data
-         WHERE id = #{id,jdbcType=VARCHAR}
+              WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIdList" parameterType="java.lang.String">
         DELETE FROM meta_data
-         WHERE id IN
-                <foreach collection="idList" item="id" index="index" open="(" separator="," close=")">
-                    #{id,jdbcType=VARCHAR}
-                </foreach>
+              WHERE id
+                 IN <foreach collection="idList" item="id" index="index" open="(" separator="," close=")">
+                      #{id,jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 </mapper>
-
