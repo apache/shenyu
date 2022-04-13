@@ -44,7 +44,7 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM plugin
-         WHERE id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
@@ -61,7 +61,7 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM plugin
-         WHERE name = #{name,jdbcType=VARCHAR}
+         WHERE name = #{name, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByNames" parameterType="java.util.List" resultMap="BaseResultMap">
@@ -70,7 +70,7 @@
           FROM plugin
          WHERE name IN
         <foreach item="name" collection="list" open="(" separator="," close=")">
-            #{name,jdbcType=VARCHAR}
+            #{name, jdbcType=VARCHAR}
         </foreach>
     </select>
 
@@ -82,13 +82,13 @@
         <where>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
-                AND name LIKE #{nameLike,jdbcType=VARCHAR}
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="enabled != null">
-                AND enabled = #{enabled,jdbcType=TINYINT}
+                AND enabled = #{enabled, jdbcType=TINYINT}
             </if>
         </where>
-        ORDER BY sort ASC
+      ORDER BY sort ASC
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
@@ -97,10 +97,10 @@
           FROM plugin
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name,jdbcType=VARCHAR}
+                AND name = #{name, jdbcType=VARCHAR}
             </if>
             <if test="enabled != null">
-                AND enabled = #{enabled,jdbcType=TINYINT}
+                AND enabled = #{enabled, jdbcType=TINYINT}
             </if>
         </where>
     </select>
@@ -116,7 +116,8 @@
                <include refid="Base_Column_List"/>
           FROM plugin
          WHERE name NOT IN
-            (SELECT title FROM resource)
+               (SELECT title
+                  FROM resource)
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -140,7 +141,7 @@
                  open="(" separator="," close=")">
             #{id}
         </foreach>
-        LIMIT 1
+         LIMIT 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -153,14 +154,14 @@
                     role,
                     sort,
                     enabled)
-             VALUES (#{id,jdbcType=VARCHAR},
-                    #{dateCreated,jdbcType=TIMESTAMP},
-                    #{dateUpdated,jdbcType=TIMESTAMP},
-                    #{name,jdbcType=VARCHAR},
-                    #{config,jdbcType=VARCHAR},
-                    #{role,jdbcType=VARCHAR},
-                    #{sort,jdbcType=INTEGER},
-                    #{enabled,jdbcType=TINYINT})
+             VALUES (#{id, jdbcType=VARCHAR},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP},
+                    #{name, jdbcType=VARCHAR},
+                    #{config, jdbcType=VARCHAR},
+                    #{role, jdbcType=VARCHAR},
+                    #{sort, jdbcType=INTEGER},
+                    #{enabled, jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -190,56 +191,56 @@
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            #{id,jdbcType=VARCHAR},
+            #{id, jdbcType=VARCHAR},
             <if test="dateCreated != null">
-                #{dateCreated,jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                #{dateUpdated,jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="name != null">
-                #{name,jdbcType=VARCHAR},
+                #{name, jdbcType=VARCHAR},
             </if>
             <if test="config != null">
-                #{config,jdbcType=VARCHAR},
+                #{config, jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                #{role,jdbcType=VARCHAR},
+                #{role, jdbcType=VARCHAR},
             </if>
             <if test="sort != null">
-                #{sort,jdbcType=INTEGER},
+                #{sort, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                #{enabled,jdbcType=TINYINT},
+                #{enabled, jdbcType=TINYINT},
             </if>
         </trim>
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         UPDATE plugin
-           SET date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-               name = #{name,jdbcType=VARCHAR},
-               config = #{config,jdbcType=VARCHAR},
-               role = #{role,jdbcType=VARCHAR},
-               sort = #{sort,jdbcType=INTEGER},
-               enabled = #{enabled,jdbcType=TINYINT}
-         WHERE id = #{id,jdbcType=VARCHAR}
+           SET date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+               name = #{name, jdbcType=VARCHAR},
+               config = #{config, jdbcType=VARCHAR},
+               role = #{role, jdbcType=VARCHAR},
+               sort = #{sort, jdbcType=INTEGER},
+               enabled = #{enabled, jdbcType=TINYINT}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         UPDATE plugin
-           SET date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-               enabled = #{enabled,jdbcType=TINYINT}
-         WHERE id = #{id,jdbcType=VARCHAR}
+           SET date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+               enabled = #{enabled, jdbcType=TINYINT}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnableByIdSet">
         UPDATE plugin
-           SET enabled = #{enabled,jdbcType=TINYINT}
+           SET enabled = #{enabled, jdbcType=TINYINT}
          WHERE id IN
         <foreach collection="idSet" item="id" index="index"
                  open="(" separator="," close=")">
-            #{id,jdbcType=VARCHAR}
+            #{id, jdbcType=VARCHAR}
         </foreach>
     </update>
 
@@ -247,33 +248,33 @@
         UPDATE plugin
         <set>
             <if test="dateCreated != null">
-                date_created = #{dateCreated,jdbcType=TIMESTAMP},
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="name != null">
-                name = #{name,jdbcType=VARCHAR},
+                name = #{name, jdbcType=VARCHAR},
             </if>
             <if test="config != null">
-                config = #{config,jdbcType=VARCHAR},
+                config = #{config, jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                role = #{role,jdbcType=VARCHAR},
+                role = #{role, jdbcType=VARCHAR},
             </if>
             <if test="sort != null">
-                sort = #{sort,jdbcType=INTEGER},
+                sort = #{sort, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                enabled = #{enabled,jdbcType=TINYINT},
+                enabled = #{enabled, jdbcType=TINYINT},
             </if>
         </set>
-        WHERE id = #{id,jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM plugin
-              WHERE id = #{id,jdbcType=VARCHAR}
+              WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIds" parameterType="java.util.List">

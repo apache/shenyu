@@ -43,7 +43,7 @@
 
     <select id="findByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
-              <include refid="Base_Column_List"/>
+               <include refid="Base_Column_List"/>
           FROM user_role
          WHERE user_id = #{userId, jdbcType=VARCHAR}
     </select>
