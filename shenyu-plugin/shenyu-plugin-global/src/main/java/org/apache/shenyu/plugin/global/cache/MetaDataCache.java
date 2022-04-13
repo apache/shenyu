@@ -22,23 +22,32 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.PathMatchUtils;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * The type Meta data cache.
  */
 public final class MetaDataCache {
-    
+
+    private static final MetaData NULL = new MetaData();
+
     private static final MetaDataCache INSTANCE = new MetaDataCache();
-    
+
     /**
      * path -> MetaData.
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
-    
+
+    /**
+     * pathPattern -> path
+     */
+    private static final ConcurrentMap<String, Set<String>> MAPPING = Maps.newConcurrentMap();
+
     private MetaDataCache() {
     }
-    
+
     /**
      * Gets instance.
      *
@@ -47,7 +56,7 @@ public final class MetaDataCache {
     public static MetaDataCache getInstance() {
         return INSTANCE;
     }
-    
+
     /**
      * Cache auth data.
      *
@@ -55,8 +64,12 @@ public final class MetaDataCache {
      */
     public void cache(final MetaData data) {
         META_DATA_MAP.put(data.getPath(), data);
+        // the update is also need to clean, but there is
+        // no way to distinguish between crate and update,
+        // so it is always clean
+        clean(data.getPath());
     }
-    
+
     /**
      * Remove auth data.
      *
@@ -64,8 +77,19 @@ public final class MetaDataCache {
      */
     public void remove(final MetaData data) {
         META_DATA_MAP.remove(data.getPath());
+        clean(data.getPath());
     }
-    
+
+    private void clean(final String key) {
+        //only clean springCloud
+        Optional.ofNullable(MAPPING.get(key))
+                .ifPresent(paths -> {
+                    for (String path : paths) {
+                        META_DATA_MAP.remove(path);
+                    }
+                });
+    }
+
     /**
      * Obtain auth data meta data.
      *
@@ -73,11 +97,27 @@ public final class MetaDataCache {
      * @return the meta data
      */
     public MetaData obtain(final String path) {
-        return Optional.ofNullable(META_DATA_MAP.get(path))
-                .orElseGet(() -> META_DATA_MAP.get(META_DATA_MAP.keySet()
-                        .stream()
-                        .filter(k -> PathMatchUtils.match(k, path))
-                        .findFirst()
-                        .orElse("")));
+        final MetaData metaData = Optional.ofNullable(META_DATA_MAP.get(path))
+                .orElseGet(() -> {
+                    final String key = META_DATA_MAP.keySet()
+                            .stream()
+                            .filter(k -> PathMatchUtils.match(k, path))
+                            .findFirst()
+                            .orElse("");
+                    final MetaData value = META_DATA_MAP.get(key);
+                    //fixme The extreme case will lead to OOM,
+                    //fixme is there need to use LRU ?
+                    META_DATA_MAP.put(path, (null == value ? NULL : value));
+
+                    Set<String> paths = MAPPING.get(key);
+                    if (null == paths) {
+                        MAPPING.putIfAbsent(key, new ConcurrentSkipListSet<>());
+                        paths = MAPPING.get(key);
+                    }
+                    paths.add(path);
+
+                    return value;
+                });
+        return NULL.equals(metaData) ? null : metaData;
     }
 }
