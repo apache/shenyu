@@ -37,7 +37,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
@@ -68,6 +67,7 @@ public class RequestPlugin extends AbstractShenyuPlugin {
                                 .getURI())
                                 .replaceQueryParams(getQueryParams(request, requestHandle))
                                 .build()
+                                .encode()
                                 .toUri()
                         ).headers(httpHeaders -> setHeaders(httpHeaders, request, requestHandle))
                 ).build();
