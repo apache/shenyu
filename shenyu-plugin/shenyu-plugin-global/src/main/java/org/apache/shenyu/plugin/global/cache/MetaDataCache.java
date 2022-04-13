@@ -41,7 +41,7 @@ public final class MetaDataCache {
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
     /**
-     * pathPattern -> path
+     * pathPattern -> path.
      */
     private static final ConcurrentMap<String, Set<String>> MAPPING = Maps.newConcurrentMap();
 
@@ -105,8 +105,7 @@ public final class MetaDataCache {
                             .findFirst()
                             .orElse("");
                     final MetaData value = META_DATA_MAP.get(key);
-                    //fixme The extreme case will lead to OOM,
-                    //fixme is there need to use LRU ?
+                    //fixme The extreme case will lead to OOM, is there need to use LRU ?
                     META_DATA_MAP.put(path, (null == value ? NULL : value));
 
                     Set<String> paths = MAPPING.get(key);
