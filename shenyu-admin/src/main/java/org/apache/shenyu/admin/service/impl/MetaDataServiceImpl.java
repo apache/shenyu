@@ -151,8 +151,10 @@ public class MetaDataServiceImpl implements MetaDataService {
             return AdminConstants.ID_NOT_EXIST;
         }
         List<MetaData> metaDataList = metaDataDoList.stream()
-            .map(metaDataDo -> MetaDataTransfer.INSTANCE.mapToDataEnabled(metaDataDo, enabled))
-            .collect(Collectors.toList());
+            .map(metaDataDo -> {
+                metaDataDo.setEnabled(enabled);
+                return MetaDataTransfer.INSTANCE.mapToData(metaDataDo);
+            }).collect(Collectors.toList());
         metaDataMapper.updateEnableBatch(ids, enabled);
         
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
