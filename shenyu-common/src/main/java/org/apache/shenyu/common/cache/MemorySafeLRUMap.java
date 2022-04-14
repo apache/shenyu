@@ -28,6 +28,8 @@ import java.util.Map;
  */
 public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
 
+    private static final int THE_256_MB = 256 * 1024 * 1024;
+
     public MemorySafeLRUMap(final int initialSize) {
         super(Integer.MAX_VALUE, initialSize);
     }
@@ -40,17 +42,17 @@ public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
         super(Integer.MAX_VALUE, initialSize, loadFactor, scanUntilRemovable);
     }
 
-    public MemorySafeLRUMap(Map<? extends K, ? extends V> map) {
+    public MemorySafeLRUMap(final Map<? extends K, ? extends V> map) {
         super(map);
     }
 
-    public MemorySafeLRUMap(Map<? extends K, ? extends V> map, boolean scanUntilRemovable) {
+    public MemorySafeLRUMap(final Map<? extends K, ? extends V> map, final boolean scanUntilRemovable) {
         super(map, scanUntilRemovable);
     }
 
     @Override
     public boolean isFull() {
         // when free memory less than 256MB, consider it's full
-        return MemoryLimitCalculator.maxAvailable() < 256 * 1024 * 1024;
+        return MemoryLimitCalculator.maxAvailable() < THE_256_MB;
     }
 }
