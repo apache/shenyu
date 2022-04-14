@@ -44,7 +44,7 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
-    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(1 << 16, THE_256_MB);
+    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(THE_256_MB, 1 << 16);
 
     /**
      * pathPattern -> path.
