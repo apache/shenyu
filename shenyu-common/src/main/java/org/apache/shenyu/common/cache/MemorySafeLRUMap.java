@@ -28,31 +28,45 @@ import java.util.Map;
  */
 public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
 
-    private static final int THE_256_MB = 256 * 1024 * 1024;
+    private final int freeMemory;
 
-    public MemorySafeLRUMap(final int initialSize) {
+    public MemorySafeLRUMap(final int freeMemory,
+                            final int initialSize) {
         super(MAXIMUM_CAPACITY, initialSize);
+        this.freeMemory = freeMemory;
     }
 
-    public MemorySafeLRUMap(final int initialSize, final float loadFactor) {
+    public MemorySafeLRUMap(final int freeMemory,
+                            final int initialSize,
+                            final float loadFactor) {
         super(MAXIMUM_CAPACITY, initialSize, loadFactor);
+        this.freeMemory = freeMemory;
     }
 
-    public MemorySafeLRUMap(final int initialSize, final float loadFactor, final boolean scanUntilRemovable) {
+    public MemorySafeLRUMap(final int freeMemory,
+                            final int initialSize,
+                            final float loadFactor,
+                            final boolean scanUntilRemovable) {
         super(MAXIMUM_CAPACITY, initialSize, loadFactor, scanUntilRemovable);
+        this.freeMemory = freeMemory;
     }
 
-    public MemorySafeLRUMap(final Map<? extends K, ? extends V> map) {
+    public MemorySafeLRUMap(final int freeMemory,
+                            final Map<? extends K, ? extends V> map) {
         super(map);
+        this.freeMemory = freeMemory;
     }
 
-    public MemorySafeLRUMap(final Map<? extends K, ? extends V> map, final boolean scanUntilRemovable) {
+    public MemorySafeLRUMap(final int freeMemory,
+                            final Map<? extends K, ? extends V> map,
+                            final boolean scanUntilRemovable) {
         super(map, scanUntilRemovable);
+        this.freeMemory = freeMemory;
     }
 
     @Override
     public boolean isFull() {
         // when free memory less than 256MB, consider it's full
-        return size() > 0 && MemoryLimitCalculator.maxAvailable() < THE_256_MB;
+        return size() > 0 && MemoryLimitCalculator.maxAvailable() < freeMemory;
     }
 }

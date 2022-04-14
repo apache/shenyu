@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public final class MetaDataCache {
 
+    private static final int THE_256_MB = 256 * 1024 * 1024;
+
     private static final MetaData NULL = new MetaData();
 
     private static final MetaDataCache INSTANCE = new MetaDataCache();
@@ -42,7 +44,7 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
-    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(1 << 16);
+    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(1 << 16, THE_256_MB);
 
     /**
      * pathPattern -> path.

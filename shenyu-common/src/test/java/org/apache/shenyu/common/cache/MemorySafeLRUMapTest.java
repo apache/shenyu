@@ -27,17 +27,36 @@ import java.util.Map;
  */
 public class MemorySafeLRUMapTest {
     @Test
-    public void test() throws Exception {
-        MemorySafeLRUMap<String, String> lru = new MemorySafeLRUMap<>(1 << 10);
+    public void testPut() {
+        MemorySafeLRUMap<String, String> lru = new MemorySafeLRUMap<>(1 << 10, 16);
         lru.put("1", "1");
         Assert.assertEquals(1, lru.size());
         lru.put("2", "2");
         lru.put("3", "3");
+        Assert.assertEquals(3, lru.size());
+    }
+
+    @Test
+    public void testLru() {
+        MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<Integer, Integer>(1, 1024){
+
+            private static final long serialVersionUID = 8897028073615563875L;
+
+            @Override
+            public boolean isFull() {
+                //just for test
+                return size() > 0;
+            }
+        };
+        lru.put(1, 1);
         Assert.assertEquals(1, lru.size());
-        final Map.Entry<String, String> entry = lru.entrySet().iterator().next();
-        final String key = entry.getKey();
-        final String value = entry.getValue();
-        Assert.assertEquals("3", key);
-        Assert.assertEquals("3", value);
+        lru.put(2, 2);
+        lru.put(3, 3);
+        Assert.assertEquals(1, lru.size());
+        final Map.Entry<Integer, Integer> entry = lru.entrySet().iterator().next();
+        final Integer key = entry.getKey();
+        final Integer value = entry.getValue();
+        Assert.assertEquals(3, (int) key);
+        Assert.assertEquals(3, (int) value);
     }
 }
