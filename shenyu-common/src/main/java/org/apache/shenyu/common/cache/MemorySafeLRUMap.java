@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * The only difference between this class and {@link org.apache.commons.collections4.map.LRUMap}
- * is that it handles memory issues via {@link org.apache.shenyu.common.concurrent.MemoryLimiter}.
+ * is that it handles memory issues via {@link org.apache.shenyu.common.concurrent.MemoryLimitCalculator}.
  */
 public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
 
