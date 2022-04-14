@@ -18,9 +18,11 @@
 package org.apache.shenyu.plugin.global.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.shenyu.common.cache.MemorySafeLRUMap;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.PathMatchUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -40,8 +42,10 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
+    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(1 << 16);
+
     /**
-     * pathPattern -> path
+     * pathPattern -> path.
      */
     private static final ConcurrentMap<String, Set<String>> MAPPING = Maps.newConcurrentMap();
 
@@ -85,7 +89,7 @@ public final class MetaDataCache {
         Optional.ofNullable(MAPPING.get(key))
                 .ifPresent(paths -> {
                     for (String path : paths) {
-                        META_DATA_MAP.remove(path);
+                        CACHE.remove(path);
                     }
                 });
     }
@@ -99,18 +103,22 @@ public final class MetaDataCache {
     public MetaData obtain(final String path) {
         final MetaData metaData = Optional.ofNullable(META_DATA_MAP.get(path))
                 .orElseGet(() -> {
+                    final MetaData exist = CACHE.get(path);
+                    if (Objects.nonNull(exist)) {
+                        return exist;
+                    }
+
                     final String key = META_DATA_MAP.keySet()
                             .stream()
                             .filter(k -> PathMatchUtils.match(k, path))
                             .findFirst()
                             .orElse("");
                     final MetaData value = META_DATA_MAP.get(key);
-                    //fixme The extreme case will lead to OOM,
-                    //fixme is there need to use LRU ?
-                    META_DATA_MAP.put(path, (null == value ? NULL : value));
+                    // The extreme case will lead to OOM, that's why use LRU
+                    CACHE.put(path, (null == value ? NULL : value));
 
                     Set<String> paths = MAPPING.get(key);
-                    if (null == paths) {
+                    if (Objects.isNull(paths)) {
                         MAPPING.putIfAbsent(key, new ConcurrentSkipListSet<>());
                         paths = MAPPING.get(key);
                     }
