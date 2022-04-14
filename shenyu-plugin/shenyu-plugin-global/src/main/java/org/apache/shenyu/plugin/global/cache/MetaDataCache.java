@@ -115,7 +115,7 @@ public final class MetaDataCache {
                             .orElse("");
                     final MetaData value = META_DATA_MAP.get(key);
                     // The extreme case will lead to OOM, that's why use LRU
-                    CACHE.put(path, (null == value ? NULL : value));
+                    CACHE.put(path, null == value ? NULL : value);
 
                     Set<String> paths = MAPPING.get(key);
                     if (Objects.isNull(paths)) {
