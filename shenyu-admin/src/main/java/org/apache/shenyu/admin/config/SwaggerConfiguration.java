@@ -17,15 +17,21 @@
 
 package org.apache.shenyu.admin.config;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
+import springfox.documentation.service.Parameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -36,13 +42,31 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfiguration {
-    
+
+    private static final String DEFAULT_SWAGGER_API_VERSION = "2.3.0";
+
+    private static final String TITLE = "ShenYu Admin API Document";
+
+    private static final String DESCRIPTION = "ShenYu Admin API";
+
+    private static final String CONTACT_NAME = "ShenYu";
+
+    private static final String CONTACT_URL = "https://github.com/apache/incubator-shenyu";
+
+    private static final String CONTACT_EMAIL = "dev@shenyu.apache.org";
+
+    private static final String TOKEN_DESCRIPTION = "user auth";
+
+    private static final String TOKEN_MODEL_REF_TYPE = "string";
+
+    private static final String TOKEN_PARAMETER_TYPE = "header";
+
     @Value("${shenyu.swagger.enable:false}")
     private boolean enable;
-    
+
     public SwaggerConfiguration() {
     }
-    
+
     /**
      * Configure The Docket with Swagger.
      *
@@ -50,15 +74,27 @@ public class SwaggerConfiguration {
      */
     @Bean
     public Docket createRestApi() {
+        ParameterBuilder commonParam = new ParameterBuilder();
+
+        // X-Access-Token
+        List<Parameter> pars = new ArrayList<>();
+        commonParam.name(Constants.X_ACCESS_TOKEN)
+            .description(TOKEN_DESCRIPTION)
+            .modelRef(new ModelRef(TOKEN_MODEL_REF_TYPE))
+            .parameterType(TOKEN_PARAMETER_TYPE)
+            .required(false);
+        pars.add(commonParam.build());
+
         return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(this.apiInfo())
-                .enable(enable)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("org.apache.shenyu.admin.controller"))
-                .paths(PathSelectors.any())
-                .build();
+            .apiInfo(this.apiInfo())
+            .enable(enable)
+            .globalOperationParameters(pars)
+            .select()
+            .apis(RequestHandlerSelectors.basePackage("org.apache.shenyu.admin.controller"))
+            .paths(PathSelectors.any())
+            .build();
     }
-    
+
     /**
      * Fetch version information from pom.xml and set title, version, description,
      * contact for Swagger API document.
@@ -67,10 +103,9 @@ public class SwaggerConfiguration {
      */
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("Shenyu Admin API Document")
-                .description("")
-                .version(VersionUtils.getVersion(getClass(), "2.3.0"))
-                .contact(new Contact("shenyu", "https://github.com/apache/incubator-shenyu", ""))
-                .build();
+            .title(TITLE).description(DESCRIPTION)
+            .version(VersionUtils.getVersion(getClass(), DEFAULT_SWAGGER_API_VERSION))
+            .contact(new Contact(CONTACT_NAME, CONTACT_URL, CONTACT_EMAIL))
+            .build();
     }
 }
