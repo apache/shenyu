@@ -66,7 +66,7 @@ public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
 
     @Override
     public boolean isFull() {
-        // when free memory less than 256MB, consider it's full
+        // when free memory less than certain value, consider it's full
         return size() > 0 && MemoryLimitCalculator.maxAvailable() < maxFreeMemory;
     }
 }
