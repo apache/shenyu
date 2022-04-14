@@ -38,7 +38,7 @@ public class MemorySafeLRUMapTest {
 
     @Test
     public void testLru() {
-        MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<Integer, Integer>(1, 1024){
+        MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<Integer, Integer>(1, 1024) {
 
             private static final long serialVersionUID = 8897028073615563875L;
 
