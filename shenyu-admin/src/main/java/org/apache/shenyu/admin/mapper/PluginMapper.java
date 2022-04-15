@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -186,4 +187,11 @@ public interface PluginMapper extends ExistProvider {
      * @return existed
      */
     Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude);
+    
+    /**
+     * active plugin snapshot.
+     *
+     * @return plugin list
+     */
+    List<PluginSnapshotVO> activePluginSnapshot();
 }
