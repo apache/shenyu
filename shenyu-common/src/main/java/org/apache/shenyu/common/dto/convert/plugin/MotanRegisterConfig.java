@@ -25,7 +25,15 @@ import java.util.Objects;
  */
 public class MotanRegisterConfig implements Serializable {
 
+    private static final long serialVersionUID = 2488053756247710408L;
+
     private String register;
+
+    private Integer corethreads;
+
+    private Integer threads;
+
+    private Integer queues;
 
     /**
      * get register.
@@ -45,6 +53,60 @@ public class MotanRegisterConfig implements Serializable {
         this.register = register;
     }
 
+    /**
+     * get corethreads.
+     *
+     * @return corethreads
+     */
+    public Integer getCorethreads() {
+        return corethreads;
+    }
+
+    /**
+     * set corethreads.
+     *
+     * @param corethreads corethreads
+     */
+    public void setCorethreads(final Integer corethreads) {
+        this.corethreads = corethreads;
+    }
+
+    /**
+     * get threads.
+     *
+     * @return threads
+     */
+    public Integer getThreads() {
+        return threads;
+    }
+
+    /**
+     * set threads.
+     *
+     * @param threads threads
+     */
+    public void setThreads(final Integer threads) {
+        this.threads = threads;
+    }
+
+    /**
+     * get queues.
+     *
+     * @return queues
+     */
+    public Integer getQueues() {
+        return queues;
+    }
+
+    /**
+     * set queues.
+     *
+     * @param queues queues
+     */
+    public void setQueues(final Integer queues) {
+        this.queues = queues;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -54,12 +116,13 @@ public class MotanRegisterConfig implements Serializable {
             return false;
         }
         MotanRegisterConfig that = (MotanRegisterConfig) o;
-        return Objects.equals(register, that.register);
+        return Objects.equals(register, that.register) && Objects.equals(corethreads, that.corethreads)
+                && Objects.equals(threads, that.threads) && Objects.equals(queues, that.queues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(register);
+        return Objects.hash(register, corethreads, threads, queues);
     }
 
     @Override
@@ -67,6 +130,15 @@ public class MotanRegisterConfig implements Serializable {
         return "MotanRegisterConfig{"
                 + "register='"
                 + register
+                + '\''
+                + ", corethreads='"
+                + corethreads
+                + '\''
+                + ", threads='"
+                + threads
+                + '\''
+                + ", queues='"
+                + queues
                 + '\''
                 + '}';
     }
