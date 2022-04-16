@@ -23,6 +23,7 @@ import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.api.motan.rpc.RpcContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
@@ -31,9 +32,11 @@ import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -102,19 +105,7 @@ public class MotanProxyService {
             return null;
         }
         //CHECKSTYLE:ON IllegalCatch
-        if (Objects.isNull(threadPool)) {
-            MotanRegisterConfig config = Singleton.INST.get(MotanRegisterConfig.class);
-            if (Objects.isNull(config)) {
-                // should not execute to here
-                threadPool = Executors.newCachedThreadPool(factory);
-            } else {
-                int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
-                int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
-                int queueSize = Optional.ofNullable(config.getThreads()).orElse(0);
-                threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
-                        queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
-            }
-        }
+        initThreadPool();
         CompletableFuture<Object> future = CompletableFuture.supplyAsync(responseFuture::getValue, threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
@@ -124,5 +115,38 @@ public class MotanProxyService {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new);
+    }
+
+    private void initThreadPool() {
+        if (Objects.nonNull(threadPool)) {
+            return;
+        }
+        MotanRegisterConfig config = Singleton.INST.get(MotanRegisterConfig.class);
+        if (Objects.isNull(config)) {
+            // should not execute to here
+            threadPool = Executors.newCachedThreadPool(factory);
+            return;
+        }
+        final String threadpool = config.getThreadpool();
+        switch (threadpool) {
+            case Constants.SHARED:
+                try {
+                    threadPool = SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
+                    return;
+                } catch (NoSuchBeanDefinitionException t) {
+                    throw new ShenyuException("shared thread pool is not enable, config ${shenyu.sharedPool.enable} in your xml/yml !", t);
+                }
+            case Constants.FIXED:
+            case Constants.EAGER:
+            case Constants.LIMITED:
+                throw new UnsupportedOperationException();
+            case Constants.CACHED:
+            default:
+                int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
+                int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
+                int queueSize = Optional.ofNullable(config.getThreads()).orElse(0);
+                threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
+                        queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
+        }
     }
 }
