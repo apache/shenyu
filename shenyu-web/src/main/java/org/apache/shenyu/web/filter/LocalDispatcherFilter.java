@@ -18,7 +18,6 @@
 package org.apache.shenyu.web.filter;
 
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.common.utils.ShaUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -36,7 +35,7 @@ import java.util.Objects;
  */
 public class LocalDispatcherFilter implements WebFilter {
     
-    private static final String DISPATCHER_PATH = "/shenyu/**";
+    private static final String DISPATCHER_PATH = "/shenyu/";
 
     private final DispatcherHandler dispatcherHandler;
     
@@ -65,7 +64,7 @@ public class LocalDispatcherFilter implements WebFilter {
     @Nonnull
     public Mono<Void> filter(@Nonnull final ServerWebExchange exchange, @Nonnull final WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        if (PathMatchUtils.match(DISPATCHER_PATH, path)) {
+        if (path.startsWith(DISPATCHER_PATH)) {
             String localKey = exchange.getRequest().getHeaders().getFirst(Constants.LOCAL_KEY);
             if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey)) || Objects.isNull(localKey)) {
                 return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));

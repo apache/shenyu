@@ -152,19 +152,10 @@ public class UpstreamCheckService {
      */
     @PreDestroy
     public void close() {
-        if (Objects.isNull(scheduledFuture)) {
-            return;
+        if (checked) {
+            scheduledFuture.cancel(false);
+            executor.shutdown();
         }
-
-        scheduledFuture.cancel(false);
-        executor.shutdownNow();
-        try {
-            executor.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException ex) {
-            LOG.error("shutdown executor error", ex);
-            Thread.currentThread().interrupt();
-        }
-
     }
 
     /**
@@ -184,11 +175,11 @@ public class UpstreamCheckService {
      * @return whether this module handles
      */
     public boolean submit(final String selectorId, final CommonUpstream commonUpstream) {
-        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType)) {
+        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
             return false;
         }
 
-        List<CommonUpstream> upstreams = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> new CopyOnWriteArrayList());
+        List<CommonUpstream> upstreams = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> new CopyOnWriteArrayList<>());
         if (commonUpstream.isStatus()) {
             Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
                     && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
@@ -284,13 +275,13 @@ public class UpstreamCheckService {
             updateSelectorHandler(selectorId, successList);
         } else {
             UPSTREAM_MAP.remove(selectorId);
-            updateSelectorHandler(selectorId, Collections.EMPTY_LIST);
+            updateSelectorHandler(selectorId, new ArrayList<>());
         }
     }
 
     private void removePendingSync(final List<CommonUpstream> successList) {
-        PENDING_SYNC.removeIf(item -> NumberUtils.INTEGER_ZERO.equals(item));
-        successList.stream().forEach(commonUpstream -> PENDING_SYNC.remove(commonUpstream.hashCode()));
+        PENDING_SYNC.removeIf(NumberUtils.INTEGER_ZERO::equals);
+        successList.forEach(commonUpstream -> PENDING_SYNC.remove(commonUpstream.hashCode()));
     }
 
     private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {

@@ -95,7 +95,7 @@
           FROM resource
          WHERE status = 1
                <if test="title != null">
-                 AND title = #{title,jdbcType=VARCHAR}
+                 AND title = #{title, jdbcType=VARCHAR}
                </if>
     </select>
 
@@ -270,37 +270,37 @@
 
     <insert id = "insertBatch">
         INSERT INTO resource
-        (
-        id,
-        parent_id,
-        title,
-        name,
-        url,
-        component,
-        resource_type,
-        sort,
-        icon,
-        is_leaf,
-        is_route,
-        perms,
-        status
-        )
-        VALUES
+                    (
+                    id,
+                    parent_id,
+                    title,
+                    name,
+                    url,
+                    component,
+                    resource_type,
+                    sort,
+                    icon,
+                    is_leaf,
+                    is_route,
+                    perms,
+                    status
+                    )
+             VALUES
         <foreach collection="resourceDOList" item="resourceDO" separator=",">
             (
-            #{resourceDO.id,jdbcType=VARCHAR},
-            #{resourceDO.parentId,jdbcType=VARCHAR},
-            #{resourceDO.title,jdbcType=VARCHAR},
-            #{resourceDO.name,jdbcType=VARCHAR},
-            #{resourceDO.url,jdbcType=VARCHAR},
-            #{resourceDO.component,jdbcType=VARCHAR},
-            #{resourceDO.resourceType,jdbcType=INTEGER},
-            #{resourceDO.sort,jdbcType=INTEGER},
-            #{resourceDO.icon,jdbcType=VARCHAR},
-            #{resourceDO.isLeaf,jdbcType=BOOLEAN},
-            #{resourceDO.isRoute,jdbcType=INTEGER},
-            #{resourceDO.perms,jdbcType=VARCHAR},
-            #{resourceDO.status,jdbcType=VARCHAR}
+            #{resourceDO.id, jdbcType=VARCHAR},
+            #{resourceDO.parentId, jdbcType=VARCHAR},
+            #{resourceDO.title, jdbcType=VARCHAR},
+            #{resourceDO.name, jdbcType=VARCHAR},
+            #{resourceDO.url, jdbcType=VARCHAR},
+            #{resourceDO.component, jdbcType=VARCHAR},
+            #{resourceDO.resourceType, jdbcType=INTEGER},
+            #{resourceDO.sort, jdbcType=INTEGER},
+            #{resourceDO.icon, jdbcType=VARCHAR},
+            #{resourceDO.isLeaf, jdbcType=BOOLEAN},
+            #{resourceDO.isRoute, jdbcType=INTEGER},
+            #{resourceDO.perms, jdbcType=VARCHAR},
+            #{resourceDO.status, jdbcType=VARCHAR}
             )
         </foreach>
     </insert>
@@ -332,13 +332,13 @@
                 date_created = #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="parentId != null">
                 parent_id = #{parentId, jdbcType=VARCHAR},
             </if>
             <if test="title != null">
-                title = #{title,jdbcType=VARCHAR},
+                title = #{title, jdbcType=VARCHAR},
             </if>
             <if test="name != null">
                 name = #{name, jdbcType=VARCHAR},
@@ -353,13 +353,13 @@
                 resource_type = #{resourceType, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
-                sort = #{sort,jdbcType=INTEGER},
+                sort = #{sort, jdbcType=INTEGER},
             </if>
             <if test="icon != null">
                 icon = #{icon, jdbcType=VARCHAR},
             </if>
             <if test="isLeaf != null">
-                is_leaf = #{isLeaf,jdbcType=BOOLEAN},
+                is_leaf = #{isLeaf, jdbcType=BOOLEAN},
             </if>
             <if test="isRoute != null">
                 is_route = #{isRoute, jdbcType=INTEGER},
@@ -376,9 +376,9 @@
 
     <delete id="delete" parameterType="java.util.List">
         DELETE FROM resource
-         WHERE id IN
-                <foreach item="id" collection="list" open="(" separator="," close=")">
-                    #{id,jdbcType=VARCHAR}
-                </foreach>
+              WHERE id IN
+                    <foreach item="id" collection="list" open="(" separator="," close=")">
+                      #{id,jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 </mapper>

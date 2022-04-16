@@ -13,35 +13,52 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package org.apache.shenyu.admin.utils;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.admin.model.result.AdminResult;
+import org.apache.shenyu.common.exception.CommonErrorCode;
 
 /**
- * The type Path utils.
+ * ResultUtil.
  */
-public final class PathUtils {
+public final class ResultUtil {
     
-    /**
-     * Decorator path string.
-     *
-     * @param contextPath the context path
-     * @return the string
-     */
-    public static String decoratorPath(final String contextPath) {
-        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? contextPath : contextPath + AdminConstants.URI_SUFFIX;
+    private ResultUtil() {
     }
     
     /**
-     * Decorator context path string.
+     * ok.
      *
-     * @param contextPath the context path
-     * @return the string
+     * @param <T> response body type
+     * @return admin result
      */
-    public static String decoratorContextPath(final String contextPath) {
-        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? StringUtils.substringBefore(contextPath, AdminConstants.URI_SUFFIX) : contextPath;
+    public static <T> AdminResult<T> ok() {
+        return ok(null);
+    }
+    
+    /**
+     * ok.
+     *
+     * @param data response body
+     * @param <T>  response body type
+     * @return admin result
+     */
+    public static <T> AdminResult<T> ok(final T data) {
+        return ok(data, "ok");
+    }
+    
+    /**
+     * ok.
+     *
+     * @param data    response body
+     * @param message response message
+     * @param <T>     response body type
+     * @return admin result
+     */
+    public static <T> AdminResult<T> ok(final T data, final String message) {
+        return new AdminResult<>(CommonErrorCode.SUCCESSFUL, message, data);
     }
 }

@@ -126,7 +126,7 @@ public final class UpstreamCheckServiceTest {
     @BeforeEach
     public void setUp() {
         shenyuRegisterCenterConfig.setRegisterType("http");
-
+        shenyuRegisterCenterConfig.getProps().setProperty(Constants.IS_CHECKED, "true");
         // get static variable reference by reflection
         upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
         zombieSet = (Set<ZombieUpstream>) ReflectionTestUtils.getField(UpstreamCheckService.class, "ZOMBIE_SET");

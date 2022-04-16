@@ -87,7 +87,12 @@ public class AppAuthServiceImpl implements AppAuthService {
         this.authParamMapper = authParamMapper;
         this.authPathMapper = authPathMapper;
     }
-
+    
+    @Override
+    public List<AppAuthVO> searchByCondition(final AppAuthQuery condition) {
+        return appAuthMapper.selectByCondition(condition);
+    }
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
