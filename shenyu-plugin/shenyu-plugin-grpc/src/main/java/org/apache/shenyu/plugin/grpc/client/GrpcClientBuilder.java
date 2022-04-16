@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.grpc.loadbalance.RoundRobinLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
+import java.util.Optional;
 import java.util.concurrent.Executor;
 
 /**
@@ -74,7 +75,7 @@ public final class GrpcClientBuilder {
         if (null == config) {
             return null;
         }
-        final String threadpool = config.getThreadpool();
+        final String threadpool = Optional.ofNullable(config.getThreadpool()).orElse(Constants.CACHED);
         switch (threadpool) {
             case Constants.SHARED:
                 try {

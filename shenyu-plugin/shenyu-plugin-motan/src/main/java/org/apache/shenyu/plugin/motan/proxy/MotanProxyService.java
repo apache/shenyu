@@ -127,7 +127,7 @@ public class MotanProxyService {
             threadPool = Executors.newCachedThreadPool(factory);
             return;
         }
-        final String threadpool = config.getThreadpool();
+        final String threadpool = Optional.ofNullable(config.getThreadpool()).orElse(Constants.CACHED);
         switch (threadpool) {
             case Constants.SHARED:
                 try {
