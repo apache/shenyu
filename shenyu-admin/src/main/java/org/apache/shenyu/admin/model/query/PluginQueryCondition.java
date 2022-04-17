@@ -39,6 +39,8 @@ public class PluginQueryCondition extends BaseExcludedSearchCondition implements
     
     /**
      * get switchStatus.
+     *
+     * @return status
      */
     @Override
     public Boolean getSwitchStatus() {
@@ -47,6 +49,8 @@ public class PluginQueryCondition extends BaseExcludedSearchCondition implements
     
     /**
      * set switchStatus.
+     *
+     * @param switchStatus status
      */
     public void setSwitchStatus(final Boolean switchStatus) {
         this.switchStatus = switchStatus;
@@ -54,6 +58,8 @@ public class PluginQueryCondition extends BaseExcludedSearchCondition implements
     
     /**
      * get keyword.
+     *
+     * @return keyword
      */
     @Override
     public String getKeyword() {
