@@ -47,12 +47,15 @@ public abstract class BaseExcludedSearchCondition implements SearchCondition {
     
     /**
      * set keyword.
+     *
      * @param keyword keyword
      */
     public abstract void setKeyword(String keyword);
     
     /**
      * get excluded.
+     *
+     * @return excluded keyword
      */
     public String getExcluded() {
         return excluded;
@@ -60,6 +63,8 @@ public abstract class BaseExcludedSearchCondition implements SearchCondition {
     
     /**
      * set excluded.
+     *
+     * @param excluded excluded keyword
      */
     public void setExcluded(final String excluded) {
         this.excluded = excluded;

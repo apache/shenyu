@@ -62,6 +62,8 @@ public class PluginQueryCondition extends BaseExcludedSearchCondition implements
     
     /**
      * set keyword.
+     *
+     * @param keyword keyword
      */
     @Override
     public void setKeyword(final String keyword) {
