@@ -21,7 +21,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -182,7 +184,7 @@ public interface PluginMapper extends ExistProvider {
     /**
      * plugin existed.
      *
-     * @param name name
+     * @param name    name
      * @param exclude exclude
      * @return existed
      */
@@ -194,4 +196,12 @@ public interface PluginMapper extends ExistProvider {
      * @return plugin list
      */
     List<PluginSnapshotVO> activePluginSnapshot();
+    
+    /**
+     * search by condition.
+     *
+     * @param condition condition.
+     * @return list
+     */
+    List<PluginVO> searchByCondition(@Param("condition") PluginQueryCondition condition);
 }

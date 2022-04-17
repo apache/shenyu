@@ -17,6 +17,36 @@
 
 # if you debug api, replace your own token
 
+### plugin list search
+POST http://localhost:9095/plugin/list/search
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjUwMjc3MTA4fQ.CbE5VuGp7cTQWt0tL87RcsLAJs5swk8YId35b8gYtHQ
+
+{
+  "pageNum": 1,
+  "pageSize": 12,
+  "condition": {
+    "keyword": "a",
+    "switchStatus": false
+  }
+}
+
+### plugin list search adaptor
+POST http://localhost:9095/plugin/list/search/adaptor
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjUwMjc3MTA4fQ.CbE5VuGp7cTQWt0tL87RcsLAJs5swk8YId35b8gYtHQ
+
+{
+  "pageNum": 1,
+  "pageSize": 12,
+  "condition": {
+    "keyword": "a!b",
+    "switchStatus": true
+  }
+}
+
 ### plugin list by page
 GET http://localhost:9095/plugin?currentPage=1&pageSize=10
 Accept: application/json
