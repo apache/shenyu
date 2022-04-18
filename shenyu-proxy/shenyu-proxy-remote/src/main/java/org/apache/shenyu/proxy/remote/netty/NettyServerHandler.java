@@ -110,5 +110,4 @@ public class NettyServerHandler extends ChannelDuplexHandler {
         NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel());
         channelHandler.caught(channel, cause);
     }
-    
 }
