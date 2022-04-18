@@ -55,20 +55,6 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
     }
 
     @Override
-    protected HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.addAll(exchange.getRequest().getHeaders());
-        // remove gzip
-        String acceptEncoding = httpHeaders.getFirst(HttpHeaders.ACCEPT_ENCODING);
-        if (StringUtils.isNotBlank(acceptEncoding)) {
-            List<String> acceptEncodings = Stream.of(acceptEncoding.trim().split(",")).collect(Collectors.toList());
-            acceptEncodings.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
-            httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncodings));
-        }
-        return httpHeaders;
-    }
-
-    @Override
     protected Mono<HttpClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
                                 final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
         return Mono.from(httpClient.headers(headers -> httpHeaders.forEach(headers::add))

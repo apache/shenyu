@@ -53,20 +53,6 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
     }
 
     @Override
-    protected HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.addAll(exchange.getRequest().getHeaders());
-        // remove gzip
-        List<String> acceptEncoding = headers.get(HttpHeaders.ACCEPT_ENCODING);
-        if (CollectionUtils.isNotEmpty(acceptEncoding)) {
-            acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
-            acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
-            headers.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
-        }
-        return headers;
-    }
-
-    @Override
     protected Mono<ClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
                                              final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)

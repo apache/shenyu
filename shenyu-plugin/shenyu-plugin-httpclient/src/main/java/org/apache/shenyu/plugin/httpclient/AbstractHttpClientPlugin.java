@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type abstract http client plugin.
@@ -154,7 +155,18 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
      * @param exchange the current server exchange
      * @return HttpHeaders
      */
-    protected abstract HttpHeaders buildHttpHeaders(ServerWebExchange exchange);
+    private HttpHeaders buildHttpHeaders(ServerWebExchange exchange) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.addAll(exchange.getRequest().getHeaders());
+        // remove gzip
+        List<String> acceptEncoding = headers.get(HttpHeaders.ACCEPT_ENCODING);
+        if (CollectionUtils.isNotEmpty(acceptEncoding)) {
+            acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
+            acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
+            headers.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
+        }
+        return headers;
+    }
 
     /**
      * Process the Web request.
