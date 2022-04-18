@@ -120,10 +120,10 @@ public class NettyServer extends AbstractServer {
                 });
     }
     
-    private void createEventLoopGroup(int workerThreads) {
+    private void createEventLoopGroup(final int workerThreads) {
         ThreadFactory bossFactory = ShenyuThreadFactory.create("shenyu_proxy_server_boss_epoll", false);
         bossGroup = Epoll.isAvailable() ? new EpollEventLoopGroup(1, bossFactory) : new NioEventLoopGroup(1, bossFactory);
         ThreadFactory workerFactory = ShenyuThreadFactory.create("shenyu_proxy_server_work_epoll", false);
-        workerGroup =  Epoll.isAvailable() ? new EpollEventLoopGroup(workerThreads, workerFactory) : new NioEventLoopGroup(workerThreads, workerFactory);
+        workerGroup = Epoll.isAvailable() ? new EpollEventLoopGroup(workerThreads, workerFactory) : new NioEventLoopGroup(workerThreads, workerFactory);
     }
 }
