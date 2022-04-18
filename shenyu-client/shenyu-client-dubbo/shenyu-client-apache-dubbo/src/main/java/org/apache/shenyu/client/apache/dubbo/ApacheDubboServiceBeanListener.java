@@ -56,6 +56,9 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 @SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 
+    private static final String DEFAULT_CLUSTER = "failover";
+    private static final Boolean DEFAULT_SENT = Boolean.FALSE;
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
@@ -167,8 +170,8 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)
                 .retries(Objects.isNull(serviceBean.getRetries()) ? CommonConstants.DEFAULT_RETRIES : serviceBean.getRetries())
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
-                .sent(Objects.isNull(serviceBean.getSent()) ? false : serviceBean.getSent())
-                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : "")
+                .sent(Objects.isNull(serviceBean.getSent()) ? DEFAULT_SENT : serviceBean.getSent())
+                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : DEFAULT_CLUSTER)
                 .url("")
                 .build();
         return GsonUtils.getInstance().toJson(build);
