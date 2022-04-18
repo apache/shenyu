@@ -57,6 +57,7 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 
     private static final String DEFAULT_CLUSTER = "failover";
+
     private static final Boolean DEFAULT_SENT = Boolean.FALSE;
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
