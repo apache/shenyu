@@ -155,7 +155,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
      * @param exchange the current server exchange
      * @return HttpHeaders
      */
-    private HttpHeaders buildHttpHeaders(ServerWebExchange exchange) {
+    private HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
         final HttpHeaders headers = new HttpHeaders();
         headers.addAll(exchange.getRequest().getHeaders());
         // remove gzip
