@@ -21,13 +21,13 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.spi.Join;
 
 /**
- * Starts predicate judge.
+ * Ends with predicate judge.
  */
 @Join
-public class StartsPredicateJudge implements PredicateJudge {
+public class EndsWithPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return realData.startsWith(conditionData.getParamValue().trim());
+        return realData.endsWith(conditionData.getParamValue().trim());
     }
 }

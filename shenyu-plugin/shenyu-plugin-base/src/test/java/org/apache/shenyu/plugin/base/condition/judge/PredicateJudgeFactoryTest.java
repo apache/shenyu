@@ -130,7 +130,7 @@ public final class PredicateJudgeFactoryTest {
 
     @Test
     public void testStartsJudge() {
-        conditionData.setOperator(OperatorEnum.STARTS.getAlias());
+        conditionData.setOperator(OperatorEnum.STARTS_WITH.getAlias());
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
@@ -138,7 +138,7 @@ public final class PredicateJudgeFactoryTest {
 
     @Test
     public void testEndsJudge() {
-        conditionData.setOperator(OperatorEnum.ENDS.getAlias());
+        conditionData.setOperator(OperatorEnum.ENDS_WITH.getAlias());
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/**/test/http/"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/**/http1/"));
@@ -146,7 +146,7 @@ public final class PredicateJudgeFactoryTest {
 
     @Test
     public void comparePerformance() {
-        conditionData.setOperator(OperatorEnum.STARTS.getAlias());
+        conditionData.setOperator(OperatorEnum.STARTS_WITH.getAlias());
         long start = System.currentTimeMillis();
         for (int i = 0; i < 20000000; i++) {
             assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test/test"));

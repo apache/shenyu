@@ -57,14 +57,14 @@ public enum OperatorEnum {
     CONTAINS("contains", true),
 
     /**
-     * Starts operator enum.
+     * Starts with operator enum.
      */
-    STARTS("starts", true),
+    STARTS_WITH("startsWith", true),
 
     /**
-     * Ends operator enum.
+     * Ends with operator enum.
      */
-    ENDS("ends", true),
+    ENDS_WITH("endsWith", true),
 
     /**
      * Time before operator enum.
