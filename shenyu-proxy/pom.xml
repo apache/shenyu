@@ -29,7 +29,7 @@
     <packaging>pom</packaging>
     
     <modules>
-        <module>proxy-remote</module>
+        <module>shenyu-proxy-remote</module>
     </modules>
     
     <dependencies>
