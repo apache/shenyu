@@ -50,6 +50,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -440,8 +441,8 @@ public class SelectorServiceImpl implements SelectorService {
         SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
         selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
         selectorConditionDTO.setParamName("/");
-        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        selectorConditionDTO.setParamValue(contextPath + AdminConstants.URI_SUFFIX);
+        selectorConditionDTO.setOperator(OperatorEnum.STARTS.getAlias());
+        selectorConditionDTO.setParamValue(contextPath + Constants.PATH_SEPARATOR);
         return Collections.singletonList(selectorConditionDTO);
     }
 }

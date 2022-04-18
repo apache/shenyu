@@ -55,7 +55,17 @@ public enum OperatorEnum {
      * Contains operator enum.
      */
     CONTAINS("contains", true),
-    
+
+    /**
+     * Starts operator enum.
+     */
+    STARTS("starts", true),
+
+    /**
+     * Ends operator enum.
+     */
+    ENDS("ends", true),
+
     /**
      * Time before operator enum.
      */
@@ -77,7 +87,8 @@ public enum OperatorEnum {
 
     /**
      * all args constructor.
-     * @param alias alias
+     *
+     * @param alias   alias
      * @param support support
      */
     OperatorEnum(final String alias, final Boolean support) {

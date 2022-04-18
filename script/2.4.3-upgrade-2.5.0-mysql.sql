@@ -31,3 +31,7 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_typ
 -- Note: because most users have changed ZK configuration, this SQL is annotated to prevent erroneous execution
 -- UPDATE plugin SET config='{"register":"zookeeper://localhost:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"cached"}' WHERE `name` = 'motan';
 --                                                    ^^^^^^^^^^^^^^ if you want to execute this SQL, please replace it with your own ZK configuration
+
+-- insert dict for all plugin
+INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1516043399649357824', 'operator', 'OPERATOR', 'starts', 'starts', 'starts', 7, 1);
+INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1516043495265869824', 'operator', 'OPERATOR', 'ends', 'ends', 'ends', 8, 1);

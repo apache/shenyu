@@ -22,6 +22,8 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for {@link PredicateJudgeFactory}.
  */
 public final class PredicateJudgeFactoryTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PredicateJudgeFactoryTest.class);
+
     private static final String FIRST_TIME = "2018-07-11 17:20:00";
 
     private static final String MAX_TIME = "2099-07-11 17:20:00";
@@ -39,8 +44,8 @@ public final class PredicateJudgeFactoryTest {
     @BeforeEach
     public void setUp() {
         conditionData = new ConditionData();
-        conditionData.setParamType("uri");
-        conditionData.setParamValue("/http/**");
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setParamValue("/http/");
     }
 
     @Test
@@ -57,14 +62,14 @@ public final class PredicateJudgeFactoryTest {
     @Test
     public void testEqJudge() {
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http/test"));
     }
 
     @Test
     public void testMatchJudge() {
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setParamValue("/http/**");
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test/test"));
@@ -83,7 +88,7 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
     }
-    
+
     @Test
     public void testTimerBeforeJudge() {
         conditionData.setOperator(OperatorEnum.TIME_BEFORE.getAlias());
@@ -121,6 +126,44 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
+    }
+
+    @Test
+    public void testStartsJudge() {
+        conditionData.setOperator(OperatorEnum.STARTS.getAlias());
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
+    }
+
+    @Test
+    public void testEndsJudge() {
+        conditionData.setOperator(OperatorEnum.ENDS.getAlias());
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/**/test/http/"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/**/http1/"));
+    }
+
+    @Test
+    public void comparePerformance() {
+        conditionData.setOperator(OperatorEnum.STARTS.getAlias());
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 20000000; i++) {
+            assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test/test"));
+        }
+        long end = System.currentTimeMillis();
+        LOG.info("starts operator costs{}ms", end - start);
+
+        ConditionData match = new ConditionData();
+        match.setOperator(OperatorEnum.MATCH.getAlias());
+        match.setParamType(ParamTypeEnum.URI.getName());
+        match.setParamValue("/http/**");
+        long start2 = System.currentTimeMillis();
+        for (int i = 0; i < 20000000; i++) {
+            assertTrue(PredicateJudgeFactory.judge(match, "/http/test/test"));
+        }
+        long end2 = System.currentTimeMillis();
+        LOG.info("match operator costs{}ms", end2 - start2);
     }
 
 }
