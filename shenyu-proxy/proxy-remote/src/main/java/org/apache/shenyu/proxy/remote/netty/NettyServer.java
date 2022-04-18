@@ -23,6 +23,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -38,10 +39,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
- * NettyServer .
+ * Shenyu NettyServer.
  * netty network management.
  */
 public class NettyServer extends AbstractServer {
@@ -56,15 +58,14 @@ public class NettyServer extends AbstractServer {
     /**
      * service processing.
      */
-    private EventLoopGroup boosGroup;
+    private EventLoopGroup bossGroup;
     
     /**
      * task processing thread.
      */
-    private EventLoopGroup workGroup;
+    private EventLoopGroup workerGroup;
     
     private final int threads = Runtime.getRuntime().availableProcessors() << 1;
-    
     
     /**
      * Instantiates a new Abstract server.
@@ -81,18 +82,25 @@ public class NettyServer extends AbstractServer {
      */
     @Override
     protected void start0(final int port) {
-        //Judge Linux system
-        if (isLinux()) {
-            boosGroup = new EpollEventLoopGroup(1, ShenyuThreadFactory.create("shenyu_proxy_server_boss_epoll", false));
-            workGroup = new EpollEventLoopGroup(threads, ShenyuThreadFactory.create("shenyu_proxy_server_work_epoll", false));
-            server.channel(EpollServerSocketChannel.class);
-        } else {
-            boosGroup = new NioEventLoopGroup(1, ShenyuThreadFactory.create("shenyu_proxy_server_boss_epoll", false));
-            workGroup = new NioEventLoopGroup(threads, ShenyuThreadFactory.create("shenyu_proxy_server_work_epoll", false));
-            server.channel(NioServerSocketChannel.class);
+        createEventLoopGroup(threads);
+        initServerBootstrap();
+        try {
+            Channel channel = server.bind(port).sync().channel();
+            logger.info("Network listening,ip:{},port:{}", ((InetSocketAddress) channel.localAddress()).getHostString(), port);
+            channel.closeFuture().sync();
+        } catch (InterruptedException e) {
+            logger.error("Error Network listening...... " + e.getMessage());
+            throw new RuntimeException("Error Network listening " + e.getMessage());
+        } finally {
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
+    }
+    
+    private void initServerBootstrap() {
         NettyServerHandler nettyServerHandler = new NettyServerHandler(this);
-        server.group(boosGroup, workGroup)
+        server.group(bossGroup, workerGroup)
+                .channel(Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 65535)
                 .option(ChannelOption.SO_REUSEADDR, true)
                 .option(ChannelOption.SO_KEEPALIVE, true)
@@ -110,27 +118,12 @@ public class NettyServer extends AbstractServer {
                         channel.pipeline().addLast(nettyServerHandler);
                     }
                 });
-        //setup information
-        try {
-            Channel channel = server.bind(port).sync().channel();
-            logger.info("Network listening,ip:{},port:{}", ((InetSocketAddress) channel.localAddress()).getHostString(), port);
-            channel.closeFuture().sync();
-        } catch (InterruptedException e) {
-            logger.error("Error Network listening...... " + e.getMessage());
-            throw new RuntimeException("Error Network listening " + e.getMessage());
-        } finally {
-            boosGroup.shutdownGracefully();
-            workGroup.shutdownGracefully();
-        }
     }
     
-    /**
-     * Determine whether it is a Linux operating system.
-     *
-     * @return the boolean
-     */
-    public static boolean isLinux() {
-        final String oS = System.getProperty("os.name").toLowerCase();
-        return oS.contains("linux");
+    private void createEventLoopGroup(int workerThreads) {
+        ThreadFactory bossFactory = ShenyuThreadFactory.create("shenyu_proxy_server_boss_epoll", false);
+        bossGroup = Epoll.isAvailable() ? new EpollEventLoopGroup(1, bossFactory) : new NioEventLoopGroup(1, bossFactory);
+        ThreadFactory workerFactory = ShenyuThreadFactory.create("shenyu_proxy_server_work_epoll", false);
+        workerGroup =  Epoll.isAvailable() ? new EpollEventLoopGroup(workerThreads, workerFactory) : new NioEventLoopGroup(workerThreads, workerFactory);
     }
 }
