@@ -28,16 +28,12 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.result.ShenyuResult;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -111,11 +107,6 @@ public class WebSocketPluginTest {
         // mock static
         mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
         mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
-        ShenyuResult shenyuResult = new ShenyuResult() {
-        };
-        ConfigurableApplicationContext context = Mockito.mock(ConfigurableApplicationContext.class);
-        SpringBeanUtils.getInstance().setApplicationContext(context);
-        Mockito.lenient().when(context.getBean(ShenyuResult.class)).thenReturn(shenyuResult);
     }
 
     @AfterEach
