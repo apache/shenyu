@@ -22,6 +22,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.NameResolverRegistry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.Singleton;
@@ -33,22 +34,13 @@ import org.apache.shenyu.plugin.grpc.loadbalance.RoundRobinLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
+import java.util.Optional;
 import java.util.concurrent.Executor;
 
 /**
  * Grpc client Builder.
  */
 public final class GrpcClientBuilder {
-
-    private static final String SHARED = "shared";
-
-    private static final String FIXED = "fixed";
-
-    private static final String EAGER = "eager";
-
-    private static final String LIMITED = "limited";
-
-    private static final String CACHED = "cached";
 
     static {
         LoadBalancerRegistry.getDefaultRegistry().register(new RandomLoadBalancerProvider());
@@ -83,19 +75,19 @@ public final class GrpcClientBuilder {
         if (null == config) {
             return null;
         }
-        final String threadpool = config.getThreadpool();
+        final String threadpool = Optional.ofNullable(config.getThreadpool()).orElse(Constants.CACHED);
         switch (threadpool) {
-            case SHARED:
+            case Constants.SHARED:
                 try {
                     return SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
                 } catch (NoSuchBeanDefinitionException t) {
                     throw new ShenyuException("shared thread pool is not enable, config ${shenyu.sharedPool.enable} in your xml/yml !", t);
                 }
-            case FIXED:
-            case EAGER:
-            case LIMITED:
+            case Constants.FIXED:
+            case Constants.EAGER:
+            case Constants.LIMITED:
                 throw new UnsupportedOperationException();
-            case CACHED:
+            case Constants.CACHED:
             default:
                 return null;
         }

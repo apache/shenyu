@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
@@ -101,6 +102,12 @@ public class PluginServiceImpl implements PluginService {
         this.ruleConditionMapper = ruleConditionMapper;
         this.eventPublisher = eventPublisher;
         this.resourceService = resourceService;
+    }
+    
+    @Override
+    public List<PluginVO> searchByCondition(final PluginQueryCondition condition) {
+        condition.init();
+        return pluginMapper.searchByCondition(condition);
     }
     
     /**

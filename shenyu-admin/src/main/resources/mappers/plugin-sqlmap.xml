@@ -159,6 +159,33 @@
         order by p.sort, p.id
     </select>
 
+    <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND (
+                    name LIKE #{keyword, jdbcType=VARCHAR}
+                    OR role LIKE #{keyword, jdbcType=VARCHAR}
+                )
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND (
+                    name NOT LIKE #{excluded, jdbcType=VARCHAR}
+                    OR role NOT LIKE #{excluded, jdbcType=VARCHAR}
+                )
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+        </where>
+        ORDER BY sort, date_created
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
         INSERT INTO plugin
                     (id,

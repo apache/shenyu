@@ -29,11 +29,31 @@ public class MotanRegisterConfig implements Serializable {
 
     private String register;
 
+    private String threadpool;
+
     private Integer corethreads;
 
     private Integer threads;
 
     private Integer queues;
+
+    /**
+     * get threadpool.
+     *
+     * @return threadpool
+     */
+    public String getThreadpool() {
+        return threadpool;
+    }
+
+    /**
+     * set threadpool.
+     *
+     * @param threadpool threadpool
+     */
+    public void setThreadpool(final String threadpool) {
+        this.threadpool = threadpool;
+    }
 
     /**
      * get register.
@@ -116,13 +136,14 @@ public class MotanRegisterConfig implements Serializable {
             return false;
         }
         MotanRegisterConfig that = (MotanRegisterConfig) o;
-        return Objects.equals(register, that.register) && Objects.equals(corethreads, that.corethreads)
-                && Objects.equals(threads, that.threads) && Objects.equals(queues, that.queues);
+        return Objects.equals(register, that.register) && Objects.equals(threadpool, that.threadpool)
+                && Objects.equals(corethreads, that.corethreads) && Objects.equals(threads, that.threads)
+                && Objects.equals(queues, that.queues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(register, corethreads, threads, queues);
+        return Objects.hash(register, threadpool, corethreads, threads, queues);
     }
 
     @Override
@@ -130,6 +151,9 @@ public class MotanRegisterConfig implements Serializable {
         return "MotanRegisterConfig{"
                 + "register='"
                 + register
+                + '\''
+                + ", threadpool='"
+                + threadpool
                 + '\''
                 + ", corethreads='"
                 + corethreads
