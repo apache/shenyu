@@ -53,7 +53,7 @@ INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_va
 INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1509837592611110930', 'retryStrategy', 'RETRY_STRATEGY', 'failover', 'failover', 'failover', '1', '1');
 
 -- Note: it doesn't matter if you don't execute this SQL, the default configuration will be compatible with the old version
--- Note: because most users have changed ZK configuration, this SQL is annotated to prevent erroneous execution
+-- Note: because users may have changed configuration, this SQL is annotated to prevent erroneous execution
 -- UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"cached"}' WHERE `name` = 'grpc';
 -- if you want to execute this SQL, please replace these with your own configuration
 

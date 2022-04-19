@@ -38,7 +38,8 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM role
-         WHERE id = #{id,jdbcType=VARCHAR} AND role_name != 'super'
+         WHERE id = #{id, jdbcType=VARCHAR}
+           AND role_name != 'super'
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.RoleQuery" resultMap="BaseResultMap">
@@ -47,7 +48,7 @@
           FROM role
          WHERE role_name != 'super'
         <if test="roleName != null">
-            AND role_name = #{roleName,jdbcType=VARCHAR}
+            AND role_name = #{roleName, jdbcType=VARCHAR}
         </if>
     </select>
 
@@ -55,7 +56,7 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM role
-         WHERE role_name = #{roleName,jdbcType=VARCHAR}
+         WHERE role_name = #{roleName, jdbcType=VARCHAR}
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.RoleQuery"
@@ -64,7 +65,7 @@
           FROM role
          WHERE role_name != 'super'
         <if test="roleName != null">
-            AND role_name = #{roleName,jdbcType=VARCHAR}
+            AND role_name = #{roleName, jdbcType=VARCHAR}
         </if>
     </select>
 
@@ -115,18 +116,18 @@
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-                #{id,jdbcType=VARCHAR},
+                #{id, jdbcType=VARCHAR},
             <if test="dateCreated != null">
-                #{dateCreated,jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                #{dateUpdated,jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="roleName != null">
-                #{roleName,jdbcType=VARCHAR},
+                #{roleName, jdbcType=VARCHAR},
             </if>
             <if test="description != null">
-                #{description,jdbcType=VARCHAR},
+                #{description, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -134,37 +135,37 @@
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.RoleDO">
         UPDATE role
            SET
-               date_created = #{dateCreated,jdbcType=TIMESTAMP},
-               date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-               role_name = #{roleName,jdbcType=VARCHAR},
-               description = #{description,jdbcType=VARCHAR}
-         WHERE id = #{id,jdbcType=VARCHAR}
+               date_created = #{dateCreated, jdbcType=TIMESTAMP},
+               date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+               role_name = #{roleName, jdbcType=VARCHAR},
+               description = #{description, jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.RoleDO">
         UPDATE role
         <set>
             <if test="dateCreated != null">
-                date_created = #{dateCreated,jdbcType=TIMESTAMP},
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="roleName != null">
-                role_name = #{roleName,jdbcType=VARCHAR},
+                role_name = #{roleName, jdbcType=VARCHAR},
             </if>
             <if test="description != null">
-                description = #{description,jdbcType=VARCHAR},
+                description = #{description, jdbcType=VARCHAR},
             </if>
         </set>
-         WHERE id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.util.List">
         DELETE FROM role
               WHERE id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
-            #{id,jdbcType=VARCHAR}
+            #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>
 </mapper>

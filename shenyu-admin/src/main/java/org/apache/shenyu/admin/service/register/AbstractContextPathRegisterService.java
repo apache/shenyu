@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.shenyu.admin.utils.PathUtils;
+import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;

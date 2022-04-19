@@ -366,7 +366,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '14' || ''', ''' || 'contextPath' || ''', NULL, ''' || 'HttpProcess' || ''', 80, 1);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '15' || ''', ''' || 'grpc' || ''', ''' || '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"cached"}' || ''', ''' || 'Proxy' || ''', 310, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '16' || ''', ''' || 'redirect' || ''', NULL, ''' || 'HttpProcess' || ''', 110, 0);');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '17' || ''', ''' || 'motan' || ''', ''' || '{"register":"127.0.0.1:2181"}' || ''', ''' || 'Proxy' || ''', 310, 0);');
+	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '17' || ''', ''' || 'motan' || ''', ''' || '{"register":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"cached"}' || ''', ''' || 'Proxy' || ''', 310, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '18' || ''', ''' || 'logging' || ''', NULL, ''' || 'Logging' || ''', 160, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '19' || ''', ''' || 'jwt' || ''', ''' || '{"secretKey":"key"}' || ''', ''' || 'Authentication' || ''', 30, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '2' || ''', ''' || 'waf' || ''', ''' || '{"model":"black"}' || ''', ''' || 'Authentication' || ''', 50, 0);');
@@ -609,6 +609,10 @@ ELSE
 
     /*insert "plugin_handle" data for plugin motan*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'register' || ''', ''' || 'register' || ''', 2, 3, 0, null);');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'corethreads' || ''', ''' || 'corethreads' || ''', 1, 3, 0, ''' || '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'threads' || ''', ''' || 'threads' || ''', 1, 3, 0, ''' || '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'queues' || ''', ''' || 'queues' || ''', 1, 3, 0, ''' || '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}' || ''');');
+    PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '17' || ''', ''' || 'threadpool' || ''', ''' || 'threadpool' || ''', 3, 3, 0, ''' || '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}' || ''');');
 
     /*insert plugin_handle data for plugin mqtt*/
     PERFORM public.dblink_exec('init_conn',  'INSERT  INTO "plugin_handle" ( plugin_id , field , label , data_type , type , sort , ext_obj ) VALUES (''' || '28' || ''', ''' || 'port' || ''', ''' || 'port' || ''', 1, 3, 1, null);');

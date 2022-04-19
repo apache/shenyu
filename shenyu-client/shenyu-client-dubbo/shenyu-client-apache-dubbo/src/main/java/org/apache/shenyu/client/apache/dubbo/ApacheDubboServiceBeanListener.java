@@ -19,7 +19,7 @@ package org.apache.shenyu.client.apache.dubbo;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -48,11 +48,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
+
 /**
  * The Apache Dubbo ServiceBean Listener.
  */
 @SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
+
+    private static final String DEFAULT_CLUSTER = "failover";
+
+    private static final Boolean DEFAULT_SENT = Boolean.FALSE;
 
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -162,11 +168,11 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         DubboRpcExt build = DubboRpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
-                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
-                .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
-                .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
-                .sent(Objects.isNull(serviceBean.getSent()) ? Constants.DEFAULT_SENT : serviceBean.getSent())
-                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
+                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)
+                .retries(Objects.isNull(serviceBean.getRetries()) ? CommonConstants.DEFAULT_RETRIES : serviceBean.getRetries())
+                .timeout(Objects.isNull(serviceBean.getTimeout()) ? DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
+                .sent(Objects.isNull(serviceBean.getSent()) ? DEFAULT_SENT : serviceBean.getSent())
+                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : DEFAULT_CLUSTER)
                 .url("")
                 .build();
         return GsonUtils.getInstance().toJson(build);

@@ -15,33 +15,56 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.constant.AdminConstants;
+package org.apache.shenyu.proxy.remote;
 
 /**
- * The type Path utils.
+ * ServerConfig .
  */
-public final class PathUtils {
+public class ServerConfig {
     
     /**
-     * Decorator path string.
-     *
-     * @param contextPath the context path
-     * @return the string
+     * address.
      */
-    public static String decoratorPath(final String contextPath) {
-        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? contextPath : contextPath + AdminConstants.URI_SUFFIX;
+    private String address;
+    
+    /**
+     * port.
+     */
+    private Integer port;
+    
+    /**
+     * Gets address.
+     *
+     * @return the address
+     */
+    public String getAddress() {
+        return address;
     }
     
     /**
-     * Decorator context path string.
+     * Sets address.
      *
-     * @param contextPath the context path
-     * @return the string
+     * @param address the address
      */
-    public static String decoratorContextPath(final String contextPath) {
-        return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? StringUtils.substringBefore(contextPath, AdminConstants.URI_SUFFIX) : contextPath;
+    public void setAddress(final String address) {
+        this.address = address;
+    }
+    
+    /**
+     * Gets port.
+     *
+     * @return the port
+     */
+    public Integer getPort() {
+        return port;
+    }
+    
+    /**
+     * Sets port.
+     *
+     * @param port the port
+     */
+    public void setPort(final Integer port) {
+        this.port = port;
     }
 }

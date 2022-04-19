@@ -34,9 +34,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The type Netty http client plugin.
@@ -52,20 +49,6 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
      */
     public NettyHttpClientPlugin(final HttpClient httpClient) {
         this.httpClient = httpClient;
-    }
-
-    @Override
-    protected HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.addAll(exchange.getRequest().getHeaders());
-        // remove gzip
-        String acceptEncoding = httpHeaders.getFirst(HttpHeaders.ACCEPT_ENCODING);
-        if (StringUtils.isNotBlank(acceptEncoding)) {
-            List<String> acceptEncodings = Stream.of(acceptEncoding.trim().split(",")).collect(Collectors.toList());
-            acceptEncodings.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
-            httpHeaders.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncodings));
-        }
-        return httpHeaders;
     }
 
     @Override
