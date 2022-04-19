@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.util.concurrent.BlockingQueue;
 
 /**
  * The Test Case For DefaultLogCollector.
@@ -46,15 +45,10 @@ public class DefaultLogCollectorTest {
         field1.setAccessible(true);
         Assertions.assertEquals(field1.get(DefaultLogCollector.getInstance()).toString(), "true");
         DefaultLogCollector.getInstance().collect(shenyuRequestLog);
-        Field field2 = AbstractLogCollector.class.getDeclaredField("bufferQueue");
-        field2.setAccessible(true);
-        BlockingQueue<ShenyuRequestLog> bufferQueue = (BlockingQueue<ShenyuRequestLog>) field2.get(DefaultLogCollector.getInstance());
-        Assertions.assertEquals(bufferQueue.size(), 1);
-        DefaultLogCollector.getInstance().start();
         DefaultLogCollector.getInstance().close();
-        Field field3 = AbstractLogCollector.class.getDeclaredField("started");
-        field3.setAccessible(true);
-        Assertions.assertEquals(field3.get(DefaultLogCollector.getInstance()).toString(), "false");
+        Field field2 = AbstractLogCollector.class.getDeclaredField("started");
+        field2.setAccessible(true);
+        Assertions.assertEquals(field2.get(DefaultLogCollector.getInstance()).toString(), "false");
     }
 
     @Test
