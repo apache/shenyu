@@ -28,11 +28,17 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -41,7 +47,11 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -101,6 +111,11 @@ public class WebSocketPluginTest {
         // mock static
         mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
         mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+        ShenyuResult shenyuResult = new ShenyuResult() {
+        };
+        ConfigurableApplicationContext context = Mockito.mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        Mockito.lenient().when(context.getBean(ShenyuResult.class)).thenReturn(shenyuResult);
     }
 
     @AfterEach
@@ -116,6 +131,9 @@ public class WebSocketPluginTest {
         initMockInfo();
         when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.empty());
         StepVerifier.create(Mono.defer(() -> webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData))).expectSubscription().verifyComplete();
+        SelectorData selectorData1 = new SelectorData();
+        selectorData1.setId("1");
+        assertEquals(webSocketPlugin.doExecute(exchange, chain, selectorData1, new RuleData()), chain.execute(exchange));
     }
 
     /**
@@ -141,6 +159,19 @@ public class WebSocketPluginTest {
     @Test
     public void getOrderTest() {
         assertEquals(PluginEnum.WEB_SOCKET.getCode(), webSocketPlugin.getOrder());
+    }
+
+    @Test
+    public void getSubProtocolsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
+        Class<?>[] clazz = webSocketPlugin.getClass().getDeclaredClasses();
+        Class<?> cla = clazz[0];
+        Method method = cla.getDeclaredMethod("getSubProtocols");
+        method.setAccessible(true);
+        Constructor declaredConstructor = cla.getDeclaredConstructor(URI.class, WebSocketClient.class, HttpHeaders.class, List.class);
+        declaredConstructor.setAccessible(true);
+        Object obj = declaredConstructor.newInstance(null, null, null, null);
+        List<String> list = (List<String>) method.invoke(obj);
+        Assertions.assertEquals(list.isEmpty(), true);
     }
 
     /**
