@@ -39,7 +39,7 @@ public class RuleQueryCondition extends BaseExcludedSearchCondition implements S
     private Boolean switchStatus;
     
     /**
-     * rule from selector
+     * rule from selector.
      */
     private List<String> selectors;
     

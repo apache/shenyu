@@ -29,7 +29,7 @@ import java.util.List;
 public class SelectorQueryCondition extends BaseExcludedSearchCondition implements SearchCondition, SwitchCondition {
     
     /**
-     * search keyword: selector  name.
+     * search keyword: selector name.
      */
     private String keyword;
     
@@ -39,7 +39,7 @@ public class SelectorQueryCondition extends BaseExcludedSearchCondition implemen
     private Boolean switchStatus;
     
     /**
-     * selector from plugin
+     * selector from plugin.
      */
     private List<String> plugin;
     

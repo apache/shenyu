@@ -123,7 +123,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
     
     @Override
-    public List<SelectorVO> searchByCondition(SelectorQueryCondition condition) {
+    public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
         condition.init();
         final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
         for (SelectorVO selector : list) {
