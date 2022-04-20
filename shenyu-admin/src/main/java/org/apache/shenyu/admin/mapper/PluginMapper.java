@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * PluginMapper.
@@ -140,13 +139,13 @@ public interface PluginMapper extends ExistProvider {
     int updateEnable(PluginDO pluginDO);
     
     /**
-     * enable data by a set of ids.
+     * enable data by a list of ids.
      *
-     * @param idSet   a set of ids
+     * @param idList   a list of ids
      * @param enabled status
      * @return the count of enabled datas
      */
-    int updateEnableByIdSet(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
+    int updateEnableByIdList(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
     
     /**
      * update selective plugin.
