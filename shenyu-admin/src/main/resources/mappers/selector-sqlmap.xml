@@ -153,6 +153,31 @@
          LIMIT 1
     </select>
 
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.SelectorVO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND name LIKE #{keyword, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND name NOT LIKE #{excluded, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+            <if test="condition.plugin != null and condition.plugin.size > 0">
+                AND plugin_id IN
+                <foreach item="id" collection="condition.plugin" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
         INSERT INTO selector
                     (id,
