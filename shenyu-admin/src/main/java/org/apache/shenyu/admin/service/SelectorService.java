@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -30,7 +31,7 @@ import java.util.List;
 /**
  * this is selector service.
  */
-public interface SelectorService {
+public interface SelectorService extends PageService<SelectorQueryCondition, SelectorVO> {
     
     /**
      * Register string.
@@ -43,8 +44,8 @@ public interface SelectorService {
     /**
      * handler selector need upstream check.
      *
-     * @param dto {@link MetaDataRegisterDTO}
-     * @param pluginName rpc type
+     * @param dto             {@link MetaDataRegisterDTO}
+     * @param pluginName      rpc type
      * @param selectorHandler the selector handler
      * @return the id of selector.
      */
@@ -93,7 +94,7 @@ public interface SelectorService {
     /**
      * Find by name and plugin id selector do.
      *
-     * @param name the name
+     * @param name       the name
      * @param pluginName the plugin name
      * @return the selector do
      */
@@ -110,7 +111,7 @@ public interface SelectorService {
     /**
      * Build by name selector data.
      *
-     * @param name the name
+     * @param name       the name
      * @param pluginName the plugin name
      * @return the selector data
      */
