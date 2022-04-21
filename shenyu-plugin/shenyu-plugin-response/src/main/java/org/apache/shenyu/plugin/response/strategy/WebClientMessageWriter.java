@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -53,8 +54,7 @@ public class WebClientMessageWriter implements MessageWriter {
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR, null);
                 return WebFluxResultUtils.result(exchange, error);
             }
-            response.getCookies().putAll(clientResponse.cookies());
-            response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
+            this.redrawResponseHeaders(response, clientResponse);
             // image, pdf or stream does not do format processing.
             if (clientResponse.headers().contentType().isPresent()) {
                 final String media = clientResponse.headers().contentType().get().toString().toLowerCase();
@@ -68,6 +68,37 @@ public class WebClientMessageWriter implements MessageWriter {
                     .flatMap(originData -> WebFluxResultUtils.result(exchange, originData))
                     .doOnCancel(() -> clean(exchange));
         }));
+    }
+
+    private void redrawResponseHeaders(final ServerHttpResponse response,
+                                       final ClientResponse clientResponse) {
+        response.getCookies().putAll(clientResponse.cookies());
+        HttpHeaders httpHeaders = clientResponse.headers().asHttpHeaders();
+        Set<String> corsHeaders = new HashSet<String>() {
+            {
+                add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS);
+                add(HttpHeaders.ACCESS_CONTROL_MAX_AGE);
+                add(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS);
+                add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS);
+            }
+        };
+        for (final String corsHeader : corsHeaders) {
+            if (httpHeaders.containsKey(corsHeader)) {
+                corsHeaders.forEach(header -> response.getHeaders().remove(header));
+                break;
+            }
+        }
+        // shenyu transfer the cookies so the withCredentials from request is the true,
+        // the Access-Control-Allow-Origin cannot use "*", so use the shenyu crossFilter pushed data
+        // and the ACCESS_CONTROL_ALLOW_CREDENTIALS must set true
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
+        if (httpHeaders.containsKey(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)) {
+            HttpHeaders temp = new HttpHeaders();
+            temp.putAll(httpHeaders);
+            temp.remove(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
+            httpHeaders = temp;
+        }
+        response.getHeaders().putAll(httpHeaders);
     }
 
     private void clean(final ServerWebExchange exchange) {
