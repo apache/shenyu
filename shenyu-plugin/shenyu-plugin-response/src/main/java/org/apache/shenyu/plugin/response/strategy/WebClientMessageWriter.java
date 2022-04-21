@@ -87,7 +87,8 @@ public class WebClientMessageWriter implements MessageWriter {
         response.getCookies().putAll(clientResponse.cookies());
         HttpHeaders httpHeaders = clientResponse.headers().asHttpHeaders();
 
-        for (final String corsHeader : CORS_HEADERS) {
+        for (String corsHeader : CORS_HEADERS) {
+            // if the client response has cors header remove cors header from response that crossfilter put
             if (httpHeaders.containsKey(corsHeader)) {
                 CORS_HEADERS.forEach(header -> response.getHeaders().remove(header));
                 break;
