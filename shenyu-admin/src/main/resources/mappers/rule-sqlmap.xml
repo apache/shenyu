@@ -138,6 +138,31 @@
          LIMIT 1
     </select>
 
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.RuleVO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rule
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND name LIKE #{keyword, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND name NOT LIKE #{excluded, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+            <if test="condition.selectors != null and condition.selectors.size > 0">
+                AND selector_id IN
+                <foreach item="id" collection="condition.selectors" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
         INSERT INTO rule (id,
                          date_created,

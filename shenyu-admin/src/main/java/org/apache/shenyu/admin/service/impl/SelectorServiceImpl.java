@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -119,6 +120,17 @@ public class SelectorServiceImpl implements SelectorService {
         this.eventPublisher = eventPublisher;
         this.dataPermissionMapper = dataPermissionMapper;
         this.upstreamCheckService = upstreamCheckService;
+    }
+    
+    @Override
+    public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
+        condition.init();
+        final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
+        for (SelectorVO selector : list) {
+            selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
+            selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
+        }
+        return list;
     }
     
     @Override

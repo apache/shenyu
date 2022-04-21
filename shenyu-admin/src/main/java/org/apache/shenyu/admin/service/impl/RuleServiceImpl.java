@@ -39,6 +39,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
@@ -49,6 +50,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +96,17 @@ public class RuleServiceImpl implements RuleService {
         this.dataPermissionMapper = dataPermissionMapper;
         this.eventPublisher = eventPublisher;
     }
-
+    
+    @Override
+    public List<RuleVO> searchByCondition(final RuleQueryCondition condition) {
+        condition.init();
+        final List<RuleVO> rules = ruleMapper.selectByCondition(condition);
+        for (RuleVO rule : rules) {
+            rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
+        }
+        return rules;
+    }
+    
     @Override
     public String registerDefault(final RuleDTO ruleDTO) {
         RuleDO exist = ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName());
