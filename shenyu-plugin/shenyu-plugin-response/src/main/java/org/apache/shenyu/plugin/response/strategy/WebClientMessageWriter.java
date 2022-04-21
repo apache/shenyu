@@ -45,6 +45,18 @@ public class WebClientMessageWriter implements MessageWriter {
      */
     private static final String COMMON_BIN_MEDIA_TYPE_REGEX;
 
+    /**
+     * the cross headers.
+     */
+    private static final Set<String> CORS_HEADERS = new HashSet<String>() {
+        {
+            add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS);
+            add(HttpHeaders.ACCESS_CONTROL_MAX_AGE);
+            add(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS);
+            add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS);
+        }
+    };
+
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
@@ -74,17 +86,10 @@ public class WebClientMessageWriter implements MessageWriter {
                                        final ClientResponse clientResponse) {
         response.getCookies().putAll(clientResponse.cookies());
         HttpHeaders httpHeaders = clientResponse.headers().asHttpHeaders();
-        Set<String> corsHeaders = new HashSet<String>() {
-            {
-                add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS);
-                add(HttpHeaders.ACCESS_CONTROL_MAX_AGE);
-                add(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS);
-                add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS);
-            }
-        };
-        for (final String corsHeader : corsHeaders) {
+
+        for (final String corsHeader : CORS_HEADERS) {
             if (httpHeaders.containsKey(corsHeader)) {
-                corsHeaders.forEach(header -> response.getHeaders().remove(header));
+                CORS_HEADERS.forEach(header -> response.getHeaders().remove(header));
                 break;
             }
         }
