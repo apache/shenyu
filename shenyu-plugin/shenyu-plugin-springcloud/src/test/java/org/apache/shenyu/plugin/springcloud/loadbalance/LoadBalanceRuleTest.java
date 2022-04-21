@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * The Test Case For LoadBalanceRule.
  */
-public class LoadBalanceRuleTest {
+public final class LoadBalanceRuleTest {
 
     private LoadBalanceRule loadBalanceRule = new LoadBalanceRule();
 

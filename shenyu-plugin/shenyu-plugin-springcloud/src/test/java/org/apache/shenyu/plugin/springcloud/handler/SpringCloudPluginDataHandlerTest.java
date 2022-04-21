@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 /**
  * The Test Case For SpringCloudPluginDataHandler.
  */
-public class SpringCloudPluginDataHandlerTest {
+public final class SpringCloudPluginDataHandlerTest {
 
     private SpringCloudPluginDataHandler springCloudPluginDataHandler;
 

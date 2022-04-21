@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The Test Case For LoadBalanceKey.
  */
-public class LoadBalanceKeyTest {
+public final class LoadBalanceKeyTest {
 
     private LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
 

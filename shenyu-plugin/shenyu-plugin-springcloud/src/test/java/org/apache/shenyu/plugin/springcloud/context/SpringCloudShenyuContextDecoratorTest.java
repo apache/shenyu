@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The Test Case For WebSocketShenyuContextDecorator.
  */
-public class SpringCloudShenyuContextDecoratorTest {
+public final class SpringCloudShenyuContextDecoratorTest {
     private SpringCloudShenyuContextDecorator springCloudShenyuContextDecorator;
 
     @BeforeEach
