@@ -40,25 +40,25 @@
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-server-api</artifactId>
+            <artifactId>shenyu-register-client-server-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-server-zookeeper</artifactId>
+            <artifactId>shenyu-register-client-server-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-server-etcd</artifactId>
+            <artifactId>shenyu-register-client-server-etcd</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-server-consul</artifactId>
+            <artifactId>shenyu-register-client-server-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -72,7 +72,7 @@
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-register-server-nacos</artifactId>
+            <artifactId>shenyu-register-client-server-nacos</artifactId>
             <version>${project.version}</version>
         </dependency>
 
