@@ -76,7 +76,7 @@ public class ShenyuConfiguration {
      * Init ShenyuWebHandler.
      *
      * @param plugins this plugins is All impl ShenyuPlugin.
-     * @param config  the config
+     * @param config the config
      * @return {@linkplain ShenyuWebHandler}
      */
     @Bean("webHandler")
@@ -124,9 +124,9 @@ public class ShenyuConfiguration {
     /**
      * Shenyu loader service shenyu loader service.
      *
-     * @param shenyuWebHandler     the shenyu web handler
+     * @param shenyuWebHandler the shenyu web handler
      * @param pluginDataSubscriber the plugin data subscriber
-     * @param config               the config
+     * @param config the config
      * @return the shenyu loader service
      */
     @Bean
@@ -153,7 +153,6 @@ public class ShenyuConfiguration {
      *
      * @param dispatcherHandler the dispatcher handler
      * @param shenyuConfig the shenyuConfig
-     *
      * @return the web filter
      */
     @Bean
@@ -210,6 +209,7 @@ public class ShenyuConfiguration {
      * fallback filter web filter.
      *
      * @param shenyuConfig the shenyu config
+     * @param dispatcherHandler the dispatcher handler
      * @return the fallback web filter
      */
     @Bean
