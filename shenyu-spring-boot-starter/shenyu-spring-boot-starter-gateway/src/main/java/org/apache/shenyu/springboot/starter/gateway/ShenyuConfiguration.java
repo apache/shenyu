@@ -158,7 +158,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(-200)
-    @ConditionalOnProperty(name = "shenyu.local.enable", havingValue = "false", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.local.enable", havingValue = "true")
     public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler, final ShenyuConfig shenyuConfig) {
         return new LocalDispatcherFilter(dispatcherHandler, shenyuConfig.getLocal().getSha512Key());
     }
