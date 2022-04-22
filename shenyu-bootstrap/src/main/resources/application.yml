@@ -184,7 +184,10 @@ shenyu:
     paths:
       - /favicon.ico
   fallback:
-    enabled: true
+    enabled: false
+    paths:
+      - /fallback/hystrix
+      - /fallback/resilience4j
   extPlugin:
     path:
     enabled: true

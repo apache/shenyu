@@ -215,8 +215,8 @@ public class ShenyuConfiguration {
     @Bean
     @Order(-5)
     @ConditionalOnProperty(name = "shenyu.fallback.enabled", havingValue = "true")
-    public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig) {
-        return new FallbackFilter(shenyuConfig.getFallback().getPaths());
+    public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig, final DispatcherHandler dispatcherHandler) {
+        return new FallbackFilter(shenyuConfig.getFallback().getPaths(), dispatcherHandler);
     }
     
     /**
