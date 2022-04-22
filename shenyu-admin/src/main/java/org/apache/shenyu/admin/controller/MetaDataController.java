@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -36,13 +41,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * The type Meta data controller.
@@ -69,8 +69,8 @@ public class MetaDataController {
     @GetMapping("/queryList")
     @RequiresPermissions("system:meta:list")
     public ShenyuAdminResult queryList(final String appName,
-                                       @NotNull(message = "currentPage not null") final Integer currentPage,
-                                       @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                       @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
+                                       @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(appName, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
