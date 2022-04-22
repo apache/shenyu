@@ -86,13 +86,9 @@ public class WebClientMessageWriter implements MessageWriter {
                                        final ClientResponse clientResponse) {
         response.getCookies().putAll(clientResponse.cookies());
         HttpHeaders httpHeaders = clientResponse.headers().asHttpHeaders();
-
-        for (String corsHeader : CORS_HEADERS) {
-            // if the client response has cors header remove cors header from response that crossfilter put
-            if (httpHeaders.containsKey(corsHeader)) {
-                CORS_HEADERS.forEach(header -> response.getHeaders().remove(header));
-                break;
-            }
+        // if the client response has cors header remove cors header from response that crossfilter put
+        if (CORS_HEADERS.stream().anyMatch(httpHeaders::containsKey)) {
+            CORS_HEADERS.forEach(header -> response.getHeaders().remove(header));
         }
         // shenyu transfer the cookies so the withCredentials from request is the true,
         // the Access-Control-Allow-Origin cannot use "*", so use the shenyu crossFilter pushed data
