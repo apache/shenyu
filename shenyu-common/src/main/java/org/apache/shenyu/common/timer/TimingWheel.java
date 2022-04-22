@@ -84,7 +84,7 @@ class TimingWheel {
         if (expirationMs < currentTime + interval) {
             //Put in its own bucket
             long virtualId = expirationMs / tickMs;
-            int index = (int) virtualId % wheelSize;
+            int index = (int) (virtualId % wheelSize);
             TimerTaskList bucket = this.getBucket(index);
             bucket.add(taskEntry);
             if (bucket.setExpiration(virtualId * tickMs)) {
