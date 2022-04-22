@@ -31,6 +31,7 @@ import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FallbackFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
+import org.apache.shenyu.web.filter.HealthFilter;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -217,6 +218,19 @@ public class ShenyuConfiguration {
     @ConditionalOnProperty(name = "shenyu.fallback.enabled", havingValue = "true")
     public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig, final DispatcherHandler dispatcherHandler) {
         return new FallbackFilter(shenyuConfig.getFallback().getPaths(), dispatcherHandler);
+    }
+    
+    /**
+     * Health filter web filter.
+     *
+     * @param shenyuConfig the shenyu config
+     * @return the web filter
+     */
+    @Bean
+    @Order(-99)
+    @ConditionalOnProperty(name = "shenyu.health.enabled", havingValue = "true")
+    public WebFilter healthFilter(final ShenyuConfig shenyuConfig) {
+        return new HealthFilter(shenyuConfig.getHealth().getPaths());
     }
     
     /**

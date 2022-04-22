@@ -38,6 +38,8 @@ public class ShenyuConfig {
     private FileConfig file = new FileConfig();
     
     private ExcludePath exclude = new ExcludePath();
+    
+    private Health health = new Health();
 
     private FallbackPath fallback = new FallbackPath();
     
@@ -60,6 +62,24 @@ public class ShenyuConfig {
     private SharedPool sharedPool = new SharedPool();
     
     private MetricsConfig metrics = new MetricsConfig();
+    
+    /**
+     * Gets health.
+     *
+     * @return the health
+     */
+    public Health getHealth() {
+        return health;
+    }
+    
+    /**
+     * Sets health.
+     *
+     * @param health the health
+     */
+    public void setHealth(final Health health) {
+        this.health = health;
+    }
     
     /**
      * Gets metrics.
@@ -538,8 +558,54 @@ public class ShenyuConfig {
      */
     public static class FallbackPath {
 
-        private Boolean enabled = false;
+        private boolean enabled = false;
 
+        private List<String> paths = new ArrayList<>();
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+    
+        /**
+         * Sets paths.
+         *
+         * @param paths the paths
+         */
+        public void setPaths(final List<String> paths) {
+            this.paths = paths;
+        }
+    
+        /**
+         * get paths.
+         *
+         * @return paths paths
+         */
+        public List<String> getPaths() {
+            return paths;
+        }
+    }
+    
+    /**
+     * The type Health.
+     */
+    public static class Health {
+        
+        private boolean enabled = false;
+        
         private List<String> paths = new ArrayList<>();
     
         /**
@@ -584,7 +650,7 @@ public class ShenyuConfig {
      */
     public static class FileConfig {
     
-        private Boolean enabled = true;
+        private boolean enabled = false;
     
         private Integer maxSize = 10;
     
@@ -630,7 +696,7 @@ public class ShenyuConfig {
      */
     public static class SwitchConfig {
         
-        private Boolean local = true;
+        private boolean local = true;
     
         /**
          * Gets local.
@@ -657,7 +723,7 @@ public class ShenyuConfig {
      */
     public static class UpstreamCheck {
     
-        private Boolean enabled = false;
+        private boolean enabled = false;
         
         private Integer timeout = 3000;
         
@@ -821,7 +887,7 @@ public class ShenyuConfig {
             };
         }
     
-        private Boolean enabled = true;
+        private boolean enabled = false;
 
         /**
          * Comma-separated of “header”.
@@ -987,7 +1053,7 @@ public class ShenyuConfig {
      */
     public static class InstanceConfig {
     
-        private Boolean enabled = false;
+        private boolean enabled = false;
     
         private String registerType;
     
