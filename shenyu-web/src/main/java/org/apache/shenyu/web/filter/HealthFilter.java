@@ -15,41 +15,49 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.bootstrap.filter;
+package org.apache.shenyu.web.filter;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.boot.actuate.health.Health;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 
 /**
  * The type health filter.
  */
-@Component
-@Order(-99)
-public final class HealthFilter implements WebFilter {
-
-    private static final List<String> URL_PATTERNS = Arrays.asList("/actuator/health", "/health_check");
-
-    @Override
-    @NonNull
-    public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
-        String urlPath = exchange.getRequest().getURI().getPath();
-        return URL_PATTERNS.contains(urlPath) ? writeHealthInfo(exchange) : Objects.requireNonNull(chain).filter(exchange);
+public final class HealthFilter extends AbstractWebFilter {
+    
+    private final Set<String> paths;
+    
+    /**
+     * Instantiates a new Health filter.
+     *
+     * @param paths the paths
+     */
+    public HealthFilter(final List<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            this.paths = new HashSet<>(Arrays.asList("/actuator/health", "/health_check"));
+        } else {
+            this.paths = new HashSet<>(paths); 
+        }
     }
-
-    private Mono<Void> writeHealthInfo(final ServerWebExchange exchange) {
+    
+    @Override
+    protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
+        return Mono.just(!paths.contains(exchange.getRequest().getURI().getPath()));
+    }
+    
+    @Override
+    protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
         String result = JsonUtils.toJson(new Health.Builder().up().build());
         DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(result.getBytes(StandardCharsets.UTF_8));
         return exchange.getResponse().writeWith(Mono.just(dataBuffer));

@@ -184,7 +184,15 @@ shenyu:
     paths:
       - /favicon.ico
   fallback:
-    enabled: true
+    enabled: false
+    paths:
+      - /fallback/hystrix
+      - /fallback/resilience4j
+  health:
+    enabled: false
+    paths:
+      - /actuator/health
+      - /health_check
   extPlugin:
     path:
     enabled: true
@@ -216,7 +224,7 @@ shenyu:
 #  plugins:
 #    rate-limiter.enabled: false
   local:
-    enabled: true
+    enabled: false
     sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
 #  sharedPool:
 #    enable: true
