@@ -31,6 +31,7 @@ import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FallbackFilter;
 import org.apache.shenyu.web.filter.FileSizeFilter;
+import org.apache.shenyu.web.filter.HealthFilter;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -76,7 +77,7 @@ public class ShenyuConfiguration {
      * Init ShenyuWebHandler.
      *
      * @param plugins this plugins is All impl ShenyuPlugin.
-     * @param config  the config
+     * @param config the config
      * @return {@linkplain ShenyuWebHandler}
      */
     @Bean("webHandler")
@@ -124,9 +125,9 @@ public class ShenyuConfiguration {
     /**
      * Shenyu loader service shenyu loader service.
      *
-     * @param shenyuWebHandler     the shenyu web handler
+     * @param shenyuWebHandler the shenyu web handler
      * @param pluginDataSubscriber the plugin data subscriber
-     * @param config               the config
+     * @param config the config
      * @return the shenyu loader service
      */
     @Bean
@@ -153,12 +154,11 @@ public class ShenyuConfiguration {
      *
      * @param dispatcherHandler the dispatcher handler
      * @param shenyuConfig the shenyuConfig
-     *
      * @return the web filter
      */
     @Bean
     @Order(-200)
-    @ConditionalOnProperty(name = "shenyu.local.enable", havingValue = "false", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.local.enabled", havingValue = "true", matchIfMissing = true)
     public WebFilter localDispatcherFilter(final DispatcherHandler dispatcherHandler, final ShenyuConfig shenyuConfig) {
         return new LocalDispatcherFilter(dispatcherHandler, shenyuConfig.getLocal().getSha512Key());
     }
@@ -210,13 +210,27 @@ public class ShenyuConfiguration {
      * fallback filter web filter.
      *
      * @param shenyuConfig the shenyu config
+     * @param dispatcherHandler the dispatcher handler
      * @return the fallback web filter
      */
     @Bean
     @Order(-5)
     @ConditionalOnProperty(name = "shenyu.fallback.enabled", havingValue = "true")
-    public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig) {
-        return new FallbackFilter(shenyuConfig.getFallback().getPaths());
+    public WebFilter fallbackFilter(final ShenyuConfig shenyuConfig, final DispatcherHandler dispatcherHandler) {
+        return new FallbackFilter(shenyuConfig.getFallback().getPaths(), dispatcherHandler);
+    }
+    
+    /**
+     * Health filter web filter.
+     *
+     * @param shenyuConfig the shenyu config
+     * @return the web filter
+     */
+    @Bean
+    @Order(-99)
+    @ConditionalOnProperty(name = "shenyu.health.enabled", havingValue = "true")
+    public WebFilter healthFilter(final ShenyuConfig shenyuConfig) {
+        return new HealthFilter(shenyuConfig.getHealth().getPaths());
     }
     
     /**

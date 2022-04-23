@@ -42,7 +42,6 @@
         <module>shenyu-protocol</module>
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
-        <module>shenyu-proxy</module>
     </modules>
 
     <licenses>
@@ -89,6 +88,8 @@
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <disruptor.version>3.4.0</disruptor.version>
         <consul.api.version>1.4.5</consul.api.version>
+        <consul.version>2.2.6.RELEASE</consul.version>
+        <jetcd.version>0.0.2</jetcd.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
@@ -118,6 +119,7 @@
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
+        <commons-io.version>2.11.0</commons-io.version>
         <nacos-client.version>2.0.0</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <grpc.version>1.33.1</grpc.version>

@@ -22,7 +22,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
+import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test cases for {@link ShenyuHttpRegistryController}.
+ * Test cases for {@link ShenyuClientHttpRegistryController}.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -50,10 +50,10 @@ public final class ShenyuHttpRegistryControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private ShenyuServerRegisterPublisher publisher;
+    private ShenyuClientServerRegisterPublisher publisher;
 
     @InjectMocks
-    private ShenyuHttpRegistryController shenyuHttpRegistryController;
+    private ShenyuClientHttpRegistryController shenyuHttpRegistryController;
 
     @BeforeEach
     public void setUp() {

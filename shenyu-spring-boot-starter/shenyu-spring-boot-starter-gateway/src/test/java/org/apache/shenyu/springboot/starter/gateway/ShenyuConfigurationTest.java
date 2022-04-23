@@ -60,7 +60,8 @@ public class ShenyuConfigurationTest {
                 "debug=true",
                 "shenyu.cross.enabled=true",
                 "shenyu.file.enabled=true",
-                "shenyu.exclude.enabled=true"
+                "shenyu.exclude.enabled=true",
+                "shenyu.local.enabled=true"
             );
     }
 

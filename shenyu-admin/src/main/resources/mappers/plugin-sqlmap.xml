@@ -276,11 +276,11 @@
          WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
-    <update id="updateEnableByIdSet">
+    <update id="updateEnableByIdList">
         UPDATE plugin
            SET enabled = #{enabled, jdbcType=TINYINT}
          WHERE id IN
-        <foreach collection="idSet" item="id" index="index"
+        <foreach collection="idList" item="id" index="index"
                  open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>

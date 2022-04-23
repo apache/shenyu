@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -202,9 +201,9 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
         int insertResult = pluginMapper.insert(pluginDO);
         assertThat(insertResult, equalTo(1));
 
-        Set<String> idSet = Stream.of(pluginDO1.getId(), pluginDO.getId()).collect(Collectors.toSet());
-        int count = pluginMapper.updateEnableByIdSet(idSet, !pluginDO.getEnabled());
-        assertThat(idSet.size(), equalTo(count));
+        List<String> idList = Stream.of(pluginDO1.getId(), pluginDO.getId()).collect(Collectors.toList());
+        int count = pluginMapper.updateEnableByIdList(idList, !pluginDO.getEnabled());
+        assertThat(idList.size(), equalTo(count));
     }
 
     @Test
