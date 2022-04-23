@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: h2
+    active: oracle
   thymeleaf:
     cache: true
     encoding: utf-8

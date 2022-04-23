@@ -253,6 +253,11 @@ public final class AdminConstants {
     public static final String SQL_TYPE_PG = "pg";
 
     /**
+     * The constant sql type for oracle.
+     */
+    public static final String SQL_TYPE_ORACLE = "oracle";
+
+    /**
      * The constant insert sql regex.
      */
     public static final String SQL_INSERT_REGEX = "\\s+";

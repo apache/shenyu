@@ -319,7 +319,7 @@ public final class SelectorDO extends BaseDO {
                     .enabled(item.getEnabled())
                     .loged(item.getLoged())
                     .continued(item.getContinued())
-                    .dateUpdated(currentTime)
+                    //.dateUpdated(currentTime)
                     .handle(item.getHandle())
                     .pluginId(item.getPluginId())
                     .name(item.getName())
