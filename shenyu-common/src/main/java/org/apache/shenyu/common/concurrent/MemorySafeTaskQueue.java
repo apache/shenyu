@@ -17,32 +17,32 @@
 
 package org.apache.shenyu.common.concurrent;
 
-import java.lang.instrument.Instrumentation;
+import java.util.Collection;
 
 /**
- * MemoryLimitedTaskQueue in the {@link org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor}.
+ * MemorySafeTaskQueue in the {@link org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor}.
  * It offer a task if the executor's submittedTaskCount less than currentPoolThreadSize
  * or the currentPoolThreadSize more than executor's maximumPoolSize.
  * That can make the executor create new worker
  * when the task num is bigger than corePoolSize but less than maximumPoolSize.
  */
-public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLinkedBlockingQueue<Runnable> implements TaskQueue<Runnable> {
+public class MemorySafeTaskQueue<R extends Runnable> extends MemorySafeLinkedBlockingQueue<Runnable> implements TaskQueue<Runnable> {
 
-    private static final long serialVersionUID = -2635853580887179627L;
+    private static final long serialVersionUID = -1998413481091670338L;
 
     private EagerExecutorService executor;
 
-    public MemoryLimitedTaskQueue(final Instrumentation inst) {
-        super(inst);
+    public MemorySafeTaskQueue(int maxFreeMemory) {
+        super(maxFreeMemory);
     }
 
-    public MemoryLimitedTaskQueue(final long memoryLimit, final Instrumentation inst) {
-        super(memoryLimit, inst);
+    public MemorySafeTaskQueue(Collection<? extends Runnable> c, int maxFreeMemory) {
+        super(c, maxFreeMemory);
     }
 
     @Override
     public EagerExecutorService getExecutor() {
-        return executor;
+        return this.executor;
     }
 
     @Override
@@ -54,4 +54,5 @@ public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLin
     public boolean doOffer(Runnable runnable) {
         return super.offer(runnable);
     }
+
 }
