@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
@@ -32,9 +31,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The type Web client plugin.
@@ -50,21 +46,6 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
      */
     public WebClientPlugin(final WebClient webClient) {
         this.webClient = webClient;
-    }
-
-    @Override
-    protected HttpHeaders buildHttpHeaders(final ServerWebExchange exchange) {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.addAll(exchange.getRequest().getHeaders());
-        // remove gzip
-        List<String> acceptEncoding = headers.get(HttpHeaders.ACCEPT_ENCODING);
-        if (CollectionUtils.isNotEmpty(acceptEncoding)) {
-            acceptEncoding = Stream.of(String.join(",", acceptEncoding).split(",")).collect(Collectors.toList());
-            acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
-            headers.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
-        }
-        headers.remove(HttpHeaders.HOST);
-        return headers;
     }
 
     @Override

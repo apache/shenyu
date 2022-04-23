@@ -31,7 +31,6 @@ public class GrpcShenyuContextDecorator implements ShenyuContextDecorator {
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         shenyuContext.setModule(metaData.getAppName());
         shenyuContext.setMethod(metaData.getServiceName());
-        shenyuContext.setRpcType(metaData.getRpcType());
         shenyuContext.setContextPath(metaData.getContextPath());
         shenyuContext.setRpcType(RpcTypeEnum.GRPC.getName());
         return shenyuContext;

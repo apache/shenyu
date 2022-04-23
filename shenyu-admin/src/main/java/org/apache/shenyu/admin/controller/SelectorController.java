@@ -22,8 +22,10 @@ import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -49,7 +51,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/selector")
-public class SelectorController {
+public class SelectorController implements PagedController<SelectorQueryCondition, SelectorVO> {
     
     private final SelectorService selectorService;
     
@@ -127,5 +129,10 @@ public class SelectorController {
     public ShenyuAdminResult deleteSelector(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = selectorService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+    }
+    
+    @Override
+    public PageService<SelectorQueryCondition, SelectorVO> pageService() {
+        return selectorService;
     }
 }

@@ -55,7 +55,7 @@
 
 # Why named ShenYu
 
-ShenYu (神禹) is the honorific name for our ancient monarch Xia Yu (also known in later times as Da Yu), 
+ShenYu (神禹) is the honorific name of Chinese ancient monarch Xia Yu (also known in later times as Da Yu), 
 who left behind the touching story of the three times he crossed the Yellow River for the benefit of the people and successfully managed the flooding of the river. 
 He is known as one of the three greatest kings of ancient China, along with Yao and Shun.
 

@@ -32,8 +32,10 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,7 +71,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class SpringCloudPluginTest {
+public final class SpringCloudPluginTest {
 
     @Mock
     private RibbonLoadBalancerClient loadBalancerClient;
@@ -219,5 +221,17 @@ public class SpringCloudPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testHandleSelectorIfNull() {
+        Assertions.assertEquals(springCloudPlugin.handleSelectorIfNull("SpringCloud", exchange, chain).getClass(),
+                WebFluxResultUtils.noSelectorResult("SpringCloud", exchange).getClass());
+    }
+
+    @Test
+    public void testHandleRuleIfNull() {
+        Assertions.assertEquals(springCloudPlugin.handleRuleIfNull("SpringCloud", exchange, chain).getClass(),
+                WebFluxResultUtils.noRuleResult("SpringCloud", exchange).getClass());
     }
 }

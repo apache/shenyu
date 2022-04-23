@@ -346,7 +346,7 @@ public interface Constants {
      * jwt handle key for secretKey.
      */
     String SECRET_KEY = "secretKey";
-    
+
     /**
      * local key.
      */
@@ -596,6 +596,31 @@ public interface Constants {
      * The default zombie removal time value, unit is second.
      */
     String ZOMBIE_REMOVAL_TIMES_VALUE = "60";
+
+    /**
+     * shared thread pool type.
+     */
+    String SHARED = "shared";
+
+    /**
+     * fixed thread pool type.
+     */
+    String FIXED = "fixed";
+
+    /**
+     * eager thread pool type.
+     */
+    String EAGER = "eager";
+
+    /**
+     * limited thread pool type.
+     */
+    String LIMITED = "limited";
+
+    /**
+     * cached thread pool type.
+     */
+    String CACHED = "cached";
 
     /**
      * String q.

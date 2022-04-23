@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for {@link PredicateJudgeFactory}.
  */
 public final class PredicateJudgeFactoryTest {
+
     private static final String FIRST_TIME = "2018-07-11 17:20:00";
 
     private static final String MAX_TIME = "2099-07-11 17:20:00";
@@ -39,8 +40,8 @@ public final class PredicateJudgeFactoryTest {
     @BeforeEach
     public void setUp() {
         conditionData = new ConditionData();
-        conditionData.setParamType("uri");
-        conditionData.setParamValue("/http/**");
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setParamValue("/http/");
     }
 
     @Test
@@ -57,14 +58,14 @@ public final class PredicateJudgeFactoryTest {
     @Test
     public void testEqJudge() {
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http/test"));
     }
 
     @Test
     public void testMatchJudge() {
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setParamValue("/http/**");
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test/test"));
@@ -83,7 +84,7 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
     }
-    
+
     @Test
     public void testTimerBeforeJudge() {
         conditionData.setOperator(OperatorEnum.TIME_BEFORE.getAlias());
@@ -121,6 +122,22 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
+    }
+
+    @Test
+    public void testStartsJudge() {
+        conditionData.setOperator(OperatorEnum.STARTS_WITH.getAlias());
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
+    }
+
+    @Test
+    public void testEndsJudge() {
+        conditionData.setOperator(OperatorEnum.ENDS_WITH.getAlias());
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/**/test/http/"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/**/http1/"));
     }
 
 }

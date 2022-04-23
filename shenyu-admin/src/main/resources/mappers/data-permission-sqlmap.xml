@@ -37,54 +37,47 @@
     </sql>
 
     <delete id="deleteByUniqueKey">
-        DELETE 
-          FROM data_permission 
-         WHERE data_id = #{dataId, jdbcType=VARCHAR}
-           AND user_id = #{userId,jdbcType=VARCHAR} 
-           AND data_type = #{dataType,jdbcType=INTEGER}
+        DELETE FROM data_permission
+              WHERE data_id = #{dataId, jdbcType=VARCHAR}
+                AND user_id = #{userId,jdbcType=VARCHAR}
+                AND data_type = #{dataType,jdbcType=INTEGER}
     </delete>
 
     <delete id="deleteByDataIdsAndUserId" parameterType="java.util.List">
-        DELETE 
-          FROM data_permission 
-         WHERE data_id in
-               <foreach item="id" collection="list" open="(" separator="," close=")">
-                  #{id,jdbcType=VARCHAR}
-               </foreach>
-           AND user_id = #{userId, jdbcType=VARCHAR} 
-           AND data_type = #{dataType,jdbcType=VARCHAR}
+        DELETE FROM data_permission
+              WHERE data_id
+                 IN <foreach item="id" collection="list" open="(" separator="," close=")">
+                      #{id,jdbcType=VARCHAR}
+                    </foreach>
+                AND user_id = #{userId, jdbcType=VARCHAR}
+                AND data_type = #{dataType,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserId">
-        DELETE 
-          FROM data_permission 
-         WHERE user_id = #{userId,jdbcType=VARCHAR}
+        DELETE FROM data_permission
+              WHERE user_id = #{userId,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserIdSet">
-        DELETE 
-          FROM data_permission
-         WHERE user_id in
-               <foreach collection="userIdSet" index="index" item="userId"
-                 open="(" separator="," close=")">
-                 #{userId,jdbcType=VARCHAR}
-               </foreach>
+        DELETE FROM data_permission
+              WHERE user_id
+                IN  <foreach collection="userIdSet" index="index" item="userId" open="(" separator="," close=")">
+                      #{userId,jdbcType=VARCHAR}
+                    </foreach>
 
     </delete>
 
     <delete id="deleteByDataId">
-        DELETE 
-          FROM data_permission 
-         WHERE data_id = #{dataId,jdbcType=VARCHAR}
+        DELETE FROM data_permission
+              WHERE data_id = #{dataId,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByDataIdList">
-        DELETE 
-          FROM data_permission 
-         WHERE data_id in
-               <foreach item="dataId" collection="dataIdList" open="(" separator="," close=")">
-                  #{dataId,jdbcType=VARCHAR}
-               </foreach>
+        DELETE FROM data_permission
+              WHERE data_id
+                 IN <foreach item="dataId" collection="dataIdList" open="(" separator="," close=")">
+                      #{dataId,jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 
     <select id="listByUserId" resultMap="BaseResultMap">
@@ -101,7 +94,7 @@
           FROM data_permission 
          WHERE user_id = #{userId,jdbcType=VARCHAR} 
            AND data_type = #{dataType,jdbcType=INTEGER}
-           AND data_id in
+           AND data_id IN
                <foreach item="id" collection="list" open="(" separator="," close=")">
                  #{id,jdbcType=VARCHAR}
                </foreach>
@@ -164,9 +157,10 @@
     </insert>
 
     <insert id="insertBatch">
-        INSERT INTO data_permission (id, user_id,
-                                    data_id,
-                                    data_type)
+        INSERT INTO data_permission (id,
+                                     user_id,
+                                     data_id,
+                                     data_type)
              VALUES
                     <foreach collection="dataPermissionList" item="dataPermission" separator=",">
                     (

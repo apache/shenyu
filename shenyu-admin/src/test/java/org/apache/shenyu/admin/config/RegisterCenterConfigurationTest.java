@@ -19,8 +19,8 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
+import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -53,8 +53,8 @@ public class RegisterCenterConfigurationTest {
         ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = mock(ShenyuRegisterCenterConfig.class);
         List<ShenyuClientRegisterService> shenyuClientRegisterService = new ArrayList<>();
         when(shenyuRegisterCenterConfig.getRegisterType()).thenReturn("http");
-        ShenyuServerRegisterRepository registerRepository = registerCenterConfiguration
-                .shenyuServerRegisterRepository(shenyuRegisterCenterConfig, shenyuClientRegisterService);
+        ShenyuClientServerRegisterRepository registerRepository = registerCenterConfiguration
+                .shenyuClientServerRegisterRepository(shenyuRegisterCenterConfig, shenyuClientRegisterService);
         assertNotNull(registerRepository);
     }
 }

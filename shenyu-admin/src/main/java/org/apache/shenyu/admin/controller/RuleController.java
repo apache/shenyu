@@ -22,8 +22,10 @@ import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -49,7 +51,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/rule")
-public class RuleController {
+public class RuleController implements PagedController<RuleQueryCondition, RuleVO> {
     
     private final RuleService ruleService;
     
@@ -128,5 +130,10 @@ public class RuleController {
     public ShenyuAdminResult deleteRules(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = ruleService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+    }
+    
+    @Override
+    public PageService<RuleQueryCondition, RuleVO> pageService() {
+        return ruleService;
     }
 }
