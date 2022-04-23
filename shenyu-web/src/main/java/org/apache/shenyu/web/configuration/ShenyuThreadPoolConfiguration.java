@@ -23,6 +23,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -66,7 +67,7 @@ public class ShenyuThreadPoolConfiguration {
      * @return the shenyu thread pool executor destructor
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.sharedPool.enable", havingValue = "true")
+    @ConditionalOnBean(ShenyuThreadPoolExecutor.class)
     public ShenyuThreadPoolExecutorDestructor shenyuThreadPoolExecutorDestructor() {
         return new ShenyuThreadPoolExecutorDestructor();
     }
