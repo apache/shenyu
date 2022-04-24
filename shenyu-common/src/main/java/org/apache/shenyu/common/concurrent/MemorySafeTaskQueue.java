@@ -32,11 +32,11 @@ public class MemorySafeTaskQueue<R extends Runnable> extends MemorySafeLinkedBlo
 
     private EagerExecutorService executor;
 
-    public MemorySafeTaskQueue(int maxFreeMemory) {
+    public MemorySafeTaskQueue(final int maxFreeMemory) {
         super(maxFreeMemory);
     }
 
-    public MemorySafeTaskQueue(Collection<? extends Runnable> c, int maxFreeMemory) {
+    public MemorySafeTaskQueue(final Collection<? extends Runnable> c,final int maxFreeMemory) {
         super(c, maxFreeMemory);
     }
 
@@ -51,7 +51,7 @@ public class MemorySafeTaskQueue<R extends Runnable> extends MemorySafeLinkedBlo
     }
 
     @Override
-    public boolean doOffer(Runnable runnable) {
+    public boolean doOffer(final Runnable runnable) {
         return super.offer(runnable);
     }
 

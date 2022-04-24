@@ -67,7 +67,7 @@ public interface TaskQueue<E> extends BlockingQueue<E> {
      * @param e the element to add
      * @return {@code true} if the element was added to this queue, else {@code false}
      */
-    boolean doOffer(E e);
+    boolean doOffer(final E e);
 
     /**
      * retry offer task.

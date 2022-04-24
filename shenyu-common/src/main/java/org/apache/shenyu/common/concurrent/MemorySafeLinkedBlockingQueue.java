@@ -38,7 +38,7 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
     }
 
     public MemorySafeLinkedBlockingQueue(final Collection<? extends E> c,
-                                         int maxFreeMemory) {
+                                         final int maxFreeMemory) {
         super(c);
         this.maxFreeMemory = maxFreeMemory;
     }
