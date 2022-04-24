@@ -43,6 +43,7 @@
         <module>shenyu-protocol</module>
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
+        <module>shenyu-alert</module>
     </modules>
 
     <licenses>
