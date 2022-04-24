@@ -43,7 +43,7 @@ public class MemoryLimitCalculator {
         // immediately refresh when this class is loaded to prevent maxAvailable from being 0
         refresh();
         // check every 50 ms to improve performance
-        SCHEDULER.scheduleWithFixedDelay(MemoryLimitCalculator::refresh, 0, 50, TimeUnit.MILLISECONDS);
+        SCHEDULER.scheduleWithFixedDelay(MemoryLimitCalculator::refresh, 50, 50, TimeUnit.MILLISECONDS);
         Runtime.getRuntime().addShutdownHook(new Thread(SCHEDULER::shutdown));
     }
 
