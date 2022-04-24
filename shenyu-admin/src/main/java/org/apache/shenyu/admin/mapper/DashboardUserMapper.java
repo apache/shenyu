@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * DashboardUserMapper.
@@ -126,8 +125,8 @@ public interface DashboardUserMapper extends ExistProvider {
     /**
      * delete the specified dashboard users.
      *
-     * @param idSet primary key of dashboard_user
+     * @param idList primary key of dashboard_user
      * @return the count of deleted
      */
-    int deleteByIdSet(@Param("idSet") Set<String> idSet);
+    int deleteByIdList(@Param("idList") List<String> idList);
 }

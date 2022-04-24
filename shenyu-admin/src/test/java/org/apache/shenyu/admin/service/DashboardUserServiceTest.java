@@ -45,9 +45,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -115,10 +113,9 @@ public final class DashboardUserServiceTest {
     @Test
     public void testDelete() {
         List<String> deleteIds = Stream.of("1", "2").collect(Collectors.toList());
-        Set<String> idSet = new HashSet<>(deleteIds);
-        given(userRoleMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
-        given(dataPermissionMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
-        given(dashboardUserMapper.deleteByIdSet(idSet)).willReturn(deleteIds.size());
+        given(userRoleMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
+        given(dataPermissionMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
+        given(dashboardUserMapper.deleteByIdList(deleteIds)).willReturn(deleteIds.size());
         assertEquals(deleteIds.size(), dashboardUserService.delete(deleteIds));
     }
 
