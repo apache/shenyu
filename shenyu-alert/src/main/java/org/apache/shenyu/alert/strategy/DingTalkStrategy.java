@@ -33,7 +33,7 @@ import java.util.Map;
 public class DingTalkStrategy implements AlertStrategy {
 
     @Override
-    public void execute(String handle) throws Exception {
+    public void execute(final String handle) throws Exception {
 
         DingTalkProp dingTalkProp = GsonUtils.getInstance().fromJson(handle, DingTalkProp.class);
 
@@ -43,7 +43,7 @@ public class DingTalkStrategy implements AlertStrategy {
 
     }
 
-    private String toJson(DingTalkProp prop) {
+    private String toJson(final DingTalkProp prop) {
 
         Map<String, String> contentMap = new HashMap<>(4);
         contentMap.put("content", prop.getContent());

@@ -54,7 +54,7 @@ public class EmailProp {
      * set to.
      * @param to to
      */
-    public void setTo(String to) {
+    public void setTo(final String to) {
         this.to = to;
     }
 
@@ -70,7 +70,7 @@ public class EmailProp {
      * set subject.
      * @param subject subject
      */
-    public void setSubject(String subject) {
+    public void setSubject(final String subject) {
         this.subject = subject;
     }
 
@@ -86,7 +86,7 @@ public class EmailProp {
      * set from.
      * @param from from
      */
-    public void setFrom(String from) {
+    public void setFrom(final String from) {
         this.from = from;
     }
 
@@ -102,7 +102,7 @@ public class EmailProp {
      * set host.
      * @param host host
      */
-    public void setHost(String host) {
+    public void setHost(final String host) {
         this.host = host;
     }
 
@@ -118,7 +118,7 @@ public class EmailProp {
      * set port.
      * @param port port
      */
-    public void setPort(Integer port) {
+    public void setPort(final Integer port) {
         this.port = port;
     }
 
@@ -134,7 +134,7 @@ public class EmailProp {
      * set auth.
      * @param auth auth
      */
-    public void setAuth(Boolean auth) {
+    public void setAuth(final Boolean auth) {
         this.auth = auth;
     }
 
@@ -150,7 +150,7 @@ public class EmailProp {
      * set enableTls.
      * @param enableTls enableTls
      */
-    public void setEnableTls(Boolean enableTls) {
+    public void setEnableTls(final Boolean enableTls) {
         this.enableTls = enableTls;
     }
 
@@ -166,7 +166,7 @@ public class EmailProp {
      * set userName.
      * @param userName userName
      */
-    public void setUserName(String userName) {
+    public void setUserName(final String userName) {
         this.userName = userName;
     }
 
@@ -182,7 +182,7 @@ public class EmailProp {
      * set password.
      * @param password password
      */
-    public void setPassword(String password) {
+    public void setPassword(final String password) {
         this.password = password;
     }
 
