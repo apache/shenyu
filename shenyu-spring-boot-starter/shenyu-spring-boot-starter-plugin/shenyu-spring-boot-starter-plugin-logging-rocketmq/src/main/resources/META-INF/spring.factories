@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.plugin.logging.console.rocketmq.LoggingRocketMQPluginConfiguration
+org.apache.shenyu.springboot.starter.plugin.logging.rocketmq.LoggingRocketMQPluginConfiguration

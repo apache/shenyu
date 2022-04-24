@@ -42,7 +42,7 @@ public class LoggingConsolePluginConfigurationTest {
             .withBean(LoggingConsolePluginConfigurationTest.class)
             .withPropertyValues("debug=true")
             .run(context -> {
-                ShenyuPlugin plugin = context.getBean("loggingPlugin", ShenyuPlugin.class);
+                ShenyuPlugin plugin = context.getBean("loggingConsolePlugin", ShenyuPlugin.class);
                 assertNotNull(plugin);
                 assertThat(plugin.named()).isEqualTo(PluginEnum.LOGGING_CONSOLE.getName());
             });
