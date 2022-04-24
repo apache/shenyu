@@ -17,6 +17,12 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.List;
+import java.util.Optional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -37,14 +43,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * this is role controller.
@@ -84,8 +84,8 @@ public class RoleController {
     @GetMapping("")
     @RequiresPermissions("system:role:list")
     public ShenyuAdminResult queryRole(final String roleName,
-                                       @NotNull final Integer currentPage,
-                                       @NotNull final Integer pageSize) {
+                                       @RequestParam @NotNull final Integer currentPage,
+                                       @RequestParam @NotNull final Integer pageSize) {
         CommonPager<RoleVO> commonPager = roleService.listByPage(new RoleQuery(roleName, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
