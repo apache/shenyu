@@ -46,7 +46,6 @@
         <module>shenyu-plugin-grpc</module>
         <module>shenyu-plugin-redirect</module>
         <module>shenyu-plugin-motan</module>
-        <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-modify-response</module>
         <module>shenyu-plugin-request</module>
         <module>shenyu-plugin-oauth2</module>
@@ -59,8 +58,8 @@
         <module>shenyu-plugin-uri</module>
         <module>shenyu-plugin-general-context</module>
         <module>shenyu-plugin-mqtt</module>
-        <module>shenyu-plugin-logging-rocketmq</module>
         <module>shenyu-plugin-metrics</module>
         <module>shenyu-plugin-cache</module>
+        <module>shenyu-plugin-logging</module>
     </modules>
 </project>
