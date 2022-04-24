@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.shenyu.common.config;
 
 import org.junit.Test;
@@ -27,7 +28,16 @@ import java.util.Properties;
  * Test cases for ShenyuConfig.
  */
 public class ShenyuConfigTest {
-    ShenyuConfig config = new ShenyuConfig();
+    private final ShenyuConfig config = new ShenyuConfig();
+
+    /**
+     * test of shenyuConfig.
+     *
+     * @return shenyuConfig
+     */
+    public ShenyuConfig getConfig() {
+        return this.config;
+    }
 
     @Test
     public void testShenyuConfig() {
@@ -50,7 +60,7 @@ public class ShenyuConfigTest {
                 extPlugin, local, ribbon, metrics, scheduler, sharedPool, websocket, upstreamCheck);
     }
 
-    private void assertNotNullValue(Object... objects) {
+    private void assertNotNullValue(final Object... objects) {
         Assert.noNullElements(objects, "val not allow null");
     }
 
