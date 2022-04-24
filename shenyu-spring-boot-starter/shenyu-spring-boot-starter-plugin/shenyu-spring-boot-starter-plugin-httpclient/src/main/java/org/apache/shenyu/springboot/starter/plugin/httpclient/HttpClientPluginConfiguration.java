@@ -83,6 +83,7 @@ public class HttpClientPluginConfiguration {
      * Shenyu http client.
      *
      * @param properties the properties
+     * @param provider   the loop resources bean provider
      * @return the http client
      */
     @Bean
