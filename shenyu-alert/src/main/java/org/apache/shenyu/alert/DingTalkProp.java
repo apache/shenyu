@@ -26,7 +26,7 @@ public class DingTalkProp {
 
     private String url;
 
-    private List<String>  atMobiles;
+    private List<String> atMobiles;
 
     private List<String> atUserIds;
 

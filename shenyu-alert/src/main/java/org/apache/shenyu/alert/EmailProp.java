@@ -198,7 +198,7 @@ public class EmailProp {
      * set text.
      * @param text text
      */
-    public void setText(String text) {
+    public void setText(final String text) {
         this.text = text;
     }
 }
