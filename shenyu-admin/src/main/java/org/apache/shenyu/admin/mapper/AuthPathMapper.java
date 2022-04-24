@@ -24,7 +24,6 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The interface Auth path mapper.
@@ -84,10 +83,10 @@ public interface AuthPathMapper extends ExistProvider {
     /**
      * find all the {@link AuthPathDO} by authIdList.
      *
-     * @param authIdSet batch auth id
+     * @param authIdList batch auth id
      * @return the list
      */
-    List<AuthPathDO> findByAuthIdList(@Param("authIdSet") Set<String> authIdSet);
+    List<AuthPathDO> findByAuthIdList(@Param("authIdList") List<String> authIdList);
     
     /**
      * Find by auth id and app name list.
