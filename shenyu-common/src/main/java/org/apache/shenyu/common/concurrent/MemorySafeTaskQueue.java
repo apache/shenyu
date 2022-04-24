@@ -36,7 +36,7 @@ public class MemorySafeTaskQueue<R extends Runnable> extends MemorySafeLinkedBlo
         super(maxFreeMemory);
     }
 
-    public MemorySafeTaskQueue(final Collection<? extends Runnable> c,final int maxFreeMemory) {
+    public MemorySafeTaskQueue(final Collection<? extends Runnable> c, final int maxFreeMemory) {
         super(c, maxFreeMemory);
     }
 

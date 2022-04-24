@@ -38,7 +38,7 @@ public interface TaskQueue<E> extends BlockingQueue<E> {
      *
      * @param executor executor
      */
-    void setExecutor(final EagerExecutorService executor);
+    void setExecutor(EagerExecutorService executor);
 
     @Override
     default boolean offer(final E e) {
@@ -67,7 +67,7 @@ public interface TaskQueue<E> extends BlockingQueue<E> {
      * @param e the element to add
      * @return {@code true} if the element was added to this queue, else {@code false}
      */
-    boolean doOffer(final E e);
+    boolean doOffer(E e);
 
     /**
      * retry offer task.
