@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -36,13 +41,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * this is a plugin handle controller.
@@ -70,8 +70,8 @@ public class PluginHandleController {
     @GetMapping("")
     @RequiresPermissions("system:pluginHandler:list")
     public ShenyuAdminResult queryPluginHandles(final String pluginId, final String field,
-                                                @NotNull final Integer currentPage,
-                                                @NotNull final Integer pageSize) {
+                                                @RequestParam @NotNull final Integer currentPage,
+                                                @RequestParam @NotNull final Integer pageSize) {
         CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, field, null, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }

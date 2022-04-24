@@ -105,8 +105,8 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @GetMapping("/findPageByQuery")
     @RequiresPermissions("system:authen:list")
     public ShenyuAdminResult findPageByQuery(final String appKey, final String phone,
-                                             @NotNull(message = "currentPage not null") final Integer currentPage,
-                                             @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                             @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
+                                             @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
         query.setAppKey(appKey);
