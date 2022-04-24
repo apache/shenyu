@@ -41,6 +41,8 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.tcp.SslProvider;
+import reactor.netty.tcp.TcpClient;
 import reactor.netty.tcp.TcpResources;
 
 import java.security.cert.X509Certificate;
@@ -65,7 +67,7 @@ public class HttpClientPluginConfiguration {
     }
 
     /**
-     * Gateway http client http client.
+     * Shenyu http client.
      *
      * @param properties the properties
      * @return the http client
@@ -74,15 +76,7 @@ public class HttpClientPluginConfiguration {
     public HttpClient httpClient(final HttpClientProperties properties) {
         // configure pool resources.
         HttpClientProperties.Pool pool = properties.getPool();
-        ConnectionProvider connectionProvider;
-        if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
-            connectionProvider = ConnectionProvider.newConnection();
-        } else if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
-            connectionProvider = ConnectionProvider.fixed(pool.getName(),
-                    pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
-        } else {
-            connectionProvider = ConnectionProvider.elastic(pool.getName(), pool.getMaxIdleTime());
-        }
+        ConnectionProvider connectionProvider = buildConnectionProvider(pool);
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .tcpConfiguration(tcpClient -> {
                     if (Objects.nonNull(properties.getConnectTimeout())) {
@@ -90,21 +84,9 @@ public class HttpClientPluginConfiguration {
                     }
                     HttpClientProperties.Proxy proxy = properties.getProxy();
                     if (StringUtils.isNotEmpty(proxy.getHost())) {
-                        tcpClient = tcpClient.proxy(proxySpec -> {
-                            ProxyProvider.Builder builder = proxySpec
-                                    .type(ProxyProvider.Proxy.HTTP)
-                                    .host(proxy.getHost());
-                            PropertyMapper map = PropertyMapper.get();
-                            map.from(proxy::getPort).whenNonNull().to(builder::port);
-                            map.from(proxy::getUsername).whenHasText()
-                                    .to(builder::username);
-                            map.from(proxy::getPassword).whenHasText()
-                                    .to(password -> builder.password(s -> password));
-                            map.from(proxy::getNonProxyHostsPattern).whenHasText()
-                                    .to(builder::nonProxyHosts);
-                        });
+                        tcpClient = setTcpClientProxy(tcpClient, proxy);
                     }
-                    // The write and read timeouts are serving as generic socket idle state handlers.
+                    // To write and read timeouts are serving as generic socket idle state handlers.
                     tcpClient = tcpClient.doOnConnected(connection -> {
                         connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
@@ -122,23 +104,7 @@ public class HttpClientPluginConfiguration {
         if (StringUtils.isNotEmpty(ssl.getKeyStorePath())
                 || ArrayUtils.isNotEmpty(ssl.getTrustedX509CertificatesForTrustManager())
                 || ssl.isUseInsecureTrustManager()) {
-            httpClient = httpClient.secure(sslContextSpec -> {
-                // configure ssl.
-                SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
-                X509Certificate[] trustedX509Certificates = ssl
-                        .getTrustedX509CertificatesForTrustManager();
-                if (ArrayUtils.isNotEmpty(trustedX509Certificates)) {
-                    sslContextBuilder.trustManager(trustedX509Certificates);
-                } else if (ssl.isUseInsecureTrustManager()) {
-                    sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-                }
-                sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
-                sslContextSpec.sslContext(sslContextBuilder)
-                        .defaultConfiguration(ssl.getDefaultConfigurationType())
-                        .handshakeTimeout(ssl.getHandshakeTimeout())
-                        .closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
-                        .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
-            });
+            httpClient = httpClient.secure(sslContextSpec -> setSsl(sslContextSpec, ssl));
         }
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
@@ -146,6 +112,51 @@ public class HttpClientPluginConfiguration {
         // set to false, fix java.io.IOException: Connection reset by peer
         // see https://github.com/reactor/reactor-netty/issues/388
         return httpClient.keepAlive(properties.isKeepAlive());
+    }
+    
+    private void setSsl(final SslProvider.SslContextSpec sslContextSpec, final HttpClientProperties.Ssl ssl) {
+        SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+        X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
+        if (ArrayUtils.isNotEmpty(trustedX509Certificates)) {
+            sslContextBuilder.trustManager(trustedX509Certificates);
+        } else if (ssl.isUseInsecureTrustManager()) {
+            sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+        }
+        sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
+        sslContextSpec.sslContext(sslContextBuilder)
+                .defaultConfiguration(ssl.getDefaultConfigurationType())
+                .handshakeTimeout(ssl.getHandshakeTimeout())
+                .closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
+                .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
+    }
+    
+    private TcpClient setTcpClientProxy(final TcpClient tcpClient, final HttpClientProperties.Proxy proxy) {
+        return tcpClient.proxy(proxySpec -> {
+            ProxyProvider.Builder builder = proxySpec
+                    .type(ProxyProvider.Proxy.HTTP)
+                    .host(proxy.getHost());
+            PropertyMapper map = PropertyMapper.get();
+            map.from(proxy::getPort).whenNonNull().to(builder::port);
+            map.from(proxy::getUsername).whenHasText()
+                    .to(builder::username);
+            map.from(proxy::getPassword).whenHasText()
+                    .to(password -> builder.password(s -> password));
+            map.from(proxy::getNonProxyHostsPattern).whenHasText()
+                    .to(builder::nonProxyHosts);
+        });
+    }
+    
+    private ConnectionProvider buildConnectionProvider(final HttpClientProperties.Pool pool) {
+        ConnectionProvider connectionProvider;
+        if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
+            connectionProvider = ConnectionProvider.newConnection();
+        } else if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
+            connectionProvider = ConnectionProvider.fixed(pool.getName(),
+                    pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
+        } else {
+            connectionProvider = ConnectionProvider.elastic(pool.getName(), pool.getMaxIdleTime());
+        }
+        return connectionProvider;
     }
 
     /**

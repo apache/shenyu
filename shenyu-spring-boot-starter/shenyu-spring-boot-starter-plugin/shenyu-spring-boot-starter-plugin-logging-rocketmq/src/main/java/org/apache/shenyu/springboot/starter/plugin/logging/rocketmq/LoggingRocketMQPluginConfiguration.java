@@ -19,8 +19,8 @@ package org.apache.shenyu.springboot.starter.plugin.logging.rocketmq;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.logging.LoggingRocketMQPlugin;
-import org.apache.shenyu.plugin.logging.handler.LoggingRocketMQPluginDataHandler;
+import org.apache.shenyu.plugin.logging.rocketmq.LoggingRocketMQPlugin;
+import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * config logging RocketMQ plugin.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.logging.rocketmq.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = {"shenyu.plugins.logging-rocketmq.enabled"}, havingValue = "true", matchIfMissing = true)
 public class LoggingRocketMQPluginConfiguration {
 
     /**

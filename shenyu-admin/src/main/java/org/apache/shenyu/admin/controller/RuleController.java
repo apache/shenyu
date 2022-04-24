@@ -17,13 +17,20 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -35,13 +42,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * this is rule controller.
@@ -49,7 +51,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/rule")
-public class RuleController {
+public class RuleController implements PagedController<RuleQueryCondition, RuleVO> {
     
     private final RuleService ruleService;
     
@@ -68,8 +70,8 @@ public class RuleController {
      */
     @GetMapping("")
     public ShenyuAdminResult queryRules(final String selectorId, final String name,
-                                        @NotNull final Integer currentPage,
-                                        @NotNull final Integer pageSize) {
+                                        @RequestParam @NotNull final Integer currentPage,
+                                        @RequestParam @NotNull final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
         
@@ -128,5 +130,10 @@ public class RuleController {
     public ShenyuAdminResult deleteRules(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = ruleService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+    }
+    
+    @Override
+    public PageService<RuleQueryCondition, RuleVO> pageService() {
+        return ruleService;
     }
 }

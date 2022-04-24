@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -50,6 +51,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -118,6 +120,17 @@ public class SelectorServiceImpl implements SelectorService {
         this.eventPublisher = eventPublisher;
         this.dataPermissionMapper = dataPermissionMapper;
         this.upstreamCheckService = upstreamCheckService;
+    }
+    
+    @Override
+    public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
+        condition.init();
+        final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
+        for (SelectorVO selector : list) {
+            selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
+            selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
+        }
+        return list;
     }
     
     @Override
@@ -440,8 +453,8 @@ public class SelectorServiceImpl implements SelectorService {
         SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
         selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
         selectorConditionDTO.setParamName("/");
-        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        selectorConditionDTO.setParamValue(contextPath + AdminConstants.URI_SUFFIX);
+        selectorConditionDTO.setOperator(OperatorEnum.STARTS_WITH.getAlias());
+        selectorConditionDTO.setParamValue(contextPath + Constants.PATH_SEPARATOR);
         return Collections.singletonList(selectorConditionDTO);
     }
 }

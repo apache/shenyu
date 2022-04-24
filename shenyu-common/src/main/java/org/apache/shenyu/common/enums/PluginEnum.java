@@ -121,9 +121,9 @@ public enum PluginEnum {
     RESILIENCE4J(150, 0, "resilience4j"),
     
     /**
-     * Logging plugin enum.
+     * Logging console plugin enum.
      */
-    LOGGING(160, 0, "logging"),
+    LOGGING_CONSOLE(160, 0, "loggingConsole"),
 
     /**
      * Logging RocketMQ plugin enum.

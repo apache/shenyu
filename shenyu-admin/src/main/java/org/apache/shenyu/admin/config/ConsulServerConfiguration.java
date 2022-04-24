@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.config;
 
 import com.ecwid.consul.v1.ConsulClient;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.register.server.consul.ShenyuConsulConfigWatch;
+import org.apache.shenyu.register.client.server.consul.ShenyuConsulConfigWatch;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +40,7 @@ public class ConsulServerConfiguration {
     }
 
     /**
-     * Register shenyuConsulConfigWatch for ConsulServerRegisterRepository to monitor metadata.
+     * Register shenyuConsulConfigWatch for ConsulClientServerRegisterRepository to monitor metadata.
      *
      * @param config the shenyu register center config
      * @param publisher the application event publisher

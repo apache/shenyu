@@ -88,7 +88,7 @@ public final class DashboardUserControllerTest {
         final CommonPager<DashboardUserVO> commonPager = new CommonPager<>(new PageParameter(),
                 Collections.singletonList(dashboardUserVO));
         given(dashboardUserService.listByPage(any())).willReturn(commonPager);
-        final String url = "/dashboardUser";
+        final String url = "/dashboardUser?currentPage=1&pageSize=12";
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))

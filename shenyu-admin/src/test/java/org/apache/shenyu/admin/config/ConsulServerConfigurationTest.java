@@ -19,7 +19,7 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.register.server.consul.ShenyuConsulConfigWatch;
+import org.apache.shenyu.register.client.server.consul.ShenyuConsulConfigWatch;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 

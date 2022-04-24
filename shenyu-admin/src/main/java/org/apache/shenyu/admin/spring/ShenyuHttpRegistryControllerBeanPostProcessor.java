@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.spring;
 
-import org.apache.shenyu.admin.controller.ShenyuHttpRegistryController;
+import org.apache.shenyu.admin.controller.ShenyuClientHttpRegistryController;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -34,7 +34,7 @@ public class ShenyuHttpRegistryControllerBeanPostProcessor implements BeanPostPr
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        if (bean instanceof ShenyuHttpRegistryController) {
+        if (bean instanceof ShenyuClientHttpRegistryController) {
             try {
                 RequestMappingHandlerMapping requestMappingHandlerMapping = SpringBeanUtils.getInstance().getBean(RequestMappingHandlerMapping.class);
                 Method method = requestMappingHandlerMapping.getClass().getSuperclass().getSuperclass().getDeclaredMethod("detectHandlerMethods", Object.class);
