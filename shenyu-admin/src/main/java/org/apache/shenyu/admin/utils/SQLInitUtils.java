@@ -43,14 +43,6 @@ public class SQLInitUtils {
                     str.append(splitStr[i]);
                 }
             }
-        } else if (sqlType.equals(AdminConstants.SQL_TYPE_ORACLE)) {
-            str = new StringBuilder(splitStr[0] + "(" + splitStr[1] + "(" + splitStr[2] + " ( " + regxValue + "," + splitStr[3] + "(''' || '"
-                    + UUIDUtils.getInstance().generateShortUuid() + "' || '''," + splitStr[4]);
-            if (splitStr.length > 5) {
-                for (int i = 5; i < splitStr.length; i++) {
-                    str.append(splitStr[i]);
-                }
-            }
         } else {
 
             str = new StringBuilder(splitStr[0] + "(" + splitStr[1] + " ( " + regxValue + "," + splitStr[2] + "(''' || '"
