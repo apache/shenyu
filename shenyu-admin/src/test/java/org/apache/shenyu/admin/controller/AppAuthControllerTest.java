@@ -228,8 +228,8 @@ public final class AppAuthControllerTest {
         authPathWarpDTO.setAuthPathDTOList(authPathDTOS);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(SpringBeanUtils.getInstance().getBean(AuthPathMapper.class)).thenReturn(authPathMapper);
-        when(authPathMapper.existed(authPathWarpDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(AppAuthMapper.class)).thenReturn(appAuthMapper);
+        when(appAuthMapper.existed(authPathWarpDTO.getId())).thenReturn(true);
         given(this.appAuthService.updateDetailPath(authPathWarpDTO)).willReturn(ShenyuAdminResult.success());
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateDetailPath")
                 .contentType(MediaType.APPLICATION_JSON)

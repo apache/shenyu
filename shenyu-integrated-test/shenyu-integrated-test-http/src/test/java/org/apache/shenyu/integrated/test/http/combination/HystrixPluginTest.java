@@ -82,10 +82,14 @@ public final class HystrixPluginTest extends AbstractPluginDataInit {
         }.getType();
         Future<Map<String, Object>> resp0 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
         Future<Map<String, Object>> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
+        Future<Map<String, Object>> resp2 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_HYSTRIX_BAD_REQUEST_PATH, returnType));
         Stream.of(resp0.get()).filter(s -> null != s.get("message")).forEach(imp -> {
             resultSet.add(imp.get("message").toString());
         });
         Stream.of(resp1.get()).filter(s -> null != s.get("message")).forEach(imp -> {
+            resultSet.add(imp.get("message").toString());
+        });
+        Stream.of(resp2.get()).filter(s -> null != s.get("message")).forEach(imp -> {
             resultSet.add(imp.get("message").toString());
         });
         assertTrue(resultSet.contains("HystrixPlugin fallback success, please check your service status!"));

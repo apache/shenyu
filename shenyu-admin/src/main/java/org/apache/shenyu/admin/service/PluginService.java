@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 
@@ -30,7 +31,7 @@ import java.util.List;
 /**
  * this is plugin service.
  */
-public interface PluginService {
+public interface PluginService extends PageService<PluginQueryCondition, PluginVO> {
     
     /**
      * Create or update string.
@@ -38,27 +39,7 @@ public interface PluginService {
      * @param pluginDTO the plugin dto
      * @return the string
      */
-    default String createOrUpdate(PluginDTO pluginDTO) {
-        return StringUtils.isBlank(pluginDTO.getId()) ? create(pluginDTO) : update(pluginDTO);
-    }
-    
-    /**
-     * create plugin.<br>
-     * insert plugin and insert plugin data.
-     *
-     * @param pluginDTO plugin info
-     * @return success is empty
-     */
-    String create(PluginDTO pluginDTO);
-    
-    /**
-     * create plugin.<br>
-     * insert plugin and insert plugin data.
-     *
-     * @param pluginDTO plugin
-     * @return success is empty
-     */
-    String update(PluginDTO pluginDTO);
+    String createOrUpdate(PluginDTO pluginDTO);
     
     /**
      * Delete string.
@@ -122,4 +103,11 @@ public interface PluginService {
      * @return the plugin do
      */
     PluginDO findByName(String name);
+    
+    /**
+     * active plugin snapshot.
+     *
+     * @return plugin list
+     */
+    List<PluginSnapshotVO> activePluginSnapshot();
 }

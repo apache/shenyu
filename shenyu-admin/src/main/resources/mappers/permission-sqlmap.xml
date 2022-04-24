@@ -36,41 +36,41 @@
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
-            <include refid="Base_Column_List"/>
-        FROM permission
-        WHERE id = #{id,jdbcType=VARCHAR}
+               <include refid="Base_Column_List"/>
+          FROM permission
+         WHERE id = #{id,jdbcType=VARCHAR}
     </select>
 
     <select id="findByObjectId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
-            <include refid="Base_Column_List"/>
-        FROM permission
-        WHERE object_id = #{objectId,jdbcType=VARCHAR}
+               <include refid="Base_Column_List"/>
+          FROM permission
+         WHERE object_id = #{objectId,jdbcType=VARCHAR}
     </select>
 
     <select id="findByObjectIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
-            <include refid="Base_Column_List"/>
-        FROM permission
-        WHERE object_id in
-            <foreach item="objectId" collection="list" open="(" separator="," close=")">
-                #{objectId, jdbcType=VARCHAR}
-            </foreach>
+               <include refid="Base_Column_List"/>
+          FROM permission
+         WHERE object_id
+            IN <foreach item="objectId" collection="list" open="(" separator="," close=")">
+                 #{objectId, jdbcType=VARCHAR}
+               </foreach>
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PermissionDO">
         INSERT INTO permission
-            (id,
-            date_created,
-            date_updated,
-            object_id,
-            resource_id)
-        VALUES
-            (#{id,jdbcType=VARCHAR},
-            #{dateCreated,jdbcType=TIMESTAMP},
-            #{dateUpdated,jdbcType=TIMESTAMP},
-            #{objectId,jdbcType=VARCHAR},
-            #{resourceId,jdbcType=VARCHAR})
+                    (id,
+                    date_created,
+                    date_updated,
+                    object_id,
+                    resource_id)
+             VALUES
+                    (#{id,jdbcType=VARCHAR},
+                    #{dateCreated,jdbcType=TIMESTAMP},
+                    #{dateUpdated,jdbcType=TIMESTAMP},
+                    #{objectId,jdbcType=VARCHAR},
+                    #{resourceId,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PermissionDO">
@@ -109,10 +109,10 @@
 
     <insert id="insertBatch">
         INSERT INTO permission
-            (id,
-            object_id,
-            resource_id)
-        VALUES
+                    (id,
+                    object_id,
+                    resource_id)
+             VALUES
         <foreach collection="permissionDOList" item="permissionDO" separator=",">
             (#{permissionDO.id,jdbcType=VARCHAR},
             #{permissionDO.objectId,jdbcType=VARCHAR},
@@ -121,29 +121,29 @@
     </insert>
 
     <delete id="delete" parameterType="java.lang.String">
-        DELETE FROM  permission
-        WHERE  id = #{id,jdbcType=VARCHAR}
+        DELETE FROM permission
+              WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByObjectIdAndResourceId" parameterType="org.apache.shenyu.admin.model.query.PermissionQuery">
         DELETE FROM permission
-        WHERE object_id = #{objectId, jdbcType=VARCHAR}
-              and resource_id = #{resourceId, jdbcType=VARCHAR}
+              WHERE object_id = #{objectId, jdbcType=VARCHAR}
+                AND resource_id = #{resourceId, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByResourceId" parameterType="java.util.List">
         DELETE FROM permission
-        WHERE  resource_id in
+              WHERE resource_id IN
             <foreach item="resourceId" collection="list" open="(" separator="," close=")">
                 #{resourceId, jdbcType=VARCHAR}
             </foreach>
     </delete>
 
     <delete id="deleteByObjectIds" parameterType="java.util.List">
-        DELETE FROM  permission
-        WHERE object_id in
-            <foreach item="objectId" collection="list" open="(" separator="," close=")">
-                #{objectId, jdbcType=VARCHAR}
-            </foreach>
+        DELETE FROM permission
+              WHERE object_id IN
+                    <foreach item="objectId" collection="list" open="(" separator="," close=")">
+                        #{objectId, jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 </mapper>

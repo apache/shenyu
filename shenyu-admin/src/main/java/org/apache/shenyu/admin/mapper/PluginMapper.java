@@ -21,11 +21,13 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * PluginMapper.
@@ -137,13 +139,13 @@ public interface PluginMapper extends ExistProvider {
     int updateEnable(PluginDO pluginDO);
     
     /**
-     * enable data by a set of ids.
+     * enable data by a list of ids.
      *
-     * @param idSet   a set of ids
+     * @param idList   a list of ids
      * @param enabled status
      * @return the count of enabled datas
      */
-    int updateEnableByIdSet(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
+    int updateEnableByIdList(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
     
     /**
      * update selective plugin.
@@ -181,9 +183,24 @@ public interface PluginMapper extends ExistProvider {
     /**
      * plugin existed.
      *
-     * @param name name
+     * @param name    name
      * @param exclude exclude
      * @return existed
      */
     Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude);
+    
+    /**
+     * active plugin snapshot.
+     *
+     * @return plugin list
+     */
+    List<PluginSnapshotVO> activePluginSnapshot();
+    
+    /**
+     * search by condition.
+     *
+     * @param condition condition.
+     * @return list
+     */
+    List<PluginVO> searchByCondition(@Param("condition") PluginQueryCondition condition);
 }

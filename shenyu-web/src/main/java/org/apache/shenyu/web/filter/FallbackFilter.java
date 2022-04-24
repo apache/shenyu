@@ -17,21 +17,11 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.lang.NonNull;
-import org.springframework.util.AntPathMatcher;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,58 +29,31 @@ import java.util.Set;
 /**
  * FallbackFilter.
  */
-public class FallbackFilter implements WebFilter {
-
-    /**
-     * logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(FallbackFilter.class);
-
-    private static final AntPathMatcher MATCHER = new AntPathMatcher();
-
-    private static final String HYSTRIX = "/fallback/hystrix";
-
-    private static final String RESILIENCE4J = "/fallback/resilience4j";
+public class FallbackFilter extends AbstractWebFilter {
+    
+    private final DispatcherHandler dispatcherHandler;
 
     private final Set<String> paths;
-
-    public FallbackFilter(final List<String> paths) {
-        if (CollectionUtils.isNotEmpty(paths)) {
-            this.paths = new HashSet<>(paths);
-        } else {
-            this.paths = new HashSet<>();
-        }
-        this.paths.add(HYSTRIX);
-        this.paths.add(RESILIENCE4J);
+    
+    /**
+     * Instantiates a new Fallback filter.
+     *
+     * @param paths the paths
+     * @param dispatcherHandler the dispatcher handler
+     */
+    public FallbackFilter(final List<String> paths, final DispatcherHandler dispatcherHandler) {
+        this.dispatcherHandler = dispatcherHandler;
+        this.paths = new HashSet<>(paths);
     }
-
+    
     @Override
-    @NonNull
-    public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
-        ServerHttpRequest request = exchange.getRequest();
-        String path = request.getURI().getPath();
-        Set<String> fallbackPaths = Collections.unmodifiableSet(this.paths);
-        boolean match = fallbackPaths.stream().anyMatch(url -> reg(url, path));
-        if (match) {
-            Object error = this.getError(exchange, path);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-        return chain.filter(exchange);
+    protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
+        String path = exchange.getRequest().getURI().getPath();
+        return Mono.just(!paths.contains(path));
     }
-
-    private static boolean reg(final String pattern, final String path) {
-        return MATCHER.match(pattern, path);
-    }
-
-    private Object getError(final ServerWebExchange exchange, final String path) {
-        if (HYSTRIX.equals(path)) {
-            LOG.error("the fallback for hystrix");
-            return ShenyuResultWrap.error(exchange, ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
-        }
-        if (RESILIENCE4J.equals(path)) {
-            LOG.error("the fallback for resilience4j");
-            return ShenyuResultWrap.error(exchange, ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
-        }
-        return ShenyuResultWrap.error(exchange, ShenyuResultEnum.DEFAULT_FALLBACK, null);
+    
+    @Override
+    protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
+        return dispatcherHandler.handle(exchange);
     }
 }

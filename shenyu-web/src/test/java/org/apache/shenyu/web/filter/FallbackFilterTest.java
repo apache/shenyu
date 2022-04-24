@@ -28,6 +28,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
@@ -53,9 +54,11 @@ public final class FallbackFilterTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
+        DispatcherHandler dispatcherHandler = mock(DispatcherHandler.class);
+        when(dispatcherHandler.handle(any())).thenReturn(Mono.empty());
         List<String> paths = new ArrayList<>();
         paths.add("/fallback/hystrix");
-        fallbackFilter = new FallbackFilter(paths);
+        fallbackFilter = new FallbackFilter(paths, dispatcherHandler);
         webFilterChain = mock(WebFilterChain.class);
         when(webFilterChain.filter(any())).thenReturn(Mono.empty());
     }

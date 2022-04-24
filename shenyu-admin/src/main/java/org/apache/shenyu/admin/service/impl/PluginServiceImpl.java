@@ -36,6 +36,8 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PluginService;
@@ -53,13 +55,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -102,6 +101,12 @@ public class PluginServiceImpl implements PluginService {
         this.resourceService = resourceService;
     }
     
+    @Override
+    public List<PluginVO> searchByCondition(final PluginQueryCondition condition) {
+        condition.init();
+        return pluginMapper.searchByCondition(condition);
+    }
+    
     /**
      * create or update plugin.
      *
@@ -109,49 +114,8 @@ public class PluginServiceImpl implements PluginService {
      * @return rows
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final PluginDTO pluginDTO) {
-        return PluginService.super.createOrUpdate(pluginDTO);
-    }
-    
-    /**
-     * create plugin.<br>
-     * insert plugin and insert plugin data.
-     *
-     * @param pluginDTO plugin info
-     * @return success is empty
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String create(final PluginDTO pluginDTO) {
-        Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
-        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-        insertPluginDataToResource(pluginDTO);
-        pluginMapper.insertSelective(pluginDO);
-        
-        // publish create event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
-        return ShenyuResultMessage.CREATE_SUCCESS;
-    }
-    
-    /**
-     * update plugin.<br>
-     *
-     * @param pluginDTO plugin
-     * @return success is empty
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String update(final PluginDTO pluginDTO) {
-        Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
-        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-        pluginMapper.updateSelective(pluginDO);
-        
-        // publish update event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return StringUtils.isBlank(pluginDTO.getId()) ? this.create(pluginDTO) : this.update(pluginDTO);
     }
     
     /**
@@ -164,14 +128,13 @@ public class PluginServiceImpl implements PluginService {
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
         // 1. select plugin id.
-        List<PluginDO> plugins = Optional.ofNullable(this.pluginMapper.selectByIds(ids))
-                .orElse(Collections.emptyList());
-        final List<String> pluginIds = plugins.stream()
-                .map(PluginDO::getId).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(pluginIds)) {
+        List<PluginDO> plugins = this.pluginMapper.selectByIds(ids);
+        if (CollectionUtils.isEmpty(plugins)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
-        
+        final List<String> pluginIds = plugins.stream()
+                .map(PluginDO::getId).collect(Collectors.toList());
+
         // 2. delete plugins.
         this.pluginMapper.deleteByIds(pluginIds);
         // 3. delete plugin handle.
@@ -221,17 +184,12 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-        
-        if (CollectionUtils.isEmpty(ids)) {
-            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
-        }
-        List<PluginDO> plugins = Optional.ofNullable(pluginMapper.selectByIds(ids)).orElseGet(ArrayList::new);
-        Set<String> idSet = new HashSet<>(Optional.of(ids).orElseGet(ArrayList::new));
-        if (idSet.size() > plugins.size()) {
+        List<PluginDO> plugins = pluginMapper.selectByIds(ids);
+        if (CollectionUtils.isEmpty(plugins)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
         plugins.forEach(pluginDO -> pluginDO.setEnabled(enabled));
-        pluginMapper.updateEnableByIdSet(idSet, enabled);
+        pluginMapper.updateEnableByIdList(ids, enabled);
         // publish change event.
         if (CollectionUtils.isNotEmpty(plugins)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
@@ -299,6 +257,11 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public PluginDO findByName(final String name) {
         return pluginMapper.selectByName(name);
+    }
+    
+    @Override
+    public List<PluginSnapshotVO> activePluginSnapshot() {
+        return pluginMapper.activePluginSnapshot();
     }
     
     /**
@@ -371,5 +334,41 @@ public class PluginServiceImpl implements PluginService {
         }
         
         insertPluginMenuResource(resourceDO);
+    }
+
+    /**
+     * create plugin.<br>
+     * insert plugin and insert plugin data.
+     *
+     * @param pluginDTO plugin info
+     * @return success is empty
+     */
+    private String create(final PluginDTO pluginDTO) {
+        Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        insertPluginDataToResource(pluginDTO);
+        pluginMapper.insertSelective(pluginDO);
+
+        // publish create event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+        return ShenyuResultMessage.CREATE_SUCCESS;
+    }
+
+    /**
+     * update plugin.<br>
+     *
+     * @param pluginDTO plugin
+     * @return success is empty
+     */
+    private String update(final PluginDTO pluginDTO) {
+        Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        pluginMapper.updateSelective(pluginDO);
+
+        // publish update event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+        return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 }

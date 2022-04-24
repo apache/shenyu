@@ -1,3 +1,77 @@
+## 2.4.3
+
+### New Features
+
+1. Add http register client retry.
+2. Support octet-stream context-type.
+3. Support redirecting to URIs outside of bootstrap and refactoring code.
+4. Add local API authorization.
+5. Support config dubbo consumer pool.
+6. Support DividePlugin failover retry.
+7. Support websocket client configuration.
+8. Support config netty thread pool in HttpClient.
+9. Support MemoryLimitedLinkedBlockingQueue.
+10. Support alibaba dubbo plugin shared thread pool.
+11. Support grpc plugin shared thread pool.
+12. Add Metrics Plugin.
+13. Add Cache Plugin.
+14. Add logging rocketmq plugin.
+
+### API Changes
+
+### Enhancement
+
+1. Test combination of Param mapping, Rewrite plugin,
+2. Test combination of Param mapping and Redirect plugin.
+3. Test combination of RateLimiter and Rewrite plugin.
+4. Test combination of RateLimiter and Redirect plugin.
+5. Test combination of Request and Redirect plugin.
+6. Test combination of Request and Rewrite plugin.
+7. Test combination of JWT and RateLimiter plugin.
+8. Test combination of JWT and Redirect plugin.
+9. Test combination of JWT and Rewrite plugin.
+10. Add integrated test of Resilience4j plugin.
+11. Add integrated test of Hystrix plugin.
+12. Update junit4 to junit5.
+13. Add shenyu-examples-springmvc-tomcat.
+14. Optimize the password encryption.
+15. Optimize and verify shenyu-admin module interface parameters.
+16. Optimize the configurable Shenyu agent log collection.
+17. Optimize code about data init when sync data.
+18. Add unit test for LoggingRocketMQPlugin
+
+### Refactor
+
+1. Used Wheel-Timer instead of ScheduledExecutorService class.
+2. Remove DisruptorProvider#onData(final Consumer<DataEvent> function)
+3. Synchronized instance rather than class in MetadataExecutorSubscriber.
+4. Refactor admin buildHandle about register uri.
+5. Spring cloud client auto set port.
+6. Refactor jwt support multi-level tokens.
+7. Remove monitor plugin.
+8. Change logback theme.
+9. remove shenyu-agent.
+
+### Bug Fix
+
+1. Fix init CommonUpstreamUtils NPE.
+2. Make a judgment on the failure of Nacos registration.
+3. Fix NPE when login with non-existent user.
+4. Fix double log.
+5. Fix misspelled token.
+6. Fix retryCount not work bug.
+7. Fix token parse error.
+8. Fix the trouble of big data in Websocket.
+9. Fix NettyHttpClientPlugin did not retry when failed.
+10. Fix CVE-2021-41303.
+11. Fix judgment of the contains condition of all plugins does not work.
+12. Fix http headers lose bug.
+13. Fix Bug The Rewrite Plugin should support {PathVariable} request.
+14. Fix Bug about data sync with Nacos.
+15. Fix Nacos namespace config.
+16. Fix NPE or websocket proxy fails when the context-path plug-in is opened.
+17. Fix http registers the client plug-in port occupancy detection.
+
 ## 2.4.2
 
 ### New Features

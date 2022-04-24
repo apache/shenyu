@@ -40,6 +40,7 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -85,5 +86,21 @@ public final class RewritePluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
         assertEquals("/shenyu/rewrite", exchange.getAttributes().get(Constants.REWRITE_URI));
+    }
+
+    @Test
+    public void testSkip() {
+        final boolean result = rewritePlugin.skip(exchange);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testNamed() {
+        assertEquals(rewritePlugin.named(), "rewrite");
+    }
+
+    @Test
+    public void testGetOrder() {
+        assertEquals(rewritePlugin.getOrder(), 90);
     }
 }

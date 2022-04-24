@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The interface Meta data mapper.
@@ -53,10 +52,10 @@ public interface MetaDataMapper extends ExistProvider {
     /**
      * Select a list of MetaDataDOs by idList.
      *
-     * @param idSet a set of ids
+     * @param idList a list of ids
      * @return a list of MetaDataDOs
      */
-    List<MetaDataDO> selectByIdSet(@Param("idSet") Set<String> idSet);
+    List<MetaDataDO> selectByIdList(@Param("idList") List<String> idList);
     
     /**
      * Find all list.
@@ -132,11 +131,11 @@ public interface MetaDataMapper extends ExistProvider {
     /**
      * update enable batch.
      *
-     * @param idSet   the ids
+     * @param idList  the ids
      * @param enabled the status
      * @return the count
      */
-    int updateEnableBatch(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
+    int updateEnableBatch(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
     
     /**
      * Delete int.
@@ -147,12 +146,12 @@ public interface MetaDataMapper extends ExistProvider {
     int delete(String id);
     
     /**
-     * batch delete by a set of ids.
+     * batch delete by a list of ids.
      *
-     * @param idSet a set of ids
+     * @param idList a list of ids
      * @return the count of deleted
      */
-    int deleteByIdSet(@Param("idSet") Set<String> idSet);
+    int deleteByIdList(@Param("idList") List<String> idList);
     
     /**
      * the path is existed.

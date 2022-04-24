@@ -24,8 +24,10 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -55,7 +57,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/plugin")
-public class PluginController {
+public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
     
     private final PluginService pluginService;
     
@@ -76,7 +78,6 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
@@ -90,7 +91,6 @@ public class PluginController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all")
-    @RequiresPermissions("system:plugin:list")
     public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
@@ -195,15 +195,24 @@ public class PluginController {
      * @return the mono
      */
     @PutMapping("/syncPluginData/{id}")
-    @RequiresPermissions("system:plugin:modify")
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
-        boolean success = syncDataService.syncPluginData(id);
-        if (success) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
-        } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
-        }
+        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
+    }
+    
+    /**
+     * active plugin snapshot.
+     *
+     * @return list
+     */
+    @GetMapping("/snapshot/active")
+    public ShenyuAdminResult activePluginSnapshot() {
+        return ShenyuAdminResult.success(pluginService.activePluginSnapshot());
+    }
+    
+    @Override
+    public PageService<PluginQueryCondition, PluginVO> pageService() {
+        return pluginService;
     }
 }
