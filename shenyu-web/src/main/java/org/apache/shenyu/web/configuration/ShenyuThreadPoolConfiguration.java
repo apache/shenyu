@@ -26,6 +26,7 @@ import org.apache.shenyu.common.concurrent.TaskQueue;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -52,7 +53,7 @@ public class ShenyuThreadPoolConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(TaskQueue.class)
-    @ConditionalOnProperty(name = "shenyu.sharedPool.maxWorkQueueMemory", havingValue = "true")
+    @ConditionalOnProperty("shenyu.sharedPool.maxWorkQueueMemory")
     public TaskQueue<Runnable> memoryLimitedTaskQueue(final ShenyuConfig shenyuConfig) {
         final Instrumentation instrumentation = ByteBuddyAgent.install();
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
@@ -71,7 +72,7 @@ public class ShenyuThreadPoolConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(TaskQueue.class)
-    @ConditionalOnProperty(name = "shenyu.sharedPool.maxFreeMemory", havingValue = "true")
+    @ConditionalOnProperty("shenyu.sharedPool.maxFreeMemory")
     public TaskQueue<Runnable> memorySafeTaskQueue(final ShenyuConfig shenyuConfig) {
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
         final Integer maxFreeMemory = sharedPool.getMaxFreeMemory();
@@ -90,13 +91,13 @@ public class ShenyuThreadPoolConfiguration {
     @Bean
     @ConditionalOnProperty(name = "shenyu.sharedPool.enable", havingValue = "true")
     public ShenyuThreadPoolExecutor shenyuThreadPoolExecutor(final ShenyuConfig shenyuConfig,
-                                                             final TaskQueue<Runnable> workQueue) {
+                                                             final ObjectProvider<TaskQueue<Runnable>> provider) {
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
         final Integer corePoolSize = sharedPool.getCorePoolSize();
         final Integer maximumPoolSize = sharedPool.getMaximumPoolSize();
         final Long keepAliveTime = sharedPool.getKeepAliveTime();
         return new ShenyuThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime,
-                TimeUnit.MILLISECONDS, workQueue,
+                TimeUnit.MILLISECONDS, provider.getIfAvailable(),
                 ShenyuThreadFactory.create(sharedPool.getPrefix(), true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
