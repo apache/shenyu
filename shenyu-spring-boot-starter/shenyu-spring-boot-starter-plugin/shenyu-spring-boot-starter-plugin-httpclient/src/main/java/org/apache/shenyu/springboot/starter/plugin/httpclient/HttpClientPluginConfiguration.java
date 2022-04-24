@@ -72,7 +72,7 @@ public class HttpClientPluginConfiguration {
      * @return the http client loop resource
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.netty.httpclient.threadPool.prefix", matchIfMissing = true)
+    @ConditionalOnProperty("shenyu.netty.httpclient.threadPool.prefix")
     public LoopResources httpClientLoopResource(final HttpClientProperties properties) {
         HttpClientProperties.ThreadPool threadPool = properties.getThreadPool();
         return LoopResources.create(threadPool.getPrefix(), threadPool.getSelectCount(),
@@ -87,7 +87,7 @@ public class HttpClientPluginConfiguration {
      */
     @Bean
     public HttpClient httpClient(final HttpClientProperties properties,
-                                 final LoopResources httpClientLoopResource) {
+                                 final ObjectProvider<LoopResources> provider) {
         // configure pool resources.
         HttpClientProperties.Pool pool = properties.getPool();
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
@@ -106,7 +106,11 @@ public class HttpClientPluginConfiguration {
                         connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
                     });
-                    return tcpClient.runOn(httpClientLoopResource);
+                    final LoopResources loopResources = provider.getIfAvailable();
+                    if (Objects.nonNull(loopResources)) {
+                        tcpClient = tcpClient.runOn(loopResources);
+                    }
+                    return tcpClient;
                 });
         HttpClientProperties.Ssl ssl = properties.getSsl();
         if (StringUtils.isNotEmpty(ssl.getKeyStorePath())
