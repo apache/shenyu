@@ -21,6 +21,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
+import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -152,4 +154,12 @@ public interface RuleMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<RuleDO> selectAll();
+    
+    /**
+     * search by condition.
+     *
+     * @param condition condition
+     * @return list
+     */
+    List<RuleVO> selectByCondition(@Param("condition") RuleQueryCondition condition);
 }

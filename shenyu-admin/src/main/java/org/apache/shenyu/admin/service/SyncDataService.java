@@ -23,7 +23,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
  * The interface Sync data service.
  */
 public interface SyncDataService {
-
+    
     /**
      * Sync all boolean.
      *
@@ -31,7 +31,7 @@ public interface SyncDataService {
      * @return the boolean
      */
     boolean syncAll(DataEventTypeEnum type);
-
+    
     /**
      * Sync plugin data boolean.
      *

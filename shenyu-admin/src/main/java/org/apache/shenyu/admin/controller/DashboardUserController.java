@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -75,8 +76,8 @@ public class DashboardUserController {
     @GetMapping("")
     @RequiresPermissions("system:manager:list")
     public ShenyuAdminResult queryDashboardUsers(final String userName,
-                                                 @NotNull(message = "currentPage not null") final Integer currentPage,
-                                                 @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                                 @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
+                                                 @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName,
                 new PageParameter(currentPage, pageSize)));
         

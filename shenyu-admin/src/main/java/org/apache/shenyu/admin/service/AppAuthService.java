@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * this is application authority service.
  */
-public interface AppAuthService {
+public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
 
 
     /**

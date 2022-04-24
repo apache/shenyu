@@ -60,8 +60,6 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
 
     private final ConcurrentLinkedQueue<String> metadataCache = new ConcurrentLinkedQueue<>();
 
-    private boolean registerService;
-
     public NacosClientRegisterRepository() { }
 
     public NacosClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
@@ -128,10 +126,6 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
                                               final String host,
                                               final int port,
                                               final URIRegisterDTO registerDTO) {
-        if (registerService) {
-            return;
-        }
-        registerService = true;
         Instance instance = new Instance();
         instance.setEphemeral(true);
         instance.setIp(host);

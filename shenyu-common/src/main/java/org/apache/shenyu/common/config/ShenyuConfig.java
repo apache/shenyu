@@ -38,6 +38,8 @@ public class ShenyuConfig {
     private FileConfig file = new FileConfig();
     
     private ExcludePath exclude = new ExcludePath();
+    
+    private Health health = new Health();
 
     private FallbackPath fallback = new FallbackPath();
     
@@ -60,6 +62,24 @@ public class ShenyuConfig {
     private SharedPool sharedPool = new SharedPool();
     
     private MetricsConfig metrics = new MetricsConfig();
+    
+    /**
+     * Gets health.
+     *
+     * @return the health
+     */
+    public Health getHealth() {
+        return health;
+    }
+    
+    /**
+     * Sets health.
+     *
+     * @param health the health
+     */
+    public void setHealth(final Health health) {
+        this.health = health;
+    }
     
     /**
      * Gets metrics.
@@ -318,7 +338,7 @@ public class ShenyuConfig {
      */
     public static class Scheduler {
     
-        private Boolean enabled = false;
+        private boolean enabled;
     
         private String type = "fixed";
     
@@ -329,7 +349,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -338,7 +358,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -387,7 +407,7 @@ public class ShenyuConfig {
         
         private String path;
         
-        private Boolean enabled = true;
+        private boolean enabled;
     
         private Integer threads = 1;
         
@@ -418,7 +438,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -427,7 +447,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -448,8 +468,7 @@ public class ShenyuConfig {
         public void setThreads(final Integer threads) {
             this.threads = threads;
         }
-    
-    
+        
         /**
          * Gets schedule time.
          *
@@ -492,7 +511,7 @@ public class ShenyuConfig {
      */
     public static class ExcludePath {
     
-        private Boolean enabled = false;
+        private boolean enabled;
     
         private List<String> paths = new ArrayList<>();
     
@@ -501,7 +520,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -510,7 +529,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -538,7 +557,7 @@ public class ShenyuConfig {
      */
     public static class FallbackPath {
 
-        private Boolean enabled = false;
+        private boolean enabled;
 
         private List<String> paths = new ArrayList<>();
     
@@ -547,7 +566,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -556,7 +575,53 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+    
+        /**
+         * Sets paths.
+         *
+         * @param paths the paths
+         */
+        public void setPaths(final List<String> paths) {
+            this.paths = paths;
+        }
+    
+        /**
+         * get paths.
+         *
+         * @return paths paths
+         */
+        public List<String> getPaths() {
+            return paths;
+        }
+    }
+    
+    /**
+     * The type Health.
+     */
+    public static class Health {
+        
+        private boolean enabled;
+        
+        private List<String> paths = new ArrayList<>();
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -584,7 +649,7 @@ public class ShenyuConfig {
      */
     public static class FileConfig {
     
-        private Boolean enabled = true;
+        private boolean enabled;
     
         private Integer maxSize = 10;
     
@@ -593,7 +658,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -602,7 +667,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -630,14 +695,14 @@ public class ShenyuConfig {
      */
     public static class SwitchConfig {
         
-        private Boolean local = true;
+        private boolean local = true;
     
         /**
          * Gets local.
          *
          * @return the local
          */
-        public Boolean getLocal() {
+        public boolean getLocal() {
             return local;
         }
     
@@ -646,7 +711,7 @@ public class ShenyuConfig {
          *
          * @param local the local
          */
-        public void setLocal(final Boolean local) {
+        public void setLocal(final boolean local) {
             this.local = local;
         }
         
@@ -657,7 +722,7 @@ public class ShenyuConfig {
      */
     public static class UpstreamCheck {
     
-        private Boolean enabled = false;
+        private boolean enabled;
         
         private Integer timeout = 3000;
         
@@ -667,7 +732,7 @@ public class ShenyuConfig {
         
         private Integer interval = 5000;
         
-        private Boolean printEnabled = true;
+        private boolean printEnabled;
         
         private Integer printInterval = 60000;
     
@@ -676,7 +741,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -685,7 +750,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -766,7 +831,7 @@ public class ShenyuConfig {
          *
          * @return the print enabled
          */
-        public Boolean getPrintEnabled() {
+        public boolean getPrintEnabled() {
             return printEnabled;
         }
     
@@ -775,7 +840,7 @@ public class ShenyuConfig {
          *
          * @param printEnabled the print enabled
          */
-        public void setPrintEnabled(final Boolean printEnabled) {
+        public void setPrintEnabled(final boolean printEnabled) {
             this.printEnabled = printEnabled;
         }
     
@@ -821,7 +886,7 @@ public class ShenyuConfig {
             };
         }
     
-        private Boolean enabled = true;
+        private boolean enabled;
 
         /**
          * Comma-separated of “header”.
@@ -839,7 +904,7 @@ public class ShenyuConfig {
 
         private String maxAge = "18000";
 
-        private boolean allowCredentials = true;
+        private boolean allowCredentials;
 
         /**
          * wrapper the headers.
@@ -860,7 +925,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -869,7 +934,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -987,7 +1052,7 @@ public class ShenyuConfig {
      */
     public static class InstanceConfig {
     
-        private Boolean enabled = false;
+        private boolean enabled;
     
         private String registerType;
     
@@ -1020,7 +1085,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -1029,7 +1094,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -1137,7 +1202,7 @@ public class ShenyuConfig {
      */
     public static class Local {
         
-        private Boolean enabled = true;
+        private boolean enabled;
         
         private String sha512Key;
     
@@ -1161,7 +1226,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -1170,7 +1235,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     

@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.provider.AppKeyProvider;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -54,7 +55,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/appAuth")
-public class AppAuthController {
+public class AppAuthController implements PagedController<AppAuthQuery, AppAuthVO> {
     
     private final AppAuthService appAuthService;
     
@@ -104,8 +105,8 @@ public class AppAuthController {
     @GetMapping("/findPageByQuery")
     @RequiresPermissions("system:authen:list")
     public ShenyuAdminResult findPageByQuery(final String appKey, final String phone,
-                                             @NotNull(message = "currentPage not null") final Integer currentPage,
-                                             @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                             @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
+                                             @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
         query.setAppKey(appKey);
@@ -206,5 +207,10 @@ public class AppAuthController {
     @RequiresPermissions("system:authen:modify")
     public ShenyuAdminResult syncData() {
         return appAuthService.syncData();
+    }
+    
+    @Override
+    public PageService<AppAuthQuery, AppAuthVO> pageService() {
+        return appAuthService;
     }
 }

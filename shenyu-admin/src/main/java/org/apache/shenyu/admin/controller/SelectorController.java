@@ -17,13 +17,20 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -35,13 +42,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * this is selector controller.
@@ -49,7 +51,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/selector")
-public class SelectorController {
+public class SelectorController implements PagedController<SelectorQueryCondition, SelectorVO> {
     
     private final SelectorService selectorService;
     
@@ -68,8 +70,8 @@ public class SelectorController {
      */
     @GetMapping("")
     public ShenyuAdminResult querySelectors(final String pluginId, final String name,
-                                            @NotNull final Integer currentPage,
-                                            @NotNull final Integer pageSize) {
+                                            @RequestParam @NotNull final Integer currentPage,
+                                            @RequestParam @NotNull final Integer pageSize) {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
@@ -127,5 +129,10 @@ public class SelectorController {
     public ShenyuAdminResult deleteSelector(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = selectorService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+    }
+    
+    @Override
+    public PageService<SelectorQueryCondition, SelectorVO> pageService() {
+        return selectorService;
     }
 }
