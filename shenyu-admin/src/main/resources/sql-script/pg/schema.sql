@@ -367,7 +367,7 @@ ELSE
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '15' || ''', ''' || 'grpc' || ''', ''' || '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"cached"}' || ''', ''' || 'Proxy' || ''', 310, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '16' || ''', ''' || 'redirect' || ''', NULL, ''' || 'HttpProcess' || ''', 110, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '17' || ''', ''' || 'motan' || ''', ''' || '{"register":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"cached"}' || ''', ''' || 'Proxy' || ''', 310, 0);');
-	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '18' || ''', ''' || 'logging' || ''', NULL, ''' || 'Logging' || ''', 160, 0);');
+	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '18' || ''', ''' || 'loggingConsole' || ''', NULL, ''' || 'Logging' || ''', 160, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '19' || ''', ''' || 'jwt' || ''', ''' || '{"secretKey":"key"}' || ''', ''' || 'Authentication' || ''', 30, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '2' || ''', ''' || 'waf' || ''', ''' || '{"model":"black"}' || ''', ''' || 'Authentication' || ''', 50, 0);');
 	PERFORM public.dblink_exec('init_conn',  'INSERT INTO "plugin" VALUES (''' || '20' || ''', ''' || 'request' || ''', NULL, ''' || 'HttpProcess' || ''', 120, 0);');
