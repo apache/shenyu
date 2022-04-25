@@ -49,7 +49,8 @@ public final class HealthFilterTest {
     private WebFilterChain webFilterChain;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
+        ServerWebExchange serverWebExchange = mock(ServerWebExchange.class);
         List<String> paths = new ArrayList<>();
         paths.add("/testFilterMatch");
         healthFilter = new HealthFilter(paths);
@@ -58,7 +59,16 @@ public final class HealthFilterTest {
     }
 
     @Test
-    void testFilterMatch() {
+    public void testDoFilterMatch() {
+        ServerWebExchange webExchange =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080/testFilterMatch"));
+        Mono<Boolean> filter = healthFilter.doFilter(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
+    }
+
+    @Test
+    public void testFilterMatch() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/testFilterMatch"));
@@ -67,7 +77,7 @@ public final class HealthFilterTest {
     }
 
     @Test
-    void testFilterNotMatch() {
+    public void testFilterNotMatch() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/"));
