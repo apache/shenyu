@@ -234,6 +234,8 @@ shenyu:
 #    keepAliveTime: 60000
 #    # 1GB
 #    maxWorkQueueMemory: 1073741824
+#    # 256MB
+#    maxFreeMemory: 268435456
 
 logging:
   level:

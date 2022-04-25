@@ -19,10 +19,12 @@ package org.apache.shenyu.web.configuration;
 
 import net.bytebuddy.agent.ByteBuddyAgent;
 import org.apache.shenyu.common.concurrent.MemoryLimitedTaskQueue;
+import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.concurrent.TaskQueue;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.beans.factory.ObjectProvider;
@@ -64,6 +66,24 @@ public class ShenyuThreadPoolConfiguration {
     }
 
     /**
+     * MemorySafeTaskQueue.
+     *
+     * @param shenyuConfig the shenyu config
+     * @return instance of {@link MemorySafeTaskQueue}
+     */
+    @Bean
+    @ConditionalOnMissingBean(TaskQueue.class)
+    @ConditionalOnProperty("shenyu.sharedPool.maxFreeMemory")
+    public TaskQueue<Runnable> memorySafeTaskQueue(final ShenyuConfig shenyuConfig) {
+        final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
+        final Integer maxFreeMemory = sharedPool.getMaxFreeMemory();
+        if (maxFreeMemory <= 0) {
+            throw new ShenyuException("${shenyu.sharedPool.maxFreeMemory} must bigger than 0 !");
+        }
+        return new MemorySafeTaskQueue<>(maxFreeMemory);
+    }
+
+    /**
      * crate shenyu shared thread pool executor.
      *
      * @param shenyuConfig the shenyu config
@@ -79,7 +99,7 @@ public class ShenyuThreadPoolConfiguration {
         final Integer maximumPoolSize = sharedPool.getMaximumPoolSize();
         final Long keepAliveTime = sharedPool.getKeepAliveTime();
         return new ShenyuThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime,
-                TimeUnit.MILLISECONDS, provider.getIfAvailable(),
+                TimeUnit.MILLISECONDS, provider.getIfAvailable(()-> new MemorySafeTaskQueue<>(Constants.THE_256_MB)),
                 ShenyuThreadFactory.create(sharedPool.getPrefix(), true),
                 new ThreadPoolExecutor.AbortPolicy());
     }

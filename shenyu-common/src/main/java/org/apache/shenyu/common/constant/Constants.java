@@ -623,6 +623,11 @@ public interface Constants {
     String CACHED = "cached";
 
     /**
+     * The maximum free memory reserved by the blocking queue for the JVM.
+     */
+    int THE_256_MB = 256 * 1024 * 1024;
+
+    /**
      * String q.
      */
     default void findConstants() {
