@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.config;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.springframework.util.Assert;
@@ -64,10 +65,12 @@ public class ShenyuConfigTest {
     }
 
     private void notEmptyElements(final Object... objects) {
+        Assert.isTrue(ArrayUtils.isNotEmpty(objects), "array must not be empty");
+
         Arrays.stream(objects).forEach(val -> {
-            Assert.notNull(val, "val not allow null");
+            Assert.notNull(val, "val must not be null");
             if (val instanceof String) {
-                Assert.isTrue(StringUtils.isNotEmpty((String) val), "val not allow empty");
+                Assert.isTrue(StringUtils.isNotEmpty((String) val), "val must not be empty");
             }
         });
     }
