@@ -125,7 +125,7 @@
         <!--shenyu debug plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-console</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!--shenyu debug plugin end-->

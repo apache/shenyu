@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.global.cache;
 
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.MemorySafeLRUMap;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.PathMatchUtils;
 
@@ -33,8 +34,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public final class MetaDataCache {
 
-    private static final int THE_256_MB = 256 * 1024 * 1024;
-
     private static final MetaData NULL = new MetaData();
 
     private static final MetaDataCache INSTANCE = new MetaDataCache();
@@ -44,7 +43,7 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
-    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(THE_256_MB, 1 << 16);
+    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
 
     /**
      * pathPattern -> path.
