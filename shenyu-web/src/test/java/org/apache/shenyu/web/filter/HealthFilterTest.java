@@ -76,21 +76,4 @@ public final class HealthFilterTest {
         StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
     }
 
-    @Test
-    public void testFilterMatch() {
-        ServerWebExchange webExchange =
-                MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8080/testFilterMatch"));
-        Mono<Void> filter = healthFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testFilterNotMatch() {
-        ServerWebExchange webExchange =
-                MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8080/"));
-        Mono<Void> filter = healthFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
-    }
 }
