@@ -50,7 +50,7 @@
                <include refid="Base_Column_List"/>
           FROM auth_path
          WHERE auth_id in
-       <foreach collection="authIdSet" index="index" item="authId"
+       <foreach collection="authIdList" index="index" item="authId"
                  open="(" separator="," close=")" >
             #{authId, jdbcType=VARCHAR}
        </foreach>
