@@ -135,7 +135,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        List<String> idList = ids.stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+        List<String> idList = ids.stream().filter(StringUtils::isNotEmpty).distinct().collect(Collectors.toList());
         Optional.ofNullable(dashboardUserMapper.selectByUserName(AdminConstants.ADMIN_NAME))
                 .ifPresent(userDO -> idList.remove(userDO.getId()));
         int ret = dashboardUserMapper.deleteByIdList(idList);
