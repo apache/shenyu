@@ -318,13 +318,14 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-        List<AppAuthDO> appAuthDOList = appAuthMapper.selectByIds(ids);
+        List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectByIds(distinctIds);
         if (CollectionUtils.isEmpty(appAuthDOList)) {
             return AdminConstants.ID_NOT_EXIST;
         }
 
-        Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(ids);
-        Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(ids);
+        Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(distinctIds);
+        Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(distinctIds);
 
         List<AppAuthData> authDataList = appAuthDOList.stream().map(appAuthDO -> {
             String id = appAuthDO.getId();
@@ -332,7 +333,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             return this.buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
         }).collect(Collectors.toList());
 
-        appAuthMapper.updateEnableBatch(ids, enabled);
+        appAuthMapper.updateEnableBatch(distinctIds, enabled);
 
         // publish change event.
         if (CollectionUtils.isNotEmpty(authDataList)) {
