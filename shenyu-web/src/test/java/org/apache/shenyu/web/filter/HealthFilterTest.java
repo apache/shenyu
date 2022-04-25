@@ -50,7 +50,6 @@ public final class HealthFilterTest {
 
     @BeforeEach
     public void setUp() {
-        ServerWebExchange serverWebExchange = mock(ServerWebExchange.class);
         List<String> paths = new ArrayList<>();
         paths.add("/testFilterMatch");
         healthFilter = new HealthFilter(paths);
