@@ -67,7 +67,7 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
      * @return true if has free memory
      */
     public boolean hasRemainedMemory() {
-        return MemoryLimitCalculator.maxAvailable() < maxFreeMemory;
+        return MemoryLimitCalculator.maxAvailable() > maxFreeMemory;
     }
 
     @Override
