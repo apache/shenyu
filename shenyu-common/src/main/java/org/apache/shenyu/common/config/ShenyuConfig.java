@@ -1330,6 +1330,14 @@ public class ShenyuConfig {
          * controls memory directly by calculating the memory size used by the blocking queue.
          */
         private Long maxWorkQueueMemory = MemoryLimitCalculator.defaultLimit();
+
+        /**
+         * The memory used by the blocking queue is always in the safe range, and there
+         * is always an attempt to make the JVM's free memory higher than this value.
+         *
+         * @see org.apache.shenyu.common.concurrent.MemorySafeLinkedBlockingQueue#getMaxFreeMemory()
+         */
+        private Integer maxFreeMemory;
     
         /**
          * Whether to enable shared thread pool.
@@ -1437,6 +1445,24 @@ public class ShenyuConfig {
          */
         public void setMaxWorkQueueMemory(final Long maxWorkQueueMemory) {
             this.maxWorkQueueMemory = maxWorkQueueMemory;
+        }
+
+        /**
+         * Get shared thread pool max work queue free memory.
+         *
+         * @return the shared thread pool max work queue free memory
+         */
+        public Integer getMaxFreeMemory() {
+            return maxFreeMemory;
+        }
+
+        /**
+         * Set max work queue free memory.
+         *
+         * @param maxFreeMemory the max work queue free memory
+         */
+        public void setMaxFreeMemory(final Integer maxFreeMemory) {
+            this.maxFreeMemory = maxFreeMemory;
         }
     }
     
