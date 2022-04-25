@@ -47,13 +47,13 @@ public class FallbackFilter extends AbstractWebFilter {
     }
     
     @Override
-    protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
+    protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        return Mono.just(!paths.contains(path));
+        return Mono.just(paths.contains(path));
     }
     
     @Override
-    protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
+    protected Mono<Void> doFilter(final ServerWebExchange exchange) {
         return dispatcherHandler.handle(exchange);
     }
 }

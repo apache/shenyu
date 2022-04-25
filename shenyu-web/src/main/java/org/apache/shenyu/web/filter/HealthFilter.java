@@ -52,12 +52,12 @@ public final class HealthFilter extends AbstractWebFilter {
     }
     
     @Override
-    protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
-        return Mono.just(!paths.contains(exchange.getRequest().getURI().getPath()));
+    protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
+        return Mono.just(paths.contains(exchange.getRequest().getURI().getPath()));
     }
     
     @Override
-    protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
+    protected Mono<Void> doFilter(final ServerWebExchange exchange) {
         String result = JsonUtils.toJson(new Health.Builder().up().build());
         DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(result.getBytes(StandardCharsets.UTF_8));
         return exchange.getResponse().writeWith(Mono.just(dataBuffer));
