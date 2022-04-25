@@ -51,6 +51,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -393,4 +394,18 @@ public class HttpTestController {
         response.setMsg("fallback");
         return response;
     }
+
+    /**
+     * test pass for cache plugin.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/cache")
+    public ResultBean testCache() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg(new Date().toString());
+        return response;
+    }
+
 }
