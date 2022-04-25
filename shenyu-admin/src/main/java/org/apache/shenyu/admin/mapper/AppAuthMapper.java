@@ -26,7 +26,6 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * AppAuthMapper.
@@ -125,11 +124,11 @@ public interface AppAuthMapper extends ExistProvider {
     /**
      * update enable batch.
      *
-     * @param idSet   the ids
+     * @param idList  the ids
      * @param enabled the status
      * @return the count
      */
-    int updateEnableBatch(@Param("idSet") Set<String> idSet, @Param("enabled") Boolean enabled);
+    int updateEnableBatch(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
     
     
     /**
