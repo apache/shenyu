@@ -41,7 +41,6 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
         this.dashboardProperties = dashboardProperties;
     }
     
-    
     @Override
     public List<OperationRecordLog> list() {
         return recordLogMapper.selectLimit(dashboardProperties.getRecordLogLimit());

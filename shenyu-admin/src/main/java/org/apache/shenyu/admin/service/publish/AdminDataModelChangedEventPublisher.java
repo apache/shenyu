@@ -25,7 +25,7 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import java.util.Collection;
 
 /**
- * ModelDataEventPublisher
+ * ModelDataEventPublisher.
  */
 public interface AdminDataModelChangedEventPublisher<T> {
     
@@ -39,6 +39,15 @@ public interface AdminDataModelChangedEventPublisher<T> {
     }
     
     /**
+     * on  created.
+     *
+     * @param data data
+     */
+    default void onCreated(final Collection<T> data) {
+        publish(new BatchChangedEvent(data, null, EventTypeEnum.CREATE, SessionUtil.visitorName()));
+    }
+    
+    /**
      * on data updated.
      *
      * @param data   data
@@ -46,7 +55,16 @@ public interface AdminDataModelChangedEventPublisher<T> {
      */
     default void onUpdated(final T data, final T before) {
         publish(new AdminDataModelChangedEvent(data, before, EventTypeEnum.UPDATE, SessionUtil.visitorName()));
-        
+    }
+    
+    /**
+     * on data updated.
+     *
+     * @param data   data
+     * @param before before data
+     */
+    default void onUpdated(final Collection<T> data, final Collection<T> before) {
+        publish(new BatchChangedEvent(data, before, EventTypeEnum.UPDATE, SessionUtil.visitorName()));
     }
     
     /**
@@ -58,25 +76,6 @@ public interface AdminDataModelChangedEventPublisher<T> {
         publish(new AdminDataModelChangedEvent(data, null, EventTypeEnum.DELETE, SessionUtil.visitorName()));
     }
     
-    /**
-     * on  created.
-     *
-     * @param data data
-     */
-    default void onCreated(final Collection<T> data) {
-        publish(new BatchChangedEvent(data, null, EventTypeEnum.CREATE, SessionUtil.visitorName()));
-    }
-    
-    
-    /**
-     * on data updated.
-     *
-     * @param data   data
-     * @param before before data
-     */
-    default void onUpdated(final Collection<T> data, final Collection<T> before) {
-        publish(new BatchChangedEvent(data, before, EventTypeEnum.UPDATE, SessionUtil.visitorName()));
-    }
     
     /**
      * on data deleted.

@@ -96,7 +96,6 @@ public final class PluginServiceTest {
     @Mock
     private PluginEventPublisher modelDataEventPublisher;
     
-    
     @BeforeEach
     public void setUp() {
         pluginService = new PluginServiceImpl(pluginMapper, pluginHandleMapper, selectorMapper, selectorConditionMapper,

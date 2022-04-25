@@ -28,6 +28,9 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "shenyu.dashboard.core")
 public class DashboardProperties {
     
+    /**
+     * record log limit.
+     */
     @Value("${shenyu.dashboard.core.record-log-limit:12}")
     private Integer recordLogLimit;
     

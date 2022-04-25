@@ -24,7 +24,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import java.util.Objects;
 
 /**
- * AdminDataModelChangedEvent
+ * AdminDataModelChangedEvent.
  */
 public class PluginChangedEvent extends AdminDataModelChangedEvent {
     
@@ -40,10 +40,9 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
         super(source, before, type, operator);
     }
     
-    
     @Override
     public String buildContext() {
-        final PluginDO after = ((PluginDO) getAfter());
+        final PluginDO after = (PluginDO) getAfter();
         if (Objects.isNull(getBefore())) {
             return String.format("the plugin [%s] is %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()));
         }

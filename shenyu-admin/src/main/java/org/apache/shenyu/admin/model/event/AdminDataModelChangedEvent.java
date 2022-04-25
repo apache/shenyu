@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * AdminDataModelChangedEvent
+ * AdminDataModelChangedEvent.
  */
 public class AdminDataModelChangedEvent extends ApplicationEvent {
     
@@ -134,6 +134,8 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     
     /**
      * is consumed.
+     *
+     * @return is consumed
      */
     public boolean isConsumed() {
         return consumed;

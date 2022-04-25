@@ -27,7 +27,7 @@ import java.util.Objects;
  * the session is a request content.
  * Suitable for retrieving user context information from a variety of sources。
  */
-public class SessionUtil {
+public final class SessionUtil {
     
     private static final Logger LOG = LoggerFactory.getLogger(SessionUtil.class);
     
