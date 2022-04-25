@@ -20,6 +20,9 @@ package org.apache.shenyu.common.concurrent;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * {@link javax.management.MXBean} technology is used to calculate the memory
@@ -32,14 +35,30 @@ public class MemoryLimitCalculator {
 
     private static final MemoryMXBean MX_BEAN = ManagementFactory.getMemoryMXBean();
 
+    private static volatile long maxAvailable;
+
+    private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
+
+    static {
+        // immediately refresh when this class is loaded to prevent maxAvailable from being 0
+        refresh();
+        // check every 50 ms to improve performance
+        SCHEDULER.scheduleWithFixedDelay(MemoryLimitCalculator::refresh, 50, 50, TimeUnit.MILLISECONDS);
+        Runtime.getRuntime().addShutdownHook(new Thread(SCHEDULER::shutdown));
+    }
+
+    private static void refresh() {
+        final MemoryUsage usage = MX_BEAN.getHeapMemoryUsage();
+        maxAvailable = usage.getCommitted();
+    }
+
     /**
      * Get the maximum available memory of the current JVM.
      *
      * @return maximum available memory
      */
     public static long maxAvailable() {
-        final MemoryUsage usage = MX_BEAN.getHeapMemoryUsage();
-        return usage.getCommitted();
+        return maxAvailable;
     }
 
     /**
