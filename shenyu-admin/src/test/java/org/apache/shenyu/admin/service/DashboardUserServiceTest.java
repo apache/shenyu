@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
-import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -85,9 +84,6 @@ public final class DashboardUserServiceTest {
 
     @Mock
     private DataPermissionMapper dataPermissionMapper;
-
-    @Mock
-    private SecretProperties secretProperties;
 
     @Mock
     private JwtProperties jwtProperties;
@@ -174,7 +170,6 @@ public final class DashboardUserServiceTest {
 
     @Test
     public void testLogin() {
-        ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
 
