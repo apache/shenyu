@@ -27,6 +27,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
@@ -57,29 +58,36 @@ public class LocalDispatcherFilterTest {
         when(webFilterChain.filter(any())).thenReturn(Mono.empty());
     }
 
-    /**
-     * test method for {@linkplain LocalDispatcherFilter#doFilter(ServerWebExchange, WebFilterChain)}.
-     * execute {@linkplain LocalDispatcherFilter#doDenyResponse(ServerWebExchange)}.
-     */
     @Test
-    public void testFilter() {
-        ServerWebExchange serverWebExchange =
+    public void testFilterMatch() {
+        ServerWebExchange exchangeNormal =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/shenyu/test")
                         .header("localKey", "123456"));
-        Mono<Void> filter = localDispatcherFilter.filter(serverWebExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+        Mono<Void> filterNormal = localDispatcherFilter.filter(exchangeNormal, webFilterChain);
+        StepVerifier.create(filterNormal).expectSubscription().verifyComplete();
     }
 
-    /**
-     * test method for {@linkplain LocalDispatcherFilter#doFilter(ServerWebExchange, WebFilterChain)}.
-     */
     @Test
     public void testFilterNotMatch() {
-        ServerWebExchange webExchange =
+        ServerWebExchange noHeaderExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8080/test"));
-        Mono<Void> filter = localDispatcherFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+                        .post("http://localhost:8080/shenyu/test"));
+        Mono<Void> noHeaderFilter = localDispatcherFilter.filter(noHeaderExchange, webFilterChain);
+        StepVerifier.create(noHeaderFilter).expectSubscription().verifyError(ResponseStatusException.class);
+
+        ServerWebExchange noMatchUrlExchange =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080/test")
+                        .header("localKey", "123456"));
+        Mono<Void> noMatchUrlFilter = localDispatcherFilter.filter(noMatchUrlExchange, webFilterChain);
+        StepVerifier.create(noMatchUrlFilter).expectSubscription().verifyComplete();
+
+        ServerWebExchange shaErrorExchange =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080/shenyu/test")
+                        .header("localKey", "654321"));
+        Mono<Void> shaErrorFilter = localDispatcherFilter.filter(shaErrorExchange, webFilterChain);
+        StepVerifier.create(shaErrorFilter).expectSubscription().verifyError(ResponseStatusException.class);
     }
 }
