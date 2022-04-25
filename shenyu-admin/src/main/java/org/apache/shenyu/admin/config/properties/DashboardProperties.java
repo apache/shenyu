@@ -36,6 +36,8 @@ public class DashboardProperties {
     
     /**
      * get recordLogLimit.
+     *
+     * @return limit
      */
     public Integer getRecordLogLimit() {
         return recordLogLimit;
@@ -43,8 +45,10 @@ public class DashboardProperties {
     
     /**
      * set recordLogLimit.
+     *
+     * @param recordLogLimit limit
      */
-    public void setRecordLogLimit(Integer recordLogLimit) {
+    public void setRecordLogLimit(final Integer recordLogLimit) {
         this.recordLogLimit = recordLogLimit;
     }
 }

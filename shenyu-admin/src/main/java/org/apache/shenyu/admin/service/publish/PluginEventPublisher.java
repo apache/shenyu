@@ -36,13 +36,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * ModelDataEventPublisher
+ * ModelDataEventPublisher.
  */
 @Component
 public class PluginEventPublisher implements AdminDataModelChangedEventPublisher<PluginDO> {
     
     private final ApplicationEventPublisher publisher;
-    
     
     public PluginEventPublisher(final ApplicationEventPublisher publisher) {
         this.publisher = publisher;

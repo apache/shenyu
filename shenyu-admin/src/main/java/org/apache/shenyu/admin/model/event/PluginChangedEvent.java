@@ -77,7 +77,6 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
         return builder.toString();
     }
     
-    
     @Override
     public String eventName() {
         return "plugin";

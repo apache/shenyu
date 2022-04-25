@@ -91,5 +91,5 @@ public interface AdminDataModelChangedEventPublisher<T> {
      *
      * @param event event.
      */
-    void publish(final AdminDataModelChangedEvent event);
+    void publish(AdminDataModelChangedEvent event);
 }

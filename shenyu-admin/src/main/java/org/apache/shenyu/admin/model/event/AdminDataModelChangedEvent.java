@@ -49,7 +49,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     private final String operator;
     
     /**
-     * consumed
+     * consumed.
      */
     private boolean consumed;
     
@@ -59,7 +59,6 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     private final Date date;
     
     /**
-     * 是否被消费
      * Create a new {@code ApplicationEvent}.operator is unknown.
      *
      * @param source Current data state
