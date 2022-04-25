@@ -99,7 +99,7 @@ public class ShenyuThreadPoolConfiguration {
         final Integer maximumPoolSize = sharedPool.getMaximumPoolSize();
         final Long keepAliveTime = sharedPool.getKeepAliveTime();
         return new ShenyuThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime,
-                TimeUnit.MILLISECONDS, provider.getIfAvailable(()-> new MemorySafeTaskQueue<>(Constants.THE_256_MB)),
+                TimeUnit.MILLISECONDS, provider.getIfAvailable(() -> new MemorySafeTaskQueue<>(Constants.THE_256_MB)),
                 ShenyuThreadFactory.create(sharedPool.getPrefix(), true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
