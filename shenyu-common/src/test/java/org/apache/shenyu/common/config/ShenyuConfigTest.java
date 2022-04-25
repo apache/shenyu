@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.common.config;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -56,12 +59,17 @@ public class ShenyuConfigTest {
         ShenyuConfig.WebsocketConfig websocket = config.getWebsocket();
         ShenyuConfig.UpstreamCheck upstreamCheck = config.getUpstreamCheck();
 
-        assertNotNullValue(cross, switchConfig, exclude, fallback, file, instance,
+        notEmptyElements(cross, switchConfig, exclude, fallback, file, instance,
                 extPlugin, local, ribbon, metrics, scheduler, sharedPool, websocket, upstreamCheck);
     }
 
-    private void assertNotNullValue(final Object... objects) {
-        Assert.noNullElements(objects, "val not allow null");
+    private void notEmptyElements(final Object... objects) {
+        Arrays.stream(objects).forEach(val -> {
+            Assert.notNull(val, "val not allow null");
+            if (val instanceof String) {
+                Assert.isTrue(StringUtils.isNotEmpty((String) val), "val not allow empty");
+            }
+        });
     }
 
     @Test
@@ -75,7 +83,7 @@ public class ShenyuConfigTest {
         upstreamCheck.setPrintEnabled(false);
         upstreamCheck.setPrintInterval(5);
 
-        assertNotNullValue(upstreamCheck.getEnabled(), upstreamCheck.getHealthyThreshold(), upstreamCheck.getTimeout(),
+        notEmptyElements(upstreamCheck.getEnabled(), upstreamCheck.getHealthyThreshold(), upstreamCheck.getTimeout(),
                 upstreamCheck.getInterval(), upstreamCheck.getUnhealthyThreshold(), upstreamCheck.getPrintInterval(), upstreamCheck.getPrintEnabled());
     }
 
@@ -96,7 +104,7 @@ public class ShenyuConfigTest {
         sharedPool.setKeepAliveTime(1000L);
         sharedPool.setMaxWorkQueueMemory(1024L);
 
-        assertNotNullValue(sharedPool.getCorePoolSize(), sharedPool.getEnable(), sharedPool.getMaximumPoolSize(),
+        notEmptyElements(sharedPool.getCorePoolSize(), sharedPool.getEnable(), sharedPool.getMaximumPoolSize(),
                 sharedPool.getPrefix(), sharedPool.getKeepAliveTime(), sharedPool.getMaxWorkQueueMemory());
     }
 
@@ -111,7 +119,7 @@ public class ShenyuConfigTest {
         Integer threads = scheduler.getThreads();
         String type = scheduler.getType();
 
-        assertNotNullValue(enabled, type, threads);
+        notEmptyElements(enabled, type, threads);
     }
 
     @Test
@@ -133,7 +141,7 @@ public class ShenyuConfigTest {
         String name = metrics.getName();
         Integer port = metrics.getPort();
 
-        assertNotNullValue(jmxConfig, props, host, name, port);
+        notEmptyElements(jmxConfig, props, host, name, port);
     }
 
     @Test
@@ -144,7 +152,7 @@ public class ShenyuConfigTest {
         Boolean enabled = local.getEnabled();
         String sha512Key = local.getSha512Key();
 
-        assertNotNullValue(enabled, sha512Key);
+        notEmptyElements(enabled, sha512Key);
     }
 
     @Test
@@ -155,7 +163,7 @@ public class ShenyuConfigTest {
         Boolean enabled = local.getEnabled();
         String sha512Key = local.getSha512Key();
 
-        assertNotNullValue(enabled, sha512Key);
+        notEmptyElements(enabled, sha512Key);
     }
 
     @Test
@@ -172,7 +180,7 @@ public class ShenyuConfigTest {
         Integer scheduleDelay = extPlugin.getScheduleDelay();
         Integer scheduleTime = extPlugin.getScheduleTime();
 
-        assertNotNullValue(enabled, path, scheduleTime, scheduleDelay, threads);
+        notEmptyElements(enabled, path, scheduleTime, scheduleDelay, threads);
     }
 
     @Test
@@ -188,7 +196,7 @@ public class ShenyuConfigTest {
         String registerType = instance.getRegisterType();
         String serverLists = instance.getServerLists();
 
-        assertNotNullValue(props, registerType, serverLists, enabled);
+        notEmptyElements(props, registerType, serverLists, enabled);
     }
 
     @Test
@@ -200,7 +208,7 @@ public class ShenyuConfigTest {
         Boolean enabled = fileConfig.getEnabled();
         Integer maxSize = fileConfig.getMaxSize();
 
-        assertNotNullValue(maxSize, enabled);
+        notEmptyElements(maxSize, enabled);
     }
 
     @Test
@@ -212,7 +220,7 @@ public class ShenyuConfigTest {
         List<String> paths = fallback.getPaths();
         Boolean enabled = fallback.getEnabled();
 
-        assertNotNullValue(paths, enabled);
+        notEmptyElements(paths, enabled);
     }
 
     @Test
@@ -224,7 +232,7 @@ public class ShenyuConfigTest {
         List<String> paths = exclude.getPaths();
         Boolean enabled = exclude.getEnabled();
 
-        assertNotNullValue(paths, enabled);
+        notEmptyElements(paths, enabled);
     }
 
     @Test
@@ -233,7 +241,7 @@ public class ShenyuConfigTest {
         switchConfig.setLocal(true);
         Boolean local = switchConfig.getLocal();
 
-        assertNotNullValue(local);
+        notEmptyElements(local);
     }
 
     @Test
@@ -253,6 +261,6 @@ public class ShenyuConfigTest {
         String maxAge = cross.getMaxAge();
         String allowedMethods = cross.getAllowedMethods();
 
-        assertNotNullValue(allowedExpose, allowedHeaders, allowedOrigin, enabled, maxAge, allowedMethods);
+        notEmptyElements(allowedExpose, allowedHeaders, allowedOrigin, enabled, maxAge, allowedMethods);
     }
 }
