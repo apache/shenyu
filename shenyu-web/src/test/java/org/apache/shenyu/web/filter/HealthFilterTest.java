@@ -59,11 +59,20 @@ public final class HealthFilterTest {
     }
 
     @Test
-    public void testDoFilterMatch() {
+    public void testDoMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/testFilterMatch"));
-        Mono<Boolean> filter = healthFilter.doFilter(webExchange, webFilterChain);
+        Mono<Boolean> filter = healthFilter.doMatcher(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.TRUE).verifyComplete();
+    }
+
+    @Test
+    public void testDoNotMatcher() {
+        ServerWebExchange webExchange =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080/"));
+        Mono<Boolean> filter = healthFilter.doMatcher(webExchange, webFilterChain);
         StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
     }
 
