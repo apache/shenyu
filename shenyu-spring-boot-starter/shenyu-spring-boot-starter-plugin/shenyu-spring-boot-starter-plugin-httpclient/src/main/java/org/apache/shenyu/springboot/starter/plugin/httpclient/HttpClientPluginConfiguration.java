@@ -43,7 +43,6 @@ import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.ProxyProvider;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.tcp.TcpClient;
-import reactor.netty.tcp.TcpResources;
 
 import java.security.cert.X509Certificate;
 import java.util.Objects;
@@ -67,13 +66,29 @@ public class HttpClientPluginConfiguration {
     }
 
     /**
+     * Http client loop resource.
+     *
+     * @param properties the properties
+     * @return the http client loop resource
+     */
+    @Bean
+    @ConditionalOnProperty("shenyu.netty.httpclient.threadPool.prefix")
+    public LoopResources httpClientLoopResource(final HttpClientProperties properties) {
+        HttpClientProperties.ThreadPool threadPool = properties.getThreadPool();
+        return LoopResources.create(threadPool.getPrefix(), threadPool.getSelectCount(),
+                threadPool.getWorkerCount(), threadPool.getDaemon());
+    }
+
+    /**
      * Shenyu http client.
      *
      * @param properties the properties
+     * @param provider   the loop resources bean provider
      * @return the http client
      */
     @Bean
-    public HttpClient httpClient(final HttpClientProperties properties) {
+    public HttpClient httpClient(final HttpClientProperties properties,
+                                 final ObjectProvider<LoopResources> provider) {
         // configure pool resources.
         HttpClientProperties.Pool pool = properties.getPool();
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
@@ -92,11 +107,9 @@ public class HttpClientPluginConfiguration {
                         connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
                         connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
                     });
-                    HttpClientProperties.ThreadPool threadPool = properties.getThreadPool();
-                    if (StringUtils.isNotEmpty(threadPool.getPrefix())) {
-                        LoopResources resources = LoopResources.create(threadPool.getPrefix(),
-                                threadPool.getSelectCount(), threadPool.getWorkerCount(), threadPool.getDaemon());
-                        TcpResources.set(resources);
+                    final LoopResources loopResources = provider.getIfAvailable();
+                    if (Objects.nonNull(loopResources)) {
+                        tcpClient = tcpClient.runOn(loopResources);
                     }
                     return tcpClient;
                 });
@@ -113,7 +126,7 @@ public class HttpClientPluginConfiguration {
         // see https://github.com/reactor/reactor-netty/issues/388
         return httpClient.keepAlive(properties.isKeepAlive());
     }
-    
+
     private void setSsl(final SslProvider.SslContextSpec sslContextSpec, final HttpClientProperties.Ssl ssl) {
         SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
         X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
@@ -129,7 +142,7 @@ public class HttpClientPluginConfiguration {
                 .closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
                 .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
     }
-    
+
     private TcpClient setTcpClientProxy(final TcpClient tcpClient, final HttpClientProperties.Proxy proxy) {
         return tcpClient.proxy(proxySpec -> {
             ProxyProvider.Builder builder = proxySpec
@@ -145,7 +158,7 @@ public class HttpClientPluginConfiguration {
                     .to(builder::nonProxyHosts);
         });
     }
-    
+
     private ConnectionProvider buildConnectionProvider(final HttpClientProperties.Pool pool) {
         ConnectionProvider connectionProvider;
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
