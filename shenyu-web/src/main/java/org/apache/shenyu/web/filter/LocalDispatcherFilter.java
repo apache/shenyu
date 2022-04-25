@@ -23,23 +23,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.Nonnull;
 import java.util.Objects;
 
 /**
  * The type Local dispatcher filter.
  */
-public class LocalDispatcherFilter implements WebFilter {
+public class LocalDispatcherFilter extends AbstractWebFilter {
     
     private static final String DISPATCHER_PATH = "/shenyu/";
 
     private final DispatcherHandler dispatcherHandler;
     
-    private String sha512Key;
+    private final String sha512Key;
     
     /**
      * Instantiates a new Local dispatcher filter.
@@ -52,25 +50,17 @@ public class LocalDispatcherFilter implements WebFilter {
         this.sha512Key = sha512Key;
     }
     
-    /**
-     * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link WebFilterChain}.
-     *
-     * @param exchange the current server exchange
-     * @param chain provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
-     */
     @Override
-    @Nonnull
-    public Mono<Void> filter(@Nonnull final ServerWebExchange exchange, @Nonnull final WebFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
-        if (path.startsWith(DISPATCHER_PATH)) {
-            String localKey = exchange.getRequest().getHeaders().getFirst(Constants.LOCAL_KEY);
-            if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey)) || Objects.isNull(localKey)) {
-                return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));
-            }
-            return dispatcherHandler.handle(exchange);
+    protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
+        return Mono.just(exchange.getRequest().getURI().getPath().startsWith(DISPATCHER_PATH));
+    }
+    
+    @Override
+    protected Mono<Void> doFilter(final ServerWebExchange exchange) {
+        String localKey = exchange.getRequest().getHeaders().getFirst(Constants.LOCAL_KEY);
+        if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey)) || Objects.isNull(localKey)) {
+            return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));
         }
-        return chain.filter(exchange);
+        return dispatcherHandler.handle(exchange);
     }
 }

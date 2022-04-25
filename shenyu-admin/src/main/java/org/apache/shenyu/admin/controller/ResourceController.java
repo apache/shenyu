@@ -17,6 +17,12 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.List;
+import java.util.Optional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
@@ -39,14 +45,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * this is resource controller.
@@ -73,8 +73,8 @@ public class ResourceController {
     @GetMapping("")
     @RequiresPermissions("system:resource:list")
     public ShenyuAdminResult queryResource(final String title,
-                                           @NotNull final Integer currentPage,
-                                           @NotNull final Integer pageSize) {
+                                           @RequestParam @NotNull final Integer currentPage,
+                                           @RequestParam @NotNull final Integer pageSize) {
         CommonPager<ResourceVO> commonPager = resourceService.listByPage(new ResourceQuery(title, new PageParameter(currentPage, pageSize)));
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
             return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
