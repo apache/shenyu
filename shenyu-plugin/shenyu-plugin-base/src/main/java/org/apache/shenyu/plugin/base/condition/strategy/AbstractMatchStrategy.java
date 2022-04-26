@@ -19,12 +19,35 @@ package org.apache.shenyu.plugin.base.condition.strategy;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
+import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * AbstractMatchStrategy.
  */
-public abstract class AbstractMatchStrategy {
+public abstract class AbstractMatchStrategy implements MatchStrategy {
+
+    @Override
+    public final Boolean match(final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
+        List<Boolean> results = new LinkedList<>();
+        for (ConditionData condition : conditionDataList) {
+            final String realData = buildRealData(condition, exchange);
+            final Boolean result = PredicateJudgeFactory.judge(condition, realData);
+            results.add(result);
+        }
+        return merge(results);
+    }
+
+    /**
+     * merge match results.
+     *
+     * @param results the match results
+     * @return true if match
+     */
+    protected abstract Boolean merge(List<Boolean> results);
 
     /**
      * Build real data string.

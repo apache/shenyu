@@ -35,6 +35,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -114,5 +115,9 @@ public final class AbstractMatchStrategyTest {
 
     private static class TestMatchStrategy extends AbstractMatchStrategy {
 
+        @Override
+        protected Boolean merge(List<Boolean> results) {
+            throw new UnsupportedOperationException();
+        }
     }
 }
