@@ -37,9 +37,15 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This is web handler request starter.
@@ -133,7 +139,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     }
     
     /**
-     * listen plugin handler event and handle plugin
+     * listen plugin handler event and handle plugin.
      *
      * @param event sort plugin event
      */
@@ -181,10 +187,10 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * @param pluginData plugin data
      * @return enabled plugins
      */
-    private List<ShenyuPlugin> onPluginEnabled(PluginData pluginData) {
+    private List<ShenyuPlugin> onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
-        Set<ShenyuPlugin> pluginSet = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName()) &&
-                pluginData.getEnabled()).collect(Collectors.toSet());
+        Set<ShenyuPlugin> pluginSet = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
+                && pluginData.getEnabled()).collect(Collectors.toSet());
         enabledPlugins.addAll(pluginSet);
         return this.sourcePlugins.stream().filter(enabledPlugins::contains).collect(Collectors.toList());
     }
@@ -193,7 +199,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * handle removed or disabled plugin.
      * @param pluginData plugin data
      */
-    private void onPluginRemoved(PluginData pluginData) {
+    private void onPluginRemoved(final PluginData pluginData) {
         this.enabledPlugins.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
         this.plugins.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
     }

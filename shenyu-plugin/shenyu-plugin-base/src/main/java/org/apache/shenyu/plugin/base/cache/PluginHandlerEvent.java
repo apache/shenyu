@@ -28,11 +28,15 @@ public class PluginHandlerEvent extends ApplicationEvent {
 
     private final PluginHandlerEventEnums pluginHandlerEventEnums;
 
-    public PluginHandlerEvent(PluginHandlerEventEnums pluginHandlerEventEnums, PluginData source) {
+    public PluginHandlerEvent(final PluginHandlerEventEnums pluginHandlerEventEnums, final PluginData source) {
         super(source);
         this.pluginHandlerEventEnums = pluginHandlerEventEnums;
     }
 
+    /**
+     * get plugin handler.
+     * @return plugin handler event
+     */
     public PluginHandlerEventEnums getPluginStateEnums() {
         return pluginHandlerEventEnums;
     }

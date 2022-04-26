@@ -174,14 +174,14 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     private <T> void updateCacheData(@NonNull final T data) {
         if (data instanceof PluginData) {
             PluginData pluginData = (PluginData) data;
-            PluginData oldPluginData = BaseDataCache.getInstance().obtainPluginData(pluginData.getName());
+            final PluginData oldPluginData = BaseDataCache.getInstance().obtainPluginData(pluginData.getName());
             BaseDataCache.getInstance().cachePluginData(pluginData);
             Optional.ofNullable(handlerMap.get(pluginData.getName()))
                     .ifPresent(handler -> handler.handlerPlugin(pluginData));
 
             // update enabled plugins
-            PluginHandlerEventEnums state = Boolean.TRUE.equals(pluginData.getEnabled()) ?
-                    PluginHandlerEventEnums.ENABLED : PluginHandlerEventEnums.DISABLED;
+            PluginHandlerEventEnums state = Boolean.TRUE.equals(pluginData.getEnabled())
+                    ? PluginHandlerEventEnums.ENABLED : PluginHandlerEventEnums.DISABLED;
             eventPublisher.publishEvent(new PluginHandlerEvent(state, pluginData));
 
             // sorted plugin
