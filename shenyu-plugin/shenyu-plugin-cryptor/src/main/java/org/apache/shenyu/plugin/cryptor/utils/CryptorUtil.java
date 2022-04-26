@@ -47,8 +47,8 @@ public final class CryptorUtil {
     public static Mono<Void> fail(final String mode, final ServerWebExchange exchange) {
         Object error = Optional.ofNullable(mode)
                 .filter(CryptorStrategyFactory.DECRYPT::equals)
-                .map(mod -> ShenyuResultWrap.error(exchange, ShenyuResultEnum.DECRYPTION_ERROR, null))
-                .orElse(ShenyuResultWrap.error(exchange, ShenyuResultEnum.ENCRYPTION_ERROR, null));
+                .map(mod -> ShenyuResultWrap.error(exchange, ShenyuResultEnum.DECRYPTION_ERROR))
+                .orElse(ShenyuResultWrap.error(exchange, ShenyuResultEnum.ENCRYPTION_ERROR));
         return WebFluxResultUtils.result(exchange, error);
     }
 

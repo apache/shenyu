@@ -61,7 +61,7 @@ public class JwtPlugin extends AbstractShenyuPlugin {
 
         // check secreteKey
         if (StringUtils.isEmpty(jwtConfig.getSecretKey())) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SECRET_KEY_MUST_BE_CONFIGURED, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SECRET_KEY_MUST_BE_CONFIGURED);
             return WebFluxResultUtils.result(exchange, error);
         }
 
@@ -75,7 +75,7 @@ public class JwtPlugin extends AbstractShenyuPlugin {
             }
             return chain.execute(converter(exchange, jwtBody, ruleHandle.getConverter()));
         }
-        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN, null);
+        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN);
         return WebFluxResultUtils.result(exchange, error);
     }
 
