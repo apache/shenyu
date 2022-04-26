@@ -164,7 +164,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             default:
                 throw new IllegalStateException("Unexpected value: " + event.getPluginStateEnums());
         }
-        this.plugins = sortPlugins(new ArrayList<>(plugins));
+        this.plugins = sortPlugins(new ArrayList<>(this.plugins));
     }
 
     /**
