@@ -25,18 +25,23 @@ import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.shiro.bean.StatelessToken;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
+
+import static org.apache.shenyu.common.constant.AdminConstants.ADMIN_NAME;
 
 /**
  * shiro custom's realm.
@@ -69,6 +74,24 @@ public class ShiroRealm extends AuthorizingRealm {
         simpleAuthorizationInfo.setStringPermissions(permissions);
 
         return simpleAuthorizationInfo;
+    }
+
+    @Override
+    protected boolean isPermitted(final Permission permission, final AuthorizationInfo info) {
+        UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        if (Objects.nonNull(userInfo) && ADMIN_NAME.equals(userInfo.getUserName())) {
+            return true;
+        }
+
+        Collection<Permission> perms = getPermissions(info);
+        if (perms != null && !perms.isEmpty()) {
+            for (Permission perm : perms) {
+                if (perm.implies(permission)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
