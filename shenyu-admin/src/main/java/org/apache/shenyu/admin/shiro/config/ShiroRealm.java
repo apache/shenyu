@@ -37,7 +37,6 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 
