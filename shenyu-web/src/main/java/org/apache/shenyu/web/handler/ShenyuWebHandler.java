@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.handler;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
@@ -60,7 +61,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     /**
      * default enabled plugins.
      */
-    private final Set<String> defaultEnabledPlugins = Collections.singleton(PluginEnum.GLOBAL.getName());
+    private final Set<String> defaultEnabledPlugins = Sets.newHashSet(PluginEnum.GLOBAL.getName(),
+            PluginEnum.URI.getName(), PluginEnum.WEB_CLIENT.getName(), PluginEnum.RPC_PARAM_TRANSFORM.getName());
 
     /**
      * enabled plugins.
@@ -84,6 +86,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 .filter(plugin -> defaultEnabledPlugins.contains(plugin.named()))
                 .collect(Collectors.toSet());
         this.enabledPlugins.addAll(defaultEnabledPlugin);
+        this.defaultEnabledPlugins.forEach(shenyuPlugin -> LOG.info("shenyu use default plugin:[{}]", shenyuPlugin));
         ShenyuConfig.Scheduler config = shenyuConfig.getScheduler();
         this.scheduled = config.getEnabled();
         if (scheduled) {
