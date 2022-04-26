@@ -74,7 +74,6 @@ public final class LocalPluginControllerTest {
 
     private BaseDataCache baseDataCache;
 
-
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
