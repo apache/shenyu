@@ -82,16 +82,7 @@ public class ShiroRealm extends AuthorizingRealm {
         if (Objects.nonNull(userInfo) && ADMIN_NAME.equals(userInfo.getUserName())) {
             return true;
         }
-
-        Collection<Permission> perms = getPermissions(info);
-        if (perms != null && !perms.isEmpty()) {
-            for (Permission perm : perms) {
-                if (perm.implies(permission)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return super.isPermitted(permission, info);
     }
 
     @Override
