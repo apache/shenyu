@@ -17,14 +17,23 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * event of sort plugin.
  */
-public class SortPluginEvent extends ApplicationEvent {
+public class PluginHandlerEvent extends ApplicationEvent {
 
-    public SortPluginEvent(final Object source) {
+    private final PluginHandlerEventEnums pluginHandlerEventEnums;
+
+    public PluginHandlerEvent(PluginHandlerEventEnums pluginHandlerEventEnums, PluginData source) {
         super(source);
+        this.pluginHandlerEventEnums = pluginHandlerEventEnums;
+    }
+
+    public PluginHandlerEventEnums getPluginStateEnums() {
+        return pluginHandlerEventEnums;
     }
 }
