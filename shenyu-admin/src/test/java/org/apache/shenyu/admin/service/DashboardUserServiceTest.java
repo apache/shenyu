@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
-import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -45,9 +44,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,9 +86,6 @@ public final class DashboardUserServiceTest {
     private DataPermissionMapper dataPermissionMapper;
 
     @Mock
-    private SecretProperties secretProperties;
-
-    @Mock
     private JwtProperties jwtProperties;
 
     @Mock
@@ -115,10 +109,9 @@ public final class DashboardUserServiceTest {
     @Test
     public void testDelete() {
         List<String> deleteIds = Stream.of("1", "2").collect(Collectors.toList());
-        Set<String> idSet = new HashSet<>(deleteIds);
-        given(userRoleMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
-        given(dataPermissionMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
-        given(dashboardUserMapper.deleteByIdSet(idSet)).willReturn(deleteIds.size());
+        given(userRoleMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
+        given(dataPermissionMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
+        given(dashboardUserMapper.deleteByIdList(deleteIds)).willReturn(deleteIds.size());
         assertEquals(deleteIds.size(), dashboardUserService.delete(deleteIds));
     }
 
@@ -177,7 +170,6 @@ public final class DashboardUserServiceTest {
 
     @Test
     public void testLogin() {
-        ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
 

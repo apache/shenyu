@@ -42,6 +42,7 @@
         <module>shenyu-protocol</module>
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
+        <module>shenyu-alert</module>
     </modules>
 
     <licenses>
@@ -146,6 +147,7 @@
         <jaxb.api.version>2.3.0</jaxb.api.version>
         <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
         <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
+        <mail.version>1.6.2</mail.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
     </properties>
 
@@ -398,6 +400,18 @@
                 <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
                 <version>${netflix-ribbon.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>javax.mail-api</artifactId>
+                <version>${mail.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>${mail.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
