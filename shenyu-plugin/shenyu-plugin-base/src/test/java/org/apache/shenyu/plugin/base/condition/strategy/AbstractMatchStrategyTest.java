@@ -116,7 +116,7 @@ public final class AbstractMatchStrategyTest {
     private static class TestMatchStrategy extends AbstractMatchStrategy {
 
         @Override
-        protected Boolean merge(List<Boolean> results) {
+        protected Boolean merge(final List<Boolean> results) {
             throw new UnsupportedOperationException();
         }
     }
