@@ -55,20 +55,21 @@ public final class ExcludeFilterTest {
     }
 
     @Test
-    public void testFilterMatch() {
+    public void testDoMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/favicon.ico"));
-        Mono<Void> filter = excludeFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+        Mono<Boolean> filter = excludeFilter.doMatcher(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.TRUE).verifyComplete();
     }
 
     @Test
-    public void testFilterNotMatch() {
+    public void testDoNotMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/"));
-        Mono<Void> filter = excludeFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+        Mono<Boolean> filter = excludeFilter.doMatcher(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
     }
+
 }
