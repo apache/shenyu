@@ -28,7 +28,7 @@ import java.util.List;
 public class AndMatchStrategy extends AbstractMatchStrategy {
 
     @Override
-    protected Boolean merge(List<Boolean> results) {
+    protected Boolean merge(final List<Boolean> results) {
         return results.stream().allMatch(matchResult -> matchResult);
     }
 }
