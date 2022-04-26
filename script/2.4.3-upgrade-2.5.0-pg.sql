@@ -38,3 +38,8 @@ INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_va
 
 -- refactor logging name
 UPDATE plugin SET name = 'LoggingConsole' WHERE name = 'logging';
+
+-- new table operation_record_log
+-- ----------------------------
+-- Table structure for operation_record_log
+-- ----------------------------
