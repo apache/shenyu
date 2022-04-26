@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 @Join
 public class DingTalkStrategy implements AlertStrategy {
 
-    private final static OkHttpClient OK_HTTP_CLIENT = new OkHttpClient()
+    private static final OkHttpClient OK_HTTP_CLIENT = new OkHttpClient()
             .newBuilder().connectTimeout(50L, TimeUnit.SECONDS)
             .readTimeout(60L, TimeUnit.SECONDS)
             .build();
