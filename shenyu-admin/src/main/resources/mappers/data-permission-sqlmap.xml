@@ -58,10 +58,10 @@
               WHERE user_id = #{userId,jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByUserIdSet">
+    <delete id="deleteByUserIdList">
         DELETE FROM data_permission
               WHERE user_id
-                IN  <foreach collection="userIdSet" index="index" item="userId" open="(" separator="," close=")">
+                IN  <foreach collection="userIdList" index="index" item="userId" open="(" separator="," close=")">
                       #{userId,jdbcType=VARCHAR}
                     </foreach>
 
