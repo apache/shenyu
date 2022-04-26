@@ -38,13 +38,13 @@ public class SentinelFallbackHandler implements FallbackHandler {
         Object error;
         if (throwable instanceof DegradeException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR, null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
         } else if (throwable instanceof FlowException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS, null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
         } else if (throwable instanceof BlockException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SENTINEL_BLOCK_ERROR, null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SENTINEL_BLOCK_ERROR);
         } else {
             return Mono.error(throwable);
         }

@@ -65,11 +65,12 @@ public final class ShenyuResultWrap {
     /**
      * Error object.
      *
+     * @param exchange the exchange
      * @param shenyuResult the shenyuResult
      * @return the object
      */
-    public static Object error(final ShenyuResultEnum shenyuResult) {
-        return shenyuResult().error(shenyuResult.getCode(), shenyuResult.getMsg(), null);
+    public static Object error(final ServerWebExchange exchange, final ShenyuResultEnum shenyuResult) {
+        return shenyuResult().error(exchange, shenyuResult.getCode(), shenyuResult.getMsg(), null);
     }
 
     /**
