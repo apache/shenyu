@@ -41,7 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -83,13 +84,6 @@ public final class ShenyuWebHandlerTest {
                 .role("test")
                 .sort(50)
                 .build();
-        PluginData pluginDataPlugin2 = PluginData.builder().id("2")
-                .name("test2-plugin")
-                .enabled(true)
-                .config("config")
-                .role("test")
-                .sort(40)
-                .build();
         PluginHandlerEvent enabledEvent = new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData);
         shenyuWebHandler.onApplicationEvent(enabledEvent);
         List<ShenyuPlugin> enabledEventPlugin = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
@@ -118,7 +112,7 @@ public final class ShenyuWebHandlerTest {
     static class Test1Plugin implements ShenyuPlugin {
 
         @Override
-        public Mono<Void> execute(ServerWebExchange exchange, ShenyuPluginChain chain) {
+        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
             return chain.execute(exchange);
         }
 
@@ -133,7 +127,7 @@ public final class ShenyuWebHandlerTest {
         }
 
         @Override
-        public boolean skip(ServerWebExchange exchange) {
+        public boolean skip(final ServerWebExchange exchange) {
             return ShenyuPlugin.super.skip(exchange);
         }
     }
@@ -141,7 +135,7 @@ public final class ShenyuWebHandlerTest {
     static class Test2Plugin implements ShenyuPlugin {
 
         @Override
-        public Mono<Void> execute(ServerWebExchange exchange, ShenyuPluginChain chain) {
+        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
             return chain.execute(exchange);
         }
 
@@ -156,7 +150,7 @@ public final class ShenyuWebHandlerTest {
         }
 
         @Override
-        public boolean skip(ServerWebExchange exchange) {
+        public boolean skip(final ServerWebExchange exchange) {
             return ShenyuPlugin.super.skip(exchange);
         }
     }
