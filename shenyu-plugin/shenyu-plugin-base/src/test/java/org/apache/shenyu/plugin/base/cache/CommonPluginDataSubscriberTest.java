@@ -24,6 +24,12 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * Test cases for CommonPluginDataSubscriber.
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class CommonPluginDataSubscriberTest {
 
     private final String mockName1 = "MOCK_NAME_1";
@@ -50,13 +58,16 @@ public final class CommonPluginDataSubscriberTest {
     private final String mockSelectorId2 = "MOCK_SELECTOR_ID_2";
 
     private CommonPluginDataSubscriber commonPluginDataSubscriber;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     
     private BaseDataCache baseDataCache;
 
     @BeforeEach
     public void setup() {
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
-        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList);
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher);
         baseDataCache = BaseDataCache.getInstance();
     }
 
