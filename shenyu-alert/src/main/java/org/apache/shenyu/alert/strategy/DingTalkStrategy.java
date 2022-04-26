@@ -17,14 +17,17 @@
 
 package org.apache.shenyu.alert.strategy;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.apache.shenyu.alert.DingTalkProp;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.spi.Join;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * dingTalk strategy.
@@ -32,15 +35,23 @@ import java.util.Map;
 @Join
 public class DingTalkStrategy implements AlertStrategy {
 
+    private final static OkHttpClient OK_HTTP_CLIENT = new OkHttpClient()
+            .newBuilder().connectTimeout(50L, TimeUnit.SECONDS)
+            .readTimeout(60L, TimeUnit.SECONDS)
+            .build();
+
     @Override
     public void execute(final String handle) throws Exception {
 
         DingTalkProp dingTalkProp = GsonUtils.getInstance().fromJson(handle, DingTalkProp.class);
 
-        HttpResponse execute = HttpRequest.post(dingTalkProp.getUrl()).body(toJson(dingTalkProp)).execute();
-
-        System.err.println(execute.body());
-
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/json"), toJson(dingTalkProp));
+        Request request = new Request.Builder()
+                .url(dingTalkProp.getUrl())
+                .post(body)
+                .build();
+        OK_HTTP_CLIENT.newCall(request).execute();
     }
 
     private String toJson(final DingTalkProp prop) {
