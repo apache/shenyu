@@ -48,8 +48,10 @@ public final class RequestQueryCodecUtil {
         return queryParams.keySet().stream()
                 .map(key -> queryParams.get(key).stream()
                         .map(item -> Optional.ofNullable(item)
-                                .map(value -> String.join("=", key, UriUtils.encode(value, StandardCharsets.UTF_8)))
-                                .orElse(key))
+                                .map(value -> String.join("=",
+                                        UriUtils.encode(key, StandardCharsets.UTF_8),
+                                        UriUtils.encode(value, StandardCharsets.UTF_8)))
+                                .orElse(UriUtils.encode(key, StandardCharsets.UTF_8)))
                         .filter(StringUtils::isNoneBlank)
                         .collect(Collectors.joining("&")))
                 .collect(Collectors.joining("&")).trim();
