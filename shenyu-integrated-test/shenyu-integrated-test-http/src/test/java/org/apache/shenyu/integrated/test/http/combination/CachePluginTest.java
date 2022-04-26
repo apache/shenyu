@@ -60,7 +60,7 @@ public final class CachePluginTest extends AbstractPluginDataInit {
         Future<ResultBean> resp0 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_CACHE_PATH, ResultBean.class));
         Thread.sleep(2000);
         Future<ResultBean> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_CACHE_PATH, ResultBean.class));
-        assertEquals(resp0.get().getMsg(),resp1.get().getMsg());
+        assertEquals(resp0.get().getMsg(), resp1.get().getMsg());
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
