@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.mybatis.oracle.OracleSQLPrepareInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLPrepareInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLQueryInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSqlUpdateInterceptor;
@@ -51,6 +52,28 @@ public class MapperConfig {
     @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
     public PostgreSQLPrepareInterceptor postgreSqlPrepareInterceptor() {
         return new PostgreSQLPrepareInterceptor();
+    }
+
+    /**
+     * Add the plugin to the MyBatis plugin interceptor chain.
+     *
+     * @return {@linkplain OracleSQLPrepareInterceptor}
+     */
+    @Bean
+    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "oracle")
+    public OracleSQLPrepareInterceptor oracleSqlPrepareInterceptor() {
+        return new OracleSQLPrepareInterceptor();
+    }
+
+    /**
+     * Add the plugin to the MyBatis plugin interceptor chain.
+     *
+     * @return {@linkplain PostgreSqlUpdateInterceptor}
+     */
+    @Bean
+    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "oracle")
+    public PostgreSqlUpdateInterceptor oracleSqlUpdateInterceptor() {
+        return new PostgreSqlUpdateInterceptor();
     }
 
     /**
