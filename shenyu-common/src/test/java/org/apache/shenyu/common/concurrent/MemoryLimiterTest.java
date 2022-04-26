@@ -22,12 +22,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.lang.instrument.Instrumentation;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
- * Test cases for MemoryLimiter
+ * Test cases for MemoryLimiter.
  */
 public final class MemoryLimiterTest {
 
@@ -47,15 +54,15 @@ public final class MemoryLimiterTest {
 
     @Test
     public void testCreateMemoryLimiterWhenIllegal() {
-        long less_than_zero = -1;
-        assertThrows(IllegalArgumentException.class, () -> new MemoryLimiter(less_than_zero, instrumentation));
+        long lessThanZero = -1;
+        assertThrows(IllegalArgumentException.class, () -> new MemoryLimiter(lessThanZero, instrumentation));
     }
 
     @Test
     public void testSetMemoryLimiterWhenIllegal() {
-        long less_than_zero = -1;
+        long lessThanZero = -1;
         MemoryLimiter memoryLimiter = new MemoryLimiter(instrumentation);
-        assertThrows(IllegalArgumentException.class, () -> memoryLimiter.setMemoryLimit(less_than_zero));
+        assertThrows(IllegalArgumentException.class, () -> memoryLimiter.setMemoryLimit(lessThanZero));
     }
 
     @Test
@@ -116,7 +123,7 @@ public final class MemoryLimiterTest {
     }
 
     @Test
-    public void testAcquireWaitForNotify() throws Exception{
+    public void testAcquireWaitForNotify() throws Exception {
         MemoryLimiter memoryLimiter = new MemoryLimiter(testObjectSize + 1, instrumentation);
         memoryLimiter.acquire(testObject);
         ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -136,7 +143,7 @@ public final class MemoryLimiterTest {
     }
 
     @Test
-    public void testReleaseWhenNullObject() throws InterruptedException{
+    public void testReleaseWhenNullObject() throws InterruptedException {
         MemoryLimiter memoryLimiter = new MemoryLimiter(testObjectSize + 1, instrumentation);
         memoryLimiter.acquire(testObject);
 
