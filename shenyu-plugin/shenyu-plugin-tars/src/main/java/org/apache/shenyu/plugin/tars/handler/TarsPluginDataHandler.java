@@ -31,11 +31,6 @@ import java.util.Objects;
 public class TarsPluginDataHandler implements PluginDataHandler {
     
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        pluginData.setName(pluginData.getName() + " tested");
-    }
-    
-    @Override
     public String pluginNamed() {
         return PluginEnum.TARS.getName();
     }
