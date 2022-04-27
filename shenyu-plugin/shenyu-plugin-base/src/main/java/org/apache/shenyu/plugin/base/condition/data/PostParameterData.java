@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.condition.data;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -38,9 +37,7 @@ public class PostParameterData implements ParameterData {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         List<String> result = Lists.newArrayList();
         String parameter = (String) ReflectUtils.getFieldValue(shenyuContext, paramName);
-        if (StringUtils.isNotEmpty(parameter)) {
-            result.add((String) ReflectUtils.getFieldValue(shenyuContext, paramName));
-        }
+        result.add(parameter);
         return result;
     }
 }

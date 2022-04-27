@@ -37,6 +37,7 @@ import org.springframework.web.server.ServerWebExchange;
 import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -107,7 +108,7 @@ public final class AbstractMatchStrategyTest {
     @Test
     public void testBuildRealDataPostBranch() {
         conditionData.setParamType(ParamTypeEnum.POST.getName());
-        assertEquals(0, abstractMatchStrategy.buildRealData(conditionData, exchange).size());
+        assertNull(abstractMatchStrategy.buildRealData(conditionData, exchange).get(0));
         conditionData.setParamName("method");
         assertEquals("testMethod", abstractMatchStrategy.buildRealData(conditionData, exchange).get(0));
     }

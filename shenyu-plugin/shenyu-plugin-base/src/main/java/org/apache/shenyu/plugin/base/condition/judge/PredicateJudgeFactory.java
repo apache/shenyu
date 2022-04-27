@@ -74,6 +74,9 @@ public final class PredicateJudgeFactory {
         PredicateJudge predicateJudge = newInstance(conditionData.getOperator());
         Boolean flag = true;
         for (String realData:realDatas) {
+            if (StringUtils.isBlank(realData)) {
+                return false;
+            }
             flag = predicateJudge.judge(conditionData, realData);
             if (Boolean.FALSE.equals(flag)) {
                 return false;

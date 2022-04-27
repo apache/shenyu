@@ -60,6 +60,8 @@ public final class PredicateJudgeFactoryTest {
     @Test
     public void testRealDataIsBlank() {
         assertFalse(PredicateJudgeFactory.judge(conditionData, Lists.newArrayList()));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, (List<String>) null));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, (String) null));
         assertFalse(PredicateJudgeFactory.judge(conditionData, ""));
     }
 
