@@ -107,7 +107,6 @@ public final class ShenyuWebHandlerTest {
         assertTrue(pluginDelete.contains(plugin1) && !pluginDelete.contains(plugin2));
     }
 
-
     static class TestPlugin1 implements ShenyuPlugin {
 
         @Override
