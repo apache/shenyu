@@ -38,10 +38,10 @@ import reactor.core.scheduler.Schedulers;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +57,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     private List<ShenyuPlugin> plugins;
 
     /**
-     * source plugins, these plugins load from ShenyuPlugin.
+     * source plugins, these plugins load from ShenyuPlugin, this filed can't change.
      */
     private final List<ShenyuPlugin> sourcePlugins;
 
@@ -72,8 +72,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * @param shenyuConfig plugins config
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuConfig shenyuConfig) {
-        this.plugins = plugins;
-        this.sourcePlugins = plugins;
+        this.sourcePlugins = new ArrayList<>(plugins);
+        this.plugins = new CopyOnWriteArrayList<>(plugins);
         ShenyuConfig.Scheduler config = shenyuConfig.getScheduler();
         this.scheduled = config.getEnabled();
         if (scheduled) {
@@ -131,7 +131,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         switch (stateEnums) {
             case ENABLED:
                 // enabled plugin.
-                this.plugins = onPluginEnabled(pluginData);
+                this.plugins = new CopyOnWriteArrayList<>(onPluginEnabled(pluginData));
                 break;
             case DELETE:
             case DISABLED:
@@ -140,12 +140,12 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 break;
             case SORTED:
                 // copy a new one, or there will be concurrency problems
-                this.plugins = sortPlugins(new ArrayList<>(this.plugins));
+                this.plugins = sortPlugins(new CopyOnWriteArrayList<>(this.plugins));
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + event.getPluginStateEnums());
         }
-        this.plugins = sortPlugins(new ArrayList<>(this.plugins));
+        this.plugins = sortPlugins(new CopyOnWriteArrayList<>(this.plugins));
     }
 
     /**
@@ -170,8 +170,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private List<ShenyuPlugin> onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
-        Set<ShenyuPlugin> pluginSet = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
-                && pluginData.getEnabled()).collect(Collectors.toSet());
+        List<ShenyuPlugin> pluginSet = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
+                && pluginData.getEnabled()).collect(Collectors.toList());
         this.plugins.addAll(pluginSet);
         return this.plugins.stream().distinct().collect(Collectors.toList());
     }
