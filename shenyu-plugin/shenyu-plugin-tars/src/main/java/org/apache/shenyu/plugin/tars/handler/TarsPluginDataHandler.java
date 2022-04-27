@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.tars.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
