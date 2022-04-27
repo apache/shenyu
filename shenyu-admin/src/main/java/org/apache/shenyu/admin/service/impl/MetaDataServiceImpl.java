@@ -42,7 +42,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -93,15 +92,15 @@ public class MetaDataServiceImpl implements MetaDataService {
     
     @Override
     public int delete(final List<String> ids) {
-        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdList(ids);
+        List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
+        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdList(distinctIds);
         if (CollectionUtils.isEmpty(metaDataDoList)) {
             return 0;
         }
-        int count;
-        List<MetaData> metaDataList = Optional.ofNullable(metaDataDoList).orElseGet(ArrayList::new)
+        List<MetaData> metaDataList = metaDataDoList
                 .stream().map(MetaDataTransfer.INSTANCE::mapToData).collect(Collectors.toList());
             
-        count = metaDataMapper.deleteByIdList(ids);
+        int count = metaDataMapper.deleteByIdList(distinctIds);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
 
         return count;
@@ -109,7 +108,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
-        List<MetaDataDO> metaDataDoList = Optional.ofNullable(metaDataMapper.selectByIdList(ids)).orElseGet(ArrayList::new);
+        List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
+        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdList(distinctIds);
         if (CollectionUtils.isEmpty(metaDataDoList)) {
             return AdminConstants.ID_NOT_EXIST;
         }
@@ -118,7 +118,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 metaDataDo.setEnabled(enabled);
                 return MetaDataTransfer.INSTANCE.mapToData(metaDataDo);
             }).collect(Collectors.toList());
-        metaDataMapper.updateEnableBatch(ids, enabled);
+        metaDataMapper.updateEnableBatch(distinctIds, enabled);
         
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
             metaDataList));

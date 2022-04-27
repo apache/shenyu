@@ -70,7 +70,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         assert shenyuContext != null;
         final URI uri = exchange.getAttribute(Constants.HTTP_URI);
         if (Objects.isNull(uri)) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
         final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);

@@ -136,7 +136,7 @@ public final class AlibabaDubboPluginTest {
 
         try (MockedStatic<ShenyuResultWrap> shenyuResultWrapMockedStatic = mockStatic(ShenyuResultWrap.class)) {
             shenyuResultWrapMockedStatic.when(() -> ShenyuResultWrap
-                            .error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM, null))
+                            .error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM))
                     .thenReturn(new Object());
 
             Mono<Void> voidMono = alibabaDubboPluginUnderTest.doExecute(exchange, chain, selectorData, data);

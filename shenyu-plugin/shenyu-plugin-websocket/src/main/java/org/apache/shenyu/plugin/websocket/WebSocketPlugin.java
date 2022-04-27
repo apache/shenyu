@@ -94,7 +94,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("websocket has no upstream");
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(exchange, upstream, shenyuContext))).build().toUri();

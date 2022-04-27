@@ -92,7 +92,6 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @return int
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public int createSelector(final DataPermissionDTO dataPermissionDTO) {
 
         List<DataPermissionDO> allDOList = new LinkedList<>();

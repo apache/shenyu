@@ -71,8 +71,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         final SpringCloudRuleHandle ruleHandle = SpringCloudPluginDataHandler.RULE_CACHED.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         String serviceId = springCloudSelectorHandle.getServiceId();
         if (StringUtils.isBlank(serviceId)) {
-            Object error = ShenyuResultWrap.error(exchange,
-                    ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID);
             return WebFluxResultUtils.result(exchange, error);
         }
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
@@ -85,8 +84,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
             LoadBalanceKeyHolder.resetLoadBalanceKey();
         }
         if (Objects.isNull(serviceInstance)) {
-            Object error = ShenyuResultWrap.error(exchange,
-                    ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR);
             return WebFluxResultUtils.result(exchange, error);
         }
         URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(shenyuContext.getRealUrl()));
