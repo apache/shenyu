@@ -18,8 +18,8 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -28,24 +28,24 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 
 /**
  * test for SyncDataService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class SyncDataServiceTest {
 
     private static final String ID = "1";
@@ -98,8 +98,6 @@ public final class SyncDataServiceTest {
         given(this.pluginService.findById(pluginVO.getId())).willReturn(pluginVO);
         SelectorData selectorData = buildSelectorData();
         given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Collections.singletonList(selectorData));
-        RuleData ruleData = buildRuleData();
-        given(this.ruleService.findBySelectorId(pluginVO.getId())).willReturn(Collections.singletonList(ruleData));
 
         assertThat(syncDataService.syncPluginData(pluginVO.getId()), greaterThan(false));
     }

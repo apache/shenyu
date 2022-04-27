@@ -34,8 +34,6 @@ import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.RuleConditionQuery;
-import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
@@ -43,16 +41,17 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -60,15 +59,16 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,7 +80,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for SelectorService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class SelectorServiceTest {
 
     @InjectMocks
@@ -110,7 +111,7 @@ public final class SelectorServiceTest {
     @Mock
     private UpstreamCheckService upstreamCheckService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
@@ -136,31 +137,26 @@ public final class SelectorServiceTest {
         final String correctId = "456";
 
         // mock basic objects for delete.
-        SelectorDO mockedSelectorDO = mock(SelectorDO.class);
-        PluginDO mockedPluginDO = mock(PluginDO.class);
-        when(pluginMapper.selectById(mockedSelectorDO.getPluginId())).thenReturn(mockedPluginDO);
-        when(selectorMapper.selectById(correctId)).thenReturn(mockedSelectorDO);
+        SelectorDO mockedSelectorDO = buildSelectorDO();
+        PluginDO mockedPluginDO = buildPluginDO();
+        given(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).willReturn(Collections.singletonList(mockedPluginDO));
+        given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).willReturn(Collections.singletonList(mockedSelectorDO));
 
         // mock for test if divide selector delete.
-        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
-        when(mockedSelectorDO.getName()).thenReturn("anyString");
+//        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
+//        when(mockedSelectorDO.getName()).thenReturn("anyString");
 
         // mock objects for test delete rule and ruleCondition.
         List<RuleDO> mockedRuleDOList = mock(List.class);
-        when(ruleMapper.selectByQuery(new RuleQuery(correctId, null, null))).thenReturn(mockedRuleDOList);
+        given(ruleMapper.findBySelectorIds(Collections.singletonList(correctId))).willReturn(mockedRuleDOList);
 
         // mock for test for-each statement.
-        RuleDO mockedRuleDo = mock(RuleDO.class);
-        Iterator<RuleDO> mockedIterator = mock(Iterator.class);
-        when(mockedRuleDOList.iterator()).thenReturn(mockedIterator);
-        when(mockedIterator.hasNext()).thenReturn(true).thenReturn(false);
-        when(mockedIterator.next()).thenReturn(mockedRuleDo);
-        when(mockedRuleDo.getId()).thenReturn("anyString");
-        when(ruleMapper.delete(mockedRuleDo.getId())).thenReturn(1);
-        when(ruleConditionMapper.deleteByQuery(new RuleConditionQuery(mockedRuleDo.getId()))).thenReturn(1);
+//        RuleDO mockedRuleDo = mock(RuleDO.class);
+//        when(ruleMapper.deleteByIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
+//        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 
         final List<String> ids = Collections.singletonList(correctId);
-        assertEquals(this.selectorService.delete(ids), ids.size());
+        assertEquals(selectorService.delete(ids), ids.size());
     }
 
     @Test
@@ -196,10 +192,7 @@ public final class SelectorServiceTest {
 
     @Test
     public void testFindByPluginId() {
-        final List<SelectorDO> selectorDOs = buildSelectorDOList();
-        given(this.selectorMapper.findByPluginId(eq("789"))).willReturn(selectorDOs);
-        PluginDO pluginDO = buildPluginDO();
-        given(this.pluginMapper.selectById(eq("789"))).willReturn(pluginDO);
+
         List<SelectorData> res = this.selectorService.findByPluginId("789");
         res.forEach(selectorData -> assertEquals("789", selectorData.getPluginId()));
     }

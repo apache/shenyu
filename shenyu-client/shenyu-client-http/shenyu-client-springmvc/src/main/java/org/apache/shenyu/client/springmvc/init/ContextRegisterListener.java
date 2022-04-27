@@ -19,26 +19,33 @@ package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
+import org.apache.shenyu.common.utils.PathUtils;
+import org.apache.shenyu.common.utils.PortUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
 
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
  */
-public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent>, BeanFactoryAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
 
@@ -46,9 +53,11 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    private String contextPath;
+    private final String contextPath;
 
     private final String appName;
+
+    private final String protocol;
 
     private final String host;
 
@@ -56,28 +65,33 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final Boolean isFull;
 
+    private BeanFactory beanFactory;
+
     /**
      * Instantiates a new Context register listener.
      *
      * @param clientConfig the client config
      */
     public ContextRegisterListener(final PropertiesConfig clientConfig) {
-        Properties props = clientConfig.getProps();
+        final Properties props = clientConfig.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
-        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
-        this.contextPath = contextPath;
-        if (isFull) {
+        this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        if (Boolean.TRUE.equals(isFull)) {
             if (StringUtils.isBlank(contextPath)) {
-                String errorMsg = "http register param must config the contextPath";
+                final String errorMsg = "http register param must config the contextPath";
                 LOG.error(errorMsg);
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
-            this.contextPath = contextPath + "/**";
         }
-        int port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
+        this.port = Integer.parseInt(Optional.ofNullable(props.getProperty(ShenyuClientConstants.PORT)).orElseGet(() -> "-1"));
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+        this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
-        this.port = port;
+    }
+
+    @Override
+    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
     }
 
     @Override
@@ -85,33 +99,36 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        if (isFull) {
+        if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
-        publisher.publishEvent(buildURIRegisterDTO());
+        try {
+            final int mergedPort = port <= 0 ? PortUtils.findPort(beanFactory) : port;
+            publisher.publishEvent(buildURIRegisterDTO(mergedPort));
+        } catch (ShenyuException e) {
+            throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
+        }
     }
 
-    private URIRegisterDTO buildURIRegisterDTO() {
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+    private URIRegisterDTO buildURIRegisterDTO(final int port) {
         return URIRegisterDTO.builder()
-                .contextPath(this.contextPath)
-                .appName(appName)
-                .host(host)
-                .port(port)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .build();
+            .contextPath(this.contextPath)
+            .appName(appName)
+            .protocol(protocol)
+            .host(IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host))
+            .port(port)
+            .rpcType(RpcTypeEnum.HTTP.getName())
+            .build();
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO() {
-        String contextPath = this.contextPath;
-        String appName = this.appName;
         return MetaDataRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
-                .path(contextPath)
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .enabled(true)
-                .ruleName(contextPath)
-                .build();
+            .contextPath(contextPath)
+            .appName(appName)
+            .path(PathUtils.decoratorPath(contextPath))
+            .rpcType(RpcTypeEnum.HTTP.getName())
+            .enabled(true)
+            .ruleName(contextPath)
+            .build();
     }
 }

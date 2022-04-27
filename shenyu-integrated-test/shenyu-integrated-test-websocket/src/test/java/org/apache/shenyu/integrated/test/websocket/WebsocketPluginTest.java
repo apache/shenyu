@@ -17,51 +17,30 @@
 
 package org.apache.shenyu.integrated.test.websocket;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
-import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
-import org.apache.shenyu.common.enums.OperatorEnum;
-import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class WebsocketPluginTest extends AbstractPluginDataInit {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketPluginTest.class);
 
-    private static final String WEBSOCKET_URI = "ws://localhost:9195/websocket";
-
-    @BeforeClass
-    public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.WEB_SOCKET.getName(), "{\"multiSelectorHandle\":\"1\"}");
-        assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.WEB_SOCKET.getName(),
-                buildSelectorHandler(), buildSelectorConditionList(), buildRuleLocalDataList());
-        assertThat(selectorAndRulesResult, is("success"));
-    }
+    private static final String WEBSOCKET_URI = "ws://localhost:9195/ws-native/myWebSocket?token=Jack";
 
     @Test
     public void testWebsocket() throws URISyntaxException, InterruptedException {
-        final String sendMessage = "shenyu-test";
+        final String sendMessage = "Shenyu says hello to you!";
         ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
         WebSocketClient webSocketClient = new WebSocketClient(new URI(WEBSOCKET_URI)) {
             @Override
@@ -85,44 +64,7 @@ public class WebsocketPluginTest extends AbstractPluginDataInit {
         webSocketClient.connectBlocking();
         webSocketClient.send(sendMessage);
         String receivedMessage = blockingQueue.poll(10, TimeUnit.SECONDS);
-        assertThat(receivedMessage, is("result apache shenyu : -> " + sendMessage));
+        assertThat(receivedMessage, is("apache shenyu server send to Jack message : -> " + sendMessage));
     }
 
-    private static String buildSelectorHandler() {
-        WebSocketUpstream upstream = WebSocketUpstream.builder()
-                .upstreamUrl("shenyu-examples-websocket:8848")
-                .protocol("ws://")
-                .weight(50)
-                .timestamp(0)
-                .warmup(0)
-                .status(true)
-                .build();
-        return JsonUtils.toJson(Collections.singleton(upstream));
-    }
-
-    private static List<ConditionData> buildSelectorConditionList() {
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue("/websocket");
-        return Collections.singletonList(conditionData);
-    }
-
-    private static List<RuleLocalData> buildRuleLocalDataList() {
-        final RuleLocalData ruleLocalData = new RuleLocalData();
-
-        WebSocketRuleHandle ruleHandle = new WebSocketRuleHandle();
-        ruleHandle.setLoadBalance("roundRobin");
-        ruleHandle.setRetry(1);
-        ruleHandle.setTimeout(3000);
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(ruleHandle));
-
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue("/websocket");
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-
-        return Collections.singletonList(ruleLocalData);
-    }
 }

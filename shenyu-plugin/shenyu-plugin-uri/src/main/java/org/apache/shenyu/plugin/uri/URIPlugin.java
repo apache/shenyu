@@ -22,9 +22,8 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -36,33 +35,12 @@ public class URIPlugin implements ShenyuPlugin {
 
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        String path = exchange.getAttribute(Constants.HTTP_DOMAIN);
-        if (StringUtils.isBlank(path)) {
+        String domain = exchange.getAttribute(Constants.HTTP_DOMAIN);
+        if (StringUtils.isBlank(domain)) {
             return chain.execute(exchange);
         }
-        String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        URI uri = exchange.getRequest().getURI();
-        if (StringUtils.isNoneBlank(rewriteURI)) {
-            path = path + rewriteURI;
-        } else {
-            String realUrl = shenyuContext.getRealUrl();
-            if (StringUtils.isNoneBlank(realUrl)) {
-                path = path + realUrl;
-            }
-        }
-        URI realURI;
-        if (StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")) {
-            path = String.join("?", path, uri.getRawQuery());
-            realURI = UriComponentsBuilder.fromHttpUrl(path).build(true).toUri();
-        } else {
-            if (StringUtils.isNotEmpty(uri.getQuery())) {
-                path = String.join("?", path, uri.getQuery());
-            }
-            realURI = UriComponentsBuilder.fromHttpUrl(path).build(false).toUri();
-        }
-        exchange.getAttributes().put(Constants.HTTP_URI, realURI);
+        final URI uri = RequestUrlUtils.buildRequestUri(exchange, domain);
+        exchange.getAttributes().put(Constants.HTTP_URI, uri);
         return chain.execute(exchange);
     }
 

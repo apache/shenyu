@@ -32,13 +32,17 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
@@ -56,16 +60,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For {@link SpringCloudPlugin}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class SpringCloudPluginTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+public final class SpringCloudPluginTest {
 
     @Mock
     private RibbonLoadBalancerClient loadBalancerClient;
@@ -80,7 +86,7 @@ public class SpringCloudPluginTest {
 
     private ShenyuContext shenyuContext;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
@@ -98,7 +104,7 @@ public class SpringCloudPluginTest {
         springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void doExecute() {
         final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
@@ -120,7 +126,9 @@ public class SpringCloudPluginTest {
         shenyuContext.setRealUrl("http://localhost/test");
         shenyuContext.setHttpMethod(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
+        assertThrows(NullPointerException.class, () -> {
+            StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
+        });
     }
 
     @Test
@@ -213,5 +221,17 @@ public class SpringCloudPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testHandleSelectorIfNull() {
+        Assertions.assertEquals(springCloudPlugin.handleSelectorIfNull("SpringCloud", exchange, chain).getClass(),
+                WebFluxResultUtils.noSelectorResult("SpringCloud", exchange).getClass());
+    }
+
+    @Test
+    public void testHandleRuleIfNull() {
+        Assertions.assertEquals(springCloudPlugin.handleRuleIfNull("SpringCloud", exchange, chain).getClass(),
+                WebFluxResultUtils.noRuleResult("SpringCloud", exchange).getClass());
     }
 }

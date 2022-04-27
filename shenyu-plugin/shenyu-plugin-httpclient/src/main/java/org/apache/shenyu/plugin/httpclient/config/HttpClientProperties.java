@@ -17,13 +17,20 @@
 
 package org.apache.shenyu.plugin.httpclient.config;
 
-import org.springframework.boot.web.server.WebServerException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.util.ResourceUtils;
+import reactor.netty.ReactorNetty;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.SslProvider;
 
+import javax.net.ssl.KeyManagerFactory;
 import java.io.IOException;
 import java.net.URL;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchProviderException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -32,6 +39,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
@@ -39,14 +47,34 @@ import java.util.List;
 public class HttpClientProperties {
 
     /**
-     * The connect timeout in millis, the default is 45s.
+     * the http client strategy.
      */
-    private Integer connectTimeout;
+    private String strategy;
+
+    /**
+     * The connection timeout in millis, the default is 45s.
+     */
+    private Integer connectTimeout = 45000;
 
     /**
      * The response timeout.
      */
-    private Duration responseTimeout;
+    private Long responseTimeout = 3000L;
+
+    /**
+     * readerIdleTime, the default is 3s.
+     */
+    private Integer readerIdleTime = 3000;
+
+    /**
+     * writerIdleTime, the default is 3s.
+     */
+    private Integer writerIdleTime = 3000;
+
+    /**
+     * allIdleTime, the default is 3s.
+     */
+    private Integer allIdleTime = 3000;
 
     /**
      * readTimeout, the default is 3s.
@@ -64,6 +92,11 @@ public class HttpClientProperties {
     private Pool pool = new Pool();
 
     /**
+     * ThreadPool configuration for Netty HttpClient.
+     */
+    private ThreadPool threadPool = new ThreadPool();
+
+    /**
      * Proxy configuration for Netty HttpClient.
      */
     private Proxy proxy = new Proxy();
@@ -79,41 +112,119 @@ public class HttpClientProperties {
     private boolean wiretap;
 
     /**
+     * set to false, fix java.io.IOException: Connection reset by peer, see https://github.com/reactor/reactor-netty/issues/388.
+     */
+    private boolean keepAlive;
+
+    /**
+     * Gets strategy.
+     *
+     * @return to strategy
+     */
+    public String getStrategy() {
+        return strategy;
+    }
+
+    /**
+     * Sets strategy.
+     *
+     * @param strategy to strategy
+     */
+    public void setStrategy(final String strategy) {
+        this.strategy = strategy;
+    }
+
+    /**
      * Gets connect timeout.
      *
-     * @return the connect timeout
+     * @return to connect timeout
      */
     public Integer getConnectTimeout() {
         return connectTimeout;
     }
-
+    
     /**
      * Sets connect timeout.
      *
-     * @param connectTimeout the connect timeout
+     * @param connectTimeout to connect timeout
      */
     public void setConnectTimeout(final Integer connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
-
+    
     /**
      * Gets response timeout.
      *
      * @return the response timeout
      */
     public Duration getResponseTimeout() {
-        return responseTimeout;
+        return Optional.ofNullable(responseTimeout)
+                .map(it -> Duration.ofMillis(responseTimeout)).orElse(Duration.ofMillis(3000));
     }
-
+    
     /**
      * Sets response timeout.
      *
      * @param responseTimeout the response timeout
      */
-    public void setResponseTimeout(final Duration responseTimeout) {
+    public void setResponseTimeout(final Long responseTimeout) {
         this.responseTimeout = responseTimeout;
     }
-
+    
+    /**
+     * Gets read idle timeout.
+     *
+     * @return the read idle timeout
+     */
+    public Integer getReaderIdleTime() {
+        return readerIdleTime;
+    }
+    
+    /**
+     * Sets read idle timeout.
+     *
+     * @param readerIdleTime the read idle timeout
+     */
+    public void setReaderIdleTime(final Integer readerIdleTime) {
+        this.readerIdleTime = readerIdleTime;
+    }
+    
+    /**
+     * Gets writer idle timeout.
+     *
+     * @return the writer idle timeout
+     */
+    public Integer getWriterIdleTime() {
+        return writerIdleTime;
+    }
+    
+    /**
+     * Sets writer idle timeout.
+     *
+     * @param writerIdleTime the writer idle timeout
+     */
+    public void setWriterIdleTime(final Integer writerIdleTime) {
+        this.writerIdleTime = writerIdleTime;
+    }
+    
+    /**
+     * Gets all idle timeout.
+     *
+     * @return the all idle timeout
+     */
+    public Integer getAllIdleTime() {
+        return allIdleTime;
+    }
+    
+    /**
+     * Sets all idle timeout.
+     *
+     * @param allIdleTime the all idle timeout
+     */
+    public void setAllIdleTime(final Integer allIdleTime) {
+        this.allIdleTime = allIdleTime;
+    }
+    
     /**
      * Gets read timeout.
      *
@@ -122,7 +233,7 @@ public class HttpClientProperties {
     public Integer getReadTimeout() {
         return readTimeout;
     }
-
+    
     /**
      * Sets read timeout.
      *
@@ -131,7 +242,7 @@ public class HttpClientProperties {
     public void setReadTimeout(final Integer readTimeout) {
         this.readTimeout = readTimeout;
     }
-
+    
     /**
      * Gets write timeout.
      *
@@ -140,7 +251,7 @@ public class HttpClientProperties {
     public Integer getWriteTimeout() {
         return writeTimeout;
     }
-
+    
     /**
      * Sets write timeout.
      *
@@ -149,7 +260,7 @@ public class HttpClientProperties {
     public void setWriteTimeout(final Integer writeTimeout) {
         this.writeTimeout = writeTimeout;
     }
-
+    
     /**
      * Gets pool.
      *
@@ -158,7 +269,7 @@ public class HttpClientProperties {
     public Pool getPool() {
         return pool;
     }
-
+    
     /**
      * Sets pool.
      *
@@ -169,6 +280,24 @@ public class HttpClientProperties {
     }
 
     /**
+     * Gets thread pool.
+     *
+     * @return the thread pool
+     */
+    public ThreadPool getThreadPool() {
+        return threadPool;
+    }
+
+    /**
+     * Sets thread pool.
+     *
+     * @param threadPool the thread pool
+     */
+    public void setThreadPool(final ThreadPool threadPool) {
+        this.threadPool = threadPool;
+    }
+
+    /**
      * Gets proxy.
      *
      * @return the proxy
@@ -176,7 +305,7 @@ public class HttpClientProperties {
     public Proxy getProxy() {
         return proxy;
     }
-
+    
     /**
      * Sets proxy.
      *
@@ -185,7 +314,7 @@ public class HttpClientProperties {
     public void setProxy(final Proxy proxy) {
         this.proxy = proxy;
     }
-
+    
     /**
      * Gets ssl.
      *
@@ -194,7 +323,7 @@ public class HttpClientProperties {
     public Ssl getSsl() {
         return ssl;
     }
-
+    
     /**
      * Sets ssl.
      *
@@ -203,7 +332,7 @@ public class HttpClientProperties {
     public void setSsl(final Ssl ssl) {
         this.ssl = ssl;
     }
-
+    
     /**
      * Is wiretap boolean.
      *
@@ -212,7 +341,7 @@ public class HttpClientProperties {
     public boolean isWiretap() {
         return wiretap;
     }
-
+    
     /**
      * Sets wiretap.
      *
@@ -220,6 +349,24 @@ public class HttpClientProperties {
      */
     public void setWiretap(final boolean wiretap) {
         this.wiretap = wiretap;
+    }
+
+    /**
+     * Is keepAlive boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isKeepAlive() {
+        return keepAlive;
+    }
+
+    /**
+     * Sets keepAlive.
+     *
+     * @param keepAlive the keepAlive
+     */
+    public void setKeepAlive(final boolean keepAlive) {
+        this.keepAlive = keepAlive;
     }
 
     /**
@@ -249,6 +396,12 @@ public class HttpClientProperties {
         private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
 
         /**
+         * Time in millis after which the channel will be closed,
+         * if NULL there is no max idle time.
+         */
+        private Long maxIdleTime;
+
+        /**
          * Gets type.
          *
          * @return the type
@@ -256,7 +409,7 @@ public class HttpClientProperties {
         public PoolType getType() {
             return type;
         }
-
+    
         /**
          * Sets type.
          *
@@ -265,7 +418,7 @@ public class HttpClientProperties {
         public void setType(final PoolType type) {
             this.type = type;
         }
-
+    
         /**
          * Gets name.
          *
@@ -274,7 +427,7 @@ public class HttpClientProperties {
         public String getName() {
             return name;
         }
-
+    
         /**
          * Sets name.
          *
@@ -283,7 +436,7 @@ public class HttpClientProperties {
         public void setName(final String name) {
             this.name = name;
         }
-
+    
         /**
          * Gets max connections.
          *
@@ -292,7 +445,7 @@ public class HttpClientProperties {
         public Integer getMaxConnections() {
             return maxConnections;
         }
-
+    
         /**
          * Sets max connections.
          *
@@ -301,7 +454,7 @@ public class HttpClientProperties {
         public void setMaxConnections(final Integer maxConnections) {
             this.maxConnections = maxConnections;
         }
-
+    
         /**
          * Gets acquire timeout.
          *
@@ -310,7 +463,7 @@ public class HttpClientProperties {
         public Long getAcquireTimeout() {
             return acquireTimeout;
         }
-
+    
         /**
          * Sets acquire timeout.
          *
@@ -321,20 +474,39 @@ public class HttpClientProperties {
         }
 
         /**
+         * Gets maxIdleTime timeout.
+         *
+         * @return the maxIdleTime timeout
+         */
+        public Duration getMaxIdleTime() {
+            return Optional.ofNullable(maxIdleTime)
+                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(null);
+        }
+
+        /**
+         * Sets maxIdleTime timeout.
+         *
+         * @param maxIdleTime the maxIdleTime timeout
+         */
+        public void setMaxIdleTime(final Long maxIdleTime) {
+            this.maxIdleTime = maxIdleTime;
+        }
+
+        /**
          * The enum Pool type.
          */
         public enum PoolType {
-
+    
             /**
              * Elastic pool type.
              */
             ELASTIC,
-
+    
             /**
              * Fixed pool type.
              */
             FIXED,
-
+    
             /**
              * Disabled pool type.
              */
@@ -342,6 +514,104 @@ public class HttpClientProperties {
         }
     }
 
+    /**
+     * The type Thread Pool.
+     */
+    public static class ThreadPool {
+
+        /**
+         * The the event loop thread name prefix, defaults to shenyu.
+         */
+        private String prefix = "shenyu";
+
+        /**
+         * The selector thread count, defaults to 1.
+         */
+        private Integer selectCount = Integer.parseInt(System.getProperty(ReactorNetty.IO_SELECT_COUNT, "1"));
+
+        /**
+         * The worker thread count, defaults to available processor (but with a minimum value of 4).
+         */
+        private Integer workerCount = LoopResources.DEFAULT_IO_WORKER_COUNT;
+
+        /**
+         * Whether the thread created by the thread pool is a daemon thread.
+         */
+        private Boolean daemon = true;
+
+        /**
+         * Gets prefix.
+         *
+         * @return the prefix
+         */
+        public String getPrefix() {
+            return prefix;
+        }
+
+        /**
+         * Sets prefix.
+         *
+         * @param prefix the prefix
+         */
+        public void setPrefix(final String prefix) {
+            this.prefix = prefix;
+        }
+
+        /**
+         * Gets select count.
+         *
+         * @return the select count
+         */
+        public Integer getSelectCount() {
+            return selectCount;
+        }
+
+        /**
+         * Sets select count.
+         *
+         * @param selectCount the select count
+         */
+        public void setSelectCount(final Integer selectCount) {
+            this.selectCount = selectCount;
+        }
+
+        /**
+         * Gets worker count.
+         *
+         * @return the worker count
+         */
+        public Integer getWorkerCount() {
+            return workerCount;
+        }
+
+        /**
+         * Sets worker count.
+         *
+         * @param workerCount the worker count
+         */
+        public void setWorkerCount(final Integer workerCount) {
+            this.workerCount = workerCount;
+        }
+
+        /**
+         * Gets daemon.
+         *
+         * @return the daemon
+         */
+        public Boolean getDaemon() {
+            return daemon;
+        }
+
+        /**
+         * Sets daemon.
+         *
+         * @param daemon the daemon
+         */
+        public void setDaemon(final Boolean daemon) {
+            this.daemon = daemon;
+        }
+    }
+    
     /**
      * The type Proxy.
      */
@@ -372,7 +642,7 @@ public class HttpClientProperties {
          * reached directly, bypassing the proxy
          */
         private String nonProxyHostsPattern;
-
+    
         /**
          * Gets host.
          *
@@ -381,7 +651,7 @@ public class HttpClientProperties {
         public String getHost() {
             return host;
         }
-
+    
         /**
          * Sets host.
          *
@@ -390,7 +660,7 @@ public class HttpClientProperties {
         public void setHost(final String host) {
             this.host = host;
         }
-
+    
         /**
          * Gets port.
          *
@@ -399,7 +669,7 @@ public class HttpClientProperties {
         public Integer getPort() {
             return port;
         }
-
+    
         /**
          * Sets port.
          *
@@ -408,7 +678,7 @@ public class HttpClientProperties {
         public void setPort(final Integer port) {
             this.port = port;
         }
-
+    
         /**
          * Gets username.
          *
@@ -417,7 +687,7 @@ public class HttpClientProperties {
         public String getUsername() {
             return username;
         }
-
+    
         /**
          * Sets username.
          *
@@ -426,7 +696,7 @@ public class HttpClientProperties {
         public void setUsername(final String username) {
             this.username = username;
         }
-
+    
         /**
          * Gets password.
          *
@@ -435,7 +705,7 @@ public class HttpClientProperties {
         public String getPassword() {
             return password;
         }
-
+    
         /**
          * Sets password.
          *
@@ -444,7 +714,7 @@ public class HttpClientProperties {
         public void setPassword(final String password) {
             this.password = password;
         }
-
+    
         /**
          * Gets non proxy hosts pattern.
          *
@@ -453,7 +723,7 @@ public class HttpClientProperties {
         public String getNonProxyHostsPattern() {
             return nonProxyHostsPattern;
         }
-
+    
         /**
          * Sets non proxy hosts pattern.
          *
@@ -463,7 +733,7 @@ public class HttpClientProperties {
             this.nonProxyHostsPattern = nonProxyHostsPattern;
         }
     }
-
+    
     /**
      * The type Ssl.
      */
@@ -495,12 +765,34 @@ public class HttpClientProperties {
          * SSL close_notify read timeout. Default to 0 ms.
          */
         private Duration closeNotifyReadTimeout = Duration.ZERO;
+    
+        private String keyStorePath;
+    
+        /**
+         * Keystore type for netty httpClient and webclient, default is PKCS12. 
+         */
+        private String keyStoreType = "PKCS12";
+    
+        /** 
+         * Keystore provider for netty httpClient and webclient.
+         */
+        private String keyStoreProvider;
+    
+        /** 
+         * Keystore password.
+         */
+        private String keyStorePassword;
+    
+        /** 
+         * Key password ,this is same to keyStorePassword.
+         */
+        private String keyPassword;
 
         /**
          * The default ssl configuration type. Defaults to TCP.
          */
         private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
-
+    
         /**
          * Is use insecure trust manager boolean.
          *
@@ -509,7 +801,7 @@ public class HttpClientProperties {
         public boolean isUseInsecureTrustManager() {
             return useInsecureTrustManager;
         }
-
+    
         /**
          * Sets use insecure trust manager.
          *
@@ -518,7 +810,7 @@ public class HttpClientProperties {
         public void setUseInsecureTrustManager(final boolean useInsecureTrustManager) {
             this.useInsecureTrustManager = useInsecureTrustManager;
         }
-
+    
         /**
          * Gets trusted x 509 certificates.
          *
@@ -527,7 +819,7 @@ public class HttpClientProperties {
         public List<String> getTrustedX509Certificates() {
             return trustedX509Certificates;
         }
-
+    
         /**
          * Sets trusted x 509 certificates.
          *
@@ -536,7 +828,7 @@ public class HttpClientProperties {
         public void setTrustedX509Certificates(final List<String> trustedX509Certificates) {
             this.trustedX509Certificates = trustedX509Certificates;
         }
-
+    
         /**
          * Gets handshake timeout.
          *
@@ -545,7 +837,7 @@ public class HttpClientProperties {
         public Duration getHandshakeTimeout() {
             return handshakeTimeout;
         }
-
+    
         /**
          * Sets handshake timeout.
          *
@@ -554,7 +846,7 @@ public class HttpClientProperties {
         public void setHandshakeTimeout(final Duration handshakeTimeout) {
             this.handshakeTimeout = handshakeTimeout;
         }
-
+    
         /**
          * Gets close notify flush timeout.
          *
@@ -563,7 +855,7 @@ public class HttpClientProperties {
         public Duration getCloseNotifyFlushTimeout() {
             return closeNotifyFlushTimeout;
         }
-
+    
         /**
          * Sets close notify flush timeout.
          *
@@ -572,7 +864,7 @@ public class HttpClientProperties {
         public void setCloseNotifyFlushTimeout(final Duration closeNotifyFlushTimeout) {
             this.closeNotifyFlushTimeout = closeNotifyFlushTimeout;
         }
-
+    
         /**
          * Gets close notify read timeout.
          *
@@ -581,7 +873,7 @@ public class HttpClientProperties {
         public Duration getCloseNotifyReadTimeout() {
             return closeNotifyReadTimeout;
         }
-
+    
         /**
          * Sets close notify read timeout.
          *
@@ -590,7 +882,7 @@ public class HttpClientProperties {
         public void setCloseNotifyReadTimeout(final Duration closeNotifyReadTimeout) {
             this.closeNotifyReadTimeout = closeNotifyReadTimeout;
         }
-
+    
         /**
          * Gets default configuration type.
          *
@@ -599,7 +891,7 @@ public class HttpClientProperties {
         public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {
             return defaultConfigurationType;
         }
-
+    
         /**
          * Sets default configuration type.
          *
@@ -608,12 +900,103 @@ public class HttpClientProperties {
         public void setDefaultConfigurationType(final SslProvider.DefaultConfigurationType defaultConfigurationType) {
             this.defaultConfigurationType = defaultConfigurationType;
         }
-
+    
         /**
-         * Get trusted x 509 certificates for trust manager x 509 certificate [ ].
+         * Gets key store path.
          *
-         * @return the x 509 certificate [ ]
+         * @return the key store path
          */
+        public String getKeyStorePath() {
+            return keyStorePath;
+        }
+    
+        /**
+         * Sets key store path.
+         *
+         * @param keyStorePath the key store path
+         */
+        public void setKeyStorePath(final String keyStorePath) {
+            this.keyStorePath = keyStorePath;
+        }
+    
+        /**
+         * Gets key store type.
+         *
+         * @return the key store type
+         */
+        public String getKeyStoreType() {
+            return keyStoreType;
+        }
+    
+        /**
+         * Sets key store type.
+         *
+         * @param keyStoreType the key store type
+         */
+        public void setKeyStoreType(final String keyStoreType) {
+            this.keyStoreType = keyStoreType;
+        }
+    
+        /**
+         * Gets key store provider.
+         *
+         * @return the key store provider
+         */
+        public String getKeyStoreProvider() {
+            return keyStoreProvider;
+        }
+    
+        /**
+         * Sets key store provider.
+         *
+         * @param keyStoreProvider the key store provider
+         */
+        public void setKeyStoreProvider(final String keyStoreProvider) {
+            this.keyStoreProvider = keyStoreProvider;
+        }
+    
+        /**
+         * Gets key store password.
+         *
+         * @return the key store password
+         */
+        public String getKeyStorePassword() {
+            return keyStorePassword;
+        }
+    
+        /**
+         * Sets key store password.
+         *
+         * @param keyStorePassword the key store password
+         */
+        public void setKeyStorePassword(final String keyStorePassword) {
+            this.keyStorePassword = keyStorePassword;
+        }
+    
+        /**
+         * Gets key password.
+         *
+         * @return the key password
+         */
+        public String getKeyPassword() {
+            return keyPassword;
+        }
+    
+        /**
+         * Sets key password.
+         *
+         * @param keyPassword the key password
+         */
+        public void setKeyPassword(final String keyPassword) {
+            this.keyPassword = keyPassword;
+        }
+    
+        /**
+         * Get trusted x 509 certificates for trust manager x 509 certificate [].
+         *
+         * @return the x 509 certificate []
+         */
+        @SuppressWarnings("all")
         public X509Certificate[] getTrustedX509CertificatesForTrustManager() {
             try {
                 CertificateFactory certificateFactory = CertificateFactory
@@ -626,14 +1009,62 @@ public class HttpClientProperties {
                                 .generateCertificates(url.openStream());
                         allCerts.addAll(certs);
                     } catch (IOException e) {
-                        throw new WebServerException(
+                        throw new ShenyuException(
                                 "Could not load certificate '" + trustedCert + "'", e);
                     }
                 }
-                X509Certificate[] x509Certificates = new X509Certificate[allCerts.size()];
-                return allCerts.toArray(x509Certificates);
+                return allCerts.toArray(new X509Certificate[allCerts.size()]);
             } catch (CertificateException e) {
-                throw new WebServerException("Could not load CertificateFactory X.509", e);
+                throw new ShenyuException("Could not load CertificateFactory X.509", e);
+            }
+        }
+    
+        /**
+         * Gets key manager factory.
+         *
+         * @return the key manager factory
+         */
+        public KeyManagerFactory getKeyManagerFactory() {
+            try {
+                if (StringUtils.isNotEmpty(getKeyStorePath())) {
+                    KeyManagerFactory keyManagerFactory = KeyManagerFactory
+                            .getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                    char[] keyPassword = Optional.ofNullable(getKeyPassword())
+                            .map(String::toCharArray).orElse(getKeyStorePassword().toCharArray());
+                    keyManagerFactory.init(this.createKeyStore(), keyPassword);
+                    return keyManagerFactory;
+                }
+                return null;
+            } catch (Exception e) {
+                throw new ShenyuException(e);
+            }
+        }
+    
+        /**
+         * Create key store.
+         *
+         * @return the key store
+         */
+        public KeyStore createKeyStore() {
+            String provider = getKeyStoreProvider();
+            String storeType = getKeyStoreType();
+            String keyStorePath = getKeyStorePath();
+            String keyStorePassword = getKeyStorePassword();
+            try {
+                KeyStore keyStore = StringUtils.isNotEmpty(provider)
+                        ? KeyStore.getInstance(storeType, provider)
+                        : KeyStore.getInstance(storeType);
+                try {
+                    char[] keyPassword = Optional.ofNullable(keyStorePassword)
+                            .map(String::toCharArray).orElse(null);
+                    URL url = ResourceUtils.getURL(keyStorePath);
+                    keyStore.load(url.openStream(), keyPassword);
+                } catch (Exception e) {
+                    throw new ShenyuException("Could not load key store path ' " + keyStorePath + "'", e);
+                }
+                return keyStore;
+            } catch (KeyStoreException | NoSuchProviderException e) {
+                throw new ShenyuException("Could not load KeyStore for type and provider", e);
             }
         }
     }

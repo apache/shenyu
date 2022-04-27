@@ -23,6 +23,7 @@ import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 
 /**
@@ -34,7 +35,6 @@ public class Connect extends MessageType {
     public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
 
         String clientId = msg.payload().clientIdentifier();
-
         if (StringUtils.isEmpty(clientId)) {
             ctx.writeAndFlush(wrong(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED));
             return;
@@ -43,20 +43,19 @@ public class Connect extends MessageType {
         String userName = msg.payload().userName();
         byte[] passwordInBytes = msg.payload().passwordInBytes();
 
-        if (!MqttEnv.isValid(userName, passwordInBytes)) {
+        if (!MqttContext.isValid(userName, passwordInBytes)) {
             ctx.writeAndFlush(wrong(MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD));
             return;
         }
 
         // record connect
-        ChannelRepository.getInstance().add(ctx.channel(), clientId);
-
+        Singleton.INST.get(ChannelRepository.class).add(ctx.channel(), clientId);
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()
                 .returnCode(MqttConnectReturnCode.CONNECTION_ACCEPTED)
                 .sessionPresent(true)
                 .build();
         ctx.writeAndFlush(ackMessage);
-
+        setConnected(true);
     }
 
     private MqttConnAckMessage wrong(final MqttConnectReturnCode returnCode) {

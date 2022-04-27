@@ -24,11 +24,26 @@ import java.util.List;
  * PluginEnum.
  */
 public enum PluginEnum {
+
+    /**
+     * Mqtt plugin enum.
+     */
+    MQTT(0, 0, "mqtt"),
     
     /**
      * Global plugin enum.
      */
-    GLOBAL(10, 0, "global"),
+    GLOBAL(5, 0, "global"),
+
+    /**
+     * the cache plugin enum.
+     */
+    CACHE(180, 0, "cache"),
+
+    /**
+     * Monitor plugin enum.
+     */
+    METRICS(15, 0, "metrics"),
     
     /**
      * Sign plugin enum.
@@ -84,6 +99,11 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
+
+    /**
+     * GeneralContext plugin enum.
+     */
+    GENERAL_CONTEXT(125, 0, "generalContext"),
     
     /**
      * Hystrix plugin enum.
@@ -101,15 +121,15 @@ public enum PluginEnum {
     RESILIENCE4J(150, 0, "resilience4j"),
     
     /**
-     * Logging plugin enum.
+     * Logging console plugin enum.
      */
-    LOGGING(160, 0, "logging"),
-    
+    LOGGING_CONSOLE(160, 0, "loggingConsole"),
+
     /**
-     * Monitor plugin enum.
+     * Logging RocketMQ plugin enum.
      */
-    MONITOR(170, 0, "monitor"),
-    
+    LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
+
     /**
      * Divide plugin enum.
      */
@@ -179,11 +199,13 @@ public enum PluginEnum {
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
-    
+
     /**
      * Response plugin enum.
      */
     RESPONSE(420, 0, "response");
+
+
 
     private final int code;
 

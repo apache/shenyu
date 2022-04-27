@@ -30,15 +30,8 @@ fi
 LOG_FILES=${LOGS_DIR}/shenyu-bootstrap.log
 EXT_LIB=${DEPLOY_DIR}/ext-lib
 
-PIDS=`ps -ef | grep "$DEPLOY_DIR" | grep -v grep | pgrep -f java`
-if [ -n "$PIDS" ]; then
-    echo "ERROR: The $SERVER_NAME already started!"
-    echo "PID: $PIDS"
-    exit 1
-fi
-
 CLASS_PATH=.:${DEPLOY_DIR}/conf:${DEPLOY_DIR}/lib/*:${EXT_LIB}/*
-JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss256k -XX:+DisableExplicitGC   -XX:LargePageSizeInBytes=128m"
+JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss512k -XX:+DisableExplicitGC   -XX:LargePageSizeInBytes=128m"
 
 version=`java -version 2>&1 | sed '1!d' | sed -e 's/"//g' | awk '{print $3}'`
 echo "current jdk version:${version}"
@@ -51,8 +44,10 @@ JAVA_OPTS="${JAVA_OPTS}"
 fi
 
 MAIN_CLASS=org.apache.shenyu.bootstrap.ShenyuBootstrapApplication
+
 echo "Starting the $SERVER_NAME ..."
 
 nohup java ${JAVA_OPTS} -classpath ${CLASS_PATH} ${MAIN_CLASS} >> ${LOG_FILES} 2>&1 &
+
 sleep 1
 echo "Please check the log files: $LOG_FILES"

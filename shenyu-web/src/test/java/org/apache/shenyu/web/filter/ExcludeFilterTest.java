@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -35,14 +37,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ExcludeFilterTest {
-    
+
     private ExcludeFilter excludeFilter;
 
     private WebFilterChain webFilterChain;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         List<String> paths = new ArrayList<>();
         paths.add("/favicon.ico");
@@ -52,20 +55,21 @@ public final class ExcludeFilterTest {
     }
 
     @Test
-    public void testFilterMatch() {
+    public void testDoMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/favicon.ico"));
-        Mono<Void> filter = excludeFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+        Mono<Boolean> filter = excludeFilter.doMatcher(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.TRUE).verifyComplete();
     }
 
     @Test
-    public void testFilterNotMatch() {
+    public void testDoNotMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/"));
-        Mono<Void> filter = excludeFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+        Mono<Boolean> filter = excludeFilter.doMatcher(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
     }
+
 }

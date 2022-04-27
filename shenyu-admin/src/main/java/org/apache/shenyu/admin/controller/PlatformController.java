@@ -54,8 +54,13 @@ public class PlatformController {
     @GetMapping("/login")
     public ShenyuAdminResult loginDashboardUser(final String userName, final String password) {
         LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password);
-        return Optional.ofNullable(loginVO).map(item -> ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
+        return Optional.ofNullable(loginVO)
+                .map(loginStatus -> {
+                    if (loginStatus.getEnabled()) {
+                        return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
+                    }
+                    return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);
+                }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
     }
 
     /**

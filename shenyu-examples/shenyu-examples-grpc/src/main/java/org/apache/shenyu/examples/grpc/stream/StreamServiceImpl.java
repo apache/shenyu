@@ -60,7 +60,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
     
     @Override
     @ShenyuGrpcClient(path = "/clientStreamingFun", desc = "clientStreamingFun")
-    public StreamObserver<RequestData> clientStreamingFun(StreamObserver<ResponseData> responseObserver) {
+    public StreamObserver<RequestData> clientStreamingFun(final StreamObserver<ResponseData> responseObserver) {
         
         return new StreamObserver<RequestData>() {
             

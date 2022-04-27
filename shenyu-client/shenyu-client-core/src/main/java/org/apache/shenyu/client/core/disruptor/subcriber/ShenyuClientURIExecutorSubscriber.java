@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber<URIRegisterDTO> {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientMetadataExecutorSubscriber.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientURIExecutorSubscriber.class);
     
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     

@@ -21,15 +21,26 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * The interface Meta data mapper.
  */
 @Mapper
-public interface MetaDataMapper {
-
+public interface MetaDataMapper extends ExistProvider {
+    
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+    
     /**
      * Select by id meta data do.
      *
@@ -37,14 +48,22 @@ public interface MetaDataMapper {
      * @return the meta data do
      */
     MetaDataDO selectById(String id);
-
+    
+    /**
+     * Select a list of MetaDataDOs by idList.
+     *
+     * @param idList a list of ids
+     * @return a list of MetaDataDOs
+     */
+    List<MetaDataDO> selectByIdList(@Param("idList") List<String> idList);
+    
     /**
      * Find all list.
      *
      * @return the list
      */
     List<MetaDataDO> findAll();
-
+    
     /**
      * Find by path meta data do.
      *
@@ -52,16 +71,16 @@ public interface MetaDataMapper {
      * @return the meta data do
      */
     MetaDataDO findByPath(String path);
-
+    
     /**
      * Find by service name and method meta data do.
      *
      * @param serviceName the service name
-     * @param methodName      the methodName
+     * @param methodName  the methodName
      * @return the meta data do
      */
     MetaDataDO findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName);
-
+    
     /**
      * Select by query list.
      *
@@ -69,14 +88,14 @@ public interface MetaDataMapper {
      * @return the list
      */
     List<MetaDataDO> selectByQuery(MetaDataQuery metaDataQuery);
-
+    
     /**
      * Select all list.
      *
      * @return the list
      */
     List<MetaDataDO> selectAll();
-
+    
     /**
      * Count by query integer.
      *
@@ -84,7 +103,7 @@ public interface MetaDataMapper {
      * @return the integer
      */
     Integer countByQuery(MetaDataQuery metaDataQuery);
-
+    
     /**
      * Insert int.
      *
@@ -92,7 +111,7 @@ public interface MetaDataMapper {
      * @return the int
      */
     int insert(MetaDataDO metaDataDO);
-
+    
     /**
      * Update int.
      *
@@ -100,7 +119,7 @@ public interface MetaDataMapper {
      * @return the int
      */
     int update(MetaDataDO metaDataDO);
-
+    
     /**
      * Update enable int.
      *
@@ -108,7 +127,16 @@ public interface MetaDataMapper {
      * @return the int
      */
     int updateEnable(MetaDataDO metaDataDO);
-
+    
+    /**
+     * update enable batch.
+     *
+     * @param idList  the ids
+     * @param enabled the status
+     * @return the count
+     */
+    int updateEnableBatch(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+    
     /**
      * Delete int.
      *
@@ -116,4 +144,29 @@ public interface MetaDataMapper {
      * @return the int
      */
     int delete(String id);
+    
+    /**
+     * batch delete by a list of ids.
+     *
+     * @param idList a list of ids
+     * @return the count of deleted
+     */
+    int deleteByIdList(@Param("idList") List<String> idList);
+    
+    /**
+     * the path is existed.
+     *
+     * @param path path
+     * @return existed
+     */
+    Boolean pathExisted(@Param("path") Serializable path);
+    
+    /**
+     * the path is existed.
+     *
+     * @param path    path
+     * @param exclude exclude
+     * @return existed
+     */
+    Boolean pathExistedExclude(@Param("path") Serializable path, @Param("exclude") List<String> exclude);
 }

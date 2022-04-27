@@ -22,14 +22,19 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.hasItems;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 /**
@@ -53,6 +58,24 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);
+    }
+
+    @Test
+    public void testSelectByIdList() {
+
+        SelectorDO selectorDO1 = buildSelectorDO();
+        int insert1 = selectorMapper.insert(selectorDO1);
+        assertEquals(1, insert1);
+
+        SelectorDO selectorDO = buildSelectorDO();
+        int insert = selectorMapper.insert(selectorDO);
+        assertEquals(1, insert);
+
+        Set<String> idSet = Stream.of(selectorDO1.getId(), selectorDO.getId()).collect(Collectors.toSet());
+        List<SelectorDO> selectorList = selectorMapper.selectByIdSet(idSet);
+        assertNotNull(selectorList);
+        assertThat(selectorList, hasItems(selectorDO1, selectorDO));
+
     }
 
     @Test

@@ -19,26 +19,26 @@ package org.apache.shenyu.plugin.request.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static junit.framework.Assert.assertNull;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * request plugin handler test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RequestPluginHandlerTest {
 
     private RequestPluginHandler requestPluginHandler;
 
     private RuleData ruleData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.requestPluginHandler = new RequestPluginHandler();
         this.ruleData = new RuleData();

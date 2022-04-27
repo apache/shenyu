@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.plugin.ratelimiter.handler;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
@@ -31,10 +28,13 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * The type reactive script executor.
@@ -47,9 +47,10 @@ public class ShenyuReactiveScriptExecutor<K> extends DefaultReactiveScriptExecut
         super(connectionFactory, serializationContext);
     }
 
+    @NonNull
     @Override
-    public <T> Flux<T> execute(final RedisScript<T> script, final List<K> keys, final List<?> args,
-                               final RedisElementWriter<?> argsWriter, final RedisElementReader<T> resultReader) {
+    public <T> Flux<T> execute(@NonNull final RedisScript<T> script, @NonNull final List<K> keys, @NonNull final List<?> args,
+                               @NonNull final RedisElementWriter<?> argsWriter, @NonNull final RedisElementReader<T> resultReader) {
         Assert.notNull(script, "RedisScript must not be null!");
         Assert.notNull(argsWriter, "Argument Writer must not be null!");
         Assert.notNull(resultReader, "Result Reader must not be null!");

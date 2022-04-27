@@ -18,28 +18,21 @@
 package org.apache.shenyu.common.utils;
 
 import org.hamcrest.collection.IsMapContaining;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ErrorCollector;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.allOf;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test cases for HttpParamConverter.
  */
 public final class HttpParamConverterTest {
-
-    @Rule
-    public ErrorCollector collector = new ErrorCollector();
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testOfString() {
@@ -49,7 +42,7 @@ public final class HttpParamConverterTest {
     @Test
     public void testInitQueryParams() {
         Map<String, String> params = HttpParamConverter.initQueryParams("a=1&b=2&c=&d");
-        collector.checkThat(params,
+        assertThat(params,
                 allOf(IsMapContaining.hasEntry("a", "1"),
                         IsMapContaining.hasEntry("b", "2"),
                         IsMapContaining.hasEntry("c", ""),
@@ -63,10 +56,7 @@ public final class HttpParamConverterTest {
     public void testDecodeQueryParam() {
         assertEquals("a=1&b=2", HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2"));
 
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Incomplete trailing escape (%) pattern");
-        assertEquals("a=1&b=2", HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2%%"));
-
+        assertThrows(IllegalArgumentException.class, () -> HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2%%"));
     }
 
     @Test

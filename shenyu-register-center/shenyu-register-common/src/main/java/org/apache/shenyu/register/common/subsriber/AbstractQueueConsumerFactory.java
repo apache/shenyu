@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.common.subsriber;
 
 import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -25,13 +26,12 @@ import java.util.Set;
 /**
  * The type Abstract queue consumer factory.
  */
-@SuppressWarnings("all")
-public abstract class AbstractQueueConsumerFactory implements QueueConsumerFactory {
+public abstract class AbstractQueueConsumerFactory<T extends DataTypeParent> implements QueueConsumerFactory<T> {
     
     /**
      * The Subscribers.
      */
-    private Set<ExecutorSubscriber> subscribers = new HashSet<>();
+    private final Set<ExecutorSubscriber<T>> subscribers = new HashSet<>();
     
     /**
      * Add subscribers abstract queue consumer factory.
@@ -39,7 +39,7 @@ public abstract class AbstractQueueConsumerFactory implements QueueConsumerFacto
      * @param subscriber the subscriber
      * @return the abstract queue consumer factory
      */
-    public AbstractQueueConsumerFactory addSubscribers(final ExecutorSubscriber subscriber) {
+    public AbstractQueueConsumerFactory<T> addSubscribers(final ExecutorSubscriber<T> subscriber) {
         subscribers.add(subscriber);
         return this;
     }
@@ -49,7 +49,7 @@ public abstract class AbstractQueueConsumerFactory implements QueueConsumerFacto
      *
      * @return the subscribers
      */
-    public Set<ExecutorSubscriber> getSubscribers() {
+    public Set<ExecutorSubscriber<T>> getSubscribers() {
         return subscribers;
     }
 }

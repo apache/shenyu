@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.loadbalancer.entity;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Objects;
 
 /**
@@ -27,7 +29,7 @@ public final class Upstream {
     /**
      * protocol.
      */
-    private String protocol;
+    private final String protocol;
 
     /**
      * url.
@@ -37,7 +39,7 @@ public final class Upstream {
     /**
      * weight.
      */
-    private int weight;
+    private final int weight;
 
     /**
      * false close, true open.
@@ -47,12 +49,12 @@ public final class Upstream {
     /**
      * startup time.
      */
-    private long timestamp;
+    private final long timestamp;
 
     /**
      * warmup.
      */
-    private int warmup;
+    private final int warmup;
 
     /**
      * healthy.
@@ -250,6 +252,19 @@ public final class Upstream {
      */
     public void setVersion(final String version) {
         this.version = version;
+    }
+
+    /**
+     * build request domain.
+     *
+     * @return domain
+     */
+    public String buildDomain() {
+        String protocol = this.getProtocol();
+        if (StringUtils.isBlank(protocol)) {
+            protocol = "http://";
+        }
+        return protocol + this.getUrl().trim();
     }
 
     /**

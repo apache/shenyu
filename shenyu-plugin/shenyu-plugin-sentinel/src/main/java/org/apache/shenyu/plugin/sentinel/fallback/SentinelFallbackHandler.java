@@ -34,17 +34,17 @@ import reactor.core.publisher.Mono;
 public class SentinelFallbackHandler implements FallbackHandler {
 
     @Override
-    public Mono<Void> generateError(final ServerWebExchange exchange, final Throwable throwable) {
+    public Mono<Void> withoutFallback(final ServerWebExchange exchange, final Throwable throwable) {
         Object error;
         if (throwable instanceof DegradeException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
         } else if (throwable instanceof FlowException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-            error = ShenyuResultWrap.error(ShenyuResultEnum.TOO_MANY_REQUESTS.getCode(), ShenyuResultEnum.TOO_MANY_REQUESTS.getMsg(), null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
         } else if (throwable instanceof BlockException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-            error = ShenyuResultWrap.error(ShenyuResultEnum.SENTINEL_BLOCK_ERROR.getCode(), ShenyuResultEnum.SENTINEL_BLOCK_ERROR.getMsg(), null);
+            error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SENTINEL_BLOCK_ERROR);
         } else {
             return Mono.error(throwable);
         }

@@ -50,6 +50,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -57,9 +58,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This is the upstream check service.
@@ -71,9 +74,13 @@ public class UpstreamCheckService {
 
     private static final Map<String, List<CommonUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
+    private static final Set<Integer> PENDING_SYNC = Sets.newConcurrentHashSet();
+
     private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
 
     private static final String REGISTER_TYPE_HTTP = "http";
+
+    private static int zombieRemovalTimes;
 
     private final int zombieCheckTimes;
 
@@ -123,7 +130,8 @@ public class UpstreamCheckService {
         this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
         this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
         this.registerType = shenyuRegisterCenterConfig.getRegisterType();
-        if (Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
+        zombieRemovalTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_REMOVAL_TIMES, Constants.ZOMBIE_REMOVAL_TIMES_VALUE));
+        if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType)) {
             setup();
         }
     }
@@ -144,28 +152,19 @@ public class UpstreamCheckService {
      */
     @PreDestroy
     public void close() {
-        if (Objects.isNull(scheduledFuture)) {
-            return;
+        if (checked) {
+            scheduledFuture.cancel(false);
+            executor.shutdown();
         }
-
-        scheduledFuture.cancel(false);
-        executor.shutdownNow();
-        try {
-            executor.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException ex) {
-            LOG.error("shutdown executor error", ex);
-            Thread.currentThread().interrupt();
-        }
-
     }
 
     /**
      * Remove by key.
      *
-     * @param selectorName the selector name
+     * @param selectorId the selector id
      */
-    public static void removeByKey(final String selectorName) {
-        UPSTREAM_MAP.remove(selectorName);
+    public static void removeByKey(final String selectorId) {
+        UPSTREAM_MAP.remove(selectorId);
     }
 
     /**
@@ -173,14 +172,15 @@ public class UpstreamCheckService {
      *
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream
+     * @return whether this module handles
      */
-    public void submit(final String selectorId, final CommonUpstream commonUpstream) {
-        if (!Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
-            return;
+    public boolean submit(final String selectorId, final CommonUpstream commonUpstream) {
+        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+            return false;
         }
 
-        if (UPSTREAM_MAP.containsKey(selectorId)) {
-            List<CommonUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList());
+        List<CommonUpstream> upstreams = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> new CopyOnWriteArrayList<>());
+        if (commonUpstream.isStatus()) {
             Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
                     && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
             if (!exists.isPresent()) {
@@ -188,9 +188,13 @@ public class UpstreamCheckService {
             } else {
                 LOG.info("upstream host {} is exists.", commonUpstream.getUpstreamHost());
             }
+            PENDING_SYNC.add(commonUpstream.hashCode());
         } else {
-            UPSTREAM_MAP.put(selectorId, Lists.newArrayList(commonUpstream));
+            upstreams.removeIf(item -> item.equals(commonUpstream));
+            PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
         }
+        executor.execute(() -> updateHandler(selectorId, upstreams, upstreams));
+        return true;
     }
 
     /**
@@ -209,7 +213,7 @@ public class UpstreamCheckService {
     private void scheduled() {
         try {
             if (ZOMBIE_SET.size() > 0) {
-                ZOMBIE_SET.forEach(this::checkZombie);
+                ZOMBIE_SET.parallelStream().forEach(this::checkZombie);
             }
             if (UPSTREAM_MAP.size() > 0) {
                 UPSTREAM_MAP.forEach(this::check);
@@ -262,16 +266,22 @@ public class UpstreamCheckService {
 
     private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList, final List<CommonUpstream> successList) {
         //No node changes, including zombie node resurrection and live node death
-        if (successList.size() == upstreamList.size()) {
+        if (successList.size() == upstreamList.size() && PENDING_SYNC.size() == 0) {
             return;
         }
+        removePendingSync(successList);
         if (successList.size() > 0) {
             UPSTREAM_MAP.put(selectorId, successList);
             updateSelectorHandler(selectorId, successList);
         } else {
             UPSTREAM_MAP.remove(selectorId);
-            updateSelectorHandler(selectorId, null);
+            updateSelectorHandler(selectorId, new ArrayList<>());
         }
+    }
+
+    private void removePendingSync(final List<CommonUpstream> successList) {
+        PENDING_SYNC.removeIf(NumberUtils.INTEGER_ZERO::equals);
+        successList.forEach(commonUpstream -> PENDING_SYNC.remove(commonUpstream.hashCode()));
     }
 
     private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {
@@ -303,17 +313,29 @@ public class UpstreamCheckService {
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return;
         }
-        pluginDOList.stream().filter(Objects::nonNull).forEach(pluginDO -> {
-            final List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
-            for (SelectorDO selectorDO : selectorDOList) {
-                if (Objects.isNull(selectorDO) || StringUtils.isBlank(selectorDO.getHandle())) {
-                    continue;
-                }
-                List<CommonUpstream> commonUpstreams = converterFactor.newInstance(pluginDO.getName()).convertUpstream(selectorDO.getHandle());
-                if (CollectionUtils.isNotEmpty(commonUpstreams)) {
-                    UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
-                }
-            }
-        });
+        Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
+        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIds(new ArrayList<>(pluginMap.keySet()));
+        long currentTimeMillis = System.currentTimeMillis();
+        Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream()
+                .filter(selectorDO -> Objects.nonNull(selectorDO) && StringUtils.isNotEmpty(selectorDO.getHandle()))
+                .forEach(selectorDO -> {
+                    String name = pluginMap.get(selectorDO.getPluginId());
+                    List<CommonUpstream> commonUpstreams = converterFactor.newInstance(name).convertUpstream(selectorDO.getHandle())
+                            .stream().filter(upstream -> upstream.isStatus() || upstream.getTimestamp() > currentTimeMillis - TimeUnit.SECONDS.toMillis(zombieRemovalTimes))
+                            .collect(Collectors.toList());
+                    if (CollectionUtils.isNotEmpty(commonUpstreams)) {
+                        UPSTREAM_MAP.put(selectorDO.getId(), commonUpstreams);
+                        PENDING_SYNC.add(NumberUtils.INTEGER_ZERO);
+                    }
+                });
+    }
+
+    /**
+     * get the zombie removal time value.
+     * @return zombie removal time value
+     */
+    public static int getZombieRemovalTimes() {
+        return zombieRemovalTimes;
     }
 }

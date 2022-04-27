@@ -29,7 +29,7 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * The integrated test for combination plugins about request and response.
@@ -73,6 +73,21 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
         assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
         assertThat(actualUser.getUserId(), is(TEST_USER_ID));
+
+        cleanCryptorRequest();
+        cleanCryptorResponse();
+    }
+
+    @Test
+    public void testEncryptRequestAndDecryptResponse() throws Exception {
+        setupCryptorRequest("userName", "encrypt");
+        setupCryptorResponse("userName", "decrypt");
+
+        JsonObject request = new JsonObject();
+        request.addProperty("userId", TEST_USER_ID);
+        request.addProperty("userName", TEST_USER_NAME);
+        String actualUserName = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, String.class);
+        assertThat(actualUserName, is(TEST_USER_NAME));
 
         cleanCryptorRequest();
         cleanCryptorResponse();

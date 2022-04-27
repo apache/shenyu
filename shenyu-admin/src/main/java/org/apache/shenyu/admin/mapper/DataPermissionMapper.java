@@ -29,6 +29,14 @@ import java.util.List;
  */
 @Mapper
 public interface DataPermissionMapper {
+    
+    /**
+     * user has permission.
+     *
+     * @param userId userId
+     * @return has permission,if not has permission the return null.
+     */
+    Boolean existed(String userId);
 
     /**
      * get list of {@link DataPermissionDO} by user id and data type.
@@ -57,11 +65,25 @@ public interface DataPermissionMapper {
     int deleteByUserId(String userId);
 
     /**
+     * delete permission data by ids of users.
+     * @param userIdList ids of users
+     * @return the count of deleted
+     */
+    int deleteByUserIdList(@Param("userIdList") List<String> userIdList);
+
+    /**
      * deleteSelector data permission by data id.
      * @param dataId data id
      * @return int
      */
     int deleteByDataId(String dataId);
+
+    /**
+     * deleteSelector data permission by data ids.
+     * @param dataIdList data ids
+     * @return int
+     */
+    int deleteByDataIdList(@Param("dataIdList") List<String> dataIdList);
 
     /**
      * deleteSelector by list of data ids and user id.
@@ -80,6 +102,13 @@ public interface DataPermissionMapper {
      * @return int
      */
     int insertSelective(DataPermissionDO dataPermissionDO);
+
+    /**
+     * batch insert data permission.
+     * @param dataPermissionList list of data permission
+     * @return the count of inserted
+     */
+    int insertBatch(@Param("dataPermissionList") List<DataPermissionDO> dataPermissionList);
 
     /**
      * select data ids via list of data id and user id.

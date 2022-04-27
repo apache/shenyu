@@ -24,13 +24,13 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
@@ -57,7 +57,7 @@ public final class AbstractShenyuPluginTest {
 
     private ShenyuPluginChain shenyuPluginChain;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.ruleData = RuleData.builder().id("1")
                 .selectorId("1").enabled(true)

@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.common.dto.RuleData;
 
@@ -29,16 +30,16 @@ import java.util.List;
 /**
  * this is rule service.
  */
-public interface RuleService {
-
+public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
+    
     /**
      * Register string.
      *
-     * @param ruleDTO        the rule dto
+     * @param ruleDTO the rule dto
      * @return the string
      */
     String registerDefault(RuleDTO ruleDTO);
-
+    
     /**
      * create or update rule.
      *
@@ -46,7 +47,7 @@ public interface RuleService {
      * @return rows int
      */
     int createOrUpdate(RuleDTO ruleDTO);
-
+    
     /**
      * delete rules.
      *
@@ -54,7 +55,7 @@ public interface RuleService {
      * @return rows int
      */
     int delete(List<String> ids);
-
+    
     /**
      * find rule by id.
      *
@@ -62,7 +63,7 @@ public interface RuleService {
      * @return {@linkplain RuleVO}
      */
     RuleVO findById(String id);
-
+    
     /**
      * find page of rule by query.
      *
@@ -70,14 +71,14 @@ public interface RuleService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<RuleVO> listByPage(RuleQuery ruleQuery);
-
+    
     /**
      * List all list.
      *
      * @return the list
      */
     List<RuleData> listAll();
-
+    
     /**
      * Find by selector id list.
      *
@@ -85,7 +86,15 @@ public interface RuleService {
      * @return the list
      */
     List<RuleData> findBySelectorId(String selectorId);
-
+    
+    /**
+     * Find by a list of selector ids.
+     *
+     * @param selectorIdList a list of selector ids
+     * @return the list of RuleDatas
+     */
+    List<RuleData> findBySelectorIdList(List<String> selectorIdList);
+    
     /**
      * Find rule by name.
      *

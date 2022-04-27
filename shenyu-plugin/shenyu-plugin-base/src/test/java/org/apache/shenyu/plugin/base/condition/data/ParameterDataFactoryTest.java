@@ -23,8 +23,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpCookie;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -35,6 +34,7 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,9 +45,8 @@ public final class ParameterDataFactoryTest {
 
     @Test
     public void testNewInstance() {
-
-        @SuppressWarnings("rawtypes")
-        Map<String, Class> parameterInstance = new HashMap<>();
+        
+        Map<String, Class<?>> parameterInstance = new HashMap<>();
         parameterInstance.put("header", HeaderParameterData.class);
         parameterInstance.put("cookie", CookieParameterData.class);
         parameterInstance.put("ip", IpParameterData.class);
@@ -57,7 +56,7 @@ public final class ParameterDataFactoryTest {
         parameterInstance.put("post", PostParameterData.class);
         parameterInstance.put("req_method", RequestMethodParameterData.class);
 
-        parameterInstance.forEach((key, clazz) -> Assert.assertEquals(ParameterDataFactory.newInstance(key).getClass(), clazz));
+        parameterInstance.forEach((key, clazz) -> assertEquals(ParameterDataFactory.newInstance(key).getClass(), clazz));
     }
 
     @Test
@@ -66,7 +65,7 @@ public final class ParameterDataFactoryTest {
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .header("shenyu", "shenyuHeader")
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("header", "shenyu", exchange), "shenyuHeader");
+        assertEquals("shenyuHeader", ParameterDataFactory.builderData("header", "shenyu", exchange));
     }
 
     @Test
@@ -75,7 +74,7 @@ public final class ParameterDataFactoryTest {
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .cookie(new HttpCookie("cookie-name", "cookie-value"))
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("cookie", "cookie-name", exchange), "cookie-value");
+        assertEquals("cookie-value", ParameterDataFactory.builderData("cookie", "cookie-name", exchange));
     }
 
     @Test
@@ -89,7 +88,7 @@ public final class ParameterDataFactoryTest {
                 .build());
         when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
 
-        Assert.assertEquals(ParameterDataFactory.builderData("host", null, exchange), "localhost");
+        assertEquals("localhost", ParameterDataFactory.builderData("host", null, exchange));
     }
 
     @Test
@@ -103,7 +102,7 @@ public final class ParameterDataFactoryTest {
                 .build());
         when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
 
-        Assert.assertEquals(ParameterDataFactory.builderData("ip", null, exchange), "127.0.0.1");
+        assertEquals("127.0.0.1", ParameterDataFactory.builderData("ip", null, exchange));
     }
 
     @Test
@@ -111,7 +110,7 @@ public final class ParameterDataFactoryTest {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/uri/path")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("uri", null, exchange), "/uri/path");
+        assertEquals("/uri/path", ParameterDataFactory.builderData("uri", null, exchange));
     }
 
     @Test
@@ -120,7 +119,7 @@ public final class ParameterDataFactoryTest {
                 .queryParam("key", "value")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
-        Assert.assertEquals(ParameterDataFactory.builderData("query", "key", exchange), "value");
+        assertEquals("value", ParameterDataFactory.builderData("query", "key", exchange));
     }
 
     @Test
@@ -133,8 +132,8 @@ public final class ParameterDataFactoryTest {
         context.setHttpMethod(HttpMethodEnum.POST.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
 
-        Assert.assertEquals(ParameterDataFactory.builderData("post", "httpMethod", exchange), "post");
-        Assert.assertEquals(ParameterDataFactory.builderData("post", "rpcType", exchange), "http");
+        assertEquals("post", ParameterDataFactory.builderData("post", "httpMethod", exchange));
+        assertEquals("http", ParameterDataFactory.builderData("post", "rpcType", exchange));
     }
 
     @Test
@@ -143,6 +142,6 @@ public final class ParameterDataFactoryTest {
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
 
-        Assert.assertEquals(ParameterDataFactory.builderData("req_method", null, exchange), "GET");
+        assertEquals("GET", ParameterDataFactory.builderData("req_method", null, exchange));
     }
 }

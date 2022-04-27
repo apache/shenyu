@@ -85,7 +85,7 @@ public class OrderController {
         return buildOrder(id, "hello world spring cloud restful inline " + id);
     }
 
-    private OrderDTO buildOrder(String id, String name) {
+    private OrderDTO buildOrder(final String id, final String name) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
         orderDTO.setName(name);

@@ -21,6 +21,8 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.query.PluginQueryCondition;
+import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 
@@ -29,7 +31,7 @@ import java.util.List;
 /**
  * this is plugin service.
  */
-public interface PluginService {
+public interface PluginService extends PageService<PluginQueryCondition, PluginVO> {
     
     /**
      * Create or update string.
@@ -71,9 +73,16 @@ public interface PluginService {
     List<PluginData> listAll();
     
     /**
+     * list all not in resource.
+     *
+     * @return the list
+     */
+    List<PluginData> listAllNotInResource();
+    
+    /**
      * Enabled string.
      *
-     * @param ids the ids
+     * @param ids     the ids
      * @param enabled the enable
      * @return the string
      */
@@ -94,4 +103,11 @@ public interface PluginService {
      * @return the plugin do
      */
     PluginDO findByName(String name);
+    
+    /**
+     * active plugin snapshot.
+     *
+     * @return plugin list
+     */
+    List<PluginSnapshotVO> activePluginSnapshot();
 }

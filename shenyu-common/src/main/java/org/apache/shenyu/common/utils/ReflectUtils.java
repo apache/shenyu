@@ -17,26 +17,33 @@
 
 package org.apache.shenyu.common.utils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Date;
-
 /**
  * The type Reflect utils.
  */
-public class ReflectUtils {
+public final class ReflectUtils {
 
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ReflectUtils.class);
+
+    private ReflectUtils() {
+    }
 
     /**
      * Get field.
@@ -48,14 +55,8 @@ public class ReflectUtils {
      */
     public static Field getField(final Class<?> beanClass, final String name) throws SecurityException {
         final Field[] fields = beanClass.getDeclaredFields();
-        if (fields.length != 0) {
-            for (Field field : fields) {
-                if (name.equals(field.getName())) {
-                    return field;
-                }
-            }
-        }
-        return null;
+        return Arrays.stream(fields).filter(field -> Objects.equals(name, field.getName()))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -66,7 +67,7 @@ public class ReflectUtils {
      * @return the object
      */
     public static Object getFieldValue(final Object obj, final String fieldName) {
-        if (null == obj || StringUtils.isBlank(fieldName)) {
+        if (Objects.isNull(obj) || StringUtils.isBlank(fieldName)) {
             return null;
         }
         return getFieldValue(obj, getField(obj.getClass(), fieldName));
@@ -80,7 +81,7 @@ public class ReflectUtils {
      * @return the field value
      */
     public static Object getFieldValue(final Object obj, final Field field) {
-        if (null == obj || null == field) {
+        if (Objects.isNull(obj) || Objects.isNull(field)) {
             return null;
         }
         field.setAccessible(true);
@@ -94,37 +95,50 @@ public class ReflectUtils {
     }
 
     /**
-     * Invoke method by class.
+     * Invoke static method by class.
      *
      * @param clazz  class type
      * @param method method
      * @return Method object
      */
-    public static Object invokeMethod(final Class<?> clazz, final String method) {
+    public static Object invokeStaticMethod(final Class<?> clazz, final String method) {
         try {
-            Method m = findMethod(clazz, method);
-            assert m != null;
-            return m.invoke(null);
-        } catch (Exception e) {
+            return MethodUtils.invokeStaticMethod(clazz, method);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             LOG.error("", e);
         }
         return null;
     }
 
     /**
-     * Get method by class.
+     * Invoke method by class.
      *
-     * @param clazz  class type
-     * @param method method
+     * @param object        object
+     * @param method        method
+     * @param args          params
+     * @param errorCallBack callback when throw exception
      * @return Method object
      */
-    public static Method findMethod(final Class<?> clazz, final String method) {
+    public static Object invokeMethod(final Object object, final String method,
+        final Consumer<ReflectiveOperationException> errorCallBack, final Object... args) {
         try {
-            return clazz.getMethod(method);
-        } catch (Exception e) {
-            LOG.error("", e);
+            return MethodUtils.invokeMethod(object, method, args);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            errorCallBack.accept(e);
         }
         return null;
+    }
+
+    /**
+     * Invoke method ignore exception.
+     *
+     * @param object object
+     * @param method method
+     * @param args   param
+     * @return Method object
+     */
+    public static Object invokeMethod(final Object object, final String method, final Object... args) {
+        return invokeMethod(object, method, e -> LOG.error("invoke method error"), args);
     }
 
     /**
@@ -137,7 +151,7 @@ public class ReflectUtils {
     public static void setFieldValue(final Object obj, final String fieldName, final Object value) {
         Field field = getAccessibleField(obj, fieldName);
 
-        if (field == null) {
+        if (Objects.isNull(field)) {
             throw new IllegalArgumentException("Could not find field [" + fieldName + "] on target [" + obj + "]");
         }
 
@@ -167,7 +181,6 @@ public class ReflectUtils {
             } catch (NoSuchFieldException e) {
                 // Field is not defined in the current class and continues to transition up
                 // new add
-                LOG.error("field is not defined in the current class and continues to transition up", e);
             }
         }
         return null;
@@ -192,10 +205,7 @@ public class ReflectUtils {
      * @return boolean
      */
     public static boolean isPrimitives(final Class<?> cls) {
-        if (cls.isArray()) {
-            return isPrimitive(cls.getComponentType());
-        }
-        return isPrimitive(cls);
+        return cls.isArray() ? isPrimitive(cls.getComponentType()) : isPrimitive(cls);
     }
 
     /**
@@ -206,6 +216,6 @@ public class ReflectUtils {
      */
     public static boolean isPrimitive(final Class<?> cls) {
         return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
-                || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
+            || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls) || List.class.isAssignableFrom(cls);
     }
 }

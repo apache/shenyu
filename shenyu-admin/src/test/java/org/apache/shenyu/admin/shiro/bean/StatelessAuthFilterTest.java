@@ -18,12 +18,13 @@
 package org.apache.shenyu.admin.shiro.bean;
 
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shiro.subject.Subject;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpMethod;
 
 import javax.servlet.ServletResponse;
@@ -32,9 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,7 +42,8 @@ import static org.mockito.Mockito.when;
 /**
  * Test cases for {@link StatelessAuthFilter}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class StatelessAuthFilterTest {
     
     private static final String HEAD_TOKEN = "X-Access-Token";
@@ -62,24 +63,10 @@ public final class StatelessAuthFilterTest {
         assertEquals(false, statelessAuthFilter.isAccessAllowed(httpServletRequest, httpServletResponse, obj));
     }
     
-    @Test(expected = ShenyuException.class)
-    public void testOnAccessDenied() {
-        StatelessToken token = mock(StatelessToken.class);
-        Subject subject = mock(Subject.class);
-        try {
-            when(httpServletRequest.getMethod()).thenReturn(HttpMethod.OPTIONS.name());
-            assertEquals(true, statelessAuthFilter.onAccessDenied(httpServletRequest, httpServletResponse));
-
-            when(httpServletRequest.getHeader(HEAD_TOKEN)).thenReturn(null);
-            assertEquals(true, statelessAuthFilter.onAccessDenied(httpServletRequest, httpServletResponse));
-
-            doThrow(new Exception()).when(subject).login(token);
-            assertEquals(false, statelessAuthFilter.onAccessDenied(httpServletRequest, httpServletResponse));
-
-            assertEquals(true, statelessAuthFilter.onAccessDenied(httpServletRequest, httpServletResponse));
-        } catch (Exception e) {
-            throw new ShenyuException(e.getCause());
-        }
+    @Test
+    public void testOnAccessDenied() throws Exception {
+        when(httpServletRequest.getMethod()).thenReturn(HttpMethod.OPTIONS.name());
+        assertEquals(true, statelessAuthFilter.onAccessDenied(httpServletRequest, httpServletResponse));
     }
     
     @Test

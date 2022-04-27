@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.divide;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -42,6 +41,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -57,41 +57,48 @@ public class DividePlugin extends AbstractShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        long headerSize = 0;
-        for (List<String> multiHeader : exchange.getRequest().getHeaders().values()) {
-            for (String value : multiHeader) {
-                headerSize += value.getBytes(StandardCharsets.UTF_8).length;
+        if (ruleHandle.getHeaderMaxSize() > 0) {
+            long headerSize = exchange.getRequest().getHeaders().values()
+                    .stream()
+                    .flatMap(Collection::stream)
+                    .mapToLong(header -> header.getBytes(StandardCharsets.UTF_8).length)
+                    .sum();
+            if (headerSize > ruleHandle.getHeaderMaxSize()) {
+                LOG.error("request header is too large");
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_HEADER_TOO_LARGE);
+                return WebFluxResultUtils.result(exchange, error);
             }
         }
-        if (headerSize > ruleHandle.getHeaderMaxSize()) {
-            LOG.error("request header is too large");
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.REQUEST_HEADER_TOO_LARGE.getCode(), ShenyuResultEnum.REQUEST_HEADER_TOO_LARGE.getMsg(), null);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-        if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
-            LOG.error("request entity is too large");
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE.getCode(), ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE.getMsg(), null);
-            return WebFluxResultUtils.result(exchange, error);
+        if (ruleHandle.getRequestMaxSize() > 0) {
+            if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
+                LOG.error("request entity is too large");
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE);
+                return WebFluxResultUtils.result(exchange, error);
+            }
         }
         List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             LOG.error("divide upstream configuration error： {}", rule);
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
-            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
-        String domain = buildDomain(upstream);
+        String domain = upstream.buildDomain();
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
+        // set retry strategy stuff
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, ruleHandle.getRetryStrategy());
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, ruleHandle.getLoadBalance());
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
         return chain.execute(exchange);
     }
 
@@ -118,13 +125,5 @@ public class DividePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
-    }
-
-    private String buildDomain(final Upstream upstream) {
-        String protocol = upstream.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        return protocol + upstream.getUrl().trim();
     }
 }

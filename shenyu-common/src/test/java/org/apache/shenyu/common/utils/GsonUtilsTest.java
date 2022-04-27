@@ -26,19 +26,21 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for GsonUtils.
@@ -64,8 +66,11 @@ public class GsonUtilsTest {
     @Test
     public void testToJson() {
         TestObject testObject = generateTestObject();
+        JsonParser parser = new JsonParser();
+        JsonElement expectedJson = parser.parse(EXPECTED_JSON);
+        JsonElement objectJson = parser.parse(GsonUtils.getInstance().toJson(testObject));
 
-        Assert.assertEquals(EXPECTED_JSON, GsonUtils.getInstance().toJson(testObject));
+        assertEquals(expectedJson, objectJson);
     }
 
     /**
@@ -78,7 +83,7 @@ public class GsonUtilsTest {
         JsonObject jsonObject = new JsonParser().parse(EXPECTED_JSON).getAsJsonObject();
         TestObject parseObject = GsonUtils.getInstance().fromJson(jsonObject, TestObject.class);
 
-        Assert.assertEquals(testObject, parseObject);
+        assertEquals(testObject, parseObject);
     }
 
     /**
@@ -88,7 +93,7 @@ public class GsonUtilsTest {
     public void testFromJsonAboutString() {
         TestObject testObject = generateTestObject();
 
-        Assert.assertEquals(testObject, GsonUtils.getInstance().fromJson(EXPECTED_JSON, TestObject.class));
+        assertEquals(testObject, GsonUtils.getInstance().fromJson(EXPECTED_JSON, TestObject.class));
     }
 
     /**
@@ -100,7 +105,7 @@ public class GsonUtilsTest {
 
         String testJson = "[\"123\",\"test\",\"测试\"]";
 
-        Assert.assertEquals(testList, GsonUtils.getInstance().fromList(testJson, String.class));
+        assertEquals(testList, GsonUtils.getInstance().fromList(testJson, String.class));
     }
 
     /**
@@ -118,11 +123,11 @@ public class GsonUtilsTest {
                 .collect(Collectors.toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
 
         param.forEach((key, value) -> {
-            Assert.assertTrue(resultMap.containsKey(key));
-            Assert.assertEquals(value, resultMap.get(key));
+            assertTrue(resultMap.containsKey(key));
+            assertEquals(value, resultMap.get(key));
         });
 
-        Assert.assertEquals("", GsonUtils.getInstance().toGetParam(""));
+        assertEquals("", GsonUtils.getInstance().toGetParam(""));
     }
 
     /**
@@ -138,7 +143,7 @@ public class GsonUtilsTest {
                 + "{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"},"
                 + "{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"}]";
 
-        Assert.assertEquals(list, GsonUtils.getInstance().toListMap(json));
+        assertEquals(list, GsonUtils.getInstance().toListMap(json));
     }
 
     /**
@@ -153,16 +158,16 @@ public class GsonUtilsTest {
 
         Map<String, Object> parseMap = GsonUtils.getInstance().toObjectMap(json);
         map.forEach((key, value) -> {
-            Assert.assertTrue(parseMap.containsKey(key));
+            assertTrue(parseMap.containsKey(key));
             Object jsonValue = parseMap.get(key);
             if (jsonValue instanceof JsonElement) {
-                Assert.assertEquals(value, GsonUtils.getInstance().fromJson((JsonElement) jsonValue, TestObject.class));
+                assertEquals(value, GsonUtils.getInstance().fromJson((JsonElement) jsonValue, TestObject.class));
             } else {
-                Assert.assertEquals(value, parseMap.get(key));
+                assertEquals(value, parseMap.get(key));
             }
         });
 
-        Assert.assertNull(GsonUtils.getInstance().toObjectMap(null));
+        assertNull(GsonUtils.getInstance().toObjectMap(null));
     }
 
     /**
@@ -176,11 +181,11 @@ public class GsonUtilsTest {
 
         Map<String, TestObject> parseMap = GsonUtils.getInstance().toObjectMap(json, TestObject.class);
         map.forEach((key, value) -> {
-            Assert.assertTrue(parseMap.containsKey(key));
-            Assert.assertEquals(value, parseMap.get(key));
+            assertTrue(parseMap.containsKey(key));
+            assertEquals(value, parseMap.get(key));
         });
 
-        Assert.assertNull(GsonUtils.getInstance().toObjectMap(null, String.class));
+        assertNull(GsonUtils.getInstance().toObjectMap(null, String.class));
     }
 
     /**
@@ -195,11 +200,11 @@ public class GsonUtilsTest {
         String json = "{\"data1\":[\"111\",\"222\"],\"data2\":[\"333\",\"555\"]}";
         Map<String, List<String>> parseMap = GsonUtils.getInstance().toObjectMapList(json, String.class);
         map.forEach((key, value) -> {
-            Assert.assertTrue(parseMap.containsKey(key));
-            Assert.assertEquals(value, parseMap.get(key));
+            assertTrue(parseMap.containsKey(key));
+            assertEquals(value, parseMap.get(key));
         });
 
-        Assert.assertNull(GsonUtils.getInstance().toObjectMapList(null, String.class));
+        assertNull(GsonUtils.getInstance().toObjectMapList(null, String.class));
     }
 
     /**
@@ -216,16 +221,16 @@ public class GsonUtilsTest {
         Map<String, Object> parseMap = GsonUtils.getInstance().toTreeMap(json);
 
         map.forEach((key, value) -> {
-            Assert.assertTrue(parseMap.containsKey(key));
+            assertTrue(parseMap.containsKey(key));
             Object jsonValue = parseMap.get(key);
             if (jsonValue instanceof JsonElement) {
-                Assert.assertEquals(value, GsonUtils.getInstance().fromJson((JsonElement) jsonValue, TestObject.class));
+                assertEquals(value, GsonUtils.getInstance().fromJson((JsonElement) jsonValue, TestObject.class));
             } else {
-                Assert.assertEquals(value, parseMap.get(key));
+                assertEquals(value, parseMap.get(key));
             }
         });
 
-        Assert.assertNull(GsonUtils.getInstance().toObjectMap(null));
+        assertNull(GsonUtils.getInstance().toObjectMap(null));
     }
 
     /**
@@ -243,25 +248,25 @@ public class GsonUtilsTest {
         Map<String, Object> parseMap = GsonUtils.getInstance().convertToMap(testJson);
 
         map.forEach((key, value) -> {
-            Assert.assertTrue(parseMap.containsKey(key));
+            assertTrue(parseMap.containsKey(key));
             if (value instanceof Map) {
                 Map<?, ?> tempMap = (Map<?, ?>) parseMap.get(key);
                 ((Map<?, ?>) value).forEach((key1, value1) -> {
-                    Assert.assertTrue(tempMap.containsKey(key1));
-                    Assert.assertEquals(value1.toString(), tempMap.get(key1).toString());
+                    assertTrue(tempMap.containsKey(key1));
+                    assertEquals(value1.toString(), tempMap.get(key1).toString());
                 });
             } else if (value instanceof List) {
                 List<?> tempList = (List<?>) parseMap.get(key);
                 List<?> tempValue = (List<?>) value;
                 for (int i = 0; i < tempValue.size(); i++) {
-                    Assert.assertEquals(tempValue.get(i).toString(), tempList.get(i).toString());
+                    assertEquals(tempValue.get(i).toString(), tempList.get(i).toString());
                 }
             } else {
-                Assert.assertEquals(value.toString(), parseMap.get(key).toString());
+                assertEquals(value.toString(), parseMap.get(key).toString());
             }
         });
 
-        Assert.assertNull(GsonUtils.getInstance().convertToMap(null));
+        assertNull(GsonUtils.getInstance().convertToMap(null));
     }
 
     @Test

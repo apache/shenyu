@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -25,31 +26,37 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test cases for ShenyuDictController.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ShenyuDictControllerTest {
 
     private MockMvc mockMvc;
@@ -59,11 +66,14 @@ public final class ShenyuDictControllerTest {
 
     @Mock
     private ShenyuDictService shenyuDictService;
+    
+    @Mock
+    private ShenyuDictMapper shenyuDictMapper;
 
     private final ShenyuDictVO shenyuDictVO = new ShenyuDictVO("123", "1", "t", "t_n", "1", "desc", 2, true,
             DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuDictController)
                 .setControllerAdvice(new ExceptionHandlers())
@@ -110,12 +120,12 @@ public final class ShenyuDictControllerTest {
 
     @Test
     public void testCreateShenyuDict() throws Exception {
-        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
-        shenyuDictDTO.setId("123");
-        shenyuDictDTO.setType("mode");
-        shenyuDictDTO.setDictName("test");
-        shenyuDictDTO.setDictValue("v");
-        shenyuDictDTO.setSort(1);
+        ShenyuDictDTO shenyuDictDTO = buildTestDict();
+        
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(ShenyuDictMapper.class)).thenReturn(shenyuDictMapper);
+        when(shenyuDictMapper.existed(shenyuDictDTO.getId())).thenReturn(true);
+        
         given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -127,12 +137,12 @@ public final class ShenyuDictControllerTest {
 
     @Test
     public void testUpdateShenyuDict() throws Exception {
-        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
-        shenyuDictDTO.setId("123");
-        shenyuDictDTO.setType("mode");
-        shenyuDictDTO.setDictName("test");
-        shenyuDictDTO.setDictValue("v");
-        shenyuDictDTO.setSort(1);
+        ShenyuDictDTO shenyuDictDTO = buildTestDict();
+        
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(ShenyuDictMapper.class)).thenReturn(shenyuDictMapper);
+        when(shenyuDictMapper.existed(shenyuDictDTO.getId())).thenReturn(true);
+        
         given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/shenyu-dict/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -141,18 +151,25 @@ public final class ShenyuDictControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
     }
-
+    
     @Test
     public void testDeleteShenyuDicts() throws Exception {
-        given(this.shenyuDictService.deleteShenyuDicts(Collections.singletonList("123"))).willReturn(1);
+
+        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
+        shenyuDictDTO.setId(UUID.randomUUID().toString());
+        shenyuDictDTO.setType("mode");
+        shenyuDictDTO.setDictName("test");
+        shenyuDictDTO.setDictValue("v");
+        shenyuDictDTO.setSort(1);
+        given(this.shenyuDictService.deleteShenyuDicts(Collections.singletonList(shenyuDictDTO.getId()))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/shenyu-dict/batch")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("[\"123\"]"))
+                .content("[\"" + shenyuDictDTO.getId() + "\"]"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
     }
-
+    
     @Test
     public void testBatchEnabled() throws Exception {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
@@ -165,5 +182,16 @@ public final class ShenyuDictControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("batch enable success")))
                 .andReturn();
+    }
+    
+    private ShenyuDictDTO buildTestDict() {
+        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
+        shenyuDictDTO.setId("123");
+        shenyuDictDTO.setType("mode");
+        shenyuDictDTO.setDictName("test");
+        shenyuDictDTO.setDictValue("v");
+        shenyuDictDTO.setDictCode("code");
+        shenyuDictDTO.setSort(1);
+        return shenyuDictDTO;
     }
 }

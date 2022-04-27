@@ -17,45 +17,50 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.ShaUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * The type Local dispatcher filter.
  */
-public class LocalDispatcherFilter implements WebFilter {
+public class LocalDispatcherFilter extends AbstractWebFilter {
     
-    private static final String DISPATCHER_PATH = "/shenyu/**";
+    private static final String DISPATCHER_PATH = "/shenyu/";
 
     private final DispatcherHandler dispatcherHandler;
+    
+    private final String sha512Key;
     
     /**
      * Instantiates a new Local dispatcher filter.
      *
      * @param dispatcherHandler the dispatcher handler
+     * @param sha512Key the sha512 key
      */
-    public LocalDispatcherFilter(final DispatcherHandler dispatcherHandler) {
+    public LocalDispatcherFilter(final DispatcherHandler dispatcherHandler, final String sha512Key) {
         this.dispatcherHandler = dispatcherHandler;
+        this.sha512Key = sha512Key;
     }
     
-    /**
-     * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link WebFilterChain}.
-     *
-     * @param exchange the current server exchange
-     * @param chain provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
-     */
     @Override
-    public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
-        if (PathMatchUtils.match(DISPATCHER_PATH, path)) {
-            return dispatcherHandler.handle(exchange);
+    protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
+        return Mono.just(exchange.getRequest().getURI().getPath().startsWith(DISPATCHER_PATH));
+    }
+    
+    @Override
+    protected Mono<Void> doFilter(final ServerWebExchange exchange) {
+        String localKey = exchange.getRequest().getHeaders().getFirst(Constants.LOCAL_KEY);
+        if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey)) || Objects.isNull(localKey)) {
+            return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));
         }
-        return chain.filter(exchange);
+        return dispatcherHandler.handle(exchange);
     }
 }

@@ -23,11 +23,10 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -36,6 +35,8 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -44,7 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * The Test Case For ModifyResponse.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ModifyResponsePluginTest {
 
     private ModifyResponsePlugin modifyResponsePlugin;
@@ -57,9 +58,7 @@ public final class ModifyResponsePluginTest {
 
     private SelectorData selectorData;
 
-    private ShenyuContext shenyuContext;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         this.modifyResponsePlugin = new ModifyResponsePlugin();
         this.ruleData = mock(RuleData.class);
@@ -72,7 +71,7 @@ public final class ModifyResponsePluginTest {
                 .queryParam("queryParam", "Hello,World")
                 .build();
         this.exchange = spy(MockServerWebExchange.from(request));
-        shenyuContext = mock(ShenyuContext.class);
+        ShenyuContext shenyuContext = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
     }
 
@@ -85,16 +84,16 @@ public final class ModifyResponsePluginTest {
 
     @Test
     public void testGetOrder() {
-        Assert.assertEquals(modifyResponsePlugin.getOrder(), PluginEnum.MODIFY_RESPONSE.getCode());
+        assertEquals(modifyResponsePlugin.getOrder(), PluginEnum.MODIFY_RESPONSE.getCode());
     }
 
     @Test
     public void testNamed() {
-        Assert.assertEquals(modifyResponsePlugin.named(), PluginEnum.MODIFY_RESPONSE.getName());
+        assertEquals(modifyResponsePlugin.named(), PluginEnum.MODIFY_RESPONSE.getName());
     }
 
     @Test
     public void testSkip() {
-        Assert.assertFalse(modifyResponsePlugin.skip(exchange));
+        assertFalse(modifyResponsePlugin.skip(exchange));
     }
 }

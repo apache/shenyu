@@ -21,11 +21,11 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.junit.Test;
 
 import java.sql.Timestamp;
 
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test case for SelectorConditionVO.

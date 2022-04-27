@@ -17,22 +17,22 @@
 
 package org.apache.shenyu.sync.data.http;
 
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -40,22 +40,23 @@ import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class HttpSyncDataServiceTest {
 
     /**
@@ -63,8 +64,7 @@ public final class HttpSyncDataServiceTest {
      */
     private static final Logger LOG = LoggerFactory.getLogger(HttpSyncDataServiceTest.class);
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
+    private WireMockServer wireMockServer;
 
     private PluginDataSubscriber pluginDataSubscriber;
 
@@ -74,15 +74,26 @@ public final class HttpSyncDataServiceTest {
 
     private HttpSyncDataService httpSyncDataService;
 
-    @Before
+    @BeforeEach
     public void before() {
-        wireMockRule.stubFor(get(urlPathEqualTo("/configs/fetch"))
+        this.wireMockServer = new WireMockServer(
+                options()
+                        .extensions(new ResponseTemplateTransformer(false))
+                        .dynamicPort());
+        this.wireMockServer.start();
+        wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(this.mockLoginResponseJson())
+                        .withStatus(200))
+        );
+        wireMockServer.stubFor(get(urlPathEqualTo("/configs/fetch"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(this.mockConfigsFetchResponseJson())
                         .withStatus(200))
         );
-        wireMockRule.stubFor(post(urlPathEqualTo("/configs/listener"))
+        wireMockServer.stubFor(post(urlPathEqualTo("/configs/listener"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(this.mockConfigsListenResponseJson())
@@ -95,6 +106,8 @@ public final class HttpSyncDataServiceTest {
         httpConfig.setConnectionTimeout(3000);
         // set delay time
         httpConfig.setDelayTime(3);
+        httpConfig.setPassword("123456");
+        httpConfig.setUsername("admin");
         this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
         this.metaDataSubscriber = mock(MetaDataSubscriber.class);
         this.authDataSubscriber = mock(AuthDataSubscriber.class);
@@ -102,7 +115,7 @@ public final class HttpSyncDataServiceTest {
                 Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber));
     }
 
-    @After
+    @AfterEach
     public void after() {
         try {
             httpSyncDataService.close();
@@ -124,7 +137,7 @@ public final class HttpSyncDataServiceTest {
     }
 
     private String getMockServerUrl() {
-        return "http://127.0.0.1:" + wireMockRule.port();
+        return "http://127.0.0.1:" + wireMockServer.port();
     }
 
     // mock configs listen api response
@@ -156,5 +169,15 @@ public final class HttpSyncDataServiceTest {
         response.put("data", data);
         response.put("code", 200);
         return GsonUtils.getInstance().toJson(response);
+    }
+
+    // mock configs fetch api response
+    private String mockLoginResponseJson() {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", "token");
+        result.put("data", data);
+        result.put("code", CommonErrorCode.SUCCESSFUL);
+        return GsonUtils.getInstance().toJson(result);
     }
 }

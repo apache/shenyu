@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -32,7 +32,7 @@ public final class SlidingWindowRateLimiterAlgorithmTest {
 
     private SlidingWindowRateLimiterAlgorithm slidingWindowRateLimiterAlgorithm;
 
-    @Before
+    @BeforeEach
     public void startup() {
         slidingWindowRateLimiterAlgorithm = new SlidingWindowRateLimiterAlgorithm();
     }

@@ -17,16 +17,18 @@
 
 package org.apache.shenyu.common.enums;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.junit.Test;
 
-/** Test Cases for ParamTypeEnum. */
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * Test Cases for ParamTypeEnum.
+ */
 public final class ParamTypeEnumTest {
 
     @Test
@@ -69,14 +71,7 @@ public final class ParamTypeEnumTest {
     public void testGetParamTypeEnumByNameValid() {
         Arrays.stream(ParamTypeEnum.values())
                 .filter(ParamTypeEnum::getSupport)
-                .forEach(
-                    paramTypeEnum ->
-                            assertEquals(
-                                    paramTypeEnum, ParamTypeEnum.getParamTypeEnumByName(paramTypeEnum.getName())));
-    }
-
-    @Test(expected = ShenyuException.class)
-    public void testGetParamTypeEnumByNameInvalid() {
-        ParamTypeEnum.getParamTypeEnumByName("InvalidName");
+                .forEach(paramTypeEnum -> assertEquals(
+                        paramTypeEnum, ParamTypeEnum.getParamTypeEnumByName(paramTypeEnum.getName())));
     }
 }

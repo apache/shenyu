@@ -17,26 +17,27 @@
 
 package org.apache.shenyu.web.loader;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test for  ShenyuPluginPathBuilder.
  */
 public final class ShenyuPluginPathBuilderTest {
-
-
+    
+    
     /**
      * test for  Custom path.
      */
     @Test
     public void testGetPluginPathByCustomPath() {
-        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("/testpath");
-        Assert.assertNotNull(pluginPath);
+        File jarFile = ShenyuPluginPathBuilder.getPluginFile("/testpath");
+        assertNotNull(jarFile);
     }
-
+    
     /**
      * test  for plugin-ext.
      * -Dplugin-ext=D:\testUrl
@@ -44,16 +45,16 @@ public final class ShenyuPluginPathBuilderTest {
     @Test
     public void testGetPluginPathByPluginExt() {
         System.setProperty("plugin-ext", "/testUrl");
-        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("");
-        Assert.assertNotNull(pluginPath);
+        File jarFile = ShenyuPluginPathBuilder.getPluginFile("");
+        assertNotNull(jarFile);
     }
-
+    
     /**
      * test for default path.
      */
     @Test
     public void testGetPluginPathByExtLib() {
-        File pluginPath = ShenyuPluginPathBuilder.getPluginPath("");
-        Assert.assertNotNull(pluginPath);
+        File jarFile = ShenyuPluginPathBuilder.getPluginFile("");
+        assertNotNull(jarFile);
     }
 }

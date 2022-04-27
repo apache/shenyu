@@ -20,33 +20,39 @@ package org.apache.shenyu.plugin.sentinel.fallback;
 import com.alibaba.csp.sentinel.slots.block.authority.AuthorityException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class SentinelFallbackHandlerTest {
 
     private SentinelFallbackHandler fallbackHandler;
 
     private ServerWebExchange exchange;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         fallbackHandler = new SentinelFallbackHandler();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/Sentinel/Sentinel")
@@ -63,7 +69,7 @@ public final class SentinelFallbackHandlerTest {
      */
     @Test
     public void testDegradeException() {
-        StepVerifier.create(fallbackHandler.generateError(exchange, new DegradeException("Sentinel"))).expectSubscription().verifyComplete();
+        StepVerifier.create(fallbackHandler.withoutFallback(exchange, new DegradeException("Sentinel"))).expectSubscription().verifyComplete();
     }
 
     /**
@@ -71,7 +77,7 @@ public final class SentinelFallbackHandlerTest {
      */
     @Test
     public void testFlowException() {
-        StepVerifier.create(fallbackHandler.generateError(exchange, new FlowException(""))).expectSubscription().verifyComplete();
+        StepVerifier.create(fallbackHandler.withoutFallback(exchange, new FlowException(""))).expectSubscription().verifyComplete();
     }
 
     /**
@@ -79,7 +85,7 @@ public final class SentinelFallbackHandlerTest {
      */
     @Test
     public void testBlockException() {
-        StepVerifier.create(fallbackHandler.generateError(exchange, new AuthorityException("Sentinel"))).expectSubscription().verifyComplete();
+        StepVerifier.create(fallbackHandler.withoutFallback(exchange, new AuthorityException("Sentinel"))).expectSubscription().verifyComplete();
     }
 
     /**
@@ -87,6 +93,13 @@ public final class SentinelFallbackHandlerTest {
      */
     @Test
     public void testRuntimeException() {
-        StepVerifier.create(fallbackHandler.generateError(exchange, new RuntimeException())).expectSubscription().verifyError();
+        StepVerifier.create(fallbackHandler.withoutFallback(exchange, new RuntimeException())).expectSubscription().verifyError();
+    }
+
+    @Test
+    public void testFallbackUri() {
+        StepVerifier.create(fallbackHandler.fallback(exchange, UriUtils.createUri("https://example.com"), new RuntimeException())).expectSubscription().verifyComplete();
+        assertEquals(HttpStatus.FOUND, exchange.getResponse().getStatusCode());
+        assertEquals("https://example.com", Objects.requireNonNull(exchange.getResponse().getHeaders().getLocation()).toString());
     }
 }

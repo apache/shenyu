@@ -18,8 +18,7 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -28,6 +27,9 @@ import java.lang.reflect.Method;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test cases for UUIDUtils.
@@ -37,14 +39,14 @@ public final class UUIDUtilsTest {
     @Test
     public void testGetInstance() {
         UUIDUtils uuidUtils = UUIDUtils.getInstance();
-        Assert.assertNotNull(uuidUtils);
+        assertNotNull(uuidUtils);
     }
 
     @Test
     public void testGenerateShortUuid() {
         String shortUuid = UUIDUtils.getInstance().generateShortUuid();
-        Assert.assertTrue(StringUtils.isNotEmpty(shortUuid));
-        Assert.assertEquals(19, shortUuid.length());
+        assertTrue(StringUtils.isNotEmpty(shortUuid));
+        assertEquals(19, shortUuid.length());
     }
 
     @Test
@@ -56,13 +58,13 @@ public final class UUIDUtilsTest {
         try {
             constructor.newInstance(-1L, 10L, 10L);
         } catch (InvocationTargetException ex) {
-            Assert.assertTrue(ex.getCause().getMessage().startsWith("worker Id can't be greater than"));
+            assertTrue(ex.getCause().getMessage().startsWith("worker Id can't be greater than"));
         }
 
         try {
             constructor.newInstance(10L, -1L, 10L);
         } catch (InvocationTargetException ex) {
-            Assert.assertTrue(ex.getCause().getMessage().startsWith("datacenter Id can't be greater than"));
+            assertTrue(ex.getCause().getMessage().startsWith("datacenter Id can't be greater than"));
         }
     }
 
@@ -90,7 +92,7 @@ public final class UUIDUtilsTest {
         try {
             method.invoke(UUIDUtils.getInstance());
         } catch (InvocationTargetException ex) {
-            Assert.assertTrue(ex.getCause().getMessage().startsWith("Clock moved backwards."));
+            assertTrue(ex.getCause().getMessage().startsWith("Clock moved backwards."));
         }
     }
 

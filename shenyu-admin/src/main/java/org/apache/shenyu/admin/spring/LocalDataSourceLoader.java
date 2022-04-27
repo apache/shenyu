@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.shenyu.admin.config.properties.DataBaseProperties;
+import org.apache.shenyu.admin.utils.SQLInitUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,14 +35,18 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * for execute schema sql file.
@@ -53,11 +59,13 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     private static final String PRE_FIX = "file:";
 
-    private static final String DELIMITER = ";;";
+    private static final String SQL_COMMAND = "INSERT IGNORE INTO";
+
+    private static final String DELIMITER = ";";
 
     @Resource
     private DataBaseProperties dataBaseProperties;
-    
+
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
         if ((bean instanceof DataSourceProperties) && dataBaseProperties.getInitEnable()) {
@@ -93,17 +101,11 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
             Resources.setCharset(StandardCharsets.UTF_8);
             List<String> initScripts = Splitter.on(";").splitToList(script);
             for (String sqlScript : initScripts) {
-                if (sqlScript.startsWith(PRE_FIX)) {
-                    String sqlFile = sqlScript.substring(PRE_FIX.length());
-                    try (Reader fileReader = getResourceAsReader(sqlFile)) {
-                        LOG.info("execute shenyu schema sql: {}", sqlFile);
-                        runner.runScript(fileReader);
-                    }
-                } else {
-                    try (Reader fileReader = Resources.getResourceAsReader(sqlScript)) {
-                        LOG.info("execute shenyu schema sql: {}", sqlScript);
-                        runner.runScript(fileReader);
-                    }
+                try (Reader fileReader = this.fillIdInfoToSqlFile(sqlScript,
+                        Stream.of(AdminConstants.REGX_SHENYU_DICT,
+                                AdminConstants.REGX_PLUGIN_HANDLE).toArray(String[]::new), "id")) {
+                    LOG.info("execute shenyu schema sql: {}", sqlScript);
+                    runner.runScript(fileReader);
                 }
             }
         } finally {
@@ -111,7 +113,44 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         }
     }
 
-    private static Reader getResourceAsReader(final String resource) throws IOException {
+    /**
+     * check sql data.
+     * @param sqlScript sql file path
+     * @param regxNames table name
+     * @param regxValue value
+     * @return {@linkplain Reader}
+     * @throws IOException read file exception
+     */
+    private Reader fillIdInfoToSqlFile(final String sqlScript, final String[] regxNames, final String regxValue) throws IOException {
+        String sqlFile;
+        final BufferedReader reader;
+        final StringBuilder builder = new StringBuilder();
+        if (sqlScript.startsWith(PRE_FIX)) {
+            sqlFile = sqlScript.substring(PRE_FIX.length());
+            reader = new BufferedReader(this.getResourceAsReader(sqlFile));
+        } else {
+            reader = new BufferedReader(Resources.getResourceAsReader(sqlScript));
+        }
+        String str;
+        while (Objects.nonNull(str = reader.readLine())) {
+            str = str.trim().replaceAll(AdminConstants.SQL_INSERT_REGEX, " ");
+            if (!str.toUpperCase().contains(SQL_COMMAND)) {
+                builder.append(str).append(System.lineSeparator());
+                continue;
+            }
+            for (String regxName : regxNames) {
+                if (str.contains(regxName)) {
+                    str = SQLInitUtils.concatCharacter(str, regxValue, AdminConstants.SQL_TYPE_MYSQL);
+                    break;
+                }
+            }
+            builder.append(str).append(System.lineSeparator());
+        }
+        reader.close();
+        return new StringReader(builder.toString());
+    }
+
+    private Reader getResourceAsReader(final String resource) throws IOException {
         return new InputStreamReader(new FileInputStream(resource), StandardCharsets.UTF_8);
     }
 }

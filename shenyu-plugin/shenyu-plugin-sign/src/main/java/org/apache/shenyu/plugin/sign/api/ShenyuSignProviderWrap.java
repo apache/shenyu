@@ -25,7 +25,10 @@ import java.util.Map;
  * The shenyu sign plugin sign provider warp.
  */
 public final class ShenyuSignProviderWrap {
-
+    
+    private ShenyuSignProviderWrap() {
+    }
+    
     /**
      * find the sign provider object.
      *
@@ -34,7 +37,7 @@ public final class ShenyuSignProviderWrap {
     public static SignProvider signProvider() {
         return SpringBeanUtils.getInstance().getBean(SignProvider.class);
     }
-
+    
     /**
      * acquired sign.
      *

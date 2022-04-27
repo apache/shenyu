@@ -20,6 +20,7 @@ package org.apache.shenyu.common.utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
+import java.util.Objects;
 
 /**
  * uri util.
@@ -59,5 +60,19 @@ public class UriUtils {
      */
     public static String removePrefix(final String name) {
         return name.startsWith(PRE_FIX) ? name.substring(1) : name;
+    }
+
+    /**
+     * Get the path of uri with parameters.
+     *
+     * @param uri the uri.
+     * @return absolute uri string with parameters.
+     */
+    public static String getPathWithParams(final URI uri) {
+        if (Objects.isNull(uri)) {
+            return StringUtils.EMPTY;
+        }
+        String params = StringUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery();
+        return uri.getPath() + params;
     }
 }

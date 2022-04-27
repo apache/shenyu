@@ -25,7 +25,15 @@ public class UserDTO {
     private String userId;
 
     private String userName;
-
+    
+    public UserDTO() {
+    }
+    
+    public UserDTO(final String userId, final String userName) {
+        this.userId = userId;
+        this.userName = userName;
+    }
+    
     /**
      * Get the userId.
      *

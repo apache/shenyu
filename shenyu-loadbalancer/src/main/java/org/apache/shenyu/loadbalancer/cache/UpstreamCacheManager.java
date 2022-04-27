@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * this is upstream .
@@ -96,7 +97,7 @@ public final class UpstreamCacheManager {
             if (printEnable) {
                 ThreadFactory printFactory = ShenyuThreadFactory.create("upstream-health-print", true);
                 new ScheduledThreadPoolExecutor(1, printFactory)
-                        .scheduleWithFixedDelay(task::printHealthyUpstream, printInterval, printInterval, TimeUnit.MILLISECONDS);
+                        .scheduleWithFixedDelay(task::print, printInterval, printInterval, TimeUnit.MILLISECONDS);
             }
         }
     }
@@ -137,22 +138,14 @@ public final class UpstreamCacheManager {
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
-        if (CollectionUtils.isNotEmpty(upstreamList)) {
+        List<Upstream> validUpstreamList = upstreamList.stream().filter(upstream -> upstream.isStatus()).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(validUpstreamList)) {
             List<Upstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> Lists.newArrayList());
-            /**
-             * check upstream delete.
-             */
-            existUpstream.stream().filter(upstream -> !upstreamList.contains(upstream))
+            existUpstream.stream().filter(upstream -> !validUpstreamList.contains(upstream))
                     .forEach(upstream -> task.triggerRemoveOne(selectorId, upstream));
-            /**
-             * check upstream add.
-             */
-            upstreamList.stream().filter(upstream -> !existUpstream.contains(upstream))
+            validUpstreamList.stream().filter(upstream -> !existUpstream.contains(upstream))
                     .forEach(upstream -> task.triggerAddOne(selectorId, upstream));
-            /**
-             * replace upstream
-             */
-            UPSTREAM_MAP.put(selectorId, upstreamList);
+            UPSTREAM_MAP.put(selectorId, validUpstreamList);
         } else {
             UPSTREAM_MAP.remove(selectorId);
             task.triggerRemoveAll(selectorId);

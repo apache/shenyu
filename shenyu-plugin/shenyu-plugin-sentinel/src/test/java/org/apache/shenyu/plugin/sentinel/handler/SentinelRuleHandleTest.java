@@ -25,22 +25,22 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class SentinelRuleHandleTest {
 
     private SentinelRuleHandle sentinelRuleHandle;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         sentinelRuleHandle = new SentinelRuleHandle();
     }
@@ -59,7 +59,7 @@ public final class SentinelRuleHandleTest {
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);
         sentinelHandle.setFlowRuleControlBehavior(0);
-        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleCount(1d);
         sentinelHandle.setDegradeRuleGrade(0);
         sentinelHandle.setDegradeRuleTimeWindow(5);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);

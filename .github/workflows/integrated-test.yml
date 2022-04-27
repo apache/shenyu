@@ -26,10 +26,11 @@ jobs:
     strategy:
       matrix:
         case:
-          - shenyu-integration-test-alibaba-dubbo
-          - shenyu-integration-test-apache-dubbo
+          - shenyu-integrated-test-alibaba-dubbo
+          - shenyu-integrated-test-apache-dubbo
           - shenyu-integrated-test-grpc
           - shenyu-integrated-test-http
+          - shenyu-integrated-test-https
           - shenyu-integrated-test-motan
           - shenyu-integrated-test-spring-cloud
           - shenyu-integrated-test-sofa
@@ -59,7 +60,7 @@ jobs:
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean install -DskipTests -f ./shenyu-examples/pom.xml -Pdocker
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
       - name: Build integrated tests
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml

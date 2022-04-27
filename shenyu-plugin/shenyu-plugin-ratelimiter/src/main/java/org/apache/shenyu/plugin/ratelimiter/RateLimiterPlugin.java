@@ -73,7 +73,7 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-                        Object error = ShenyuResultWrap.error(ShenyuResultEnum.TOO_MANY_REQUESTS.getCode(), ShenyuResultEnum.TOO_MANY_REQUESTS.getMsg(), null);
+                        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
                         return WebFluxResultUtils.result(exchange, error);
                     }
                     return chain.execute(exchange);

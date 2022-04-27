@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -36,6 +37,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -45,11 +47,12 @@ import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Abstract strategy.
  */
-public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuClientRegisterService {
+public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
     
     /**
      * The Event publisher.
@@ -100,7 +103,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     /**
      * Build handle string.
      *
-     * @param uriList the uri list
+     * @param uriList    the uri list
      * @param selectorDO the selector do
      * @return the string
      */
@@ -135,29 +138,32 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
      * Register uri string.
      *
      * @param selectorName the selector name
-     * @param uriList the uri list
+     * @param uriList      the uri list
      * @return the string
      */
     @Override
-    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+    public String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
         SelectorDO selectorDO = selectorService.findByNameAndPluginName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
         if (Objects.isNull(selectorDO)) {
-            return "";
+            throw new ShenyuException("doRegister Failed to execute,wait to retry.");
         }
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
-        String handler = buildHandle(uriList, selectorDO);
-        selectorDO.setHandle(handler);
-        SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
-        selectorData.setHandle(handler);
-        // update db
-        selectorService.updateSelective(selectorDO);
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
+        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
+        String handler = buildHandle(validUriList, selectorDO);
+        if (handler != null) {
+            selectorDO.setHandle(handler);
+            SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+            selectorData.setHandle(handler);
+            // update db
+            selectorService.updateSelective(selectorDO);
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
+        }
         return ShenyuResultMessage.SUCCESS;
     }
     
@@ -191,25 +197,27 @@ public abstract class AbstractShenyuClientRegisterServiceImpl implements ShenyuC
     /**
      * Do submit.
      *
-     * @param selectorId the selector id
+     * @param selectorId   the selector id
      * @param upstreamList the upstream list
+     * @return whether this module handles
      */
-    protected void doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
+    protected boolean doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
         List<CommonUpstream> commonUpstreamList = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
-        commonUpstreamList.forEach(upstream -> upstreamCheckService.submit(selectorId, upstream));
+        return commonUpstreamList.stream().map(upstream -> upstreamCheckService.submit(selectorId, upstream))
+                .collect(Collectors.toList()).stream().findAny().orElse(false);
     }
     
     /**
      * Build context path default rule dto rule dto.
      *
-     * @param selectorId the selector id
+     * @param selectorId  the selector id
      * @param metaDataDTO the meta data dto
      * @param ruleHandler the rule handler
      * @return the rule dto
      */
     protected RuleDTO buildContextPathDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
         String contextPath = metaDataDTO.getContextPath();
-        return buildRuleDTO(selectorId, ruleHandler, contextPath, contextPath + "/**");
+        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath));
     }
     
     private RuleDTO buildRpcDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {

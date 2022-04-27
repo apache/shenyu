@@ -32,14 +32,13 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
 import org.apache.shenyu.plugin.resilience4j.handler.Resilience4JHandler;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -47,6 +46,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -54,8 +54,8 @@ import static org.mockito.Mockito.when;
 /**
  * Resilience4J plugin test.
  */
-@RunWith(MockitoJUnitRunner.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@ExtendWith(MockitoExtension.class)
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public final class Resilience4JPluginTest {
 
     private static final String HANDLER = "{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"0\","
@@ -74,7 +74,7 @@ public final class Resilience4JPluginTest {
 
     private CircuitBreaker circuitBreaker;
 
-    @Before
+    @BeforeEach
     public void setup() {
         rateLimiter = mock(RateLimiter.class, RETURNS_DEEP_STUBS);
         circuitBreaker = mock(CircuitBreaker.class, RETURNS_DEEP_STUBS);
@@ -98,6 +98,7 @@ public final class Resilience4JPluginTest {
     }
 
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void rateLimiterTest() {
         RuleData data = mock(RuleData.class);
         data.setSelectorId("SHENYU");
@@ -114,6 +115,7 @@ public final class Resilience4JPluginTest {
     }
 
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void circuitBreakerTest() {
         RuleData data = mock(RuleData.class);
         data.setSelectorId("SHENYU");
@@ -123,7 +125,7 @@ public final class Resilience4JPluginTest {
         CombinedExecutor combinedExecutor = new CombinedExecutor();
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(CallNotPermittedException.createCallNotPermittedException(circuitBreaker)).onErrorResume(throwable -> {
-            if (CallNotPermittedException.class.isInstance(throwable)) {
+            if (throwable instanceof CallNotPermittedException) {
                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             }
             return Mono.error(throwable);
@@ -138,6 +140,6 @@ public final class Resilience4JPluginTest {
                 .expectSubscription()
                 .expectError()
                 .verify();
-        Assert.assertEquals(exchange.getResponse().getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
     }
 }

@@ -25,10 +25,10 @@ import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.fixture.FixtureHttpShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.fixture.FixtureWebSocketShenyuContextDecorator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -37,15 +37,15 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpHeaders.UPGRADE;
 
 /**
  * The Test Case For GlobalPlugin.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class GlobalPluginTest {
 
     private ShenyuPluginChain chain;
@@ -54,7 +54,7 @@ public final class GlobalPluginTest {
 
     private ServerWebExchange exchange;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
                 .remoteAddress(new InetSocketAddress(8091))
@@ -82,7 +82,7 @@ public final class GlobalPluginTest {
 
     @Test
     public void testGetOrder() {
-        assertEquals(globalPlugin.getOrder(), 10);
+        assertEquals(5, globalPlugin.getOrder());
     }
 
     @Test

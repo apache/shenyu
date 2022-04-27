@@ -22,23 +22,23 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * The Shenyu result wrap test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ShenyuResultWrapTest {
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
@@ -51,9 +51,10 @@ public final class ShenyuResultWrapTest {
     @Test
     public void successTest() {
         Integer result = 0;
-        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.success(result, "success", new Object());
-        Assert.assertEquals(shenyuResult.getCode(), result);
-        Assert.assertEquals(shenyuResult.getMessage(), "success");
+        final DefaultShenyuEntity success = new DefaultShenyuEntity(result, "success", null);
+        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.success(null, success);
+        assertEquals(shenyuResult.getCode(), result);
+        assertEquals(shenyuResult.getMessage(), "success");
     }
 
     /**
@@ -62,8 +63,8 @@ public final class ShenyuResultWrapTest {
     @Test
     public void errorTest() {
         Integer result = 1;
-        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.error(result, "error", new Object());
-        Assert.assertEquals(shenyuResult.getCode(), result);
-        Assert.assertEquals(shenyuResult.getMessage(), "error");
+        DefaultShenyuEntity shenyuResult = (DefaultShenyuEntity) ShenyuResultWrap.error(null, result, "error", new Object());
+        assertEquals(result, shenyuResult.getCode());
+        assertEquals("error", shenyuResult.getMessage());
     }
 }

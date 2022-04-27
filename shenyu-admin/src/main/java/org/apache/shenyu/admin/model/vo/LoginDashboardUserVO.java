@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import org.springframework.beans.BeanUtils;
-
-import java.util.Optional;
+import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 
 /**
  * login dashboard return user info's vo.
@@ -63,11 +61,6 @@ public class LoginDashboardUserVO extends DashboardUserVO {
      * @return {@linkplain LoginDashboardUserVO}
      */
     public static LoginDashboardUserVO buildLoginDashboardUserVO(final DashboardUserVO dashboardUserVO) {
-        return Optional.ofNullable(dashboardUserVO)
-                .map(item -> {
-                    LoginDashboardUserVO vo = new LoginDashboardUserVO();
-                    BeanUtils.copyProperties(item, vo);
-                    return vo;
-                }).orElse(null);
+        return DashboardUserTransfer.INSTANCE.transferVO2LoginVO(dashboardUserVO);
     }
 }

@@ -49,4 +49,14 @@ public interface SelectorHandleConverter {
      * @return the string
      */
     String handler(String handle, List<CommonUpstream> aliveList);
+
+    /**
+     * Update upstream status and remove invalid.
+     *
+     * @param <T> the type parameter
+     * @param existList the existList
+     * @param aliveList the aliveList
+     * @return the valid existList
+     */
+    <T extends CommonUpstream> List<T> updateStatusAndFilter(List<T> existList, List<? extends CommonUpstream> aliveList);
 }

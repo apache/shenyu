@@ -17,10 +17,9 @@
 
 package org.apache.shenyu.common.exception;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test case for {@link SerializerException}.
@@ -33,7 +32,6 @@ public final class SerializerExceptionTest {
         Throwable throwable = new Throwable(message);
         SerializerException serializerException = new SerializerException(throwable);
 
-        assertTrue(serializerException instanceof SerializerException);
         assertEquals(serializerException.getCause().getMessage(), message);
         assertEquals(serializerException.getCause(), throwable);
     }
@@ -42,8 +40,6 @@ public final class SerializerExceptionTest {
     public void testAcquireByMessage() {
         String message = "error";
         SerializerException serializerException = new SerializerException(message);
-
-        assertTrue(serializerException instanceof SerializerException);
         assertEquals(serializerException.getMessage(), message);
     }
 
@@ -53,8 +49,6 @@ public final class SerializerExceptionTest {
         String throwableMessage = "error throwable";
         Throwable throwable = new Throwable(throwableMessage);
         SerializerException serializerException = new SerializerException(message, throwable);
-
-        assertTrue(serializerException instanceof SerializerException);
         assertEquals(serializerException.getMessage(), message);
         assertEquals(serializerException.getCause().getMessage(), throwableMessage);
         assertEquals(serializerException.getCause(), throwable);

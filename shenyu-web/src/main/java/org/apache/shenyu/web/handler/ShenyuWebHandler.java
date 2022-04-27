@@ -18,11 +18,15 @@
 package org.apache.shenyu.web.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.SortPluginEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationListener;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
@@ -30,18 +34,25 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * This is web handler request starter.
  */
-public final class ShenyuWebHandler implements WebHandler {
+public final class ShenyuWebHandler implements WebHandler, ApplicationListener<SortPluginEvent> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
 
-    private final List<ShenyuPlugin> plugins;
+    /**
+     * this filed can not set to be final, because we should copyOnWrite to update plugins.
+     */
+    private List<ShenyuPlugin> plugins;
 
     private final boolean scheduled;
 
@@ -94,11 +105,36 @@ public final class ShenyuWebHandler implements WebHandler {
                 .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
-            shenyuPlugins.forEach(plugin -> {
-                plugins.add(plugin);
-                LOG.info("shenyu auto add extends plugins:{}", plugin.named());
-            });
+            shenyuPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
+            shenyuPlugins.addAll(plugins);
+            this.plugins = sortPlugins(shenyuPlugins);
         }
+    }
+    
+    /**
+     * listen sort plugin event and sort plugin.
+     *
+     * @param event sort plugin event
+     */
+    @Override
+    public void onApplicationEvent(final SortPluginEvent event) {
+        // copy a new one, or there will be concurrency problems
+        this.plugins = sortPlugins(new ArrayList<>(plugins));
+    }
+
+    /**
+     * sort plugins.
+     *
+     * @param list list of plugin
+     * @return sorted list
+     */
+    private List<ShenyuPlugin> sortPlugins(final List<ShenyuPlugin> list) {
+        Map<String, Integer> pluginSortMap = list.stream().collect(Collectors.toMap(ShenyuPlugin::named, plugin -> {
+            PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(plugin.named());
+            return Optional.ofNullable(pluginData).map(PluginData::getSort).orElse(plugin.getOrder());
+        }));
+        list.sort(Comparator.comparingLong(plugin -> pluginSortMap.get(plugin.named())));
+        return list;
     }
 
     private static class DefaultShenyuPluginChain implements ShenyuPluginChain {

@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.apache.shenyu.plugin.motan.subscriber.MotanMetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,6 +36,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(MotanPlugin.class)
+@ConditionalOnProperty(value = {"shenyu.plugins.motan.enabled"}, havingValue = "true", matchIfMissing = true)
 public class MotanPluginConfiguration {
 
     /**

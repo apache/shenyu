@@ -21,16 +21,21 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test cases for RuleConditionMapper.
@@ -42,7 +47,7 @@ public final class RuleConditionMapperTest extends AbstractSpringIntegrationTest
 
     private final RuleConditionDO record = buildRuleConditionDo();
 
-    @Before
+    @BeforeEach
     public void before() {
         int count = ruleConditionMapper.insert(record);
         assertEquals(1, count);
@@ -62,6 +67,22 @@ public final class RuleConditionMapperTest extends AbstractSpringIntegrationTest
 
         List<RuleConditionDO> rulesWithoutRuleId = ruleConditionMapper.selectByQuery(null);
         assertThat(rulesWithoutRuleId.size(), greaterThan(0));
+    }
+
+    @Test
+    public void selectByRuleIdSet() {
+
+        RuleConditionDO newRecord1 = buildRuleConditionDo();
+        int count1 = ruleConditionMapper.insert(newRecord1);
+        assertEquals(1, count1);
+
+        RuleConditionDO newRecord = buildRuleConditionDo();
+        int count = ruleConditionMapper.insert(newRecord);
+        assertEquals(1, count);
+
+        Set<String> ruleIdSet = Stream.of(newRecord1.getRuleId(), newRecord.getRuleId()).collect(Collectors.toSet());
+        List<RuleConditionDO> ruleConditionDOList = ruleConditionMapper.selectByRuleIdSet(ruleIdSet);
+        assertThat(ruleConditionDOList, hasItems(newRecord, newRecord1));
     }
 
     @Test

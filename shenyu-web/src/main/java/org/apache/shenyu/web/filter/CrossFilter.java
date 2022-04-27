@@ -25,6 +25,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.lang.NonNull;
 import org.springframework.web.cors.reactive.CorsUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -50,15 +51,20 @@ public class CrossFilter implements WebFilter {
     }
 
     @Override
-    @SuppressWarnings("all")
-    public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
+    @NonNull
+    public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         if (CorsUtils.isCorsRequest(request)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
             // "Access-Control-Allow-Origin"
-            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-                    this.filterConfig.getAllowedOrigin());
+            // if the allowed origin is empty use the request 's origin
+            if (StringUtils.isBlank(this.filterConfig.getAllowedOrigin())) {
+                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.getHeaders().getOrigin());
+            } else {
+                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                        this.filterConfig.getAllowedOrigin());
+            }
             // "Access-Control-Allow-Methods"
             this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
                     this.filterConfig.getAllowedMethods());

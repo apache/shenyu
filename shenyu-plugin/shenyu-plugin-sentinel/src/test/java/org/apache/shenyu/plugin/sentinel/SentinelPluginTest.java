@@ -30,11 +30,13 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -46,11 +48,12 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class SentinelPluginTest {
 
     private SentinelPlugin sentinelPlugin;
@@ -68,7 +71,7 @@ public final class SentinelPluginTest {
     @Mock
     private ShenyuPluginChain chain;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
@@ -102,7 +105,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleGrade(1);
         sentinelHandle.setFlowRuleControlBehavior(0);
         sentinelHandle.setDegradeRuleEnable(0);
-        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleCount(1d);
         sentinelHandle.setDegradeRuleGrade(1);
         sentinelHandle.setDegradeRuleTimeWindow(10);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);
@@ -133,7 +136,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleGrade(1);
         sentinelHandle.setFlowRuleControlBehavior(0);
         sentinelHandle.setDegradeRuleEnable(1);
-        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleCount(1d);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(10);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);
@@ -167,7 +170,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);
         sentinelHandle.setFlowRuleControlBehavior(0);
-        sentinelHandle.setDegradeRuleCount(2);
+        sentinelHandle.setDegradeRuleCount(2d);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(5);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);
@@ -176,9 +179,7 @@ public final class SentinelPluginTest {
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
 
-        Mono mono = Mono.empty().doOnSuccess(v -> {
-            exchange.getResponse().setStatusCode(HttpStatus.OK);
-        });
+        Mono mono = Mono.empty().doOnSuccess(v -> exchange.getResponse().setStatusCode(HttpStatus.OK));
         when(chain.execute(exchange)).thenReturn(mono);
         StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectSubscription().verifyComplete();
@@ -200,7 +201,7 @@ public final class SentinelPluginTest {
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);
         sentinelHandle.setFlowRuleControlBehavior(0);
-        sentinelHandle.setDegradeRuleCount(2);
+        sentinelHandle.setDegradeRuleCount(2d);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(5);
         sentinelHandle.setDegradeRuleMinRequestAmount(5);
@@ -209,9 +210,7 @@ public final class SentinelPluginTest {
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
 
-        Mono mono = Mono.empty().doOnSuccess(v -> {
-            exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-        });
+        Mono mono = Mono.empty().doOnSuccess(v -> exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS));
         when(chain.execute(exchange)).thenReturn(mono);
         StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectError(HttpStatusCodeException.class).verify();

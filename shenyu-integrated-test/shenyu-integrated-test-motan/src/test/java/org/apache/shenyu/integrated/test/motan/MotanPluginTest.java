@@ -17,26 +17,24 @@
 
 package org.apache.shenyu.integrated.test.motan;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Map;
-
+import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.lang.reflect.Type;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MotanPluginTest extends AbstractPluginDataInit {
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"register\":\"shenyu-zk:2181\"}");
         assertThat(pluginResult, is("success"));
@@ -45,10 +43,10 @@ public class MotanPluginTest extends AbstractPluginDataInit {
     @Test
     public void testHelloWorld() throws Exception {
         MotanDTO request = new MotanDTO("shenyu");
-        Type returnType = new TypeToken<Map<String, Object>>() {
+        Type returnType = new TypeToken<String>() {
         }.getType();
-        Map<String, Object> response = HttpHelper.INSTANCE.postGateway("/motan/hello", request, returnType);
-        assertEquals("hello shenyu", response.get("data"));
+        String response = HttpHelper.INSTANCE.postGateway("/motan/hello", request, returnType);
+        assertEquals("hello shenyu", response);
     }
 
 }

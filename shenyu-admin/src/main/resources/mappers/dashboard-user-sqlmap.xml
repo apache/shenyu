@@ -29,66 +29,92 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, user_name, password, role, enabled
+        id, 
+        date_created, 
+        date_updated, 
+        user_name, 
+        password, role, 
+        enabled
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from dashboard_user
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM dashboard_user
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByUserName" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from dashboard_user
-        where user_name = #{userName,jdbcType=VARCHAR}
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM dashboard_user
+         WHERE user_name = #{userName, jdbcType=VARCHAR}
     </select>
 
     <select id="findByQuery" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from dashboard_user
-        where user_name = #{userName,jdbcType=VARCHAR}
-        and password = #{password,jdbcType=VARCHAR}
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM dashboard_user
+         WHERE user_name = #{userName, jdbcType=VARCHAR}
+           AND password = #{password, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
             resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from dashboard_user
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM dashboard_user
         <where>
-            <if test="userName != null">
-                user_name = #{userName,jdbcType=VARCHAR}
-            </if>
+            <include refid="likeUser"/>
         </where>
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
             resultType="java.lang.Integer">
-        select count(1)
-        from dashboard_user
+        SELECT count(1)
+          FROM dashboard_user
         <where>
-            <if test="userName != null">
-                user_name = #{userName,jdbcType=VARCHAR}
-            </if>
+            <include refid="likeUser"/>
         </where>
     </select>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+          FROM dashboard_user
+         WHERE id = #{id}
+         LIMIT 1
+    </select>
+
+    <sql id="likeUser">
+        <if test="userName != null and userName != ''">
+            <bind name="nameLike" value="('%' + userName + '%')"/>
+            user_name LIKE #{nameLike, jdbcType=VARCHAR}
+        </if>
+    </sql>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
-        insert into dashboard_user (id, date_created, date_updated,
-        user_name, password, role, enabled)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{userName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER},
-        #{enabled,jdbcType=TINYINT})
+        INSERT INTO dashboard_user
+                    (id,
+                    date_created,
+                    date_updated,
+                    user_name,
+                    password,
+                    role,
+                    enabled)
+             VALUES
+                    (#{id, jdbcType=VARCHAR},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP},
+                    #{userName, jdbcType=VARCHAR},
+                    #{password, jdbcType=VARCHAR},
+                    #{role, jdbcType=INTEGER},
+                    #{enabled, jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
-        insert into dashboard_user
+        INSERT INTO dashboard_user
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
+                id,
             <if test="dateCreated != null">
                 date_created,
             </if>
@@ -109,66 +135,75 @@
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            #{id,jdbcType=VARCHAR},
+                #{id, jdbcType=VARCHAR},
             <if test="dateCreated != null">
-                #{dateCreated,jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                #{dateUpdated,jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="userName != null">
-                #{userName,jdbcType=VARCHAR},
+                #{userName, jdbcType=VARCHAR},
             </if>
             <if test="password != null">
-                #{password,jdbcType=VARCHAR},
+                #{password, jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                #{role,jdbcType=INTEGER},
+                #{role, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                #{enabled,jdbcType=TINYINT},
+                #{enabled, jdbcType=TINYINT},
             </if>
         </trim>
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
-        update dashboard_user
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        user_name = #{userName,jdbcType=VARCHAR},
-        password = #{password,jdbcType=VARCHAR},
-        role = #{role,jdbcType=INTEGER},
-        enabled = #{enabled,jdbcType=TINYINT}
-        where id = #{id,jdbcType=VARCHAR}
+         UPDATE dashboard_user
+            SET
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+                user_name = #{userName, jdbcType=VARCHAR},
+                password = #{password, jdbcType=VARCHAR},
+                role = #{role, jdbcType=INTEGER},
+                enabled = #{enabled, jdbcType=TINYINT}
+          WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
-        update dashboard_user
+        UPDATE dashboard_user
         <set>
             <if test="dateCreated != null">
-                date_created = #{dateCreated,jdbcType=TIMESTAMP},
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="userName != null">
-                user_name = #{userName,jdbcType=VARCHAR},
+                user_name = #{userName, jdbcType=VARCHAR},
             </if>
             <if test="password != null">
-                password = #{password,jdbcType=VARCHAR},
+                password = #{password, jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                role = #{role,jdbcType=INTEGER},
+                role = #{role, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                enabled = #{enabled,jdbcType=TINYINT},
+                enabled = #{enabled, jdbcType=TINYINT},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from dashboard_user
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM dashboard_user
+              WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIdList">
+        DELETE FROM dashboard_user
+              WHERE id IN
+        <foreach collection="idList" index="index" item="id" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>

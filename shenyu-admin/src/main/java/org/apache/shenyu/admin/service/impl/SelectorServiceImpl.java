@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
@@ -38,18 +40,20 @@ import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
-import org.apache.shenyu.admin.model.query.RuleConditionQuery;
-import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
@@ -67,9 +71,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -77,23 +87,23 @@ import java.util.stream.Collectors;
  */
 @Service
 public class SelectorServiceImpl implements SelectorService {
-
+    
     private final SelectorMapper selectorMapper;
-
+    
     private final SelectorConditionMapper selectorConditionMapper;
-
+    
     private final PluginMapper pluginMapper;
-
+    
     private final RuleMapper ruleMapper;
-
+    
     private final RuleConditionMapper ruleConditionMapper;
-
+    
     private final ApplicationEventPublisher eventPublisher;
-
+    
     private final DataPermissionMapper dataPermissionMapper;
-
+    
     private final UpstreamCheckService upstreamCheckService;
-
+    
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -111,7 +121,18 @@ public class SelectorServiceImpl implements SelectorService {
         this.dataPermissionMapper = dataPermissionMapper;
         this.upstreamCheckService = upstreamCheckService;
     }
-
+    
+    @Override
+    public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
+        condition.init();
+        final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
+        for (SelectorVO selector : list) {
+            selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
+            selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
+        }
+        return list;
+    }
+    
     @Override
     public String registerDefault(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
@@ -136,7 +157,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
         return selectorDO.getId();
     }
-
+    
     /**
      * create or update selector.
      *
@@ -146,6 +167,10 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final SelectorDTO selectorDTO) {
+        if (Objects.equals(SelectorTypeEnum.CUSTOM_FLOW.getCode(), selectorDTO.getType())) {
+            Assert.notNull(selectorDTO.getMatchMode(), "if type is custom, matchMode is not null");
+            Assert.notEmpty(selectorDTO.getSelectorConditions(), "if type is custom, selectorConditions is not empty");
+        }
         int selectorCount;
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         List<SelectorConditionDTO> selectorConditionDTOs = selectorDTO.getSelectorConditions();
@@ -156,14 +181,14 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorConditionMapper.insertSelective(SelectorConditionDO.buildSelectorConditionDO(selectorConditionDTO));
             });
             // check selector add
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
+            if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
                 dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(selectorDO.getId());
                 dataPermissionDTO.setDataType(AdminConstants.SELECTOR_DATA_TYPE);
                 dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
             }
-
+            
         } else {
             selectorCount = selectorMapper.updateSelective(selectorDO);
             //delete rule condition then add
@@ -178,12 +203,12 @@ public class SelectorServiceImpl implements SelectorService {
         updateDivideUpstream(selectorDO);
         return selectorCount;
     }
-
+    
     @Override
     public int updateSelective(final SelectorDO selectorDO) {
         return selectorMapper.updateSelective(selectorDO);
     }
-
+    
     /**
      * delete selectors.
      *
@@ -193,40 +218,54 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        for (String id : ids) {
-
-            final SelectorDO selectorDO = selectorMapper.selectById(id);
-            final PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-
-            selectorMapper.delete(id);
-            selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
-            dataPermissionMapper.deleteByDataId(id);
-
-            //if divide selector delete
-            if (PluginEnum.DIVIDE.getName().equals(pluginDO.getName())) {
-                UpstreamCheckService.removeByKey(selectorDO.getName());
-            }
-
-            // publish delete event of Selector
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE,
-                    Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
-
-            // delete rule and ruleCondition
-            final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null, null));
-            if (CollectionUtils.isNotEmpty(ruleDOList)) {
-                for (RuleDO ruleDO : ruleDOList) {
-                    ruleMapper.delete(ruleDO.getId());
-                    ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
-                    // send delete selectors event
-                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,
-                            Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), null))));
-
+        
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
+        Set<String> idSet = new HashSet<>(ids);
+        List<SelectorDO> selectorDOList = selectorMapper.selectByIdSet(idSet);
+        if (CollectionUtils.isNotEmpty(selectorDOList)) {
+            Map<String, SelectorDO> selectorDOMap = selectorDOList.stream().filter(Objects::nonNull)
+                    .collect(Collectors.toMap(SelectorDO::getId, Function.identity(), (value1, value2) -> value1));
+            List<String> pluginIdList = selectorDOMap.values().stream().map(SelectorDO::getPluginId).collect(Collectors.toList());
+            List<PluginDO> pluginDOList = pluginMapper.selectByIds(new ArrayList<>(pluginIdList));
+            
+            if (CollectionUtils.isNotEmpty(pluginDOList)) {
+                Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
+                        .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
+                if (pluginMap.size() == pluginIdList.size()) {
+                    selectorMapper.deleteByIds(ids);
+                    selectorConditionMapper.deleteBySelectorIds(ids);
+                    dataPermissionMapper.deleteByDataIdList(ids);
+                    
+                    List<SelectorData> selectorDataList = selectorDOMap.values().stream().map(selectorDO -> {
+                        String pluginName = pluginMap.get(selectorDO.getPluginId());
+                        if (pluginName.equals(PluginEnum.DIVIDE.getName())) {
+                            UpstreamCheckService.removeByKey(selectorDO.getId());
+                        }
+                        return SelectorDO.transFrom(selectorDO, pluginName, null);
+                    }).collect(Collectors.toList());
+                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE, selectorDataList));
+                    
+                    List<RuleDO> ruleDOList = ruleMapper.findBySelectorIds(ids);
+                    if (CollectionUtils.isNotEmpty(ruleDOList)) {
+                        List<String> ruleIdList = new ArrayList<>();
+                        List<RuleData> ruleDataList = ruleDOList.stream().filter(Objects::nonNull).map(ruleDO -> {
+                            ruleIdList.add(ruleDO.getId());
+                            SelectorDO selectorDO = selectorDOMap.get(ruleDO.getSelectorId());
+                            String pluginName = pluginMap.get(selectorDO.getPluginId());
+                            return RuleDO.transFrom(ruleDO, pluginName, null);
+                        }).collect(Collectors.toList());
+                        ruleMapper.deleteByIds(ruleIdList);
+                        ruleConditionMapper.deleteByRuleIds(ruleIdList);
+                        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleDataList));
+                    }
                 }
             }
         }
-        return ids.size();
+        return idSet.size();
     }
-
+    
     /**
      * find selector by id.
      *
@@ -242,7 +281,7 @@ public class SelectorServiceImpl implements SelectorService {
                         .map(SelectorConditionVO::buildSelectorConditionVO)
                         .collect(Collectors.toList()));
     }
-
+    
     @Override
     public SelectorDO findByName(final String name) {
         return selectorMapper.selectByName(name);
@@ -251,7 +290,7 @@ public class SelectorServiceImpl implements SelectorService {
     /**
      * Find by name and plugin id selector do.
      *
-     * @param name the name
+     * @param name       the name
      * @param pluginName the plugin name
      * @return the selector do
      */
@@ -269,7 +308,7 @@ public class SelectorServiceImpl implements SelectorService {
     /**
      * Build by name selector data.
      *
-     * @param name the name
+     * @param name       the name
      * @param pluginName the plugin name
      * @return the selector data
      */
@@ -293,24 +332,23 @@ public class SelectorServiceImpl implements SelectorService {
                 .map(SelectorVO::buildSelectorVO)
                 .collect(Collectors.toList()));
     }
-
+    
     @Override
     public List<SelectorData> findByPluginId(final String pluginId) {
-        return selectorMapper.findByPluginId(pluginId)
-                .stream()
-                .map(this::buildSelectorData)
-                .collect(Collectors.toList());
+        
+        List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginId);
+        
+        return this.buildSelectorDataList(selectorDOList);
     }
-
+    
     @Override
     public List<SelectorData> listAll() {
-        return selectorMapper.selectAll()
-                .stream()
-                .filter(Objects::nonNull)
-                .map(this::buildSelectorData)
-                .collect(Collectors.toList());
+        
+        List<SelectorDO> selectorDOList = selectorMapper.selectAll();
+        
+        return this.buildSelectorDataList(selectorDOList);
     }
-
+    
     private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditionDTOs) {
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<ConditionData> conditionDataList =
@@ -319,7 +357,7 @@ public class SelectorServiceImpl implements SelectorService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList))));
     }
-
+    
     private SelectorData buildSelectorData(final SelectorDO selectorDO) {
         // find conditions
         List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
@@ -330,9 +368,43 @@ public class SelectorServiceImpl implements SelectorService {
         }
         return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
     }
-
+    
+    private List<SelectorData> buildSelectorDataList(final List<SelectorDO> selectorDOList) {
+        
+        Map<String, String> idMap = Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new)
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(SelectorDO::getId, SelectorDO::getPluginId, (value1, value2) -> value1));
+        if (MapUtils.isEmpty(idMap)) {
+            return new ArrayList<>();
+        }
+        Map<String, List<SelectorConditionDO>> selectorConditionMap = Optional.ofNullable(selectorConditionMapper.selectBySelectorIds(idMap.keySet()))
+                .orElseGet(ArrayList::new).stream().collect(Collectors.toMap(SelectorConditionDO::getSelectorId, selectorConditionDO -> {
+                    List<SelectorConditionDO> dataList = new ArrayList<>();
+                    dataList.add(selectorConditionDO);
+                    return dataList;
+                }, (list1, list2) -> {
+                        list1.addAll(list2);
+                        return list1;
+                    }));
+        
+        Map<String, PluginDO> pluginDOMap = Optional.ofNullable(pluginMapper.selectByIds(Lists.newArrayList(idMap.values()))).orElseGet(ArrayList::new)
+                .stream().filter(Objects::nonNull).collect(Collectors.toMap(PluginDO::getId, Function.identity(), (value1, value2) -> value1));
+        
+        return Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new)
+                .stream().filter(Objects::nonNull).map(selectorDO -> {
+                    String id = selectorDO.getId();
+                    String pluginId = selectorDO.getPluginId();
+                    PluginDO pluginDO = pluginDOMap.get(pluginId);
+                    if (Objects.isNull(pluginDO)) {
+                        return null;
+                    }
+                    List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(selectorConditionMap.get(id));
+                    return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
+                }).collect(Collectors.toList());
+    }
+    
     private void updateDivideUpstream(final SelectorDO selectorDO) {
-        String selectorName = selectorDO.getName();
+        String selectorId = selectorDO.getId();
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<DivideUpstream> existDivideUpstreams = null;
         if (PluginEnum.SPRING_CLOUD.getName().equals(pluginDO.getName())) {
@@ -348,23 +420,23 @@ public class SelectorServiceImpl implements SelectorService {
             }
         }
         if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
-            upstreamCheckService.replace(selectorName, CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
+            upstreamCheckService.replace(selectorId, CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
         }
     }
-
+    
     private String registerSelector(final String contextPath, final String pluginName, final String selectorHandler) {
         SelectorDTO selectorDTO = buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
         selectorDTO.setHandle(selectorHandler);
         return registerDefault(selectorDTO);
     }
-
+    
     private SelectorDTO buildSelectorDTO(final String contextPath, final String pluginId) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
         selectorDTO.setPluginId(pluginId);
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorDTO;
     }
-
+    
     private SelectorDTO buildDefaultSelectorDTO(final String name) {
         return SelectorDTO.builder()
                 .name(name)
@@ -376,13 +448,13 @@ public class SelectorServiceImpl implements SelectorService {
                 .sort(1)
                 .build();
     }
-
+    
     private List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
         SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
         selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
         selectorConditionDTO.setParamName("/");
-        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        selectorConditionDTO.setParamValue(contextPath + "/**");
+        selectorConditionDTO.setOperator(OperatorEnum.STARTS_WITH.getAlias());
+        selectorConditionDTO.setParamValue(contextPath + Constants.PATH_SEPARATOR);
         return Collections.singletonList(selectorConditionDTO);
     }
 }

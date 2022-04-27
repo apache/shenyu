@@ -90,8 +90,7 @@ public class PermissionServiceImpl implements PermissionService {
             return null;
         }
 
-        List<MenuInfo> menuInfoList = new ArrayList<>();
-        resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
+        List<MenuInfo> menuInfoList = resourceService.getMenuInfo(resourceVOList);
         return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
     }
 
@@ -131,8 +130,8 @@ public class PermissionServiceImpl implements PermissionService {
             return Collections.emptyList();
         }
 
-        return Optional.ofNullable(resourceMapper.selectByIdsBatch(resourceIds)).orElseGet(() -> new ArrayList<>())
-                .stream().map(resource -> ResourceVO.buildResourceVO(resource)).collect(Collectors.toList());
+        return Optional.ofNullable(resourceMapper.selectByIdsBatch(resourceIds)).orElseGet(ArrayList::new)
+                .stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
     }
 
     /**

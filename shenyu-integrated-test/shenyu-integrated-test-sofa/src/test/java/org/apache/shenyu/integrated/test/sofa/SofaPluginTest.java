@@ -21,20 +21,19 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integrated.test.sofa.dto.SofaTestData;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.hamcrest.Matchers;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SofaPluginTest extends AbstractPluginDataInit {
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.SOFA.getName(), "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zk:2181\"}");
         assertThat(pluginResult, Matchers.is("success"));
@@ -42,8 +41,8 @@ public class SofaPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testHelloWorld() throws IOException {
-        AdminResponse<SofaTestData> response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<AdminResponse<SofaTestData>>() { }.getType());
-        assertThat(response.getData().getName(), is("hello world shenyu Sofa, findById"));
-        assertThat(response.getData().getId(), is("1001"));
+        SofaTestData response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<SofaTestData>() { }.getType());
+        assertThat(response.getName(), is("hello world shenyu Sofa, findById"));
+        assertThat(response.getId(), is("1001"));
     }
 }

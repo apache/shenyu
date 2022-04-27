@@ -17,33 +17,30 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.subscriber;
 
-import com.google.common.cache.LoadingCache;
-import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import java.lang.reflect.Field;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 /**
  * The Test Case For ApacheDubboMetaDataSubscriber.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ApacheDubboMetaDataSubscriberTest {
 
     private ApacheDubboMetaDataSubscriber apacheDubboMetaDataSubscriber;
 
     private MetaData metaData;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         apacheDubboMetaDataSubscriber = new ApacheDubboMetaDataSubscriber();
         metaData = new MetaData();
@@ -58,13 +55,7 @@ public final class ApacheDubboMetaDataSubscriberTest {
     }
 
     @Test
-    public void testOnSubscribe() throws NoSuchFieldException, IllegalAccessException {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
-        when(referenceConfig.getInterface()).thenReturn("/dubbo/findAll");
-        ApacheDubboConfigCache apacheDubboConfigCache = ApacheDubboConfigCache.getInstance();
-        Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
-        field.setAccessible(true);
-        ((LoadingCache) field.get(apacheDubboConfigCache)).put("/dubbo/findAll", referenceConfig);
+    public void testOnSubscribe() {
         apacheDubboMetaDataSubscriber.onSubscribe(metaData);
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")

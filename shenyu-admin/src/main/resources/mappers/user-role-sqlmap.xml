@@ -27,34 +27,61 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, user_id, role_id
+        id,
+        date_created,
+        date_updated,
+        user_id,
+        role_id
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from user_role
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+              <include refid="Base_Column_List"/>
+          FROM user_role
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="findByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from user_role
-        where user_id = #{userId,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM user_role
+         WHERE user_id = #{userId, jdbcType=VARCHAR}
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.UserRoleDO">
-        insert into user_role (id, date_created, date_updated,
-        user_id, role_id)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{userId,jdbcType=VARCHAR}, #{roleId,jdbcType=VARCHAR})
+        INSERT INTO user_role
+                    (id,
+                     date_created,
+                     date_updated,
+                     user_id,
+                     role_id)
+               VALUES
+                    (#{id, jdbcType=VARCHAR},
+                     #{dateCreated, jdbcType=TIMESTAMP},
+                     #{dateUpdated, jdbcType=TIMESTAMP},
+                     #{userId, jdbcType=VARCHAR},
+                     #{roleId, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertBatch">
+        INSERT INTO user_role
+                    (id,
+                     user_id,
+                     role_id)
+               VALUES
+                    <foreach collection="userRoleList" index="index" item="userRole" separator=",">
+                        (
+                        #{userRole.id, jdbcType=VARCHAR},
+                        #{userRole.userId, jdbcType=VARCHAR},
+                        #{userRole.roleId, jdbcType=VARCHAR}
+                        )
+                    </foreach>
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.UserRoleDO">
-        insert into user_role
+        INSERT INTO user_role
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
+                id,
             <if test="dateCreated != null">
                 date_created,
             </if>
@@ -69,29 +96,40 @@
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            #{id,jdbcType=VARCHAR},
+                #{id, jdbcType=VARCHAR},
             <if test="dateCreated != null">
-                #{dateCreated,jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                #{dateUpdated,jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="userId != null">
-                #{userId,jdbcType=VARCHAR},
+                #{userId, jdbcType=VARCHAR},
             </if>
             <if test="roleId != null">
-                #{roleId,jdbcType=VARCHAR},
+                #{roleId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from user_role
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE
+          FROM user_role
+         WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserId" parameterType="java.lang.String">
-        delete from user_role
-        where user_id = #{userId,jdbcType=VARCHAR}
+        DELETE
+          FROM user_role
+         WHERE user_id = #{userId, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByUserIdList">
+        DELETE
+          FROM user_role
+         WHERE user_id in
+         <foreach collection="userIdList" index="index" item="userId" open="(" separator="," close=")">
+             #{userId, jdbcType=VARCHAR}
+         </foreach>
     </delete>
 </mapper>

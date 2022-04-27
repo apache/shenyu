@@ -1,0 +1,115 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# if you debug api, replace your own token
+
+### app auth list search
+POST http://localhost:9095/appAuth/list/search
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ4NjUwMDg2fQ.aDeChT_Ey6FwYDdzSkc9ZLBHd5v-LVUZ6BPcYqJCo-Y
+
+{
+  "pageNum": 1,
+  "pageSize": 12,
+  "condition": {
+    "appKey": "9ABE7111A59B4F9CA9A5BA5BB5973F6F"
+  }
+}
+
+### app auth list search adaptor
+POST http://localhost:9095/appAuth/list/search/adaptor
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ4NjUwMDg2fQ.aDeChT_Ey6FwYDdzSkc9ZLBHd5v-LVUZ6BPcYqJCo-Y
+
+{
+  "pageNum": 1,
+  "pageSize": 12,
+  "condition": {
+  }
+}
+
+### updateSk
+POST http://localhost:9095/appAuth/apply
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ4NjUwMDg2fQ.aDeChT_Ey6FwYDdzSkc9ZLBHd5v-LVUZ6BPcYqJCo-Y
+
+{
+  "appName": "appName",
+  "userId": 123,
+  "open": true,
+  "phone": "189827364",
+  "pathList": [
+    "test"
+  ]
+}
+
+### updateSk
+GET http://localhost:9095/appAuth/updateSk?appKey=123&appSecret=123
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ4NjUwMDg2fQ.aDeChT_Ey6FwYDdzSkc9ZLBHd5v-LVUZ6BPcYqJCo-Y
+
+{
+  "id": 123,
+  "name": "order"
+}
+
+### app auth list by page
+GET http://localhost:9095/appAuth/findPageByQuery?currentPage=1&pageSize=10
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2MzIyMTI4fQ.amilvuSJfMM-qt9bYsEr-Ih12NKC9aK-3mB-VUq-fdo
+
+
+### app auth detail
+GET http://localhost:9095/appAuth/detail?id=12
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2MzIyMTI4fQ.amilvuSJfMM-qt9bYsEr-Ih12NKC9aK-3mB-VUq-fdo
+
+### app auth update detail
+POST http://localhost:9095/appAuth/updateDetail
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2MzIyMTI4fQ.amilvuSJfMM-qt9bYsEr-Ih12NKC9aK-3mB-VUq-fdo
+
+{
+  "id": 1,
+  "appKey": "12",
+  "appSecret": "appSecret"
+}
+
+### app auth detail path
+GET http://localhost:9095/appAuth/detailPath?id=12
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2MzIyMTI4fQ.amilvuSJfMM-qt9bYsEr-Ih12NKC9aK-3mB-VUq-fdo
+
+### app auth update detail path
+POST http://localhost:9095/appAuth/updateDetailPath
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2MzIyMTI4fQ.amilvuSJfMM-qt9bYsEr-Ih12NKC9aK-3mB-VUq-fdo
+
+{
+  "id": 1,
+  "authPathDTOList": [
+  ]
+}

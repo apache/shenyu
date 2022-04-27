@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.common.enums;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Arrays;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Test Cases for HttpMethodEnum. */
 public final class HttpMethodEnumTest {
@@ -49,9 +50,9 @@ public final class HttpMethodEnumTest {
                 .forEach(e -> assertEquals(e, HttpMethodEnum.acquireByName(e.getName())));
     }
 
-    @Test(expected = ShenyuException.class)
+    @Test
     public void testAcquireByNameInvalid() {
         String httpMethodName = "InvalidName";
-        HttpMethodEnum.acquireByName(httpMethodName);
+        assertThrows(ShenyuException.class, () -> HttpMethodEnum.acquireByName(httpMethodName));
     }
 }

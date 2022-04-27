@@ -22,12 +22,14 @@ shenyu:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
+      username: admin
+      password: 123456
   client:
       http:
         props:
           contextPath: /http
           appName: http
-          port: 8189
+#          port: 8189
 
 logging:
   level:

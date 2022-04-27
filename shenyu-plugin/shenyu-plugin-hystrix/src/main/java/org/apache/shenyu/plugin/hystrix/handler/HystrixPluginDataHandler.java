@@ -26,6 +26,9 @@ import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.hystrix.builder.HystrixBuilder;
+import org.apache.shenyu.plugin.hystrix.command.Command;
+import org.apache.shenyu.plugin.hystrix.command.HystrixCommand;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -42,7 +45,15 @@ public class HystrixPluginDataHandler implements PluginDataHandler {
         HystrixPropertiesFactory.reset();
         Optional.ofNullable(ruleData.getHandle()).ifPresent(rule -> {
             HystrixHandle hystrixHandle = GsonUtils.getInstance().fromJson(rule, HystrixHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), hystrixHandle);
+            String key = CacheKeyUtils.INST.getKey(ruleData);
+            Optional.ofNullable(CACHED_HANDLE.get().obtainHandle(key)).ifPresent(hystrixHandleCache -> {
+                if (hystrixHandleCache.getMaxConcurrentRequests() != hystrixHandle.getMaxConcurrentRequests()) {
+                    String commandKey = hystrixHandle.getCommandKey();
+                    Command command = new HystrixCommand(HystrixBuilder.build(hystrixHandle), null, null, null);
+                    command.removeCommandKey(commandKey);
+                }
+            });
+            CACHED_HANDLE.get().cachedHandle(key, hystrixHandle);
         });
     }
 

@@ -21,13 +21,28 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
+import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * SelectorMapper.
  */
 @Mapper
-public interface SelectorMapper {
+public interface SelectorMapper extends ExistProvider {
+    
+    /**
+     * selector existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
     
     /**
      * select selector by id.
@@ -38,13 +53,21 @@ public interface SelectorMapper {
     SelectorDO selectById(String id);
     
     /**
+     * Select selector by a list of ids.
+     *
+     * @param idSet a list of ids
+     * @return a list of {@linkplain SelectorDO}
+     */
+    List<SelectorDO> selectByIdSet(@Param("idSet") Set<String> idSet);
+    
+    /**
      * select selector by query.
      *
      * @param selectorQuery {@linkplain SelectorQuery}
      * @return {@linkplain List}
      */
     List<SelectorDO> selectByQuery(SelectorQuery selectorQuery);
-
+    
     /**
      * Find by plugin id list.
      *
@@ -52,7 +75,7 @@ public interface SelectorMapper {
      * @return the list
      */
     List<SelectorDO> findByPluginId(String pluginId);
-
+    
     /**
      * Find by plugin id list.
      *
@@ -60,7 +83,7 @@ public interface SelectorMapper {
      * @return the list
      */
     List<SelectorDO> findByPluginIds(List<String> pluginIds);
-
+    
     /**
      * select select by name.
      *
@@ -72,7 +95,7 @@ public interface SelectorMapper {
     /**
      * Find by name and plugin id selector do.
      *
-     * @param name the name
+     * @param name     the name
      * @param pluginId the plugin id
      * @return the selector do
      */
@@ -125,7 +148,7 @@ public interface SelectorMapper {
      * @return rows int
      */
     int delete(String id);
-
+    
     /**
      * delete selector.
      *
@@ -148,5 +171,12 @@ public interface SelectorMapper {
      * @return {@linkplain List}
      */
     List<SelectorDO> selectAll();
-
+    
+    /**
+     * select by condition.
+     *
+     * @param condition condition
+     * @return view data list
+     */
+    List<SelectorVO> selectByCondition(@Param("condition") SelectorQueryCondition condition);
 }

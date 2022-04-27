@@ -17,10 +17,14 @@
 package org.apache.shenyu.examples.apache.dubbo.service.annotation.impl;
 
 import org.apache.dubbo.config.annotation.Service;
+import org.apache.dubbo.rpc.RpcContext;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Random;
@@ -30,10 +34,13 @@ import java.util.Random;
  */
 @Service
 public class DubboTestServiceImpl implements DubboTestService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DubboTestServiceImpl.class);
     
     @Override
     @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
     public DubboTest findById(final String id) {
+        LOGGER.info(GsonUtils.getInstance().toJson(RpcContext.getContext().getAttachments()));
         return new DubboTest(id, "hello world shenyu Apache, findById");
     }
     

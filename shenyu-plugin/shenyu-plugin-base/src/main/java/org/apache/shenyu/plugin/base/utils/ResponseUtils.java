@@ -17,19 +17,28 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ReactiveHttpOutputMessage;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * ResponseUtils.
@@ -39,7 +48,6 @@ public final class ResponseUtils {
     private static final String CHUNKED = "chunked";
     
     private ResponseUtils() {
-    
     }
     
     /**
@@ -64,8 +72,7 @@ public final class ResponseUtils {
      */
     public static ClientResponse buildClientResponse(final ServerHttpResponse response,
                                                      final Publisher<? extends DataBuffer> body) {
-        ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(response.getStatusCode()),
-                ServerCodecConfigurer.create().getReaders());
+        ClientResponse.Builder builder = ClientResponse.create(Objects.requireNonNull(response.getStatusCode()), getReaders());
         return builder
                 .headers(headers -> headers.putAll(response.getHeaders()))
                 .cookies(cookies -> response.getCookies())
@@ -110,6 +117,38 @@ public final class ResponseUtils {
         httpHeaders.putAll(headers);
         fixHeaders(httpHeaders);
         return httpHeaders;
+    }
+
+    /**
+     * the response write with data.
+     *
+     * @param clientResponse the client response
+      * @param exchange the exchange
+     * @param publisher the publisher
+     * @param elementClass the elementClass
+     * @param <T> the element type
+     * @param <P> the publishing type
+     * @return the response wrapper data
+     */
+    public static <T, P extends Publisher<T>> Mono<Void> writeWith(final ClientResponse clientResponse,
+                                                                   final ServerWebExchange exchange,
+                                                                   final P publisher,
+                                                                   final Class<T> elementClass) {
+        BodyInserter<P, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(publisher, elementClass);
+        CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
+        return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
+            Mono<DataBuffer> messageBody = ResponseUtils.fixBodyMessage(exchange.getResponse(), outputMessage);
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
+            return exchange.getResponse().writeWith(messageBody);
+        })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+    }
+
+    /**
+     * Gets reads from ServerCodecConfigurer with custom the codec.
+     * @return ServerCodecConfigurer readers
+     */
+    private static List<HttpMessageReader<?>> getReaders() {
+        return SpringBeanUtils.getInstance().getBean(ServerCodecConfigurer.class).getReaders();
     }
     
     /**

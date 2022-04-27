@@ -65,7 +65,7 @@ public final class VersionUtils {
         if (StringUtils.isNoneBlank(version)) {
             return version;
         }
-        // guess version fro jar file name if nothing's found from MANIFEST.MF
+        // guess version for jar file name if nothing's found from MANIFEST.MF
         CodeSource codeSource = cls.getProtectionDomain().getCodeSource();
 
         if (codeSource == null) {

@@ -26,11 +26,14 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -44,7 +47,8 @@ import static org.mockito.Mockito.when;
 /**
  * The Test Case For ApacheDubboProxyService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ApacheDubboProxyServiceTest {
     private static final String PATH = "/duubo/findAll";
 
@@ -58,7 +62,10 @@ public final class ApacheDubboProxyServiceTest {
 
     private ServerWebExchange exchange;
 
-    @Before
+    @Mock
+    private ReferenceConfig<GenericService> referenceConfig;
+
+    @BeforeEach
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         metaData = new MetaData();
@@ -70,14 +77,14 @@ public final class ApacheDubboProxyServiceTest {
         metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
     }
 
-    @After
+    @AfterEach
     public void after() {
         ApacheDubboConfigCache.getInstance().invalidateAll();
     }
 
     @Test
+    @SuppressWarnings(value = "unchecked")
     public void genericInvokerTest() throws IllegalAccessException, NoSuchFieldException {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(referenceConfig.get()).thenReturn(genericService);
         when(referenceConfig.getInterface()).thenReturn(PATH);
@@ -86,7 +93,7 @@ public final class ApacheDubboProxyServiceTest {
         ApacheDubboConfigCache apacheDubboConfigCache = ApacheDubboConfigCache.getInstance();
         Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache) field.get(apacheDubboConfigCache)).put(PATH, referenceConfig);
+        ((LoadingCache<String, ReferenceConfig<GenericService>>) field.get(apacheDubboConfigCache)).put(PATH, referenceConfig);
         ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
         apacheDubboProxyService.genericInvoker("", metaData, exchange);
         future.complete("success");

@@ -34,47 +34,67 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, plugin_id, name, match_mode,
-        type, sort, enabled, loged, continued,handle
+        id,
+        date_created,
+        date_updated,
+        plugin_id,
+        name,
+        match_mode,
+        type,
+        sort,
+        enabled,
+        loged,
+        continued,
+        handle
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByIdSet" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE id IN
+                 <foreach collection="idSet" item="id" index="index" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                 </foreach>
     </select>
 
     <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector
-        where name = #{name,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE name = #{name, jdbcType=VARCHAR}
     </select>
 
     <select id="findByNameAndPluginId" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector
-        where name = #{name,jdbcType=VARCHAR}
-        and plugin_id = #{pluginId,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE name = #{name, jdbcType=VARCHAR}
+           AND plugin_id = #{pluginId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
             resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
         <where>
             <if test="pluginId != null">
-                plugin_id = #{pluginId,jdbcType=VARCHAR}
+                plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
-                and name like #{nameLike,jdbcType=VARCHAR}
+                 AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
-                and id in
+                 AND id IN
                 <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
                     #{filterId, jdbcType=VARCHAR}
                 </foreach>
@@ -83,35 +103,35 @@
     </select>
 
     <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector
-        where plugin_id = #{pluginId,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from selector
-        where plugin_id in
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE plugin_id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
-            #{id,jdbcType=VARCHAR}
+            #{id, jdbcType=VARCHAR}
         </foreach>
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
             resultType="java.lang.Integer">
-        select count(1)
-        from selector
+        SELECT COUNT(1)
+          FROM selector
         <where>
             <if test="pluginId != null">
-                plugin_id = #{pluginId,jdbcType=VARCHAR}
+                plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name,jdbcType=VARCHAR}
+                AND name = #{name, jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
-                and id in
+                AND id IN
                 <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
                     #{filterId, jdbcType=VARCHAR}
                 </foreach>
@@ -121,25 +141,76 @@
     </select>
 
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
-        select
+        SELECT
+              <include refid="Base_Column_List"/>
+         FROM selector
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+          FROM selector
+         WHERE id = #{id}
+         LIMIT 1
+    </select>
+
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.SelectorVO">
+        SELECT
         <include refid="Base_Column_List"/>
-        from selector
+        FROM selector
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND name LIKE #{keyword, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND name NOT LIKE #{excluded, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+            <if test="condition.plugin != null and condition.plugin.size > 0">
+                AND plugin_id IN
+                <foreach item="id" collection="condition.plugin" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
-        insert into selector (id, date_created, date_updated,
-        plugin_id, name, match_mode, type, sort, enabled,
-        loged, continued,handle)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
-        #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT},
-        #{loged,jdbcType=TINYINT}, #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
+        INSERT INTO selector
+                    (id,
+                    date_created,
+                    date_updated,
+                    plugin_id,
+                    name,
+                    match_mode,
+                    type,
+                    sort,
+                    enabled,
+                    loged,
+                    continued,
+                    handle)
+            VALUES
+                    (#{id, jdbcType=VARCHAR},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP},
+                    #{pluginId, jdbcType=VARCHAR},
+                    #{name, jdbcType=VARCHAR},
+                    #{matchMode, jdbcType=INTEGER},
+                    #{type, jdbcType=INTEGER},
+                    #{sort, jdbcType=INTEGER},
+                    #{enabled, jdbcType=TINYINT},
+                    #{loged, jdbcType=TINYINT},
+                    #{continued, jdbcType=TINYINT},
+                    #{handle, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
-        insert into selector
+        INSERT INTO selector
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
+                id,
             <if test="dateCreated != null">
                 date_created,
             </if>
@@ -170,121 +241,120 @@
             <if test="continued != null">
                 continued,
             </if>
-
             <if test="handle != null">
                 handle,
             </if>
-
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            #{id,jdbcType=VARCHAR},
+                #{id, jdbcType=VARCHAR},
             <if test="dateCreated != null">
-                #{dateCreated,jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                #{dateUpdated,jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="pluginId != null">
-                #{pluginId,jdbcType=VARCHAR},
+                #{pluginId, jdbcType=VARCHAR},
             </if>
             <if test="name != null">
-                #{name,jdbcType=VARCHAR},
+                #{name, jdbcType=VARCHAR},
             </if>
             <if test="matchMode != null">
-                #{matchMode,jdbcType=INTEGER},
+                #{matchMode, jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                #{type,jdbcType=INTEGER},
+                #{type, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
-                #{sort,jdbcType=INTEGER},
+                #{sort, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                #{enabled,jdbcType=TINYINT},
+                #{enabled, jdbcType=TINYINT},
             </if>
             <if test="loged != null">
-                #{loged,jdbcType=TINYINT},
+                #{loged, jdbcType=TINYINT},
             </if>
             <if test="continued != null">
-                #{continued,jdbcType=TINYINT},
+                #{continued, jdbcType=TINYINT},
             </if>
             <if test="handle != null">
-                #{handle,jdbcType=VARCHAR},
+                #{handle, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
 
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
-        update selector
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        plugin_id = #{pluginId,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
-        match_mode = #{matchMode,jdbcType=INTEGER},
-        type = #{type,jdbcType=INTEGER},
-        sort = #{sort,jdbcType=INTEGER},
-        enabled = #{enabled,jdbcType=TINYINT},
-        loged = #{loged,jdbcType=TINYINT},
-        continued = #{continued,jdbcType=TINYINT},
-        handle = #{handle,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=VARCHAR}
+        UPDATE selector
+           SET
+               date_created = #{dateCreated, jdbcType=TIMESTAMP},
+               date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+               plugin_id = #{pluginId, jdbcType=VARCHAR},
+               name = #{name, jdbcType=VARCHAR},
+               match_mode = #{matchMode, jdbcType=INTEGER},
+               type = #{type, jdbcType=INTEGER},
+               sort = #{sort, jdbcType=INTEGER},
+               enabled = #{enabled, jdbcType=TINYINT},
+               loged = #{loged, jdbcType=TINYINT},
+               continued = #{continued, jdbcType=TINYINT},
+               handle = #{handle, jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
-        update selector
+        UPDATE selector
         <set>
             <if test="dateCreated != null">
-                date_created = #{dateCreated,jdbcType=TIMESTAMP},
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="pluginId != null">
-                plugin_id = #{pluginId,jdbcType=VARCHAR},
+                plugin_id = #{pluginId, jdbcType=VARCHAR},
             </if>
             <if test="name != null">
-                name = #{name,jdbcType=VARCHAR},
+                name = #{name, jdbcType=VARCHAR},
             </if>
             <if test="matchMode != null">
-                match_mode = #{matchMode,jdbcType=INTEGER},
+                match_mode = #{matchMode, jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                type = #{type,jdbcType=INTEGER},
+                type = #{type, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
-                sort = #{sort,jdbcType=INTEGER},
+                sort = #{sort, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                enabled = #{enabled,jdbcType=TINYINT},
+                enabled = #{enabled, jdbcType=TINYINT},
             </if>
             <if test="loged != null">
-                loged = #{loged,jdbcType=TINYINT},
+                loged = #{loged, jdbcType=TINYINT},
             </if>
             <if test="continued != null">
-                continued = #{continued,jdbcType=TINYINT},
+                continued = #{continued, jdbcType=TINYINT},
             </if>
             <if test="handle != null">
-                handle = #{handle,jdbcType=VARCHAR},
+                handle = #{handle, jdbcType=VARCHAR},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from selector
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM selector
+              WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByIds" parameterType="java.util.List">
-        delete from selector
-        where id in
-        <foreach item="id" collection="list" open="(" separator="," close=")">
-            #{id,jdbcType=VARCHAR}
-        </foreach>
+        DELETE FROM selector
+              WHERE id IN
+                    <foreach item="id" collection="list" open="(" separator="," close=")">
+                        #{id, jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 
     <delete id="deleteByPluginId" parameterType="java.lang.String">
-        delete from selector
-        where plugin_id = #{pluginId,jdbcType=VARCHAR}
+        DELETE FROM selector
+              WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
     </delete>
 </mapper>
