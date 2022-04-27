@@ -39,10 +39,9 @@ import reactor.core.publisher.Mono;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -57,10 +56,14 @@ public final class ShenyuWebHandlerTest {
     
     private final List<ShenyuPlugin> listPlugins = new ArrayList<>();
 
+    private final ShenyuPlugin plugin1 = new TestPlugin1();
+
+    private final ShenyuPlugin plugin2 = new TestPlugin2();
+
     @BeforeEach
     public void setUp() {
-        listPlugins.add(new Test1Plugin());
-        listPlugins.add(new Test2Plugin());
+        listPlugins.add(plugin1);
+        listPlugins.add(plugin2);
         shenyuWebHandler = new ShenyuWebHandler(listPlugins, new ShenyuConfig());
     }
 
@@ -77,39 +80,35 @@ public final class ShenyuWebHandlerTest {
 
     @Test
     public void testOnApplicationEvent() {
-        PluginData pluginData = PluginData.builder().id("1")
-                .name("test1-plugin")
+        PluginData pluginData1 = PluginData.builder().id("1")
+                .name("test-plugin1")
                 .enabled(true)
                 .config("config")
                 .role("test")
                 .sort(50)
                 .build();
-        PluginHandlerEvent enabledEvent = new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData);
-        shenyuWebHandler.onApplicationEvent(enabledEvent);
-        List<ShenyuPlugin> enabledEventPlugin = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
-        Set<ShenyuPlugin> enabledPlugins = (Set<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "enabledPlugins");
-        assertNotNull(enabledEventPlugin);
-        assertNotNull(enabledPlugins);
-        assertEquals(enabledPlugins.size(), enabledEventPlugin.size());
+        PluginData pluginData2 = PluginData.builder().id("2")
+                .name("test-plugin2")
+                .enabled(false)
+                .config("config")
+                .role("test")
+                .sort(60)
+                .build();
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.DISABLED, pluginData2));
+        List<ShenyuPlugin> plugins = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertNotNull(plugins);
+        assertTrue(plugins.contains(plugin1) && !plugins.contains(plugin2));
 
-        PluginHandlerEvent disabledEvent = new PluginHandlerEvent(PluginHandlerEventEnums.DISABLED, pluginData);
-        shenyuWebHandler.onApplicationEvent(disabledEvent);
-        List<ShenyuPlugin> disabledEventPlugin = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
-        Set<ShenyuPlugin> disabledPlugins = (Set<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "enabledPlugins");
-        assertNotNull(disabledEventPlugin);
-        assertNotNull(disabledPlugins);
-        assertEquals(disabledEventPlugin.size(), disabledPlugins.size());
-
-        PluginHandlerEvent deletedEvent = new PluginHandlerEvent(PluginHandlerEventEnums.DELETE, pluginData);
-        shenyuWebHandler.onApplicationEvent(deletedEvent);
-        List<ShenyuPlugin> deletedEventPlugin = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
-        Set<ShenyuPlugin> deletedPlugins = (Set<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "enabledPlugins");
-        assertNotNull(deletedEventPlugin);
-        assertNotNull(deletedPlugins);
-        assertEquals(deletedEventPlugin.size(), deletedPlugins.size());
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.DELETE, pluginData2));
+        List<ShenyuPlugin> pluginDelete = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertNotNull(pluginDelete);
+        assertTrue(pluginDelete.contains(plugin1) && !pluginDelete.contains(plugin2));
     }
 
-    static class Test1Plugin implements ShenyuPlugin {
+
+    static class TestPlugin1 implements ShenyuPlugin {
 
         @Override
         public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -123,7 +122,7 @@ public final class ShenyuWebHandlerTest {
 
         @Override
         public String named() {
-            return "test1-plugin";
+            return "test-plugin1";
         }
 
         @Override
@@ -132,7 +131,7 @@ public final class ShenyuWebHandlerTest {
         }
     }
 
-    static class Test2Plugin implements ShenyuPlugin {
+    static class TestPlugin2 implements ShenyuPlugin {
 
         @Override
         public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -146,7 +145,7 @@ public final class ShenyuWebHandlerTest {
 
         @Override
         public String named() {
-            return "test2-plugin";
+            return "test-plugin2";
         }
 
         @Override
