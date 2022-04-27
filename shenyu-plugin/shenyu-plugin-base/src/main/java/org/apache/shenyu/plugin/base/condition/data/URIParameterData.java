@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.List;
 
 /**
  * The type URI parameter data.
@@ -27,7 +30,9 @@ import org.springframework.web.server.ServerWebExchange;
 public class URIParameterData implements ParameterData {
     
     @Override
-    public String builder(final String paramName, final ServerWebExchange exchange) {
-        return exchange.getRequest().getURI().getPath();
+    public List<String> builder(final String paramName, final ServerWebExchange exchange) {
+        List<String> result = Lists.newArrayList();
+        result.add(exchange.getRequest().getURI().getPath());
+        return result;
     }
 }

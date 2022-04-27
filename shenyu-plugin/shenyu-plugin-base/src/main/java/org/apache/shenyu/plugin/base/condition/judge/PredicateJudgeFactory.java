@@ -21,7 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.spi.ExtensionLoader;
+import org.springframework.util.CollectionUtils;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -54,6 +56,30 @@ public final class PredicateJudgeFactory {
             return false;
         }
         return newInstance(conditionData.getOperator()).judge(conditionData, realData);
+    }
+
+    /**
+     * judge request realData has by pass.
+     * @param conditionData condition data
+     * @param realDatas realDatas
+     * @return is true pass   is false not pass
+     */
+    public static Boolean judge(final ConditionData conditionData, final List<String> realDatas) {
+        if (Objects.isNull(conditionData)) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(realDatas)) {
+            return false;
+        }
+        PredicateJudge predicateJudge = newInstance(conditionData.getOperator());
+        Boolean flag = true;
+        for (String realData:realDatas) {
+            flag = predicateJudge.judge(conditionData, realData);
+            if (Boolean.FALSE.equals(flag)) {
+                return false;
+            }
+        }
+        return flag;
     }
 
     /**

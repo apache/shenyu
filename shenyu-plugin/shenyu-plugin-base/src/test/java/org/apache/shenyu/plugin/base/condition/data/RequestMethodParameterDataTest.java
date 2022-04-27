@@ -46,6 +46,6 @@ public final class RequestMethodParameterDataTest {
 
     @Test
     public void testBuilder() {
-        assertEquals("GET", this.requestMethodParameterData.builder(null, this.exchange));
+        assertEquals("GET", this.requestMethodParameterData.builder(null, this.exchange).get(0));
     }
 }

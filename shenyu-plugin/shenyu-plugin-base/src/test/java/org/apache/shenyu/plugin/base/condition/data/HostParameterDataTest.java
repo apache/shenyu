@@ -67,11 +67,11 @@ public final class HostParameterDataTest {
 
     @Test
     public void testBuilderWithNullParamName() {
-        assertEquals(testhost, hostParameterData.builder(null, exchange));
+        assertEquals(true, hostParameterData.builder(null, exchange).contains(testhost));
     }
 
     @Test
     public void testBuilderWithAnyParamName() {
-        assertEquals(testhost, hostParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
+        assertEquals(true, hostParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange).contains(testhost));
     }
 }

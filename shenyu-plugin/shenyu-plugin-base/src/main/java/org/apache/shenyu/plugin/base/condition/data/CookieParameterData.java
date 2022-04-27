@@ -17,12 +17,15 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.spi.Join;
 import org.springframework.http.HttpCookie;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The type Cookie parameter data.
@@ -31,11 +34,12 @@ import java.util.List;
 public class CookieParameterData implements ParameterData {
     
     @Override
-    public String builder(final String paramName, final ServerWebExchange exchange) {
+    public List<String> builder(final String paramName, final ServerWebExchange exchange) {
         List<HttpCookie> cookies = exchange.getRequest().getCookies().get(paramName);
         if (CollectionUtils.isEmpty(cookies)) {
-            return "";
+            return Lists.newArrayList();
         }
-        return cookies.get(0).getValue();
+        return cookies.stream().map(HttpCookie::getValue).filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toList());
     }
 }

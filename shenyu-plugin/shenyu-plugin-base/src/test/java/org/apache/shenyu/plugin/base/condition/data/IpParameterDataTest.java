@@ -61,11 +61,11 @@ public class IpParameterDataTest {
 
     @Test
     public void testBuilderWithNullParamName() {
-        assertEquals(testHost, ipParameterData.builder(null, exchange));
+        assertEquals(true, ipParameterData.builder(null, exchange).contains(testHost));
     }
 
     @Test
     public void testBuilderWithAnyParamName() {
-        assertEquals(testHost, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
+        assertEquals(true, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange).contains(testHost));
     }
 }

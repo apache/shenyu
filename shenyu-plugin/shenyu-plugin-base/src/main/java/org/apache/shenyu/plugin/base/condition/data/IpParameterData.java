@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.List;
 
 /**
  * The type Ip parameter data.
@@ -28,7 +31,9 @@ import org.springframework.web.server.ServerWebExchange;
 public class IpParameterData implements ParameterData {
     
     @Override
-    public String builder(final String paramName, final ServerWebExchange exchange) {
-        return HostAddressUtils.acquireIp(exchange);
+    public List<String> builder(final String paramName, final ServerWebExchange exchange) {
+        List<String> result = Lists.newArrayList();
+        result.add(HostAddressUtils.acquireIp(exchange));
+        return result;
     }
 }

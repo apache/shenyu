@@ -40,6 +40,7 @@ public final class QueryParameterDataTest {
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/uri/path")
                 .queryParam("key", "value")
+                .queryParam("key", "value2")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
         this.queryParameterData = new QueryParameterData();
@@ -47,6 +48,8 @@ public final class QueryParameterDataTest {
 
     @Test
     public void testBuilder() {
-        assertEquals("value", this.queryParameterData.builder("key", this.exchange));
+        assertEquals(2, this.queryParameterData.builder("key", this.exchange).size());
+        assertEquals(true, this.queryParameterData.builder("key", this.exchange).contains("value"));
+        assertEquals(true, this.queryParameterData.builder("key", this.exchange).contains("value2"));
     }
 }

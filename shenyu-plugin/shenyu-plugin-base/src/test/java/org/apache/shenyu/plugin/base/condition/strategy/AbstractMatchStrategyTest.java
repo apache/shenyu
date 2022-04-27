@@ -37,7 +37,6 @@ import org.springframework.web.server.ServerWebExchange;
 import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +65,8 @@ public final class AbstractMatchStrategyTest {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .header("shenyu", "shenyuHeader")
-                .queryParam("shenyu", "shenyuQueryParam")
+                .queryParam("shenyu", "shenyuQueryParam1")
+                .queryParam("shenyu", "shenyuQueryParam2")
                 .build());
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setMethod("testMethod");
@@ -77,39 +77,39 @@ public final class AbstractMatchStrategyTest {
     @Test
     public void testBuildRealDataHeaderBranch() {
         conditionData.setParamType(ParamTypeEnum.HEADER.getName());
-        assertEquals("shenyuHeader", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("shenyuHeader", abstractMatchStrategy.buildRealData(conditionData, exchange).get(0));
     }
 
     @Test
     public void testBuildRealDataUriBranch() {
         conditionData.setParamType(ParamTypeEnum.URI.getName());
-        assertEquals("/http", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("/http", abstractMatchStrategy.buildRealData(conditionData, exchange).get(0));
     }
 
     @Test
     public void testBuildRealDataQueryBranch() {
         conditionData.setParamType(ParamTypeEnum.QUERY.getName());
-        assertEquals("shenyuQueryParam", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals(2, abstractMatchStrategy.buildRealData(conditionData, exchange).size());
     }
 
     @Test
     public void testBuildRealDataHostBranch() {
         conditionData.setParamType(ParamTypeEnum.HOST.getName());
-        assertEquals("localhost", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("localhost", abstractMatchStrategy.buildRealData(conditionData, exchange).get(0));
     }
 
     @Test
     public void testBuildRealDataIpBranch() {
         conditionData.setParamType(ParamTypeEnum.IP.getName());
-        assertEquals("127.0.0.1", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("127.0.0.1", abstractMatchStrategy.buildRealData(conditionData, exchange).get(0));
     }
 
     @Test
     public void testBuildRealDataPostBranch() {
         conditionData.setParamType(ParamTypeEnum.POST.getName());
-        assertNull(abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals(0, abstractMatchStrategy.buildRealData(conditionData, exchange).size());
         conditionData.setParamName("method");
-        assertEquals("testMethod", abstractMatchStrategy.buildRealData(conditionData, exchange));
+        assertEquals("testMethod", abstractMatchStrategy.buildRealData(conditionData, exchange).get(0));
     }
 
     private static class TestMatchStrategy extends AbstractMatchStrategy {

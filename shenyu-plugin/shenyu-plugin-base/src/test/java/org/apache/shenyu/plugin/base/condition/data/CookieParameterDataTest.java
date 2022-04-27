@@ -41,14 +41,18 @@ public final class CookieParameterDataTest {
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
-                .cookie(new HttpCookie("cookie-name", "cookie-value"))
+                .cookie(new HttpCookie("cookie-name", "cookie-value1"))
+                .cookie(new HttpCookie("cookie-name", "cookie-value2"))
                 .build());
         this.parameterData = new CookieParameterData();
     }
 
     @Test
     public void testBuilder() {
-        assertEquals("", parameterData.builder("invalid-cookie-name", exchange));
-        assertEquals("cookie-value", parameterData.builder("cookie-name", exchange));
+        assertEquals(0, parameterData.builder("invalid-cookie-name", exchange).size());
+        assertEquals(2, parameterData.builder("cookie-name", exchange).size());
+        assertEquals(true, parameterData.builder("cookie-name", exchange).contains("cookie-value1"));
+        assertEquals(true, parameterData.builder("cookie-name", exchange).contains("cookie-value2"));
+
     }
 }

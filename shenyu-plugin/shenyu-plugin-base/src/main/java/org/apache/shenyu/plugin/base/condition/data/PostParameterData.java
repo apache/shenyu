@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.List;
 
 /**
  * The type Post parameter data.
@@ -30,8 +34,13 @@ import org.springframework.web.server.ServerWebExchange;
 public class PostParameterData implements ParameterData {
     
     @Override
-    public String builder(final String paramName, final ServerWebExchange exchange) {
+    public List<String> builder(final String paramName, final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        return (String) ReflectUtils.getFieldValue(shenyuContext, paramName);
+        List<String> result = Lists.newArrayList();
+        String parameter = (String) ReflectUtils.getFieldValue(shenyuContext, paramName);
+        if (StringUtils.isNotEmpty(parameter)) {
+            result.add((String) ReflectUtils.getFieldValue(shenyuContext, paramName));
+        }
+        return result;
     }
 }

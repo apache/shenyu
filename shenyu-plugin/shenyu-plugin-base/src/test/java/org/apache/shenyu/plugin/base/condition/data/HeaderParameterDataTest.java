@@ -26,6 +26,7 @@ import org.springframework.web.server.ServerWebExchange;
 import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for {@link HeaderParameterData}.
@@ -40,14 +41,17 @@ public final class HeaderParameterDataTest {
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
-                .header("shenyu", "shenyuHeader")
+                .header("shenyu", "shenyuHeader1")
+                .header("shenyu", "shenyuHeader2")
                 .build());
         this.parameterData = new HeaderParameterData();
     }
 
     @Test
     public void testBuilder() {
-        assertEquals("", parameterData.builder("invalidParamName", exchange));
-        assertEquals("shenyuHeader", parameterData.builder("shenyu", exchange));
+        assertNull(parameterData.builder("invalidParamName", exchange));
+        assertEquals(2, parameterData.builder("shenyu", exchange).size());
+        assertEquals(true, parameterData.builder("shenyu", exchange).contains("shenyuHeader1"));
+        assertEquals(true, parameterData.builder("shenyu", exchange).contains("shenyuHeader2"));
     }
 }

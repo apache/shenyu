@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.spi.SPI;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.List;
 
 /**
  * The interface Parameter data.
@@ -33,7 +36,7 @@ public interface ParameterData {
      * @param exchange the exchange
      * @return the string
      */
-    default String builder(final String paramName, final ServerWebExchange exchange) {
-        return "";
+    default List<String> builder(final String paramName, final ServerWebExchange exchange) {
+        return Lists.newArrayList();
     }
 }

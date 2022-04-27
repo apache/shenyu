@@ -17,11 +17,16 @@
 
 package org.apache.shenyu.plugin.base.condition.judge;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,11 +42,14 @@ public final class PredicateJudgeFactoryTest {
 
     private ConditionData conditionData;
 
+    private List<String> realDatas;
+
     @BeforeEach
     public void setUp() {
         conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setParamValue("/http/");
+        realDatas = new ArrayList<>();
     }
 
     @Test
@@ -51,7 +59,7 @@ public final class PredicateJudgeFactoryTest {
 
     @Test
     public void testRealDataIsBlank() {
-        assertFalse(PredicateJudgeFactory.judge(conditionData, null));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, Lists.newArrayList()));
         assertFalse(PredicateJudgeFactory.judge(conditionData, ""));
     }
 
@@ -66,15 +74,21 @@ public final class PredicateJudgeFactoryTest {
     public void testMatchJudge() {
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/**");
+        realDatas.addAll(Arrays.asList(new String[]{"/http/**", "/http/test", "/http/test/test"}));
+
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
 
+        assertTrue(PredicateJudgeFactory.judge(conditionData, realDatas));
+
         conditionData.setParamType(ParamTypeEnum.HEADER.getName());
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
+        realDatas.add("/http1/**");
+        assertFalse(PredicateJudgeFactory.judge(conditionData, realDatas));
     }
 
     @Test

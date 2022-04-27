@@ -21,6 +21,8 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.List;
+
 /**
  * AbstractMatchStrategy.
  */
@@ -33,7 +35,7 @@ public abstract class AbstractMatchStrategy {
      * @param exchange  the exchange
      * @return the string
      */
-    public String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
+    public List<String> buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
         return ParameterDataFactory.builderData(condition.getParamType(), condition.getParamName(), exchange);
     }
 }

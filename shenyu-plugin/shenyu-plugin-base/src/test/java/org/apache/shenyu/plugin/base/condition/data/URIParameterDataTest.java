@@ -47,6 +47,6 @@ public final class URIParameterDataTest {
 
     @Test
     public void testBuilder() {
-        assertEquals("/uri/path", uriParameterData.builder(null, exchange));
+        assertEquals("/uri/path", uriParameterData.builder(null, exchange).get(0));
     }
 }

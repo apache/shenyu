@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.base.condition.data;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.List;
+
 /**
  * The type Query parameter data.
  */
@@ -27,7 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
 public class QueryParameterData implements ParameterData {
     
     @Override
-    public String builder(final String paramName, final ServerWebExchange exchange) {
-        return exchange.getRequest().getQueryParams().getFirst(paramName);
+    public List<String> builder(final String paramName, final ServerWebExchange exchange) {
+        return exchange.getRequest().getQueryParams().get(paramName);
     }
 }

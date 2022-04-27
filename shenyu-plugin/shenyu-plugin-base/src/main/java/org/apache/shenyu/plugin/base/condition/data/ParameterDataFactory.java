@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.base.condition.data;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.List;
+
 /**
  * The type Parameter data factory.
  */
@@ -46,7 +48,7 @@ public final class ParameterDataFactory {
      * @param exchange the exchange
      * @return the string
      */
-    public static String builderData(final String paramType, final String paramName, final ServerWebExchange exchange) {
+    public static List<String> builderData(final String paramType, final String paramName, final ServerWebExchange exchange) {
         return newInstance(paramType).builder(paramName, exchange);
     }
 }

@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.condition.data;
 
 import org.apache.shenyu.spi.Join;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
@@ -30,11 +29,7 @@ import java.util.List;
 public class HeaderParameterData implements ParameterData {
     
     @Override
-    public String builder(final String paramName, final ServerWebExchange exchange) {
-        List<String> headers = exchange.getRequest().getHeaders().get(paramName);
-        if (CollectionUtils.isEmpty(headers)) {
-            return "";
-        } 
-        return headers.get(0);
+    public List<String> builder(final String paramName, final ServerWebExchange exchange) {
+        return exchange.getRequest().getHeaders().get(paramName);
     }
 }
