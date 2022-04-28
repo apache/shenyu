@@ -109,7 +109,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         if (CollectionUtils.isEmpty(extPlugins)) {
             return;
         }
-        List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
+        final List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
                 .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
@@ -130,8 +130,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         PluginData pluginData = (PluginData) event.getSource();
         switch (stateEnums) {
             case ENABLED:
-                // enabled plugin.
-                this.plugins = new CopyOnWriteArrayList<>(onPluginEnabled(pluginData));
+                onPluginEnabled(pluginData);
                 break;
             case DELETE:
             case DISABLED:
@@ -168,12 +167,12 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * @param pluginData plugin data
      * @return enabled plugins
      */
-    private List<ShenyuPlugin> onPluginEnabled(final PluginData pluginData) {
+    private void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
-        List<ShenyuPlugin> pluginSet = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
+        final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
                 && pluginData.getEnabled()).collect(Collectors.toList());
-        this.plugins.addAll(pluginSet);
-        return this.plugins.stream().distinct().collect(Collectors.toList());
+        enabledPlugins.removeAll(this.plugins);
+        this.plugins.addAll(enabledPlugins);
     }
 
     /**
