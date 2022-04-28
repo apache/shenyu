@@ -64,20 +64,21 @@ public final class FallbackFilterTest {
     }
 
     @Test
-    public void testFilterMatch() {
+    public void testDoMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/fallback/hystrix"));
-        Mono<Void> filter = fallbackFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+        Mono<Boolean> filter = fallbackFilter.doMatcher(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.TRUE).verifyComplete();
     }
 
     @Test
-    public void testFilterNotMatch() {
+    public void testDoNotMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/"));
-        Mono<Void> filter = fallbackFilter.filter(webExchange, webFilterChain);
-        StepVerifier.create(filter).expectSubscription().verifyComplete();
+        Mono<Boolean> filter = fallbackFilter.doMatcher(webExchange, webFilterChain);
+        StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
     }
+
 }

@@ -151,7 +151,7 @@ public class MemoryLimiter {
                 return false;
             }
             memory.add(objectSize);
-            if (sum < memoryLimit) {
+            if (memory.sum() < memoryLimit) {
                 notLimited.signal();
             }
         } finally {
@@ -214,13 +214,12 @@ public class MemoryLimiter {
         }
         acquireLock.lockInterruptibly();
         try {
-            final long sum = memory.sum();
             final long objectSize = inst.getObjectSize(o);
-            while (sum + objectSize >= memoryLimit) {
+            while (memory.sum() + objectSize >= memoryLimit) {
                 notLimited.await();
             }
             memory.add(objectSize);
-            if (sum < memoryLimit) {
+            if (memory.sum() < memoryLimit) {
                 notLimited.signal();
             }
         } finally {

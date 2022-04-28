@@ -22,7 +22,6 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -67,10 +66,10 @@ public interface DataPermissionMapper {
 
     /**
      * delete permission data by ids of users.
-     * @param userIdSet ids of users
+     * @param userIdList ids of users
      * @return the count of deleted
      */
-    int deleteByUserIdSet(@Param("userIdSet") Set<String> userIdSet);
+    int deleteByUserIdList(@Param("userIdList") List<String> userIdList);
 
     /**
      * deleteSelector data permission by data id.

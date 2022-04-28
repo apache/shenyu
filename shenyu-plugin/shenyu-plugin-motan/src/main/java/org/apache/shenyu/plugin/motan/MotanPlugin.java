@@ -69,12 +69,12 @@ public class MotanPlugin extends AbstractShenyuPlugin {
             assert metaData != null;
             LOG.error("path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM);
             return WebFluxResultUtils.result(exchange, error);
         }
         final Mono<Object> result = motanProxyService.genericInvoker(param, metaData, exchange);
