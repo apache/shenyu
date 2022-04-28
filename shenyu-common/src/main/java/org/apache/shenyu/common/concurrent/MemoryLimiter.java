@@ -151,7 +151,7 @@ public class MemoryLimiter {
                 return false;
             }
             memory.add(objectSize);
-            if (sum < memoryLimit) {
+            if (memory.sum() < memoryLimit) {
                 notLimited.signal();
             }
         } finally {
