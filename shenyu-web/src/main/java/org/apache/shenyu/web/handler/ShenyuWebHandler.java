@@ -54,7 +54,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     /**
      * this filed can not set to be final, because we should copyOnWrite to update plugins.
      */
-    private List<ShenyuPlugin> plugins;
+    private final List<ShenyuPlugin> plugins;
 
     /**
      * source plugins, these plugins load from ShenyuPlugin, this filed can't change.
@@ -115,7 +115,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
             shenyuPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
             shenyuPlugins.addAll(plugins);
-            this.plugins = sortPlugins(shenyuPlugins);
+            onSortedPlugins();
         }
     }
     
@@ -139,27 +139,25 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 break;
             case SORTED:
                 // copy a new one, or there will be concurrency problems
-                this.plugins = sortPlugins(new CopyOnWriteArrayList<>(this.plugins));
+                onSortedPlugins();
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + event.getPluginStateEnums());
         }
-        this.plugins = sortPlugins(new CopyOnWriteArrayList<>(this.plugins));
+        onSortedPlugins();
     }
 
     /**
      * sort plugins.
      *
-     * @param list list of plugin
      * @return sorted list
      */
-    private List<ShenyuPlugin> sortPlugins(final List<ShenyuPlugin> list) {
-        Map<String, Integer> pluginSortMap = list.stream().collect(Collectors.toMap(ShenyuPlugin::named, plugin -> {
+    private void onSortedPlugins() {
+        Map<String, Integer> pluginSortMap = this.plugins.stream().collect(Collectors.toMap(ShenyuPlugin::named, plugin -> {
             PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(plugin.named());
             return Optional.ofNullable(pluginData).map(PluginData::getSort).orElse(plugin.getOrder());
         }));
-        list.sort(Comparator.comparingLong(plugin -> pluginSortMap.get(plugin.named())));
-        return list;
+        this.plugins.sort(Comparator.comparingLong(plugin -> pluginSortMap.get(plugin.named())));
     }
 
     /**

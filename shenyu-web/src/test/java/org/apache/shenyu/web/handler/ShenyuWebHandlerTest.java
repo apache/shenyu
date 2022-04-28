@@ -24,6 +24,7 @@ import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -105,6 +107,17 @@ public final class ShenyuWebHandlerTest {
         List<ShenyuPlugin> pluginDelete = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
         assertNotNull(pluginDelete);
         assertTrue(pluginDelete.contains(plugin1) && !pluginDelete.contains(plugin2));
+
+        pluginData1.setSort(70);
+        pluginData2.setEnabled(true);
+        BaseDataCache.getInstance().cachePluginData(pluginData1);
+        BaseDataCache.getInstance().cachePluginData(pluginData2);
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData2));
+        List<ShenyuPlugin> pluginDataSorted = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertNotNull(pluginDataSorted);
+        assertEquals(pluginDataSorted.get(0), plugin2);
+        assertEquals(pluginDataSorted.get(1), plugin1);
     }
 
     static class TestPlugin1 implements ShenyuPlugin {
