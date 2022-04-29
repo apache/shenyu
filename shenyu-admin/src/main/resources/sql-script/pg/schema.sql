@@ -1092,6 +1092,35 @@ ELSE
 
 	PERFORM public.dblink_exec('init_conn', 'COMMIT');
 END IF;
+
+-- ----------------------------------------
+-- create table operation_record_log if not exist ---
+-- ---------------------------------------
+IF (SELECT * FROM dblink('host=localhost user=' || _user || ' password=' || _password || ' dbname=' ||_db,'SELECT COUNT(1) FROM pg_class  WHERE relname  = ''' ||'operation_record_log' || '''')AS t(count BIGINT) )> 0 THEN
+    RAISE NOTICE 'operation_record_log already exists';
+ELSE
+    PERFORM public.dblink_exec('init_conn', 'BEGIN');
+    PERFORM public.dblink_exec('init_conn', 'CREATE TABLE "operation_record_log" (
+      "id" int8 NOT NULL,
+      "color" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
+      "context" text COLLATE "pg_catalog"."default" NOT NULL,
+      "operator" varchar(200) COLLATE "pg_catalog"."default" NOT NULL,
+      "operation_time" timestamp(6) NOT NULL,
+      "operation_type" varchar(60) COLLATE "pg_catalog"."default" NOT NULL,
+      CONSTRAINT "operation_record_log_pkey" PRIMARY KEY ("id")
+    )');
+
+    PERFORM public.dblink_exec('init_conn','COMMENT ON COLUMN "operation_record_log"."id" IS ''' || 'id' || '''');
+    PERFORM public.dblink_exec('init_conn','COMMENT ON COLUMN "operation_record_log"."color" IS ''' || 'log color' || '''');
+    PERFORM public.dblink_exec('init_conn','COMMENT ON COLUMN "operation_record_log"."context" IS ''' || 'log context' || '''');
+    PERFORM public.dblink_exec('init_conn','COMMENT ON COLUMN "operation_record_log"."operator" IS ''' || 'operator [user or app]]' || '''');
+    PERFORM public.dblink_exec('init_conn','COMMENT ON COLUMN "operation_record_log"."operation_time" IS ''' || 'operation time' || '''');
+    PERFORM public.dblink_exec('init_conn','COMMENT ON COLUMN "operation_record_log"."operation_type" IS ''' || 'operation type：create/update/delete/register...' || '''');
+    PERFORM public.dblink_exec('init_conn','COMMENT ON TABLE "operation_record_log" IS ''' || 'operation record log' || '''');
+
+    PERFORM public.dblink_exec('init_conn', 'COMMIT');
+END IF;
+
 	PERFORM public.dblink_disconnect('init_conn');
 END
 $do$;
