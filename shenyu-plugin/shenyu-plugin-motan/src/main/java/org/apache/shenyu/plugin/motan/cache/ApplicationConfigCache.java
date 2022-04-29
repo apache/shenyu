@@ -113,6 +113,7 @@ public final class ApplicationConfigCache {
             protocolConfig = new ProtocolConfig();
             protocolConfig.setId("motan2-breeze");
             protocolConfig.setName("motan2");
+            protocolConfig.setRequestTimeout(1000);
         }
     }
     
@@ -185,7 +186,7 @@ public final class ApplicationConfigCache {
         });
         reference.setGroup(motanParamExtInfo.getGroup());
         reference.setVersion("1.0");
-        reference.setRequestTimeout(1000);
+        reference.setRequestTimeout(motanParamExtInfo.getTimeout());
         reference.setRegistry(registryConfig);
         reference.setProtocol(protocolConfig);
         CommonHandler obj = reference.getRef();
@@ -281,6 +282,8 @@ public final class ApplicationConfigCache {
         private List<MethodInfo> methodInfo;
         
         private String group;
+
+        private Integer timeout;
         
         /**
          * Gets method info.
@@ -316,6 +319,14 @@ public final class ApplicationConfigCache {
          */
         public void setGroup(final String group) {
             this.group = group;
+        }
+
+        public Integer getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(final Integer timeout) {
+            this.timeout = timeout;
         }
     }
     
