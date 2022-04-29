@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The shenyu dict mapper.
@@ -68,12 +67,12 @@ public interface ShenyuDictMapper extends ExistProvider {
     List<ShenyuDictDO> findByType(@Param("type") String type);
     
     /**
-     * find shenyu dict do list by a set of types.
+     * find shenyu dict do list by a list of types.
      *
-     * @param typeSet a set of types
+     * @param typeList a list of types
      * @return the list
      */
-    List<ShenyuDictDO> findByTypeBatch(@Param("typeSet") Set<String> typeSet);
+    List<ShenyuDictDO> findByTypeBatch(@Param("typeList") List<String> typeList);
     
     /**
      * insert shenyu dict.
