@@ -42,7 +42,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
             return null;
         }
         // available upstream list
-        List<Upstream> available = upstreamList.stream().filter(upstream -> getWeight(upstream) > 0).collect(Collectors.toList());
+        List<Upstream> available = upstreamList.stream().filter(Upstream::isStatus).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(available)) {
             return null;
         }
