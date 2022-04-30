@@ -31,7 +31,6 @@ public class RegistryProperties {
 
     private String address;
 
-    private Integer timeout;
 
     /**
      * Get the protocol.
@@ -69,11 +68,4 @@ public class RegistryProperties {
         this.address = address;
     }
 
-    public Integer getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
-    }
 }

@@ -41,6 +41,7 @@ import org.springframework.lang.NonNull;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -113,7 +114,6 @@ public final class ApplicationConfigCache {
             protocolConfig = new ProtocolConfig();
             protocolConfig.setId("motan2-breeze");
             protocolConfig.setName("motan2");
-            protocolConfig.setRequestTimeout(1000);
         }
     }
     
@@ -186,7 +186,7 @@ public final class ApplicationConfigCache {
         });
         reference.setGroup(motanParamExtInfo.getGroup());
         reference.setVersion("1.0");
-        reference.setRequestTimeout(motanParamExtInfo.getTimeout());
+        reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(registryConfig);
         reference.setProtocol(protocolConfig);
         CommonHandler obj = reference.getRef();
