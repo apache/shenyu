@@ -18,10 +18,13 @@
 package org.apache.shenyu.plugin.base.condition.strategy;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
+import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 import org.apache.shenyu.spi.SPI;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This is condition strategy.
@@ -37,4 +40,28 @@ public interface MatchStrategy {
      * @return true is match , false is not match.
      */
     Boolean match(List<ConditionData> conditionDataList, ServerWebExchange exchange);
+
+    /**
+     * Build real data string.
+     *
+     * @param condition the condition
+     * @param exchange  the exchange
+     * @return the string
+     */
+    default String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
+        return ParameterDataFactory.builderData(condition.getParamType(), condition.getParamName(), exchange);
+    }
+
+    /**
+     * this is condition match.
+     *
+     * @param conditionDataList condition list.
+     * @param exchange          {@linkplain ServerWebExchange}
+     * @return matched conditions
+     */
+    default List<ConditionData> findMatchedCondition(List<ConditionData> conditionDataList, ServerWebExchange exchange){
+        return conditionDataList.stream()
+                .filter(condition -> PredicateJudgeFactory.judge(condition, buildRealData(condition, exchange)))
+                .collect(Collectors.toList());
+    }
 }

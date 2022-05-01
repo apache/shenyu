@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -33,6 +35,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -66,11 +69,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         String pluginName = named();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
-            final Collection<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
-            if (CollectionUtils.isEmpty(selectors)) {
+            final Map<Integer, List<ConditionData>> conditions = BaseDataCache.getInstance().obtainConditionData(pluginName);
+            if (MapUtils.isEmpty(conditions)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
-            SelectorData selectorData = matchSelector(exchange, selectors);
+            SelectorData selectorData = matchSelector(exchange, conditions);
             if (Objects.isNull(selectorData)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
@@ -103,20 +106,16 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    private SelectorData matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
-        return selectors.stream()
-                .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
+    private SelectorData matchSelector(final ServerWebExchange exchange, final Map<Integer, List<ConditionData>> conditions) {
+        return conditions.entrySet().stream()
+                .map(entry -> {
+                    final Integer matchMode = entry.getKey();
+                    final List<ConditionData> conditionData = entry.getValue();
+                    return MatchStrategyFactory.findMatchedConditions(matchMode, conditionData, exchange);
+                })
+                .flatMap(Collection::stream)
+                .map(condition -> BaseDataCache.getInstance().getSelectorData(condition))
                 .findFirst().orElse(null);
-    }
-
-    private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
-        if (selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
-            if (CollectionUtils.isEmpty(selector.getConditionList())) {
-                return false;
-            }
-            return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
-        }
-        return true;
     }
 
     private RuleData matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {

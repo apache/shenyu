@@ -28,7 +28,7 @@ import java.util.List;
  * This is and match strategy.
  */
 @Join
-public class AndMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
+public class AndMatchStrategy implements MatchStrategy {
 
     @Override
     public Boolean match(final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
