@@ -194,8 +194,9 @@ public final class BaseDataCache {
     public void removeSelectDataByPluginName(final String pluginName) {
         final List<SelectorData> selectorDataList = SELECTOR_MAP.get(pluginName);
         SELECTOR_MAP.remove(pluginName);
-        Optional.ofNullable(selectorDataList).ifPresent(selectors ->
-                selectors.stream().filter(selector -> selector.getEnabled() && selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()).forEach(selector ->
+        Optional.ofNullable(selectorDataList).ifPresent(selectors -> selectors.stream()
+                .filter(selector -> Optional.ofNullable(selector.getEnabled()).orElse(false) && selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .forEach(selector ->
                         Optional.ofNullable(selector.getConditionList()).ifPresent(conditions -> conditions.forEach(condition -> {
                             CONDITION_SELECTOR_MAP.remove(condition);
                             Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
