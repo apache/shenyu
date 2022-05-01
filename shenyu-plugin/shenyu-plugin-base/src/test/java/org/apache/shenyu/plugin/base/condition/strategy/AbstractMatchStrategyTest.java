@@ -116,7 +116,7 @@ public final class AbstractMatchStrategyTest {
     private static class TestMatchStrategy implements MatchStrategy {
 
         @Override
-        public Boolean match(List<ConditionData> conditionDataList, ServerWebExchange exchange) {
+        public Boolean match(final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
             throw new UnsupportedOperationException();
         }
     }

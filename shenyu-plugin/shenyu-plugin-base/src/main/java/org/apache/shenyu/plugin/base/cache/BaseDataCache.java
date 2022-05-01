@@ -63,12 +63,12 @@ public final class BaseDataCache {
     private static final ConcurrentMap<ConditionData, SelectorData> CONDITION_SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
-     * realDataString -> ConditionData
+     * realDataString -> ConditionData.
      */
     private static final MemorySafeLRUMap<String, ConditionData> MATCH_CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
 
     /**
-     * When the selector is updated, the data needs to be cleaned up
+     * When the selector is updated, the data needs to be cleaned up.
      */
     private static final ConcurrentMap<ConditionData, Set<String>> MATCH_MAPPING = Maps.newConcurrentMap();
 
