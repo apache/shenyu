@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -126,12 +125,12 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCacheSelectData() throws NoSuchFieldException, IllegalAccessException {
-        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).matchMode(MatchModeEnum.AND.getCode()).build();
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         BaseDataCache.getInstance().cacheSelectData(firstCachedSelectorData);
         ConcurrentHashMap<String, List<SelectorData>> selectorMap = getFieldByName(selectorMapStr);
         assertEquals(Lists.newArrayList(firstCachedSelectorData), selectorMap.get(mockPluginName1));
 
-        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).matchMode(MatchModeEnum.AND.getCode()).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
         BaseDataCache.getInstance().cacheSelectData(secondCachedSelectorData);
         assertEquals(Lists.newArrayList(firstCachedSelectorData, secondCachedSelectorData), selectorMap.get(mockPluginName1));
     }

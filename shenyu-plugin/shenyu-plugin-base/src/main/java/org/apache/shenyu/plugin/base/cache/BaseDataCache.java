@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -357,18 +358,20 @@ public final class BaseDataCache {
         synchronized (MATCH_MODE_MAP) {
             final ConcurrentMap<Integer, List<ConditionData>> matchModeMap = MATCH_MODE_MAP.computeIfAbsent(key, k -> Maps.newConcurrentMap());
             final Integer matchMode = data.getMatchMode();
-            final List<ConditionData> conditionDataList = matchModeMap.computeIfAbsent(matchMode, k -> new LinkedList<>());
-            Optional.ofNullable(data.getConditionList())
-                    .ifPresent(conditions -> {
-                        if (data.getEnabled() && data.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
-                            conditionDataList.addAll(conditions);
-                        }
-                        conditions.forEach(condition -> {
-                            CONDITION_SELECTOR_MAP.put(condition, data);
-                            // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
-                            Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
+            if (Objects.nonNull(matchMode)) {
+                final List<ConditionData> conditionDataList = matchModeMap.computeIfAbsent(matchMode, k -> new LinkedList<>());
+                Optional.ofNullable(data.getConditionList())
+                        .ifPresent(conditions -> {
+                            if (data.getEnabled() && data.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
+                                conditionDataList.addAll(conditions);
+                            }
+                            conditions.forEach(condition -> {
+                                CONDITION_SELECTOR_MAP.put(condition, data);
+                                // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
+                                Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
+                            });
                         });
-                    });
+            }
         }
     }
 }

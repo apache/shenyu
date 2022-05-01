@@ -71,8 +71,7 @@ public final class AbstractShenyuPluginTest {
         this.shenyuPluginChain = mock(ShenyuPluginChain.class);
         this.pluginData = PluginData.builder().name("SHENYU").enabled(true).build();
         this.selectorData = SelectorData.builder().id("1").pluginName("SHENYU")
-                .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
-                .matchMode(MatchModeEnum.AND.getCode()).build();
+                .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
         this.testShenyuPlugin = new TestShenyuPlugin();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
                 .build());
