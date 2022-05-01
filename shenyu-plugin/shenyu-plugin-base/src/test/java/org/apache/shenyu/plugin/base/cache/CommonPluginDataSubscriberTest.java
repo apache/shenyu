@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,7 +127,7 @@ public final class CommonPluginDataSubscriberTest {
     public void testOnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
 
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).matchMode(MatchModeEnum.AND.getCode()).build();
         commonPluginDataSubscriber.onSelectorSubscribe(selectorData);
         List<SelectorData> obtainSelectorData = baseDataCache.obtainSelectorData(selectorData.getPluginName());
         assertEquals(Lists.newArrayList(selectorData), obtainSelectorData);
@@ -135,7 +136,7 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testUnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).matchMode(MatchModeEnum.AND.getCode()).build();
         baseDataCache.cacheSelectData(selectorData);
         assertNotNull(baseDataCache.obtainSelectorData(selectorData.getPluginName()));
 
@@ -146,8 +147,8 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshSelectorDataAll() {
         baseDataCache.cleanSelectorData();
-        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).matchMode(MatchModeEnum.AND.getCode()).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).matchMode(MatchModeEnum.AND.getCode()).build();
         baseDataCache.cacheSelectData(firstCachedSelectorData);
         baseDataCache.cacheSelectData(secondCachedSelectorData);
         assertNotNull(baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
@@ -161,8 +162,8 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshSelectorDataSelf() {
         baseDataCache.cleanSelectorData();
-        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).matchMode(MatchModeEnum.AND.getCode()).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).matchMode(MatchModeEnum.AND.getCode()).build();
         baseDataCache.cacheSelectData(firstCachedSelectorData);
         baseDataCache.cacheSelectData(secondCachedSelectorData);
         assertNotNull(baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
