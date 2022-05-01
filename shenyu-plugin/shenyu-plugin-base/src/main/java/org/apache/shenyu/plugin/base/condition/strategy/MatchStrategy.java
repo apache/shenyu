@@ -18,12 +18,14 @@
 package org.apache.shenyu.plugin.base.condition.strategy;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
 import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 import org.apache.shenyu.spi.SPI;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -59,9 +61,21 @@ public interface MatchStrategy {
      * @param exchange          {@linkplain ServerWebExchange}
      * @return matched conditions
      */
-    default List<ConditionData> findMatchedCondition(List<ConditionData> conditionDataList, ServerWebExchange exchange){
+    default List<ConditionData> findMatchedCondition(List<ConditionData> conditionDataList, ServerWebExchange exchange) {
         return conditionDataList.stream()
-                .filter(condition -> PredicateJudgeFactory.judge(condition, buildRealData(condition, exchange)))
+                .filter(condition -> {
+                    // are condition and real data mapped one-to-one ?
+                    final String realData = buildRealData(condition, exchange);
+                    final ConditionData matched = BaseDataCache.getInstance().obtainMatchedCondition(realData);
+                    if (Objects.nonNull(matched)) {
+                        return true;
+                    }
+                    final Boolean match = PredicateJudgeFactory.judge(condition, realData);
+                    if (match) {
+                        BaseDataCache.getInstance().cacheMatchedCondition(realData, condition);
+                    }
+                    return match;
+                })
                 .collect(Collectors.toList());
     }
 }

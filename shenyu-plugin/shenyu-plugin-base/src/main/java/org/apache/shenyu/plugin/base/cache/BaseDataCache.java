@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.shenyu.common.cache.MemorySafeLRUMap;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -26,10 +28,12 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -57,6 +61,16 @@ public final class BaseDataCache {
     private static final ConcurrentMap<String, ConcurrentMap<Integer, List<ConditionData>>> MATCH_MODE_MAP = Maps.newConcurrentMap();
 
     private static final ConcurrentMap<ConditionData, SelectorData> CONDITION_SELECTOR_MAP = Maps.newConcurrentMap();
+
+    /**
+     * realDataString -> ConditionData
+     */
+    private static final MemorySafeLRUMap<String, ConditionData> MATCH_CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
+
+    /**
+     * When the selector is updated, the data needs to be cleaned up
+     */
+    private static final ConcurrentMap<ConditionData, Set<String>> MATCH_MAPPING = Maps.newConcurrentMap();
 
     /**
      * selectorId -> RuleData.
@@ -138,6 +152,18 @@ public final class BaseDataCache {
     }
 
     /**
+     * Cache matched data.
+     *
+     * @param realData      the real data string
+     * @param conditionData the condition data
+     */
+    public void cacheMatchedCondition(final String realData, final ConditionData conditionData) {
+        MATCH_CACHE.put(realData, conditionData);
+        final Set<String> set = MATCH_MAPPING.computeIfAbsent(conditionData, key -> new HashSet<>());
+        set.add(realData);
+    }
+
+    /**
      * Remove select data.
      *
      * @param selectorData the selector data
@@ -148,7 +174,7 @@ public final class BaseDataCache {
             final List<SelectorData> selectorDataList = SELECTOR_MAP.get(pluginName);
             Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
             Optional.ofNullable(selectorData.getConditionList())
-                    .ifPresent(list-> {
+                    .ifPresent(list -> {
                         if (selectorData.getEnabled() && selectorData.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
                             Optional.ofNullable(MATCH_MODE_MAP.get(pluginName))
                                     .flatMap(matchModeMap -> Optional.ofNullable(matchModeMap.get(selectorData.getMatchMode())))
@@ -169,7 +195,10 @@ public final class BaseDataCache {
         SELECTOR_MAP.remove(pluginName);
         Optional.ofNullable(selectorDataList).ifPresent(selectors ->
                 selectors.stream().filter(selector -> selector.getEnabled() && selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()).forEach(selector ->
-                        Optional.ofNullable(selector.getConditionList()).ifPresent(conditions -> conditions.forEach(CONDITION_SELECTOR_MAP::remove))));
+                        Optional.ofNullable(selector.getConditionList()).ifPresent(conditions -> conditions.forEach(condition -> {
+                            CONDITION_SELECTOR_MAP.remove(condition);
+                            Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
+                        }))));
         MATCH_MODE_MAP.remove(pluginName);
     }
 
@@ -219,6 +248,16 @@ public final class BaseDataCache {
      */
     public Map<Integer, List<ConditionData>> obtainConditionData(final String pluginName) {
         return MATCH_MODE_MAP.get(pluginName);
+    }
+
+    /**
+     * Obtain matched condition data.
+     *
+     * @param realData the real data string
+     * @return the matched condition data
+     */
+    public ConditionData obtainMatchedCondition(final String realData) {
+        return MATCH_CACHE.get(realData);
     }
 
     /**
@@ -278,7 +317,7 @@ public final class BaseDataCache {
     }
 
     /**
-     *  cache rule data.
+     * cache rule data.
      *
      * @param data the rule data
      */
@@ -324,7 +363,11 @@ public final class BaseDataCache {
                         if (data.getEnabled() && data.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
                             conditionDataList.addAll(conditions);
                         }
-                        conditions.forEach(condition -> CONDITION_SELECTOR_MAP.put(condition, data));
+                        conditions.forEach(condition -> {
+                            CONDITION_SELECTOR_MAP.put(condition, data);
+                            // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
+                            Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
+                        });
                     });
         }
     }
