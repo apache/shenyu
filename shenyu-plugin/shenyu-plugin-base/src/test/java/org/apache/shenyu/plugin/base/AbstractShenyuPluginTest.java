@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
@@ -70,7 +71,8 @@ public final class AbstractShenyuPluginTest {
         this.shenyuPluginChain = mock(ShenyuPluginChain.class);
         this.pluginData = PluginData.builder().name("SHENYU").enabled(true).build();
         this.selectorData = SelectorData.builder().id("1").pluginName("SHENYU")
-                .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
+                .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .matchMode(MatchModeEnum.AND.getCode()).build();
         this.testShenyuPlugin = new TestShenyuPlugin();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
                 .build());

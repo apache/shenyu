@@ -35,6 +35,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -52,7 +53,7 @@ public final class AbstractMatchStrategyTest {
 
     private ServerWebExchange exchange;
 
-    private AbstractMatchStrategy abstractMatchStrategy;
+    private MatchStrategy abstractMatchStrategy;
 
     @BeforeEach
     public void setUp() {
@@ -112,7 +113,11 @@ public final class AbstractMatchStrategyTest {
         assertEquals("testMethod", abstractMatchStrategy.buildRealData(conditionData, exchange));
     }
 
-    private static class TestMatchStrategy extends AbstractMatchStrategy {
+    private static class TestMatchStrategy implements MatchStrategy {
 
+        @Override
+        public Boolean match(List<ConditionData> conditionDataList, ServerWebExchange exchange) {
+            throw new UnsupportedOperationException();
+        }
     }
 }
