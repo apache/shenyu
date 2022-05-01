@@ -47,6 +47,7 @@ public enum ConditionTransfer {
         return Optional.ofNullable(selectorConditionDO)
                 .map(v -> {
                     ConditionData conditionData = new ConditionData();
+                    conditionData.setId(v.getId());
                     conditionData.setParamType(v.getParamType());
                     conditionData.setOperator(v.getOperator());
                     conditionData.setParamName(v.getParamName());
@@ -78,6 +79,7 @@ public enum ConditionTransfer {
         return Optional.ofNullable(selectorConditionDTO)
                 .map(v -> {
                     ConditionData conditionData = new ConditionData();
+                    conditionData.setId(v.getId());
                     conditionData.setParamType(v.getParamType());
                     conditionData.setOperator(v.getOperator());
                     conditionData.setParamName(v.getParamName());
@@ -97,6 +99,7 @@ public enum ConditionTransfer {
         return Optional.ofNullable(ruleConditionDO)
                 .map(v -> {
                     ConditionData conditionData = new ConditionData();
+                    conditionData.setId(v.getId());
                     conditionData.setParamType(v.getParamType());
                     conditionData.setOperator(v.getOperator());
                     conditionData.setParamName(v.getParamName());
@@ -116,6 +119,7 @@ public enum ConditionTransfer {
         return Optional.ofNullable(ruleConditionDTO)
                 .map(v -> {
                     ConditionData conditionData = new ConditionData();
+                    conditionData.setId(v.getId());
                     conditionData.setParamType(v.getParamType());
                     conditionData.setOperator(v.getOperator());
                     conditionData.setParamName(v.getParamName());
