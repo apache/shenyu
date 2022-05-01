@@ -365,13 +365,14 @@ public final class BaseDataCache {
                             if (data.getEnabled() && data.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
                                 conditionDataList.addAll(conditions);
                             }
-                            conditions.forEach(condition -> {
-                                CONDITION_SELECTOR_MAP.put(condition, data);
-                                // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
-                                Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
-                            });
                         });
             }
+            Optional.ofNullable(data.getConditionList())
+                    .ifPresent(conditions -> conditions.forEach(condition -> {
+                        CONDITION_SELECTOR_MAP.put(condition, data);
+                        // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
+                        Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
+                    }));
         }
     }
 }
