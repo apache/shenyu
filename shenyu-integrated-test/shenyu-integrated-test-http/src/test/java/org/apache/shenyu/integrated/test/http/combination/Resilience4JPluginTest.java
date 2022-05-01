@@ -24,6 +24,7 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
@@ -143,6 +144,7 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
 
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/test/**");
@@ -166,6 +168,7 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         ruleLocalData.setRuleHandler(JsonUtils.toJson(resilience4JHandle));
 
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/test/request/**");

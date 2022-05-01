@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
@@ -98,6 +99,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
 
     private List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamValue(TEST_PATH);
@@ -122,6 +124,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
 
         ruleLocalData.setRuleHandler(JsonUtils.toJson(cryptorRuleHandler));
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamValue(TEST_PATH);

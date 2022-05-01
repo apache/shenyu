@@ -42,6 +42,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
@@ -91,6 +92,7 @@ public final class ModifyResponsePluginTest extends AbstractPluginDataInit {
 
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/test/modifyResponse");
@@ -131,6 +133,7 @@ public final class ModifyResponsePluginTest extends AbstractPluginDataInit {
         LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setRuleHandler(JsonUtils.toJson(modifyResponseRuleHandle));
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamValue("/http/test/modifyResponse");

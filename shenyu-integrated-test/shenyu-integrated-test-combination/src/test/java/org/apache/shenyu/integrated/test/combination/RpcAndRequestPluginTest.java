@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
@@ -144,6 +145,7 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
 
     private List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/dubbo/**");
@@ -153,6 +155,7 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
     private RuleLocalData buildRuleLocalData() {
         final RuleLocalData ruleLocalData = new RuleLocalData();
         ConditionData conditionData = new ConditionData();
+        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamValue(TEST_PATH);
