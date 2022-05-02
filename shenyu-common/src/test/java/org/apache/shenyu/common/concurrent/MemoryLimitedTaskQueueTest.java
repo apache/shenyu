@@ -42,12 +42,12 @@ public class MemoryLimitedTaskQueueTest {
     @Test
     public void testOffer() {
         MemoryLimitedTaskQueue memoryLimitedTaskQueue = new MemoryLimitedTaskQueue<>(instrumentation);
-        assertTrue(memoryLimitedTaskQueue.doOffer(() -> {}));
+        assertTrue(memoryLimitedTaskQueue.doOffer(() -> { }));
     }
 
     @Test
     public void testOfferWhenMemoryNotSufficient() {
         MemoryLimitedTaskQueue memoryLimitedTaskQueue = new MemoryLimitedTaskQueue<>(1, instrumentation);
-        assertFalse(memoryLimitedTaskQueue.doOffer(() -> {}));
+        assertFalse(memoryLimitedTaskQueue.doOffer(() -> { }));
     }
 }

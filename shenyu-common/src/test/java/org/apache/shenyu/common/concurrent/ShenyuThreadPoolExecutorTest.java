@@ -22,10 +22,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.lang.instrument.Instrumentation;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -41,7 +39,7 @@ public class ShenyuThreadPoolExecutorTest {
         instrumentation = ByteBuddyAgent.getInstrumentation();
     }
 
-    private ShenyuThreadPoolExecutor getTestExecutor(TaskQueue<Runnable> taskQueue) {
+    private ShenyuThreadPoolExecutor getTestExecutor(final TaskQueue<Runnable> taskQueue) {
         return new ShenyuThreadPoolExecutor(5, 10, 100, TimeUnit.SECONDS, taskQueue, ShenyuThreadFactory.create("Test", false), (r, e) -> {
         });
     }

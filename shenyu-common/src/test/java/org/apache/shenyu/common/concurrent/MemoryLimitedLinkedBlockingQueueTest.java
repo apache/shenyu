@@ -121,7 +121,7 @@ public class MemoryLimitedLinkedBlockingQueueTest {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         Future<Runnable> takeResult = executorService.submit(queue::take);
         Thread.sleep(2000);
-        queue.put(() -> {});
+        queue.put(() -> { });
         takeResult.get();
         assertEquals(0, queue.size());
     }

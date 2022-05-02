@@ -40,11 +40,11 @@ public class MemoryLimitCalculatorTest {
     @Test
     public void testCalculate() {
         float percentage = 0.5f;
-        assertEquals((long)(MemoryLimitCalculator.maxAvailable() * percentage), MemoryLimitCalculator.calculate(percentage));
+        assertEquals((long) (MemoryLimitCalculator.maxAvailable() * percentage), MemoryLimitCalculator.calculate(percentage));
     }
 
     @Test
     public void testDefaultCalculate() {
-        assertEquals((long)(MemoryLimitCalculator.maxAvailable() * 0.8), MemoryLimitCalculator.defaultLimit());
+        assertEquals((long) (MemoryLimitCalculator.maxAvailable() * 0.8), MemoryLimitCalculator.defaultLimit());
     }
 }
