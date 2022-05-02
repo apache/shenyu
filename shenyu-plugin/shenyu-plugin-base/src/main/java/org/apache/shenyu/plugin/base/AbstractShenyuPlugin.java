@@ -107,7 +107,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private SelectorData matchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors) {
         return selectors.stream()
-                .filter(selector -> selector.getEnabled() && selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .filter(selector -> selector.getEnabled() && selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()
+                        && CollectionUtils.isNotEmpty(selector.getConditionList()))
                 .collect(Collectors.toMap(SelectorData::getMatchMode, SelectorData::getConditionList, (o, n) -> {
                     o.addAll(n);
                     return o;
