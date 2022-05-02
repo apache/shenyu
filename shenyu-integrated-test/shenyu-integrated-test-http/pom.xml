@@ -146,6 +146,14 @@
         </dependency>
         <!--shenyu cache plugin end-->
 
+        <!-- apache shenyu metrics plugin starter-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-metrics</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- apache shenyu metrics plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
