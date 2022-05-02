@@ -15,16 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.admin.mapper;
 
-import org.springframework.context.ApplicationEvent;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.shenyu.admin.model.entity.OperationRecordLog;
+
+import java.util.List;
 
 /**
- * event of sort plugin.
+ * OperationRecordLogMapper.
  */
-public class SortPluginEvent extends ApplicationEvent {
-
-    public SortPluginEvent(final Object source) {
-        super(source);
-    }
+@Mapper
+public interface OperationRecordLogMapper {
+    
+    /**
+     * select limit.
+     *
+     * @param limit limit
+     * @return list
+     */
+    List<OperationRecordLog> selectLimit(@Param("limit") Integer limit);
+    
+    /**
+     * insert.
+     *
+     * @param recordLog log
+     * @return count change
+     */
+    int insert(OperationRecordLog recordLog);
 }

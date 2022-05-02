@@ -63,10 +63,10 @@
               WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByIdSet">
+    <delete id="deleteByIdList">
         DELETE FROM plugin_handle
               WHERE id IN
-                    <foreach collection="idSet" item="id" open="(" separator="," close=")">
+                    <foreach collection="idList" item="id" open="(" separator="," close=")">
                         #{id, jdbcType=VARCHAR}
                     </foreach>
     </delete>
