@@ -29,10 +29,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -55,13 +52,7 @@ public final class BaseDataCache {
      */
     private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
 
-    /**
-     * Note: Only the Condition of Selector with enable and type of custom is reserved.
-     * pluginName -> matchMode -> ConditionData
-     */
-    private static final ConcurrentMap<String, ConcurrentMap<Integer, List<ConditionData>>> MATCH_MODE_MAP = Maps.newConcurrentMap();
-
-    private static final ConcurrentMap<ConditionData, SelectorData> CONDITION_SELECTOR_MAP = Maps.newConcurrentMap();
+    private static final ConcurrentMap<String, SelectorData> CONDITION_SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
      * realDataString -> ConditionData.
@@ -174,15 +165,7 @@ public final class BaseDataCache {
             final String pluginName = data.getPluginName();
             final List<SelectorData> selectorDataList = SELECTOR_MAP.get(pluginName);
             Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
-            Optional.ofNullable(selectorData.getConditionList())
-                    .ifPresent(list -> {
-                        if (selectorData.getEnabled() && selectorData.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
-                            Optional.ofNullable(MATCH_MODE_MAP.get(pluginName))
-                                    .flatMap(matchModeMap -> Optional.ofNullable(matchModeMap.get(selectorData.getMatchMode())))
-                                    .ifPresent(all -> all.removeAll(list));
-                        }
-                        list.forEach(CONDITION_SELECTOR_MAP::remove);
-                    });
+            Optional.ofNullable(selectorData.getConditionList()).ifPresent(list -> list.forEach(item -> CONDITION_SELECTOR_MAP.remove(item.getId())));
         });
     }
 
@@ -198,10 +181,9 @@ public final class BaseDataCache {
                 .filter(selector -> Optional.ofNullable(selector.getEnabled()).orElse(false) && selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .forEach(selector ->
                         Optional.ofNullable(selector.getConditionList()).ifPresent(conditions -> conditions.forEach(condition -> {
-                            CONDITION_SELECTOR_MAP.remove(condition);
+                            CONDITION_SELECTOR_MAP.remove(condition.getId());
                             Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
                         }))));
-        MATCH_MODE_MAP.remove(pluginName);
     }
 
     /**
@@ -209,7 +191,6 @@ public final class BaseDataCache {
      */
     public void cleanSelectorData() {
         SELECTOR_MAP.clear();
-        MATCH_MODE_MAP.clear();
         CONDITION_SELECTOR_MAP.clear();
     }
 
@@ -233,23 +214,13 @@ public final class BaseDataCache {
     }
 
     /**
-     * Obtain selector data by condition data.
+     * Obtain selector data by condition id.
      *
-     * @param conditionData the condition data
+     * @param conditionId the condition id
      * @return the selector data
      */
-    public SelectorData getSelectorData(final ConditionData conditionData) {
-        return CONDITION_SELECTOR_MAP.get(conditionData);
-    }
-
-    /**
-     * Obtain condition data map.
-     *
-     * @param pluginName the plugin name
-     * @return the map
-     */
-    public Map<Integer, List<ConditionData>> obtainConditionData(final String pluginName) {
-        return MATCH_MODE_MAP.get(pluginName);
+    public SelectorData getSelectorData(final String conditionId) {
+        return CONDITION_SELECTOR_MAP.get(conditionId);
     }
 
     /**
@@ -356,21 +327,10 @@ public final class BaseDataCache {
                 SELECTOR_MAP.put(key, Lists.newArrayList(data));
             }
         }
-        synchronized (MATCH_MODE_MAP) {
-            final ConcurrentMap<Integer, List<ConditionData>> matchModeMap = MATCH_MODE_MAP.computeIfAbsent(key, k -> Maps.newConcurrentMap());
-            final Integer matchMode = data.getMatchMode();
-            if (Objects.nonNull(matchMode)) {
-                final List<ConditionData> conditionDataList = matchModeMap.computeIfAbsent(matchMode, k -> new LinkedList<>());
-                Optional.ofNullable(data.getConditionList())
-                        .ifPresent(conditions -> {
-                            if (data.getEnabled() && data.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
-                                conditionDataList.addAll(conditions);
-                            }
-                        });
-            }
+        synchronized (CONDITION_SELECTOR_MAP) {
             Optional.ofNullable(data.getConditionList())
                     .ifPresent(conditions -> conditions.forEach(condition -> {
-                        CONDITION_SELECTOR_MAP.put(condition, data);
+                        CONDITION_SELECTOR_MAP.put(condition.getId(), data);
                         // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
                         Optional.ofNullable(MATCH_MAPPING.get(condition)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
                     }));

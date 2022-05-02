@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -35,8 +34,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * abstract shenyu plugin please extends.
@@ -69,11 +68,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         String pluginName = named();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
-            final Map<Integer, List<ConditionData>> conditions = BaseDataCache.getInstance().obtainConditionData(pluginName);
-            if (MapUtils.isEmpty(conditions)) {
+            final List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
+            if (CollectionUtils.isEmpty(selectors)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
-            SelectorData selectorData = matchSelector(exchange, conditions);
+            SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
@@ -106,15 +105,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    private SelectorData matchSelector(final ServerWebExchange exchange, final Map<Integer, List<ConditionData>> conditions) {
-        return conditions.entrySet().stream()
+    private SelectorData matchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors) {
+        return selectors.stream()
+                .filter(selector -> selector.getEnabled() && selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .collect(Collectors.toMap(SelectorData::getMatchMode, SelectorData::getConditionList, (o, n) -> {
+                    o.addAll(n);
+                    return o;
+                }))
+                .entrySet().stream()
                 .map(entry -> {
                     final Integer matchMode = entry.getKey();
                     final List<ConditionData> conditionData = entry.getValue();
                     return MatchStrategyFactory.findMatchedConditions(matchMode, conditionData, exchange);
                 })
                 .flatMap(Collection::stream)
-                .map(condition -> BaseDataCache.getInstance().getSelectorData(condition))
+                .map(condition -> BaseDataCache.getInstance().getSelectorData(condition.getId()))
                 .findFirst().orElse(null);
     }
 
