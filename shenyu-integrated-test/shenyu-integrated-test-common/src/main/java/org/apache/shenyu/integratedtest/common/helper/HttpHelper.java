@@ -251,7 +251,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S> S testMetricsPluginFromGateway(final String path, final Type type) throws IOException {
-        Response response = getHttpService(METRICS_END_POINT + path, null);
+        Response response = getHttpService(path, null);
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("getFromGateway({}) resp({})", path, respBody);
         try {
