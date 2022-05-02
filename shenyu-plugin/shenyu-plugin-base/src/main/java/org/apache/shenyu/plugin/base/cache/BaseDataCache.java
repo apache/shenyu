@@ -52,6 +52,9 @@ public final class BaseDataCache {
      */
     private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
 
+    /**
+     * conditionId -> SelectorData.
+     */
     private static final ConcurrentMap<String, SelectorData> CONDITION_SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
