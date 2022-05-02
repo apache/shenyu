@@ -37,7 +37,7 @@ shenyu:
     enabled: true
     name: prometheus
     host: 127.0.0.1
-    port: 9195
+    port: 8090
     jmxConfig:
     props:
       jvm_enabled: true
