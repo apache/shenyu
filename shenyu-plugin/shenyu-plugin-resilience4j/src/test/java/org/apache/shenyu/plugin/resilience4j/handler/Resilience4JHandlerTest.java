@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 /**
  * The Test Case For Resilience4JHandler.
  */
-public class Resilience4JHandlerTest {
+public final class Resilience4JHandlerTest {
 
     private Resilience4JHandler resilience4JHandler = new Resilience4JHandler();
 

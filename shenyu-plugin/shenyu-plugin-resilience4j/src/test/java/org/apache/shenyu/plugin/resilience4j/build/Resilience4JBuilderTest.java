@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The Test Case For Resilience4JConf.
  */
-public class Resilience4JBuilderTest {
+public final class Resilience4JBuilderTest {
 
     @Test
     public void testBuild() {

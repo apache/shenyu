@@ -30,7 +30,7 @@ import java.time.Duration;
 /**
  * The Test Case For Resilience4JConf.
  */
-public class Resilience4JConfTest {
+public final class Resilience4JConfTest {
 
     private Resilience4JConf resilience4JConf;
 
