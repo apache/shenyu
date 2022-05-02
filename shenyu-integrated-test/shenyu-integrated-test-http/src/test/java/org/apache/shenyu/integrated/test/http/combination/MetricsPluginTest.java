@@ -33,7 +33,7 @@ public final class MetricsPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testPass() throws ExecutionException, InterruptedException {
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.testMetricsPluginFromGateway("http://shenyu-integrated-test-http:8090/metrics", ResultBean.class));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.testMetricsPluginFromGateway("http://localhost:8090/metrics", ResultBean.class));
         assertTrue(resp.get().contains("HELP jvm_threads_current Current thread count of a JVM"));
     }
 
