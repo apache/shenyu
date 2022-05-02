@@ -26,7 +26,6 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.SignUtils;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
@@ -144,7 +143,6 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
-        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamValue("/http/test/path/456");
@@ -154,7 +152,6 @@ public final class SignPluginTest extends AbstractPluginDataInit {
     private static List<RuleLocalData> buildRuleLocalDataList() {
         final RuleLocalData ruleLocalData = new RuleLocalData();
         ConditionData conditionData = new ConditionData();
-        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamValue("/http/test/path/456");

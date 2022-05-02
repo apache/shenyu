@@ -21,7 +21,6 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
@@ -66,7 +65,6 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
 
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
-        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/**");
@@ -82,7 +80,6 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
 
     private static ConditionData buildConditionData() {
         ConditionData conditionData = new ConditionData();
-        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/**");

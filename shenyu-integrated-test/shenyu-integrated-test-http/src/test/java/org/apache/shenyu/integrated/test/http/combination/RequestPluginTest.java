@@ -24,7 +24,6 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
@@ -81,7 +80,6 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
 
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
-        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/test/request/**");
@@ -118,7 +116,6 @@ public final class RequestPluginTest extends AbstractPluginDataInit {
 
         ruleLocalData.setRuleHandler(JsonUtils.toJson(requestHandle));
         ConditionData conditionData = new ConditionData();
-        conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamValue("/http/test/request/**");
