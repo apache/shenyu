@@ -37,4 +37,28 @@ INSERT INTO shenyu_dict ("id", "type", "dict_code", "dict_name", "dict_value", "
 INSERT INTO shenyu_dict ("id", "type", "dict_code", "dict_name", "dict_value", "desc", "sort", "enabled") VALUES ('1516043495265869824', 'operator', 'OPERATOR', 'endsWith', 'endsWith', 'endsWith', 8, 1);
 
 -- refactor logging name
-UPDATE plugin SET name = 'LoggingConsole' WHERE name = 'logging';
+UPDATE plugin SET name = "LoggingConsole" WHERE name = "logging";
+
+-- new table operation_record_log
+-- ----------------------------
+-- Table structure for operation_record_log
+-- ----------------------------
+CREATE TABLE "operation_record_log"
+(
+    "id"             int8                                        NOT NULL,
+    "color"          varchar(20) COLLATE "pg_catalog"."default"  NOT NULL,
+    "context"        text COLLATE "pg_catalog"."default"         NOT NULL,
+    "operator"       varchar(200) COLLATE "pg_catalog"."default" NOT NULL,
+    "operation_time" timestamp(6)                                NOT NULL,
+    "operation_type" varchar(60) COLLATE "pg_catalog"."default"  NOT NULL,
+    CONSTRAINT "operation_record_log_pkey" PRIMARY KEY ("id")
+)
+;
+
+COMMENT ON COLUMN "operation_record_log"."id" IS 'id';
+COMMENT ON COLUMN "operation_record_log"."color" IS 'log color';
+COMMENT ON COLUMN "operation_record_log"."context" IS 'log context';
+COMMENT ON COLUMN "operation_record_log"."operator" IS 'operator [user or app]]';
+COMMENT ON COLUMN "operation_record_log"."operation_time" IS 'operation time';
+COMMENT ON COLUMN "operation_record_log"."operation_type" IS 'operation type：create/update/delete/register...';
+COMMENT ON TABLE "operation_record_log" IS 'operation record log';

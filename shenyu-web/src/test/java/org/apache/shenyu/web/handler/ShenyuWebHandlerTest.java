@@ -19,12 +19,21 @@ package org.apache.shenyu.web.handler;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -32,23 +41,31 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 /**
  * test for ShenyuWebHandler.
  *
  */
+@ExtendWith(MockitoExtension.class)
 public final class ShenyuWebHandlerTest {
 
+    @Mock
     private ShenyuWebHandler shenyuWebHandler;
     
     private final List<ShenyuPlugin> listPlugins = new ArrayList<>();
 
+    private final ShenyuPlugin plugin1 = new TestPlugin1();
+
+    private final ShenyuPlugin plugin2 = new TestPlugin2();
+
     @BeforeEach
     public void setUp() {
-        final ShenyuPlugin plugins = mock(ShenyuPlugin.class);
-        listPlugins.add(plugins);
+        listPlugins.add(plugin1);
+        listPlugins.add(plugin2);
         shenyuWebHandler = new ShenyuWebHandler(listPlugins, new ShenyuConfig());
     }
 
@@ -61,5 +78,91 @@ public final class ShenyuWebHandlerTest {
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         Mono<Void> handle = shenyuWebHandler.handle(exchange);
         assertNotNull(handle);
+    }
+
+    @Test
+    public void testOnApplicationEvent() {
+        PluginData pluginData1 = PluginData.builder().id("1")
+                .name("test-plugin1")
+                .enabled(true)
+                .config("config")
+                .role("test")
+                .sort(50)
+                .build();
+        PluginData pluginData2 = PluginData.builder().id("2")
+                .name("test-plugin2")
+                .enabled(false)
+                .config("config")
+                .role("test")
+                .sort(60)
+                .build();
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.DISABLED, pluginData2));
+        List<ShenyuPlugin> plugins = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertNotNull(plugins);
+        assertTrue(plugins.contains(plugin1) && !plugins.contains(plugin2));
+
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.DELETE, pluginData2));
+        List<ShenyuPlugin> pluginDelete = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertNotNull(pluginDelete);
+        assertTrue(pluginDelete.contains(plugin1) && !pluginDelete.contains(plugin2));
+
+        pluginData1.setSort(70);
+        pluginData2.setEnabled(true);
+        BaseDataCache.getInstance().cachePluginData(pluginData1);
+        BaseDataCache.getInstance().cachePluginData(pluginData2);
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData2));
+        List<ShenyuPlugin> pluginDataSorted = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertNotNull(pluginDataSorted);
+        assertEquals(pluginDataSorted.get(0), plugin2);
+        assertEquals(pluginDataSorted.get(1), plugin1);
+    }
+
+    static class TestPlugin1 implements ShenyuPlugin {
+
+        @Override
+        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+            return chain.execute(exchange);
+        }
+
+        @Override
+        public int getOrder() {
+            return 1;
+        }
+
+        @Override
+        public String named() {
+            return "test-plugin1";
+        }
+
+        @Override
+        public boolean skip(final ServerWebExchange exchange) {
+            return ShenyuPlugin.super.skip(exchange);
+        }
+    }
+
+    static class TestPlugin2 implements ShenyuPlugin {
+
+        @Override
+        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+            return chain.execute(exchange);
+        }
+
+        @Override
+        public int getOrder() {
+            return 2;
+        }
+
+        @Override
+        public String named() {
+            return "test-plugin2";
+        }
+
+        @Override
+        public boolean skip(final ServerWebExchange exchange) {
+            return ShenyuPlugin.super.skip(exchange);
+        }
     }
 }
