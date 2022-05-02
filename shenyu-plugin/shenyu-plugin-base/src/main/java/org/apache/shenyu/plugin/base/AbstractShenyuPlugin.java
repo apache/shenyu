@@ -117,10 +117,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 .map(entry -> {
                     final Integer matchMode = entry.getKey();
                     final List<ConditionData> conditionData = entry.getValue();
-                    return MatchStrategyFactory.findMatchedConditions(matchMode, conditionData, exchange);
+                    return MatchStrategyFactory.findMatchedSelectors(named(), matchMode, conditionData, exchange);
                 })
                 .flatMap(Collection::stream)
-                .map(condition -> BaseDataCache.getInstance().getSelectorData(condition.getId()))
                 .findFirst().orElse(null);
     }
 

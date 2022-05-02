@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.condition.strategy;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.springframework.web.server.ServerWebExchange;
@@ -28,10 +29,10 @@ import java.util.List;
  * MatchStrategyFactory.
  */
 public final class MatchStrategyFactory {
-    
+
     private MatchStrategyFactory() {
     }
-    
+
     /**
      * New instance match strategy.
      *
@@ -42,13 +43,13 @@ public final class MatchStrategyFactory {
         String matchMode = MatchModeEnum.getMatchModeByCode(strategy);
         return ExtensionLoader.getExtensionLoader(MatchStrategy.class).getJoin(matchMode);
     }
-    
+
     /**
      * Match boolean.
      *
-     * @param strategy the strategy
+     * @param strategy          the strategy
      * @param conditionDataList the condition data list
-     * @param exchange the exchange
+     * @param exchange          the exchange
      * @return the boolean
      */
     public static boolean match(final Integer strategy, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
@@ -56,14 +57,15 @@ public final class MatchStrategyFactory {
     }
 
     /**
-     * find matched conditions.
+     * find matched selectors.
      *
-     * @param strategy the strategy
+     * @param pluginName        the plugin name
+     * @param strategy          the strategy
      * @param conditionDataList the condition data list
-     * @param exchange the exchange
-     * @return the matched conditions
+     * @param exchange          the exchange
+     * @return the matched selectors
      */
-    public static List<ConditionData> findMatchedConditions(final Integer strategy, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
-        return newInstance(strategy).findMatchedCondition(conditionDataList, exchange);
+    public static List<SelectorData> findMatchedSelectors(String pluginName, final Integer strategy, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
+        return newInstance(strategy).findMatchedSelectors(pluginName, conditionDataList, exchange);
     }
 }

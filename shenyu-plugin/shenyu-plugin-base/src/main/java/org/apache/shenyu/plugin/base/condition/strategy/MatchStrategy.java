@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.condition.strategy;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
 import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
@@ -55,27 +56,31 @@ public interface MatchStrategy {
     }
 
     /**
-     * this is condition match.
+     * find matched selectors.
      *
+     * @param pluginName        the plugin name
      * @param conditionDataList condition list.
-     * @param exchange          {@linkplain ServerWebExchange}
-     * @return matched conditions
+     * @param exchange          {@linkplain org.springframework.web.server.ServerWebExchange}
+     * @return matched selectors
      */
-    default List<ConditionData> findMatchedCondition(List<ConditionData> conditionDataList, ServerWebExchange exchange) {
+    default List<SelectorData> findMatchedSelectors(String pluginName, List<ConditionData> conditionDataList, ServerWebExchange exchange) {
         return conditionDataList.stream()
-                .filter(condition -> {
-                    // are condition and real data mapped one-to-one ?
+                .map(condition -> {
+                    // condition and real data are not mapped one-to-one, so we need to add a plugin condition
                     final String realData = buildRealData(condition, exchange);
-                    final ConditionData matched = BaseDataCache.getInstance().obtainMatchedCondition(realData);
+                    final SelectorData matched = BaseDataCache.getInstance().obtainMatchedSelector(pluginName, realData);
                     if (Objects.nonNull(matched)) {
-                        return true;
+                        return matched;
                     }
+                    final SelectorData selectorData = BaseDataCache.getInstance().getSelectorData(condition.getId());
                     final Boolean match = PredicateJudgeFactory.judge(condition, realData);
-                    if (match) {
-                        BaseDataCache.getInstance().cacheMatchedCondition(realData, condition);
+                    if (match && Objects.nonNull(selectorData)) {
+                        BaseDataCache.getInstance().cacheMatchedSelector(pluginName, realData, selectorData);
+                        return selectorData;
                     }
-                    return match;
+                    return null;
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 }
