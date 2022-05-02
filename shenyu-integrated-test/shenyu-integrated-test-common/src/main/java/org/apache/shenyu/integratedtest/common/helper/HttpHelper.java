@@ -51,7 +51,7 @@ public class HttpHelper {
     /**
      * The constant test metrics plugin.
      */
-    public static final String METRICS_END_POINT = "http://127.0.0.1:8090";
+    public static final String METRICS_END_POINT = "http://shenyu-integrated-test-http:8090";
 
     /**
      * The constant JSON.
