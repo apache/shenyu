@@ -36,8 +36,6 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         } else {
             ctx.close();
         }
-
-        super.channelRead(ctx, msg);
     }
 
     @Override
