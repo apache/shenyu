@@ -326,11 +326,16 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_SELECTOR)
     @Pageable
+    public CommonPager<SelectorVO> listByPageWithPermission(final SelectorQuery selectorQuery) {
+        return listByPage(selectorQuery);
+    }
+
+    @Override
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         return PageResultUtils.result(selectorQuery.getPageParameter(), () -> selectorMapper.selectByQuery(selectorQuery)
-                .stream()
-                .map(SelectorVO::buildSelectorVO)
-                .collect(Collectors.toList()));
+            .stream()
+            .map(SelectorVO::buildSelectorVO)
+            .collect(Collectors.toList()));
     }
     
     @Override
