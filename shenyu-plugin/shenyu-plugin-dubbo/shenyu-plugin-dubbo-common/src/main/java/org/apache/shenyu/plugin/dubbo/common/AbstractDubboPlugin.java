@@ -38,6 +38,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * AbstractDubboPlugin.
@@ -141,9 +142,9 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
 
     private void rpcContext(final ServerWebExchange exchange) {
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
-        if (Objects.nonNull(rpcContext) && Objects.nonNull(rpcContext.get(PluginEnum.DUBBO.getName()))) {
-            this.transmitRpcContext(rpcContext.get(PluginEnum.DUBBO.getName()));
-        }
+        Optional.ofNullable(rpcContext)
+                .map(context -> context.get(PluginEnum.DUBBO.getName()))
+                .ifPresent(this::transmitRpcContext);
     }
 
     private boolean checkMetaData(final MetaData metaData) {
