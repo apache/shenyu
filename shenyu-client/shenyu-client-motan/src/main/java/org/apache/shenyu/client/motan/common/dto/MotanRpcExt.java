@@ -31,6 +31,8 @@ public class MotanRpcExt {
 
     private String group;
 
+    private Integer timeout;
+
     /**
      * constructor without params.
      */
@@ -43,9 +45,10 @@ public class MotanRpcExt {
      * @param methodInfo methodInfo
      * @param group group
      */
-    public MotanRpcExt(final List<RpcExt> methodInfo, final String group) {
+    public MotanRpcExt(final List<RpcExt> methodInfo, final String group, final Integer timeout) {
         this.methodInfo = methodInfo;
         this.group = group;
+        this.timeout = timeout;
     }
 
     /**
@@ -83,11 +86,29 @@ public class MotanRpcExt {
         this.group = group;
     }
 
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public Integer getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     * @param timeout timeout
+     */
+    public void setTimeout(final Integer timeout) {
+        this.timeout = timeout;
+    }
+
     @Override
     public String toString() {
         return "MotanRpcExt{"
                 + "methodInfo=" + methodInfo
                 + ", group='" + group + '\''
+                + ", timeout='" + timeout + '\''
                 + '}';
     }
 

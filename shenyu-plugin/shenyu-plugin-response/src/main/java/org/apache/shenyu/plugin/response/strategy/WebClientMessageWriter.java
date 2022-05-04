@@ -63,7 +63,7 @@ public class WebClientMessageWriter implements MessageWriter {
             ServerHttpResponse response = exchange.getResponse();
             ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
             if (Objects.isNull(clientResponse)) {
-                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR, null);
+                Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
                 return WebFluxResultUtils.result(exchange, error);
             }
             this.redrawResponseHeaders(response, clientResponse);

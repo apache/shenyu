@@ -252,6 +252,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.oracle.ojdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+
+        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
         </dependency>
@@ -293,20 +300,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
-                <configuration>
-                    <mainClass>org.apache.shenyu.admin.ShenyuAdminBootstrap</mainClass>
-                    <!--                    <finalName>${project.parent.artifactId}</finalName>-->
-                    <!--                    <outputDirectory>../target</outputDirectory>-->
-                    <fork>true</fork>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>repackage</id>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>

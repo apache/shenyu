@@ -20,10 +20,11 @@ package org.apache.shenyu.web.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
-import org.apache.shenyu.plugin.base.cache.SortPluginEvent;
+import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -40,19 +41,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
  * This is web handler request starter.
  */
-public final class ShenyuWebHandler implements WebHandler, ApplicationListener<SortPluginEvent> {
+public final class ShenyuWebHandler implements WebHandler, ApplicationListener<PluginHandlerEvent> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
 
     /**
      * this filed can not set to be final, because we should copyOnWrite to update plugins.
      */
-    private List<ShenyuPlugin> plugins;
+    private final List<ShenyuPlugin> plugins;
+
+    /**
+     * source plugins, these plugins load from ShenyuPlugin, this filed can't change.
+     */
+    private final List<ShenyuPlugin> sourcePlugins;
 
     private final boolean scheduled;
 
@@ -65,7 +72,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<S
      * @param shenyuConfig plugins config
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuConfig shenyuConfig) {
-        this.plugins = plugins;
+        this.sourcePlugins = new ArrayList<>(plugins);
+        this.plugins = new CopyOnWriteArrayList<>(plugins);
         ShenyuConfig.Scheduler config = shenyuConfig.getScheduler();
         this.scheduled = config.getEnabled();
         if (scheduled) {
@@ -101,40 +109,76 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<S
         if (CollectionUtils.isEmpty(extPlugins)) {
             return;
         }
-        List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
+        final List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
                 .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
             shenyuPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
             shenyuPlugins.addAll(plugins);
-            this.plugins = sortPlugins(shenyuPlugins);
+            onSortedPlugins();
         }
     }
     
     /**
-     * listen sort plugin event and sort plugin.
+     * listen plugin handler event and handle plugin.
      *
      * @param event sort plugin event
      */
     @Override
-    public void onApplicationEvent(final SortPluginEvent event) {
-        // copy a new one, or there will be concurrency problems
-        this.plugins = sortPlugins(new ArrayList<>(plugins));
+    public void onApplicationEvent(final PluginHandlerEvent event) {
+        PluginHandlerEventEnums stateEnums = event.getPluginStateEnums();
+        PluginData pluginData = (PluginData) event.getSource();
+        switch (stateEnums) {
+            case ENABLED:
+                onPluginEnabled(pluginData);
+                break;
+            case DELETE:
+            case DISABLED:
+                // disable or removed plugin.
+                onPluginRemoved(pluginData);
+                break;
+            case SORTED:
+                // copy a new one, or there will be concurrency problems
+                onSortedPlugins();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + event.getPluginStateEnums());
+        }
+        onSortedPlugins();
     }
 
     /**
      * sort plugins.
      *
-     * @param list list of plugin
      * @return sorted list
      */
-    private List<ShenyuPlugin> sortPlugins(final List<ShenyuPlugin> list) {
-        Map<String, Integer> pluginSortMap = list.stream().collect(Collectors.toMap(ShenyuPlugin::named, plugin -> {
+    private void onSortedPlugins() {
+        Map<String, Integer> pluginSortMap = this.plugins.stream().collect(Collectors.toMap(ShenyuPlugin::named, plugin -> {
             PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(plugin.named());
             return Optional.ofNullable(pluginData).map(PluginData::getSort).orElse(plugin.getOrder());
         }));
-        list.sort(Comparator.comparingLong(plugin -> pluginSortMap.get(plugin.named())));
-        return list;
+        this.plugins.sort(Comparator.comparingLong(plugin -> pluginSortMap.get(plugin.named())));
+    }
+
+    /**
+     * handle enabled plugins.
+     * @param pluginData plugin data
+     * @return enabled plugins
+     */
+    private void onPluginEnabled(final PluginData pluginData) {
+        LOG.info("shenyu use plugin:[{}]", pluginData.getName());
+        final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
+                && pluginData.getEnabled()).collect(Collectors.toList());
+        enabledPlugins.removeAll(this.plugins);
+        this.plugins.addAll(enabledPlugins);
+    }
+
+    /**
+     * handle removed or disabled plugin.
+     * @param pluginData plugin data
+     */
+    private void onPluginRemoved(final PluginData pluginData) {
+        this.plugins.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
     }
 
     private static class DefaultShenyuPluginChain implements ShenyuPluginChain {

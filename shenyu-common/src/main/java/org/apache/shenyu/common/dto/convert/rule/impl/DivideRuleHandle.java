@@ -54,12 +54,12 @@ public class DivideRuleHandle implements RuleHandle {
     /**
      * headerMaxSize.
      */
-    private long headerMaxSize = Constants.HEADER_MAX_SIZE;
+    private long headerMaxSize;
 
     /**
      * requestMaxSize.
      */
-    private long requestMaxSize = Constants.REQUEST_MAX_SIZE;
+    private long requestMaxSize;
 
     /**
      * get loadBalance.
