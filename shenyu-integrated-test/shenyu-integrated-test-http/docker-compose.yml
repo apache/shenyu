@@ -83,9 +83,8 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket          
     depends_on:
-      - shenyu-admin:
-         condition: service_healthy
-      - prometheus
+      shenyu-admin:
+        condition: service_healthy
     ports:
       - "9195:9195"
       - "8090:8090"
