@@ -185,7 +185,7 @@ public final class SelectorServiceTest {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
         given(this.selectorMapper.selectByQuery(any())).willReturn(selectorDOs);
         SelectorQuery params = buildSelectorQuery();
-        final CommonPager<SelectorVO> result = this.selectorService.listByPage(params);
+        final CommonPager<SelectorVO> result = this.selectorService.listByPageWithPermission(params);
         assertThat(result, notNullValue());
         assertEquals(selectorDOs.size(), result.getDataList().size());
     }
