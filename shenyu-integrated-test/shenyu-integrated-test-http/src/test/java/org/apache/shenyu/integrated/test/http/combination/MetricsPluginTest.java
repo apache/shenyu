@@ -19,7 +19,6 @@ package org.apache.shenyu.integrated.test.http.combination;
 
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.ExecutionException;
