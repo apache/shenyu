@@ -34,9 +34,11 @@ import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -57,7 +59,6 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     @Override
     public synchronized void loadApiDocument() {
-
         List<UpstreamInstance> serviceList = this.getAllClusterLastUpdateInstanceList();
         final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
 
@@ -67,6 +68,21 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         }
         LOG.info("loadApiDocument  serviceList={}", JsonUtils.toJson(currentServices));
         serviceDocManager.pullApiDocument(currentServices);
+    }
+
+    @Override
+    public void loadApiDocument(final URIRegisterDTO uriRegisterDTO) {
+        //todo The input parameter is temporarily defined.
+        UpstreamInstance instance = new UpstreamInstance();
+        instance.setContextPath(uriRegisterDTO.getContextPath());
+        instance.setIp(uriRegisterDTO.getHost());
+        instance.setPort(uriRegisterDTO.getPort());
+        instance.setEnabled(Boolean.TRUE);
+        instance.setHealthy(Boolean.TRUE);
+        instance.setStartupTime(System.currentTimeMillis());
+
+        LOG.info("loadApiDocument instance={}", JsonUtils.toJson(instance));
+        serviceDocManager.pullApiDocument(instance);
     }
 
     /**

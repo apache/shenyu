@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.model.bean;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * DocParameter.

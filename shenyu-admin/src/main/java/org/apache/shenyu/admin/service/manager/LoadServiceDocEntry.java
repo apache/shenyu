@@ -17,13 +17,22 @@
 
 package org.apache.shenyu.admin.service.manager;
 
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+
 /**
  * Load Service Doc Entry.
  */
 public interface LoadServiceDocEntry {
 
     /**
-     * pull and save Api Document.
+     * pull and save API document.
      */
     void loadApiDocument();
+
+    /**
+     * load and save API document for single URIRegister.
+     * todo The input parameter is temporarily defined.
+     * @param uriRegisterDTO uriRegisterDTO
+     */
+    void loadApiDocument(URIRegisterDTO uriRegisterDTO);
 }

@@ -293,6 +293,20 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+                <configuration>
+                    <mainClass>org.apache.shenyu.admin.ShenyuAdminBootstrap</mainClass>
+                    <!--                    <finalName>${project.parent.artifactId}</finalName>-->
+                    <!--                    <outputDirectory>../target</outputDirectory>-->
+                    <fork>true</fork>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

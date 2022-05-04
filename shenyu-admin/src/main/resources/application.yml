@@ -82,7 +82,6 @@ shenyu:
     white-list:
       - /
       - /favicon.*
-      - /apidoc/**
       - /static/**
       - /index**
       - /platform/login
