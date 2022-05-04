@@ -83,8 +83,9 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket          
     depends_on:
-      shenyu-admin:
-        condition: service_healthy
+      - shenyu-admin:
+         condition: service_healthy
+      - prometheus
     ports:
       - "9195:9195"
       - "8090:8090"
@@ -92,6 +93,21 @@ services:
       - shenyu
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-integrated-test-http:9195/actuator/health" ]
+      timeout: 2s
+      retries: 30
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - type: bind
+        source: ./prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - shenyu
+    healthcheck:
+      test: [ "CMD", "wget", "http://prometheus:9090/ready" ]
       timeout: 2s
       retries: 30
 

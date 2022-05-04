@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public final class MetricsPluginTest extends AbstractPluginDataInit {
 
@@ -33,8 +33,8 @@ public final class MetricsPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testPass() throws ExecutionException, InterruptedException {
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.testMetricsPluginFromGateway("http://localhost:8090/metrics", ResultBean.class));
-        assertTrue(resp.get().contains("HELP jvm_threads_current Current thread count of a JVM"));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.testMetricsPluginFromGateway("http://shenyu-integrated-test-http:9090/api/v1/targets", String.class));
+        assertFalse(resp.get().contains("down"));
     }
 
 }

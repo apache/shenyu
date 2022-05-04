@@ -253,7 +253,7 @@ public class HttpHelper {
     public <S> S testMetricsPluginFromGateway(final String path, final Type type) throws IOException {
         Response response = getHttpService(path, null);
         String respBody = Objects.requireNonNull(response.body()).string();
-        LOG.info("getFromGateway({}) resp({})", path, respBody);
+        LOG.info("testMetricsPluginFromGateway({}) resp({})", path, respBody);
         try {
             return GSON.fromJson(respBody, type);
         } catch (Exception e) {
