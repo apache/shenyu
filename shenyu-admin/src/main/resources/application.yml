@@ -19,7 +19,8 @@ server:
 
 spring:
   profiles:
-    active: h2
+    active: mysql
+#    active: h2
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -81,6 +82,7 @@ shenyu:
     white-list:
       - /
       - /favicon.*
+      - /apidoc/**
       - /static/**
       - /index**
       - /platform/login
@@ -94,6 +96,15 @@ shenyu:
       - /csrf
   swagger:
     enable: true
+  apidoc:
+    gatewayUrl: http://127.0.0.1:9195
+    envProps:
+      - envLabel: Test environment
+        addressLabel: Request Address
+        addressUrl: http://127.0.0.1:9195
+      - envLabel: Prod environment
+        addressLabel: Request Address
+        addressUrl: http://127.0.0.1:9195
 
 logging:
   level:

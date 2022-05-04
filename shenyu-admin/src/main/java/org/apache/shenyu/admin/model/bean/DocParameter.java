@@ -45,18 +45,7 @@ public class DocParameter {
 
     private String example = "";
 
-//    @JSONField(name = "x-example")
-    private String xExample = "";
-
     private List<DocParameter> refs;
-
-    /**
-     * getParamExample.
-     * @return String
-     */
-    public String getParamExample() {
-        return StringUtils.isBlank(example) ? xExample : example;
-    }
 
     /**
      * getId.
@@ -199,24 +188,6 @@ public class DocParameter {
      */
     public void setExample(final String example) {
         this.example = example;
-    }
-
-    /**
-     * getxExample.
-     *
-     * @return String
-     */
-    public String getxExample() {
-        return xExample;
-    }
-
-    /**
-     * setxExample.
-     *
-     * @param xExample xExample
-     */
-    public void setxExample(final String xExample) {
-        this.xExample = xExample;
     }
 
     /**
