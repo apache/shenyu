@@ -248,6 +248,18 @@ CREATE TABLE IF NOT EXISTS `data_permission` (
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='data permission table';
+-- ----------------------------
+-- Table structure for operation_record_log
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `operation_record_log`
+(
+    `id`             bigint auto_increment        not null comment 'id' primary key,
+    `color`          varchar(20)                  not null comment 'log color',
+    `context`        text                         not null comment 'log context',
+    `operator`       varchar(200)                 not null comment 'operator [user or app]]',
+    `operation_time` datetime    default now()    not null comment 'operation time',
+    `operation_type` varchar(60) default 'update' not null comment 'operation type：create/update/delete/register...'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC  comment 'operation record log';
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`) VALUES ('1','admin','ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', '1', '1');

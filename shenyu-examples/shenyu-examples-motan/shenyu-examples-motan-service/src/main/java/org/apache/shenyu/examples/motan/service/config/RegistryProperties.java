@@ -31,6 +31,7 @@ public class RegistryProperties {
 
     private String address;
 
+
     /**
      * Get the protocol.
      *
@@ -66,4 +67,5 @@ public class RegistryProperties {
     public void setAddress(final String address) {
         this.address = address;
     }
+
 }

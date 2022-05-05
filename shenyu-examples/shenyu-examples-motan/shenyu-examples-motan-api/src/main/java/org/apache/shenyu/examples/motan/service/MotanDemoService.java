@@ -25,4 +25,5 @@ import com.weibo.api.motan.transport.async.MotanAsync;
 @MotanAsync
 public interface MotanDemoService {
     String hello(String name);
+    String testTimeOut(String timeout);
 }

@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -196,9 +195,9 @@ public final class PluginHandleMapperTest extends AbstractSpringIntegrationTest 
         int insert = pluginHandleMapper.insert(pluginHandleDO);
         assertThat(insert, equalTo(1));
 
-        Set<String> idSetStrings = Stream.of(pluginHandleDO1.getId(), pluginHandleDO.getId()).collect(Collectors.toSet());
-        int count = pluginHandleMapper.deleteByIdSet(idSetStrings);
-        assertThat(idSetStrings.size(), equalTo(count));
+        List<String> idListStrings = Stream.of(pluginHandleDO1.getId(), pluginHandleDO.getId()).collect(Collectors.toList());
+        int count = pluginHandleMapper.deleteByIdList(idListStrings);
+        assertThat(idListStrings.size(), equalTo(count));
 
         PluginHandleDO resultPluginHandleDO1 = pluginHandleMapper.selectById(pluginHandleDO1.getId());
         assertThat(resultPluginHandleDO1, equalTo(null));

@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.PluginServiceImpl;
+import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
@@ -45,7 +46,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -91,15 +91,15 @@ public final class PluginServiceTest {
     private SelectorConditionMapper selectorConditionMapper;
     
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private ResourceService resourceService;
     
     @Mock
-    private ResourceService resourceService;
+    private PluginEventPublisher modelDataEventPublisher;
     
     @BeforeEach
     public void setUp() {
         pluginService = new PluginServiceImpl(pluginMapper, pluginHandleMapper, selectorMapper, selectorConditionMapper,
-                ruleMapper, ruleConditionMapper, eventPublisher, resourceService);
+                ruleMapper, ruleConditionMapper, resourceService, modelDataEventPublisher);
     }
     
     @Test
