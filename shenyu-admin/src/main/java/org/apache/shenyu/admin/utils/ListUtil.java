@@ -38,7 +38,7 @@ public final class ListUtil {
     }
     
     /**
-     * list
+     * list.
      *
      * @param t   e
      * @param <T> type
@@ -92,6 +92,7 @@ public final class ListUtil {
      * @param valueMapper map value convert
      * @param <K>         map key type
      * @param <U>         map value type
+     * @param <T>         list value type
      * @return list
      */
     public static <K, U, T> Map<K, U> toMap(final Collection<T> list, final Function<? super T, ? extends K> keyMapper, final Function<? super T, ? extends U> valueMapper) {

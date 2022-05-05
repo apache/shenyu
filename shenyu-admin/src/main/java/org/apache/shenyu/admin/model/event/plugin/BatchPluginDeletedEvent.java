@@ -57,6 +57,4 @@ public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
     public List<String> getDeletedPluginIds() {
         return deletedPluginIds;
     }
-    
-    
 }

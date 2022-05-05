@@ -68,11 +68,8 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     @Override
     @Pageable
     public CommonPager<PluginHandleVO> listByPage(final PluginHandleQuery pluginHandleQuery) {
-        
         List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(pluginHandleQuery);
-        
-        return PageResultUtils.result(pluginHandleQuery.getPageParameter(),
-                () -> this.buildPluginHandleVO(pluginHandleDOList));
+        return PageResultUtils.result(pluginHandleQuery.getPageParameter(), () -> this.buildPluginHandleVO(pluginHandleDOList));
     }
     
     @Override

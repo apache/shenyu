@@ -172,13 +172,15 @@ public class SelectorServiceImpl implements SelectorService {
     }
     
     @Override
-    public int create(SelectorDTO selectorDTO) {
+    public int create(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         int selectorCount = selectorMapper.insertSelective(selectorDO);
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         initSelectorPermission(selectorDO);
         publishEvent(selectorDO, selectorDTO.getSelectorConditions());
-        selectorEventPublisher.onCreated(selectorDO);
+        if (selectorCount > 0) {
+            selectorEventPublisher.onCreated(selectorDO);
+        }
         updateDivideUpstream(selectorDO);
         return selectorCount;
         
@@ -193,7 +195,9 @@ public class SelectorServiceImpl implements SelectorService {
         selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         publishEvent(selectorDO, selectorDTO.getSelectorConditions());
-        selectorEventPublisher.onUpdated(selectorDO, before);
+        if (selectorCount > 0) {
+            selectorEventPublisher.onUpdated(selectorDO, before);
+        }
         updateDivideUpstream(selectorDO);
         return selectorCount;
     }
@@ -250,7 +254,7 @@ public class SelectorServiceImpl implements SelectorService {
      * find selector by id.
      *
      * @param id primary key.
-     * @return {@linkplain SelectorVO}
+     * @return {@link SelectorVO}
      */
     @Override
     public SelectorVO findById(final String id) {

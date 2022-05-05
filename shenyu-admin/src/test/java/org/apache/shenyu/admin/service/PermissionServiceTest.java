@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
-import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;

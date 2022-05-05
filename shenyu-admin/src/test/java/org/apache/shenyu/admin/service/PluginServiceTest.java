@@ -18,11 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleConditionMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;

@@ -82,7 +82,7 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
      *
      * @param selectors selectors
      */
-    public void onDeleted(final Collection<SelectorDO> selectors, List<SelectorData> selectorDataList) {
+    public void onDeleted(final Collection<SelectorDO> selectors, final List<SelectorData> selectorDataList) {
         onDeleted(selectors);
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE, selectorDataList));
     }

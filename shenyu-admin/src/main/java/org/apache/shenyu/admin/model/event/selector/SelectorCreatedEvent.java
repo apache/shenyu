@@ -42,7 +42,7 @@ public class SelectorCreatedEvent extends SelectorChangedEvent {
      * @return selector
      */
     public SelectorDO getSelector() {
-        return ((SelectorDO) getSource());
+        return (SelectorDO) getSource();
     }
     
 }

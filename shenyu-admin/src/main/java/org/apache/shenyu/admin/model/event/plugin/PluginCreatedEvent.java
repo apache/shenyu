@@ -42,7 +42,7 @@ public class PluginCreatedEvent extends PluginChangedEvent {
      * @return plugin
      */
     public PluginDO getPlugin() {
-        return ((PluginDO) getSource());
+        return (PluginDO) getSource();
     }
     
 }

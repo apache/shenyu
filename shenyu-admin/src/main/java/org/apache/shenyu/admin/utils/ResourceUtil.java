@@ -49,7 +49,6 @@ public final class ResourceUtil {
      */
     private static final List<DataPermission> NEW_PLUGIN_DATA_PERMISSION = new ArrayList<>();
     
-    
     private ResourceUtil() {
     }
     
@@ -227,7 +226,7 @@ public final class ResourceUtil {
                 .collect(Collectors.toMap(ResourceVO::getParentId, ResourceUtil::convertIds, ListUtil::mergeSet));
     }
     
-    private static Set<String> convertIds(ResourceVO resourceVO) {
+    private static Set<String> convertIds(final ResourceVO resourceVO) {
         Set<String> idSet = new HashSet<>();
         idSet.add(resourceVO.getId());
         return idSet;

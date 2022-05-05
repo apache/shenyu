@@ -45,7 +45,7 @@ public final class SelectorUtil {
     
     
     /**
-     * build divide upstream<br>
+     * build divide upstream<br>.
      * if plugin is spring-cloud used {@link SpringCloudSelectorHandle}.<br>
      * if plugin is divide used {@link DivideUpstream}.<br>
      *
@@ -53,7 +53,7 @@ public final class SelectorUtil {
      * @param pluginName plugin name
      * @return default is empty list.
      */
-    public static List<DivideUpstream> buildDivideUpstream(SelectorDO selectorDO, String pluginName) {
+    public static List<DivideUpstream> buildDivideUpstream(final SelectorDO selectorDO, final String pluginName) {
         if (PluginEnum.SPRING_CLOUD.getName().equals(pluginName) && Objects.nonNull(selectorDO.getHandle())) {
             return GsonUtils.getInstance()
                     .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class)
@@ -67,7 +67,7 @@ public final class SelectorUtil {
     }
     
     /**
-     * build selector
+     * build selector.
      *
      * @param contextPath context path
      * @param pluginId    plugin id

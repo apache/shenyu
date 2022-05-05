@@ -58,6 +58,4 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
     public List<String> getDeletedIds() {
         return deletedIds;
     }
-    
-    
 }
