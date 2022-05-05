@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The interface Plugin handle mapper.
@@ -115,12 +114,12 @@ public interface PluginHandleMapper extends ExistProvider {
     int delete(String id);
     
     /**
-     * bach delete by idSet.
+     * bach delete by idList.
      *
-     * @param idSet a set of ids
+     * @param idList a list of ids
      * @return the count of deleted
      */
-    int deleteByIdSet(@Param("idSet") Set<String> idSet);
+    int deleteByIdList(@Param("idList") List<String> idList);
     
     /**
      * delete string id.

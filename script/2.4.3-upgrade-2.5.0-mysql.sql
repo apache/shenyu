@@ -38,3 +38,17 @@ INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_va
 
 -- refactor logging name
 UPDATE plugin SET name = 'LoggingConsole' WHERE name = 'logging';
+
+-- new table operation_record_log
+-- ----------------------------
+-- Table structure for operation_record_log
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `operation_record_log`
+(
+    `id`             bigint auto_increment        not null comment 'id' primary key,
+    `color`          varchar(20)                  not null comment 'log color',
+    `context`        text                         not null comment 'log context',
+    `operator`       varchar(200)                 not null comment 'operator [user or app]]',
+    `operation_time` datetime    default now()    not null comment 'operation time',
+    `operation_type` varchar(60) default 'update' not null comment 'operation type：create/update/delete/register...'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC  comment 'operation record log';

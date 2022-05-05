@@ -43,23 +43,34 @@ public final class ShenyuResultWrap {
      * Error object.
      *
      * @param exchange the exchange
-     * @param shenyuResult    the shenyuResult
+     * @param shenyuResult  the shenyuResult
      * @param object  the object
      * @return the object
      */
     public static Object error(final ServerWebExchange exchange, final ShenyuResultEnum shenyuResult, final Object object) {
         return shenyuResult().error(exchange, shenyuResult.getCode(), shenyuResult.getMsg(), object);
     }
-
+    
     /**
      * Error object.
      *
-     * @param shenyuResult    the shenyuResult
+     * @param shenyuResult the shenyuResult
      * @param object  the object
      * @return the object
      */
     public static Object error(final ShenyuResultEnum shenyuResult, final Object object) {
         return shenyuResult().error(shenyuResult.getCode(), shenyuResult.getMsg(), object);
+    }
+    
+    /**
+     * Error object.
+     *
+     * @param exchange the exchange
+     * @param shenyuResult the shenyuResult
+     * @return the object
+     */
+    public static Object error(final ServerWebExchange exchange, final ShenyuResultEnum shenyuResult) {
+        return shenyuResult().error(exchange, shenyuResult.getCode(), shenyuResult.getMsg(), null);
     }
 
     /**

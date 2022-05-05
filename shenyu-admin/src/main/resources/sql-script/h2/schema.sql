@@ -242,6 +242,18 @@ CREATE TABLE IF NOT EXISTS `data_permission` (
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
     );
+-- ----------------------------
+-- Table structure for operation_record_log
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `operation_record_log`
+(
+    `id`             bigint       NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT 'id',
+    `color`          varchar(20)  NOT NULL COMMENT 'log color',
+    `context`        text         NOT NULL COMMENT 'log context',
+    `operator`       varchar(200) NOT NULL COMMENT 'operator [user or app]]',
+    `operation_time` datetime     NOT NULL DEFAULT now() COMMENT 'operation time',
+    `operation_type` varchar(60)  NOT NULL DEFAULT 'update' COMMENT 'operation type：create/update/delete/register...'
+);
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`) VALUES ('1','admin','ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', '1', '1');

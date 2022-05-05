@@ -78,6 +78,7 @@ public class TestMotanApplication {
         config.setModule("motan-demo-rpc");
         config.setApplication("myMotanDemo");
         config.setRegistry("registryConfig1");
+        config.setRequestTimeout(2000);
         return config;
     }
 }

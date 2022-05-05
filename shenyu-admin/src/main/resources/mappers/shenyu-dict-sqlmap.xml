@@ -71,7 +71,7 @@
                <include refid="Base_Column_List"/>
           FROM shenyu_dict
          WHERE `type` IN
-        <foreach collection="typeSet" item="type" open="(" separator="," close=")">
+        <foreach collection="typeList" item="type" open="(" separator="," close=")">
               #{type, jdbcType=VARCHAR}
         </foreach>
     </select>

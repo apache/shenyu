@@ -280,7 +280,7 @@ public final class MetaDataServiceTest {
      * Cases where get a not empty id list.
      */
     private void testDeleteForNotEmptyIds() {
-        List<String> ids = Lists.newArrayList("id1", "id1", "id3");
+        List<String> ids = Lists.newArrayList("id1", "id3");
         int count = metaDataService.delete(ids);
         Assertions.assertEquals(0, count, "The count of delete should be 0.");
         when(metaDataMapper.selectByIdList(ids)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));

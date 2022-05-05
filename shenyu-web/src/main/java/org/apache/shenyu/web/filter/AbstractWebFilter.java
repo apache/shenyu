@@ -24,15 +24,14 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * shenyu webFilter parent.
+ * Shenyu web filter parent.
  */
 public abstract class AbstractWebFilter implements WebFilter {
 
     @Override
     @NonNull
     public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
-        return doFilter(exchange, chain).switchIfEmpty(Mono.just(false))
-                .flatMap(filterResult -> filterResult ? chain.filter(exchange) : doDenyResponse(exchange));
+        return doMatcher(exchange, chain).flatMap(result -> result ? doFilter(exchange) : chain.filter(exchange));
     }
 
     /**
@@ -40,9 +39,9 @@ public abstract class AbstractWebFilter implements WebFilter {
      *
      * @param exchange the current server exchange
      * @param chain    provides a way to delegate to the next filter
-     * @return {@code Mono<Boolean>} result：TRUE (is pass)，and flow next filter；FALSE (is not pass) execute doDenyResponse(ServerWebExchange exchange)
+     * @return {@code Mono<Boolean>} result：TRUE (is pass)，and execute do filter；FALSE (is not pass) execute next filter
      */
-    protected abstract Mono<Boolean> doFilter(ServerWebExchange exchange, WebFilterChain chain);
+    protected abstract Mono<Boolean> doMatcher(ServerWebExchange exchange, WebFilterChain chain);
 
     /**
      * this is Template Method ,children Implement your own And response client.
@@ -50,5 +49,5 @@ public abstract class AbstractWebFilter implements WebFilter {
      * @param exchange the current server exchange.
      * @return {@code Mono<Void>} response msg.
      */
-    protected abstract Mono<Void> doDenyResponse(ServerWebExchange exchange);
+    protected abstract Mono<Void> doFilter(ServerWebExchange exchange);
 }

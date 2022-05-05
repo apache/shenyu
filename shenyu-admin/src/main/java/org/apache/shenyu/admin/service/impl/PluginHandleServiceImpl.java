@@ -33,15 +33,12 @@ import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -65,8 +62,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     @Pageable
     public CommonPager<PluginHandleVO> listByPage(final PluginHandleQuery pluginHandleQuery) {
 
-        List<PluginHandleDO> pluginHandleDOList = Optional.ofNullable(pluginHandleMapper.selectByQuery(pluginHandleQuery))
-                .orElseGet(ArrayList::new);
+        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(pluginHandleQuery);
 
         return PageResultUtils.result(pluginHandleQuery.getPageParameter(),
             () -> this.buildPluginHandleVO(pluginHandleDOList));
@@ -85,15 +81,12 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Integer deletePluginHandles(final List<String> ids) {
-
-        int ret = 0;
-        Set<String> idSet = new HashSet<>(Optional.ofNullable(ids).orElseGet(ArrayList::new));
-        if (CollectionUtils.isNotEmpty(idSet)) {
-            ret = pluginHandleMapper.deleteByIdSet(idSet);
+        List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(distinctIds)) {
+            return pluginHandleMapper.deleteByIdList(distinctIds);
         }
-        return ret;
+        return 0;
     }
 
     @Override
@@ -108,9 +101,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
                 .type(type)
                 .build();
 
-        List<PluginHandleDO> pluginHandleDOList = Optional.ofNullable(pluginHandleMapper.selectByQuery(pluginHandleQuery))
-                .orElseGet(ArrayList::new);
-
+        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(pluginHandleQuery);
         return buildPluginHandleVO(pluginHandleDOList);
     }
 
@@ -128,13 +119,13 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     private List<PluginHandleVO> buildPluginHandleVO(final List<PluginHandleDO> pluginHandleDOList) {
 
-        Set<String> fieldSet = pluginHandleDOList.stream()
+        List<String> fieldList = pluginHandleDOList.stream()
                 .filter(pluginHandleDO -> pluginHandleDO.getDataType() == SELECT_BOX_DATA_TYPE)
-                .map(PluginHandleDO::getField).collect(Collectors.toSet());
+                .map(PluginHandleDO::getField).distinct().collect(Collectors.toList());
 
         Map<String, List<ShenyuDictVO>> shenyuDictDOMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(fieldSet)) {
-            List<ShenyuDictDO> shenyuDictDOList = shenyuDictMapper.findByTypeBatch(fieldSet);
+        if (CollectionUtils.isNotEmpty(fieldList)) {
+            List<ShenyuDictDO> shenyuDictDOList = shenyuDictMapper.findByTypeBatch(fieldList);
             shenyuDictDOMap.putAll(Optional.ofNullable(shenyuDictDOList).orElseGet(ArrayList::new)
                     .stream().map(ShenyuDictVO::buildShenyuDictVO)
                     .collect(Collectors.toMap(ShenyuDictVO::getType, Lists::newArrayList,

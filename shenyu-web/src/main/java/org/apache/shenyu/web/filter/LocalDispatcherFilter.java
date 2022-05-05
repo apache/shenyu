@@ -51,12 +51,12 @@ public class LocalDispatcherFilter extends AbstractWebFilter {
     }
     
     @Override
-    protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
-        return Mono.just(!exchange.getRequest().getURI().getPath().startsWith(DISPATCHER_PATH));
+    protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
+        return Mono.just(exchange.getRequest().getURI().getPath().startsWith(DISPATCHER_PATH));
     }
     
     @Override
-    protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
+    protected Mono<Void> doFilter(final ServerWebExchange exchange) {
         String localKey = exchange.getRequest().getHeaders().getFirst(Constants.LOCAL_KEY);
         if (Objects.isNull(sha512Key) || !sha512Key.equalsIgnoreCase(ShaUtils.shaEncryption(localKey)) || Objects.isNull(localKey)) {
             return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "The key is not correct."));

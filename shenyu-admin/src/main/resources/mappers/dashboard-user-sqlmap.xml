@@ -199,10 +199,10 @@
               WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByIdSet">
+    <delete id="deleteByIdList">
         DELETE FROM dashboard_user
               WHERE id IN
-        <foreach collection="idSet" index="index" item="id" open="(" separator="," close=")">
+        <foreach collection="idList" index="index" item="id" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>

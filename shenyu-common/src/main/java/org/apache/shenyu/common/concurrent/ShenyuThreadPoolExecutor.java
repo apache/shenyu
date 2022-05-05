@@ -26,16 +26,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * ShenyuThreadPoolExecutor.
  */
-public class ShenyuThreadPoolExecutor extends ThreadPoolExecutor {
+public class ShenyuThreadPoolExecutor extends ThreadPoolExecutor implements EagerExecutorService {
 
     public ShenyuThreadPoolExecutor(final int corePoolSize,
                                     final int maximumPoolSize,
                                     final long keepAliveTime,
                                     final TimeUnit unit,
-                                    final MemoryLimitedTaskQueue<Runnable> workQueue,
+                                    final TaskQueue<Runnable> workQueue,
                                     final ThreadFactory threadFactory,
                                     final RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+        workQueue.setExecutor(this);
     }
 
     @Override
@@ -48,8 +49,7 @@ public class ShenyuThreadPoolExecutor extends ThreadPoolExecutor {
             super.execute(command);
         } catch (RejectedExecutionException e) {
             // retry to offer the task into queue.
-            @SuppressWarnings("all")
-            final MemoryLimitedTaskQueue queue = (MemoryLimitedTaskQueue) super.getQueue();
+            final TaskQueue<Runnable> queue = (TaskQueue<Runnable>) super.getQueue();
             try {
                 if (!queue.retryOffer(command, 0, TimeUnit.MILLISECONDS)) {
                     throw new RejectedExecutionException("Queue capacity is full.", e);

@@ -40,9 +40,7 @@ import org.mockito.quality.Strictness;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -147,10 +145,9 @@ public final class PluginHandleServiceTest {
     @Test
     public void testDeletePluginHandles() {
         final List<String> ids = Lists.list("1", "2", "3");
-        final Set<String> idSet = new HashSet<>(ids);
-        given(this.pluginHandleMapper.deleteByIdSet(idSet)).willReturn(3);
+        given(this.pluginHandleMapper.deleteByIdList(ids)).willReturn(3);
         final Integer result = this.pluginHandleService.deletePluginHandles(ids);
-        assertThat(result, equalTo(idSet.size()));
+        assertThat(result, equalTo(ids.size()));
     }
 
     @Test

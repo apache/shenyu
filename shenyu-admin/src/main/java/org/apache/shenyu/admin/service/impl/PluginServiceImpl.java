@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -42,6 +41,7 @@ import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ResourceService;
+import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -50,8 +50,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.AdminPluginOperateEnum;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,9 +77,9 @@ public class PluginServiceImpl implements PluginService {
     
     private final RuleConditionMapper ruleConditionMapper;
     
-    private final ApplicationEventPublisher eventPublisher;
-    
     private final ResourceService resourceService;
+    
+    private final PluginEventPublisher modelDataEventPublisher;
     
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final PluginHandleMapper pluginHandleMapper,
@@ -89,16 +87,16 @@ public class PluginServiceImpl implements PluginService {
                              final SelectorConditionMapper selectorConditionMapper,
                              final RuleMapper ruleMapper,
                              final RuleConditionMapper ruleConditionMapper,
-                             final ApplicationEventPublisher eventPublisher,
-                             final ResourceService resourceService) {
+                             final ResourceService resourceService,
+                             final PluginEventPublisher modelDataEventPublisher) {
         this.pluginMapper = pluginMapper;
         this.pluginHandleMapper = pluginHandleMapper;
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
-        this.eventPublisher = eventPublisher;
         this.resourceService = resourceService;
+        this.modelDataEventPublisher = modelDataEventPublisher;
     }
     
     @Override
@@ -134,9 +132,11 @@ public class PluginServiceImpl implements PluginService {
         }
         final List<String> pluginIds = plugins.stream()
                 .map(PluginDO::getId).collect(Collectors.toList());
-
+        
         // 2. delete plugins.
         this.pluginMapper.deleteByIds(pluginIds);
+        
+        // TODO move to plugin handle service, listen plugin delete event execute
         // 3. delete plugin handle.
         this.pluginHandleMapper.deleteByPluginIds(pluginIds);
         
@@ -170,8 +170,7 @@ public class PluginServiceImpl implements PluginService {
         }
         
         // 6. publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
-                plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+        modelDataEventPublisher.onDeleted(plugins);
         return StringUtils.EMPTY;
     }
     
@@ -192,8 +191,7 @@ public class PluginServiceImpl implements PluginService {
         pluginMapper.updateEnableByIdList(ids, enabled);
         // publish change event.
         if (CollectionUtils.isNotEmpty(plugins)) {
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                    plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
+            modelDataEventPublisher.onEnabled(plugins);
         }
         return StringUtils.EMPTY;
     }
@@ -335,7 +333,7 @@ public class PluginServiceImpl implements PluginService {
         
         insertPluginMenuResource(resourceDO);
     }
-
+    
     /**
      * create plugin.<br>
      * insert plugin and insert plugin data.
@@ -348,13 +346,11 @@ public class PluginServiceImpl implements PluginService {
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         insertPluginDataToResource(pluginDTO);
         pluginMapper.insertSelective(pluginDO);
-
         // publish create event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+        modelDataEventPublisher.onCreated(pluginDO);
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
-
+    
     /**
      * update plugin.<br>
      *
@@ -363,12 +359,12 @@ public class PluginServiceImpl implements PluginService {
      */
     private String update(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         pluginMapper.updateSelective(pluginDO);
-
+        
         // publish update event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
+        modelDataEventPublisher.onUpdated(pluginDO, before);
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 }
