@@ -61,7 +61,7 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
         if (StringUtils.isNotBlank(respData)) {
             respData = respData.trim();
             if (StringUtils.startsWith(respData, "{") && StringUtils.endsWith(respData, "}")) {
-                // standardized json output
+                // standardized json output.
                 grpcResponse.getResults().add(GsonUtils.getGson().fromJson(respData,
                         new TypeToken<HashMap<String, Object>>() {
                         }.getType()));
