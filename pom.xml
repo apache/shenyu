@@ -106,7 +106,6 @@
         <tars.version>1.7.2</tars.version>
         <skipTests>false</skipTests>
         <undertow.version>2.2.2.Final</undertow.version>
-        <curator-test.version>4.0.1</curator-test.version>
         <curator.version>5.2.1</curator.version>
         <wiremock.version>2.18.0</wiremock.version>
         <zookeeper.version>3.6.3</zookeeper.version>
