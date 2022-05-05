@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.plugin.grpc.proto;
 
+import java.util.HashMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.reflect.TypeToken;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 
@@ -45,8 +47,8 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
     /**
      * New instance.
      *
-     * @param results  results
-     * @param <T>      t
+     * @param results results
+     * @param <T> t
      * @return message message
      */
     public static <T extends Message> MessageWriter<T> newInstance(final ShenyuGrpcResponse results) {
@@ -60,7 +62,9 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
             respData = respData.trim();
             if (StringUtils.startsWith(respData, "{") && StringUtils.endsWith(respData, "}")) {
                 // standardized json output
-                grpcResponse.getResults().add(JsonUtils.toMap(respData));
+                grpcResponse.getResults().add(GsonUtils.getGson().fromJson(respData,
+                        new TypeToken<HashMap<String, Object>>() {
+                        }.getType()));
             }
         } else {
             grpcResponse.getResults().add(respData);
