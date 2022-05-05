@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.grpc.proto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
             respData = respData.trim();
             if (StringUtils.startsWith(respData, "{") && StringUtils.endsWith(respData, "}")) {
                 // standardized json output
-                grpcResponse.getResults().add(GsonUtils.getInstance().toObjectMap(respData));
+                grpcResponse.getResults().add(JsonUtils.toMap(respData));
             }
         } else {
             grpcResponse.getResults().add(respData);
