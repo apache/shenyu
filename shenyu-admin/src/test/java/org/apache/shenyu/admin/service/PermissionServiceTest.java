@@ -127,8 +127,7 @@ public final class PermissionServiceTest {
 //        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
         when(mockResourceMapper.selectByIdsBatch(resourceIds)).thenReturn(Arrays.asList(resourceDO2, resourceDO3, resourceDO1, resourceDO4));
         when(mockResourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)).thenReturn(Collections.singletonList(resourceDO4));
-        ResourceService resourceService = new ResourceServiceImpl(mockResourceMapper, mockPermissionMapper);
-        permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper, resourceService);
+        permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper);
     }
 
     @Test

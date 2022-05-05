@@ -17,21 +17,23 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
+import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
-import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
+import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
+import org.apache.shenyu.admin.service.publish.PluginHandleEventPublisher;
+import org.apache.shenyu.admin.utils.ListUtil;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -46,98 +48,120 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PluginHandleServiceImpl implements PluginHandleService {
-
+    
     private static final int SELECT_BOX_DATA_TYPE = 3;
-
+    
     private final PluginHandleMapper pluginHandleMapper;
-
+    
     private final ShenyuDictMapper shenyuDictMapper;
-
-    public PluginHandleServiceImpl(final PluginHandleMapper pluginHandleMapper, final ShenyuDictMapper shenyuDictMapper) {
+    
+    private final PluginHandleEventPublisher eventPublisher;
+    
+    public PluginHandleServiceImpl(final PluginHandleMapper pluginHandleMapper,
+                                   final ShenyuDictMapper shenyuDictMapper,
+                                   final PluginHandleEventPublisher eventPublisher) {
         this.pluginHandleMapper = pluginHandleMapper;
         this.shenyuDictMapper = shenyuDictMapper;
+        this.eventPublisher = eventPublisher;
     }
-
+    
     @Override
     @Pageable
     public CommonPager<PluginHandleVO> listByPage(final PluginHandleQuery pluginHandleQuery) {
-
+        
         List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(pluginHandleQuery);
-
+        
         return PageResultUtils.result(pluginHandleQuery.getPageParameter(),
-            () -> this.buildPluginHandleVO(pluginHandleDOList));
+                () -> this.buildPluginHandleVO(pluginHandleDOList));
     }
-
+    
     @Override
-    public Integer createOrUpdate(final PluginHandleDTO pluginHandleDTO) {
-        int pluginHandleCount;
+    public Integer create(final PluginHandleDTO pluginHandleDTO) {
         PluginHandleDO pluginHandleDO = PluginHandleDO.buildPluginHandleDO(pluginHandleDTO);
-        if (StringUtils.isEmpty(pluginHandleDTO.getId())) {
-            pluginHandleCount = pluginHandleMapper.insertSelective(pluginHandleDO);
-        } else {
-            pluginHandleCount = pluginHandleMapper.updateByPrimaryKeySelective(pluginHandleDO);
+        int pluginHandleCount = pluginHandleMapper.insertSelective(pluginHandleDO);
+        if (pluginHandleCount > 0) {
+            eventPublisher.onCreated(pluginHandleDO);
         }
         return pluginHandleCount;
     }
-
+    
+    @Override
+    public Integer update(final PluginHandleDTO pluginHandleDTO) {
+        PluginHandleDO pluginHandleDO = PluginHandleDO.buildPluginHandleDO(pluginHandleDTO);
+        final PluginHandleDO before = pluginHandleMapper.selectById(pluginHandleDTO.getId());
+        int pluginHandleCount = pluginHandleMapper.updateByPrimaryKeySelective(pluginHandleDO);
+        if (pluginHandleCount > 0) {
+            eventPublisher.onUpdated(pluginHandleDO, before);
+        }
+        return pluginHandleCount;
+    }
+    
     @Override
     public Integer deletePluginHandles(final List<String> ids) {
-        List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(distinctIds)) {
-            return pluginHandleMapper.deleteByIdList(distinctIds);
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
         }
-        return 0;
+        final List<PluginHandleDO> handles = pluginHandleMapper.selectByIdList(ids);
+        final int count = pluginHandleMapper.deleteByIdList(ids);
+        if (count > 0) {
+            eventPublisher.onDeleted(handles);
+        }
+        return count;
     }
-
+    
     @Override
     public PluginHandleVO findById(final String id) {
         return buildPluginHandleVO(pluginHandleMapper.selectById(id));
     }
-
+    
     @Override
     public List<PluginHandleVO> list(final String pluginId, final Integer type) {
-        PluginHandleQuery pluginHandleQuery = PluginHandleQuery.builder()
+        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(PluginHandleQuery.builder()
                 .pluginId(pluginId)
                 .type(type)
-                .build();
-
-        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(pluginHandleQuery);
+                .build());
         return buildPluginHandleVO(pluginHandleDOList);
     }
-
+    
+    /**
+     * The associated Handle needs to be deleted synchronously.
+     *
+     * @param event event
+     */
+    @EventListener(value = BatchPluginDeletedEvent.class)
+    public void onPluginDeleted(final BatchPluginDeletedEvent event) {
+        deletePluginHandles(ListUtil.map(pluginHandleMapper.selectByPluginIdList(event.getDeletedPluginIds()), BaseDO::getId));
+    }
+    
     private PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO) {
         List<ShenyuDictVO> dictOptions = null;
-
         if (pluginHandleDO.getDataType() == SELECT_BOX_DATA_TYPE) {
-            dictOptions = shenyuDictMapper.findByType(pluginHandleDO.getField())
-                    .stream()
-                    .map(ShenyuDictVO::buildShenyuDictVO)
-                    .collect(Collectors.toList());
+            dictOptions = ListUtil.map(shenyuDictMapper.findByType(pluginHandleDO.getField()), ShenyuDictVO::buildShenyuDictVO);
         }
         return PluginHandleVO.buildPluginHandleVO(pluginHandleDO, dictOptions);
     }
-
+    
     private List<PluginHandleVO> buildPluginHandleVO(final List<PluginHandleDO> pluginHandleDOList) {
-
+        
         List<String> fieldList = pluginHandleDOList.stream()
                 .filter(pluginHandleDO -> pluginHandleDO.getDataType() == SELECT_BOX_DATA_TYPE)
-                .map(PluginHandleDO::getField).distinct().collect(Collectors.toList());
-
-        Map<String, List<ShenyuDictVO>> shenyuDictDOMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(fieldList)) {
-            List<ShenyuDictDO> shenyuDictDOList = shenyuDictMapper.findByTypeBatch(fieldList);
-            shenyuDictDOMap.putAll(Optional.ofNullable(shenyuDictDOList).orElseGet(ArrayList::new)
-                    .stream().map(ShenyuDictVO::buildShenyuDictVO)
-                    .collect(Collectors.toMap(ShenyuDictVO::getType, Lists::newArrayList,
-                        (list1, list2) -> {
-                            list1.addAll(list2);
-                            return list1;
-                        })));
-        }
-
-        return pluginHandleDOList.stream().map(pluginHandleDO -> {
-            List<ShenyuDictVO> dictOptions = shenyuDictDOMap.get(pluginHandleDO.getField());
-            return PluginHandleVO.buildPluginHandleVO(pluginHandleDO, dictOptions);
-        }).collect(Collectors.toList());
+                .map(PluginHandleDO::getField)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        Map<String, List<ShenyuDictVO>> shenyuDictMap = CollectionUtils.isNotEmpty(fieldList)
+                ? Optional.ofNullable(shenyuDictMapper.findByTypeBatch(fieldList))
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(ShenyuDictVO::buildShenyuDictVO)
+                .collect(Collectors.groupingBy(ShenyuDictVO::getType))
+                : new HashMap<>(0);
+        
+        return pluginHandleDOList.stream()
+                .map(pluginHandleDO -> {
+                    List<ShenyuDictVO> dictOptions = shenyuDictMap.get(pluginHandleDO.getField());
+                    return PluginHandleVO.buildPluginHandleVO(pluginHandleDO, dictOptions);
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.event;
+package org.apache.shenyu.admin.model.event.handle;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.event.BatchChangedEvent;
 
 import java.util.Collection;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
- * BatchChangedEvent.
+ * BatchPluginChangedEvent.
  */
-public class BatchChangedEvent extends AdminDataModelChangedEvent {
+public class BatchPluginHandleChangedEvent extends BatchChangedEvent {
     
     
     /**
@@ -35,34 +38,21 @@ public class BatchChangedEvent extends AdminDataModelChangedEvent {
      * @param before Before the change plugin state
      * @param type   event type
      */
-    public BatchChangedEvent(final Collection<?> source, final Collection<?> before, final EventTypeEnum type, final String operator) {
+    public BatchPluginHandleChangedEvent(final Collection<PluginHandleDO> source, final Collection<PluginHandleDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
     
-    /**
-     * before plugin snapshot.
-     *
-     * @return snapshot
-     */
     @Override
-    public String beforeSnapshot() {
-        // format plugin data
-        return Objects.toString(getBefore(), "before plugin unknown");
-    }
-    
-    /**
-     * after plugin snapshot.
-     *
-     * @return snapshot
-     */
-    @Override
-    public String afterSnapshot() {
-        // format plugin data
-        return Objects.toString(getAfter(), "after plugin unknown");
+    public String buildContext() {
+        final String handle = ((Collection<?>) getSource())
+                .stream()
+                .map(s -> ((PluginHandleDO) s).getField())
+                .collect(Collectors.joining(","));
+        return String.format("the plugin handle[%s] is %s", handle, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     @Override
     public String eventName() {
-        return "plugin";
+        return "plugin-handle";
     }
 }
