@@ -15,12 +15,12 @@
 # limitations under the License.
 
 global:
-  scrape_interval: 15s
+  scrape_interval: 3s
 
 scrape_configs:
   - job_name: 'Apache ShenYu'
     static_configs:
-    - targets: ['shenyu-integrated-test-http:8090']
+    - targets: ['localhost:8090']
   - job_name: "prometheus"
     static_configs:
     - targets: ["localhost:9090"]
