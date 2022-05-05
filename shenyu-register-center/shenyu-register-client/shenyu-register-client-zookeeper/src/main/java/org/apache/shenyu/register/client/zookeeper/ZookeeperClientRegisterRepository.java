@@ -129,6 +129,7 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+        // avoid dup registration for metadata
         synchronized (metadataSet) {
             if (metadataSet.contains(realNode)) {
                 return;

@@ -21,22 +21,29 @@ import com.google.common.base.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.api.transaction.CuratorOp;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperClient {
 
     private ZookeeperConfig config;
 
     private CuratorFramework client;
+
+    private Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
         this.config = zookeeperConfig;
@@ -67,6 +74,11 @@ public class ZookeeperClient {
      * start.
      */
     public void close() {
+        // close all caches
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
+            CloseableUtils.closeQuietly(cache.getValue());
+        }
+        // close client
         CloseableUtils.closeQuietly(client);
     }
 
@@ -91,6 +103,38 @@ public class ZookeeperClient {
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
+    }
+
+    /**
+     * get from zk directly.
+     *
+     * @param key zookeeper path
+     * @return value.
+     */
+    public String getDirectly(final String key) {
+        try {
+            return new String(client.getData().forPath(key), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
+     * get value for specific key.
+     *
+     * @param key zookeeper path
+     * @return value.
+     */
+    public String get(final String key) {
+        CuratorCache cache = findFromcache(key);
+        Optional<ChildData> data = cache.get(key);
+        if (Objects.isNull(cache) || !data.isPresent()) {
+            return getDirectly(key);
+        }
+        if (Objects.isNull(data.get())) {
+            return getDirectly(key);
+        }
+        return new String(data.get().getData(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -150,5 +194,46 @@ public class ZookeeperClient {
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
+    }
+
+    /**
+     * get created cache.
+     * @param path path.
+     * @return cache.
+     */
+    public CuratorCache getCache(final String path) {
+        return caches.get(path);
+    }
+
+    /**
+     * add new curator cache.
+     * @param path path.
+     * @param listeners listeners.
+     * @return cache.
+     */
+    public CuratorCache addCache(final String path, final CuratorCacheListener... listeners) {
+        CuratorCache cache = CuratorCache.build(client, path);
+        caches.put(path, cache);
+        if (listeners != null && listeners.length > 0) {
+            for (CuratorCacheListener listener : listeners) {
+                cache.listenable().addListener(listener);
+            }
+        }
+        cache.start();
+        return cache;
+    }
+
+    /**
+     * find cache with  key.
+     * @param key key.
+     * @return cache.
+     */
+    private CuratorCache findFromcache(final String key) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
+            if (key.startsWith(cache.getKey())) {
+                return cache.getValue();
+            }
+        }
+        return null;
     }
 }
