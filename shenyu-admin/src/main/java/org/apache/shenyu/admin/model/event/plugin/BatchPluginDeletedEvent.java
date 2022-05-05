@@ -54,6 +54,11 @@ public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
         return String.format("the plugins[%s] is %s", plugins, StringUtils.lowerCase(getType().getType().toString()));
     }
     
+    /**
+     * get deleted iss.
+     *
+     * @return list
+     */
     public List<String> getDeletedPluginIds() {
         return deletedPluginIds;
     }
