@@ -20,7 +20,7 @@ package org.apache.shenyu.web.handler;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -96,14 +96,14 @@ public final class ShenyuWebHandlerTest {
                 .role("test")
                 .sort(60)
                 .build();
-        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
-        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.DISABLED, pluginData2));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DISABLED, pluginData2));
         List<ShenyuPlugin> plugins = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
         assertNotNull(plugins);
         assertTrue(plugins.contains(plugin1) && !plugins.contains(plugin2));
 
-        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
-        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.DELETE, pluginData2));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DELETE, pluginData2));
         List<ShenyuPlugin> pluginDelete = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
         assertNotNull(pluginDelete);
         assertTrue(pluginDelete.contains(plugin1) && !pluginDelete.contains(plugin2));
@@ -112,8 +112,8 @@ public final class ShenyuWebHandlerTest {
         pluginData2.setEnabled(true);
         BaseDataCache.getInstance().cachePluginData(pluginData1);
         BaseDataCache.getInstance().cachePluginData(pluginData2);
-        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData1));
-        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnums.ENABLED, pluginData2));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.ENABLED, pluginData1));
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.ENABLED, pluginData2));
         List<ShenyuPlugin> pluginDataSorted = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
         assertNotNull(pluginDataSorted);
         assertEquals(pluginDataSorted.get(0), plugin2);

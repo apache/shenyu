@@ -15,29 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * event of sort plugin.
+ * @see PluginHandlerEventEnum
  */
-public class PluginHandlerEvent extends ApplicationEvent {
+public class PluginHandlerEventEnumTest {
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
-
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
-    }
-
-    /**
-     * get plugin handler.
-     * @return plugin handler event
-     */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    @Test
+    public void testEvent() {
+        Arrays.stream(PluginHandlerEventEnum.values())
+                .forEach(pluginHandler -> assertEquals(pluginHandler, PluginHandlerEventEnum.valueOf(pluginHandler.name())));
     }
 }

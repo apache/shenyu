@@ -15,29 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * event of sort plugin.
+ * @see RetryEnum
  */
-public class PluginHandlerEvent extends ApplicationEvent {
+public class RetryEnumTest {
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
-
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
+    @Test
+    public void testRetryCode() {
+        assertEquals(1, RetryEnum.CURRENT.getCode());
+        assertEquals(2, RetryEnum.FAILOVER.getCode());
     }
 
-    /**
-     * get plugin handler.
-     * @return plugin handler event
-     */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    @Test
+    public void testRetryName() {
+        assertEquals("current", RetryEnum.CURRENT.getName());
+        assertEquals("failover", RetryEnum.FAILOVER.getName());
+    }
+
+    @Test
+    public void testSupport() {
+        assertTrue(RetryEnum.CURRENT.isSupport());
+        assertTrue(RetryEnum.FAILOVER.isSupport());
     }
 }
