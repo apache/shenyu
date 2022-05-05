@@ -237,27 +237,6 @@ public class HttpHelper {
     }
 
     /**
-     * Send a get http request to shenyu gateway .
-     *
-     * @param <S>     response type
-     * @param headers headers
-     * @param path    path
-     * @param type    type of response passed to {@link Gson#fromJson(String, Type)}
-     * @return response from gateway
-     * @throws IOException IO exception
-     */
-    public <S> S getHttpService(final String path, final Map<String, Object> headers, final Type type) throws IOException {
-        Response response = getHttpService(path, headers);
-        String respBody = Objects.requireNonNull(response.body()).string();
-        LOG.info("testMetricsPluginFromGateway({}) resp({})", path, respBody);
-        try {
-            return GSON.fromJson(respBody, type);
-        } catch (Exception e) {
-            return (S) respBody;
-        }
-    }
-
-    /**
      * Send a get http request to shenyu gateway with headers.
      *
      * @param path    path
@@ -284,5 +263,26 @@ public class HttpHelper {
         }
         Request request = requestBuilder.build();
         return client.newCall(request).execute();
+    }
+
+    /**
+     * Send a get http request to shenyu gateway .
+     *
+     * @param <S>     response type
+     * @param headers headers
+     * @param path    path
+     * @param type    type of response passed to {@link Gson#fromJson(String, Type)}
+     * @return response from gateway
+     * @throws IOException IO exception
+     */
+    public <S> S getHttpService(final String path, final Map<String, Object> headers, final Type type) throws IOException {
+        Response response = getHttpService(path, headers);
+        String respBody = Objects.requireNonNull(response.body()).string();
+        LOG.info("testMetricsPluginFromGateway({}) resp({})", path, respBody);
+        try {
+            return GSON.fromJson(respBody, type);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
     }
 }
