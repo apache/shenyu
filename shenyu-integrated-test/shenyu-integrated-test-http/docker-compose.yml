@@ -105,10 +105,6 @@ services:
       - "9090:9090"
     networks:
       - shenyu
-    healthcheck:
-      test: [ "CMD", "wget", "http://prometheus:9090/ready" ]
-      timeout: 2s
-      retries: 30
 
 networks:
   shenyu:
