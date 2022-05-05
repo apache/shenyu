@@ -18,17 +18,12 @@
 package org.apache.shenyu.integrated.test.http.combination;
 
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
-import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.integratedtest.common.dto.OrderDTO;
-import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
@@ -45,7 +40,6 @@ import java.util.concurrent.Future;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class RewritePluginTest extends AbstractPluginDataInit {
 
@@ -85,7 +79,6 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         conditionData.setParamValue("/http/test/**");
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
         ruleLocalData.setRuleName("testRewrite");
-
 
         RewriteHandle rewriteHandle = new RewriteHandle();
         rewriteHandle.setRegex("/http/test/waf/pass");
