@@ -127,14 +127,11 @@ public class ZookeeperClient {
      */
     public String get(final String key) {
         CuratorCache cache = findFromcache(key);
+        if (Objects.isNull(cache)) {
+            return getDirectly(key);
+        }
         Optional<ChildData> data = cache.get(key);
-        if (Objects.isNull(cache) || !data.isPresent()) {
-            return getDirectly(key);
-        }
-        if (Objects.isNull(data.get())) {
-            return getDirectly(key);
-        }
-        return new String(data.get().getData(), StandardCharsets.UTF_8);
+        return data.map(childData -> new String(childData.getData(), StandardCharsets.UTF_8)).orElseGet(() -> getDirectly(key));
     }
 
     /**
