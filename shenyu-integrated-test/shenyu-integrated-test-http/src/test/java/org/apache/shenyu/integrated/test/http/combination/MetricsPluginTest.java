@@ -28,11 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public final class MetricsPluginTest extends AbstractPluginDataInit {
 
-    private static final String TEST_CACHE_PATH = "/metrics";
-
     @Test
     public void testPass() throws ExecutionException, InterruptedException {
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.testMetricsPluginFromGateway("http://shenyu-integrated-test-http:9090/api/v1/targets", String.class));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:9090/api/v1/targets", null, String.class));
         assertFalse(resp.get().contains("down"));
     }
 

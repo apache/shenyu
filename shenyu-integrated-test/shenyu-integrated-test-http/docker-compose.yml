@@ -96,7 +96,7 @@ services:
       retries: 30
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.35.0
     volumes:
       - type: bind
         source: ./prometheus.yml

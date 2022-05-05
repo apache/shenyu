@@ -49,11 +49,6 @@ public class HttpHelper {
     public static final String GATEWAY_END_POINT = "http://localhost:9195";
 
     /**
-     * The constant test metrics plugin.
-     */
-    public static final String METRICS_END_POINT = "http://localhost:8090";
-
-    /**
      * The constant JSON.
      */
     public static final MediaType JSON = MediaType.parse("application/json");
@@ -245,13 +240,14 @@ public class HttpHelper {
      * Send a get http request to shenyu gateway .
      *
      * @param <S>     response type
+     * @param headers headers
      * @param path    path
      * @param type    type of response passed to {@link Gson#fromJson(String, Type)}
      * @return response from gateway
      * @throws IOException IO exception
      */
-    public <S> S testMetricsPluginFromGateway(final String path, final Type type) throws IOException {
-        Response response = getHttpService(path, null);
+    public <S> S getHttpService(final String path, final Map<String, Object> headers, final Type type) throws IOException {
+        Response response = getHttpService(path, headers);
         String respBody = Objects.requireNonNull(response.body()).string();
         LOG.info("testMetricsPluginFromGateway({}) resp({})", path, respBody);
         try {
