@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.client.zookeeper;
 
-import com.google.common.base.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -29,6 +28,8 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.zookeeper.CreateMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -39,11 +40,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperClient {
 
-    private ZookeeperConfig config;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClient.class);
 
-    private CuratorFramework client;
+    private final ZookeeperConfig config;
 
-    private Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
+    private final CuratorFramework client;
+
+    private final Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
         this.config = zookeeperConfig;
@@ -68,6 +71,12 @@ public class ZookeeperClient {
      */
     public void start() {
         this.client.start();
+        try {
+            this.client.blockUntilConnected();
+        } catch (InterruptedException e) {
+            LOGGER.warn("Interrupted during zookeeper client starting.");
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -113,7 +122,8 @@ public class ZookeeperClient {
      */
     public String getDirectly(final String key) {
         try {
-            return new String(client.getData().forPath(key), StandardCharsets.UTF_8);
+            byte[] ret = client.getData().forPath(key);
+            return Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

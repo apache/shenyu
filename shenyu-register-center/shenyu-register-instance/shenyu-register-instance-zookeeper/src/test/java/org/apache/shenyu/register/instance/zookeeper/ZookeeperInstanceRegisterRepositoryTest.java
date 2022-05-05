@@ -43,7 +43,6 @@ public class ZookeeperInstanceRegisterRepositoryTest {
         config.setServerLists(server.getConnectString());
         this.repository.init(config);
 
-
         Class<? extends ZookeeperInstanceRegisterRepository> clazz = this.repository.getClass();
 
         String fieldString = "client";

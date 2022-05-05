@@ -47,12 +47,12 @@ public class ZookeeperConfig {
     /**
      * session timeout.
      */
-    private int sessionTimeoutMilliseconds;
+    private int sessionTimeoutMilliseconds = 60 * 1000;
 
     /**
      * connection timeout.
      */
-    private int connectionTimeoutMilliseconds;
+    private int connectionTimeoutMilliseconds = 15 * 1000;
 
     /**
      * auth token digest. no auth by default.
