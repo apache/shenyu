@@ -55,6 +55,11 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
         return String.format("the selector[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
     
+    /**
+     * get deleted ids.
+     *
+     * @return ids.
+     */
     public List<String> getDeletedIds() {
         return deletedIds;
     }

@@ -174,7 +174,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public int create(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        int selectorCount = selectorMapper.insertSelective(selectorDO);
+        final int selectorCount = selectorMapper.insertSelective(selectorDO);
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         initSelectorPermission(selectorDO);
         publishEvent(selectorDO, selectorDTO.getSelectorConditions());
@@ -190,7 +190,7 @@ public class SelectorServiceImpl implements SelectorService {
     public int update(final SelectorDTO selectorDTO) {
         final SelectorDO before = selectorMapper.selectById(selectorDTO.getId());
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        int selectorCount = selectorMapper.updateSelective(selectorDO);
+        final int selectorCount = selectorMapper.updateSelective(selectorDO);
         //delete rule condition then add
         selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
@@ -258,7 +258,8 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorVO findById(final String id) {
-        return SelectorVO.buildSelectorVO(selectorMapper.selectById(id), ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO));
+        final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
+        return SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
     }
     
     @Override

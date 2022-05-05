@@ -80,7 +80,8 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
     /**
      * on plugin deleted.
      *
-     * @param selectors selectors
+     * @param selectors        selectors
+     * @param selectorDataList selectorDataList
      */
     public void onDeleted(final Collection<SelectorDO> selectors, final List<SelectorData> selectorDataList) {
         onDeleted(selectors);
