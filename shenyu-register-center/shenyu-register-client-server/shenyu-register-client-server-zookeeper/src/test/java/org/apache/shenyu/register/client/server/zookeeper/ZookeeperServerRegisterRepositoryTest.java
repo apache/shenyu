@@ -18,7 +18,6 @@
 package org.apache.shenyu.register.client.server.zookeeper;
 
 import org.apache.curator.test.TestingServer;
-import org.apache.shenyu.common.client.zookeeper.ZookeeperClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;

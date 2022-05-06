@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.client.zookeeper;
+package org.apache.shenyu.register.client.server.zookeeper;
 
 public class ZookeeperConfig {
     /**

@@ -19,8 +19,6 @@ package org.apache.shenyu.register.client.zookeeper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.state.ConnectionState;
-import org.apache.shenyu.common.client.zookeeper.ZookeeperClient;
-import org.apache.shenyu.common.client.zookeeper.ZookeeperConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
