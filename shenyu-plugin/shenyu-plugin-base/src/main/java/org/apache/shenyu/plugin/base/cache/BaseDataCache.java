@@ -240,7 +240,8 @@ public final class BaseDataCache {
      * @return the selector data
      */
     public Object getConditionParent(final String conditionId) {
-        return CONDITION_MAP.get(conditionId);
+        return Optional.ofNullable(conditionId)
+                .map(CONDITION_MAP::get).orElse(null);
     }
 
     /**
