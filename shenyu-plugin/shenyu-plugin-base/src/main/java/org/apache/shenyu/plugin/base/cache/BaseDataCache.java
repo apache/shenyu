@@ -365,11 +365,11 @@ public final class BaseDataCache {
                 final List<SelectorData> collect = resultList.stream().sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
                 SELECTOR_MAP.put(key, collect);
                 for (SelectorData selector : collect) {
-                    SELECTOR_PLUGIN_MAP.put(selector.getId(), key);
+                    Optional.ofNullable(selector.getId()).ifPresent(selectorId -> SELECTOR_PLUGIN_MAP.put(selectorId, key));
                 }
             } else {
                 SELECTOR_MAP.put(key, Lists.newArrayList(data));
-                SELECTOR_PLUGIN_MAP.put(data.getId(), key);
+                Optional.ofNullable(data.getId()).ifPresent(selectorId -> SELECTOR_PLUGIN_MAP.put(selectorId, key));
             }
         }
         // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
