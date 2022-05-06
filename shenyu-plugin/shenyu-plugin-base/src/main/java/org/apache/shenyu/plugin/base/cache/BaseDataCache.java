@@ -62,13 +62,17 @@ public final class BaseDataCache {
     private static final ConcurrentMap<String, Object> CONDITION_MAP = Maps.newConcurrentMap();
 
     /**
-     * pluginName -> realDataString -> SelectorData or RuleData.
+     * pluginName -> conditionId_realDataString -> SelectorData or RuleData.
+     *
+     * @see org.apache.shenyu.plugin.base.utils.CacheKeyUtils#getKey(org.apache.shenyu.common.dto.ConditionData, java.lang.String)
      */
     private static final MemorySafeLRUMap<String, MemorySafeLRUMap<String, Object>> MATCH_CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
 
     /**
-     * pluginName -> SelectorData or RuleData -> realDataString.
+     * pluginName -> SelectorData or RuleData -> conditionId_realDataString.
      * When the selector/rule is updated, the cache needs to be cleaned up.
+     *
+     * @see org.apache.shenyu.plugin.base.utils.CacheKeyUtils#getKey(org.apache.shenyu.common.dto.ConditionData, java.lang.String)
      */
     private static final ConcurrentMap<String, ConcurrentMap<Object, Set<String>>> MATCH_MAPPING = Maps.newConcurrentMap();
 
@@ -155,15 +159,15 @@ public final class BaseDataCache {
      * Cache matched data.
      *
      * @param pluginName      the plugin name
-     * @param realData        the real data string
+     * @param cacheKey        the cache key
      * @param conditionParent the condition parent
      */
-    public void cacheMatched(final String pluginName, final String realData, final Object conditionParent) {
+    public void cacheMatched(final String pluginName, final String cacheKey, final Object conditionParent) {
         final MemorySafeLRUMap<String, Object> cache = MATCH_CACHE.computeIfAbsent(pluginName, key -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
-        cache.put(realData, conditionParent);
+        cache.put(cacheKey, conditionParent);
         final ConcurrentMap<Object, Set<String>> mappings = MATCH_MAPPING.computeIfAbsent(pluginName, key -> Maps.newConcurrentMap());
         final Set<String> set = mappings.computeIfAbsent(conditionParent, key -> new HashSet<>());
-        set.add(realData);
+        set.add(cacheKey);
     }
 
     /**
@@ -248,12 +252,12 @@ public final class BaseDataCache {
      * Obtain matched selector/rule data.
      *
      * @param pluginName the plugin name
-     * @param realData   the real data string
+     * @param cacheKey   the cache key
      * @return the matched selector data
      */
-    public Object obtainMatched(final String pluginName, final String realData) {
+    public Object obtainMatched(final String pluginName, final String cacheKey) {
         return Optional.ofNullable(MATCH_CACHE.get(pluginName))
-                .map(cache -> cache.get(realData)).orElse(null);
+                .map(cache -> cache.get(cacheKey)).orElse(null);
     }
 
     /**

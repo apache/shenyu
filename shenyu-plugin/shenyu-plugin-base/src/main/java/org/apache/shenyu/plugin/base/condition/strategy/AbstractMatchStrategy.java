@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
 import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Objects;
@@ -51,15 +52,17 @@ public abstract class AbstractMatchStrategy {
      */
     public Boolean match(final String pluginName, final ConditionData condition, final ServerWebExchange exchange) {
         final String realData = buildRealData(condition, exchange);
+        // The same real data here may be both a selector and a rule, which need to be distinguished
+        final String cacheKey = CacheKeyUtils.INST.getKey(condition, realData);
         // condition and real data are not mapped one-to-one, so we need to add a plugin condition
-        final Object matched = BaseDataCache.getInstance().obtainMatched(pluginName, realData);
+        final Object matched = BaseDataCache.getInstance().obtainMatched(pluginName, cacheKey);
         if (Objects.nonNull(matched)) {
             return true;
         }
         final Object conditionParent = BaseDataCache.getInstance().getConditionParent(condition.getId());
         final Boolean match = PredicateJudgeFactory.judge(condition, realData);
         if (match && Objects.nonNull(conditionParent)) {
-            BaseDataCache.getInstance().cacheMatched(pluginName, realData, conditionParent);
+            BaseDataCache.getInstance().cacheMatched(pluginName, cacheKey, conditionParent);
             return true;
         }
         return match;

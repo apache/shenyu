@@ -17,18 +17,19 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 
 /**
  * CacheKeyUtils.
  */
 public enum CacheKeyUtils {
-    
+
     /**
      * Inst singleton.
      */
     INST;
-    
+
     /**
      * return rule handle cache key name.
      *
@@ -37,5 +38,16 @@ public enum CacheKeyUtils {
      */
     public String getKey(final RuleData ruleData) {
         return ruleData.getSelectorId() + "_" + ruleData.getName();
+    }
+
+    /**
+     * return match condition cache key.
+     *
+     * @param condition the condition data
+     * @param realData  real data string
+     * @return cache key
+     */
+    public String getKey(final ConditionData condition, final String realData) {
+        return condition.getId() + "_" + realData;
     }
 }
