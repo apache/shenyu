@@ -346,7 +346,8 @@ public final class BaseDataCache {
                         .map(cache -> cache.get(data))
                         .ifPresent(set -> Optional.ofNullable(MATCH_CACHE.get(pluginName)).ifPresent(cache -> set.forEach(cache::remove))));
         Optional.ofNullable(data.getConditionDataList())
-                .ifPresent(conditions -> conditions.forEach(condition -> CONDITION_MAP.put(condition.getId(), data)));
+                .ifPresent(conditions -> conditions.forEach(condition -> Optional.ofNullable(condition.getId())
+                        .ifPresent(conditionId -> CONDITION_MAP.put(conditionId, data))));
     }
 
     /**
@@ -376,7 +377,8 @@ public final class BaseDataCache {
                 .map(cache -> cache.get(data))
                 .ifPresent(set -> Optional.ofNullable(MATCH_CACHE.get(key)).ifPresent(cache -> set.forEach(cache::remove)));
         Optional.ofNullable(data.getConditionList())
-                .ifPresent(conditions -> conditions.forEach(condition -> CONDITION_MAP.put(condition.getId(), data)));
+                .ifPresent(conditions -> conditions.forEach(condition -> Optional.ofNullable(condition.getId())
+                        .ifPresent(conditionId -> CONDITION_MAP.put(conditionId, data))));
     }
 
     private void removeCache(final Object data, final String pluginName) {
