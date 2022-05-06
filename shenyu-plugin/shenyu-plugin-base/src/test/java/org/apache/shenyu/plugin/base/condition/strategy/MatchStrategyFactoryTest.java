@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.base.condition.strategy;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -75,7 +76,8 @@ public final class MatchStrategyFactoryTest {
 
     @Test
     public void testMatch() {
-        assertFalse(MatchStrategyFactory.match(MatchModeEnum.AND.getCode(), conditionDataList, exchange));
-        assertTrue(MatchStrategyFactory.match(MatchModeEnum.OR.getCode(), conditionDataList, exchange));
+        String pluginName = PluginEnum.DIVIDE.getName();
+        assertFalse(MatchStrategyFactory.match(pluginName, MatchModeEnum.AND.getCode(), conditionDataList, exchange));
+        assertTrue(MatchStrategyFactory.match(pluginName, MatchModeEnum.OR.getCode(), conditionDataList, exchange));
     }
 }

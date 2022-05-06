@@ -60,6 +60,6 @@ public final class MatchStrategyFactoryTest {
      */
     @Test
     public void matchTest() {
-        assertTrue(MatchStrategyFactory.match(0, conditionDatas, exchange));
+        assertTrue(MatchStrategyFactory.match(named(), 0, conditionDatas, exchange));
     }
 }

@@ -29,6 +29,11 @@ import java.util.Objects;
 public class ConditionData {
 
     /**
+     * primary key.
+     */
+    private String id;
+
+    /**
      * param type (post  query  uri).
      */
     private String paramType;
@@ -47,6 +52,24 @@ public class ConditionData {
      * param value.
      */
     private String paramValue;
+
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
 
     /**
      * get paramType.
@@ -129,19 +152,22 @@ public class ConditionData {
             return false;
         }
         ConditionData that = (ConditionData) o;
-        return Objects.equals(paramType, that.paramType) && Objects.equals(operator, that.operator)
+        return Objects.equals(id, that.id) && Objects.equals(paramType, that.paramType) && Objects.equals(operator, that.operator)
                 && Objects.equals(paramName, that.paramName) && Objects.equals(paramValue, that.paramValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(paramType, operator, paramName, paramValue);
+        return Objects.hash(id, paramType, operator, paramName, paramValue);
     }
 
     @Override
     public String toString() {
         return "ConditionData{"
-                + "paramType='"
+                + "id='"
+                + id
+                + '\''
+                + ", paramType='"
                 + paramType
                 + '\''
                 + ", operator='"

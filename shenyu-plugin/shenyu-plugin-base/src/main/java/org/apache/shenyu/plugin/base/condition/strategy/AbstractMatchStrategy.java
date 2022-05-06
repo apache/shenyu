@@ -18,8 +18,12 @@
 package org.apache.shenyu.plugin.base.condition.strategy;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
+import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Objects;
 
 /**
  * AbstractMatchStrategy.
@@ -35,5 +39,29 @@ public abstract class AbstractMatchStrategy {
      */
     public String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
         return ParameterDataFactory.builderData(condition.getParamType(), condition.getParamName(), exchange);
+    }
+
+    /**
+     * this is condition match.
+     *
+     * @param pluginName the plugin name
+     * @param condition  the condition.
+     * @param exchange   {@linkplain ServerWebExchange}
+     * @return true is match , false is not match.
+     */
+    public Boolean match(final String pluginName, final ConditionData condition, final ServerWebExchange exchange) {
+        final String realData = buildRealData(condition, exchange);
+        // condition and real data are not mapped one-to-one, so we need to add a plugin condition
+        final Object matched = BaseDataCache.getInstance().obtainMatched(pluginName, realData);
+        if (Objects.nonNull(matched)) {
+            return true;
+        }
+        final Object conditionParent = BaseDataCache.getInstance().getConditionParent(condition.getId());
+        final Boolean match = PredicateJudgeFactory.judge(condition, realData);
+        if (match && Objects.nonNull(conditionParent)) {
+            BaseDataCache.getInstance().cacheMatched(pluginName, realData, conditionParent);
+            return true;
+        }
+        return match;
     }
 }

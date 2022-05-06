@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.condition.strategy;
 
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -31,9 +30,9 @@ import java.util.List;
 public class OrMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
 
     @Override
-    public Boolean match(final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
+    public Boolean match(final String pluginName, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
         return conditionDataList
                 .stream()
-                .anyMatch(condition -> PredicateJudgeFactory.judge(condition, buildRealData(condition, exchange)));
+                .anyMatch(condition -> match(pluginName, condition, exchange));
     }
 }

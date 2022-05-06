@@ -78,7 +78,7 @@ public class OAuth2PreFilter implements WebFilter {
             if (CollectionUtils.isEmpty(selector.getConditionList())) {
                 return false;
             }
-            return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
+            return MatchStrategyFactory.match(named(), selector.getMatchMode(), selector.getConditionList(), exchange);
         }
         return true;
     }

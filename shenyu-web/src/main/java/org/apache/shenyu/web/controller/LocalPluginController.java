@@ -335,6 +335,13 @@ public class LocalPluginController {
         if (Objects.isNull(selectorData.getLogged())) {
             selectorData.setLogged(false);
         }
+        if (CollectionUtils.isNotEmpty(selectorData.getConditionList())) {
+            for (ConditionData conditionData : selectorData.getConditionList()) {
+                if (StringUtils.isEmpty(conditionData.getId())) {
+                    conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
+                }
+            }
+        }
         return selectorData;
     }
     

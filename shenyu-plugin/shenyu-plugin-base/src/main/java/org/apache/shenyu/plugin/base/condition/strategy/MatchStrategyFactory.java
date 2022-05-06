@@ -46,12 +46,13 @@ public final class MatchStrategyFactory {
     /**
      * Match boolean.
      *
+     * @param pluginName the plugin name
      * @param strategy the strategy
      * @param conditionDataList the condition data list
      * @param exchange the exchange
      * @return the boolean
      */
-    public static boolean match(final Integer strategy, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
-        return newInstance(strategy).match(conditionDataList, exchange);
+    public static boolean match(String pluginName, final Integer strategy, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
+        return newInstance(strategy).match(pluginName, conditionDataList, exchange);
     }
 }

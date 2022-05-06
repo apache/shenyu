@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.condition.strategy;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +66,6 @@ public final class OrMatchStrategyTest {
 
     @Test
     public void testMatch() {
-        assertTrue(matchStrategy.match(conditionDataList, exchange));
+        assertTrue(matchStrategy.match(PluginEnum.DIVIDE.getName(), conditionDataList, exchange));
     }
 }
