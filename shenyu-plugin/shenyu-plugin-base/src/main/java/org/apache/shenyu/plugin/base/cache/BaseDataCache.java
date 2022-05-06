@@ -207,7 +207,7 @@ public final class BaseDataCache {
         SELECTOR_MAP.clear();
         SELECTOR_PLUGIN_MAP.clear();
         CONDITION_MAP.entrySet().stream()
-                .filter(entry->entry.getValue() instanceof SelectorData)
+                .filter(entry -> entry.getValue() instanceof SelectorData)
                 .map(Map.Entry::getKey)
                 .forEach(CONDITION_MAP::remove);
         MATCH_CACHE.clear();
@@ -295,7 +295,7 @@ public final class BaseDataCache {
     public void cleanRuleData() {
         RULE_MAP.clear();
         CONDITION_MAP.entrySet().stream()
-                .filter(entry->entry.getValue() instanceof RuleData)
+                .filter(entry -> entry.getValue() instanceof RuleData)
                 .map(Map.Entry::getKey)
                 .forEach(CONDITION_MAP::remove);
         MATCH_CACHE.clear();
@@ -322,7 +322,7 @@ public final class BaseDataCache {
     }
 
     /**
-     *  cache rule data.
+     * cache rule data.
      *
      * @param data the rule data
      */
