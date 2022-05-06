@@ -364,6 +364,13 @@ public class LocalPluginController {
         if (Objects.isNull(ruleData.getLoged())) {
             ruleData.setLoged(false);
         }
+        if (CollectionUtils.isNotEmpty(ruleData.getConditionDataList())) {
+            for (ConditionData conditionData : ruleData.getConditionDataList()) {
+                if (StringUtils.isEmpty(conditionData.getId())) {
+                    conditionData.setId(UUIDUtils.getInstance().generateShortUuid());
+                }
+            }
+        }
         return ruleData;
     }
     
