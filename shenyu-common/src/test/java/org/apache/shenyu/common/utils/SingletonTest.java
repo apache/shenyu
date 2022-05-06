@@ -15,29 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+import org.junit.jupiter.api.Test;
 
-/**
- * event of sort plugin.
- */
-public class PluginHandlerEvent extends ApplicationEvent {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
+public class SingletonTest {
 
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
-    }
-
-    /**
-     * get plugin handler.
-     * @return plugin handler event
-     */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    @Test
+    public void testSingle() {
+        Singleton.INST.single(this.getClass(), this);
+        assertNotNull(Singleton.INST.get(this.getClass()));
+        assertEquals(this, Singleton.INST.get(this.getClass()));
     }
 }

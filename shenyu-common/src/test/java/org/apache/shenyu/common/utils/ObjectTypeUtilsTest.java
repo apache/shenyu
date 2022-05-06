@@ -15,29 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+import org.junit.jupiter.api.Test;
 
-/**
- * event of sort plugin.
- */
-public class PluginHandlerEvent extends ApplicationEvent {
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
+public class ObjectTypeUtilsTest {
 
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
-    }
-
-    /**
-     * get plugin handler.
-     * @return plugin handler event
-     */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    @Test
+    public void testIsBasicType() {
+        Object o = 1;
+        assertTrue(ObjectTypeUtils.isBasicType(o));
+        o = new Short("1");
+        assertTrue(ObjectTypeUtils.isBasicType(o));
+        o = new Long("1");
+        assertTrue(ObjectTypeUtils.isBasicType(o));
+        o = new Double("1");
+        assertTrue(ObjectTypeUtils.isBasicType(o));
+        o = new Float("1");
+        assertTrue(ObjectTypeUtils.isBasicType(o));
+        o = Boolean.TRUE;
+        assertTrue(ObjectTypeUtils.isBasicType(o));
+        CharSequence str = "hello world";
+        assertTrue(ObjectTypeUtils.isBasicType(str));
     }
 }

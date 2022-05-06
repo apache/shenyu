@@ -15,29 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+import org.junit.jupiter.api.Test;
 
-/**
- * event of sort plugin.
- */
-public class PluginHandlerEvent extends ApplicationEvent {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
+public class ContextPathUtilsTest {
 
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
+    @Test
+    public void testBuildContextPath() {
+        final String url = "/contextPath/service";
+        final String appName = "/app";
+        assertEquals(url, ContextPathUtils.buildContextPath(url, appName));
+        assertEquals(appName, ContextPathUtils.buildContextPath("", appName));
     }
 
-    /**
-     * get plugin handler.
-     * @return plugin handler event
-     */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    @Test
+    public void testBuildRealNode() {
+        final String url = "/contextPath/service";
+        final String appName = "/app";
+        assertEquals(url.substring(1), ContextPathUtils.buildRealNode(url, appName));
+        assertEquals(appName.substring(1), ContextPathUtils.buildRealNode("", appName));
     }
 }

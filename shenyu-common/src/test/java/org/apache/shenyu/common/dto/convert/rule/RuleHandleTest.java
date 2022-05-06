@@ -15,29 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.common.dto.convert.rule;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.junit.jupiter.api.Test;
 
-/**
- * event of sort plugin.
- */
-public class PluginHandlerEvent extends ApplicationEvent {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
+public class RuleHandleTest {
 
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
+    @Test
+    public void testToJson() {
+        assertNotNull(new RuleTest().toJson());
+        assertEquals(GsonUtils.getInstance().toJson(new RuleTest()), new RuleTest().toJson());
     }
 
-    /**
-     * get plugin handler.
-     * @return plugin handler event
-     */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    static class RuleTest implements RuleHandle {
+
+        private final String id = "1";
+
+        private final String name = "rule-handle";
+
+        @Override
+        public String toJson() {
+            return RuleHandle.super.toJson();
+        }
     }
 }

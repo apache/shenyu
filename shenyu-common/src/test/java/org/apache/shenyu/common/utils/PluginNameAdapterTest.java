@@ -15,29 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.junit.jupiter.api.Test;
 
-/**
- * event of sort plugin.
- */
-public class PluginHandlerEvent extends ApplicationEvent {
+import java.util.Arrays;
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
-    }
+public class PluginNameAdapterTest {
 
-    /**
-     * get plugin handler.
-     * @return plugin handler event
-     */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    @Test
+    public void testRpcTypeAdapter() {
+        Arrays.stream(RpcTypeEnum.values())
+                .filter(rpcTypeEnum -> !RpcTypeEnum.HTTP.getName().equals(rpcTypeEnum.getName()))
+                .forEach(rpcTypeEnum -> assertEquals(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName()),
+                        PluginEnum.getPluginEnumByName(rpcTypeEnum.getName()).getName()));
+
+        assertEquals(PluginNameAdapter.rpcTypeAdapter(RpcTypeEnum.HTTP.getName()), PluginEnum.DIVIDE.getName());
     }
 }
