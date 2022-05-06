@@ -176,7 +176,7 @@ public final class BaseDataCache {
             final String pluginName = data.getPluginName();
             Optional.ofNullable(SELECTOR_MAP.get(pluginName))
                     .ifPresent(selectors -> selectors.removeIf(selector -> selector.getId().equals(data.getId())));
-            SELECTOR_PLUGIN_MAP.remove(data.getId());
+            Optional.ofNullable(data.getId()).ifPresent(SELECTOR_PLUGIN_MAP::remove);
             Optional.ofNullable(data.getConditionList())
                     .ifPresent(conditions -> conditions.forEach(condition -> CONDITION_MAP.remove(condition.getId())));
             removeCache(data, pluginName);
@@ -192,7 +192,7 @@ public final class BaseDataCache {
         final List<SelectorData> selectorDataList = SELECTOR_MAP.get(pluginName);
         SELECTOR_MAP.remove(pluginName);
         Optional.ofNullable(selectorDataList).ifPresent(selectors -> selectors.forEach(selector -> {
-            SELECTOR_PLUGIN_MAP.remove(selector.getId());
+            Optional.ofNullable(selector.getId()).ifPresent(SELECTOR_PLUGIN_MAP::remove);
             Optional.ofNullable(selector.getConditionList())
                     .ifPresent(conditions -> conditions.forEach(condition -> CONDITION_MAP.remove(condition.getId())));
             MATCH_CACHE.remove(pluginName);
