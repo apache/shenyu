@@ -23,9 +23,6 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @see FreshBeanHolder
- */
 public class FreshBeanHolderTest {
 
     @Test

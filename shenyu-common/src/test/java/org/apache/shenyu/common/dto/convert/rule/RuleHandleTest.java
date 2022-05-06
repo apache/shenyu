@@ -23,9 +23,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- * @see RuleHandle
- */
 public class RuleHandleTest {
 
     @Test
@@ -35,24 +32,10 @@ public class RuleHandleTest {
     }
 
     static class RuleTest implements RuleHandle {
-        private String id = "1";
-        private String name = "rule-handle";
 
-        public String getId() {
-            return id;
-        }
+        private final String id = "1";
 
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
+        private final String name = "rule-handle";
 
         @Override
         public String toJson() {

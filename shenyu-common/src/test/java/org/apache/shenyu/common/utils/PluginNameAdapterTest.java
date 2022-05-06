@@ -25,9 +25,6 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @see PluginNameAdapter
- */
 public class PluginNameAdapterTest {
 
     @Test
