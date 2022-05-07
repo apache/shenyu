@@ -158,7 +158,7 @@ public final class BaseDataCache {
      */
     public void cacheMatched(final String cacheKey, final Object conditionParent) {
         MATCH_CACHE.put(cacheKey, conditionParent);
-        final Set<String> set = MATCH_MAPPING.computeIfAbsent(cacheKey, key -> new HashSet<>());
+        final Set<String> set = MATCH_MAPPING.computeIfAbsent(conditionParent, key -> new HashSet<>());
         set.add(cacheKey);
     }
 
