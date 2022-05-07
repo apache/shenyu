@@ -259,4 +259,24 @@
         WHERE id = #{id}
         LIMIT 1
     </select>
+
+    <select id="selectByPluginIdList" resultType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_handle
+        where plugin_id in
+        <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+            #{pluginId,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="selectByIdList" resultType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_handle
+        where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
 </mapper>

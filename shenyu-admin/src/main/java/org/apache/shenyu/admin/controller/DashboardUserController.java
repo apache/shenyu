@@ -137,7 +137,6 @@ public class DashboardUserController {
                                                          message = "user is not found") final String id,
                                                  @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         dashboardUserDTO.setId(id);
-        Assert.notNull(dashboardUserDTO.getRole(), ShenyuResultMessage.PARAMETER_ERROR + ": role is not null");
         if (StringUtils.isNotBlank(dashboardUserDTO.getPassword())) {
             dashboardUserDTO.setPassword(ShaUtils.shaEncryption(dashboardUserDTO.getPassword()));
         }

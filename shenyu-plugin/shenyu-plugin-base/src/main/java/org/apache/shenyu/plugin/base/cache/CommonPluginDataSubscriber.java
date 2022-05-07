@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
@@ -180,8 +180,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                     .ifPresent(handler -> handler.handlerPlugin(pluginData));
 
             // update enabled plugins
-            PluginHandlerEventEnums state = Boolean.TRUE.equals(pluginData.getEnabled())
-                    ? PluginHandlerEventEnums.ENABLED : PluginHandlerEventEnums.DISABLED;
+            PluginHandlerEventEnum state = Boolean.TRUE.equals(pluginData.getEnabled())
+                    ? PluginHandlerEventEnum.ENABLED : PluginHandlerEventEnum.DISABLED;
             eventPublisher.publishEvent(new PluginHandlerEvent(state, pluginData));
 
             // sorted plugin
@@ -213,7 +213,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         if (Objects.isNull(oldPluginData) || Objects.isNull(oldPluginData.getSort())
                 || (!Objects.equals(oldPluginData.getSort(), pluginData.getSort()))) {
-            eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnums.SORTED, pluginData));
+            eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, pluginData));
         }
     }
 
@@ -229,7 +229,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             BaseDataCache.getInstance().removePluginData(pluginData);
             Optional.ofNullable(handlerMap.get(pluginData.getName()))
                     .ifPresent(handler -> handler.removePlugin(pluginData));
-            eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnums.DELETE, pluginData));
+            eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DELETE, pluginData));
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().removeSelectData(selectorData);

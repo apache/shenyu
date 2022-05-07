@@ -30,7 +30,9 @@ import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.util.CharsetUtil;
+import org.apache.logging.log4j.util.Strings;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
 import java.util.ArrayList;
@@ -57,16 +59,21 @@ public class Subscribe extends MessageType {
         }
         List<MqttTopicSubscription> mqttTopicSubscriptions = msg.payload().topicSubscriptions();
         int packetId = msg.variableHeader().messageId();
+
         //// todo Regular match
         List<String> ackTopics = mqttTopicSubscriptions
                 .stream()
                 .filter(topicSub -> topicSub.qualityOfService() != FAILURE)
                 .map(MqttTopicSubscription::topicName)
                 .collect(Collectors.toList());
+
+        Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), mqttTopicSubscriptions);
+
         for (String ackTopic : ackTopics) {
             String message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
-            sendSubMessage(ackTopic, message, packetId, channel);
-
+            if (Strings.isNotEmpty(message)) {
+                sendSubMessage(ackTopic, message, packetId, channel);
+            }
         }
 
         sendSubAckMessage(packetId, ackTopics, channel);
