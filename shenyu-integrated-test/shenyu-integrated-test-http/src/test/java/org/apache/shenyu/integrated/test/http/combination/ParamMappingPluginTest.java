@@ -66,7 +66,7 @@ public final class ParamMappingPluginTest extends AbstractPluginDataInit {
 
         // test replaceParameterKeys
         Map<String, String> request2 = new HashMap<>();
-        request2.put("id", "123");
+        request2.put("i", "123");
         OrderDTO orderDTO = HttpHelper.INSTANCE.postGateway("/http/order/save", request2, OrderDTO.class);
         assertThat(orderDTO.getId(), is("123"));
     }
