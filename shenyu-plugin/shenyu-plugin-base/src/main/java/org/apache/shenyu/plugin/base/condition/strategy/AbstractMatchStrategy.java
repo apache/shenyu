@@ -54,7 +54,7 @@ public abstract class AbstractMatchStrategy {
         final String realData = buildRealData(condition, exchange);
         // The same real data here may be both a selector and a rule, which need to be distinguished
         final String cacheKey = CacheKeyUtils.INST.getKey(condition, realData);
-        // condition and real data are not mapped one-to-one, so we need to add a plugin condition
+        // Add plugin conditions to facilitate subsequent data changes
         final Object matched = BaseDataCache.getInstance().obtainMatched(pluginName, cacheKey);
         if (Objects.nonNull(matched)) {
             return true;

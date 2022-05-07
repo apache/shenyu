@@ -181,8 +181,8 @@ public final class BaseDataCache {
             Optional.ofNullable(SELECTOR_MAP.get(pluginName))
                     .ifPresent(selectors -> selectors.removeIf(selector -> selector.getId().equals(data.getId())));
             Optional.ofNullable(data.getId()).ifPresent(SELECTOR_PLUGIN_MAP::remove);
-            Optional.ofNullable(data.getConditionList())
-                    .ifPresent(conditions -> conditions.forEach(condition -> CONDITION_MAP.remove(condition.getId())));
+            Optional.ofNullable(data.getConditionList()).ifPresent(conditions -> conditions.forEach(condition ->
+                    Optional.ofNullable(condition.getId()).ifPresent(CONDITION_MAP::remove)));
             removeCache(data, pluginName);
         });
     }
@@ -197,8 +197,8 @@ public final class BaseDataCache {
         SELECTOR_MAP.remove(pluginName);
         Optional.ofNullable(selectorDataList).ifPresent(selectors -> selectors.forEach(selector -> {
             Optional.ofNullable(selector.getId()).ifPresent(SELECTOR_PLUGIN_MAP::remove);
-            Optional.ofNullable(selector.getConditionList())
-                    .ifPresent(conditions -> conditions.forEach(condition -> CONDITION_MAP.remove(condition.getId())));
+            Optional.ofNullable(selector.getConditionList()).ifPresent(conditions -> conditions.forEach(condition ->
+                    Optional.ofNullable(condition.getId()).ifPresent(CONDITION_MAP::remove)));
             MATCH_CACHE.remove(pluginName);
             MATCH_MAPPING.remove(pluginName);
         }));
@@ -279,7 +279,8 @@ public final class BaseDataCache {
             final String selectorId = data.getSelectorId();
             final List<RuleData> ruleDataList = RULE_MAP.get(selectorId);
             Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
-            Optional.ofNullable(data.getConditionDataList()).ifPresent(conditions -> conditions.forEach(condition -> CONDITION_MAP.remove(condition.getId())));
+            Optional.ofNullable(data.getConditionDataList()).ifPresent(conditions -> conditions.forEach(condition ->
+                    Optional.ofNullable(condition.getId()).ifPresent(CONDITION_MAP::remove)));
             Optional.ofNullable(SELECTOR_PLUGIN_MAP.get(selectorId))
                     .ifPresent(pluginName -> removeCache(data, pluginName));
         });
