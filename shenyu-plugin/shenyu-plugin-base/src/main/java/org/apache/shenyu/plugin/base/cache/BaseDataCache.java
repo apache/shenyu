@@ -52,29 +52,24 @@ public final class BaseDataCache {
     private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
-     * selectorId -> pluginName.
-     */
-    private static final ConcurrentMap<String, String> SELECTOR_PLUGIN_MAP = Maps.newConcurrentMap();
-
-    /**
      * conditionId -> SelectorData or RuleData.
      */
     private static final ConcurrentMap<String, Object> CONDITION_MAP = Maps.newConcurrentMap();
 
     /**
-     * pluginName -> conditionId_realDataString -> SelectorData or RuleData.
+     * conditionId_realDataString -> SelectorData or RuleData.
      *
      * @see org.apache.shenyu.plugin.base.utils.CacheKeyUtils#getKey(org.apache.shenyu.common.dto.ConditionData, java.lang.String)
      */
-    private static final MemorySafeLRUMap<String, MemorySafeLRUMap<String, Object>> MATCH_CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
+    private static final MemorySafeLRUMap<String, Object> MATCH_CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
 
     /**
-     * pluginName -> SelectorData or RuleData -> conditionId_realDataString.
+     * SelectorData or RuleData -> conditionId_realDataString.
      * When the selector/rule is updated, the cache needs to be cleaned up.
      *
      * @see org.apache.shenyu.plugin.base.utils.CacheKeyUtils#getKey(org.apache.shenyu.common.dto.ConditionData, java.lang.String)
      */
-    private static final ConcurrentMap<String, ConcurrentMap<Object, Set<String>>> MATCH_MAPPING = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Object, Set<String>> MATCH_MAPPING = Maps.newConcurrentMap();
 
     /**
      * selectorId -> RuleData.
@@ -158,15 +153,12 @@ public final class BaseDataCache {
     /**
      * Cache matched data.
      *
-     * @param pluginName      the plugin name
      * @param cacheKey        the cache key
      * @param conditionParent the condition parent
      */
-    public void cacheMatched(final String pluginName, final String cacheKey, final Object conditionParent) {
-        final MemorySafeLRUMap<String, Object> cache = MATCH_CACHE.computeIfAbsent(pluginName, key -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
-        cache.put(cacheKey, conditionParent);
-        final ConcurrentMap<Object, Set<String>> mappings = MATCH_MAPPING.computeIfAbsent(pluginName, key -> Maps.newConcurrentMap());
-        final Set<String> set = mappings.computeIfAbsent(conditionParent, key -> new HashSet<>());
+    public void cacheMatched(final String cacheKey, final Object conditionParent) {
+        MATCH_CACHE.put(cacheKey, conditionParent);
+        final Set<String> set = MATCH_MAPPING.computeIfAbsent(cacheKey, key -> new HashSet<>());
         set.add(cacheKey);
     }
 
@@ -180,10 +172,9 @@ public final class BaseDataCache {
             final String pluginName = data.getPluginName();
             Optional.ofNullable(SELECTOR_MAP.get(pluginName))
                     .ifPresent(selectors -> selectors.removeIf(selector -> selector.getId().equals(data.getId())));
-            Optional.ofNullable(data.getId()).ifPresent(SELECTOR_PLUGIN_MAP::remove);
             Optional.ofNullable(data.getConditionList()).ifPresent(conditions -> conditions.forEach(condition ->
                     Optional.ofNullable(condition.getId()).ifPresent(CONDITION_MAP::remove)));
-            removeCache(data, pluginName);
+            Optional.ofNullable(MATCH_MAPPING.get(data)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
         });
     }
 
@@ -196,11 +187,9 @@ public final class BaseDataCache {
         final List<SelectorData> selectorDataList = SELECTOR_MAP.get(pluginName);
         SELECTOR_MAP.remove(pluginName);
         Optional.ofNullable(selectorDataList).ifPresent(selectors -> selectors.forEach(selector -> {
-            Optional.ofNullable(selector.getId()).ifPresent(SELECTOR_PLUGIN_MAP::remove);
             Optional.ofNullable(selector.getConditionList()).ifPresent(conditions -> conditions.forEach(condition ->
                     Optional.ofNullable(condition.getId()).ifPresent(CONDITION_MAP::remove)));
-            MATCH_CACHE.remove(pluginName);
-            MATCH_MAPPING.remove(pluginName);
+            Optional.ofNullable(MATCH_MAPPING.get(selector)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
         }));
     }
 
@@ -209,7 +198,6 @@ public final class BaseDataCache {
      */
     public void cleanSelectorData() {
         SELECTOR_MAP.clear();
-        SELECTOR_PLUGIN_MAP.clear();
         CONDITION_MAP.entrySet().stream()
                 .filter(entry -> entry.getValue() instanceof SelectorData)
                 .map(Map.Entry::getKey)
@@ -251,13 +239,11 @@ public final class BaseDataCache {
     /**
      * Obtain matched selector/rule data.
      *
-     * @param pluginName the plugin name
-     * @param cacheKey   the cache key
+     * @param cacheKey the cache key
      * @return the matched selector data
      */
-    public Object obtainMatched(final String pluginName, final String cacheKey) {
-        return Optional.ofNullable(MATCH_CACHE.get(pluginName))
-                .map(cache -> cache.get(cacheKey)).orElse(null);
+    public Object obtainMatched(final String cacheKey) {
+        return Optional.ofNullable(MATCH_CACHE.get(cacheKey)).orElse(null);
     }
 
     /**
@@ -281,8 +267,7 @@ public final class BaseDataCache {
             Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
             Optional.ofNullable(data.getConditionDataList()).ifPresent(conditions -> conditions.forEach(condition ->
                     Optional.ofNullable(condition.getId()).ifPresent(CONDITION_MAP::remove)));
-            Optional.ofNullable(SELECTOR_PLUGIN_MAP.get(selectorId))
-                    .ifPresent(pluginName -> removeCache(data, pluginName));
+            Optional.ofNullable(MATCH_MAPPING.get(data)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
         });
     }
 
@@ -346,10 +331,7 @@ public final class BaseDataCache {
             }
         }
         // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
-        Optional.ofNullable(SELECTOR_PLUGIN_MAP.get(selectorId))
-                .ifPresent(pluginName -> Optional.ofNullable(MATCH_MAPPING.get(pluginName))
-                        .map(cache -> cache.get(data))
-                        .ifPresent(set -> Optional.ofNullable(MATCH_CACHE.get(pluginName)).ifPresent(cache -> set.forEach(cache::remove))));
+        Optional.ofNullable(MATCH_MAPPING.get(data)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
         Optional.ofNullable(data.getConditionDataList())
                 .ifPresent(conditions -> conditions.forEach(condition -> Optional.ofNullable(condition.getId())
                         .ifPresent(conditionId -> CONDITION_MAP.put(conditionId, data))));
@@ -369,30 +351,14 @@ public final class BaseDataCache {
                 resultList.add(data);
                 final List<SelectorData> collect = resultList.stream().sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
                 SELECTOR_MAP.put(key, collect);
-                for (SelectorData selector : collect) {
-                    Optional.ofNullable(selector.getId()).ifPresent(selectorId -> SELECTOR_PLUGIN_MAP.put(selectorId, key));
-                }
             } else {
                 SELECTOR_MAP.put(key, Lists.newArrayList(data));
-                Optional.ofNullable(data.getId()).ifPresent(selectorId -> SELECTOR_PLUGIN_MAP.put(selectorId, key));
             }
         }
         // the update is also need to clean, but there is no way to distinguish between crate and update, so it is always clean
-        Optional.ofNullable(MATCH_MAPPING.get(key))
-                .map(cache -> cache.get(data))
-                .ifPresent(set -> Optional.ofNullable(MATCH_CACHE.get(key)).ifPresent(cache -> set.forEach(cache::remove)));
+        Optional.ofNullable(MATCH_MAPPING.get(data)).ifPresent(set -> set.forEach(MATCH_CACHE::remove));
         Optional.ofNullable(data.getConditionList())
                 .ifPresent(conditions -> conditions.forEach(condition -> Optional.ofNullable(condition.getId())
                         .ifPresent(conditionId -> CONDITION_MAP.put(conditionId, data))));
-    }
-
-    private void removeCache(final Object data, final String pluginName) {
-        final ConcurrentMap<Object, Set<String>> mappings = MATCH_MAPPING.get(pluginName);
-        Optional.ofNullable(mappings)
-                .map(cache -> cache.get(data))
-                .ifPresent(set -> {
-                    Optional.ofNullable(MATCH_CACHE.get(pluginName)).ifPresent(cache -> set.forEach(cache::remove));
-                    mappings.remove(data);
-                });
     }
 }

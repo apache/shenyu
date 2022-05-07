@@ -66,6 +66,7 @@ public interface ShenyuResult<T> {
      * @return the context type
      */
     default MediaType contentType(ServerWebExchange exchange, Object formatted) {
+        //fixme not compatible with NettyHttpClientPlugin
         final ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (Objects.nonNull(clientResponse) && clientResponse.headers().contentType().isPresent()) {
             return clientResponse.headers().contentType().get();

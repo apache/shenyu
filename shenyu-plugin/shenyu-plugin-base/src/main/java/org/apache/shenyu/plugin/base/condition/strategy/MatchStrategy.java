@@ -32,10 +32,9 @@ public interface MatchStrategy {
     /**
      * this is condition match.
      *
-     * @param pluginName        the plugin name
      * @param conditionDataList condition list.
      * @param exchange          {@linkplain org.springframework.web.server.ServerWebExchange}
      * @return true is match , false is not match.
      */
-    Boolean match(String pluginName, List<ConditionData> conditionDataList, ServerWebExchange exchange);
+    Boolean match(List<ConditionData> conditionDataList, ServerWebExchange exchange);
 }

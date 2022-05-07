@@ -45,24 +45,22 @@ public abstract class AbstractMatchStrategy {
     /**
      * this is condition match.
      *
-     * @param pluginName the plugin name
      * @param condition  the condition.
      * @param exchange   {@linkplain ServerWebExchange}
      * @return true is match , false is not match.
      */
-    public Boolean match(final String pluginName, final ConditionData condition, final ServerWebExchange exchange) {
+    public Boolean match(final ConditionData condition, final ServerWebExchange exchange) {
         final String realData = buildRealData(condition, exchange);
         // The same real data here may be both a selector and a rule, which need to be distinguished
         final String cacheKey = CacheKeyUtils.INST.getKey(condition, realData);
-        // Add plugin conditions to facilitate subsequent data changes
-        final Object matched = BaseDataCache.getInstance().obtainMatched(pluginName, cacheKey);
+        final Object matched = BaseDataCache.getInstance().obtainMatched(cacheKey);
         if (Objects.nonNull(matched)) {
             return true;
         }
         final Object conditionParent = BaseDataCache.getInstance().getConditionParent(condition.getId());
         final Boolean match = PredicateJudgeFactory.judge(condition, realData);
         if (match && Objects.nonNull(conditionParent)) {
-            BaseDataCache.getInstance().cacheMatched(pluginName, cacheKey, conditionParent);
+            BaseDataCache.getInstance().cacheMatched(cacheKey, conditionParent);
             return true;
         }
         return match;

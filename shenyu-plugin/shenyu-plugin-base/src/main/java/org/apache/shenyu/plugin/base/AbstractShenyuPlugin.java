@@ -114,7 +114,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isEmpty(selector.getConditionList())) {
                 return false;
             }
-            return MatchStrategyFactory.match(named(), selector.getMatchMode(), selector.getConditionList(), exchange);
+            return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
         }
         return true;
     }
@@ -124,7 +124,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
-        return ruleData.getEnabled() && MatchStrategyFactory.match(named(), ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
+        return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
 
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
