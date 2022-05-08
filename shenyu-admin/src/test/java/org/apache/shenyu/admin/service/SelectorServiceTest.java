@@ -39,6 +39,7 @@ import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -110,12 +111,15 @@ public final class SelectorServiceTest {
 
     @Mock
     private UpstreamCheckService upstreamCheckService;
+    
+    @Mock
+    private SelectorEventPublisher selectorEventPublisher;
 
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
-                ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService);
+                ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService, selectorEventPublisher);
     }
 
     @Test

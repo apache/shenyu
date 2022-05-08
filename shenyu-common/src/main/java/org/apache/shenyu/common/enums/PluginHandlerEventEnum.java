@@ -20,7 +20,7 @@ package org.apache.shenyu.common.enums;
 /**
  * plugin handler event.
  */
-public enum PluginHandlerEventEnums {
+public enum PluginHandlerEventEnum {
 
     /**
      * plugin enabled.
