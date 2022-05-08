@@ -17,7 +17,7 @@ shenyu:
   database:
     dialect: mysql
     init_script: "sql-script/mysql/schema.sql"
-    init_enable: true
+    init_enable: false
     
 spring:
   datasource:

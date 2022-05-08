@@ -23,8 +23,6 @@ import org.apache.shenyu.admin.config.properties.ApiDocProperties;
 
 /**
  * DocVO.
- *
- * @author lianjunwei
  */
 public class DocVO {
 
@@ -35,8 +33,6 @@ public class DocVO {
     private String gatewayUrl;
 
     private List<ApiDocProperties.EnvConfig> envProps;
-
-//    private String appType;
 
     private Collection<MenuProject> menuProjects;
 

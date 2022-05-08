@@ -20,8 +20,6 @@ package org.apache.shenyu.admin.model.vo;
 
 /**
  * MenuDocItem.
- *
- * @author tanghc
  */
 public class MenuDocItem {
 

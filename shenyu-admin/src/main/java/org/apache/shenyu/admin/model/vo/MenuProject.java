@@ -22,7 +22,6 @@ import java.util.List;
 /**
  * MenuProject.
  *
- * @author tanghc
  */
 public class MenuProject {
 
