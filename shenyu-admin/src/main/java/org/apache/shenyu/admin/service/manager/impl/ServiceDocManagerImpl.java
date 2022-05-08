@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,11 +26,10 @@ import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.service.base.BaseService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.manager.ServiceDocManager;
+import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 /**
@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ServiceDocManagerImpl extends BaseService implements ServiceDocManager {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceDocManagerImpl.class);
+
+    private static final HttpUtils HTTP_UTILS = new HttpUtils();
 
     private static final Map<String, Long> CLUSTER_LASTSTARTUPTIME_MAP = new HashMap<>();
 
@@ -60,28 +62,23 @@ public class ServiceDocManagerImpl extends BaseService implements ServiceDocMana
      */
     @Override
     public void pullApiDocument(final UpstreamInstance instance) {
-        String clusterName = instance.getContextPath();
+        String clusterName = instance.getClusterName();
         if (!canPull(instance)) {
             LOG.info("api document has been pulled and cannot be pulled againl，instance={}", JsonUtils.toJson(instance));
             return;
         }
         String url = getSwaggerRequestUrl(instance);
         try {
-            ResponseEntity<String> responseEntity = getRestTemplate().getForEntity(url, String.class);
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                String body = responseEntity.getBody();
-                docManager.addDocInfo(
-                    clusterName,
-                    body,
-                    callback -> {
-                        LOG.info("load api document successful，clusterName={}, iPandPort={}",
-                            clusterName, instance.getIp() + ":" + instance.getPort());
-                    }
-                );
-                CLUSTER_LASTSTARTUPTIME_MAP.put(clusterName, instance.getStartupTime());
-            } else {
-                LOG.error("load api document fail,clusterName={} ip={} status:{}, body:{}", clusterName, instance.getIp(), responseEntity.getStatusCodeValue(), responseEntity.getBody());
-            }
+            String body = HTTP_UTILS.get(url, Collections.EMPTY_MAP);
+            docManager.addDocInfo(
+                clusterName,
+                body,
+                callback -> {
+                    LOG.info("load api document successful，clusterName={}, iPandPort={}",
+                        clusterName, instance.getIp() + ":" + instance.getPort());
+                }
+            );
+            CLUSTER_LASTSTARTUPTIME_MAP.put(clusterName, instance.getStartupTime());
         } catch (Exception e) {
             LOG.error("add api document fail. url={} error={}", url, e);
         }

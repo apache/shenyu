@@ -34,10 +34,11 @@ import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -59,29 +60,40 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     @Override
     public synchronized void loadApiDocument() {
         List<UpstreamInstance> serviceList = this.getAllClusterLastUpdateInstanceList();
-        final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-
-        if (CollectionUtils.isEmpty(currentServices)) {
+        if (CollectionUtils.isEmpty(serviceList)) {
             LOG.info("loadApiDocument No service registered.");
             return;
         }
+        final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
         LOG.info("loadApiDocument  serviceList={}", JsonUtils.toJson(currentServices));
         serviceDocManager.pullApiDocument(currentServices);
     }
 
     @Override
-    public void loadApiDocument(final URIRegisterDTO uriRegisterDTO) {
-        //todo The input parameter is temporarily defined.
-        UpstreamInstance instance = new UpstreamInstance();
-        instance.setContextPath(uriRegisterDTO.getContextPath());
-        instance.setIp(uriRegisterDTO.getHost());
-        instance.setPort(uriRegisterDTO.getPort());
-        instance.setEnabled(Boolean.TRUE);
-        instance.setHealthy(Boolean.TRUE);
-        instance.setStartupTime(System.currentTimeMillis());
+    public void loadDocOnSelectorChanged(final List<SelectorData> changedList, final DataEventTypeEnum eventType) {
+        if (eventType == DataEventTypeEnum.CREATE || eventType == DataEventTypeEnum.UPDATE) {
+            List<UpstreamInstance> serviceList = this.getLastUpdateInstanceList(changedList);
+            if (CollectionUtils.isEmpty(serviceList)) {
+                LOG.info("loadApiDocument No service registered.");
+                return;
+            }
+            final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
+            LOG.info("loadDocOnSelectorChanged serviceList={}", JsonUtils.toJson(currentServices));
+            serviceDocManager.pullApiDocument(currentServices);
+        }
+    }
 
-        LOG.info("loadApiDocument instance={}", JsonUtils.toJson(instance));
-        serviceDocManager.pullApiDocument(instance);
+    private List<UpstreamInstance> getLastUpdateInstanceList(final List<SelectorData> changedList) {
+        if (CollectionUtils.isEmpty(changedList)) {
+            LOG.info("getLastUpdateInstanceList, changedList is empty.");
+            return Collections.EMPTY_LIST;
+        }
+        return changedList.parallelStream()
+            .map(service -> {
+                return getClusterLastUpdateInstance(service);
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -101,9 +113,10 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             LOG.info("getAllClusterLastUpdateInstanceList, Not loaded into available backend services.");
             return Collections.EMPTY_LIST;
         }
-        return clusterList.parallelStream().map(service -> {
-            return getClusterLastUpdateInstance(service);
-        })
+        return clusterList.parallelStream()
+            .map(service -> {
+                return getClusterLastUpdateInstance(service);
+            })
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -133,6 +146,41 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             }
         }
 
+        return getClusterLastUpdateInstance(allInstances);
+    }
+
+    private UpstreamInstance getClusterLastUpdateInstance(final SelectorData selectorData) {
+        if (!selectorData.getPluginId().equals("5")) {
+            LOG.info("getClusterLastUpdateInstance. pluginNae={} does not support pulling API documents.", selectorData.getPluginName());
+            return null;
+        }
+        List<UpstreamInstance> allInstances = null;
+        // Get service instance.
+        String handle = selectorData.getHandle();
+        if (StringUtils.isNotEmpty(handle)) {
+            allInstances = new ArrayList<>();
+            try {
+                List<CommonUpstream> upstreamList = this.convert(handle);
+                for (CommonUpstream upstream : upstreamList) {
+                    String[] upstreamUrlArr = upstream.getUpstreamUrl().split(":");
+                    UpstreamInstance instance = new UpstreamInstance();
+                    instance.setContextPath(selectorData.getName());
+                    instance.setIp(upstreamUrlArr[0]);
+                    instance.setPort(Integer.parseInt(upstreamUrlArr[1]));
+                    instance.setEnabled(selectorData.getEnabled());
+                    instance.setHealthy(true);
+                    instance.setStartupTime(upstream.getTimestamp());
+                    allInstances.add(instance);
+                }
+            } catch (Exception e) {
+                LOG.error("Error getting cluster instance list. serviceName={} error={}", selectorData.getName(), e);
+                return null;
+            }
+        }
+        return getClusterLastUpdateInstance(allInstances);
+    }
+
+    private UpstreamInstance getClusterLastUpdateInstance(final List<UpstreamInstance> allInstances) {
         if (CollectionUtils.isEmpty(allInstances)) {
             return null;
         }

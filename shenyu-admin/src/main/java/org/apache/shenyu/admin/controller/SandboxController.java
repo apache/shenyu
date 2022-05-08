@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
@@ -94,7 +95,8 @@ public class SandboxController {
         // Public request parameters.
         Map<String, String> params = new HashMap<String, String>();
         try {
-            Map<String, String> map = (Map) JsonUtils.toMap(bizParam);
+            String bizParamStr = StringEscapeUtils.escapeHtml4(bizParam);
+            Map<String, String> map = (Map) JsonUtils.toMap(bizParamStr);
             LOG.info("bizParam toMap= {}", JsonUtils.toJson(map));
             if (map != null) {
                 params.putAll(map);

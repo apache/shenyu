@@ -27,9 +27,9 @@ public class DocModule {
 
     private String module;
 
-    private List<DocItem> docItems;
-
     private int order;
+
+    private List<DocItem> docItems;
 
     /**
      * getModule.

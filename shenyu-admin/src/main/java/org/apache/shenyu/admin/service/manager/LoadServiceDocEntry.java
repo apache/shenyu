@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import java.util.List;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 
 /**
  * Load Service Doc Entry.
@@ -30,9 +32,10 @@ public interface LoadServiceDocEntry {
     void loadApiDocument();
 
     /**
-     * load and save API document for single URIRegister.
-     * todo The input parameter is temporarily defined.
-     * @param uriRegisterDTO uriRegisterDTO
+     * pull and save API document on selector changed.
+     *
+     * @param changedList changedList
+     * @param eventType   eventType
      */
-    void loadApiDocument(URIRegisterDTO uriRegisterDTO);
+    void loadDocOnSelectorChanged(List<SelectorData> changedList, DataEventTypeEnum eventType);
 }
