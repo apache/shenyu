@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
-import org.apache.shenyu.admin.service.base.BaseService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.manager.ServiceDocManager;
 import org.apache.shenyu.admin.utils.HttpUtils;
@@ -36,7 +35,7 @@ import org.springframework.stereotype.Service;
  * ServiceDocManagerImpl.
  */
 @Service
-public class ServiceDocManagerImpl extends BaseService implements ServiceDocManager {
+public class ServiceDocManagerImpl implements ServiceDocManager {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceDocManagerImpl.class);
 
     private static final HttpUtils HTTP_UTILS = new HttpUtils();
