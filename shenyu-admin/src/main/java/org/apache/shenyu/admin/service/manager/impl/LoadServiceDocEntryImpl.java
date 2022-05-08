@@ -71,7 +71,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     @Override
     public void loadDocOnSelectorChanged(final List<SelectorData> changedList, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.CREATE || eventType == DataEventTypeEnum.UPDATE) {
+        if (Objects.nonNull(eventType) && (eventType == DataEventTypeEnum.CREATE || eventType == DataEventTypeEnum.UPDATE)) {
             List<UpstreamInstance> serviceList = this.getLastUpdateInstanceList(changedList);
             if (CollectionUtils.isEmpty(serviceList)) {
                 LOG.info("loadApiDocument No service registered.");
