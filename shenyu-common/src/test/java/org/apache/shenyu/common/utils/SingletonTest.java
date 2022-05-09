@@ -15,44 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.proto;
+package org.apache.shenyu.common.utils;
 
-import java.io.Serializable;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- * ShenyuGrpcResponse.
- */
-public class ShenyuGrpcResponse implements Serializable {
+public class SingletonTest {
 
-    private static final long serialVersionUID = 4182753303732523014L;
-
-    private List<Object> results;
-
-    /**
-     * Instantiates a new Shenyu grpc response.
-     */
-    public ShenyuGrpcResponse() {
-        this.results = new ArrayList<>();
-    }
-
-    /**
-     * Gets results.
-     *
-     * @return the results
-     */
-    public List<Object> getResults() {
-        return results;
-    }
-
-    /**
-     * Sets results.
-     *
-     * @param results the results
-     */
-    public void setResults(final List<Object> results) {
-        this.results = results;
+    @Test
+    public void testSingle() {
+        Singleton.INST.single(this.getClass(), this);
+        assertNotNull(Singleton.INST.get(this.getClass()));
+        assertEquals(this, Singleton.INST.get(this.getClass()));
     }
 }

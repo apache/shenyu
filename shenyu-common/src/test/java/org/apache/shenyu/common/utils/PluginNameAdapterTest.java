@@ -15,44 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.proto;
+package org.apache.shenyu.common.utils;
 
-import java.io.Serializable;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
-/**
- * ShenyuGrpcResponse.
- */
-public class ShenyuGrpcResponse implements Serializable {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private static final long serialVersionUID = 4182753303732523014L;
+public class PluginNameAdapterTest {
 
-    private List<Object> results;
+    @Test
+    public void testRpcTypeAdapter() {
+        Arrays.stream(RpcTypeEnum.values())
+                .filter(rpcTypeEnum -> !RpcTypeEnum.HTTP.getName().equals(rpcTypeEnum.getName()))
+                .forEach(rpcTypeEnum -> assertEquals(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName()),
+                        PluginEnum.getPluginEnumByName(rpcTypeEnum.getName()).getName()));
 
-    /**
-     * Instantiates a new Shenyu grpc response.
-     */
-    public ShenyuGrpcResponse() {
-        this.results = new ArrayList<>();
-    }
-
-    /**
-     * Gets results.
-     *
-     * @return the results
-     */
-    public List<Object> getResults() {
-        return results;
-    }
-
-    /**
-     * Sets results.
-     *
-     * @param results the results
-     */
-    public void setResults(final List<Object> results) {
-        this.results = results;
+        assertEquals(PluginNameAdapter.rpcTypeAdapter(RpcTypeEnum.HTTP.getName()), PluginEnum.DIVIDE.getName());
     }
 }

@@ -15,44 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.proto;
+package org.apache.shenyu.common.enums;
 
-import java.io.Serializable;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * ShenyuGrpcResponse.
- */
-public class ShenyuGrpcResponse implements Serializable {
+public class RetryEnumTest {
 
-    private static final long serialVersionUID = 4182753303732523014L;
-
-    private List<Object> results;
-
-    /**
-     * Instantiates a new Shenyu grpc response.
-     */
-    public ShenyuGrpcResponse() {
-        this.results = new ArrayList<>();
+    @Test
+    public void testRetryCode() {
+        assertEquals(1, RetryEnum.CURRENT.getCode());
+        assertEquals(2, RetryEnum.FAILOVER.getCode());
     }
 
-    /**
-     * Gets results.
-     *
-     * @return the results
-     */
-    public List<Object> getResults() {
-        return results;
+    @Test
+    public void testRetryName() {
+        assertEquals("current", RetryEnum.CURRENT.getName());
+        assertEquals("failover", RetryEnum.FAILOVER.getName());
     }
 
-    /**
-     * Sets results.
-     *
-     * @param results the results
-     */
-    public void setResults(final List<Object> results) {
-        this.results = results;
+    @Test
+    public void testSupport() {
+        assertTrue(RetryEnum.CURRENT.isSupport());
+        assertTrue(RetryEnum.FAILOVER.isSupport());
     }
 }

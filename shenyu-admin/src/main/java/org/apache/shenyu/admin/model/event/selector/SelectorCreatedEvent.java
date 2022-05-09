@@ -15,44 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.proto;
+package org.apache.shenyu.admin.model.event.selector;
 
-import java.io.Serializable;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 
 /**
- * ShenyuGrpcResponse.
+ * SelectorCreatedEvent.
  */
-public class ShenyuGrpcResponse implements Serializable {
-
-    private static final long serialVersionUID = 4182753303732523014L;
-
-    private List<Object> results;
-
+public class SelectorCreatedEvent extends SelectorChangedEvent {
+    
+    
     /**
-     * Instantiates a new Shenyu grpc response.
-     */
-    public ShenyuGrpcResponse() {
-        this.results = new ArrayList<>();
-    }
-
-    /**
-     * Gets results.
+     * Create a new {@code SelectorChangedEvent}.operator is unknown.
      *
-     * @return the results
+     * @param source   Current plugin state
+     * @param operator operator
      */
-    public List<Object> getResults() {
-        return results;
+    public SelectorCreatedEvent(final SelectorDO source, final String operator) {
+        super(source, null, EventTypeEnum.SELECTOR_CREATE, operator);
     }
-
+    
     /**
-     * Sets results.
+     * the created selector.
      *
-     * @param results the results
+     * @return selector
      */
-    public void setResults(final List<Object> results) {
-        this.results = results;
+    public SelectorDO getSelector() {
+        return (SelectorDO) getSource();
     }
+    
 }

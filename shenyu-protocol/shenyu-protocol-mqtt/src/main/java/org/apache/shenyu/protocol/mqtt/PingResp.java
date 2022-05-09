@@ -18,29 +18,21 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttQoS;
 
 /**
- * mqtt transport handler.
+ * Mqtt Server send pingresp to respond to pingreq of the client.
  */
-public class MqttTransportHandler extends ChannelInboundHandlerAdapter implements GenericFutureListener<Future<? super Void>> {
+public class PingResp extends MessageType {
 
     @Override
-    public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-        if (msg instanceof MqttMessage) {
-            MqttFactory mqttFactory = new MqttFactory((MqttMessage) msg, ctx);
-            mqttFactory.connect();
-        } else {
-            ctx.close();
-        }
+    public void pingResp(final ChannelHandlerContext ctx) {
+        MqttFixedHeader pingreqFixedHeader = new MqttFixedHeader(MqttMessageType.PINGRESP, false,
+                MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttMessage pingResp = new MqttMessage(pingreqFixedHeader);
+        ctx.writeAndFlush(pingResp);
     }
-
-    @Override
-    public void operationComplete(final Future<? super Void> future) throws Exception {
-
-    }
-
 }

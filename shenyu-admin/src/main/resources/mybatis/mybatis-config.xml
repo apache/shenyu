@@ -25,6 +25,8 @@
     </properties>
 
     <settings>
+        <!--    used print sql debug log    -->
+        <!-- <setting name="logImpl" value="STDOUT_LOGGING" />-->
         <!-- Enables automatic mapping from classic database column names A_COLUMN to camel case classic Java property names aColumn. -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
         <!-- Globally enables or disables any caches configured in any mapper under this configuration. default:true -->

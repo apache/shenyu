@@ -18,29 +18,14 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.mqtt.MqttMessage;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 
 /**
- * mqtt transport handler.
+ * Client sends pingreq to the server.
  */
-public class MqttTransportHandler extends ChannelInboundHandlerAdapter implements GenericFutureListener<Future<? super Void>> {
+public class PingReq extends MessageType {
 
     @Override
-    public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-        if (msg instanceof MqttMessage) {
-            MqttFactory mqttFactory = new MqttFactory((MqttMessage) msg, ctx);
-            mqttFactory.connect();
-        } else {
-            ctx.close();
-        }
+    public void pingReq(final ChannelHandlerContext ctx) {
+        new PingResp().pingResp(ctx);
     }
-
-    @Override
-    public void operationComplete(final Future<? super Void> future) throws Exception {
-
-    }
-
 }
