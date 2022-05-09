@@ -97,6 +97,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
             }
             //create or update
             insertZkNode(pluginPath, data);
+            LOG.debug("created path: {} with data: {}", pluginPath, data);
         }
     }
 
@@ -112,10 +113,9 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
                 deleteZkPath(selectorRealPath);
                 continue;
             }
-            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(data.getPluginName());
-            createZkNode(selectorParentPath);
             //create or update
             insertZkNode(selectorRealPath, data);
+            LOG.debug("created path: {} with data: {}", selectorRealPath, data);
         }
     }
 
@@ -131,20 +131,17 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
                 deleteZkPath(ruleRealPath);
                 continue;
             }
-            String ruleParentPath = DefaultPathConstants.buildRuleParentPath(data.getPluginName());
-            createZkNode(ruleParentPath);
             //create or update
             insertZkNode(ruleRealPath, data);
+            LOG.debug("created path: {} with data: {}", ruleRealPath, data);
         }
     }
 
     private void insertZkNode(final String path, final Object data) {
-        zkClient.createOrUpdate(path, data, CreateMode.PERSISTENT);
-    }
-
-    private void createZkNode(final String path) {
-        if (!zkClient.isExist(path)) {
-            zkClient.createOrUpdate(path, "", CreateMode.PERSISTENT);
+        try {
+            zkClient.createOrUpdate(path, data, CreateMode.PERSISTENT);
+        } catch (ShenyuException e) {
+            LOG.warn("node already exist, could be ignore.");
         }
     }
 

@@ -25,7 +25,7 @@ import java.util.StringJoiner;
  * The type Zookeeper configuration.
  */
 @ConfigurationProperties(prefix = "shenyu.sync.zookeeper")
-public class ZookeeperConfig {
+public class ZookeeperProperties {
 
     private String url;
 
@@ -109,7 +109,7 @@ public class ZookeeperConfig {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", ZookeeperConfig.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", ZookeeperProperties.class.getSimpleName() + "[", "]")
                 .add("url='" + url + "'")
                 .add("sessionTimeout=" + sessionTimeout)
                 .add("connectionTimeout=" + connectionTimeout)
