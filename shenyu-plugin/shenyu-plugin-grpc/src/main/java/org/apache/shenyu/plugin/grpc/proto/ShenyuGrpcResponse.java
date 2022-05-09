@@ -29,7 +29,7 @@ public class ShenyuGrpcResponse implements Serializable {
 
     private static final long serialVersionUID = 4182753303732523014L;
 
-    private List<String> results;
+    private List<Object> results;
 
     /**
      * Instantiates a new Shenyu grpc response.
@@ -43,7 +43,7 @@ public class ShenyuGrpcResponse implements Serializable {
      *
      * @return the results
      */
-    public List<String> getResults() {
+    public List<Object> getResults() {
         return results;
     }
 
@@ -52,7 +52,7 @@ public class ShenyuGrpcResponse implements Serializable {
      *
      * @param results the results
      */
-    public void setResults(final List<String> results) {
+    public void setResults(final List<Object> results) {
         this.results = results;
     }
 }

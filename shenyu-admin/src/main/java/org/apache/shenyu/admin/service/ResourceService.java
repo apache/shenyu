@@ -109,12 +109,5 @@ public interface ResourceService {
      * @return {@linkplain List}
      */
     List<ResourceVO> findByParentId(String id);
-
-    /**
-     * get Menu Info.
-     *
-     * @param metaList {@linkplain List} resource list
-     * @return {@linkplain List} menu infos.
-     */
-    List<MenuInfo> getMenuInfo(List<ResourceVO> metaList);
+    
 }

@@ -28,7 +28,7 @@ public enum EventTypeEnum {
     /**
      * created event.
      */
-    CREATE(DataEventTypeEnum.CREATE, "green"),
+    CREATE(DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
     /**
      * register event.
@@ -38,13 +38,23 @@ public enum EventTypeEnum {
     /**
      * plugin created event.
      */
-    PLUGIN_CREATE("CREATE:PLUGIN", DataEventTypeEnum.CREATE, "green"),
+    PLUGIN_CREATE("CREATE:PLUGIN", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
+    /**
+     * plugin handle created event.
+     */
+    PLUGIN_HANDLE_CREATE("CREATE:PLUGIN-HANDLE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
+    /**
+     * selector created event.
+     */
+    SELECTOR_CREATE("CREATE:SELECTOR", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
     // ============== delete ===================
     /**
      * deleted event.
      */
-    DELETE(DataEventTypeEnum.DELETE, "red"),
+    DELETE(DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
     
     /**
      * clean event.
@@ -54,19 +64,40 @@ public enum EventTypeEnum {
     /**
      * plugin deleted event.
      */
-    PLUGIN_DELETE("DELETE:PLUGIN", DataEventTypeEnum.DELETE, "red"),
+    PLUGIN_DELETE("DELETE:PLUGIN", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
+    
+    /**
+     * plugin handle deleted event.
+     */
+    PLUGIN_HANDLE_DELETE("DELETE:PLUGIN-HANDLE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
+    /**
+     * selector deleted event.
+     */
+    SELECTOR_DELETE("DELETE:SELECTOR", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
     
     // ============== update ===================
     
     /**
      * update event.
      */
-    UPDATE(DataEventTypeEnum.UPDATE, "yellow"),
+    UPDATE(DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
     
     /**
      * plugin update.
      */
-    PLUGIN_UPDATE("UPDATE:PLUGIN", DataEventTypeEnum.UPDATE, "yellow");
+    PLUGIN_UPDATE("UPDATE:PLUGIN", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * plugin handle update.
+     */
+    PLUGIN_HANDLE_UPDATE("UPDATE:PLUGIN-HANDLE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * selector update.
+     */
+    SELECTOR_UPDATE("UPDATE:PLUGIN-HANDLE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
     
     /**
      * type name.
@@ -119,6 +150,26 @@ public enum EventTypeEnum {
      */
     public String getColor() {
         return color;
+    }
+    
+    /**
+     * default color.
+     */
+    private static class Color {
+        /**
+         * default create event color.
+         */
+        public static final String CREATE_COLOR = "green";
+        
+        /**
+         * default delete event color.
+         */
+        public static final String DELETE_COLOR = "red";
+        
+        /**
+         * default update event color.
+         */
+        public static final String UPDATE_COLOR = "yellow";
     }
     
 }

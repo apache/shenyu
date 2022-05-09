@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
+import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.assertj.core.util.Lists;
@@ -215,7 +216,7 @@ public class ResourceServiceTest {
         reset(resourceMapper);
         when(resourceMapper.selectAll()).thenReturn(mockSelectAllResult);
 
-        List<PermissionMenuVO.MenuInfo> menuInfoList = resourceService.getMenuInfo(mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
+        List<PermissionMenuVO.MenuInfo> menuInfoList = ResourceUtil.buildMenu(mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
         assertThat(resourceService.getMenuTree(), equalTo(menuInfoList));
     }
 
@@ -244,7 +245,7 @@ public class ResourceServiceTest {
 
     @Test
     public void testGetMenuInfoWithGivingEmptyOrJustContainsNullResourceVoListItShouldNotAppendMenuInfoIntoResult() {
-        final List<PermissionMenuVO.MenuInfo> expect = resourceService.getMenuInfo(Collections.emptyList());
+        final List<PermissionMenuVO.MenuInfo> expect = ResourceUtil.buildMenu(Collections.emptyList());
         assertThat(expect, equalTo(newArrayList()));
     }
 
@@ -272,7 +273,7 @@ public class ResourceServiceTest {
         mockThirdLevelResource.setIsLeaf(true);
 
         final List<ResourceVO> resourceParam = newArrayList(nullMenuInfoResource, mockParentResource, mockSecondLevelResource, mockThirdLevelResource);
-        final List<PermissionMenuVO.MenuInfo> actual = resourceService.getMenuInfo(resourceParam);
+        final List<PermissionMenuVO.MenuInfo> actual = ResourceUtil.buildMenu(resourceParam);
 
         PermissionMenuVO.MenuInfo parentMenuInfo = PermissionMenuVO.MenuInfo.buildMenuInfo(mockParentResource);
         PermissionMenuVO.MenuInfo secondMenuInfo = PermissionMenuVO.MenuInfo.buildMenuInfo(mockSecondLevelResource);

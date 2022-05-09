@@ -17,24 +17,27 @@
 
 package org.apache.shenyu.client.grpc.json;
 
-import com.google.common.collect.Maps;
-import io.grpc.MethodDescriptor;
-import io.grpc.ServerMethodDefinition;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.ServiceDescriptor;
-import io.grpc.ServerCallHandler;
-import io.grpc.ServerCall;
-import io.grpc.Metadata;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.ReflectUtils;
-import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
-import org.apache.shenyu.protocol.grpc.message.JsonMessage;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.ReflectUtils;
+import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
+import org.apache.shenyu.protocol.grpc.message.JsonMessage;
+
+import com.google.common.collect.Maps;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
+import io.grpc.MethodDescriptor.PrototypeMarshaller;
+import io.grpc.ServerCall;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerMethodDefinition;
+import io.grpc.ServerServiceDefinition;
+import io.grpc.ServiceDescriptor;
 
 /**
  * Support json invoke.
@@ -77,11 +80,20 @@ public class JsonServerServiceInterceptor {
         for (final ServerMethodDefinition<?, ?> definition : serviceDef.getMethods()) {
             MethodDescriptor.Marshaller<?> requestMarshaller = definition.getMethodDescriptor().getRequestMarshaller();
             Field defaultInstanceField = ReflectUtils.getField(requestMarshaller.getClass(), "defaultInstance");
+            Class grpcRequestParamClass = null;
             if (Objects.isNull(defaultInstanceField)) {
-                throw new ShenyuException(String.format("can not get defaultInstance Field of %s", requestMarshaller.getClass()));
+                // Compatible with lower versions. eg: grpc 1.6.0
+                if (requestMarshaller instanceof MethodDescriptor.PrototypeMarshaller) {
+                    MethodDescriptor.PrototypeMarshaller<?> prototypeMarshaller = (PrototypeMarshaller<?>) requestMarshaller;
+                    if (Objects.isNull(prototypeMarshaller.getMessagePrototype())) {
+                        throw new ShenyuException(String.format("can not get defaultInstance Field of %s", requestMarshaller.getClass()));
+                    }
+                    grpcRequestParamClass = prototypeMarshaller.getMessagePrototype().getClass();
+                }
+            } else {
+                defaultInstanceField.setAccessible(true);
+                grpcRequestParamClass = defaultInstanceField.get(requestMarshaller).getClass();
             }
-
-            defaultInstanceField.setAccessible(true);
 
             String fullMethodName = definition.getMethodDescriptor().getFullMethodName();
             MethodDescriptor.MethodType methodType = definition.getMethodDescriptor().getType();
@@ -89,7 +101,7 @@ public class JsonServerServiceInterceptor {
 
             String[] splitMethodName = fullMethodName.split("/");
             fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_SERVICE + "/" + splitMethodName[1];
-            REQUEST_CLAZZ_MAP.put(fullMethodName, defaultInstanceField.get(requestMarshaller).getClass());
+            REQUEST_CLAZZ_MAP.put(fullMethodName, grpcRequestParamClass);
 
             final MethodDescriptor<?, ?> originalMethodDescriptor = definition.getMethodDescriptor();
             final MethodDescriptor<T, T> wrappedMethodDescriptor = originalMethodDescriptor
@@ -111,15 +123,14 @@ public class JsonServerServiceInterceptor {
             fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_SERVICE + "/" + splitMethodName[1];
             fullMethodNameField.set(md, fullMethodName);
 
+            // Compatible with lower versions. Lower versions do not have this field. eg: grpc 1.6.0
             Field serviceNameField = ReflectUtils.getField(md.getClass(), "serviceName");
-            if (Objects.isNull(serviceNameField)) {
-                throw new ShenyuException(String.format("can not get serviceName Field Field of %s", md.getClass()));
+            if (Objects.nonNull(serviceNameField)) {
+                serviceNameField.setAccessible(true);
+                String serviceName = (String) serviceNameField.get(md);
+                serviceName = serviceName + GrpcConstants.GRPC_JSON_SERVICE;
+                serviceNameField.set(md, serviceName);
             }
-            serviceNameField.setAccessible(true);
-            String serviceName = (String) serviceNameField.get(md);
-            serviceName = serviceName + GrpcConstants.GRPC_JSON_SERVICE;
-            serviceNameField.set(md, serviceName);
-
             build.addMethod(md);
         }
         final ServerServiceDefinition.Builder serviceBuilder = ServerServiceDefinition

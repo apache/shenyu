@@ -67,16 +67,19 @@ public class MessageType implements AbstractMessageType {
     @Override
     public void unsubscribe(final ChannelHandlerContext ctx, final MqttUnsubscribeMessage msg) {
         //// todo polymorphism unsubscribe
+        new Unsubscribe().unsubscribe(ctx, msg);
     }
 
     @Override
     public void pingReq(final ChannelHandlerContext ctx) {
         //// todo polymorphism pingReq
+        new PingReq().pingReq(ctx);
     }
 
     @Override
     public void pingResp(final ChannelHandlerContext ctx) {
         //// todo polymorphism pingResp
+        new PingResp().pingResp(ctx);
     }
 
     @Override

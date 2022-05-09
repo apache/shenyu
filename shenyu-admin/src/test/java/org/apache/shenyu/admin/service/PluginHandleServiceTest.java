@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.service.impl.PluginHandleServiceImpl;
+import org.apache.shenyu.admin.service.publish.PluginHandleEventPublisher;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,10 +62,13 @@ public final class PluginHandleServiceTest {
 
     @Mock
     private ShenyuDictMapper shenyuDictMapper;
+    
+    @Mock
+    private PluginHandleEventPublisher eventPublisher;
 
     @BeforeEach
     public void setUp() {
-        pluginHandleService = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictMapper);
+        pluginHandleService = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictMapper, eventPublisher);
     }
 
     @Test

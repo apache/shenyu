@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.event;
+package org.apache.shenyu.admin.model.event.selector;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 
 import java.util.Objects;
 
 /**
- * AdminDataModelChangedEvent.
+ * SelectorChangedEvent.
  */
-public class PluginChangedEvent extends AdminDataModelChangedEvent {
+public class SelectorChangedEvent extends AdminDataModelChangedEvent {
     
     
     /**
@@ -36,24 +37,24 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
      * @param before Before the change plugiin state
      * @param type   event type
      */
-    public PluginChangedEvent(final PluginDO source, final PluginDO before, final EventTypeEnum type, final String operator) {
+    public SelectorChangedEvent(final SelectorDO source, final SelectorDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
     
     @Override
     public String buildContext() {
-        final PluginDO after = (PluginDO) getAfter();
+        final SelectorDO after = (SelectorDO) getAfter();
         if (Objects.isNull(getBefore())) {
-            return String.format("the plugin [%s] is %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()));
+            return String.format("the selector [%s] is %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the plugin [%s] is %s : %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
+        return String.format("the selector [%s] is %s : %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
     
     private String contrast() {
-        final PluginDO before = (PluginDO) getBefore();
+        final SelectorDO before = (SelectorDO) getBefore();
         Objects.requireNonNull(before);
-        final PluginDO after = (PluginDO) getAfter();
+        final SelectorDO after = (SelectorDO) getAfter();
         Objects.requireNonNull(after);
         if (Objects.equals(before, after)) {
             return "it no change";
@@ -62,11 +63,11 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getName(), after.getName())) {
             builder.append(String.format("name[%s => %s] ", before.getName(), after.getName()));
         }
-        if (!Objects.equals(before.getConfig(), after.getConfig())) {
-            builder.append(String.format("config[%s => %s] ", before.getConfig(), after.getConfig()));
+        if (!Objects.equals(before.getHandle(), after.getHandle())) {
+            builder.append(String.format("handle[%s => %s] ", before.getHandle(), after.getHandle()));
         }
-        if (!Objects.equals(before.getRole(), after.getRole())) {
-            builder.append(String.format("role[%s => %s] ", before.getRole(), after.getRole()));
+        if (!Objects.equals(before.getType(), after.getType())) {
+            builder.append(String.format("type[%s => %s] ", before.getType(), after.getType()));
         }
         if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
             builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
@@ -74,11 +75,14 @@ public class PluginChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getSort(), after.getSort())) {
             builder.append(String.format("sort[%s => %s] ", before.getSort(), after.getSort()));
         }
+        if (!Objects.equals(before.getLoged(), after.getLoged())) {
+            builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));
+        }
         return builder.toString();
     }
     
     @Override
     public String eventName() {
-        return "plugin";
+        return "selector";
     }
 }
