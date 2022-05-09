@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener;
 
-import javax.annotation.Resource;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -39,9 +38,6 @@ import java.util.List;
  */
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
-
-    @Resource
-    private LoadServiceDocEntry loadServiceDocEntry;
 
     private final ApplicationContext applicationContext;
 
@@ -67,7 +63,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     break;
                 case SELECTOR:
                     listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
-                    loadServiceDocEntry.loadDocOnSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
+                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
                     break;
                 case META_DATA:
                     listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());

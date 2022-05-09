@@ -82,9 +82,8 @@ public final class DataChangedEventDispatcherTest {
         listenerMap.put("zookeeperDataChangedListener", zookeeperDataChangedListener);
         when(applicationContext.getBeansOfType(DataChangedListener.class)).thenReturn(listenerMap);
 
-        Map<String, LoadServiceDocEntry> loadDocMap = new HashMap<>();
-        loadDocMap.put("loadServiceDocEntry", loadServiceDocEntry);
-        when(applicationContext.getBeansOfType(LoadServiceDocEntry.class)).thenReturn(loadDocMap);
+        when(applicationContext.getBean(LoadServiceDocEntry.class)).thenReturn(loadServiceDocEntry);
+        applicationContext.getBean(LoadServiceDocEntry.class);
         dataChangedEventDispatcher.afterPropertiesSet();
     }
 
