@@ -189,7 +189,7 @@ public final class RuleServiceTest {
         given(this.pluginMapper.selectById("789")).willReturn(null);
     }
 
-    private void checkListAll(Integer expected) {
+    private void checkListAll(final Integer expected) {
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
