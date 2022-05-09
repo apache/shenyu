@@ -21,6 +21,8 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -30,7 +32,8 @@ public final class MetricsPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testPass() throws ExecutionException, InterruptedException {
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:9090/api/v1/targets", null, String.class));
+        Map<String, Object> headers = new HashMap<>();
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:9090/api/v1/targets", headers, String.class));
         assertFalse(resp.get().contains("down"));
     }
 
