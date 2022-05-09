@@ -17,17 +17,16 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
+    network_mode: "host"
     image: zookeeper:3.5
     restart: always
-    networks:
-      - shenyu
+
   shenyu-redis:
     image: redis:6.0-alpine
     container_name: shenyu-redis
+    network_mode: "host"
     restart: always
     command: redis-server --requirepass abc
-    networks:
-      - shenyu
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
 
@@ -37,6 +36,7 @@ services:
         limits:
           memory: 2048M
     container_name: shenyu-examples-http
+    network_mode: "host"
     image: shenyu-examples-http:latest
     restart: always
     environment:
@@ -45,25 +45,18 @@ services:
       test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
       timeout: 2s
       retries: 30
-    ports:
-      - "8189:8189"
     depends_on:
       shenyu-integrated-test-http:
         condition: service_healthy
-    networks:
-      - shenyu
 
   shenyu-admin:
     image: apache/shenyu-admin:latest
     container_name: shenyu-admin
+    network_mode: "host"
     restart: always
-    networks:
-      - shenyu
     depends_on:
       shenyu-redis:
         condition: service_healthy
-    ports:
-      - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
       - shenyu.database.init_script=sql-script/h2/schema.sql
@@ -74,6 +67,7 @@ services:
 
   shenyu-integrated-test-http:
     container_name: shenyu-integrated-test-http
+    network_mode: "host"
     image: apache/shenyu-integrated-test-http:latest
     restart: always
     deploy:
@@ -81,15 +75,10 @@ services:
         limits:
           memory: 2048M
     environment:
-      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket          
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
       shenyu-admin:
         condition: service_healthy
-    ports:
-      - "9195:9195"
-      - "8090:8090"
-    networks:
-      - shenyu
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-integrated-test-http:9195/actuator/health" ]
       timeout: 2s
@@ -97,15 +86,9 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.35.0
+    container_name: shenyu-prometheus
+    network_mode: "host"
     volumes:
       - type: bind
         source: ./prometheus.yml
         target: /etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - shenyu
-
-networks:
-  shenyu:
-    name: shenyu
