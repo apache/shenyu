@@ -316,9 +316,11 @@ The text of each license is the standard Apache 2.0 license.
     tomcat-embed-el 9.0.29: https://tomcat.apache.org, Apache 2.0
     tomcat-embed-websocket 9.0.29: https://tomcat.apache.org, Apache 2.0
     unbescape 1.1.6.RELEASE: http://www.unbescape.org, Apache 2.0
-    zkclient 0.10: https://github.com/sgroschupf/zkclient, Apache 2.0
-    zookeeper 3.5.6: https://github.com/apache/zookeeper, Apache 2.0
-    zookeeper-jute 3.5.6: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.6.3: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.6.3: https://github.com/apache/zookeeper, Apache 2.0
+    curator-client 5.2.1: https://github.com/apache/curator, Apache 2.0
+    curator-framework 5.2.1: https://github.com/apache/curator, Apache 2.0
+    curator-recipes 5.2.1: https://github.com/apache/curator, Apache 2.0
 
 ========================================================================
 BSD licenses

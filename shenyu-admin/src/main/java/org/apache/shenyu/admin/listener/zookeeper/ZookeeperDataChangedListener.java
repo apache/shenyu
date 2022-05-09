@@ -45,6 +45,10 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
 
     private final ZookeeperClient zkClient;
 
+    private final Object ruleSyncObject = new Object();
+
+    private final Object selectorSyncObject = new Object();
+
     public ZookeeperDataChangedListener(final ZookeeperClient zkClient) {
         this.zkClient = zkClient;
     }
@@ -114,7 +118,9 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
                 continue;
             }
             //create or update
-            insertZkNode(selectorRealPath, data);
+            synchronized (selectorSyncObject) {
+                insertZkNode(selectorRealPath, data);
+            }
             LOG.debug("created path: {} with data: {}", selectorRealPath, data);
         }
     }
@@ -132,17 +138,15 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
                 continue;
             }
             //create or update
-            insertZkNode(ruleRealPath, data);
+            synchronized (ruleSyncObject) {
+                insertZkNode(ruleRealPath, data);
+            }
             LOG.debug("created path: {} with data: {}", ruleRealPath, data);
         }
     }
 
     private void insertZkNode(final String path, final Object data) {
-        try {
-            zkClient.createOrUpdate(path, data, CreateMode.PERSISTENT);
-        } catch (ShenyuException e) {
-            LOG.warn("node already exist, could be ignore.");
-        }
+        zkClient.createOrUpdate(path, data, CreateMode.PERSISTENT);
     }
 
     private void deleteZkPath(final String path) {
