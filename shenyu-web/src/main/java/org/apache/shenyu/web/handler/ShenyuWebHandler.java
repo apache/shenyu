@@ -20,7 +20,7 @@ package org.apache.shenyu.web.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
@@ -126,7 +126,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     @Override
     public void onApplicationEvent(final PluginHandlerEvent event) {
-        PluginHandlerEventEnums stateEnums = event.getPluginStateEnums();
+        PluginHandlerEventEnum stateEnums = event.getPluginStateEnums();
         PluginData pluginData = (PluginData) event.getSource();
         switch (stateEnums) {
             case ENABLED:

@@ -90,6 +90,15 @@ public interface PluginHandleMapper extends ExistProvider {
     List<PluginHandleDO> selectByQuery(PluginHandleQuery pluginHandleQuery);
     
     /**
+     * bach delete by idList.
+     *
+     * @param ids a list of ids
+     * @return the count of deleted
+     */
+    List<PluginHandleDO> selectByIdList(@Param("ids") List<String> ids);
+    
+    
+    /**
      * update some selective columns in plugin_handle.
      *
      * @param record {@linkplain PluginHandleDO}
@@ -120,6 +129,15 @@ public interface PluginHandleMapper extends ExistProvider {
      * @return the count of deleted
      */
     int deleteByIdList(@Param("idList") List<String> idList);
+    
+    
+    /**
+     * bach delete by idList.
+     *
+     * @param pluginId a list of ids
+     * @return the count of deleted
+     */
+    List<PluginHandleDO> selectByPluginIdList(@Param("pluginIds") List<String> pluginId);
     
     /**
      * delete string id.

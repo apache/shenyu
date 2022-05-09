@@ -40,7 +40,7 @@ public class BatchChangedEvent extends AdminDataModelChangedEvent {
     }
     
     /**
-     * before plguin snapshot.
+     * before plugin snapshot.
      *
      * @return snapshot
      */

@@ -21,8 +21,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * etcd config.
- *
- * @author liuwei
  */
 @ConfigurationProperties(prefix = "shenyu.sync.etcd")
 public class EtcdProperties {

@@ -17,12 +17,19 @@
 
 package org.apache.shenyu.plugin.grpc.proto;
 
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.Message;
-import io.grpc.stub.StreamObserver;
+import java.util.HashMap;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.Message;
+
+import io.grpc.stub.StreamObserver;
 
 /**
  * MessageWriter.
@@ -30,6 +37,8 @@ import org.slf4j.LoggerFactory;
 public final class MessageWriter<T extends Message> implements StreamObserver<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageWriter.class);
+
+    private static final Gson GSON = new Gson();
 
     private final ShenyuGrpcResponse grpcResponse;
 
@@ -40,8 +49,8 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
     /**
      * New instance.
      *
-     * @param results  results
-     * @param <T>      t
+     * @param results results
+     * @param <T> t
      * @return message message
      */
     public static <T extends Message> MessageWriter<T> newInstance(final ShenyuGrpcResponse results) {
@@ -51,7 +60,17 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
     @Override
     public void onNext(final T value) {
         String respData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) value);
-        grpcResponse.getResults().add(respData);
+        if (StringUtils.isNotBlank(respData)) {
+            respData = respData.trim();
+            if (StringUtils.startsWith(respData, "{") && StringUtils.endsWith(respData, "}")) {
+                // standardized json output.
+                grpcResponse.getResults().add(GSON.fromJson(respData,
+                        new TypeToken<HashMap<String, Object>>() {
+                        }.getType()));
+            }
+        } else {
+            grpcResponse.getResults().add(respData);
+        }
     }
 
     @Override
