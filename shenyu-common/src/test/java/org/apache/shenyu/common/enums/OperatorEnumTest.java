@@ -19,6 +19,7 @@ package org.apache.shenyu.common.enums;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,5 +55,11 @@ public final class OperatorEnumTest {
         assertEquals(OperatorEnum.EQ, OperatorEnum.getOperatorEnumByAlias("="));
         assertEquals(OperatorEnum.REGEX, OperatorEnum.getOperatorEnumByAlias("regex"));
         assertEquals(OperatorEnum.CONTAINS, OperatorEnum.getOperatorEnumByAlias("contains"));
+    }
+
+    @Test
+    public void testGetSupport() {
+        Arrays.stream(OperatorEnum.values())
+                .forEach(operatorEnum -> assertEquals(operatorEnum.getSupport(), OperatorEnum.valueOf(operatorEnum.name()).getSupport()));
     }
 }

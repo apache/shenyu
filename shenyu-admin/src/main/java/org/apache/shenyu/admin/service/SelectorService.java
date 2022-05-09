@@ -17,16 +17,20 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * this is selector service.
@@ -57,7 +61,29 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param selectorDTO {@linkplain SelectorDTO}
      * @return rows int
      */
-    int createOrUpdate(SelectorDTO selectorDTO);
+    default int createOrUpdate(SelectorDTO selectorDTO) {
+        if (Objects.equals(SelectorTypeEnum.CUSTOM_FLOW.getCode(), selectorDTO.getType())) {
+            Assert.notNull(selectorDTO.getMatchMode(), "if type is custom, matchMode is not null");
+            Assert.notEmpty(selectorDTO.getSelectorConditions(), "if type is custom, selectorConditions is not empty");
+        }
+        return StringUtils.isEmpty(selectorDTO.getId()) ? create(selectorDTO) : update(selectorDTO);
+    }
+    
+    /**
+     * create  selector.
+     *
+     * @param selectorDTO {@linkplain SelectorDTO}
+     * @return rows int
+     */
+    int create(SelectorDTO selectorDTO);
+    
+    /**
+     * update selector.
+     *
+     * @param selectorDTO {@linkplain SelectorDTO}
+     * @return rows int
+     */
+    int update(SelectorDTO selectorDTO);
     
     /**
      * update selective selector.

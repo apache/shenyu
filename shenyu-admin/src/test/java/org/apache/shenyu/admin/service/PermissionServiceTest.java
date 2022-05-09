@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
-import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
@@ -127,8 +126,7 @@ public final class PermissionServiceTest {
 //        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
         when(mockResourceMapper.selectByIdsBatch(resourceIds)).thenReturn(Arrays.asList(resourceDO2, resourceDO3, resourceDO1, resourceDO4));
         when(mockResourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)).thenReturn(Collections.singletonList(resourceDO4));
-        ResourceService resourceService = new ResourceServiceImpl(mockResourceMapper, mockPermissionMapper);
-        permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper, resourceService);
+        permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper);
     }
 
     @Test

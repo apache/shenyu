@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnums;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -26,18 +26,18 @@ import org.springframework.context.ApplicationEvent;
  */
 public class PluginHandlerEvent extends ApplicationEvent {
 
-    private final PluginHandlerEventEnums pluginHandlerEventEnums;
+    private final PluginHandlerEventEnum pluginHandlerEventEnum;
 
-    public PluginHandlerEvent(final PluginHandlerEventEnums pluginHandlerEventEnums, final PluginData source) {
+    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
         super(source);
-        this.pluginHandlerEventEnums = pluginHandlerEventEnums;
+        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
     }
 
     /**
      * get plugin handler.
      * @return plugin handler event
      */
-    public PluginHandlerEventEnums getPluginStateEnums() {
-        return pluginHandlerEventEnums;
+    public PluginHandlerEventEnum getPluginStateEnums() {
+        return pluginHandlerEventEnum;
     }
 }

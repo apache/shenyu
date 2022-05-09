@@ -18,11 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleConditionMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
@@ -76,30 +72,14 @@ public final class PluginServiceTest {
     private PluginMapper pluginMapper;
     
     @Mock
-    private PluginHandleMapper pluginHandleMapper;
-    
-    @Mock
     private SelectorMapper selectorMapper;
-    
-    @Mock
-    private RuleMapper ruleMapper;
-    
-    @Mock
-    private RuleConditionMapper ruleConditionMapper;
-    
-    @Mock
-    private SelectorConditionMapper selectorConditionMapper;
-    
-    @Mock
-    private ResourceService resourceService;
     
     @Mock
     private PluginEventPublisher modelDataEventPublisher;
     
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, pluginHandleMapper, selectorMapper, selectorConditionMapper,
-                ruleMapper, ruleConditionMapper, resourceService, modelDataEventPublisher);
+        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher);
     }
     
     @Test
