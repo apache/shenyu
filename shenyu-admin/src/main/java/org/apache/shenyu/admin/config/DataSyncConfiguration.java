@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.config;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.ecwid.consul.v1.ConsulClient;
 import io.etcd.jetcd.Client;
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
@@ -39,6 +38,7 @@ import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -84,7 +84,7 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(ZookeeperDataChangedListener.class)
-        public DataChangedListener zookeeperDataChangedListener(final ZkClient zkClient) {
+        public DataChangedListener zookeeperDataChangedListener(final ZookeeperClient zkClient) {
             return new ZookeeperDataChangedListener(zkClient);
         }
 
@@ -96,7 +96,7 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(ZookeeperDataChangedInit.class)
-        public DataChangedInit zookeeperDataChangedInit(final ZkClient zkClient) {
+        public DataChangedInit zookeeperDataChangedInit(final ZookeeperClient zkClient) {
             return new ZookeeperDataChangedInit(zkClient);
         }
     }
