@@ -26,8 +26,8 @@
     <artifactId>shenyu-admin</artifactId>
 
     <properties>
-        <fastjson.version>1.2.73</fastjson.version>
-        <commons-io.version>2.6</commons-io.version>
+        <fastjson.version>1.2.80</fastjson.version>
+        <commons-io.version>2.11.0</commons-io.version>
     </properties>
 
     <dependencies>
