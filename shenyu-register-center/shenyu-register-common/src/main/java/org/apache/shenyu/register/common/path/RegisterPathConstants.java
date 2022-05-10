@@ -21,7 +21,19 @@ package org.apache.shenyu.register.common.path;
  * zookeeper register center.
  */
 public class RegisterPathConstants {
-    
+
+    /**
+     * uri register path pattern.
+     * e.g. /shenyu/register/uri/{rpcType}/{context}/{urlInstance}
+     */
+    public static final String REGISTER_URI_INSTANCE_PATH = "/shenyu/register/uri/*/*/*";
+
+    /**
+     * metadata register path pattern.
+     * e.g. /shenyu/register/metadata/{rpcType}/{context}/{metadata}
+     */
+    public static final String REGISTER_METADATA_INSTANCE_PATH = "/shenyu/register/metadata/*/*/*";
+
     /**
      * root path of zookeeper register center.
      */
@@ -36,7 +48,7 @@ public class RegisterPathConstants {
      * Dot separator.
      */
     private static final String DOT_SEPARATOR = ".";
-    
+
     /**
      * build child path of "/shenyu/register/metadata/{rpcType}/".
      *

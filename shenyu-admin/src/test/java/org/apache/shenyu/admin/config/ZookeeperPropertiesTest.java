@@ -36,19 +36,16 @@ public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
         final String url = "127.0.0.1:2181";
         final Integer sessionTimeOut = 5000;
         final Integer connectionTimeout = 2000;
-        final String serializer = "org.I0Itec.zkclient.serialize.SerializableSerializer";
         final String[] inlinedProperties = new String[]{
             "shenyu.sync.zookeeper.url=" + url,
             "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
             "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,
-            "shenyu.sync.zookeeper.serializer=" + serializer,
         };
         load(ZookeeperPropertiesConfiguration.class, inlinedProperties);
         ZookeeperProperties properties = getContext().getBean(ZookeeperProperties.class);
         assertThat(properties.getUrl(), is(url));
         assertThat(properties.getSessionTimeout(), is(sessionTimeOut));
         assertThat(properties.getConnectionTimeout(), is(connectionTimeout));
-        assertThat(properties.getSerializer(), is(serializer));
     }
 
     @Configuration

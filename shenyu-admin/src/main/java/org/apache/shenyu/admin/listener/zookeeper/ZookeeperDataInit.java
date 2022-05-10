@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.springframework.boot.CommandLineRunner;
 
 /**
@@ -28,7 +28,8 @@ import org.springframework.boot.CommandLineRunner;
  */
 public class ZookeeperDataInit implements CommandLineRunner {
 
-    private final ZkClient zkClient;
+//    private final ZkClient zkClient;
+    private final ZookeeperClient zkClient;
 
     private final SyncDataService syncDataService;
 
@@ -38,7 +39,7 @@ public class ZookeeperDataInit implements CommandLineRunner {
      * @param zkClient        the zk client
      * @param syncDataService the sync data service
      */
-    public ZookeeperDataInit(final ZkClient zkClient, final SyncDataService syncDataService) {
+    public ZookeeperDataInit(final ZookeeperClient zkClient, final SyncDataService syncDataService) {
         this.zkClient = zkClient;
         this.syncDataService = syncDataService;
     }
@@ -49,9 +50,9 @@ public class ZookeeperDataInit implements CommandLineRunner {
         String authPath = DefaultPathConstants.APP_AUTH_PARENT;
         String metaDataPath = DefaultPathConstants.META_DATA;
 
-        boolean zkPathNotExist = !zkClient.exists(pluginPath)
-                && !zkClient.exists(authPath)
-                && !zkClient.exists(metaDataPath);
+        boolean zkPathNotExist = !zkClient.isExist(pluginPath)
+                && !zkClient.isExist(authPath)
+                && !zkClient.isExist(metaDataPath);
 
         if (zkPathNotExist) {
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);

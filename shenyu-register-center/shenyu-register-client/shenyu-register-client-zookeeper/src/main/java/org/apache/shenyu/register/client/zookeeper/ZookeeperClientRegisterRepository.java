@@ -17,13 +17,9 @@
 
 package org.apache.shenyu.register.client.zookeeper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import org.I0Itec.zkclient.IZkStateListener;
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.state.ConnectionState;
 import org.apache.shenyu.common.constant.Constants;
-import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
@@ -34,9 +30,17 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
-import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
 
 /**
  * The type Zookeeper client register repository.
@@ -46,11 +50,14 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientRegisterRepository.class);
 
-    private ZkClient zkClient;
+    private ZookeeperClient client;
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
-    public ZookeeperClientRegisterRepository() { }
+    private final Set<String> metadataSet = new HashSet<>();
+
+    public ZookeeperClientRegisterRepository() {
+    }
 
     public ZookeeperClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         init(config);
@@ -61,8 +68,36 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         Properties props = config.getProps();
         int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));
         int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
-        this.zkClient = new ZkClient(config.getServerLists(), sessionTimeout, connectionTimeout);
-        this.zkClient.subscribeStateChanges(new ZkStateListener());
+
+        int baseSleepTime = Integer.parseInt(props.getProperty("baseSleepTime", "1000"));
+        int maxRetries = Integer.parseInt(props.getProperty("maxRetries", "3"));
+        int maxSleepTime = Integer.parseInt(props.getProperty("maxSleepTime", String.valueOf(Integer.MAX_VALUE)));
+
+        ZookeeperConfig zkConfig = new ZookeeperConfig(config.getServerLists());
+        zkConfig.setBaseSleepTimeMilliseconds(baseSleepTime)
+                .setMaxRetries(maxRetries)
+                .setMaxSleepTimeMilliseconds(maxSleepTime)
+                .setSessionTimeoutMilliseconds(sessionTimeout)
+                .setConnectionTimeoutMilliseconds(connectionTimeout);
+
+        String digest = props.getProperty("digest");
+        if (!StringUtils.isEmpty(digest)) {
+            zkConfig.setDigest(digest);
+        }
+
+        this.client = new ZookeeperClient(zkConfig);
+        this.client.getClient().getConnectionStateListenable().addListener((c, newState) -> {
+            if (newState == ConnectionState.RECONNECTED) {
+                nodeDataMap.forEach((k, v) -> {
+                    if (!client.isExist(k)) {
+                        client.createOrUpdate(k, v, CreateMode.EPHEMERAL);
+                        LOGGER.info("zookeeper client register uri success: {}", v);
+                    }
+                });
+            }
+        });
+
+        client.start();
     }
 
     @Override
@@ -70,9 +105,8 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         String rpcType = metadata.getRpcType();
         String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
         registerMetadata(rpcType, contextPath, metadata);
-        LOGGER.info("{} zookeeper client register success: {}", rpcType, metadata);
     }
-    
+
     /**
      * Persist uri.
      *
@@ -83,11 +117,12 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         String rpcType = registerDTO.getRpcType();
         String contextPath = ContextPathUtils.buildRealNode(registerDTO.getContextPath(), registerDTO.getAppName());
         registerURI(rpcType, contextPath, registerDTO);
+        LOGGER.info("{} zookeeper client register uri success: {}", rpcType, registerDTO);
     }
-    
+
     @Override
     public void close() {
-        zkClient.close();
+        this.client.close();
     }
 
     private void registerMetadata(final String rpcType,
@@ -95,31 +130,25 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
                                   final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
-        if (!zkClient.exists(metaDataPath)) {
-            zkClient.createPersistent(metaDataPath, true);
-        }
         String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
-        if (zkClient.exists(realNode)) {
-            zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
-        } else {
-            // if contextPath has two /, in zk means two folder, we need to create parent folder first, or else it will throw no node exception
-            zkClient.createPersistent(realNode, true);
-            zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
+        // avoid dup registration for metadata
+        synchronized (metadataSet) {
+            if (metadataSet.contains(realNode)) {
+                return;
+            }
+            metadataSet.add(realNode);
         }
+        client.createOrUpdate(realNode, metadata, CreateMode.PERSISTENT);
+        LOGGER.info("{} zookeeper client register metadata success: {}", rpcType, metadata);
     }
-    
+
     private synchronized void registerURI(final String rpcType, final String contextPath, final URIRegisterDTO registerDTO) {
         String uriNodeName = buildURINodeName(registerDTO);
         String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
-        if (!zkClient.exists(uriPath)) {
-            zkClient.createPersistent(uriPath, true);
-        }
         String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
-        if (!zkClient.exists(realNode)) {
-            String nodeData = GsonUtils.getInstance().toJson(registerDTO);
-            nodeDataMap.put(realNode, nodeData);
-            zkClient.createEphemeral(realNode, nodeData);
-        }
+        String nodeData = GsonUtils.getInstance().toJson(registerDTO);
+        nodeDataMap.put(realNode, nodeData);
+        client.createOrUpdate(realNode, nodeData, CreateMode.EPHEMERAL);
     }
 
     private String buildURINodeName(final URIRegisterDTO registerDTO) {
@@ -140,27 +169,5 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
         return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
-    }
-
-    private class ZkStateListener implements IZkStateListener {
-        @Override
-        public void handleStateChanged(final Watcher.Event.KeeperState keeperState) {
-            if (Watcher.Event.KeeperState.SyncConnected.equals(keeperState)) {
-                nodeDataMap.forEach((k, v) -> {
-                    if (!zkClient.exists(k)) {
-                        zkClient.createEphemeral(k, v);
-                        LOGGER.info("zookeeper client register success: {}", v);
-                    }
-                });
-            }
-        }
-
-        @Override
-        public void handleNewSession() {
-        }
-
-        @Override
-        public void handleSessionEstablishmentError(final Throwable throwable) {
-        }
     }
 }
