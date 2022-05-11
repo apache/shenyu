@@ -142,15 +142,22 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return the selector data
      */
     SelectorData buildByName(String name, String pluginName);
-    
+
     /**
      * find page of selector by query.
      *
      * @param selectorQuery {@linkplain SelectorQuery}
      * @return {@linkplain CommonPager}
      */
+    CommonPager<SelectorVO> listByPageWithPermission(SelectorQuery selectorQuery);
+
+    /**
+     * find page of selector by query.
+     * @param selectorQuery selectorQuery
+     * @return CommonPager
+     */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
-    
+
     /**
      * Find by plugin id list.
      *
