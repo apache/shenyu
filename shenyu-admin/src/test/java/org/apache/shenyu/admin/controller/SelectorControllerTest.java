@@ -94,7 +94,7 @@ public final class SelectorControllerTest {
 
     @Test
     public void querySelectors() throws Exception {
-        given(this.selectorService.listByPage(selectorQuery)).willReturn(commonPager);
+        given(this.selectorService.listByPageWithPermission(selectorQuery)).willReturn(commonPager);
         String urlTemplate = "/selector?pluginId={pluginId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "2", "selector-1", 1, 12))
                 .andExpect(status().isOk())

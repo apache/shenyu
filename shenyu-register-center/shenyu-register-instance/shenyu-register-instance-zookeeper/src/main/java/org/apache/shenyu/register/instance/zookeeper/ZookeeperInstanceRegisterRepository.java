@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.register.instance.zookeeper;
 
-import org.I0Itec.zkclient.IZkStateListener;
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.state.ConnectionState;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -26,7 +26,7 @@ import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
-import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperInstanceRegisterRepository.class);
 
-    private ZkClient zkClient;
+    private ZookeeperClient client;
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
@@ -51,28 +51,54 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         Properties props = config.getProps();
         int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));
         int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
-        this.zkClient = new ZkClient(config.getServerLists(), sessionTimeout, connectionTimeout);
-        this.zkClient.subscribeStateChanges(new ZkStateListener());
+
+        int baseSleepTime = Integer.parseInt(props.getProperty("baseSleepTime", "1000"));
+        int maxRetries = Integer.parseInt(props.getProperty("maxRetries", "3"));
+        int maxSleepTime = Integer.parseInt(props.getProperty("maxSleepTime", String.valueOf(Integer.MAX_VALUE)));
+
+        ZookeeperConfig zkConfig = new ZookeeperConfig(config.getServerLists());
+        zkConfig.setBaseSleepTimeMilliseconds(baseSleepTime)
+                .setMaxRetries(maxRetries)
+                .setMaxSleepTimeMilliseconds(maxSleepTime)
+                .setSessionTimeoutMilliseconds(sessionTimeout)
+                .setConnectionTimeoutMilliseconds(connectionTimeout);
+
+        String digest = props.getProperty("digest");
+        if (!StringUtils.isEmpty(digest)) {
+            zkConfig.setDigest(digest);
+        }
+
+        this.client = new ZookeeperClient(zkConfig);
+        this.client.getClient().getConnectionStateListenable().addListener((c, newState) -> {
+            if (newState == ConnectionState.RECONNECTED) {
+                nodeDataMap.forEach((k, v) -> {
+                    if (!client.isExist(k)) {
+                        client.createOrUpdate(k, v, CreateMode.EPHEMERAL);
+                        LOGGER.info("zookeeper client register instance success: {}", v);
+                    }
+                });
+            }
+        });
+
+        client.start();
     }
     
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
         String uriNodeName = buildInstanceNodeName(instance);
         String instancePath = RegisterPathConstants.buildInstanceParentPath();
-        if (!zkClient.exists(instancePath)) {
-            zkClient.createPersistent(instancePath, true);
+        if (!client.isExist(instancePath)) {
+            client.createOrUpdate(instancePath, "", CreateMode.PERSISTENT);
         }
         String realNode = RegisterPathConstants.buildRealNode(instancePath, uriNodeName);
-        if (!zkClient.exists(realNode)) {
-            String nodeData = GsonUtils.getInstance().toJson(instance);
-            nodeDataMap.put(realNode, nodeData);
-            zkClient.createEphemeral(realNode, nodeData);
-        }
+        String nodeData = GsonUtils.getInstance().toJson(instance);
+        nodeDataMap.put(realNode, nodeData);
+        client.createOrUpdate(realNode, nodeData, CreateMode.EPHEMERAL);
     }
     
     @Override
     public void close() {
-        zkClient.close();
+        client.close();
     }
 
     private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
@@ -81,25 +107,4 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
-    private class ZkStateListener implements IZkStateListener {
-        @Override
-        public void handleStateChanged(final Watcher.Event.KeeperState keeperState) {
-            if (Watcher.Event.KeeperState.SyncConnected.equals(keeperState)) {
-                nodeDataMap.forEach((k, v) -> {
-                    if (!zkClient.exists(k)) {
-                        zkClient.createEphemeral(k, v);
-                        LOGGER.info("zookeeper client register success: {}", v);
-                    }
-                });
-            }
-        }
-
-        @Override
-        public void handleNewSession() {
-        }
-
-        @Override
-        public void handleSessionEstablishmentError(final Throwable throwable) {
-        }
-    }
 }

@@ -72,7 +72,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     public ShenyuAdminResult querySelectors(final String pluginId, final String name,
                                             @RequestParam @NotNull final Integer currentPage,
                                             @RequestParam @NotNull final Integer pageSize) {
-        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));
+        CommonPager<SelectorVO> commonPager = selectorService.listByPageWithPermission(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
     

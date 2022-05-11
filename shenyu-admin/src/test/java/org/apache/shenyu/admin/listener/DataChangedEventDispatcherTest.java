@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,9 @@ public final class DataChangedEventDispatcherTest {
     @Mock
     private ZookeeperDataChangedListener zookeeperDataChangedListener;
 
+    @Mock
+    private LoadServiceDocEntry loadServiceDocEntry;
+
     @BeforeEach
     public void setUp() {
         Map<String, DataChangedListener> listenerMap = new HashMap<>();
@@ -77,6 +81,9 @@ public final class DataChangedEventDispatcherTest {
         listenerMap.put("websocketDataChangedListener", websocketDataChangedListener);
         listenerMap.put("zookeeperDataChangedListener", zookeeperDataChangedListener);
         when(applicationContext.getBeansOfType(DataChangedListener.class)).thenReturn(listenerMap);
+
+        when(applicationContext.getBean(LoadServiceDocEntry.class)).thenReturn(loadServiceDocEntry);
+        applicationContext.getBean(LoadServiceDocEntry.class);
         dataChangedEventDispatcher.afterPropertiesSet();
     }
 
