@@ -301,6 +301,7 @@ public class RuleServiceImpl implements RuleService {
                         }
                     }
                     return null;
-                }).collect(Collectors.toList());
+                }).filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

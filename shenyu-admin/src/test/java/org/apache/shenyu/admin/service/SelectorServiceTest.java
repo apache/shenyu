@@ -205,6 +205,7 @@ public final class SelectorServiceTest {
     public void testListAll() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
         given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
+        given(this.pluginMapper.selectByIds(any())).willReturn(Collections.singletonList(buildPluginDO()));
         List<SelectorData> dataList = this.selectorService.listAll();
         assertNotNull(dataList);
         assertEquals(selectorDOs.size(), dataList.size());
