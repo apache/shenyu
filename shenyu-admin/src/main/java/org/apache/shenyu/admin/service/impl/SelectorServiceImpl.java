@@ -440,6 +440,7 @@ public class SelectorServiceImpl implements SelectorService {
                     List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(selectorConditionMap.get(id));
                     return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
     
