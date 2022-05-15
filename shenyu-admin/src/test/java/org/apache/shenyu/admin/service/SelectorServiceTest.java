@@ -39,6 +39,7 @@ import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -110,12 +111,15 @@ public final class SelectorServiceTest {
 
     @Mock
     private UpstreamCheckService upstreamCheckService;
+    
+    @Mock
+    private SelectorEventPublisher selectorEventPublisher;
 
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
-                ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService);
+                ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService, selectorEventPublisher);
     }
 
     @Test
@@ -185,7 +189,7 @@ public final class SelectorServiceTest {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
         given(this.selectorMapper.selectByQuery(any())).willReturn(selectorDOs);
         SelectorQuery params = buildSelectorQuery();
-        final CommonPager<SelectorVO> result = this.selectorService.listByPage(params);
+        final CommonPager<SelectorVO> result = this.selectorService.listByPageWithPermission(params);
         assertThat(result, notNullValue());
         assertEquals(selectorDOs.size(), result.getDataList().size());
     }
@@ -201,6 +205,7 @@ public final class SelectorServiceTest {
     public void testListAll() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
         given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
+        given(this.pluginMapper.selectByIds(any())).willReturn(Collections.singletonList(buildPluginDO()));
         List<SelectorData> dataList = this.selectorService.listAll();
         assertNotNull(dataList);
         assertEquals(selectorDOs.size(), dataList.size());

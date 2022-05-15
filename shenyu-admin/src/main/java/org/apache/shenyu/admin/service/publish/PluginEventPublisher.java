@@ -21,8 +21,10 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
-import org.apache.shenyu.admin.model.event.BatchPluginChangedEvent;
-import org.apache.shenyu.admin.model.event.PluginChangedEvent;
+import org.apache.shenyu.admin.model.event.plugin.BatchPluginChangedEvent;
+import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
+import org.apache.shenyu.admin.model.event.plugin.PluginChangedEvent;
+import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -36,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * ModelDataEventPublisher.
+ * PluginEventPublisher.
  */
 @Component
 public class PluginEventPublisher implements AdminDataModelChangedEventPublisher<PluginDO> {
@@ -56,7 +58,7 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
     public void onCreated(final PluginDO plugin) {
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.CREATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(plugin))));
-        publish(new PluginChangedEvent(plugin, null, EventTypeEnum.PLUGIN_CREATE, SessionUtil.visitorName()));
+        publish(new PluginCreatedEvent(plugin, SessionUtil.visitorName()));
     }
     
     /**
@@ -91,7 +93,7 @@ public class PluginEventPublisher implements AdminDataModelChangedEventPublisher
      */
     @Override
     public void onDeleted(final Collection<PluginDO> plugins) {
-        publish(new BatchPluginChangedEvent(plugins, null, EventTypeEnum.PLUGIN_DELETE, SessionUtil.visitorName()));
+        publish(new BatchPluginDeletedEvent(plugins, SessionUtil.visitorName()));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
                 plugins.stream().map(PluginTransfer.INSTANCE::mapToData).collect(Collectors.toList())));
     }

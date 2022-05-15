@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.event;
+package org.apache.shenyu.admin.model.event.plugin;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.event.BatchChangedEvent;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
