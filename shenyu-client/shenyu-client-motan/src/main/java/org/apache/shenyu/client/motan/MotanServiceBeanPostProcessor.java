@@ -39,6 +39,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -58,6 +60,8 @@ import java.util.stream.Collectors;
 public class MotanServiceBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
 
     private static final String BASE_SERVICE_CONFIG = "baseServiceConfig";
+
+    private static final String PATH_SEPARATOR = "/";
 
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
@@ -116,21 +120,23 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         if (AopUtils.isAopProxy(bean)) {
             clazz = AopUtils.getTargetClass(bean);
         }
+        String superPath = buildApiSuperPath(clazz);
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         MotanService service = clazz.getAnnotation(MotanService.class);
         for (Method method : methods) {
             ShenyuMotanClient shenyuMotanClient = method.getAnnotation(ShenyuMotanClient.class);
             if (Objects.nonNull(shenyuMotanClient)) {
                 publisher.publishEvent(buildMetaDataDTO(clazz, service,
-                        shenyuMotanClient, method, buildRpcExt(methods, timeout)));
+                        shenyuMotanClient, method, buildRpcExt(methods, timeout), superPath));
             }
         }
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO(final Class<?> clazz, final MotanService service,
-                                                 final ShenyuMotanClient shenyuMotanClient, final Method method, final String rpcExt) {
+                                                 final ShenyuMotanClient shenyuMotanClient, final Method method,
+                                                 final String rpcExt, final String superPath) {
         String appName = this.appName;
-        String path = this.contextPath + shenyuMotanClient.path();
+        String path = pathJoin(this.contextPath, superPath, shenyuMotanClient.path());
         String desc = shenyuMotanClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
@@ -190,6 +196,25 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         }
         MotanRpcExt buildList = new MotanRpcExt(list, group, timeout);
         return GsonUtils.getInstance().toJson(buildList);
+    }
+
+    private String buildApiSuperPath(@NonNull final Class<?> clazz) {
+        ShenyuMotanClient shenyuMotanClient = AnnotationUtils.findAnnotation(clazz, ShenyuMotanClient.class);
+        if (Objects.nonNull(shenyuMotanClient) && StringUtils.isNotBlank(shenyuMotanClient.path())) {
+            return shenyuMotanClient.path();
+        }
+        return "";
+    }
+
+    private String pathJoin(@NonNull final String... path) {
+        StringBuilder result = new StringBuilder(PATH_SEPARATOR);
+        for (String p : path) {
+            if (!result.toString().endsWith(PATH_SEPARATOR)) {
+                result.append(PATH_SEPARATOR);
+            }
+            result.append(p.startsWith(PATH_SEPARATOR) ? p.replaceFirst(PATH_SEPARATOR, "") : p);
+        }
+        return result.toString();
     }
 
     @Override
