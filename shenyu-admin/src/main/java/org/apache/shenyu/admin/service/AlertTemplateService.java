@@ -21,7 +21,6 @@ import org.apache.shenyu.admin.model.dto.AlertTemplateDTO;
 import org.apache.shenyu.admin.model.entity.AlertTemplate;
 import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
@@ -31,12 +30,14 @@ public interface AlertTemplateService {
 
     /**
      * Add alert template.
+     * @param alertTemplateDTO alertTemplateDTO
      * @return row int
      */
     int addTemplate(AlertTemplateDTO alertTemplateDTO);
 
     /**
      * Delete alert template.
+     * @param ids ids
      * @return row int
      */
     int deleteTemplate(List<String> ids);

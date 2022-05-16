@@ -19,29 +19,14 @@ package org.apache.shenyu.admin.model.vo;
 
 public class AlertTemplateVO {
 
-    /**
-     * id.
-     */
     private Long id;
 
-    /**
-     * alert template name.
-     */
     private String name;
 
-    /**
-     * alert template strategy name.
-     */
     private String strategyName;
 
-    /**
-     * created time.
-     */
     private String dateCreated;
 
-    /**
-     * updated time.
-     */
     private String dateUpdated;
 
     /**

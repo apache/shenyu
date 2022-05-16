@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.service.AlertTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
@@ -59,7 +58,7 @@ public class AlertTemplateServiceImpl implements AlertTemplateService {
     }
 
     @Override
-    public AlertTemplate detail(Long id) {
+    public AlertTemplate detail(final Long id) {
         return alertTemplateMapper.selectByPrimaryKey(id);
     }
 }

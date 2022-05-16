@@ -25,7 +25,12 @@ import org.apache.shenyu.admin.service.AlertTemplateService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -45,6 +50,7 @@ public class AlertTemplateController {
 
     /**
      * Add alert template.
+     * @param alertTemplateDTO alertTemplateDTO
      * @return row int
      */
     @PostMapping("addTemplate")
@@ -55,6 +61,7 @@ public class AlertTemplateController {
 
     /**
      * Delete alert template.
+     * @param ids ids
      * @return row int
      */
     @PostMapping("deleteTemplate")

@@ -56,7 +56,7 @@ public class AlertTemplateDTO {
      * set id.
      * @param id id
      */
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
@@ -70,7 +70,7 @@ public class AlertTemplateDTO {
 
     /**
      * set alert template name.
-     * @param name
+     * @param name name
      */
     public void setName(final String name) {
         this.name = name;
