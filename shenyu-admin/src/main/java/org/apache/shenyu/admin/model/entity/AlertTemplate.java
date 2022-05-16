@@ -22,32 +22,32 @@ import java.util.Date;
 public class AlertTemplate {
 
     /**
-    * primary key id
+    * primary key id.
     */
     private Long id;
 
     /**
-    * alert template name
+    * alert template name.
     */
     private String name;
 
     /**
-    * alert template strategy name
+    * alert template strategy name.
     */
     private String strategyName;
 
     /**
-    * alert template content
+    * alert template content.
     */
     private String content;
 
     /**
-    * create time
+    * create time.
     */
     private Date dateCreated;
 
     /**
-    * update time
+    * update time.
     */
     private Date dateUpdated;
 
@@ -146,4 +146,5 @@ public class AlertTemplate {
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
+
 }

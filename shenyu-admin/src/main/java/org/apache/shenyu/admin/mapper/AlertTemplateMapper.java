@@ -60,5 +60,4 @@ public interface AlertTemplateMapper {
      * @return list of AlertTemplateVO
      */
     List<AlertTemplateVO> selectAll();
-
 }
