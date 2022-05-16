@@ -121,8 +121,13 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
             clazz = AopUtils.getTargetClass(bean);
         }
         String superPath = buildApiSuperPath(clazz);
-        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         MotanService service = clazz.getAnnotation(MotanService.class);
+        ShenyuMotanClient beanShenyuClient = AnnotationUtils.findAnnotation(clazz, ShenyuMotanClient.class);
+        if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
+            publisher.publishEvent(buildMetaDataDTO(clazz, service, beanShenyuClient, pathJoin(contextPath, superPath)));
+            return;
+        }
+        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             ShenyuMotanClient shenyuMotanClient = method.getAnnotation(ShenyuMotanClient.class);
             if (Objects.nonNull(shenyuMotanClient)) {
@@ -174,6 +179,39 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
                 .build();
     }
 
+    private MetaDataRegisterDTO buildMetaDataDTO(final Class<?> clazz, final MotanService service,
+                                                 final ShenyuMotanClient shenyuMotanClient, final String path) {
+        String appName = this.appName;
+        String desc = shenyuMotanClient.desc();
+        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
+        String configRuleName = shenyuMotanClient.ruleName();
+        String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
+        String serviceName;
+        if (void.class.equals(service.interfaceClass())) {
+            if (clazz.getInterfaces().length > 0) {
+                serviceName = clazz.getInterfaces()[0].getName();
+            } else {
+                throw new ShenyuClientIllegalArgumentException("Failed to export remote service class " + clazz.getName()
+                        + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
+            }
+        } else {
+            serviceName = service.interfaceClass().getName();
+        }
+        return MetaDataRegisterDTO.builder()
+                .appName(appName)
+                .serviceName(serviceName)
+                .contextPath(this.contextPath)
+                .path(path)
+                .port(port)
+                .host(host)
+                .ruleName(ruleName)
+                .pathDesc(desc)
+                .rpcType(RpcTypeEnum.MOTAN.getName())
+                .enabled(shenyuMotanClient.enabled())
+                .build();
+    }
+    
     private MotanRpcExt.RpcExt buildRpcExt(final Method method) {
         String[] paramNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
         List<Pair<String, String>> params = new ArrayList<>();
