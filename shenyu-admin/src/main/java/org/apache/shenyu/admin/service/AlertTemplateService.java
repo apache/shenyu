@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.AlertTemplateDTO;
-import org.apache.shenyu.admin.model.entity.AlertTemplate;
+import org.apache.shenyu.admin.model.entity.AlertTemplateDO;
 import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
 
 import java.util.List;
@@ -58,8 +58,8 @@ public interface AlertTemplateService {
     /**
      * Template detail.
      * @param id id
-     * @return {@link AlertTemplate}
+     * @return {@link AlertTemplateDO}
      */
-    AlertTemplate detail(Long id);
+    AlertTemplateDO detail(Long id);
 
 }

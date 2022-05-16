@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.apache.shenyu.admin.mapper.AlertTemplateMapper">
-  <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.AlertTemplate">
+  <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.AlertTemplateDO">
     <!--@mbg.generated-->
     <!--@Table alert_template-->
     <id column="id" jdbcType="BIGINT" property="id" />

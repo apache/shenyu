@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.model.dto.AlertTemplateDTO;
-import org.apache.shenyu.admin.model.entity.AlertTemplate;
+import org.apache.shenyu.admin.model.entity.AlertTemplateDO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
 import org.apache.shenyu.admin.service.AlertTemplateService;
@@ -93,7 +93,7 @@ public class AlertTemplateController {
     /**
      * Template detail.
      * @param id id
-     * @return {@link AlertTemplate}
+     * @return {@link AlertTemplateDO}
      */
     @GetMapping("detail/{id}")
     public ShenyuAdminResult detail(@PathVariable("id") final Long id) {

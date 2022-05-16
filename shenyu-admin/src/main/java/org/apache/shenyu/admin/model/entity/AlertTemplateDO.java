@@ -22,7 +22,7 @@ import java.util.Date;
 /**
  * AlertTemplate.
  */
-public class AlertTemplate {
+public class AlertTemplateDO {
 
     /**
     * primary key id.

@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.mapper.AlertTemplateMapper;
 import org.apache.shenyu.admin.model.dto.AlertTemplateDTO;
-import org.apache.shenyu.admin.model.entity.AlertTemplate;
+import org.apache.shenyu.admin.model.entity.AlertTemplateDO;
 import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
 import org.apache.shenyu.admin.service.AlertTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ public class AlertTemplateServiceImpl implements AlertTemplateService {
     }
 
     @Override
-    public AlertTemplate detail(final Long id) {
+    public AlertTemplateDO detail(final Long id) {
         return alertTemplateMapper.selectByPrimaryKey(id);
     }
 }

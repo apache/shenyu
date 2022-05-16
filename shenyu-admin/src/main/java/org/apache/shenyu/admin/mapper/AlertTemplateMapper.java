@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.dto.AlertTemplateDTO;
-import org.apache.shenyu.admin.model.entity.AlertTemplate;
+import org.apache.shenyu.admin.model.entity.AlertTemplateDO;
 import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
 
 import java.util.List;
@@ -47,9 +47,9 @@ public interface AlertTemplateMapper {
     /**
      * select by id.
      * @param id id
-     * @return {@linkplain AlertTemplate}
+     * @return {@linkplain AlertTemplateDO}
      */
-    AlertTemplate selectByPrimaryKey(Long id);
+    AlertTemplateDO selectByPrimaryKey(Long id);
 
     /**
      * update selective alertTemplate by id.
