@@ -24,6 +24,9 @@ import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
 
 import java.util.List;
 
+/**
+ * AlertTemplateMapper.
+ */
 @Mapper
 public interface AlertTemplateMapper {
 

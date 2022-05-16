@@ -19,6 +19,9 @@ package org.apache.shenyu.admin.model.entity;
 
 import java.util.Date;
 
+/**
+ * AlertTemplate.
+ */
 public class AlertTemplate {
 
     /**
