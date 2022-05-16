@@ -35,6 +35,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -51,6 +52,11 @@ import java.util.stream.Collectors;
  */
 //@SuppressWarnings("all")
 public class AlibabaDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
+
+    /**
+     * api path separator.
+     */
+    private static final String PATH_SEPARATOR = "/";
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -99,17 +105,38 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         if (AopUtils.isAopProxy(refProxy)) {
             clazz = AopUtils.getTargetClass(refProxy);
         }
+
+        final String superPath = buildApiSuperPath(clazz);
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             ShenyuDubboClient shenyuDubboClient = method.getAnnotation(ShenyuDubboClient.class);
             if (Objects.nonNull(shenyuDubboClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuDubboClient, method));
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuDubboClient, method, superPath));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
-        String path = contextPath + shenyuDubboClient.path();
+    private String buildApiSuperPath(@NonNull final Class<?> clazz) {
+        ShenyuDubboClient shenyuDubboClient = AnnotationUtils.findAnnotation(clazz, ShenyuDubboClient.class);
+        if (Objects.nonNull(shenyuDubboClient) && !StringUtils.isBlank(shenyuDubboClient.path())) {
+            return shenyuDubboClient.path();
+        }
+        return "";
+    }
+
+    private String pathJoin(@NonNull final String... path) {
+        StringBuilder result = new StringBuilder(PATH_SEPARATOR);
+        for (String p : path) {
+            if (!result.toString().endsWith(PATH_SEPARATOR)) {
+                result.append(PATH_SEPARATOR);
+            }
+            result.append(p.startsWith(PATH_SEPARATOR) ? p.replaceFirst(PATH_SEPARATOR, "") : p);
+        }
+        return result.toString();
+    }
+
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method, final String superPath) {
+        String path = pathJoin(contextPath, superPath, shenyuDubboClient.path());
         String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
         String configRuleName = shenyuDubboClient.ruleName();

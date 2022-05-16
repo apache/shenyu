@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
  * The type Dubbo multi param service.
  */
 @Service("dubboMultiParamService")
+@ShenyuDubboClient(path = "/demo")
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     
     @Override
